@@ -1,0 +1,37 @@
+### General ###
+.env
+.DS_Store
+Thumbs.db
+*.log
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Java / Gradle ###
+backend/.gradle/
+backend/build/
+backend/target/
+
+### Spring / STS / Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Ignorar solo bin compilado del backend, no carpetas "out" dentro de src
+backend/bin/
+
+### VS Code ###
+.vscode/
+
+### Frontend / Node ###
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/coverage/

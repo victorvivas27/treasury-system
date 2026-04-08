@@ -1,0 +1,63 @@
+name: CI - Integración Continua
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  validate-commits:
+    name: Validar Conventional Commits
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validar commits con commitlint
+        uses: wagoid/commitlint-github-action@v5
+        with:
+          configFile: .commitlintrc.json
+          failOnErrors: true
+
+  build-and-test:
+    name: Compilar, testear y verificar cobertura
+    runs-on: ubuntu-latest
+    needs: validate-commits
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Dar permisos a gradlew
+        run: chmod +x ./gradlew
+
+      - name: Compilar proyecto
+        run: ./gradlew clean compileJava
+
+      - name: Ejecutar tests y generar cobertura
+        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+
+      - name: Subir reporte de cobertura como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/build/reports/jacoco/test/html

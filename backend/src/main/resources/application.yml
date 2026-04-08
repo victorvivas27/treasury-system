@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: tesoreria-app
+  profiles:
+      active: ${APP_PROFILE:dev}
+
+server:
+      port: 5055
+      servlet:
+        context-path: /tesoreria
+

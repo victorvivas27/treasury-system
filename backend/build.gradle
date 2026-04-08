@@ -1,0 +1,118 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.4'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+}
+
+group = 'com.tesoreria'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// SPRING
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+	// LOMBOK
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// DEVTOOLS
+	//developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// DB
+	runtimeOnly 'com.h2database:h2'
+	implementation 'org.postgresql:postgresql:42.7.3'
+
+    // TEST (ÚNICO QUE SE USA)
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+	// Permitir filtrado por tags desde la consola
+	if (project.hasProperty("includeTags")) {
+		useJUnitPlatform {
+			includeTags project.getProperty("includeTags").split(',')
+		}
+	}
+
+	if (project.hasProperty("excludeTags")) {
+		useJUnitPlatform {
+			excludeTags project.getProperty("excludeTags").split(',')
+		}
+	}
+}
+
+// ========== CONFIGURACIÓN JACOCO ==========
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+def excludedClasses = [
+		'**/TesoreriaAppApplication.class',
+		'**/config/**',
+		'**/dto/**',
+		'**/exception/**',
+		'**/constant/**',
+		'**/entity/**',
+		'**/mapper/**',
+		'**/*Controller.*',
+		'**/*Repository.*',
+		'**/port/**',
+		'**/adapter/**',
+		'**/shared/**'
+]
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+		csv.required = false
+	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedClasses)
+		}))
+	}
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.70
+			}
+		}
+	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedClasses)
+		}))
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
