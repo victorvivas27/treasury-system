@@ -26,7 +26,6 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Esta regla es la que nos falló en el CI:
       '@typescript-eslint/no-unused-vars': 'error',
     },
   },
