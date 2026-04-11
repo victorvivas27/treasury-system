@@ -1,0 +1,36 @@
+/* Variables Globales */
+:root {
+  /* 1. La base de la marca */
+  --color-primary: #1a1a1a;
+  /* El color principal (identidad) */
+  --color-accent: #00d1b2;
+  /* El color que resalta (llamado a la acción) */
+  /* 2. Colores de superficie y fondo */
+  --color-surface: #ffffff;
+  /* Color de tarjetas, tablas y elementos elevados */
+  --color-background: #000000;
+  /* El fondo general de la aplicación */
+  /* 3. Colores de información y estado */
+  --color-success: #28a745;
+  /* Para saldos a favor o procesos OK */
+  --color-error: #dc3545;
+  /* Para deudas, errores o alertas críticas */
+  --color-text-main: #333333;
+  --color-text-muted: #666666;
+  /* Para fechas o textos chiquitos */
+  /* Tipografía */
+  --font-main: 'sans-serif';
+}
+
+/* Reset básico para que en móvil se vea bien */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+}
