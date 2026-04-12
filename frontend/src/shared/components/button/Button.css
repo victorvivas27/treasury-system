@@ -1,0 +1,49 @@
+/* Button.css */
+.base-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.size-small { font-size: 0.8rem; padding: 5px 10px; }
+.size-large { font-size: 1.2rem; padding: 15px 30px; }
+
+/* Variante Primary: Define color y fondo */
+.button-primary {
+  background-color: var(--color-primary);
+  color: var(--color-success);
+}
+
+/* Variante Secondary: Define otro estilo */
+.button-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+/* Variante Danger: Para acciones críticas */
+.button-danger {
+  background-color: var(--color-error);
+  color: var(--color-surface);
+}
+
+/* Tamaños específicos */
+.size-small {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.size-medium {
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.size-large {
+  padding: 16px 32px;
+  font-size: 20px;
+}
+
+

@@ -3,7 +3,7 @@ import { MainLayout } from "@/shared/layouts/MainLayout";
 import { HomePage } from "../pages/HomePage";
 import { DashboardPage } from "@/presentation/pages/DashboardPage";
 import { ApoderadoPage } from "@/presentation/pages/ApoderadoPage";
-import { NotFoundPage } from "../pages/NotFoundPage";
+import { NotFoundPage } from "../pages/NotFoundPage/NotFoundPage";
 
 export const AppRouter = () => {
   return (
