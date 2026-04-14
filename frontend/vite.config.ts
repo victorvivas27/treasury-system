@@ -22,7 +22,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
-    // IMPORTANTE: Asegura que busque en todas las subcarpetas de src
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Opcional: Para que no intente procesar archivos CSS pesados en los tests
     css: true,
