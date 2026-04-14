@@ -27,5 +27,12 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Opcional: Para que no intente procesar archivos CSS pesados en los tests
     css: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'], // 'html' genera una carpeta para ver el reporte visual
+      clean: true, // Esto reemplaza al fallido --cleanOnRerender
+      open: true, // <--- Esto abre el navegador automáticamente
+      all: true, // Incluye archivos que no tienen tests aún
+    },
   },
 })
