@@ -29,8 +29,6 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'], // 'html' genera una carpeta para ver el reporte visual
       clean: true, // Esto reemplaza al fallido --cleanOnRerender
-      open: true, // <--- Esto abre el navegador automáticamente
-      all: true, // Incluye archivos que no tienen tests aún
     },
   },
 })

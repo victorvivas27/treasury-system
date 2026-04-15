@@ -3,16 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-"scripts": {
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "lint": "oxlint . -D no-unused-vars",
-  "preview": "vite preview",
-  "test": "vitest",
-  "test:run": "vitest run",
-  "test:coverage": "vitest run --coverage",
-  "test:coverage:open": "vitest run --coverage && start coverage/index.html"
-},
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint . -D no-unused-vars",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:open": "vitest run --coverage && start coverage/index.html"
+  },
   "dependencies": {
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
@@ -34,7 +34,7 @@
     "globals": "^15.15.0",
     "jsdom": "^29.0.2",
     "oxlint": "^1.59.0",
-    "typescript": "5.7",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.1",
     "vite": "^8.0.8",
     "vitest": "^4.1.4"
