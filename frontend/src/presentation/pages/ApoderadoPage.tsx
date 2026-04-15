@@ -1,6 +1,6 @@
-interface Props {}
 
-export const ApoderadoPage = ({}: Props) => {
+
+export const ApoderadoPage = () => {
   return (
     <div>
       ApoderadoPage

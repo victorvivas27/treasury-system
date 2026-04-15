@@ -1,6 +1,6 @@
-interface Props {}
 
-export const HomePage = ({}: Props) => {
+
+export const HomePage = () => {
   return (
     <div>
       HomePage

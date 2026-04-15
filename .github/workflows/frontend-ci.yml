@@ -3,14 +3,16 @@ name: Frontend CI
 on:
   push:
     branches: [main, dev]
-    paths: ['frontend/**']
+    paths:
+      - 'frontend/**'
   pull_request:
     branches: [main, dev]
-    paths: ['frontend/**']
+    paths:
+      - 'frontend/**'
 
 jobs:
   validate-frontend:
-    name: Lint & Build Check
+    name: Lint, Test, Build and Coverage
     runs-on: ubuntu-latest
 
     defaults:
@@ -18,7 +20,8 @@ jobs:
         working-directory: frontend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,8 +32,23 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: frontend
 
-      - name: Lint Check
-        run: npx --package typescript --package ts-node oxlint . -D no-unused-vars
-        working-directory: frontend
+      - name: Show versions
+        run: |
+          node -v
+          npm -v
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage

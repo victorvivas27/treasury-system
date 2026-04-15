@@ -1,6 +1,6 @@
-interface Props {}
 
-export const DashboardPage = ({}: Props) => {
+
+export const DashboardPage = () => {
   return (
     <div>
       DashboardPage

@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
 
-interface Props { }
 
-export const Sidebar = ({ }: Props) => {
+
+export const Sidebar = () => {
   return (
     <aside>
       <h3>Tesorería Admin</h3>

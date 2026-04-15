@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/shared/layouts/sidebar/Sidebar";
 
-interface Props { }
 
-export const MainLayout = ({ }: Props) => {
+
+export const MainLayout = () => {
   return (
     <section>
       <Sidebar />
