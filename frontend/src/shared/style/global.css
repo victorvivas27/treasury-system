@@ -1,25 +1,34 @@
 /* Variables Globales */
 :root {
-  /* 1. La base de la marca */
-  --color-primary: #1a1a1a;
-  /* El color principal (identidad) */
-  --color-accent: #00d1b2;
-  /* El color que resalta (llamado a la acción) */
-  /* 2. Colores de superficie y fondo */
-  --color-surface: #ffffff;
-  /* Color de tarjetas, tablas y elementos elevados */
-  --color-background: #000000;
-  /* El fondo general de la aplicación */
-  /* 3. Colores de información y estado */
-  --color-success: #28a745;
-  /* Para saldos a favor o procesos OK */
-  --color-error: #dc3545;
-  /* Para deudas, errores o alertas críticas */
-  --color-text-main: #333333;
-  --color-text-muted: #666666;
-  /* Para fechas o textos chiquitos */
-  /* Tipografía */
-  --font-main: 'sans-serif';
+/* =========================
+   🌙 THEME DARK - TESORERÍA
+   ========================= */
+
+  /* 1. Base (evitar negro puro) */
+  --color-background: #0A0F1A;   /* Fondo principal */
+  --color-surface: #111827;      /* Cards, tablas */
+
+  /* 2. Identidad (ajustada para dark) */
+  --color-primary: #1E3A5F;      /* Azul más visible en oscuro */
+  --color-accent: #2DD4BF;       /* Teal más brillante */
+
+  /* 3. Estados (subidos de brillo) */
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+
+  /* 4. Texto (clave para dashboards) */
+  --color-text-main: #E5E7EB;    /* Texto principal */
+  --color-text-muted: #9CA3AF;   /* Secundario */
+
+  /* 5. Bordes / separación */
+  --color-border: #1F2937;
+  --color-divider: #0F172A;
+
+  /* 6. Extras útiles */
+  --color-hover: #1F2937;
+  --color-active: #374151;
+--color-active-strong: #FACC15;
 
 }
 

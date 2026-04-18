@@ -1,24 +1,20 @@
-import { NavLink } from "react-router-dom";
+import "./style/Sidebar.css";
 
+import { SidebarHeader } from "./SidebarHeader";
+import { SidebarNav } from "./SidebarNav";
+import { SidebarFooter } from "./SidebarFooter";
+//import { SidebarSearch } from "./SidebarSearch";
 
-
-export const Sidebar = () => {
+interface SidebarProps {
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
+}
+export const Sidebar = ({ isSidebarOpen, onToggleSidebar }: SidebarProps) => {
   return (
-    <aside>
-      <h3>Tesorería Admin</h3>
-      <nav >
-        <NavLink to="/">
-          Home
-        </NavLink>
-
-        <NavLink to="/dashboard" >
-          Dashboard
-        </NavLink>
-
-        <NavLink to="/apoderados" >
-          Apoderados
-        </NavLink>
-      </nav>
+    <aside className={`sidebar ${!isSidebarOpen ? "sidebar--collapsed" : ""}`}>
+      <SidebarHeader onToggleSidebar={onToggleSidebar} />
+      <SidebarNav />
+      <SidebarFooter />
     </aside>
   );
 };

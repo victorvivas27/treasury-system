@@ -1,0 +1,14 @@
+/* Contenedor general */
+.sidebar-layout {
+  display: flex;
+}
+
+/* Área del contenido */
+.outlet-layout {
+  flex: 1;
+  margin-left: 13rem; /* 🔥 mismo ancho del sidebar */
+  padding: 1rem;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  transition: margin-left 0.5s ease;
+}
