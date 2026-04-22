@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(ApiConstants.APODERADOS)
+@CrossOrigin
 public class ApoderadoController {
 
     private final ApoderadoService apoderadoService;
