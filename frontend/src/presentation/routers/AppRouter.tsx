@@ -16,13 +16,13 @@ export const AppRouter = () => {
     <Routes>
       <Route path="/" element={<MainLayout />} >
         <Route index element={<HomePage />} />
+        <Route path="users" element={<User />} />
+        <Route path="students" element={<Alumno />} />
+        <Route path="parents" element={<ApoderadoPage />} />
+        <Route path="treasury" element={<Tesoreria />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="apoderados" element={<ApoderadoPage />} />
-        <Route path="usuarios" element={<User />} />
-        <Route path="alumnos" element={<Alumno />} />
-        <Route path="tesoreria" element={<Tesoreria />} />
-        <Route path="notificaciones" element={<Notificacion />} />
-        <Route path="configuracion" element={<Configuracion />} />
+        <Route path="notifications" element={<Notificacion />} />
+        <Route path="configuration" element={<Configuracion />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

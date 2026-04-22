@@ -23,28 +23,29 @@ export const SIDEBAR_LINKS = [
     title: "General",
     links: [
       { label: "Home", path: "/", icon: ICONS.home },
-      { label: "Dashboard", path: "/dashboard", icon: ICONS.dashboard },
+
     ],
   },
   {
     title: "Gestión de Personas",
     links: [
-      { label: "Usuarios", path: "/usuarios", icon: ICONS.usuarios },
-      { label: "Alumnos", path: "/alumnos", icon: ICONS.alumnos },
-      { label: "Apoderados", path: "/apoderados", icon: ICONS.apoderados },
+      { label: "Usuarios", path: "/users", icon: ICONS.usuarios },
+      { label: "Alumnos", path: "/students", icon: ICONS.alumnos },
+      { label: "Apoderados", path: "/parents", icon: ICONS.apoderados },
     ],
   },
   {
     title: "Finanzas",
     links: [
-      { label: "Tesorería", path: "/tesoreria", icon: ICONS.tesoreria },
+      { label: "Tesorería", path: "/treasury", icon: ICONS.tesoreria },
+      { label: "Dashboard", path: "/dashboard", icon: ICONS.dashboard },
     ],
   },
 ];
 
 export const SIDEBAR_FOOTER_LINKS = [
-  { label: "Notificaciones", path: "/notificaciones", icon: ICONS.notifications },
-  { label: "Configuración", path: "/configuracion", icon: ICONS.settings },
+  { label: "Notificaciones", path: "/notifications", icon: ICONS.notifications },
+  { label: "Configuración", path: "/configuration", icon: ICONS.settings },
 ];
 
 export const SIDEBAR_USER_MOCK = {
