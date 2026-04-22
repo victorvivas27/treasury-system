@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import "./style/SidebarFooter.css";
-import { SIDEBAR_FOOTER_LINKS, SIDEBAR_USER_MOCK } from "@/shared/components/ui/Icons";
+import { SIDEBAR_FOOTER_LINKS, SIDEBAR_USER_MOCK } from "@/shared/constants/Icons";
 
 export const SidebarFooter = () => {
   const { name, email, avatar, actions } = SIDEBAR_USER_MOCK;

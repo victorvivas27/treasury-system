@@ -1,7 +1,7 @@
 
 
 
-import { SIDEBAR_LINKS } from "@/shared/components/ui/Icons";
+import { SIDEBAR_LINKS } from "@/shared/constants/Icons";
 import "./style/SidebarNav.css";
 import { NavLink } from "react-router-dom";
 

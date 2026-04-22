@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 import { MemoryRouter } from "react-router-dom";
 import { SidebarNav } from "./SidebarNav";
-import { SIDEBAR_FOOTER_LINKS, SIDEBAR_LINKS, SIDEBAR_USER_MOCK } from "@/shared/components/ui/Icons";
+import { SIDEBAR_FOOTER_LINKS, SIDEBAR_LINKS, SIDEBAR_USER_MOCK } from "@/shared/constants/Icons";
 import { SidebarFooter } from "./SidebarFooter";
 
 

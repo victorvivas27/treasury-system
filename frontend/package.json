@@ -14,6 +14,7 @@
     "test:coverage:open": "vitest run --coverage && start coverage/index.html"
   },
   "dependencies": {
+    "axios": "^1.15.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-icons": "^5.6.0",
