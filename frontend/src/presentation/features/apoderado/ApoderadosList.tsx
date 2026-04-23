@@ -3,7 +3,8 @@ import "./ApoderadosList.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ApoderadosListSkeleton } from "./ApoderadosListSkeleton";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
-import { FcConferenceCall } from "react-icons/fc";
+import { APODERADOS_ICONS } from "@/shared/constants/Icons";
+
 
 interface ApoderadosListProps {
   apoderados: Apoderado[];
@@ -39,7 +40,7 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
     <EmptyState
       title="No hay apoderados"
       message="No se encontraron apoderados registrados en el sistema."
-      icon={<FcConferenceCall />}
+      icon={<APODERADOS_ICONS.conference/>}
     />
   );
   }

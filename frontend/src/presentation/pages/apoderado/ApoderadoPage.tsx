@@ -3,7 +3,7 @@ import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
 import type { FC } from "react";
 import "./ApoderadoPage.css";
 import { Button } from "@/shared/ui/button/Button";
-import { TfiReload } from "react-icons/tfi";
+import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 
 
 
@@ -25,7 +25,7 @@ export const ApoderadoPage: FC = () => {
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<TfiReload />}
+            icon={<APODERADOS_ICONS.reload />}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando..." : undefined}

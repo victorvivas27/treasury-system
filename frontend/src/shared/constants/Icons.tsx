@@ -5,6 +5,8 @@ import { TbPigMoney } from "react-icons/tb";
 import { GrPieChart } from "react-icons/gr";
 import { IoNotificationsOutline, IoSettingsOutline } from "react-icons/io5";
 import { BiExit } from "react-icons/bi";
+import { FcConferenceCall } from "react-icons/fc";
+import { TfiReload } from "react-icons/tfi";
 
 export const ICONS = {
   home: RxHome,
@@ -16,6 +18,7 @@ export const ICONS = {
   notifications: IoNotificationsOutline,
   settings: IoSettingsOutline,
   logout: BiExit,
+
 };
 
 export const SIDEBAR_LINKS = [
@@ -47,6 +50,11 @@ export const SIDEBAR_FOOTER_LINKS = [
   { label: "Notificaciones", path: "/notifications", icon: ICONS.notifications },
   { label: "Configuración", path: "/configuration", icon: ICONS.settings },
 ];
+
+export const APODERADOS_ICONS = {
+  conference: FcConferenceCall,
+  reload: TfiReload
+};
 
 export const SIDEBAR_USER_MOCK = {
   name: "John Doe",
