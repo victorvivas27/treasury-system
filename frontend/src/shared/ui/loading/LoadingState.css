@@ -1,0 +1,176 @@
+.loading-state {
+  /* border: 1px solid rgb(162, 255, 0); */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+
+/* escenario */
+.animated-icons {
+  /* border: 1px solid red; */ /* Puedes quitarlo ya */
+  position: relative;
+  width: 120px;
+  height: 110px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  margin-bottom: 30px;
+}
+
+/* icono */
+.icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  opacity: 0;
+  animation: treasurySmooth 5.8s infinite ease-in-out;
+}
+
+/* icono visual */
+.icon svg {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* colores */
+.icon-money svg {
+  color: var(--color-success);
+}
+
+.icon-transfer svg {
+  width: 3.15rem;
+  height: 3.15rem;
+}
+
+.icon-piggy svg {
+  color: var(--color-warning);
+}
+
+.icon-banck svg {
+  color: var(--color-accent);
+}
+
+/* delays */
+.icon-money {
+  animation-delay: 0s;
+}
+
+.icon-transfer{
+  animation-delay: 1.45s;
+}
+
+.icon-piggy{
+  animation-delay: 2.9s;
+}
+
+.icon-banck {
+  animation-delay: 4.35s;
+}
+
+/* animación FINAL */
+@keyframes treasurySmooth {
+
+  /* inicio oculto */
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+
+  /* entrada */
+  8% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* 🔥 SHAKE POTENTE */
+  12% {
+    transform: translateY(0) scale(1.05) rotate(7deg);
+  }
+
+  14% {
+    transform: translateY(0) scale(0.98) rotate(-7deg);
+  }
+
+  16% {
+    transform: translateY(0) scale(1.04) rotate(6deg);
+  }
+
+  18% {
+    transform: translateY(0) scale(0.98) rotate(-6deg);
+  }
+
+  20% {
+    transform: translateY(0) scale(1.02) rotate(4deg);
+  }
+
+  22% {
+    transform: translateY(0) scale(0.99) rotate(-4deg);
+  }
+
+  24% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+
+  /* visible */
+  28% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* salida suave */
+  34% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+  }
+
+  /* resto oculto */
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+  }
+}
+
+/* ========== NUEVO: TEXTO QUE GIRA ALREDEDOR ========== */
+
+.rotating-text {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  width: max-content;
+}
+
+.rotating-text__text {
+  margin: 0;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: bold;
+  overflow: hidden;
+  border-right: 3px solid var(--color-success);
+  width: calc(var(--chars) * 1.05ch);
+  animation:
+    typing 4s steps(var(--chars)) infinite,
+    blink 0.5s step-end infinite;
+}
+
+@keyframes typing {
+  0% { width: 0; }
+  50%, 85% { width: calc(var(--chars) * 1.05ch); }
+  100% { width: 0; }
+}
+
+@keyframes blink {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--color-success); }
+}

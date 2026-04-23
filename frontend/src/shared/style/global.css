@@ -1,16 +1,18 @@
 /* Variables Globales */
 :root {
-/* =========================
+  /* =========================
    🌙 THEME DARK - TESORERÍA
    ========================= */
 
   /* 1. Base (evitar negro puro) */
-  --color-background: #0A0F1A;   /* Fondo principal */
-  --color-surface: #111827;      /* Cards, tablas */
-
+  --color-background: #0A0F1A;
+  /* Fondo principal */
+  --color-surface: #111827;
   /* 2. Identidad (ajustada para dark) */
-  --color-primary: #1E3A5F;      /* Azul más visible en oscuro */
-  --color-accent: #2DD4BF;       /* Teal más brillante */
+  --color-primary: #1E3A5F;
+  /* Azul más visible en oscuro */
+  --color-accent: #2DD4BF;
+  /* Teal más brillante */
 
   /* 3. Estados (subidos de brillo) */
   --color-success: #22C55E;
@@ -18,8 +20,10 @@
   --color-warning: #F59E0B;
 
   /* 4. Texto (clave para dashboards) */
-  --color-text-main: #E5E7EB;    /* Texto principal */
-  --color-text-muted: #9CA3AF;   /* Secundario */
+  --color-text-main: #E5E7EB;
+  /* Texto principal */
+  --color-text-muted: #9CA3AF;
+
 
   /* 5. Bordes / separación */
   --color-border: #1F2937;
@@ -28,7 +32,7 @@
   /* 6. Extras útiles */
   --color-hover: #1F2937;
   --color-active: #374151;
---color-active-strong: #FACC15;
+  --color-active-strong: #FACC15;
 
 }
 
@@ -39,10 +43,10 @@
   padding: 0;
 
 }
-html, body {
+
+html,
+body {
   font-family: var(--font-main);
   background-color: var(--color-background);
   color: var(--color-text-main);
 }
-
-
