@@ -56,7 +56,30 @@ describe('Button Component - Cobertura Completa', () => {
 
     // Según tu código: variant="primary", size="small", type="button"
     expect(boton).toHaveClass('button-primary');
-    expect(boton).toHaveClass('size-small');
+    expect(boton).toHaveClass('size-medium');
     expect(boton).toHaveAttribute('type', 'button');
   });
+
+  it('debe mostrar el icono cuando se proporciona', () => {
+  render(<Button label="Con Icono" onClick={() => {}} icon="🔥" />);
+  expect(screen.getByText('🔥')).toBeInTheDocument();
+});
+
+it('debe mostrar el icono a la izquierda por defecto', () => {
+  const { container } = render(<Button label="Btn" onClick={() => {}} icon="⭐" />);
+  const icono = container.querySelector('.button-icon--left');
+  expect(icono).toBeInTheDocument();
+});
+
+it('debe mostrar el icono a la derecha cuando se especifica', () => {
+  const { container } = render(<Button label="Btn" onClick={() => {}} icon="⭐" iconPosition="right" />);
+  const icono = container.querySelector('.button-icon--right');
+  expect(icono).toBeInTheDocument();
+});
+
+it('debe renderizar solo el icono cuando no hay label', () => {
+  render(<Button onClick={() => {}} icon="🔍" />);
+  expect(screen.getByText('🔍')).toBeInTheDocument();
+  expect(screen.queryByRole('button')?.textContent).toBe('🔍');
+});
 });

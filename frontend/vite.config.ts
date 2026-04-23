@@ -29,6 +29,36 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'], // 'html' genera una carpeta para ver el reporte visual
       clean: true, // Esto reemplaza al fallido --cleanOnRerender
+            exclude: [
+        // CSS y estilos
+        '**/*.css',
+        '**/*.scss',
+        '**/*.sass',
+
+        // Imágenes y assets
+        '**/*.svg',
+        '**/*.png',
+        '**/*.jpg',
+        '**/*.jpeg',
+        '**/*.gif',
+        '**/*.ico',
+
+        // Tipos y configuraciones
+        '**/*.d.ts',
+        '**/vite.config.ts',
+        '**/vitest.config.ts',
+        '**/setupTests.ts',
+
+        // Archivos principales
+        '**/main.tsx',
+        '**/vite-env.d.ts',
+
+        // Node modules
+        'node_modules/**',
+
+        // Carpeta de coverage (evita loops)
+        'coverage/**',
+      ],
     },
   },
 })
