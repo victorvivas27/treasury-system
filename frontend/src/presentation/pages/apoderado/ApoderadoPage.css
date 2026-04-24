@@ -1,14 +1,26 @@
 /* --- Estructura de Página --- */
 .page-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* background-color: var(--color-surface); */
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 98%;
   animation: fadeIn 0.4s ease-out;
+ 
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- Encabezado de Página --- */
@@ -16,14 +28,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 2.5rem;
-  gap: 1.5rem;
+
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .page-header__title {
   color: var(--color-text-main);
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
 }
@@ -31,63 +43,18 @@
 .page-header__subtitle {
   color: var(--color-text-muted);
   font-size: 1rem;
-  margin: 0;
-}
 
-/* --- Botón de Acción --- */
-.page-header__btn-refresh {
-  background-color: var(--color-surface);
-  color: var(--color-accent);
-  border: 1px solid var(--color-border);
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.page-header__btn-refresh:hover:not(:disabled) {
-  background-color: var(--color-primary);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 15px rgba(45, 212, 191, 0.2);
-}
-
-.page-header__btn-refresh:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: grayscale(1);
-}
-
-.page-header__btn-refresh--loading {
-  border-color: var(--color-border);
-}
-
-/* --- Sección de Contenido --- */
-.page-content {
-  /* Aquí vive el ApoderadosList */
-  width: 100%;
 }
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
   .page-container {
-    padding: 1.25rem;
+    width: 98%;
+
   }
 
   .page-header {
     flex-direction: column;
-    align-items: flex-start;
-  }
 
-  .page-header__actions {
-    width: 100%;
-  }
-
-  .page-header__btn-refresh {
-    width: 100%;
-    justify-content: center;
   }
 }

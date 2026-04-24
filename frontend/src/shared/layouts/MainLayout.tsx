@@ -12,15 +12,15 @@ export const MainLayout = () => {
   };
 
   return (
-    <section className={`sidebar-layout ${!isSidebarOpen ? "collapsed" : ""}`}>
+    <main className="main-layout">
       <Sidebar
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={onToggleSidebar}
       />
-      <main className="outlet-layout">
+      <section className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
         <Outlet />
-      </main>
-    </section>
+      </section>
+    </main>
   );
 };
 

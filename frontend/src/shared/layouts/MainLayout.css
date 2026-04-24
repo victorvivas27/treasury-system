@@ -1,14 +1,26 @@
-/* Contenedor general */
-.sidebar-layout {
+
+.main-layout {
+
   display: flex;
+
+  justify-content: center;
+  min-height: 100vh;
+  margin-left: 3.5rem; /* Mismo ancho que el sidebar */
+  margin-top: 2.5rem;
 }
 
-/* Área del contenido */
-.outlet-layout {
-  flex: 1;
-  margin-left: 13rem; /* 🔥 mismo ancho del sidebar */
-  padding: 1rem;
-  min-height: 100vh;
-  background-color: var(--color-background);
-  transition: margin-left 0.5s ease;
+/* Sidebar ya tiene su ancho fijo, el contenido se corre */
+.main-content {
+  width: 100%;
+  margin-left: 3.5rem;
+}
+
+
+
+/* En móvil, sin margen */
+@media (max-width: 768px) {
+  .main-content,
+  .main-content.sidebar-collapsed {
+    margin-left: 0;
+  }
 }

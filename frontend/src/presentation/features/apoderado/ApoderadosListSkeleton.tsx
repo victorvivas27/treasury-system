@@ -2,7 +2,7 @@ import "./ApoderadosListSkeleton.css";
 
 export const ApoderadosListSkeleton: React.FC = () => {
   // Ponemos 5 para que parezca una lista real cargando
-  const skeletonRows = Array(1).fill(null);
+  const skeletonRows = Array(2).fill(null);
 
   return (
     <article className="apoderados-container">

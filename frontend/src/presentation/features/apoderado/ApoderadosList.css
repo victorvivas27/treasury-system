@@ -1,12 +1,12 @@
-/* --- Contenedor Principal --- */
+/* --- Contenedor --- */
 .apoderados-container {
   background-color: var(--color-surface);
   border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--color-border);
+  padding: 1rem;
+  width: 98%;
 }
 
+/* --- Header --- */
 .apoderados-header {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-border);
@@ -17,100 +17,68 @@
   color: var(--color-accent);
   font-size: 1.25rem;
   font-weight: 600;
-  letter-spacing: -0.025em;
 }
 
 /* --- Tabla --- */
 .apoderados-table-wrapper {
+  width: 100%;
   overflow-x: auto;
 }
 
 .apoderados-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   text-align: left;
 }
 
 .apoderados-table__th {
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   padding: 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-divider);
 }
 
+.apoderados-table__td {
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-main);
+}
+
 .apoderados-table__row--data {
-  transition: background-color 0.2s ease;
   border-bottom: 1px solid var(--color-border);
+  transition: background 0.2s;
 }
 
 .apoderados-table__row--data:hover {
   background-color: var(--color-hover);
 }
 
-.apoderados-table__td {
-  padding: 1rem;
-  color: var(--color-text-main);
-  font-size: 0.875rem;
-}
-
-/* --- Estados de Feedback --- */
-.apoderados-feedback {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  background-color: var(--color-surface);
-  border-radius: 16px;
-  border: 1px dashed var(--color-border);
-  color: var(--color-text-muted);
-}
-
-
-
-/* --- Responsive Móvil (efecto acordeón para AMBOS) --- */
-@media (max-width: 640px) {
-
+/* --- Responsive SOLO tabla real --- */
+@media (max-width: 768px) {
   .apoderados-table,
   .apoderados-table__head,
   .apoderados-table__body,
   .apoderados-table__th,
   .apoderados-table__td,
-  .apoderados-table__row {
-    display: block;
-  }
-
-  .apoderados-table__head {
-    display: none;
-  }
-
   .apoderados-table__row--data {
-    margin-bottom: 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 0.5rem;
-    background-color: var(--color-surface);
+    display:revert;
+  }
+
+  .apoderados-table__th {
+    display: none;
   }
 
   .apoderados-table__td {
     display: flex;
     justify-content: space-between;
     padding: 0.75rem;
-    border: none;
   }
 
   .apoderados-table__td::before {
     content: attr(data-label);
-    color: var(--color-accent);
     font-weight: 600;
-    font-size: 0.75rem;
-    margin-right: 1rem;
-  }
-
-  /* Skeleton en móvil */
-  .skeleton-block {
-    width: 60% !important;
+    color: var(--color-accent);
   }
 }
