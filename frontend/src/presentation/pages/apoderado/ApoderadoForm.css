@@ -1,0 +1,28 @@
+
+.form-page-container {
+margin: 1rem;
+/* border: 1px solid rgb(123, 255, 0); */
+}
+.form-page-header {
+margin: 1rem;
+/* border: 1px solid rgb(123, 255, 0); */
+}
+
+.form-page-header__title {
+font-size: 1.2rem;
+font-weight: bold;
+margin-bottom: 0.5rem;
+}
+
+.form-page-header__subtitle {
+font-size: 1rem;
+margin-bottom: 1rem;
+}
+
+.form-container {
+margin: 1rem;
+/* border: 1px solid rgb(0, 8, 255); */
+}
+
+
+

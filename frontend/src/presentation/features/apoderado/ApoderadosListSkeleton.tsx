@@ -1,4 +1,4 @@
-import "./ApoderadosListSkeleton.css";
+import "./style/ApoderadosListSkeleton.css";
 
 export const ApoderadosListSkeleton: React.FC = () => {
   // Ponemos 5 para que parezca una lista real cargando

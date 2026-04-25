@@ -4,11 +4,13 @@ import type { FC } from "react";
 import "./ApoderadoPage.css";
 import { Button } from "@/shared/ui/button/Button";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
+import { useNavigate } from "react-router-dom";
 
 
 
 export const ApoderadoPage: FC = () => {
   const { apoderados, loading, error, refetch } = useApoderados();
+  const navigate = useNavigate();
 
   return (
     <main className="page-container">
@@ -28,8 +30,19 @@ export const ApoderadoPage: FC = () => {
             icon={<APODERADOS_ICONS.reload />}
             iconPosition="left"
             loading={loading}
-            label={loading ? "Cargando..." : undefined}
+            label={loading ? "Cargando" : "Recargar"}
           />
+
+
+          <Button
+          onClick={() => navigate("/parents/new")}
+            variant="primary"
+            size="medium"
+            icon={<APODERADOS_ICONS.add />}
+            iconPosition="left"
+            label="Crear Apoderado"
+          />
+
         </div>
       </header>
 
@@ -41,6 +54,8 @@ export const ApoderadoPage: FC = () => {
           onRefresh={refetch}
         />
       </section>
+
+
     </main>
   );
 };

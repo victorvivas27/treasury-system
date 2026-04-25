@@ -1,5 +1,5 @@
 import { apiClient } from "@/core/config/api";
-import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
+import type { Apoderado, CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
 import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IApoderadoRepository";
 
 export class ApoderadoRepositoryImpl implements IApoderadoRepository {
@@ -15,7 +15,7 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return response.data;
   }
 
-  async create(apoderado: Omit<Apoderado, 'id'>): Promise<Apoderado> {
+  async create(apoderado: CreateApoderadoDTO): Promise<Apoderado> {
     const response = await apiClient.post<Apoderado>(this.baseUrl, apoderado);
     return response.data;
   }

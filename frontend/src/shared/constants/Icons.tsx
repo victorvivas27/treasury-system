@@ -7,6 +7,7 @@ import { IoNotificationsOutline, IoSettingsOutline } from "react-icons/io5";
 import { BiExit } from "react-icons/bi";
 import { FcConferenceCall } from "react-icons/fc";
 import { TfiReload } from "react-icons/tfi";
+import { RiUserAddLine } from "react-icons/ri";
 
 export const ICONS = {
   home: RxHome,
@@ -53,7 +54,8 @@ export const SIDEBAR_FOOTER_LINKS = [
 
 export const APODERADOS_ICONS = {
   conference: FcConferenceCall,
-  reload: TfiReload
+  reload: TfiReload,
+  add: RiUserAddLine
 };
 
 export const SIDEBAR_USER_MOCK = {

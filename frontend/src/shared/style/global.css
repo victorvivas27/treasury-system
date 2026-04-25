@@ -41,7 +41,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-
 }
 
 html,
@@ -49,5 +48,31 @@ body {
   font-family: var(--font-main);
   background-color: var(--color-background);
   color: var(--color-text-main);
- 
+
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* border: solid 2px red; */
+   margin-left: 2rem;
+
+}
+
+
+
+/* Scrollbar personalizada (para que no rompa el estilo Dark) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-active);
 }

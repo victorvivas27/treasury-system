@@ -1,26 +1,9 @@
 
 .main-layout {
-
-  display: flex;
-
-  justify-content: center;
-  min-height: 100vh;
-  margin-left: 3.5rem; /* Mismo ancho que el sidebar */
-  margin-top: 2.5rem;
-}
-
-/* Sidebar ya tiene su ancho fijo, el contenido se corre */
-.main-content {
-  width: 100%;
-  margin-left: 3.5rem;
+margin-top: 2.5rem;
+/* border: 1px solid rgb(34, 255, 0); */
 }
 
 
 
-/* En móvil, sin margen */
-@media (max-width: 768px) {
-  .main-content,
-  .main-content.sidebar-collapsed {
-    margin-left: 0;
-  }
-}
+

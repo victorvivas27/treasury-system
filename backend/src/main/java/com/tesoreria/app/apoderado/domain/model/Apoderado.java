@@ -101,7 +101,7 @@ public class Apoderado {
         if (!telefonoNormalizado.matches("^\\+?[0-9]{9,15}$")) {
             throw new DomainException(
                     ApoderadoErrorCode.TELEFONO_INVALIDO,
-                    "Formato inválido. Puede incluir '+' al inicio y debe tener entre 9 y 15 dígitos"
+                    "Debe tener entre 9 y 15 dígitos"
             );
         }
 

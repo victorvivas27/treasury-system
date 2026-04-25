@@ -1,8 +1,12 @@
-import type {Apoderado} from "@/core/domain/entities/apoderado/Apoderado";
+import type {Apoderado, CreateApoderadoDTO} from "@/core/domain/entities/apoderado/Apoderado";
 export interface IApoderadoRepository {
   getAll(): Promise<Apoderado[]>;
+
+  create(apoderado: CreateApoderadoDTO): Promise<Apoderado>; // ← Nuevo método
+
   getById(id: string): Promise<Apoderado | null>;
-  create(apoderado: Omit<Apoderado, 'id'>): Promise<Apoderado>;
+
   update(id: string, apoderado: Partial<Apoderado>): Promise<Apoderado>;
+
   delete(id: string): Promise<void>;
 }

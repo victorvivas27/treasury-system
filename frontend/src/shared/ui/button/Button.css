@@ -9,6 +9,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
+  margin: 0.5rem;
 }
 
 .base-button:disabled {
@@ -97,4 +98,34 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Cuando el botón está cargando, buscamos el span del icono y lo hacemos girar */
+.is-loading .button-icon {
+  animation: spin 1s linear infinite;
+  pointer-events: none; /* Evita interacciones raras durante la animación */
+}
+
+/* El contenido se mantiene visible, no necesita opacity 0 */
+.button-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+}
+
+/* Animación de giro */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Opcional: Si quieres que el botón se vea un poco más "apagado" mientras carga */
+.base-button.is-loading {
+  opacity: 0.8;
+  cursor: wait;
 }

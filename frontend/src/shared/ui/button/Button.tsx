@@ -2,13 +2,13 @@
 import './Button.css';
 
 interface ButtonProps {
-  label?: string; // Ahora es opcional (puede ser solo icono)
+  label?: string;
   onClick: () => void;
   type?: 'button' | 'submit';
   variant?: 'primary' | 'secondary' | 'danger';
   size?: 'small' | 'medium' | 'large';
-  icon?: React.ReactNode; // Icono opcional
-  iconPosition?: 'left' | 'right'; // Posición del icono
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
   loading?: boolean;
   disabled?: boolean;
   testId?: string;
@@ -30,19 +30,21 @@ export const Button = ({
     <button
       type={type}
       onClick={onClick}
-      className={`base-button button-${variant} size-${size}`}
+      className={`base-button button-${variant} size-${size} ${loading ? 'is-loading' : ''}`}
       disabled={disabled || loading}
       data-testid={testId}
     >
-      {loading ? (
-        <span className="button-loader"></span>
-      ) : (
-        <>
-          {icon && iconPosition === 'left' && <span className="button-icon button-icon--left">{icon}</span>}
-          {label && <span className="button-label">{label}</span>}
-          {icon && iconPosition === 'right' && <span className="button-icon button-icon--right">{icon}</span>}
-        </>
-      )}
+      <span className="button-content">
+        {icon && iconPosition === 'left' && (
+          <span className="button-icon button-icon--left">{icon}</span>
+        )}
+
+        {label && <span className="button-label">{label}</span>}
+
+        {icon && iconPosition === 'right' && (
+          <span className="button-icon button-icon--right">{icon}</span>
+        )}
+      </span>
     </button>
   );
 };

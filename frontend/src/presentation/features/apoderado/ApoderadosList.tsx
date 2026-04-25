@@ -1,5 +1,5 @@
 import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
-import "./ApoderadosList.css";
+import "./style/ApoderadosList.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ApoderadosListSkeleton } from "./ApoderadosListSkeleton";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
@@ -65,7 +65,7 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
             {apoderados.map((apoderado) => (
               <tr key={apoderado.id} className="apoderados-table__row--data">
                 <td className="apoderados-table__td" data-label="Nombre">
-                  {apoderado.nombre} {apoderado.apellido}
+                  {apoderado.nombre}
                 </td>
                 <td className="apoderados-table__td" data-label="Email">
                   {apoderado.email}
