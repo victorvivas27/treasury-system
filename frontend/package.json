@@ -11,6 +11,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:single": "vitest --run --testNamePattern",
     "test:coverage:open": "vitest run --coverage && start coverage/index.html"
   },
   "dependencies": {

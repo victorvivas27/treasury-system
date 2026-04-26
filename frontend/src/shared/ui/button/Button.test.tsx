@@ -1,85 +1,87 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Button } from './Button';
 
 describe('Button Component - Cobertura Completa', () => {
-  // 1. Test de funcionalidad básica (Ya lo tenías, ¡muy bien!)
-  it('debe mostrar el texto enviado por props', () => {
-    render(<Button label="Mi Botón" onClick={() => {}} />);
+  const mockClick = vi.fn();
+  const defaultProps = {
+    label: 'Mi Botón',
+    onClick: mockClick,
+  };
+
+  beforeEach(() => {
+    mockClick.mockClear();
+  });
+
+  const renderButton = (props = {}) => {
+    return render(<Button {...defaultProps} {...props} />);
+  };
+
+  it('[Button #01] debe mostrar el texto enviado por props', () => {
+    renderButton();
     expect(screen.getByText(/mi botón/i)).toBeInTheDocument();
   });
 
-  it('debe disparar el evento onClick', () => {
-    const mockClick = vi.fn();
-    render(<Button label="Click" onClick={mockClick} />);
-    const boton = screen.getByRole('button');
-    fireEvent.click(boton);
+  it('[Button #02] debe disparar el evento onClick', () => {
+    renderButton();
+    fireEvent.click(screen.getByRole('button'));
     expect(mockClick).toHaveBeenCalledTimes(1);
   });
 
-  // 2. Test de Clases CSS (Variantes y Tamaños)
-  it('debe aplicar las clases de variante y tamaño correctamente', () => {
-    const { rerender } = render(
-      <Button label="Btn" onClick={() => {}} variant="danger" size="large" />
-    );
+  it('[Button #03] debe aplicar las clases de variante y tamaño correctamente', () => {
+    const { rerender } = renderButton({ variant: 'danger', size: 'large' });
     const boton = screen.getByRole('button');
 
-    // Verificamos que tenga las clases esperadas
     expect(boton).toHaveClass('button-danger');
     expect(boton).toHaveClass('size-large');
 
-    // Probamos otra combinación con rerender
-    rerender(<Button label="Btn" onClick={() => {}} variant="secondary" size="small" />);
+    rerender(<Button {...defaultProps} variant="secondary" size="small" />);
     expect(boton).toHaveClass('button-secondary');
     expect(boton).toHaveClass('size-small');
   });
 
-  // 3. Test de Atributos (Type y TestId)
-  it('debe aplicar el atributo type y data-testid correctamente', () => {
-    render(
-      <Button
-        label="Submit"
-        onClick={() => {}}
-        type="submit"
-        testId="btn-test-123"
-      />
-    );
+  it('[Button #04] debe aplicar el atributo type y data-testid correctamente', () => {
+    renderButton({ type: 'submit', testId: 'btn-test-123' });
     const boton = screen.getByTestId('btn-test-123');
-
     expect(boton).toHaveAttribute('type', 'submit');
   });
 
-  // 4. Test de Valores por Defecto
-  it('debe usar valores por defecto cuando no se pasan props opcionales', () => {
-    render(<Button label="Default" onClick={() => {}} />);
+  it('[Button #05] debe usar valores por defecto cuando no se pasan props opcionales', () => {
+    renderButton();
     const boton = screen.getByRole('button');
-
-    // Según tu código: variant="primary", size="small", type="button"
     expect(boton).toHaveClass('button-primary');
     expect(boton).toHaveClass('size-medium');
     expect(boton).toHaveAttribute('type', 'button');
   });
 
-  it('debe mostrar el icono cuando se proporciona', () => {
-  render(<Button label="Con Icono" onClick={() => {}} icon="🔥" />);
-  expect(screen.getByText('🔥')).toBeInTheDocument();
-});
+  it('[Button #06] debe mostrar el icono cuando se proporciona', () => {
+    renderButton({ icon: '🔥' });
+    expect(screen.getByText('🔥')).toBeInTheDocument();
+  });
 
-it('debe mostrar el icono a la izquierda por defecto', () => {
-  const { container } = render(<Button label="Btn" onClick={() => {}} icon="⭐" />);
-  const icono = container.querySelector('.button-icon--left');
-  expect(icono).toBeInTheDocument();
-});
+  it('[Button #07] debe mostrar el icono a la izquierda por defecto', () => {
+    const { container } = renderButton({ icon: '⭐' });
+    const icono = container.querySelector('.button-icon--left');
+    expect(icono).toBeInTheDocument();
+  });
 
-it('debe mostrar el icono a la derecha cuando se especifica', () => {
-  const { container } = render(<Button label="Btn" onClick={() => {}} icon="⭐" iconPosition="right" />);
-  const icono = container.querySelector('.button-icon--right');
-  expect(icono).toBeInTheDocument();
-});
+  it('[Button #08] debe mostrar el icono a la derecha cuando se especifica', () => {
+    const { container } = renderButton({ icon: '⭐', iconPosition: 'right' });
+    const icono = container.querySelector('.button-icon--right');
+    expect(icono).toBeInTheDocument();
+  });
 
-it('debe renderizar solo el icono cuando no hay label', () => {
-  render(<Button onClick={() => {}} icon="🔍" />);
-  expect(screen.getByText('🔍')).toBeInTheDocument();
-  expect(screen.queryByRole('button')?.textContent).toBe('🔍');
-});
+  it('[Button #09] debe renderizar solo el icono cuando no hay label', () => {
+    renderButton({ label: undefined, icon: '🔍' });
+    expect(screen.getByText('🔍')).toBeInTheDocument();
+    expect(screen.queryByRole('button')?.textContent).toBe('🔍');
+  });
+
+  it('[Button #10] loading tiene prioridad sobre disabled', () => {
+    renderButton({ loading: true, disabled: false });
+    const boton = screen.getByRole('button');
+    expect(boton).toHaveClass('is-loading');
+    expect(boton).toBeDisabled();
+  });
+
 });
