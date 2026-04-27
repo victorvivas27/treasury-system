@@ -1,7 +1,7 @@
 import { ApoderadosList } from "@/presentation/features/apoderado/ApoderadosList";
 import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
 import type { FC } from "react";
-import "./ApoderadoPage.css";
+import "./style/ApoderadoPage.css";
 import { Button } from "@/shared/ui/button/Button";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { useNavigate } from "react-router-dom";

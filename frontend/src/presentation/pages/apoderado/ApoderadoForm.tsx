@@ -1,11 +1,11 @@
 import { CrearApoderadoForm } from "@/presentation/features/apoderado/CrearApoderadoForm";
-import "./ApoderadoForm.css";
+import "./style/ApoderadoForm.css";
 
 
 
 export const ApoderadoForm = () => {
   return (
-  
+
     <main className="form-page-container">
 
       <header className="form-page-header">
