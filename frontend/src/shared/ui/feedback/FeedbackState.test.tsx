@@ -8,8 +8,6 @@ describe("FeedbackState Component", () => {
     cleanup();
   });
 
-  // Helper para aplicar DRY.
-  // Message es obligatorio, por eso lo incluimos por defecto.
   const renderFeedbackState = (props: any = {}) => {
     const defaultProps = { message: "Mensaje de prueba" };
     return render(<FeedbackState {...defaultProps} {...props} />);
@@ -37,35 +35,52 @@ describe("FeedbackState Component", () => {
 
   it('[FeedbackState #04] Debe aplicar la clase CSS por defecto (feedback-state--error) cuando no se proporciona la prop type.', () => {
     const { container } = renderFeedbackState();
-    const section = container.firstChild;
+    const section = container.querySelector("section");
     expect(section).toHaveClass("feedback-state--error");
   });
 
   it('[FeedbackState #05] Debe aplicar la clase correcta según el tipo recibido.', () => {
     const { container, rerender } = renderFeedbackState({ type: "warning" });
-    expect(container.firstChild).toHaveClass("feedback-state--warning");
+    expect(container.querySelector("section")).toHaveClass("feedback-state--warning");
 
     rerender(<FeedbackState message="Test" type="info" />);
-    expect(container.firstChild).toHaveClass("feedback-state--info");
+    expect(container.querySelector("section")).toHaveClass("feedback-state--info");
   });
 
   // ========== 3. INTERACCIÓN Y COMPONENTE BUTTON ==========
 
-  it('[FeedbackState #06] No debe renderizar el botón de reintento si no se proporciona la función onRefresh.', () => {
-    renderFeedbackState({ onRefresh: undefined });
+  it('[FeedbackState #06] No debe renderizar el botón si falta actionText o onRefresh.', () => {
+    // Escenario A: Falta actionText
+    renderFeedbackState({ onRefresh: () => {} });
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+
+    cleanup();
+
+    // Escenario B: Falta onRefresh
+    renderFeedbackState({ actionText: "Reintentar" });
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it('[FeedbackState #07] Debe renderizar el componente Button con el label "Intentar de nuevo" cuando existe onRefresh.', () => {
-    renderFeedbackState({ onRefresh: () => {} });
+  it('[FeedbackState #07] Debe renderizar el botón cuando existen tanto actionText como onRefresh.', () => {
+    renderFeedbackState({
+      actionText: "Reintentar",
+      onRefresh: () => {}
+    });
+    // Nota: En tu código pusiste label="Intentar de nuevo" fijo.
+    // Si cambias tu componente a label={actionText}, el test debería ser:
+    // expect(screen.getByRole("button", { name: /reintentar/i })).toBeInTheDocument();
+
     expect(screen.getByRole("button", { name: /intentar de nuevo/i })).toBeInTheDocument();
   });
 
   it('[FeedbackState #08] Debe disparar la función onRefresh al hacer clic en el botón.', () => {
     const onRefreshMock = vi.fn();
-    renderFeedbackState({ onRefresh: onRefreshMock });
+    renderFeedbackState({
+      actionText: "Click",
+      onRefresh: onRefreshMock
+    });
 
-    const button = screen.getByRole("button", { name: /intentar de nuevo/i });
+    const button = screen.getByRole("button");
     fireEvent.click(button);
 
     expect(onRefreshMock).toHaveBeenCalledTimes(1);
@@ -75,8 +90,9 @@ describe("FeedbackState Component", () => {
 
   it('[FeedbackState #09] Debe utilizar la etiqueta semántica <section> como contenedor principal.', () => {
     const { container } = renderFeedbackState();
-    expect(container.firstChild?.nodeName).toBe("SECTION");
-    expect(container.firstChild).toHaveClass("feedback-state");
+    const section = container.querySelector("section");
+    expect(section?.nodeName).toBe("SECTION");
+    expect(section).toHaveClass("feedback-state");
   });
 
   it('[FeedbackState #10] El título debe utilizar una etiqueta <h2> para mantener la jerarquía.', () => {

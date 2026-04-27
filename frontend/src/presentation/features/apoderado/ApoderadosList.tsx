@@ -4,6 +4,7 @@ import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ApoderadosListSkeleton } from "./ApoderadosListSkeleton";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
+import { FcHighPriority } from "react-icons/fc";
 
 
 interface ApoderadosListProps {
@@ -30,6 +31,8 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
       <FeedbackState
         message={error}
         onRefresh={onRefresh}
+        type="error"
+        icon={<FcHighPriority/>}
       />
     );
   }

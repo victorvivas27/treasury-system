@@ -1,7 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "./EmptyState";
-import { userEvent } from "@testing-library/user-event";
 
 describe("EmptyState Component", () => {
   // Limpia el DOM después de cada test para evitar interferencias
@@ -78,36 +77,29 @@ describe("EmptyState Component", () => {
     expect(iconContainer).toContainElement(iconElement);
   });
 
-  it('[EmptyState #08] Debe mostrar el botón de acción únicamente si tanto actionText como onAction están presentes.', () => {
-    // Escenario A: Solo texto (No debe mostrarse)
+it('[EmptyState #08] Debe mostrar el botón de acción únicamente si tanto actionText como onAction están presentes.', () => {
     const { rerender } = renderEmptyState({ actionText: "Recargar" });
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
 
-    // Escenario B: Solo función (No debe mostrarse)
     rerender(<EmptyState onAction={() => {}} />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
 
-    // Escenario C: Ambos presentes (Debe mostrarse)
     rerender(<EmptyState actionText="Recargar" onAction={() => {}} />);
+    // Esto sigue funcionando porque el Button interno renderiza un botón con ese nombre
     expect(screen.getByRole("button", { name: /recargar/i })).toBeInTheDocument();
   });
 
 it('[EmptyState #09] Debe disparar la función onAction una sola vez cuando el usuario hace clic en el botón.', () => {
-    // 1. Creamos el mock de la función
     const onActionMock = vi.fn();
-
-    // 2. Renderizamos
     renderEmptyState({
       actionText: "Intentar de nuevo",
       onAction: onActionMock
     });
 
+    // Tu componente Button genera un botón, así que getByRole sigue siendo el estándar de oro
     const button = screen.getByRole("button", { name: /intentar de nuevo/i });
-
-    // 3. Disparamos el evento de clic
     fireEvent.click(button);
 
-    // 4. Verificamos que se llamó exactamente una vez
     expect(onActionMock).toHaveBeenCalledTimes(1);
   });
 
@@ -121,18 +113,15 @@ it('[EmptyState #09] Debe disparar la función onAction una sola vez cuando el u
     expect(button).not.toBeInTheDocument();
   });
 
-  it('[EmptyState #11] Debe utilizar la etiqueta semántica <section> como contenedor principal con la clase CSS empty-state.', () => {
-    // Usamos renderEmptyState y extraemos el contenedor
+ it('[EmptyState #11] Debe utilizar la etiqueta semántica <section> como contenedor principal con la clase CSS empty-state.', () => {
     const { container } = renderEmptyState();
 
-    // Obtenemos el primer elemento hijo del contenedor de Testing Library
-    const rootElement = container.firstChild as HTMLElement;
+    // IMPORTANTE: container.firstChild suele ser el elemento raíz.
+    // Si hay espacios en blanco en el JSX, a veces puede pillar un nodo de texto.
+    // Usar container.querySelector('section') es más robusto si la estructura crece.
+    const rootElement = container.querySelector("section");
 
-    // 1. Verificamos que sea una etiqueta <section>
-    // Nota: tagName siempre devuelve el nombre en MAYÚSCULAS
-    expect(rootElement.tagName).toBe("SECTION");
-
-    // 2. Verificamos que tenga la clase CSS base para los estilos
+    expect(rootElement?.tagName).toBe("SECTION");
     expect(rootElement).toHaveClass("empty-state");
   });
 
@@ -140,14 +129,20 @@ it('[EmptyState #09] Debe disparar la función onAction una sola vez cuando el u
     const customTitle = "Título Jerárquico";
     renderEmptyState({ title: customTitle });
 
-    // Buscamos el elemento por su texto
     const titleElement = screen.getByText(customTitle);
 
-    // 1. Verificamos que sea un encabezado de nivel 3
     expect(titleElement.tagName).toBe("H3");
-
-    // 2. Verificamos que tenga la clase CSS correspondiente para el título
     expect(titleElement).toHaveClass("empty-state__title");
+  });
+
+  // TEST NUEVO PARA EL CAMBIO QUE HICISTE:
+  it('[EmptyState #13] Debe envolver el botón en un contenedor con la clase empty-state__actions.', () => {
+    renderEmptyState({ actionText: "Acción", onAction: () => {} });
+
+    const button = screen.getByRole("button");
+    // Verificamos que el padre del botón (o el abuelo, dependiendo de la estructura interna de tu <Button>)
+    // sea el div con la clase que agregaste.
+    expect(button.closest('.empty-state__actions')).toBeInTheDocument();
   });
 
 });

@@ -1,12 +1,15 @@
 /* FeedbackState.css */
 
+/* FeedbackState.css */
+
 .feedback-state {
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* Mantenemos un alto mínimo para que el layout no colapse */
   min-height: 250px;
+
 }
 
 .feedback-state__container {
@@ -16,8 +19,19 @@
   text-align: center;
   gap: 1.25rem;
   padding: 2rem;
-  /* Animación de entrada suave */
   animation: fadeInFeedback 0.3s ease-out forwards;
+}
+
+
+.empty-state__icon {
+font-size: 3rem;  /* Tamaño del ícono */
+  line-height: 1;
+}
+
+.empty-state__icon svg {
+  width: 48px;
+  height: 48px;
+  display: block;
 }
 
 /* Colores Dinámicos para el Texto */
@@ -45,7 +59,7 @@
   font-size: 0.95rem;
   color: var(--color-text-muted);
   line-height: 1.5;
-  max-width: 350px; /* Evita que el mensaje se estire demasiado en pantallas anchas */
+  max-width: 350px;
 }
 
 @keyframes fadeInFeedback {
