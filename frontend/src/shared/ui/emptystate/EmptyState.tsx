@@ -1,3 +1,4 @@
+import { Button } from "../button/Button";
 import "./EmptyState.css";
 
 interface EmptyStateProps {
@@ -20,11 +21,19 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {icon && <div className="empty-state__icon">{icon}</div>}
       <h3 className="empty-state__title">{title}</h3>
       <p className="empty-state__message">{message}</p>
-      /* Se muestra el botón deacción si se pasa actionText y onAction */
+
+       
       {actionText && onAction && (
-        <button className="empty-state__button" onClick={onAction}>
-          {actionText}
-        </button>
+
+      <div className="empty-state__actions">
+          <Button
+            label={actionText}
+            onClick={onAction}
+            variant="primary"
+            size="medium"
+          />
+        </div>
+
       )}
     </section>
   );

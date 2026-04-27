@@ -41,6 +41,8 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
       title="No hay apoderados"
       message="No se encontraron apoderados registrados en el sistema."
       icon={<APODERADOS_ICONS.conference/>}
+      // actionText="Crear Apoderado"
+      // onAction={onRefresh}
     />
   );
   }
