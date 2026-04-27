@@ -101,4 +101,17 @@ describe("FeedbackState Component", () => {
     expect(titleElement.tagName).toBe("H2");
     expect(titleElement).toHaveClass("feedback-state__title");
   });
+
+  it('[FeedbackState #11] Debe renderizar el icono cuando se proporciona la prop icon.', () => {
+    const TestIcon = <span data-testid="custom-icon">⚠️</span>;
+    const { container } = renderFeedbackState({ icon: TestIcon });
+
+    // 1. Verificamos que el icono esté en el DOM
+    const iconElement = screen.getByTestId("custom-icon");
+    expect(iconElement).toBeInTheDocument();
+
+    // 2. Verificamos que esté dentro del contenedor con la clase correcta
+    const iconContainer = container.querySelector(".empty-state__icon");
+    expect(iconContainer).toContainElement(iconElement);
+  });
 });
