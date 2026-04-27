@@ -4,7 +4,7 @@ import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IA
 export class GetApoderadosUseCase {
   private readonly apoderadoRepository: IApoderadoRepository;
   constructor(apoderadoRepository: IApoderadoRepository) {
-    // 2. Realizas la asignación manual
+
     this.apoderadoRepository = apoderadoRepository;
   }
 
@@ -13,8 +13,7 @@ export class GetApoderadosUseCase {
       const apoderados = await this.apoderadoRepository.getAll();
       return apoderados;
     } catch (error) {
-      console.error('Error en GetApoderadosUseCase:', error);
-      throw new Error('No se pudieron obtener los apoderados');
+      throw new Error('No se pudieron obtener los apoderados', { cause: error });
     }
   }
 }

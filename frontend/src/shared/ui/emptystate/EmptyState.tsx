@@ -20,7 +20,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {icon && <div className="empty-state__icon">{icon}</div>}
       <h3 className="empty-state__title">{title}</h3>
       <p className="empty-state__message">{message}</p>
-      
+      /* Se muestra el botón deacción si se pasa actionText y onAction */
       {actionText && onAction && (
         <button className="empty-state__button" onClick={onAction}>
           {actionText}
