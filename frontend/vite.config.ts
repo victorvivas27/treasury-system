@@ -24,7 +24,7 @@ export default defineConfig({
     setupFiles: './src/setupTests.ts',
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Opcional: Para que no intente procesar archivos CSS pesados en los tests
-     reporters: ['verbose'],  // o 'default', 'verbose', 'dot'
+     reporters: ['dot'],  // o 'default', 'verbose', 'dot'
     css: true,
     coverage: {
       provider: 'v8',
