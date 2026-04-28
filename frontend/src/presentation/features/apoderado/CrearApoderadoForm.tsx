@@ -21,31 +21,35 @@ export const CrearApoderadoForm = () => {
   return (
     <div className="form-view-container">
       <form className="form-card">
+
+
         {/* Campo Nombre */}
         <div className="form-group floating-group">
           <input
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
-            placeholder="Juan Carlos Perez Example" /* Importante para el efecto CSS */
+            placeholder="Juan Carlos Perez Example"
             className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
           />
           <label className="floating-label">Nombre completo </label>
           {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
         </div>
 
+
         {/* Campo Email */}
-      <div className="form-group floating-group">
-  <input
-    name="email"
-    value={formData.email}
-    onChange={handleChange}
-    placeholder="ejemplo@email.com" /* El ejemplo va aquí */
-    className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
-  />
-  <label className="floating-label">Email </label>
-  {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
-</div>
+        <div className="form-group floating-group">
+          <input
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="ejemplo@email.com" /* El ejemplo va aquí */
+            className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
+          />
+          <label className="floating-label">Email </label>
+          {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
+        </div>
+
 
         {/* Campo Teléfono */}
         <div className="form-group floating-group">
@@ -54,10 +58,10 @@ export const CrearApoderadoForm = () => {
             name="telefono"
             value={formData.telefono}
             onChange={handleChange}
-             placeholder="+56 9 888 88 88 " /* Importante para el efecto CSS */
+            placeholder="+56 9 888 88 88 "
             className={`form-input ${fieldErrors.telefono ? 'input-error' : ''}`}
           />
-           <label className="floating-label">Teléfono</label>
+          <label className="floating-label">Teléfono</label>
           {fieldErrors.telefono && <span className="error-message">{fieldErrors.telefono}</span>}
         </div>
 
