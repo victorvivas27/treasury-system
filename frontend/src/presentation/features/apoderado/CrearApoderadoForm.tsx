@@ -15,7 +15,8 @@ export const CrearApoderadoForm = () => {
     handleChange,
     handleActionSubmit,
     navigate,
-    setModal
+    setModal,
+    //showAlert
   } = useCreateApoderado();
 
   return (
@@ -26,13 +27,14 @@ export const CrearApoderadoForm = () => {
         {/* Campo Nombre */}
         <div className="form-group floating-group">
           <input
+            id="nombre_input"
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
             placeholder="Juan Carlos Perez Example"
             className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
           />
-          <label className="floating-label">Nombre completo </label>
+          <label htmlFor="nombre_input" className="floating-label">Nombre completo </label>
           {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
         </div>
 
@@ -40,13 +42,14 @@ export const CrearApoderadoForm = () => {
         {/* Campo Email */}
         <div className="form-group floating-group">
           <input
+            id="email_input"
             name="email"
             value={formData.email}
             onChange={handleChange}
             placeholder="ejemplo@email.com" /* El ejemplo va aquí */
             className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
           />
-          <label className="floating-label">Email </label>
+          <label htmlFor="email_input" className="floating-label">Email </label>
           {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
         </div>
 
@@ -55,23 +58,26 @@ export const CrearApoderadoForm = () => {
         <div className="form-group floating-group">
 
           <input
+            id="telefono_input"
             name="telefono"
             value={formData.telefono}
             onChange={handleChange}
             placeholder="+56 9 888 88 88 "
             className={`form-input ${fieldErrors.telefono ? 'input-error' : ''}`}
           />
-          <label className="floating-label">Teléfono</label>
+          <label htmlFor="telefono_input" className="floating-label">Teléfono</label>
           {fieldErrors.telefono && <span className="error-message">{fieldErrors.telefono}</span>}
         </div>
 
         <div className="form-group col-span-3">
-          <label className="form-label">Observaciones</label>
+          <label htmlFor="observaciones_input" className="form-label">Observaciones</label>
           <textarea
+            id="observaciones_input"
             name="observaciones"
             value={formData.observaciones}
             onChange={handleChange}
             className="form-input form-textarea"
+            placeholder="escribe aquí"
           />
         </div>
       </form>
@@ -100,10 +106,10 @@ export const CrearApoderadoForm = () => {
       />
 
       {/* <Button
-  label="Probar Modal"
-  onClick={() => showAlert("¡Esto es una prueba sin backend!", "success")}
-  variant="secondary"
-/> */}
+        label="Probar Modal"
+        onClick={() => showAlert("¡Esto es una prueba sin backend!", "error")}
+        variant="secondary"
+      /> */}
 
     </div>
   );
