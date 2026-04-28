@@ -74,7 +74,7 @@ describe("ApoderadoRepositoryImpl", () => {
   it("[ApoderadoRepo #05] delete: debe enviar un DELETE al endpoint correcto", async () => {
     vi.mocked(apiClient.delete).mockResolvedValue({ data: {} });
 
-    await repository.delete("1");
+    await repository.delete(1);
 
     expect(apiClient.delete).toHaveBeenCalledWith(`${baseUrl}/1`);
   });

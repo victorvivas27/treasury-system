@@ -5,11 +5,24 @@ import "./style/ApoderadoPage.css";
 import { Button } from "@/shared/ui/button/Button";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { useNavigate } from "react-router-dom";
+import { useDeleteApoderado } from "@/presentation/hooks/apoderado/useDeleteApoderado";
+import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 
 
 
 export const ApoderadoPage: FC = () => {
   const { apoderados, loading, error, refetch } = useApoderados();
+
+  const {
+    isDeleting,
+    isConfirmOpen,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    confirmDelete,
+    alert,
+    closeAlert,
+  } = useDeleteApoderado(refetch);
   const navigate = useNavigate();
 
   return (
@@ -35,7 +48,7 @@ export const ApoderadoPage: FC = () => {
 
 
           <Button
-          onClick={() => navigate("/parents/new")}
+            onClick={() => navigate("/parents/new")}
             variant="primary"
             size="medium"
             icon={<APODERADOS_ICONS.add />}
@@ -49,13 +62,31 @@ export const ApoderadoPage: FC = () => {
       <section className="page-content">
         <ApoderadosList
           apoderados={apoderados}
-          loading={loading}
+          loading={loading || isDeleting}
           error={error}
           onRefresh={refetch}
+          handleDelete={openDeleteConfirm}
         />
       </section>
 
+      <ModalConfirm
+        isOpen={isConfirmOpen}
+        title="Eliminar apoderado"
+        message="¿Estás seguro de eliminar este apoderado? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteConfirm}
+      />
 
+      <ModalAlert
+        isOpen={alert.isOpen}
+        message={alert.message}
+        type={alert.type}
+        onClose={closeAlert}
+        autoCloseTime={2500}
+      />
     </main>
   );
 };
