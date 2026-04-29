@@ -2,25 +2,21 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.6); /* puedes dejarlo así o crear variable */
+  background-color: rgba(0, 0, 0, 0.6);
+  /* puedes dejarlo así o crear variable */
 }
 
 .modal-confirm-container {
   width: 100%;
   max-width: 420px;
-
   background-color: var(--color-surface);
   border-radius: 14px;
   overflow: hidden;
-
   border: 1px solid var(--color-border);
-
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
   animation: modal-confirm-enter 0.25s ease-out;
 }
@@ -29,9 +25,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-
   padding: 1rem 1.25rem;
-
   background-color: var(--color-background);
   border-bottom: 1px solid var(--color-divider);
 }
@@ -40,23 +34,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 34px;
   height: 34px;
-
   border-radius: 50%;
-
   /* 👇 uso de warning (confirmación) */
   background-color: var(--color-warning);
   color: var(--color-background);
-
   font-size: 1.1rem;
   font-weight: bold;
 }
 
 .modal-confirm-title {
   margin: 0;
-
   color: var(--color-text-main);
   font-size: 1.1rem;
   font-weight: 700;
@@ -68,7 +57,6 @@
 
 .modal-confirm-body p {
   margin: 0;
-
   color: var(--color-text-muted);
   font-size: 0.95rem;
   line-height: 1.5;
@@ -78,7 +66,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--color-divider);
 }
