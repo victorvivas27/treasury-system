@@ -1,8 +1,9 @@
 ;
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useApoderados } from "./useApoderados";
+
 import { act } from "react";
+import { useApoderados } from "../useApoderados";
 
 // 1. Usamos vi.hoisted para que esta variable se cree ANTES que el vi.mock
 const { mockExecute } = vi.hoisted(() => ({

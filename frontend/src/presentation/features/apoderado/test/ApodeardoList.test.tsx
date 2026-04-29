@@ -1,6 +1,6 @@
 import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApoderadosList } from "../ApoderadosList";
 
 
@@ -88,5 +88,30 @@ describe("ApoderadosList Component", () => {
     expect(cells[0]).toHaveAttribute("data-label", "Nombre");
     expect(cells[1]).toHaveAttribute("data-label", "Email");
     expect(cells[2]).toHaveAttribute("data-label", "Teléfono");
+  });
+
+  it("[ApoderadosList #08] Debe llamar a la función handleDelete con el ID correcto al hacer clic.", () => {
+    // 1. Creamos un spy (mock) de la función handleDelete
+    const handleDeleteMock = vi.fn();
+
+    // 2. Renderizamos el componente pasando el mock
+    render(
+      <ApoderadosList
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        handleDelete={handleDeleteMock}
+      />
+    );
+
+    // 3. Buscamos el botón de eliminar del primer apoderado (ID: 1)
+    const deleteButton = screen.getByTestId(`delete-btn-1`);
+
+    // 4. Simulamos el clic
+    fireEvent.click(deleteButton);
+
+    // 5. Verificamos que se haya llamado con el ID: 1
+    expect(handleDeleteMock).toHaveBeenCalledTimes(1);
+    expect(handleDeleteMock).toHaveBeenCalledWith(1);
   });
 });
