@@ -40,7 +40,7 @@ export const ApoderadoPage: FC = () => {
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<APODERADOS_ICONS.reload />}
+            icon={<APODERADOS_ICONS.reload style={{margin:"3px"}}/>}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando" : "Recargar"}
@@ -51,7 +51,7 @@ export const ApoderadoPage: FC = () => {
             onClick={() => navigate("/parents/new")}
             variant="primary"
             size="medium"
-            icon={<APODERADOS_ICONS.add />}
+            icon={<APODERADOS_ICONS.add style={{margin:"3px"}}/>}
             iconPosition="left"
             label="Crear Apoderado"
           />

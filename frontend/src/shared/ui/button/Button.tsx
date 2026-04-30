@@ -12,7 +12,7 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   testId?: string;
-  className?: string; // 1. Agregamos la prop opcional
+  className?: string;
 }
 
 export const Button = ({
@@ -26,13 +26,13 @@ export const Button = ({
   loading = false,
   disabled = false,
   testId,
-  className = '' // 2. Le damos un valor por defecto vacío
+  className = ''
 }: ButtonProps) => {
   return (
     <button
       type={type}
       onClick={onClick}
-      // 3. Concatenamos la clase externa al final
+
       className={`base-button button-${variant} size-${size} ${loading ? 'is-loading' : ''} ${className}`}
       disabled={disabled || loading}
       data-testid={testId}

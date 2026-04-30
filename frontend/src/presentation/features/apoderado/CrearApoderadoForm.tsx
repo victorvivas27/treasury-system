@@ -86,7 +86,7 @@ export const CrearApoderadoForm = () => {
         type="button"
         disabled={loading}
         loading={loading}
-        icon={<APODERADOS_ICONS.reload />}
+        icon={<APODERADOS_ICONS.reload style={{ margin:"3px" }} />}
         label={loading ? "Creando Apoderado" : "Crear Apoderado"}
         onClick={handleActionSubmit}
         variant="primary"

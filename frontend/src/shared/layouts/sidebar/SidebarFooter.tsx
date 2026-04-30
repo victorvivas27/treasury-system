@@ -57,7 +57,6 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen }) => {
         icon={<LogoutIcon className="sidebar-footer-icon font-lg" />}
         label="Cerrar sesión"
         className={!isSidebarOpen ? "button--sidebar-closed" : "button--sidebar-open"}
-        size="small"
         testId="sidebar-logout-btn"
       />
     </footer>
