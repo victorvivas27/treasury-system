@@ -54,7 +54,7 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
 
 
   return (
-    <article className="apoderados-container">
+    <article className="apoderados-container ">
       <header className="apoderados-header">
         <h2 className="apoderados-header__title">Lista de Apoderados</h2>
       </header>
@@ -63,13 +63,13 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
         <table className="apoderados-table">
           <thead>
             <tr >
-              <th className="apoderados-table__th">Nombre Completo</th>
-              <th className="apoderados-table__th">Correo Electrónico</th>
+              <th className="apoderados-table__th">Nombre</th>
+              <th className="apoderados-table__th">Correo</th>
               <th className="apoderados-table__th">Teléfono</th>
               <th className="apoderados-table__th">Acciones</th>
             </tr>
           </thead>
-          <tbody className="apoderados-table__body">
+          <tbody className="apoderados-table__body ">
             {apoderados.map((apoderado) => (
               <tr key={apoderado.id} className="apoderados-table__row--data">
                 <td className="apoderados-table__td" data-label="Nombre">

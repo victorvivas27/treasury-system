@@ -21,11 +21,11 @@
   --text-muted: #9CA3AF;
 
   /* 4. LÍNEAS */
-  --border-color: #1F2937;
-  --divider: #0F172A;
+  --border-color: #858688;
+  --divider: #051e57;
 
   /* 5. SISTEMA DE MEDIDAS (REM) */
-  --xs: 0.25rem;
+  --xs: 0.6rem;
   /* 4px */
   --sm: 0.8rem;
   /* 8px */

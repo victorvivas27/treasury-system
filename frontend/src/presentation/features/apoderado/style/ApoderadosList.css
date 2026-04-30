@@ -2,68 +2,58 @@
 .apoderados-container {
   background-color: var(--color-surface);
   border-radius: 16px;
-  padding: 1rem;
-  width: 98%;
+  padding: var(--sm);
 }
 
 /* --- Header --- */
 .apoderados-header {
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .apoderados-header__title {
   color: var(--color-accent);
-  font-size: 1.25rem;
   font-weight: 600;
-}
-
-/* --- Tabla --- */
-.apoderados-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.apoderados-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  text-align: left;
+  border-bottom: 1px solid var(--divider);
 }
 
 .apoderados-table__th {
-  padding: 1rem;
-  font-size: 0.75rem;
+  padding: var(--sm);
+  font-size: var(--sm);
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  border-bottom: 1px solid var(--color-divider);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
 }
 
 .apoderados-table__td {
-  padding: 0.75rem;
-  font-size: 0.875rem;
-  color: var(--color-text-main);
+  padding: var(--sm);
+  font-size: var(--sm);
+  text-align: left;
+}
+
+/* 1. Agregar esto a la tabla */
+.apoderados-table {
+  width: var(--wh-100);
+  border-collapse: collapse;
 }
 
 .apoderados-table__row--data {
-  border-bottom: 1px solid var(--color-border);
-  transition: background 0.2s;
+  border-bottom: 1px solid var(--divider);
+  border-radius: var();
 }
 
-.apoderados-table__row--data:hover {
-  background-color: var(--color-hover);
-}
+
 
 /* --- Responsive SOLO tabla real --- */
 @media (max-width: 768px) {
+
   .apoderados-table,
   .apoderados-table__head,
   .apoderados-table__body,
   .apoderados-table__th,
   .apoderados-table__td,
   .apoderados-table__row--data {
-    display:revert;
+    display: revert;
   }
 
   .apoderados-table__th {
@@ -73,7 +63,7 @@
   .apoderados-table__td {
     display: flex;
     justify-content: space-between;
-    padding: 0.75rem;
+
   }
 
   .apoderados-table__td::before {

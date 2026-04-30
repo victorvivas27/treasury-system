@@ -1,8 +1,8 @@
 import "./style/ApoderadosListSkeleton.css";
 
-export const ApoderadosListSkeleton: React.FC = () => {
-  // Ponemos 5 para que parezca una lista real cargando
-  const skeletonRows = Array(2).fill(null);
+export const ApoderadosListSkeleton = () => {
+  // 5 filas para simular 5 registros
+  const skeletonRows = Array(1).fill(0);
 
   return (
     <article className="apoderados-container">
@@ -12,24 +12,28 @@ export const ApoderadosListSkeleton: React.FC = () => {
 
       <div className="apoderados-table-wrapper">
         <table className="apoderados-table">
-          <thead className="apoderados-table__head">
-            <tr className="apoderados-table__row">
-              <th className="apoderados-table__th">Nombre Completo</th>
-              <th className="apoderados-table__th">Correo Electrónico</th>
+          <thead>
+            <tr>
+              <th className="apoderados-table__th">Nombre</th>
+              <th className="apoderados-table__th">Correo</th>
               <th className="apoderados-table__th">Teléfono</th>
+              <th className="apoderados-table__th">Acciones</th>
             </tr>
           </thead>
-          <tbody className="apoderados-table__body">
+          <tbody>
             {skeletonRows.map((_, index) => (
               <tr key={index} className="apoderados-table__row--data">
-                <td className="apoderados-table__td">
-                  <div className="skeleton-block w-80"></div>
+                <td className="apoderados-table__td" data-label="Nombre">
+                  <div className="skeleton-block skeleton-name"></div>
                 </td>
-                <td className="apoderados-table__td">
-                  <div className="skeleton-block w-90"></div>
+                <td className="apoderados-table__td" data-label="Email">
+                  <div className="skeleton-block skeleton-email"></div>
                 </td>
-                <td className="apoderados-table__td">
-                  <div className="skeleton-block w-60"></div>
+                <td className="apoderados-table__td" data-label="Teléfono">
+                  <div className="skeleton-block skeleton-phone"></div>
+                </td>
+                <td className="apoderados-table__td" data-label="Acciones">
+                  <div className="skeleton-button"></div>
                 </td>
               </tr>
             ))}

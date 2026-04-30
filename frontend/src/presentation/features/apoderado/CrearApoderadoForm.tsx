@@ -25,7 +25,7 @@ export const CrearApoderadoForm = () => {
 
 
         {/* Campo Nombre */}
-        <div className="form-group floating-group">
+        <div className="form-group floating-group ">
           <input
             id="nombre_input"
             name="nombre"
@@ -34,7 +34,7 @@ export const CrearApoderadoForm = () => {
             placeholder="Juan Carlos Perez Example"
             className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
           />
-          <label htmlFor="nombre_input" className="floating-label">Nombre completo </label>
+          <label htmlFor="nombre_input" className="floating-label form-label">Nombre completo </label>
           {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
         </div>
 
@@ -49,7 +49,7 @@ export const CrearApoderadoForm = () => {
             placeholder="ejemplo@email.com" /* El ejemplo va aquí */
             className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
           />
-          <label htmlFor="email_input" className="floating-label">Email </label>
+          <label htmlFor="email_input" className="floating-label form-label">Email </label>
           {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
         </div>
 
@@ -65,7 +65,7 @@ export const CrearApoderadoForm = () => {
             placeholder="+56 9 888 88 88 "
             className={`form-input ${fieldErrors.telefono ? 'input-error' : ''}`}
           />
-          <label htmlFor="telefono_input" className="floating-label">Teléfono</label>
+          <label htmlFor="telefono_input" className="floating-label form-label">Teléfono</label>
           {fieldErrors.telefono && <span className="error-message">{fieldErrors.telefono}</span>}
         </div>
 
@@ -90,6 +90,7 @@ export const CrearApoderadoForm = () => {
         label={loading ? "Creando Apoderado" : "Crear Apoderado"}
         onClick={handleActionSubmit}
         variant="primary"
+        size="medium"
       />
 
       <ModalAlert
