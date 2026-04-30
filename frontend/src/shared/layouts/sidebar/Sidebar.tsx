@@ -4,7 +4,7 @@ import { SidebarHeader } from "./SidebarHeader";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarFooter } from "./SidebarFooter";
 import type { FC } from "react";
-//import { SidebarSearch } from "./SidebarSearch";
+
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -12,10 +12,10 @@ interface SidebarProps {
 }
 export const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, onToggleSidebar }) => {
   return (
-    <aside className={`sidebar ${!isSidebarOpen ? "sidebar--collapsed" : ""}`}>
+    <aside className={`sidebar flex-col ${!isSidebarOpen ? "sidebar--collapsed" : ""}`}>
       <SidebarHeader onToggleSidebar={onToggleSidebar} />
       <SidebarNav />
-      <SidebarFooter />
+      <SidebarFooter isSidebarOpen={isSidebarOpen}  />
     </aside>
   );
 };

@@ -1,28 +1,12 @@
-
 /* Contenedor principal del sidebar */
 .sidebar {
   height: 100vh;
   top: 0;
   left: 0;
   position: fixed;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
   width: 13rem;
-  padding: 0.5rem;
-  background-color: var(--color-background);
+  background-color: var(--color-bg);
   box-shadow: 1px 0px 10px var(--color-primary);
   transition: width 0.5s ease;
   z-index: 1;
 }
-.sidebar-layout .outlet-layout {
-  margin-left: 13rem;
-}
-
-/* Esto es lo único que cambia 👇 */
-.sidebar-layout .outlet-layout,
-.sidebar-layout.collapsed .outlet-layout {
-  margin-left: 0 !important;
-}
-

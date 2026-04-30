@@ -10,13 +10,13 @@ export const SidebarHeader = ({ onToggleSidebar }: SidebarHeaderProps) => {
     <>
       <button
         onClick={onToggleSidebar}
-        className="sidebar-btn-arrow"
+        className="sidebar-btn-arrow flex-center"
         aria-label="Toggle sidebar"
       >
-        <IoIosArrowBack className="sidebar-icon-arrow" />
+        <IoIosArrowBack className="font-lg" />
       </button>
 
-      <header className="sidebar-brand-header">
+      <header className="sidebar-brand-header flex-align-center gap-sm">
         <img
           className="sidebar-brand-icon"
           src={icono_tesoreria}

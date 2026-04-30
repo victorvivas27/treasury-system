@@ -1,78 +1,204 @@
-/* Variables Globales */
+/* =========================================
+   🌙 THEME DARK - CONFIGURACIÓN GLOBAL
+   ========================================= */
 :root {
-  /* =========================
-   🌙 THEME DARK - TESORERÍA
-   ========================= */
-
-  /* 1. Base (evitar negro puro) */
-  --color-background: #0A0F1A;
-  /* Fondo principal */
-  --color-surface: #111827;
-  /* 2. Identidad (ajustada para dark) */
+  /* 1. IDENTIDAD Y ESTADOS */
   --color-primary: #1E3A5F;
-  /* Azul más visible en oscuro */
-  --color-accent: #2DD4BF;
-  /* Teal más brillante */
-
-  /* 3. Estados (subidos de brillo) */
+  --color-accent: #0eebcd;
   --color-success: #22C55E;
   --color-error: #EF4444;
   --color-warning: #F59E0B;
+  --color-info: #3B82F6;
 
-  /* 4. Texto (clave para dashboards) */
-  --color-text-main: #E5E7EB;
-  /* Texto principal */
-  --color-text-muted: #9CA3AF;
-
-
-  /* 5. Bordes / separación */
-  --color-border: #1F2937;
-  --color-divider: #0F172A;
-
-  /* 6. Extras útiles */
+  /* 2. SUPERFICIES Y FONDOS */
+  --color-bg: #0A0F1A;
+  --color-surface: #111827;
   --color-hover: #1F2937;
   --color-active: #374151;
-  --color-active-strong: #FACC15;
 
+  /* 3. TEXTOS */
+  --text-main: #E5E7EB;
+  --text-muted: #9CA3AF;
+
+  /* 4. LÍNEAS */
+  --border-color: #1F2937;
+  --divider: #0F172A;
+
+  /* 5. SISTEMA DE MEDIDAS (REM) */
+  --xs: 0.25rem;
+  /* 4px */
+  --sm: 0.8rem;
+  /* 8px */
+  --md: 1rem;
+  /* 16px */
+  --lg: 1.3rem;
+  /* 24px */
+  --xl: 1.5rem;
+  /* 32px */
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --wh-100: 100%;
+  --wh-90: 90%;
+  --wh-80: 80%;
+  --wh-70: 70%;
+  --wih-60: 60%;
+  --wh-50: 50%;
+  --wh-40: 40%;
+  --wh-30: 30%;
+  --wh-20: 20%;
+  --wh-10: 10%;
+
+  /* 6. FUENTE FUERTE */
+  --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --border-style: 1px solid var(--color-success);
 }
 
-/* Reset básico para que en móvil se vea bien */
+/* =========================================
+   RESET & BASE
+   ========================================= */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html,
+html {
+  /* No uses spacing-md aquí para no confundir. 16px es el estándar. */
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-main);
-  background-color: var(--color-background);
-  color: var(--color-text-main);
-
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  /* border: solid 2px red; */
-   margin-left: 2rem;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background-color: var(--color-bg);
+  color: var(--text-main);
+  line-height: 1.5;
+  overflow-x: hidden;
 
 }
 
+/* =========================================
+   📦 UTILIDADES FLEXBOX (DRY)
+   ========================================= */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--md);
+}
 
+.flex-col {
+   display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 
-/* Scrollbar personalizada (para que no rompa el estilo Dark) */
+}
+
+.flex-align-center {
+  display: flex;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.gap-xs {
+  gap: var(--xs);
+}
+
+.gap-sm {
+  gap: var(--sm);
+}
+
+.gap-md {
+  gap: var(--md);
+}
+
+.gap-lg {
+  gap: var(--lg);
+}
+
+.font-xs {
+  font-size: var(--xs);
+}
+
+.font-sm {
+  font-size: var(--sm);
+}
+
+.font-md {
+  font-size: var(--md);
+}
+
+.font-lg {
+  font-size: var(--lg);
+}
+
+.font-xl {
+  font-size: var(--xl);
+}
+
+/* =========================================
+   🎨 MEJORAS DE UI (SCROLLBAR & TEXT)
+   ========================================= */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 10px;
+  background: var(--border-color);
+  border-radius: var(--radius-lg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-active);
+}
+
+/* Tipografías consistentes */
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+/* Helper para ocultar texto largo en tablas */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+a{
+  text-decoration: none;
 }

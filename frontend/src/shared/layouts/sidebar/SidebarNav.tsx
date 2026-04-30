@@ -11,7 +11,7 @@ export const SidebarNav = () => {
       <ul className="sidebar-nav-ul">
         {SIDEBAR_LINKS.map((section) => (
           <li key={section.title} className="sidevar-nav-section">
-            <ul className="sidebar-section-links">
+            <ul>
               {section.links.map((link) => {
                 const Icon = link.icon;
 
@@ -20,10 +20,10 @@ export const SidebarNav = () => {
                     <NavLink
                       to={link.path}
                       className={({ isActive }) =>
-                        `sidebar-nav-link-item ${isActive ? "active" : ""}`
+                        `sidebar-nav-link-item flex-align-center gap-sm ${isActive ? "active" : ""}`
                       }
                     >
-                      <Icon className="sidebar-nav-icon" />
+                      <Icon className="sidebar-nav-icon font-lg" />
                       <span className="sidebar-nav-label">{link.label}</span>
                     </NavLink>
                   </li>

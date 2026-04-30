@@ -1,123 +1,102 @@
 /* Footer contenedor */
 .sidebar-footer {
-  width: 100%;
-  padding: 0.5rem 0;
-  border-top: 1px solid var(--color-border);
+  width: var(--wh-100);
 }
 
 /* Lista */
 .sidebar-footer-list {
-  width: 100%;
-}
-
-/* Item */
-.sidebar-footer-item {
-  list-style: none;
+  width: var(--wh-100);
 }
 
 /* Link */
 .sidebar-footer-link {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  width: 100%;
-
+  width: var(--wh-100);
   padding: 0.5rem 0.8rem;
-  border-radius: 0.5rem;
-
   text-decoration: none;
-  color: var(--color-text-muted);
-
+  color: var(--text-main);
   transition: color 0.2s ease;
-}
 
-/* Hover limpio */
-.sidebar-footer-link:hover {
-  color: var(--color-text-main);
 }
 
 /* Activo */
 .sidebar-footer-link.active .sidebar-footer-icon,
 .sidebar-footer-link.active .sidebar-footer-text {
-  color: var(--color-active-strong);
+  color: var(--color-warning);
 }
 
 /* Icono */
 .sidebar-footer-icon {
-  display: flex;
-  align-items: center;
-  font-size: 1.3rem;
   min-width: 20px;
   color: var(--color-accent);
+
 }
 
 /* Texto */
 .sidebar-footer-text {
-  font-size: 0.8rem;
-  font-weight: 500;
-  white-space: nowrap;
   overflow: hidden;
 }
 
 /* Usuario */
 .sidebar-user {
-  display: flex;
-  margin-top: 0.5rem;
   padding: 0.3rem 0.2rem;
-  gap: 0.5rem;
+
 }
 
 /* Avatar */
 .sidebar-user-avatar img {
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
 }
 
 /* Info */
 .sidebar-user-info {
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
   white-space: nowrap;
-
 }
 
 .sidebar-user-name {
-  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--color-text-main);
 }
 
 .sidebar-user-email {
-    font-size: 0.7rem;
-  color: var(--color-text-muted);
-
-  white-space: nowrap;
+  color: var(--text-muted);
   overflow: hidden;
-  text-overflow: ellipsis; /* 🔥 clave */
+  text-overflow: ellipsis;
 }
 
 /* Logout */
 .sidebar-user-logout {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: none;
-  background: none;
-  color: var(--color-accent);
-
-  font-size: 1.3rem;
-  cursor: pointer;
-
   transition: transform 0.15s ease, color 0.2s ease;
 
-   overflow: hidden;
 }
 
-.sidebar-user-logout:hover {
-  color: var(--color-active-strong);
-  transform: scale(1.1);
+/* Contenedor del contenido del botón */
+.button-content {
+  overflow: hidden;
+  /* Evita que el texto se vea al achicarse */
+  white-space: nowrap;
+}
+
+/* El span del label */
+.button-label {
+  transition: opacity 0.3s ease, transform 0.3s ease, width 0.3s ease;
+  opacity: 1;
+  display: inline-block;
+}
+
+/* Cuando el sidebar está CERRADO */
+.button--sidebar-closed .button-label {
+  width: 0;
+  opacity: 0;
+  margin: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+/* Cuando el sidebar está ABIERTO */
+.button--sidebar-open .button-label {
+  width: auto;
+  opacity: 1;
+  transform: translateX(0);
 }
