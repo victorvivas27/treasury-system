@@ -9,7 +9,8 @@ import { Alumno } from "../pages/alumno/Alumno";
 import { Tesoreria } from "../pages/tesoreria/Tesoreria";
 import { Notificacion } from "../pages/notificacion/Notificacion";
 import { Configuracion } from "../pages/configuracion/Configuracion";
-import { ApoderadoForm } from "../pages/apoderado/ApoderadoForm";
+import { ApoderadoEditFormPage } from "../pages/apoderado/ApoderadoEditFormPage";
+import { ApoderadoCrearFormPage } from "../pages/apoderado/ApoderadoCreateFormPage";
 
 export const AppRouter = () => {
   return (
@@ -24,7 +25,8 @@ export const AppRouter = () => {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="notifications" element={<Notificacion />} />
         <Route path="configuration" element={<Configuracion />} />
-        <Route path="parents/new" element={< ApoderadoForm/>} />
+        <Route path="parents/new" element={< ApoderadoCrearFormPage/>} />
+        <Route path="/parents/edit/:id" element={<ApoderadoEditFormPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

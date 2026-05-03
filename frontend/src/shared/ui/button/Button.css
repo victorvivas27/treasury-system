@@ -28,18 +28,14 @@
 }
 
 .button-secondary {
-  background-color: var(--color-surface);
-  color: var(--color-text-main);
+  background-color: var(--color-info);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
-}
-
-.button-secondary:hover:not(:disabled) {
-  background-color: var(--divider);
 }
 
 .button-danger {
   background-color: var(--color-error);
-  color: white;
+  color:var(--text-main);
 }
 
 .button-danger:hover:not(:disabled) {
@@ -49,6 +45,7 @@
 /* Tamaños */
 .size-none {
   padding: 5px;
+  background-color:transparent;
 
 }
 
@@ -103,5 +100,37 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ============================================ */
+/* BOTONES MÁS PEQUEÑOS EN MÓVIL (TODOS LOS TAMAÑOS) */
+/* ============================================ */
+@media (max-width: 768px) {
+  /* Tamaño small en móvil */
+  .size-small {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    min-height: 28px;
+  }
+
+  /* Tamaño medium en móvil */
+  .size-medium {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  /* Tamaño large en móvil */
+  .size-large {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  /* Todos los íconos en móvil */
+  .button-icon svg {
+    width: 1em;
+    height: 1em;
   }
 }

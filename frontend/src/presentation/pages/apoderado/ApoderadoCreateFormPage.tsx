@@ -3,7 +3,7 @@ import "./style/ApoderadoForm.css";
 
 
 
-export const ApoderadoForm = () => {
+export const ApoderadoCrearFormPage = () => {
   return (
 
     <main className="form-page-container">

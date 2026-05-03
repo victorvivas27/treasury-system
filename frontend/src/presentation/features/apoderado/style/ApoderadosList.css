@@ -34,15 +34,39 @@
 /* 1. Agregar esto a la tabla */
 .apoderados-table {
   width: var(--wh-100);
+  table-layout: fixed;
   border-collapse: collapse;
 }
 
 .apoderados-table__row--data {
   border-bottom: 1px solid var(--divider);
-  border-radius: var();
 }
 
+.skeleton-block {
+  height: var(--md);
+  border-radius: 4px;
+  background: linear-gradient(90deg,
+      var(--color-surface) 0%,
+      var(--divider) 50%,
+      var(--color-surface) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShine 1.5s infinite linear;
+}
 
+.skeleton-input {
+  width: min(var(--wh-50), 100%);
+}
+
+/* Animación */
+@keyframes skeletonShine {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
 
 /* --- Responsive SOLO tabla real --- */
 @media (max-width: 768px) {

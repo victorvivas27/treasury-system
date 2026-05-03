@@ -13,6 +13,9 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 
 export const ApoderadoPage: FC = () => {
   const { apoderados, loading, error, refetch } = useApoderados();
+  const handleEdit = (id: number) => {
+    navigate(`/parents/edit/${id}`);  
+  };
 
   const {
     isDeleting,
@@ -40,7 +43,7 @@ export const ApoderadoPage: FC = () => {
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<APODERADOS_ICONS.reload style={{margin:"3px"}}/>}
+            icon={<APODERADOS_ICONS.reload style={{ margin: "3px" }} />}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando" : "Recargar"}
@@ -51,7 +54,7 @@ export const ApoderadoPage: FC = () => {
             onClick={() => navigate("/parents/new")}
             variant="primary"
             size="medium"
-            icon={<APODERADOS_ICONS.add style={{margin:"3px"}}/>}
+            icon={<APODERADOS_ICONS.add style={{ margin: "3px" }} />}
             iconPosition="left"
             label="Crear Apoderado"
           />
@@ -66,6 +69,7 @@ export const ApoderadoPage: FC = () => {
           error={error}
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
+          handleEdit={handleEdit}
         />
       </section>
 

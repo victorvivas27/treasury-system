@@ -10,7 +10,7 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return response.data;
   }
 
-  async getById(id: string): Promise<Apoderado | null> {
+  async getById(id:number): Promise<Apoderado | null> {
     const response = await apiClient.get<Apoderado>(`${this.baseUrl}/${id}`);
     return response.data;
   }
@@ -20,7 +20,7 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return response.data;
   }
 
-  async update(id: string, apoderado: Partial<Apoderado>): Promise<Apoderado> {
+  async update(id: number, apoderado: Partial<Apoderado>): Promise<Apoderado> {
     const response = await apiClient.put<Apoderado>(`${this.baseUrl}/${id}`, apoderado);
     return response.data;
   }
