@@ -8,6 +8,7 @@ import { SIDEBAR_FOOTER_LINKS, SIDEBAR_LINKS, SIDEBAR_USER_MOCK } from "@/shared
 import { SidebarFooter } from "./SidebarFooter";
 
 
+
 describe('Sidebar Component', () => {
   const mockToggle = vi.fn();
 
@@ -66,7 +67,7 @@ describe('Sidebar Component', () => {
 
   describe('SidebarFooter', () => {
     it('[Sidebar #05] Verifica las rutas del Footer y la información del usuario', () => {
-      renderWithRouter(<SidebarFooter />);
+      renderWithRouter(<SidebarFooter isSidebarOpen={true} />);
 
       SIDEBAR_FOOTER_LINKS.forEach((link) => {
         const anchor = screen.getByRole('link', { name: new RegExp(link.label, 'i') });
@@ -80,7 +81,7 @@ describe('Sidebar Component', () => {
 
     it('[Sidebar #06] Aplica la clase "active" en el footer cuando la ruta coincide', () => {
       const testLink = SIDEBAR_FOOTER_LINKS[0];
-      renderWithRouter(<SidebarFooter />, { route: testLink.path });
+      renderWithRouter(<SidebarFooter isSidebarOpen={true} />, { route: testLink.path });
 
       const activeLink = screen.getByRole('link', { name: new RegExp(testLink.label, 'i') });
       expect(activeLink).toHaveClass('active');

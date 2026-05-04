@@ -43,7 +43,7 @@ describe("ApoderadoRepositoryImpl", () => {
   it("[ApoderadoRepo #02] getById: debe retornar un apoderado por ID", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: mockApoderado });
 
-    const result = await repository.getById("1");
+    const result = await repository.getById(1);
 
     expect(apiClient.get).toHaveBeenCalledWith(`${baseUrl}/1`);
     expect(result).toEqual(mockApoderado);
@@ -58,14 +58,14 @@ describe("ApoderadoRepositoryImpl", () => {
     const result = await repository.create(dto);
 
     expect(apiClient.post).toHaveBeenCalledWith(baseUrl, dto);
-    expect(result.id).toBe("2");
+    expect(result.id).toBe(2);
   });
 
   it("[ApoderadoRepo #04] update: debe enviar un PUT con los datos parciales", async () => {
     const updateData = { nombre: "Nombre Editado" };
     vi.mocked(apiClient.put).mockResolvedValue({ data: { ...mockApoderado, ...updateData } });
 
-    const result = await repository.update("1", updateData);
+    const result = await repository.update(1, updateData);
 
     expect(apiClient.put).toHaveBeenCalledWith(`${baseUrl}/1`, updateData);
     expect(result.nombre).toBe("Nombre Editado");

@@ -24,3 +24,7 @@ npm run test:single 'nombre-del-test'
 # Ver cobertura
 npm run test:coverage:open
 
+# Establecer el motor de análisis estático (Linting) para el Frontend utilizando Oxc por su alto rendimiento y ESLint
+
+Ejecutar npm run lint para asegurar calidad de código.
+
