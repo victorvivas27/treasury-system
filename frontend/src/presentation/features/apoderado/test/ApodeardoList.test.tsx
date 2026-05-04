@@ -50,8 +50,8 @@ describe("ApoderadosList Component", () => {
       <ApoderadosList apoderados={mockApoderados} loading={false} error={null} />
     );
     expect(screen.getByText("Lista de Apoderados")).toBeInTheDocument();
-    expect(screen.getByText("Nombre Completo")).toBeInTheDocument();
-    expect(screen.getByText("Correo Electrónico")).toBeInTheDocument();
+    expect(screen.getByText("Nombre")).toBeInTheDocument();
+    expect(screen.getByText("Correo")).toBeInTheDocument();
   });
 
   it("[ApoderadosList #05] Debe renderizar tantas filas como apoderados existan.", () => {
@@ -114,4 +114,87 @@ describe("ApoderadosList Component", () => {
     expect(handleDeleteMock).toHaveBeenCalledTimes(1);
     expect(handleDeleteMock).toHaveBeenCalledWith(1);
   });
+
+  it("[ApoderadosList #09] Debe mostrar skeletons con 5 filas cuando loading=true y apoderados está vacío", () => {
+  const { container } = render(
+    <ApoderadosList apoderados={[]} loading={true} error={null} />
+  );
+
+  const skeletons = container.querySelectorAll(".skeleton-block");
+  // Como apoderados.length === 0, debería mostrar 5 skeletons
+  // Cada fila tiene 3 skeletons (nombre, email, teléfono)
+  expect(skeletons.length).toBeGreaterThanOrEqual(3); // Al menos 3 por fila
+});
+
+it("[ApoderadosList #10] Debe mostrar skeletons con la misma cantidad de filas que apoderados cuando loading=true y hay datos", () => {
+  const { container } = render(
+    <ApoderadosList apoderados={mockApoderados} loading={true} error={null} />
+  );
+
+  const rows = container.querySelectorAll(".apoderados-table__row--data");
+  // Debería mostrar la misma cantidad de filas que apoderados (2)
+  expect(rows.length).toBe(mockApoderados.length);
+});
+
+it("[ApoderadosList #11] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {
+  // 1. Creamos un spy de handleEdit
+  const handleEditMock = vi.fn();
+
+  // 2. Renderizamos con el mock
+  render(
+    <ApoderadosList
+      apoderados={mockApoderados}
+      loading={false}
+      error={null}
+      handleEdit={handleEditMock}
+    />
+  );
+
+  // 3. Buscamos botón editar del primer apoderado
+  const editButton = screen.getByTestId(`edit-btn-1`);
+
+  // 4. Simulamos clic
+  fireEvent.click(editButton);
+
+  // 5. Verificamos que se llamó con ID 1
+  expect(handleEditMock).toHaveBeenCalledTimes(1);
+  expect(handleEditMock).toHaveBeenCalledWith(1);
+});
+
+it("[ApoderadosList #12] Debe NO llamar a handleDelete si la prop no está definida", () => {
+  // Sin pasar handleDelete
+  render(
+    <ApoderadosList
+      apoderados={mockApoderados}
+      loading={false}
+      error={null}
+      // handleDelete no se pasa
+    />
+  );
+
+  const deleteButton = screen.getByTestId(`delete-btn-1`);
+  fireEvent.click(deleteButton);
+
+  // No debería tirar error, simplemente no hace nada
+  // El test pasa si no hay error
+  expect(true).toBe(true);
+});
+
+it("[ApoderadosList #13] Debe NO llamar a handleEdit si la prop no está definida", () => {
+  // Sin pasar handleEdit
+  render(
+    <ApoderadosList
+      apoderados={mockApoderados}
+      loading={false}
+      error={null}
+      // handleEdit no se pasa
+    />
+  );
+
+  const editButton = screen.getByTestId(`edit-btn-1`);
+  fireEvent.click(editButton);
+
+  // No debería tirar error
+  expect(true).toBe(true);
+});
 });

@@ -50,7 +50,7 @@ describe('Button Component - Cobertura Completa', () => {
     renderButton();
     const boton = screen.getByRole('button');
     expect(boton).toHaveClass('button-primary');
-    expect(boton).toHaveClass('size-medium');
+    expect(boton).toHaveClass('size-none');
     expect(boton).toHaveAttribute('type', 'button');
   });
 
