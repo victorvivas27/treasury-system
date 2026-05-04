@@ -53,7 +53,7 @@ describe("ApoderadoRepositoryImpl", () => {
 
   it("[ApoderadoRepo #03] create: debe enviar un POST con los datos del nuevo apoderado", async () => {
     const dto: CreateApoderadoDTO = { nombre: "Nuevo", email: "nuevo@test.com", telefono: "999" };
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { ...dto, id: "2" } });
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { ...dto, id: 2 } });
 
     const result = await repository.create(dto);
 
