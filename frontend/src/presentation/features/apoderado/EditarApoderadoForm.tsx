@@ -5,8 +5,11 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
 import { useEditApoderado } from "@/presentation/hooks/apoderado/useEditApoderado";
+import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
+import { FcHighPriority } from "react-icons/fc";
 
-export const EditarApoderadoForm = () => {
+
+export const EditarApoderadoForm  = () => {
   const {
     formData,
     loading,
@@ -16,8 +19,20 @@ export const EditarApoderadoForm = () => {
     handleSubmit,
     setModal,
     navigate,
-    initialLoading
+    initialLoading,
+    loadError
   } = useEditApoderado();
+  
+  // Estado de Error
+    if (loadError) {
+      return (
+        <FeedbackState
+          message={loadError.message}
+          type="error"
+          icon={<FcHighPriority />}
+        />
+      );
+    }
 
 
   return (

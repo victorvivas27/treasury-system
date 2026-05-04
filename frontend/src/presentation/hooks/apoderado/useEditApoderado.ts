@@ -23,7 +23,7 @@ export const useEditApoderado = () => {
   // Estados de carga (Entrada y Salida)
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+const [loadError, setLoadError] = useState<{ message: string } | null>(null);
 
   // Instancias de arquitectura (Memorizadas para evitar recreación en cada render)
   const { getUseCase, updateUseCase } = useMemo(() => {
@@ -57,17 +57,19 @@ export const useEditApoderado = () => {
 
   const loadApoderadoData = useCallback(async () => {
     if (numericId === undefined || isNaN(numericId)) {
-      setLoadError(true);
+    setLoadError({ message: "ID de apoderado no válido" });
+    setInitialLoading(false); // <--- Agrega esto
       return;
     }
 
     setInitialLoading(true);
-    setLoadError(false);
+    setLoadError(null);
 
     try {
       const apoderado = await getUseCase.execute(numericId);
 
       if (!apoderado) {
+        setLoadError({ message: "El apoderado no existe en el sistema" });
         showAlert("El apoderado no existe", "error");
         setTimeout(() => navigate("/parents"), 2000);
         return;
@@ -80,7 +82,7 @@ export const useEditApoderado = () => {
         observaciones: apoderado.observaciones || "",
       });
     } catch {
-      setLoadError(true);
+     setLoadError({ message: "Error de conexión al cargar los datos" });
       showAlert("Error al cargar los datos del apoderado", "error");
       setTimeout(() => navigate("/parents"), 2000);
     } finally {

@@ -5,6 +5,7 @@ import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";
 import { Button } from "@/shared/ui/button/Button";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
+import type { FC } from "react";
 
 
 interface ApoderadosListProps {
@@ -17,7 +18,7 @@ interface ApoderadosListProps {
 
 }
 
-export const ApoderadosList: React.FC<ApoderadosListProps> = ({
+export const ApoderadosList: FC<ApoderadosListProps> = ({
   apoderados,
   loading,
   error,
@@ -28,7 +29,7 @@ export const ApoderadosList: React.FC<ApoderadosListProps> = ({
  const rows = loading
   ? Array.from({ length: apoderados.length > 0 ? apoderados.length : 5 })
   : apoderados;
-  
+
   // Estado de Error
   if (error) {
     return (
