@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApoderadosList } from "../ApoderadosList";
 
 
+
 // Mock de datos para las pruebas
 const mockApoderados: Apoderado[] = [
   { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "987654321" },

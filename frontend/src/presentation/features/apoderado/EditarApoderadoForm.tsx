@@ -1,10 +1,10 @@
 // components/apoderado/EditarApoderadoForm.tsx
 import { Button } from "@/shared/ui/button/Button";
 import "./style/CrearApoderadoForm.css"; // Reutilizamos el mismo CSS
-import { useEditApoderado } from "@/presentation/hooks/apoderado/useEditApoderado";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
+import { useEditApoderado } from "@/presentation/hooks/apoderado/useEditApoderado";
 
 export const EditarApoderadoForm = () => {
   const {

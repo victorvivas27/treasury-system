@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { useApoderados } from "../useApoderados";
 
+
+
 // 1. Usamos vi.hoisted para que esta variable se cree ANTES que el vi.mock
 const { mockExecute } = vi.hoisted(() => ({
   mockExecute: vi.fn()

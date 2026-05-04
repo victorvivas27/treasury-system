@@ -1,7 +1,9 @@
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
-import { useMemo, useState } from "react";
+
 
 // Instanciamos el repositorio
+
+import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
+import { useMemo, useState } from "react";
 
 
 export const useDeleteApoderado = (onSuccess?: () => void) => {

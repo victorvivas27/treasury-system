@@ -2,6 +2,7 @@ import { apiClient } from "@/core/config/api";
 import type { Apoderado, CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
 import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IApoderadoRepository";
 
+
 export class ApoderadoRepositoryImpl implements IApoderadoRepository {
   private readonly baseUrl = '/apoderados';
 

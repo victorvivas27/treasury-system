@@ -1,8 +1,8 @@
+import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useDeleteApoderado } from "../useDeleteApoderado";
+
 
 // Mock del repositorio con función tradicional para permitir 'new'
 vi.mock("@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl", () => ({

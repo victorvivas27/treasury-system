@@ -1,10 +1,9 @@
-import { CreateApoderadoUseCase } from "@/core/application/use-cases/apoderado/CreateApoderadoUseCase";
+import { CreateApoderadoUseCase } from "@/core/application/use-cases/apoderado/create/CreateApoderadoUseCase";
 import type { CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import axios from "axios";
 import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-
 
 export const useCreateApoderado = () => {
   const navigate = useNavigate();
@@ -12,16 +11,18 @@ export const useCreateApoderado = () => {
     nombre: "",
     email: "",
     telefono: "",
-    observaciones: ""
+    observaciones: "",
   };
 
-  const [formData, setFormData] = useState<CreateApoderadoDTO>({ ...initialFormState });
+  const [formData, setFormData] = useState<CreateApoderadoDTO>({
+    ...initialFormState,
+  });
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
     isOpen: false,
     message: "",
-    type: "success" as "success" | "error"
+    type: "success" as "success" | "error",
   });
 
   const showAlert = (message: string, type: "success" | "error") => {
@@ -29,16 +30,18 @@ export const useCreateApoderado = () => {
   };
 
   const closeModal = () => {
-    setModal(prev => ({ ...prev, isOpen: false }));
+    setModal((prev) => ({ ...prev, isOpen: false }));
     if (modal.type === "success") navigate("/parents");
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (fieldErrors[name]) {
-      setFieldErrors(prev => {
+      setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;

@@ -1,6 +1,6 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CreateApoderadoUseCase } from "@/core/application/use-cases/apoderado/CreateApoderadoUseCase";
+import { CreateApoderadoUseCase } from "@/core/application/use-cases/apoderado/create/CreateApoderadoUseCase";
 import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IApoderadoRepository";
 import type { Apoderado, CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
 

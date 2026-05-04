@@ -1,4 +1,4 @@
-import { GetApoderadosUseCase } from "@/core/application/use-cases/apoderado/GetApoderadosUseCase";
+import { GetApoderadosUseCase } from "@/core/application/use-cases/apoderado/list/GetApoderadosUseCase";
 import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useEffect, useState } from "react";
@@ -18,7 +18,9 @@ export const useApoderados = () => {
       const data = await getApoderadosUseCase.execute();
       setApoderados(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar apoderados');
+      setError(
+        err instanceof Error ? err.message : "Error al cargar apoderados",
+      );
     } finally {
       setLoading(false);
     }

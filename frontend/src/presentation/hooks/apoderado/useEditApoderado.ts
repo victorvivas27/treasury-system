@@ -1,5 +1,6 @@
-import { GetApoderadoByIdUseCase } from "@/core/application/use-cases/apoderado/GetApoderadoByIdUseCase";
-import { UpdateApoderadoUseCase } from "@/core/application/use-cases/apoderado/UpdateApoderadoUseCase";
+
+import { GetApoderadoByIdUseCase } from "@/core/application/use-cases/apoderado/byid/GetApoderadoByIdUseCase";
+import { UpdateApoderadoUseCase } from "@/core/application/use-cases/apoderado/update/UpdateApoderadoUseCase";
 import type { CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import axios from "axios";
