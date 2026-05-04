@@ -1,0 +1,136 @@
+.base-button {
+
+  gap: 0.5rem;
+  border: none;
+  border-radius: var(--xs);
+  transition: all 0.2s ease;
+  margin: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.base-button:disabled,
+.base-button.is-loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Variantes */
+.button-primary {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.button-primary:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.button-secondary {
+  background-color: var(--color-info);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.button-danger {
+  background-color: var(--color-error);
+  color:var(--text-main);
+}
+
+.button-danger:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+/* Tamaños */
+.size-none {
+  padding: 5px;
+  background-color:transparent;
+
+}
+
+.size-small {
+  padding: 0.4rem 0.9rem;
+  font-size: var(--xs);
+  min-height: 32px;
+}
+
+.size-medium {
+  padding: 0.6rem 1.1rem;
+  font-size: var(--sm);
+  min-height: 38px;
+}
+
+.size-large {
+  padding: 0.7rem 1.2rem;
+  font-size: var(--md);
+  min-height: 44px;
+}
+
+/* Contenido del botón */
+.button-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+/* Iconos */
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.button-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+  display: block;
+}
+
+/* Loader animation para iconos cuando está cargando */
+.is-loading .button-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================ */
+/* BOTONES MÁS PEQUEÑOS EN MÓVIL (TODOS LOS TAMAÑOS) */
+/* ============================================ */
+@media (max-width: 768px) {
+  /* Tamaño small en móvil */
+  .size-small {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    min-height: 28px;
+  }
+
+  /* Tamaño medium en móvil */
+  .size-medium {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  /* Tamaño large en móvil */
+  .size-large {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  /* Todos los íconos en móvil */
+  .button-icon svg {
+    width: 1em;
+    height: 1em;
+  }
+}

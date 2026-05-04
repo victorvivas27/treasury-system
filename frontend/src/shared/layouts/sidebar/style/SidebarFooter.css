@@ -1,0 +1,102 @@
+/* Footer contenedor */
+.sidebar-footer {
+  width: var(--wh-100);
+}
+
+/* Lista */
+.sidebar-footer-list {
+  width: var(--wh-100);
+}
+
+/* Link */
+.sidebar-footer-link {
+  width: var(--wh-100);
+  padding: 0.5rem 0.8rem;
+  text-decoration: none;
+  color: var(--text-main);
+  transition: color 0.2s ease;
+
+}
+
+/* Activo */
+.sidebar-footer-link.active .sidebar-footer-icon,
+.sidebar-footer-link.active .sidebar-footer-text {
+  color: var(--color-warning);
+}
+
+/* Icono */
+.sidebar-footer-icon {
+  min-width: 20px;
+  color: var(--color-accent);
+
+}
+
+/* Texto */
+.sidebar-footer-text {
+  overflow: hidden;
+}
+
+/* Usuario */
+.sidebar-user {
+  padding: 0.3rem 0.2rem;
+
+}
+
+/* Avatar */
+.sidebar-user-avatar img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+
+/* Info */
+.sidebar-user-info {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar-user-name {
+  font-weight: 600;
+}
+
+.sidebar-user-email {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Logout */
+.sidebar-user-logout {
+  transition: transform 0.15s ease, color 0.2s ease;
+
+}
+
+/* Contenedor del contenido del botón */
+.button-content {
+  overflow: hidden;
+  /* Evita que el texto se vea al achicarse */
+  white-space: nowrap;
+}
+
+/* El span del label */
+.button-label {
+  transition: opacity 0.3s ease, transform 0.3s ease, width 0.3s ease;
+  opacity: 1;
+  display: inline-block;
+}
+
+/* Cuando el sidebar está CERRADO */
+.button--sidebar-closed .button-label {
+  width: 0;
+  opacity: 0;
+  margin: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+/* Cuando el sidebar está ABIERTO */
+.button--sidebar-open .button-label {
+  width: auto;
+  opacity: 1;
+  transform: translateX(0);
+}

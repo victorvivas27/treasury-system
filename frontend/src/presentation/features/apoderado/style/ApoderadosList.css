@@ -1,0 +1,98 @@
+/* --- Contenedor --- */
+.apoderados-container {
+  background-color: var(--color-surface);
+  border-radius: 16px;
+  padding: var(--sm);
+}
+
+/* --- Header --- */
+.apoderados-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.apoderados-header__title {
+  color: var(--color-accent);
+  font-weight: 600;
+  border-bottom: 1px solid var(--divider);
+}
+
+.apoderados-table__th {
+  padding: var(--sm);
+  font-size: var(--sm);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
+}
+
+.apoderados-table__td {
+  padding: var(--sm);
+  font-size: var(--sm);
+  text-align: left;
+}
+
+/* 1. Agregar esto a la tabla */
+.apoderados-table {
+  width: var(--wh-100);
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.apoderados-table__row--data {
+  border-bottom: 1px solid var(--divider);
+}
+
+.skeleton-block {
+  height: var(--md);
+  border-radius: 4px;
+  background: linear-gradient(90deg,
+      var(--color-surface) 0%,
+      var(--divider) 50%,
+      var(--color-surface) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShine 1.5s infinite linear;
+}
+
+.skeleton-input {
+  width: min(var(--wh-50), 100%);
+}
+
+/* Animación */
+@keyframes skeletonShine {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* --- Responsive SOLO tabla real --- */
+@media (max-width: 768px) {
+
+  .apoderados-table,
+  .apoderados-table__head,
+  .apoderados-table__body,
+  .apoderados-table__th,
+  .apoderados-table__td,
+  .apoderados-table__row--data {
+    display: revert;
+  }
+
+  .apoderados-table__th {
+    display: none;
+  }
+
+  .apoderados-table__td {
+    display: flex;
+    justify-content: space-between;
+
+  }
+
+  .apoderados-table__td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+}

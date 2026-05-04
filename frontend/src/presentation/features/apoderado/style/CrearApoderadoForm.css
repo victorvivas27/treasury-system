@@ -1,0 +1,114 @@
+.form-card {
+  background-color: var(--color-surface);
+
+  padding: var(--sm);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sm);
+
+}
+
+/* El textarea se expande a las 3 columnas */
+.col-span-3 {
+  grid-column: span 1;
+}
+
+.form-label {
+  color: var(--text-main);
+  font-size:var(--sm);
+}
+
+.form-input {
+  width: var(--wh-100);
+  padding:var(--md);
+  background: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius:var(--sm);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--color-accent);
+}
+
+.form-input::placeholder {
+  color: transparent;
+  transition: color 0.3s ease;
+  /* Que aparezca suave */
+}
+
+.form-input:focus::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Borde rojo para el input con error */
+.form-input.input-error {
+  border-color: var(--color-error) !important;
+}
+
+/* Texto del error debajo del input */
+.error-message {
+  color: var(--color-error);
+  font-size: var(--xs);
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Contenedor relativo para posicionar el label */
+.floating-group {
+  position: relative;
+  margin-top:var(--sm);
+
+}
+
+/* Estilo inicial del Label (dentro del input como un placeholder) */
+.floating-label {
+  position: absolute;
+  left: 12px;
+  top: 40%;
+  transform: translateY(-65%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: all 0.2s ease-out;
+  background: transparent;
+  padding: 0 4px;
+}
+/* EL TRUCO: Cuando el input está en foco O tiene texto escrito */
+.form-input:focus+.floating-label,
+.form-input:not(:placeholder-shown)+.floating-label {
+  top: 0;
+  transform: translateY(-90%) scale(0.90);
+  color: var(--color-accent);
+}
+
+.input-error:focus+.floating-label,
+.input-error:not(:placeholder-shown)+.floating-label {
+  color: var(--color-error);
+}
+
+
+
+
+
+/* Responsivo rápido */
+@media (max-width: 640px) {
+
+  .form-card {
+    grid-template-columns: 1fr;
+  }
+
+}

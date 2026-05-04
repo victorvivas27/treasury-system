@@ -1,0 +1,12 @@
+/* Contenedor principal del sidebar */
+.sidebar {
+  height: 100vh;
+  top: 0;
+  left: 0;
+  position: fixed;
+  width: 13rem;
+  background-color: var(--color-bg);
+  box-shadow: 1px 0px 10px var(--color-primary);
+  transition: width 0.5s ease;
+  z-index: 1;
+}

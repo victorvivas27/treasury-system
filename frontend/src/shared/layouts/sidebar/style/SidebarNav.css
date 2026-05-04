@@ -1,0 +1,48 @@
+/* Modo colapsado */
+.sidebar.sidebar--collapsed {
+  width: 3.5rem;
+}
+
+/* NAV */
+.sidebar-nav {
+  width: var(--wh-100);
+  height: var(--wh-100);
+
+}
+
+/* Sección */
+.sidevar-nav-section {
+  width: var(--wh-100);
+}
+
+/* Link */
+.sidebar-nav-link-item {
+  padding: 0.6rem 0.8rem;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+/* Activo icono */
+.sidebar-nav-link-item.active .sidebar-nav-icon {
+  color: var(--color-warning);
+}
+
+/* Activo texto */
+.sidebar-nav-link-item.active .sidebar-nav-label {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+/* Icono */
+.sidebar-nav-icon {
+  min-width: var(--lg);
+  color: var(--color-accent);
+  transition: transform 0.15s ease, color 0.2s ease;
+}
+
+/* Texto */
+.sidebar-nav-label {
+  white-space: nowrap;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  overflow: hidden;
+}

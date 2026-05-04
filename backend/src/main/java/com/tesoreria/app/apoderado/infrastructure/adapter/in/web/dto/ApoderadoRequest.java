@@ -18,7 +18,7 @@ public class ApoderadoRequest {
     @NotBlank(message = "El teléfono es obligatorio")
     @Pattern(
             regexp = "^\\+?[0-9]{9,15}$",
-            message = "El teléfono puede incluir +, debe tener entre 9 y 15 dígitos numéricos"
+            message = "Debe tener entre 9 y 15 dígitos numéricos"
     )
     private String telefono;
 

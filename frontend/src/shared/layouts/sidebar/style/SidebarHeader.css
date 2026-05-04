@@ -1,0 +1,31 @@
+.sidebar-btn-arrow {
+  position: absolute;
+  top: 2%;
+  right: -1rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  transition: right 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar--collapsed .sidebar-btn-arrow {
+  transform: rotate(180deg);
+  right: -1.2rem;
+}
+
+.sidebar-brand-header {
+  width: var(--wh-100);
+  padding: 0.5rem;
+}
+
+.sidebar-brand-icon {
+  width: 2rem;
+}
+
+.sidebar-brand-name {
+  font-weight: 600;
+  color: var(--color-primary);
+  overflow: hidden;
+}
