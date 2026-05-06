@@ -1,8 +1,7 @@
-
-import { GetApoderadoByIdUseCase } from "@/core/application/use-cases/apoderado/byid/GetApoderadoByIdUseCase";
-import { UpdateApoderadoUseCase } from "@/core/application/use-cases/apoderado/update/UpdateApoderadoUseCase";
-import type { CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
+import { GetApoderadoByIdUseCase } from "@/core/B-application/use-cases/apoderado/byid/GetApoderadoByIdUseCase";
+import { UpdateApoderadoUseCase } from "@/core/B-application/use-cases/apoderado/update/UpdateApoderadoUseCase";
+import type { CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
+import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import axios from "axios";
 import {
   useCallback,
@@ -23,7 +22,7 @@ export const useEditApoderado = () => {
   // Estados de carga (Entrada y Salida)
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-const [loadError, setLoadError] = useState<{ message: string } | null>(null);
+  const [loadError, setLoadError] = useState<{ message: string } | null>(null);
 
   // Instancias de arquitectura (Memorizadas para evitar recreación en cada render)
   const { getUseCase, updateUseCase } = useMemo(() => {
@@ -57,8 +56,8 @@ const [loadError, setLoadError] = useState<{ message: string } | null>(null);
 
   const loadApoderadoData = useCallback(async () => {
     if (numericId === undefined || isNaN(numericId)) {
-    setLoadError({ message: "ID de apoderado no válido" });
-    setInitialLoading(false); // <--- Agrega esto
+      setLoadError({ message: "ID de apoderado no válido" });
+      setInitialLoading(false); // <--- Agrega esto
       return;
     }
 
@@ -82,7 +81,7 @@ const [loadError, setLoadError] = useState<{ message: string } | null>(null);
         observaciones: apoderado.observaciones || "",
       });
     } catch {
-     setLoadError({ message: "Error de conexión al cargar los datos" });
+      setLoadError({ message: "Error de conexión al cargar los datos" });
       showAlert("Error al cargar los datos del apoderado", "error");
       setTimeout(() => navigate("/parents"), 2000);
     } finally {

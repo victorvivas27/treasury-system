@@ -1,6 +1,6 @@
-import { CreateApoderadoUseCase } from "@/core/application/use-cases/apoderado/create/CreateApoderadoUseCase";
-import type { CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
+import { CreateApoderadoUseCase } from "@/core/B-application/use-cases/apoderado/create/CreateApoderadoUseCase";
+import type { CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
+import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import axios from "axios";
 import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";

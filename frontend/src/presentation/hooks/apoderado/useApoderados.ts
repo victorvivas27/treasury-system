@@ -1,6 +1,6 @@
-import { GetApoderadosUseCase } from "@/core/application/use-cases/apoderado/list/GetApoderadosUseCase";
-import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
+import { GetApoderadosUseCase } from "@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase";
+import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
+import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useEffect, useState } from "react";
 
 const repository = new ApoderadoRepositoryImpl();

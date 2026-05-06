@@ -1,5 +1,5 @@
-import type { Apoderado, CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
-import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IApoderadoRepository";
+import type { Apoderado, CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
+import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/IApoderadoRepository";
 
 export class CreateApoderadoUseCase {
   private readonly apoderadoRepository: IApoderadoRepository;

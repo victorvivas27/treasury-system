@@ -1,4 +1,4 @@
-import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
+import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApoderadosList } from "../ApoderadosList";

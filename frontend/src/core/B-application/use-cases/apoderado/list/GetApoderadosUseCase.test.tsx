@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GetApoderadosUseCase } from "./GetApoderadosUseCase";
-import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IApoderadoRepository";
-import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
+import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/IApoderadoRepository";
+import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 
 describe("GetApoderadosUseCase", () => {
   let useCase: GetApoderadosUseCase;

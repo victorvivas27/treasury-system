@@ -1,4 +1,4 @@
-import type { Apoderado } from "@/core/domain/entities/apoderado/Apoderado";
+import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import "./style/ApoderadosList.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";

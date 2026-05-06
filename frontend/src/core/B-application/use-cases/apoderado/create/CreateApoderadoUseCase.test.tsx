@@ -1,8 +1,8 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CreateApoderadoUseCase } from "@/core/application/use-cases/apoderado/create/CreateApoderadoUseCase";
-import type { IApoderadoRepository } from "@/core/domain/repository/apoderado/IApoderadoRepository";
-import type { Apoderado, CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
+import { CreateApoderadoUseCase } from "@/core/B-application/use-cases/apoderado/create/CreateApoderadoUseCase";
+import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/IApoderadoRepository";
+import type { Apoderado, CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
 
 
 describe("CrearApoderadoForm Component", () => {

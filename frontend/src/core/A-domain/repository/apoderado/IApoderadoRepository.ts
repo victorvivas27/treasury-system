@@ -1,4 +1,4 @@
-import type {Apoderado, CreateApoderadoDTO} from "@/core/domain/entities/apoderado/Apoderado";
+import type {Apoderado, CreateApoderadoDTO} from "@/core/A-domain/entities/apoderado/Apoderado";
 export interface IApoderadoRepository {
   getAll(): Promise<Apoderado[]>;
 

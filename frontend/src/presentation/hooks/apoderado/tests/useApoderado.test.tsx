@@ -10,7 +10,7 @@ const { mockExecute } = vi.hoisted(() => ({
   mockExecute: vi.fn()
 }));
 
-vi.mock("@/core/application/use-cases/apoderado/list/GetApoderadosUseCase", () => {
+vi.mock("@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase", () => {
   return {
     // Usamos una función tradicional para evitar el error de constructor
     GetApoderadosUseCase: vi.fn().mockImplementation(function() {
