@@ -20,7 +20,7 @@ export const SkeletonWrapper = ({
       className={`skeleton-block ${className}`}
       style={{
         height: height || 'var(--md)',
-        width: width || '100%',
+        width: width || 'var(--wh-100)',
         display: 'block'
       }}
     />
