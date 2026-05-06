@@ -4,14 +4,19 @@ const icono_tesoreria = ("/icono_tesoreria_03.png");
 import "./style/SidebarHeader.css";
 type SidebarHeaderProps = {
   onToggleSidebar: () => void;
+  isLocked: boolean;
 };
-export const SidebarHeader = ({ onToggleSidebar }: SidebarHeaderProps) => {
+export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps) => {
   return (
     <>
       <button
         onClick={onToggleSidebar}
         className="sidebar-btn-arrow flex-center"
         aria-label="Toggle sidebar"
+        style={{
+          backgroundColor: isLocked ? "var(--color-warning)" : "var(--color-primary)",
+          transition: "background-color 0.2s ease"
+        }}
       >
         <IoIosArrowBack className="font-lg" />
       </button>
@@ -27,3 +32,4 @@ export const SidebarHeader = ({ onToggleSidebar }: SidebarHeaderProps) => {
     </>
   );
 };
+
