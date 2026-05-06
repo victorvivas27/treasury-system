@@ -1,7 +1,7 @@
 import { MemoryRouter, useNavigate, useParams } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEditApoderado } from "../useEditApoderado";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 
 // Mocks de navegación
 vi.mock("react-router-dom", async () => ({
@@ -16,20 +16,20 @@ const mockUpdateUseCase = { execute: vi.fn() };
 
 // MOCKS DE LOS CASOS DE USO
 // Importante: Usamos 'function' tradicional para que actúen como constructores
-vi.mock("@/core/application/use-cases/apoderado/byid/GetApoderadoByIdUseCase", () => ({
+vi.mock("@/core/B-application/use-cases/apoderado/byid/GetApoderadoByIdUseCase", () => ({
   GetApoderadoByIdUseCase: vi.fn().mockImplementation(function() {
     return mockGetUseCase;
   }),
 }));
 
-vi.mock("@/core/application/use-cases/apoderado/update/UpdateApoderadoUseCase", () => ({
+vi.mock("@/core/B-application/use-cases/apoderado/update/UpdateApoderadoUseCase", () => ({
   UpdateApoderadoUseCase: vi.fn().mockImplementation(function() {
     return mockUpdateUseCase;
   }),
 }));
 
 // Mock del Repositorio (ya que el hook hace 'new ApoderadoRepositoryImpl')
-vi.mock("@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl", () => ({
+vi.mock("@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl", () => ({
   ApoderadoRepositoryImpl: vi.fn().mockImplementation(function() {
     return {};
   }),

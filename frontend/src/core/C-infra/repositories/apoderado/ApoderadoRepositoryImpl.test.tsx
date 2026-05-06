@@ -4,7 +4,7 @@ import { ApoderadoRepositoryImpl } from "./ApoderadoRepositoryImpl";
 import type { Apoderado, CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
 
 // Mockeamos el cliente de API
-vi.mock("@/core/config/api", () => ({
+vi.mock("@/core/D-config/api", () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
