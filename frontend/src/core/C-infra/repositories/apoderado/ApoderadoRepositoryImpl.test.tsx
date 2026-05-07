@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { apiClient } from "@/core/D-config/api";
 import { ApoderadoRepositoryImpl } from "./ApoderadoRepositoryImpl";
-import type { Apoderado, CreateApoderadoDTO } from "@/core/domain/entities/apoderado/Apoderado";
-import { apiClient } from "@/core/config/api";
+import type { Apoderado, CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
 
 // Mockeamos el cliente de API
-vi.mock("@/core/config/api", () => ({
+vi.mock("@/core/D-config/api", () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),

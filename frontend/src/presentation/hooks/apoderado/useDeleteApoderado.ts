@@ -1,8 +1,6 @@
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
-import { useMemo, useState } from "react";
-
 // Instanciamos el repositorio
-
+import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
+import { useMemo, useState } from "react";
 
 export const useDeleteApoderado = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -12,7 +10,7 @@ export const useDeleteApoderado = (onSuccess?: () => void) => {
     message: "",
     type: "success" as "success" | "error",
   });
-// Instanciación dentro del hook para mejorar la testabilidad
+  // Instanciación dentro del hook para mejorar la testabilidad
   const apoderadoRepository = useMemo(() => new ApoderadoRepositoryImpl(), []);
   const openDeleteConfirm = (id: number) => {
     setIdToDelete(id);

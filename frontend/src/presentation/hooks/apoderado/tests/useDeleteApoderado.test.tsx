@@ -1,11 +1,11 @@
+import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { ApoderadoRepositoryImpl } from "@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useDeleteApoderado } from "../useDeleteApoderado";
 
+
 // Mock del repositorio con función tradicional para permitir 'new'
-vi.mock("@/core/infra/repositories/apoderado/ApoderadoRepositoryImpl", () => ({
+vi.mock("@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl", () => ({
   ApoderadoRepositoryImpl: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ describe("useDeleteApoderado", () => {
     vi.clearAllMocks();
 
     // Configuramos el mock para que devuelva un objeto con el método delete
-    vi.mocked(ApoderadoRepositoryImpl).mockImplementation(function() {
+    vi.mocked(ApoderadoRepositoryImpl).mockImplementation(function () {
       return {
         delete: mockDelete,
       } as any;

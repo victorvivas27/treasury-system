@@ -8,13 +8,18 @@ import type { FC } from "react";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
+  isLocked: boolean;
   onToggleSidebar: () => void;
+  onNavLinkClick: () => void;
 }
-export const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, onToggleSidebar }) => {
+export const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick }) => {
   return (
     <aside className={`sidebar flex-col ${!isSidebarOpen ? "sidebar--collapsed" : ""}`}>
-      <SidebarHeader onToggleSidebar={onToggleSidebar} />
-      <SidebarNav />
+      <SidebarHeader
+        isLocked={isLocked}
+        onToggleSidebar={onToggleSidebar}
+      />
+      <SidebarNav onNavLinkClick={onNavLinkClick}/>
       <SidebarFooter isSidebarOpen={isSidebarOpen}  />
     </aside>
   );

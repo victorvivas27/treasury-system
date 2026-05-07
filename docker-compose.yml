@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: tesoreria-backend
+    build:
+      context: ./backend
+    image: tesoreria-backend:1.0.0
+    ports:
+      - "5055:5055"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: tesoreria_db
+      DB_USER: postgres
+      DB_PASSWORD: Theo2019
+      APP_PROFILE: dev
+    depends_on:
+      - postgres
+    networks:
+      - tesoreria_net
+    restart: always
+
+  postgres:
+    container_name: tesoreria-postgres
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: tesoreria_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Theo2019
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tesoreria_net
+    restart: always
+
+
+
+volumes:
+  postgres_data:
+
+networks:
+  tesoreria_net:
+    driver: bridge

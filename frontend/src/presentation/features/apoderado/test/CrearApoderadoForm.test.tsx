@@ -1,6 +1,6 @@
+import { useCreateApoderado } from "@/presentation/hooks/apoderado/useCreateApoderado";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useCreateApoderado } from "@/presentation/hooks/apoderado/useCreateApoderado";
 import { CrearApoderadoForm } from "../CrearApoderadoForm";
 
 // Mock del hook personalizado

@@ -1,11 +1,17 @@
-
-
-
 import { SIDEBAR_LINKS } from "@/shared/constants/Icons";
 import "./style/SidebarNav.css";
 import { NavLink } from "react-router-dom";
 
-export const SidebarNav = () => {
+interface SidebarNavProps {
+  onNavLinkClick: () => void;
+}
+
+export const SidebarNav = ({ onNavLinkClick }: SidebarNavProps) => {
+
+   const handleClick = () => {
+    onNavLinkClick();
+  };
+
   return (
     <nav className="sidebar-nav">
       <ul className="sidebar-nav-ul">
@@ -22,6 +28,7 @@ export const SidebarNav = () => {
                       className={({ isActive }) =>
                         `sidebar-nav-link-item flex-align-center gap-sm ${isActive ? "active" : ""}`
                       }
+                      onClick={handleClick}
                     >
                       <Icon className="sidebar-nav-icon font-lg" />
                       <span className="sidebar-nav-label">{link.label}</span>

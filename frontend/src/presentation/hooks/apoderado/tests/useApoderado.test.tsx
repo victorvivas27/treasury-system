@@ -1,16 +1,16 @@
-;
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { act } from "react";
 import { useApoderados } from "../useApoderados";
+
+
 
 // 1. Usamos vi.hoisted para que esta variable se cree ANTES que el vi.mock
 const { mockExecute } = vi.hoisted(() => ({
   mockExecute: vi.fn()
 }));
 
-vi.mock("@/core/application/use-cases/apoderado/GetApoderadosUseCase", () => {
+vi.mock("@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase", () => {
   return {
     // Usamos una función tradicional para evitar el error de constructor
     GetApoderadosUseCase: vi.fn().mockImplementation(function() {
@@ -24,7 +24,7 @@ vi.mock("@/core/application/use-cases/apoderado/GetApoderadosUseCase", () => {
 
 describe("useApoderados Hook", () => {
   const mockData = [
-    { id: "1", nombre: "Juan Pérez", email: "juan@example.com" },
+    { id: 1, nombre: "Juan Pérez", email: "juan@example.com" },
   ];
 
   beforeEach(() => {
