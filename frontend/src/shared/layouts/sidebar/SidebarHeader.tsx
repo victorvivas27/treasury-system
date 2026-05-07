@@ -15,7 +15,6 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
         aria-label="Toggle sidebar"
         style={{
           backgroundColor: isLocked ? "var(--color-warning)" : "var(--color-primary)",
-          transition: "background-color 0.2s ease"
         }}
       >
         <IoIosArrowBack className="font-lg" />
