@@ -77,9 +77,18 @@ public class GlobalExceptionHandler {
 
     // 🔹 Manejo de excepciones de dominio
     @ExceptionHandler(DomainException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<StandardErrorResponse> handleDomainException(DomainException e) {
-        return buildResponse(HttpStatus.BAD_REQUEST, e.getErrorCode().getCodigo(), e.getMessage());
+
+        HttpStatus status = switch (e.getErrorCode()) {
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            default -> HttpStatus.BAD_REQUEST;
+        };
+
+        return buildResponse(
+                status,
+                e.getErrorCode().getCodigo(),
+                e.getMessage()
+        );
     }
 
     // 🔹 Manejo de errores de lectura de JSON
