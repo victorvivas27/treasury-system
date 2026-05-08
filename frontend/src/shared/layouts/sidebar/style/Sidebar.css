@@ -9,4 +9,8 @@
   box-shadow: 1px 0px 10px var(--color-primary);
   transition: width 0.5s ease;
   z-index: 1;
+  /* INDISPENSABLE para que haga scroll */
+  overflow-y: auto;
+  /* Opcional: oculta el scrollbar horizontal si no es necesario */
+  overflow-x: hidden;
 }
