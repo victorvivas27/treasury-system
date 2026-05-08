@@ -6,18 +6,24 @@
 /* NAV */
 .sidebar-nav {
   width: var(--wh-100);
+   flex-shrink: 1;
+    font-size: var(--sm);
 }
 
 /* Sección */
-.sidevar-nav-section {
+.sidebar-nav-section {
   width: var(--wh-100);
 }
 
 /* Link */
 .sidebar-nav-link-item {
-  padding: 0.6rem 0.8rem;
+  padding: clamp(0.25rem, 1.2vh, 0.6rem) 0.8rem;
   color: var(--color-text-muted);
   transition: all 0.2s ease;
+
+  display: flex;
+  align-items: center;
+  gap: var(--sm);
 }
 
 /* Activo icono */
@@ -29,13 +35,16 @@
 .sidebar-nav-link-item.active .sidebar-nav-label {
   color: var(--color-warning);
   font-weight: 600;
+
 }
 
 /* Icono */
 .sidebar-nav-icon {
   min-width: var(--lg);
   color: var(--color-accent);
-  transition: transform 0.15s ease, color 0.2s ease;
+
+  min-width: var(--lg);
+  font-size: var(--lg);
 }
 
 /* Texto */

@@ -11,16 +11,16 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
     <>
       <button
         onClick={onToggleSidebar}
-        className="sidebar-btn-arrow flex-center"
+        className="sidebar-btn-arrow"
         aria-label="Toggle sidebar"
         style={{
           backgroundColor: isLocked ? "var(--color-warning)" : "var(--color-primary)",
         }}
       >
-        <IoIosArrowBack className="font-lg" />
+        <IoIosArrowBack className="sidebar-btn-arrow-icon" />
       </button>
 
-      <header className="sidebar-brand-header flex-align-center gap-sm">
+      <header className="sidebar-brand-header">
         <img
           className="sidebar-brand-icon"
           src={icono_tesoreria}

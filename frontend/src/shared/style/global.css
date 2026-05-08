@@ -33,7 +33,7 @@
   /* 16px */
   --lg: 1.3rem;
   /* 24px */
-  --xl: 1.5rem;
+  --xl: 1.8rem;
   /* 32px */
 
   --radius-sm: 0.25rem;
@@ -82,75 +82,6 @@ body {
 
 }
 
-/* =========================================
-   📦 UTILIDADES FLEXBOX (DRY)
-   ========================================= */
-.flex-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: var(--md);
-}
-
-.flex-col {
-   display: flex;
-  flex-direction: column;
-  align-items: center;
-
-}
-
-.flex-align-center {
-  display: flex;
-  align-items: center;
-}
-
-.flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-
-
-.flex-wrap {
-  flex-wrap: wrap;
-}
-
-.gap-xs {
-  gap: var(--xs);
-}
-
-.gap-sm {
-  gap: var(--sm);
-}
-
-.gap-md {
-  gap: var(--md);
-}
-
-.gap-lg {
-  gap: var(--lg);
-}
-
-.font-xs {
-  font-size: var(--xs);
-}
-
-.font-sm {
-  font-size: var(--sm);
-}
-
-.font-md {
-  font-size: var(--md);
-}
-
-.font-lg {
-  font-size: var(--lg);
-}
-
-.font-xl {
-  font-size: var(--xl);
-}
 
 /* =========================================
    🎨 MEJORAS DE UI (SCROLLBAR & TEXT)
@@ -196,5 +127,4 @@ button {
 }
 a{
   text-decoration: none;
-  height: 100%;
 }

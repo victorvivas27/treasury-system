@@ -2,12 +2,23 @@
   position: absolute;
   top: 2%;
   right: -1rem;
-  width: 1.75rem;
-  height: 1.75rem;
+
+  width: var(--xl);
+  height:var(--xl);
+
   border-radius: 50%;
   background-color: var(--color-primary);
   color: var(--color-surface);
+
   transition: right 0.3s ease, transform 0.3s ease;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar-btn-arrow-icon {
+  font-size: clamp(1rem, 2vh, 1.3rem);
 }
 
 .sidebar--collapsed .sidebar-btn-arrow {
@@ -16,16 +27,32 @@
 }
 
 .sidebar-brand-header {
-  width: var(--wh-100);
-  padding: 0.5rem;
+  margin-left: var(--xs);
+  margin-top: var(--md);
+  display: flex;
+  align-items: center;
+  gap: clamp(0.25rem, 1vh, 0.5rem);
+  overflow: hidden;
+
 }
 
 .sidebar-brand-icon {
-  width: 2rem;
+  width: clamp(1.8rem, 4vh, 2rem);
 }
 
 .sidebar-brand-name {
   font-weight: 600;
   color: var(--color-primary);
+  white-space: nowrap;
   overflow: hidden;
+
+  max-width: 8rem;
+  opacity: 1;
+
+  transition: max-width 0.3s ease, opacity 0.15s ease;
+}
+
+.sidebar--collapsed .sidebar-brand-name {
+  max-width: 0;
+  opacity: 0;
 }
