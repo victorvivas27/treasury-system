@@ -95,7 +95,6 @@ body {
 .flex-col {
    display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
 
 }
@@ -111,11 +110,7 @@ body {
   align-items: center;
 }
 
-.flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+
 
 .flex-wrap {
   flex-wrap: wrap;
@@ -201,4 +196,5 @@ button {
 }
 a{
   text-decoration: none;
+  height: 100%;
 }
