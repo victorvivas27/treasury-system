@@ -1,6 +1,8 @@
 /* Footer contenedor */
 .sidebar-footer {
   width: var(--wh-100);
+  flex-shrink: 1;
+  font-size:var(--sm);
 }
 
 /* Lista */
@@ -11,11 +13,13 @@
 /* Link */
 .sidebar-footer-link {
   width: var(--wh-100);
-  padding: 0.5rem 0.8rem;
-  text-decoration: none;
+  padding: clamp(0.2rem, 1vh,var(--xs))var(--sm);
   color: var(--text-main);
   transition: color 0.2s ease;
 
+  display: flex;
+  align-items: center;
+  gap: var(--sm);
 }
 
 /* Activo */
@@ -28,6 +32,8 @@
 .sidebar-footer-icon {
   min-width: 20px;
   color: var(--color-accent);
+  min-width: var(--lg);
+  font-size: var(--lg);
 
 }
 
@@ -38,8 +44,11 @@
 
 /* Usuario */
 .sidebar-user {
-  padding: 0.3rem 0.2rem;
+  padding: clamp(0.1rem, 1vh, 0.3rem) 0.2rem;
 
+  display: flex;
+  align-items: center;
+  gap: var(--sm);
 }
 
 /* Avatar */
@@ -53,6 +62,9 @@
 .sidebar-user-info {
   overflow: hidden;
   white-space: nowrap;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-user-name {
@@ -69,13 +81,6 @@
 .sidebar-user-logout {
   transition: transform 0.15s ease, color 0.2s ease;
 
-}
-
-/* Contenedor del contenido del botón */
-.button-content {
-  overflow: hidden;
-  /* Evita que el texto se vea al achicarse */
-  white-space: nowrap;
 }
 
 /* El span del label */

@@ -26,11 +26,11 @@ export const SidebarNav = ({ onNavLinkClick }: SidebarNavProps) => {
                     <NavLink
                       to={link.path}
                       className={({ isActive }) =>
-                        `sidebar-nav-link-item flex-align-center gap-sm ${isActive ? "active" : ""}`
+                        `sidebar-nav-link-item ${isActive ? "active" : ""}`
                       }
                       onClick={handleClick}
                     >
-                      <Icon className="sidebar-nav-icon font-lg" />
+                      <Icon className="sidebar-nav-icon" />
                       <span className="sidebar-nav-label">{link.label}</span>
                     </NavLink>
                   </li>

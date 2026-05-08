@@ -24,10 +24,10 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen }) => {
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `sidebar-footer-link gap-sm  flex-align-center ${isActive ? "active" : ""}`
+                    `sidebar-footer-link ${isActive ? "active" : ""}`
                   }
                 >
-                  <Icon className="sidebar-footer-icon font-lg" />
+                  <Icon className="sidebar-footer-icon" />
                   <span className="sidebar-footer-text">{link.label}</span>
                 </NavLink>
               </li>
@@ -39,22 +39,22 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen }) => {
       </nav>
 
 
-      <section className="sidebar-user flex-align-center gap-sm" aria-label="Usuario actual">
+      <section className="sidebar-user" aria-label="Usuario actual">
 
         <div className="sidebar-user-avatar ">
           <img src={avatar} alt={`Avatar de ${name}`} />
         </div>
 
-        <div className="sidebar-user-info flex-col">
-          <span className="sidebar-user-name font-sm">{name}</span>
-          <span className="sidebar-user-email font-sm">{email}</span>
+        <div className="sidebar-user-info">
+          <span className="sidebar-user-name">{name}</span>
+          <span className="sidebar-user-email">{email}</span>
         </div>
       </section>
       <Button
         type="button"
         variant="secondary"
         onClick={() => { }}
-        icon={<LogoutIcon className="sidebar-footer-icon font-lg" />}
+        icon={<LogoutIcon className="sidebar-footer-icon" />}
         label="Cerrar sesión"
         className={!isSidebarOpen ? "button--sidebar-closed" : "button--sidebar-open"}
         testId="sidebar-logout-btn"
