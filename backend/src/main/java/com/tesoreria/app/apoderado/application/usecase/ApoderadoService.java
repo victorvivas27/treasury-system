@@ -27,7 +27,9 @@ public class ApoderadoService implements
     public Apoderado create(Apoderado apoderado) {
         if (repository.existsByEmail(apoderado.getEmail())) {
             throw new DomainException(
-                    ApoderadoErrorCode.EMAIL_EXISTE,
+                    ApoderadoErrorCode.EMAIL_EXISTE.getCodigo(),
+                    ApoderadoErrorCode.EMAIL_EXISTE.getField(),
+                    ApoderadoErrorCode.EMAIL_EXISTE.getStatus(),
                     "El email " + apoderado.getEmail() + " ya está registrado"
             );
         }
@@ -38,7 +40,9 @@ public class ApoderadoService implements
     public Apoderado findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new DomainException(
-                        ApoderadoErrorCode.NOT_FOUND,
+                        ApoderadoErrorCode.NOT_FOUND.getCodigo(),
+                        ApoderadoErrorCode.NOT_FOUND.getField(),
+                        ApoderadoErrorCode.NOT_FOUND.getStatus(),
                         "Apoderado con id " + id + " no encontrado"
                 ));
     }
@@ -52,7 +56,9 @@ public class ApoderadoService implements
     public Apoderado update(Apoderado apoderado) {
         if (!repository.existsById(apoderado.getId())) {
             throw new DomainException(
-                    ApoderadoErrorCode.NOT_FOUND,
+                    ApoderadoErrorCode.NOT_FOUND.getCodigo(),
+                    ApoderadoErrorCode.NOT_FOUND.getField(),
+                    ApoderadoErrorCode.NOT_FOUND.getStatus(),
                     "Apoderado con id " + apoderado.getId() + " no encontrado"
             );
         }
@@ -63,7 +69,9 @@ public class ApoderadoService implements
     public void deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new DomainException(
-                    ApoderadoErrorCode.NOT_FOUND,
+                    ApoderadoErrorCode.NOT_FOUND.getCodigo(),
+                    ApoderadoErrorCode.NOT_FOUND.getField(),
+                    ApoderadoErrorCode.NOT_FOUND.getStatus(),
                     "Apoderado con id " + id + " no encontrado"
             );
         }

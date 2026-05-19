@@ -1,0 +1,24 @@
+info:
+  name: 09 - Delete Apoderado By ID
+  type: http
+  seq: 9
+
+http:
+  method: DELETE
+  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        //El estado debería ser 204
+        test("Status should be 204", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

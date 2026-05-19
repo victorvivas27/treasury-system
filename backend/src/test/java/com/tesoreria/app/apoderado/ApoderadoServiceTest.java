@@ -55,7 +55,7 @@ public class ApoderadoServiceTest {
         void findById_deberiaLanzarExcepcionCuandoNoExiste() {
             when(repository.findById(anyLong())).thenReturn(Optional.empty());
             DomainException ex = assertThrows(DomainException.class, () -> service.findById(anyLong()));
-            assertEquals(ApoderadoErrorCode.NOT_FOUND, ex.getErrorCode());
+            assertEquals(ApoderadoErrorCode.NOT_FOUND.getCodigo(), ex.getErrorCode());
         }
 
         @Test
@@ -78,7 +78,7 @@ public class ApoderadoServiceTest {
         void create_deberiaLanzarExcepcionCuandoEmailYaExiste() {
             when(repository.existsByEmail("test@mail.com")).thenReturn(true);
             DomainException ex = assertThrows(DomainException.class, () -> service.create(mockApoderado));
-            assertEquals(ApoderadoErrorCode.EMAIL_EXISTE, ex.getErrorCode());
+            assertEquals(ApoderadoErrorCode.EMAIL_EXISTE.getCodigo(), ex.getErrorCode());
         }
 
         @Test
@@ -103,7 +103,7 @@ public class ApoderadoServiceTest {
                     DomainException.class,
                     () -> service.update(mockApoderado)
             );
-            assertEquals(ApoderadoErrorCode.NOT_FOUND, ex.getErrorCode());
+            assertEquals(ApoderadoErrorCode.NOT_FOUND.getCodigo(), ex.getErrorCode());
             verify(repository, never()).save(any(Apoderado.class));
         }
 

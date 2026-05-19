@@ -1,0 +1,38 @@
+info:
+  name: 02 - Get Apoderado By ID
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+        //El estado debe ser 200
+        test("Status should be 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        //La respuesta debe contener el ID de posesión solicitado
+        test("Response should contain the requested apoderado id", function () {
+          //expect(body.id).to.equal(Number(bru.getVar("apoderadoId")));
+           expect(body.id).to.equal(Number(bru.getEnvVar("apoderadoId")));
+        });
+        //El nombre debe ser VÍCTOR JAVIER
+        test("Name should be VICTOR JAVIER", function () {
+          expect(body.nombre).to.equal("VICTOR JAVIER");
+        });
+        //El correo electrónico debe ser victor@gmail.com
+        test("Email should be victor@gmail.com", function () {
+          expect(body.email).to.equal("victor@gmail.com");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

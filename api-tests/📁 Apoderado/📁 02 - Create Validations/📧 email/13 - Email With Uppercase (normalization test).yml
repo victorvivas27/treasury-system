@@ -1,0 +1,71 @@
+info:
+  name: 13 - Email With Uppercase (normalization test)
+  type: http
+  seq: 13
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "VictorJavier@gmail.com",
+        "nombre": "Victor Vivas",
+        "telefono": "987654321"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        // 13 - Email With Uppercase (normalization test)
+        // Enviar email con mayúsculas y verificar normalización
+        const emailEnviado = "VictorJavier@gmail.com";
+        const emailNormalizadoEsperado = "victorjavier@gmail.com";
+
+        const body = res.getBody();
+
+        // Test 1: Verificar que el email se normaliza a minúsculas
+        test("El email debe ser normalizado a minúsculas", function() {
+          expect(body.email).to.equal(emailNormalizadoEsperado);
+        });
+
+        // Test 2: Verificar que el email no conserva mayúsculas
+        test("El email no debe tener mayúsculas", function() {
+          expect(body.email).to.not.include("VictorJavier");
+          expect(body.email).to.equal(body.email.toLowerCase());
+        });
+
+        // Test 3: Verificar que el resto de datos se mantienen
+        test("Los demás campos deben conservar su formato original", function() {
+          expect(body.nombre).to.equal("VICTOR VIVAS"); 
+          expect(body.telefono).to.equal("987654321");
+        });
+
+        // Test 4: Verificar que el email normalizado es válido
+        test("El email normalizado debe tener formato válido", function() {
+          const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+          expect(emailRegex.test(body.email)).to.be.true;
+        });
+
+        // Test 5: Comparar que el email enviado vs recibido son el mismo (ignorando mayúsculas)
+        test("El email enviado y recibido deben coincidir (case-insensitive)", function() {
+          expect(emailEnviado.toLowerCase()).to.equal(body.email);
+        });
+
+        // Guarda el id en variable
+        // Variable temporal (solo runtime de ejecución)
+        // bru.setVar("apoderadoId", body.id);
+
+        // Variable persistente en el environment
+        //bru.setEnvVar("apoderadoId", body.id);
+        //Variable de environment intentando persistir en disco
+        bru.setEnvVar("apoderadoId", body.id.toString(), { persist: true });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,42 @@
+info:
+  name: 08 - Nombre Trim Normalization
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "   Juan Perez   ",
+        "email": "juan@gmail.com",
+        "telefono": "+56912345678"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+        //El nombre debe estar escrito en mayúsculas.
+        test("The name must be in all capital letters.", function() {
+          expect(res.body.nombre).to.equal("JUAN PEREZ");
+        });
+
+        // Guarda el id en variable
+        // Variable temporal (solo runtime de ejecución)
+        // bru.setVar("apoderadoId", body.id);
+
+        // Variable persistente en el environment
+        //bru.setEnvVar("apoderadoId", body.id);
+        //Variable de environment intentando persistir en disco
+        bru.setEnvVar("apoderadoId", body.id.toString(), { persist: true });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
