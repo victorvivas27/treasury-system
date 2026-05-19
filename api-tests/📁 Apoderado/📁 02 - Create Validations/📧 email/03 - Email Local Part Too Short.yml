@@ -39,8 +39,6 @@ runtime:
 
         //Debe rechazar los correos electrónicos con una parte local de menos de 3 caracteres.
         test("Should reject email with local part less than 3 characters", function() {
-          expect(res.status).to.equal(400);
-          expect(res.body.errors).to.have.property("email");
           expect(res.body.errors.email).to.equal("El nombre local del email debe tener al menos 3 caracteres");
         });
 

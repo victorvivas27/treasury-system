@@ -1,0 +1,35 @@
+info:
+  name: 04 - Telefono Too Short
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre":"Victor Javier",
+        "email":"victor@gmail.com",
+        "telefono":"+1234567"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: fields_present
+      value: telefono
+  scripts:
+    - type: tests
+      code: |-
+        //Debe rechazar los telefonos con menos de 8 digitos.
+        test("Should reject telefono with less than 8 digits", function() {
+          expect(res.body.errors.telefono).to.equal("El teléfono debe tener al menos 8 dígitos");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

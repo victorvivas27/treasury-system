@@ -206,14 +206,33 @@ public class Apoderado {
 
         String telefonoNormalizado = telefono.trim();
 
-        if (!telefonoNormalizado.matches("^\\+?[0-9]{9,15}$")) {
+        // Primero validar que solo tenga caracteres válidos (números, + al inicio, sin espacios ni letras)
+        if (!telefonoNormalizado.matches("^\\+?[0-9]+$")) {
             throw new DomainException(
                     ApoderadoErrorCode.TELEFONO_INVALIDO.getCodigo(),
                     ApoderadoErrorCode.TELEFONO_INVALIDO.getField(),
                     ApoderadoErrorCode.TELEFONO_INVALIDO.getStatus(),
-                    "Debe tener entre 9 y 15 dígitos"
+                    "El teléfono solo acepta números y + (ej: +56912345678)"
             );
         }
+
+// Luego validar largo
+        if (telefonoNormalizado.replaceAll("\\+", "").length() < 8) {
+                throw new DomainException(
+                        ApoderadoErrorCode.TELEFONO_INVALIDO.getCodigo(),
+                        ApoderadoErrorCode.TELEFONO_INVALIDO.getField(),
+                        ApoderadoErrorCode.TELEFONO_INVALIDO.getStatus(),
+                        "El teléfono debe tener al menos 8 dígitos"
+                );
+            } else if (telefonoNormalizado.replaceAll("\\+", "").length() > 15) {
+                throw new DomainException(
+                        ApoderadoErrorCode.TELEFONO_INVALIDO.getCodigo(),
+                        ApoderadoErrorCode.TELEFONO_INVALIDO.getField(),
+                        ApoderadoErrorCode.TELEFONO_INVALIDO.getStatus(),
+                        "El teléfono debe tener máximo 15 dígitos"
+                );
+            }
+
 
         this.telefono = telefonoNormalizado;
     }

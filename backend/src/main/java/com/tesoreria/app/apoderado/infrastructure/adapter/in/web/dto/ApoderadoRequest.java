@@ -1,9 +1,6 @@
 package com.tesoreria.app.apoderado.infrastructure.adapter.in.web.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 public class ApoderadoRequest {
     @NotBlank(message = "El nombre no puede estar vacío")
@@ -18,6 +15,8 @@ public class ApoderadoRequest {
     private String email;
 
     @NotBlank(message = "El teléfono no puede estar vacío")
+    @Size(min=8,message = "El teléfono debe tener al menos {min} dígitos")
+    @Size(max=15,message = "El teléfono no puede tener más de {max} dígitos")
     private String telefono;
 
     private String observaciones;

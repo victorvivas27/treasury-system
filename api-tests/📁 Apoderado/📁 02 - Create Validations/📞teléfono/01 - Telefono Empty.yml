@@ -1,0 +1,34 @@
+info:
+  name: 01 - Telefono Empty
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre":"Victor Javier",
+        "email":"victor@gmail.com"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: fields_present
+      value: telefono
+  scripts:
+    - type: tests
+      code: |-
+        //El mensaje de error para el telefono debe ser correcto.
+        test("Error message for telefono should be correct", function() {
+          expect(res.body.errors.telefono).to.equal("El teléfono no puede estar vacío");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
