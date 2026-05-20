@@ -1,6 +1,7 @@
 ### General ###
 .env
 .env.docker
+.env.fish
 .DS_Store
 Thumbs.db
 *.log
