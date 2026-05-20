@@ -8,6 +8,24 @@ jobs:
   api-tests:
     runs-on: ubuntu-latest
 
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      SERVER_PORT: 5055
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,14 +57,16 @@ jobs:
           version: 10
 
       - name: Start backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SERVER_PORT: 5055
         run: |
           cd backend
-
           chmod +x gradlew
-
-          set -a
-          source .env
-          set +a
 
           ./gradlew bootRun > backend.log 2>&1 &
 
@@ -73,7 +93,6 @@ jobs:
       - name: Run Bruno tests
         run: |
           cd api-tests
-
           pnpm dlx @usebruno/cli run "./apoderado" --env local
 
       - name: Show backend logs
