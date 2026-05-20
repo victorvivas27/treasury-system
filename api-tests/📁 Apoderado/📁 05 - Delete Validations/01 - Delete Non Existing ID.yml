@@ -1,0 +1,31 @@
+info:
+  name: 01 - Delete Non Existing ID
+  type: http
+  seq: 1
+
+http:
+  method: DELETE
+  url: "{{Url_Base}}/apoderados/{{apoderadoIdCreadoPre}}"
+  body:
+    type: json
+    data: "{{bodyData}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const response = res.getBody();
+        const id = bru.getVar('apoderadoIdCreadoPre');
+
+        test("Get apoderado inexistente debe retornar 404", function() {
+          expect(res.getStatus()).to.equal(404);
+          expect(response.code).to.equal("AP-404");
+          expect(response.errors.id).to.equal(`Apoderado con id ${id} no encontrado`);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

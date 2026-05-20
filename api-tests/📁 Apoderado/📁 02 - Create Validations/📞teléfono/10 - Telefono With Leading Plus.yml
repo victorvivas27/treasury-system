@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "nombre":"Victor Javier",
+        "nombre":"Victor Vivas",
         "email":"victor@gmail.com",
         "telefono":"+54987654321"
       }
@@ -24,7 +24,7 @@ runtime:
         const response = res.getBody();
         const apoderadoId = response.id;
 
-        // Obtener la variable de colección
+        // Obtener variable de entorno
         const baseUrl = bru.getEnvVar('Url_Base');
 
         if (apoderadoId) {

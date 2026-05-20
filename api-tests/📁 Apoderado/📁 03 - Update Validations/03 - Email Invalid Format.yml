@@ -1,0 +1,97 @@
+info:
+  name: 03 - Email Invalid Format
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/apoderados/{{apoderadoIdCreadoPre}}"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "victor.gmail.com",
+        "telefono": "+56783432",
+        "nombre": "Victor Javier"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        const apoderado = {
+          nombre: "Victor Vivas",
+          email: "victor@gmail.com",
+          telefono: "+987654321"
+        };
+
+        const preResponse = await bru.sendRequest({
+          url: `${baseUrl}/apoderados`,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          data: apoderado
+        });
+
+        const creadoRaw = preResponse.data || preResponse.body;
+
+        const creado = typeof creadoRaw === "string"
+          ? JSON.parse(creadoRaw)
+          : creadoRaw;
+
+        //console.log("Respuesta Pre:", creado);
+
+        bru.setVar("apoderadoIdCreadoPre", creado.id);
+        bru.setVar("bodyData", JSON.stringify(apoderado));
+
+        //console.log(`✅ Apoderado creado en Pre Request: ${creado.id}`);
+    - type: after-response
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+        const id = bru.getVar('apoderadoIdCreadoPre');
+
+        if (id) {
+          try {
+            await bru.sendRequest({
+              url: `${baseUrl}/apoderados/${id}`,
+              method: 'DELETE'
+            });
+
+            console.log(`✅ Apoderado ${id} eliminado`);
+          } catch(error) {
+            console.log(`❌ Error eliminando: ${error}`);
+          }
+        } else {
+          console.log('⚠️ No se encontró ID para eliminar');
+        }
+    - type: tests
+      code: |-
+        //El estado debería ser 400
+        test("Status should be 400", function() {
+            expect(res.status).to.equal(400);
+          });
+          //El código de error debería ser ERROR_VALIDACION
+          test("Error code should be AP-004", function() {
+            expect(res.body.code).to.equal("AP-004");
+          });
+        //Debe enumerar los campos faltantes.
+          test("Should list missing fields", function() {
+            expect(res.body.errors).to.not.property("nombre");
+            expect(res.body.errors).to.have.property("email");
+            expect(res.body.errors).to.not.property("telefono");
+          });
+        console.log("Campos:", bru.getRequestVar("fields_present")); 
+        //Los mensajes de error deben ser descriptivos.
+          test("Error messages should be descriptive", function() {
+            expect(res.body.errors.email).to.equal("El email debe contener el símbolo @");
+          });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
