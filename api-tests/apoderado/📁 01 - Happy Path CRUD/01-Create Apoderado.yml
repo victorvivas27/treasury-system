@@ -1,0 +1,55 @@
+info:
+  name: 01-Create Apoderado
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "VICTOR JAVIER",
+        "email": "victor@gmail.com",
+        "telefono": "987654321",
+        "observaciones": "Original"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        // Response body guarda el body  de la respuesta 
+        const body = res.getBody();
+
+        //El estado debería  ser 201
+        test("Status should be 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        //La respuesta debe contener el ID.
+        test("Response should contain id", function () {
+        expect(body.id).to.not.be.undefined;
+        });
+
+        //El nombre debe escribirse en mayúsculas.
+        test("Name should be uppercase", function () {
+         expect(body.nombre).to.equal("VICTOR JAVIER");
+        });
+
+        // Guarda el id en variable
+        // Variable temporal (solo runtime de ejecución)
+        // bru.setVar("apoderadoId", body.id);
+
+        // Variable persistente en el environment
+        //bru.setEnvVar("apoderadoId", body.id);
+        //Variable de environment intentando persistir en disco
+        bru.setEnvVar("apoderadoId", body.id.toString(), { persist: true });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,52 @@
+info:
+  name: 03-Update Apoderado By ID
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "VICTOR JAVIER VIVAS", 
+        "email": "vivasvivas@gmail.com",
+        "telefono": "+5624187541222", 
+        "observaciones": "Todo bien" 
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+        //El estado debe ser 200
+        test("Status should be 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        //La respuesta debe contener el ID.
+        test("Response should contain id", function () {
+          //expect(body.id).to.equal(Number(bru.getVar("apoderadoId")));
+          expect(body.id).to.equal(Number(bru.getEnvVar("apoderadoId")));
+        });
+        //El nombre debe escribirse en mayúsculas.
+        test("Name should be uppercase", function () {
+         expect(body.nombre).to.equal("VICTOR JAVIER VIVAS");
+        });
+
+        //La dirección de correo electrónico debe escribirse en minúsculas.
+        test("Email should be lowercase", function () {
+        expect(body.email).to.equal("vivasvivas@gmail.com");
+        });
+        //Debería existir un teléfono.
+        test("Telefono should exist", function () {
+         expect(body.telefono).to.not.be.undefined;
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

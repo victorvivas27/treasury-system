@@ -1,0 +1,58 @@
+name: Bruno API Tests (Cached)
+
+on:
+  push:
+    branches: [ dev, main, master ]
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Build and start backend
+        run: |
+          cd backend
+          chmod +x gradlew
+          # Construir y ejecutar en background
+          ./gradlew bootRun &
+
+          # Esperar respuesta
+          echo "Esperando al backend..."
+          timeout 120 bash -c 'while ! curl -s http://localhost:8080/actuator/health; do sleep 5; done'
+          echo "✅ Backend iniciado correctamente"
+
+      - name: Run tests
+        run: |
+          cd api-tests
+          echo "Url_Base=http://localhost:8080" > .env
+          bru run "./📁 Apoderado" --env .env
+
+      - name: Stop backend
+        if: always()
+        run: pkill -f "spring-boot" || true

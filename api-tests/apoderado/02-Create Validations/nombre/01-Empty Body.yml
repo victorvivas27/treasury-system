@@ -1,0 +1,39 @@
+info:
+  name: 01-Empty Body
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: "{}"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: fields_present
+      value: nombre, email, telefono
+    - name: fieldsAbsent
+      value: ""
+  scripts:
+    - type: tests
+      code: |-
+        //Los mensajes de error deben ser descriptivos.
+          test("Error messages should be descriptive", function() {
+            expect(res.body.errors.nombre).to.equal("El nombre no puede estar vacío");
+            expect(res.body.errors.email).to.equal("El email no puede estar vacío");
+            expect(res.body.errors.telefono).to.equal("El teléfono no puede estar vacío");
+          });
+
+
+        test("Error messages should be descriptive", function() {
+            expect(res.body.errors.nombre).to.equal("El nombre no puede estar vacío");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

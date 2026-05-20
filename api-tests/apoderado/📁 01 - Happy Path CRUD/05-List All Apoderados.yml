@@ -1,0 +1,33 @@
+info:
+  name: 05-List All Apoderados
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{Url_Base}}/apoderados"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+        //El estado debe ser 200
+        test("Status should be 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        //La respuesta debe ser una matriz
+        test("Response should be an array", function () {
+          expect(body).to.be.an('array');
+        });
+        //El array debe contener al menos un apoderado
+        test("Array should contain at least one apoderado", function () {
+          expect(body.length).to.be.greaterThan(0);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

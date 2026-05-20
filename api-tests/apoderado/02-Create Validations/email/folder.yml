@@ -1,0 +1,32 @@
+info:
+  name: email
+  type: folder
+  seq: 2
+
+request:
+  auth: inherit
+  scripts:
+    - type: after-response
+      code: |-
+        // Leemos el texto de la variable (ej: "nombre,email,telefono")
+        const rawFields = bru.getRequestVar("fields_present");
+
+        if (rawFields) {
+            // Convertimos el texto en una lista real de JS
+            const fieldsPresent = rawFields.split(',');
+
+            test("Status should be 400", () => {
+                expect(res.status).to.equal(400);
+            });
+
+            test("Error code should be ERROR_VALIDACION Or AP-004", () => {
+              expect(res.body.code).to.be.oneOf(["ERROR_VALIDACION", "AP-004"]);
+            });
+
+            test("Field validation check", () => {
+                fieldsPresent.forEach(f => {
+                    // Trim elimina espacios accidentales
+                    expect(res.body.errors).to.have.property(f.trim());
+                });
+            });
+        }

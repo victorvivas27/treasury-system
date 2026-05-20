@@ -1,0 +1,47 @@
+info:
+  name: 04-Get Updated By ID
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const idOriginal = bru.getEnvVar("apoderadoId");
+        const body = res.getBody();
+        // El nombre actualizado debería persistir
+        test("Updated name should persist", function () {
+          expect(body.nombre).to.equal("VICTOR JAVIER VIVAS");
+        });
+
+        // El email actualizado debería persistir
+        test("Updated email should persist", function () {
+          expect(body.email).to.equal("vivasvivas@gmail.com");
+        });
+
+        // El teléfono actualizado debería persistir
+        test("Updated telefono should persist", function () {
+          expect(body.telefono).to.equal("+5624187541222");
+        });
+
+        // Las observaciones actualizadas deberían persistir
+        test("Updated observaciones should persist", function () {
+          expect(body.observaciones).to.equal("Todo bien");
+        });
+
+        // El ID debe ser el mismo (no cambió)
+        test("ID should remain the same", function () { 
+          // Comparar convirtiendo a number
+          expect(body.id).to.equal(Number(idOriginal));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
