@@ -112,8 +112,8 @@ class ApoderadoTest {
         }
 
         @Test
-        void deberiaFallarSiTieneMenosDe9Digitos() {
-            assertThrows(DomainException.class, () -> a.setTelefono("12345678"));
+        void deberiaFallarSiTieneMenosDe8Digitos() {
+            assertThrows(DomainException.class, () -> a.setTelefono("+1234567"));
         }
 
         @Test

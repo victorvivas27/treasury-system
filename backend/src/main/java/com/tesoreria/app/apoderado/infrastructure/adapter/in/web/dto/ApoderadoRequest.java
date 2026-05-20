@@ -1,34 +1,34 @@
 package com.tesoreria.app.apoderado.infrastructure.adapter.in.web.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 public class ApoderadoRequest {
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(min=3,message = "El nombre debe tener al menos 3 caracteres")
+    @Size(max=50,message = "El nombre no puede tener más de 50 caracteres")
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚáéíóúñÑ\\s]+$",
+     message = "El nombre solo puede contener letras, espacios y tildes")
     private String nombre;
 
-    @NotBlank(message = "El email es obligatorio")
-    @Email(message = "Formato de email inválido")
-    @Size(max = 150, message = "El email no puede tener más de 150 caracteres")
+    @NotBlank(message = "El email no puede estar vacío")
+    @Size(max = 100, message = "El email no puede tener más de {max} caracteres")
     private String email;
 
-    @NotBlank(message = "El teléfono es obligatorio")
-    @Pattern(
-            regexp = "^\\+?[0-9]{9,15}$",
-            message = "Debe tener entre 9 y 15 dígitos numéricos"
-    )
+    @NotBlank(message = "El teléfono no puede estar vacío")
+    @Size(min=8,message = "El teléfono debe tener al menos {min} dígitos")
+    @Size(max=15,message = "El teléfono no puede tener más de {max} dígitos")
     private String telefono;
 
-    @Size(max = 200, message = "Las observaciones no pueden tener más de 200 caracteres")
     private String observaciones;
-
     public ApoderadoRequest() {
     }
 
-    public ApoderadoRequest(String nombre, String email, String telefono, String observaciones) {
+    public ApoderadoRequest(
+    String nombre,
+     String email,
+      String telefono,
+       String observaciones
+       ) {
         this.nombre = nombre;
         this.email = email;
         this.telefono = telefono;
@@ -41,7 +41,10 @@ public class ApoderadoRequest {
     }
 
     public void setNombre(String nombre) {
-        this.nombre = nombre;
+        this.nombre = nombre != null
+        ?
+        nombre.trim()
+        .replaceAll("\\s+", " ") : null;
     }
 
     public String getEmail() {

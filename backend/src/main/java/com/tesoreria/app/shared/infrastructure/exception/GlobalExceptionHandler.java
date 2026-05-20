@@ -22,14 +22,12 @@ public class GlobalExceptionHandler {
     private ResponseEntity<StandardErrorResponse> buildResponse(
             HttpStatus status,
             String code,
-            String message,
             Map<String, String> errors
     ) {
 
         StandardErrorResponse errorResponse = new StandardErrorResponse(
                 code,
                 status.value(),
-                message,
                 errors,
                 LocalDateTime.now()
         );
@@ -39,19 +37,18 @@ public class GlobalExceptionHandler {
     // Helper sin errores
     private ResponseEntity<StandardErrorResponse> buildResponse(
             HttpStatus status,
-            String code,
-            String message
+            String code
+
     ) {
-        return buildResponse(status, code, message, null);
+        return buildResponse(status, code, null);
     }
 
-    // 🔹 Manejo de validaciones de Spring (@Valid)
+
+    // ========== MANEJADOR 1: VALIDACIONES DEL DTO ==========
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<StandardErrorResponse> handleValidationException(
             MethodArgumentNotValidException exception
     ) {
-
         Map<String, String> errors = new HashMap<>();
 
         exception.getBindingResult().getAllErrors().forEach((error) -> {
@@ -63,31 +60,22 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "ERROR_VALIDACION",
-                "Errores de validación en los campos",
                 errors
         );
     }
 
-//    // 🔹 Excepción cuando un recurso no se encuentra
-//    @ExceptionHandler(ResourceNotFoundException.class)
-//    @ResponseStatus(HttpStatus.NOT_FOUND)
-//    public ResponseEntity<StandardErrorResponse> handleResourceNotFound(ResourceNotFoundException e) {
-//        return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", e.getMessage());
-//    }
-
-    // 🔹 Manejo de excepciones de dominio
+    // ========== MANEJADOR 2: VALIDACIONES DEL DOMAIN ==========
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<StandardErrorResponse> handleDomainException(DomainException e) {
-
-        HttpStatus status = switch (e.getErrorCode()) {
-            case NOT_FOUND -> HttpStatus.NOT_FOUND;
-            default -> HttpStatus.BAD_REQUEST;
-        };
+        Map<String, String> errors = new HashMap<>();
+        if (e.getField() != null) {
+            errors.put(e.getField(), e.getMessage());
+        }
 
         return buildResponse(
-                status,
-                e.getErrorCode().getCodigo(),
-                e.getMessage()
+                e.getStatus(),
+                e.getErrorCode(),
+                errors.isEmpty() ? null : errors
         );
     }
 
@@ -111,15 +99,13 @@ public class GlobalExceptionHandler {
             return buildResponse(
                     HttpStatus.BAD_REQUEST,
                     "ERROR_FORMATO",
-                    "Error en el formato del campo",
                     errors
             );
         }
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "ERROR_LECTURA",
-                "Error de lectura del cuerpo de la solicitud."
+                "ERROR_LECTURA"
         );
     }
 

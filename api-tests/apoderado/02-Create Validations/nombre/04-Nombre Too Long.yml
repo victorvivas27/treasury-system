@@ -1,0 +1,49 @@
+info:
+  name: "04-Nombre Too Long "
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Victor Alejandro Jose Maria Rodriguez Fernandez Pepe",
+        "email": "victor@example.com",
+        "telefono": "987654321"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: fields_present
+      value: nombre
+  scripts:
+    - type: tests
+      code: |-
+        // //El estado debería ser 400
+        // test("Status should be 400", function() {
+        //   expect(res.status).to.equal(400);
+        // });
+        // //El código de error debería ser ERROR_VALIDACION
+        // test("Error code should be ERROR_VALIDACION", function() {
+        //   expect(res.body.code).to.equal("ERROR_VALIDACION");
+        // });
+        // //Solo se debe informar del error en el campo del nombre.
+        // test("Should only report name field error", function() {
+        //   expect(res.body.errors).to.have.property("nombre");
+        //   expect(res.body.errors).to.not.have.property("email");
+        //   expect(res.body.errors).to.not.have.property("telefono");
+        // });
+        //El mensaje de error debe indicar un máximo de 50 caracteres.
+        test("Error message should indicate maximum 50 characters", function() {
+          expect(res.body.errors.nombre).to.match(/no puede tener más de 50 caracteres/);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

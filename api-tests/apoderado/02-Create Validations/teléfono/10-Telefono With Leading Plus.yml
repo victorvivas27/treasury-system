@@ -1,0 +1,55 @@
+info:
+  name: 10-Telefono With Leading Plus
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre":"Victor Vivas",
+        "email":"victor@gmail.com",
+        "telefono":"+54987654321"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Post Request
+        const response = res.getBody();
+        const apoderadoId = response.id;
+
+        // Obtener variable de entorno
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        if (apoderadoId) {
+          try {
+            await bru.sendRequest({
+              url: `${baseUrl}/apoderados/${apoderadoId}`,
+              method: 'DELETE'
+            });
+            console.log(`✅ Apoderado ${apoderadoId} eliminado`);
+          } catch(error) {
+            console.log(`❌ Error eliminando: ${error}`);
+          }
+        } else {
+          console.log('⚠️ No se encontró ID para eliminar');
+        }
+    - type: tests
+      code: |-
+        const response = res.getBody();
+        test("Deberia crear apoderado con telefono que tiene +", function() {
+          expect(res.getStatus()).to.equal(201);
+          expect(response.telefono).to.equal("+54987654321");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
