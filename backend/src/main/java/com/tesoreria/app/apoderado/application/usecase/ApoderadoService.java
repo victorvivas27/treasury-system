@@ -7,6 +7,10 @@ import com.tesoreria.app.apoderado.domain.port.in.GetApoderadoUseCase;
 import com.tesoreria.app.apoderado.domain.port.in.UpdateApoderadoUseCase;
 import com.tesoreria.app.apoderado.domain.port.out.ApoderadoRepositoryOutPort;
 import com.tesoreria.app.shared.domain.exception.DomainException;
+import com.tesoreria.app.shared.domain.pagination.PageRequest;
+import com.tesoreria.app.shared.domain.pagination.PageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -48,9 +52,10 @@ public class ApoderadoService implements
     }
 
     @Override
-    public List<Apoderado> findAll(int page, int size) {
-        return repository.findAll(page, size);
+    public PageResponse<Apoderado> findAll(PageRequest pageRequest) {
+        return repository.findAll(pageRequest);
     }
+
 
     @Override
     public Apoderado update(Apoderado apoderado) {

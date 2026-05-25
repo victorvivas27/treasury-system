@@ -12,9 +12,20 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 
 
 export const ApoderadoPage: FC = () => {
-  const { apoderados, loading, error, refetch } = useApoderados();
+  const {
+    apoderados,
+    loading,
+    error,
+    refetch,
+    currentPage,
+    nextPage,
+    prevPage,
+    hasPrevPage,
+    pageSize,
+    isLastPage,
+  } = useApoderados();
   const handleEdit = (id: number) => {
-    navigate(`/parents/edit/${id}`);  
+    navigate(`/parents/edit/${id}`);
   };
 
   const {
@@ -70,6 +81,12 @@ export const ApoderadoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
           handleEdit={handleEdit}
+          currentPage={currentPage}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+          hasPrevPage={hasPrevPage}
+          pageSize={pageSize}
+          isLastPage={isLastPage}
         />
       </section>
 

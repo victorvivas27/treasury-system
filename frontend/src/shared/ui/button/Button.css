@@ -1,10 +1,9 @@
 .base-button {
-
-  gap: 0.5rem;
+gap: 0.5rem;
   border: none;
   border-radius: var(--xs);
   transition: all 0.2s ease;
-  margin: 0.5rem;
+  margin: 0.2rem;
   cursor: pointer;
   font-weight: 500;
   white-space: nowrap;
@@ -46,7 +45,6 @@
 .size-none {
   padding: 5px;
   background-color:transparent;
-
 }
 
 .size-small {
@@ -84,8 +82,8 @@
 }
 
 .button-icon svg {
-  width: 1.2em;
-  height: 1.2em;
+  width: 1em;
+  height: 1em;
   display: block;
 }
 

@@ -15,8 +15,20 @@ interface ApoderadosListProps {
   onRefresh?: () => void;
   handleDelete?: (id: number) => void;
   handleEdit?: (id: number) => void;
-
+  currentPage: number;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  hasPrevPage?: boolean;
+  pageSize: number;
+  isLastPage: boolean;
 }
+
+type EmptyRow = {
+  id: string;
+  empty: true;
+};
+
+type RowItem = Apoderado | EmptyRow;
 
 export const ApoderadosList: FC<ApoderadosListProps> = ({
   apoderados,
@@ -24,13 +36,40 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   error,
   onRefresh,
   handleDelete,
-  handleEdit
+  handleEdit,
+  currentPage,
+  onNextPage,
+  onPrevPage,
+  hasPrevPage,
+  isLastPage,
+  pageSize,
 }) => {
- const rows = loading
-  ? Array.from({ length: apoderados.length > 0 ? apoderados.length : 5 })
-  : apoderados;
 
-  // Estado de Error
+  /**
+   * Cálculo de filas vacías para mantener la altura de la tabla
+   * consistente durante la carga y cuando hay pocos datos
+   */
+  const emptyRows = Math.max(pageSize - apoderados.length, 0);
+
+  const rows: RowItem[] = loading
+    ? Array.from({ length: pageSize }).map((_, index) => ({
+      id: `loading-${index}`,
+      empty: true,
+    }))
+    : [
+      ...apoderados,
+      ...Array.from({ length: emptyRows }).map((_, index) => ({
+        id: `empty-${index}`,
+        empty: true as const,
+      })),
+    ];
+
+    /*================================*/
+
+
+  /**
+   * Manejo de estados de error y vacío
+   */
   if (error) {
     return (
       <FeedbackState
@@ -41,9 +80,12 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       />
     );
   }
+  /*================================*/
 
-  // 2. Prioridad: Estado Vacío (SOLO si NO está cargando)
-  // Agregamos la condición !loading
+
+  /**
+   * Manejo de estados de vacío
+   */
   if (!loading && apoderados.length === 0) {
     return (
       <EmptyState
@@ -53,93 +95,131 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       />
     );
   }
+  /*================================*/
+
   return (
-    <article className="apoderados-container ">
+    <article className="apoderados-container">
       <header className="apoderados-header">
         <h2 className="apoderados-header__title">Lista de Apoderados</h2>
       </header>
 
-      <div>
+
         <table className="apoderados-table">
           <thead>
-            <tr >
+            <tr>
               <th className="apoderados-table__th">Nombre</th>
               <th className="apoderados-table__th">Correo</th>
               <th className="apoderados-table__th">Teléfono</th>
               <th className="apoderados-table__th">Acciones</th>
             </tr>
           </thead>
+
           <tbody>
-            {rows.map((item, index) => {
+            {rows.map((item) => {
+              const isEmptyRow = "empty" in item;
               const apoderado = item as Apoderado;
 
               return (
                 <tr
-                  key={loading ? index : apoderado.id}
-                  className="apoderados-table__row--data"
+                  key={item.id}
+                  className={`apoderados-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
+                    }`}
                 >
-                  {/* NOMBRE */}
                   <td className="apoderados-table__td" data-label="Nombre">
                     {loading ? (
                       <div className="skeleton-block skeleton-input" />
+                    ) : isEmptyRow ? (
+                      <span>&nbsp;</span>
                     ) : (
                       apoderado.nombre
                     )}
                   </td>
 
-                  {/* EMAIL */}
                   <td className="apoderados-table__td" data-label="Email">
                     {loading ? (
                       <div className="skeleton-block skeleton-input" />
+                    ) : isEmptyRow ? (
+                      <span>&nbsp;</span>
                     ) : (
                       apoderado.email
                     )}
                   </td>
 
-                  {/* TELÉFONO */}
                   <td className="apoderados-table__td" data-label="Teléfono">
                     {loading ? (
                       <div className="skeleton-block skeleton-input" />
+                    ) : isEmptyRow ? (
+                      <span>&nbsp;</span>
                     ) : (
                       apoderado.telefono
                     )}
                   </td>
 
-                  {/* BOTONES (SIEMPRE REALES) */}
                   <td className="apoderados-table__td" data-label="Acciones">
-
-                    <Button
-                      variant="danger"
-                      size="small"
-                      onClick={() => handleDelete?.(apoderado?.id)}
-                      icon={<APODERADOS_ICONS.delete style={{
-                         fontSize: "1.2rem",
-                         color: "var( --color-surface)"
-                         }} />}
-                      testId={`delete-btn-${apoderado?.id}`}
-                    />
-
-                    <Button
-                      variant="secondary"
-                      size="small"
-                      onClick={() => handleEdit?.(apoderado?.id)}
-                      icon={
-                        <APODERADOS_ICONS.edit
-                          style={{
-                            fontSize: "1.2rem",
-                            color: "var( --color-surface)",
-                          }}
+                    {loading ? (
+                      <div className="skeleton-block skeleton-input" />
+                    ) : !isEmptyRow && apoderado ? (
+                      <div className="apoderados-table__td--actions">
+                        <Button
+                          variant="danger"
+                          size="small"
+                          onClick={() => handleDelete?.(apoderado.id)}
+                          icon={
+                            <APODERADOS_ICONS.delete
+                              style={{
+                                fontSize: "1rem",
+                                color: "var(--color-surface)",
+                              }}
+                            />
+                          }
+                          testId={`delete-btn-${apoderado.id}`}
                         />
-                      }
-                      testId={`edit-btn-${apoderado?.id}`}
-                    />
+
+                        <Button
+                          variant="secondary"
+                          size="small"
+                          onClick={() => handleEdit?.(apoderado.id)}
+                          icon={
+                            <APODERADOS_ICONS.edit
+                              style={{
+                                fontSize: "1rem",
+                                color: "var(--color-surface)",
+                              }}
+                            />
+                          }
+                          testId={`edit-btn-${apoderado.id}`}
+                        />
+                      </div>
+                    ) : (
+                      <span>&nbsp;</span>
+                    )}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-      </div>
+
+        <div className="pagination">
+          <Button
+            onClick={onPrevPage}
+            disabled={!hasPrevPage || loading}
+            variant="secondary"
+            size="small"
+            label="◀ Anterior"
+          />
+
+          <span className="no-highlight">Página {currentPage + 1}</span>
+
+          <Button
+            onClick={onNextPage}
+            disabled={loading || isLastPage}
+            variant="secondary"
+            size="small"
+            label="Siguiente ▶"
+          />
+        </div>
+
     </article>
   );
-}
+};

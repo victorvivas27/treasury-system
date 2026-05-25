@@ -1,4 +1,9 @@
 package com.tesoreria.app.shared.domain.pagination;
 
-public class PageRequest {
+public record PageRequest(
+        int page,
+        int size,
+        String sortBy,
+        String direction
+) {
 }
