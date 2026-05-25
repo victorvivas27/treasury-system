@@ -12,7 +12,7 @@ public interface ApoderadoRepositoryOutPort {
 
     Optional<Apoderado> findById(Long id);;
 
-    List<Apoderado> findAll();
+    List<Apoderado> findAll(int page, int size);
 
     void deleteById(Long id);
 
