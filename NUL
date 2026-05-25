@@ -1,0 +1,56 @@
+2026-05-20 15:35:34,348 [   1680]   WARN - #c.i.i.p.PluginManager - Problems found loading plugins:
+  Plugin 'Refactor-X' (Refactor-X) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Cron Expressions' (com.intellij.cron) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Apache Velocity' (com.intellij.velocity) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'FTP/SFTP/WebDAV Connectivity' (com.jetbrains.plugins.webDeployment) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'SSH Remote Run' (org.jetbrains.plugins.remote-run) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'WSL Support Framework' (org.jetbrains.plugins.wsl.remoteSdk) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'In-Editor Performance Hints' (com.intellij.LineProfiler) requires plugin with id=com.intellij.modules.ultimate to be enabled
+  Plugin 'Spring Messaging' (com.intellij.spring.messaging) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Spring Modulith' (com.intellij.spring.modulith) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Spring Cloud' (com.intellij.spring.cloud) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Spring Security' (com.intellij.spring.security) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Spring Integration Patterns' (com.intellij.spring.integration) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: RESTful Web Services (JAX-RS)' (com.jetbrains.restWebServices) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Messaging (JMS)' (com.intellij.javaee.extensions) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Contexts and Dependency Injection (CDI)' (com.intellij.cdi) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Bean Validation' (com.intellij.beanValidation) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'FreeMarker' (com.intellij.freemarker) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'AOP Pointcut Language' (com.intellij.aop) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Remote Development Gateway' (com.jetbrains.gateway) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'JVM Persistence Frameworks' (com.intellij.persistence) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Quarkus' (com.intellij.quarkus) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Micronaut' (com.intellij.micronaut) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Persistence (JPA)' (com.intellij.javaee.jpa) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Spring Data' (com.intellij.spring.data) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Reverse Engineering' (com.intellij.javaee.reverseEngineering) requires plugin with id=com.intellij.javaee.jpa to be enabled
+  Plugin 'Jakarta EE: Data' (com.intellij.javaee.jakarta.data) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Application Servers' (com.intellij.javaee.app.servers.integration) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Tomcat and TomEE' (Tomcat) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'WildFly' (JBoss) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Hibernate' (com.intellij.hibernate) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Time Tracking' (com.intellij.tasks.timeTracking) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Sass' (org.jetbrains.plugins.sass) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Web/Servlets' (com.intellij.javaee.web) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Jakarta EE: Server Pages (JSP)' (com.intellij.jsp) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'PostCSS' (org.intellij.plugins.postcss) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Less' (org.jetbrains.plugins.less) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'JavaScript Debugger' (JavaScriptDebugger) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Spring Web' (com.intellij.spring.mvc) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Tailwind CSS' (com.intellij.tailwindcss) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Styled Components & Styled JSX' (com.deadlock.scsyntax) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Node.js' (NodeJS) requires plugin with id=JavaScriptDebugger to be enabled
+  Plugin 'Node.js Remote Interpreter' (org.jetbrains.plugins.node-remote-interpreter) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Next.js' (intellij.nextjs) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Karma' (Karma) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Kubernetes' (com.intellij.kubernetes) has dependency on 'JetBrains Ultimate' which cannot be loaded
+  Plugin 'Dev Containers' (org.jetbrains.plugins.docker.gateway) has dependency on 'JetBrains Ultimate' which cannot be loaded
+2026-05-20 15:35:34,430 [   1762]   WARN - #c.i.p.instanceContainer - InstanceNotOverridableException: Override failed for com.intellij.openapi.project.impl.ProjectStoreFactory: com.intellij.configurationScript.providers.ConfigurationScriptProjectStoreFactory attempts to override com.intellij.configurationStore.PlatformLangProjectStoreFactory, but the existing implementation is not overriddable (not declared as 'open=true')
+2026-05-20 15:35:34,445 [   1777]   WARN - #c.i.p.instanceContainer - InstanceNotOverridableException: Override failed for com.intellij.modcommand.ModCommandExecutor: com.jetbrains.rdserver.ui.intentions.RemoteModCommandExecutor attempts to override com.intellij.lang.impl.modcommand.ModCommandExecutorImpl, but the existing implementation is not overriddable (not declared as 'open=true')
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2
+WARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+2026-05-20 15:35:35,681 [   3013]   WARN - #c.i.s.c.i.StationSocketConnectionLoop - Discovery connection failed with AnnotatedConnectException(ConnectException) (Connection refused: connect: C:\Users\vivas\AppData\Local\Temp\jb.station.vivas.sock)
+2026-05-20 15:35:35,954 [   3286]   WARN - #c.i.s.c.i.StationSocketConnectionLoop - RecentProjects connection failed with AnnotatedConnectException(ConnectException) (Connection refused: connect: C:\Users\vivas\AppData\Local\Temp\jb.station.vivas.sock)
+2026-05-20 15:35:47.448 [TRC] [daemon-client-ws] /system/events/handleUri/27428 incoming exception java.util.concurrent.CancellationException: Job was cancelled

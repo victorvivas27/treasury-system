@@ -31,7 +31,6 @@ public class ApoderadoServiceTest {
 
     private Apoderado mockApoderado;
 
-    Long id;
 
     @BeforeEach
     void setUp() {

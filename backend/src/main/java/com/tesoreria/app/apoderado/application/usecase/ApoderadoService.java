@@ -48,8 +48,8 @@ public class ApoderadoService implements
     }
 
     @Override
-    public List<Apoderado> findAll() {
-        return repository.findAll();
+    public List<Apoderado> findAll(int page, int size) {
+        return repository.findAll(page, size);
     }
 
     @Override
