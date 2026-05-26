@@ -10,7 +10,7 @@ public class ValidationConstants {
   public static final int LONGITUD_MINIMA_EMAIL = 3;
   public static final int EXTENSION_MINIMA_EMAIL = 2;
   public static final String CARACTERES = " caracteres";
-  public static final int LONGITUD_MAXIMA_OBSERVACIONES = 1000;
+  public static final int LONGITUD_MAXIMA_OBSERVACIONES = 200;
   public static final int LONGITUD_MAXIMA_TELEFONO = 15;
   public static final int LONGITUD_MINIMA_TELEFONO = 8;
 
