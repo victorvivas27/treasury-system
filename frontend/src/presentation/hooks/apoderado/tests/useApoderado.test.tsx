@@ -12,10 +12,8 @@ const { mockExecute } = vi.hoisted(() => ({
 
 vi.mock("@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase", () => {
   return {
-    // Usamos una función tradicional para evitar el error de constructor
     GetApoderadosUseCase: vi.fn().mockImplementation(function() {
       return {
-        // Accedemos a la variable que definimos arriba
         execute: mockExecute
       };
     }),
@@ -23,24 +21,32 @@ vi.mock("@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase", ()
 });
 
 describe("useApoderados Hook", () => {
-  const mockData = [
-    { id: 1, nombre: "Juan Pérez", email: "juan@example.com" },
-  ];
+  const mockPageResponse = {
+    content: [
+      { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "123456" }
+    ],
+    page: 0,
+    size: 10,
+    totalElements: 1,
+    totalPages: 1
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("[useApoderados #01] Debe cargar apoderados exitosamente al montar.", async () => {
-    mockExecute.mockResolvedValue(mockData);
+    mockExecute.mockResolvedValue(mockPageResponse);
 
     const { result } = renderHook(() => useApoderados());
 
     expect(result.current.loading).toBe(true);
 
     await waitFor(() => {
-      expect(result.current.apoderados).toEqual(mockData);
+      expect(result.current.apoderados).toEqual(mockPageResponse.content);
       expect(result.current.loading).toBe(false);
+      expect(result.current.totalPages).toBe(1);
+      expect(result.current.currentPage).toBe(0);
     });
   });
 
@@ -57,18 +63,25 @@ describe("useApoderados Hook", () => {
   });
 
   it("[useApoderados #03] Debe ejecutar refetch correctamente.", async () => {
-    mockExecute.mockResolvedValue([]);
+    // Primera carga con datos vacíos
+    mockExecute.mockResolvedValue({
+      ...mockPageResponse,
+      content: []
+    });
+
     const { result } = renderHook(() => useApoderados());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.apoderados).toEqual([]);
 
-    mockExecute.mockResolvedValue(mockData);
+    // Segunda carga con datos
+    mockExecute.mockResolvedValue(mockPageResponse);
 
     await act(async () => {
       await result.current.refetch();
     });
 
-    expect(result.current.apoderados).toEqual(mockData);
+    expect(result.current.apoderados).toEqual(mockPageResponse.content);
     expect(mockExecute).toHaveBeenCalledTimes(2);
   });
 
@@ -82,6 +95,110 @@ describe("useApoderados Hook", () => {
       // Aquí validamos la segunda parte del ternario
       expect(result.current.error).toBe('Error al cargar apoderados');
       expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it("[useApoderados #05] Debe cambiar de página correctamente.", async () => {
+    // Mock para página 0
+    const page0Response = {
+      content: [{ id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "123456" }],
+      page: 0,
+      size: 10,
+      totalElements: 15,
+      totalPages: 2
+    };
+
+    // Mock para página 1
+    const page1Response = {
+      content: [{ id: 2, nombre: "Maria Lopez", email: "maria@example.com", telefono: "789012" }],
+      page: 1,
+      size: 10,
+      totalElements: 15,
+      totalPages: 2
+    };
+
+    mockExecute.mockResolvedValue(page0Response);
+
+    const { result } = renderHook(() => useApoderados());
+
+    await waitFor(() => {
+      expect(result.current.apoderados).toEqual(page0Response.content);
+      expect(result.current.currentPage).toBe(0);
+    });
+
+    // Cambiar a siguiente página
+    mockExecute.mockResolvedValue(page1Response);
+
+    await act(async () => {
+      await result.current.nextPage();
+    });
+
+    expect(result.current.apoderados).toEqual(page1Response.content);
+    expect(result.current.currentPage).toBe(1);
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    expect(mockExecute).toHaveBeenLastCalledWith(1, 3);
+  });
+
+  it("[useApoderados #06] Debe cambiar a página anterior correctamente.", async () => {
+    // Mock para página 1
+    const page1Response = {
+      content: [{ id: 2, nombre: "Maria Lopez", email: "maria@example.com", telefono: "789012" }],
+      page: 1,
+      size: 10,
+      totalElements: 15,
+      totalPages: 2
+    };
+
+    // Mock para página 0
+    const page0Response = {
+      content: [{ id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "123456" }],
+      page: 0,
+      size: 10,
+      totalElements: 15,
+      totalPages: 2
+    };
+
+    mockExecute.mockResolvedValue(page1Response);
+
+    const { result } = renderHook(() => useApoderados({ initialPage: 1 }));
+
+    await waitFor(() => {
+      expect(result.current.apoderados).toEqual(page1Response.content);
+      expect(result.current.currentPage).toBe(1);
+    });
+
+    // Cambiar a página anterior
+    mockExecute.mockResolvedValue(page0Response);
+
+    await act(async () => {
+      await result.current.prevPage();
+    });
+
+    expect(result.current.apoderados).toEqual(page0Response.content);
+    expect(result.current.currentPage).toBe(0);
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+    expect(mockExecute).toHaveBeenLastCalledWith(0, 3);
+  });
+
+  it("[useApoderados #07] Debe deshabilitar nextPage cuando es la última página.", async () => {
+    mockExecute.mockResolvedValue(mockPageResponse);
+
+    const { result } = renderHook(() => useApoderados());
+
+    await waitFor(() => {
+      expect(result.current.isLastPage).toBe(true);
+      expect(result.current.hasNextPage).toBe(false);
+    });
+  });
+
+  it("[useApoderados #08] Debe deshabilitar prevPage cuando es la primera página.", async () => {
+    mockExecute.mockResolvedValue(mockPageResponse);
+
+    const { result } = renderHook(() => useApoderados());
+
+    await waitFor(() => {
+      expect(result.current.hasPrevPage).toBe(false);
+      expect(result.current.currentPage).toBe(0);
     });
   });
 });

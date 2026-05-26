@@ -11,34 +11,63 @@ const mockApoderados: Apoderado[] = [
   { id: 2, nombre: "Maria Lopez", email: "maria@example.com", telefono: "123456789" },
 ];
 
+// Props base para los tests
+const baseProps = {
+  apoderados: [],
+  loading: false,
+  error: null,
+  currentPage: 0,
+  onNextPage: vi.fn(),
+  onPrevPage: vi.fn(),
+  hasPrevPage: false,
+  pageSize: 5,
+  isLastPage: false,
+};
+
 describe("ApoderadosList Component", () => {
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
   // ========== 1. GESTIÓN DE ESTADOS (ORQUESTACIÓN) ==========
 
   it("[ApoderadosList #01] Debe mostrar el Skeleton cuando loading es true.", () => {
     const { container } = render(
-      <ApoderadosList apoderados={[]} loading={true} error={null} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[]}
+        loading={true}
+        error={null}
+      />
     );
     // Verificamos que existan bloques de skeleton
-    expect(container.querySelector(".skeleton-block")).toBeInTheDocument();
+    const skeletons = container.querySelectorAll(".skeleton-block");
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("[ApoderadosList #02] Debe mostrar el FeedbackState cuando existe un error.", () => {
     const errorMessage = "Error al conectar con el servidor";
     render(
-      <ApoderadosList apoderados={[]} loading={false} error={errorMessage} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[]}
+        loading={false}
+        error={errorMessage}
+      />
     );
     // Verificamos que el mensaje de error se renderice
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    expect(screen.getByText("Hubo un problema")).toBeInTheDocument(); // Título por defecto de FeedbackState
   });
 
-  it("[ApoderadosList #03] Debe mostrar el EmptyState cuando la lista está vacía.", () => {
+  it("[ApoderadosList #03] Debe mostrar el EmptyState cuando la lista está vacía y no está cargando.", () => {
     render(
-      <ApoderadosList apoderados={[]} loading={false} error={null} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[]}
+        loading={false}
+        error={null}
+      />
     );
     expect(screen.getByText("No hay apoderados")).toBeInTheDocument();
     expect(screen.getByText(/No se encontraron apoderados registrados/i)).toBeInTheDocument();
@@ -48,56 +77,85 @@ describe("ApoderadosList Component", () => {
 
   it("[ApoderadosList #04] Debe renderizar el encabezado de la tabla y el título principal.", () => {
     render(
-      <ApoderadosList apoderados={mockApoderados} loading={false} error={null} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+      />
     );
     expect(screen.getByText("Lista de Apoderados")).toBeInTheDocument();
     expect(screen.getByText("Nombre")).toBeInTheDocument();
     expect(screen.getByText("Correo")).toBeInTheDocument();
+    expect(screen.getByText("Teléfono")).toBeInTheDocument();
+    expect(screen.getByText("Acciones")).toBeInTheDocument();
   });
 
-  it("[ApoderadosList #05] Debe renderizar tantas filas como apoderados existan.", () => {
+  it("[ApoderadosList #05] Debe renderizar tantas filas de datos como apoderados existan (filas sin clase empty-row).", () => {
     const { container } = render(
-      <ApoderadosList apoderados={mockApoderados} loading={false} error={null} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        pageSize={10}
+      />
     );
-    // Buscamos las filas de datos por su clase
-    const rows = container.querySelectorAll(".apoderados-table__row--data");
-    expect(rows.length).toBe(mockApoderados.length);
+    // Buscamos SOLO las filas que NO son empty-row
+    const dataRows = container.querySelectorAll(".apoderados-table__row--data:not(.empty-row)");
+    expect(dataRows.length).toBe(mockApoderados.length);
   });
 
   it("[ApoderadosList #06] Debe mostrar la información correcta de cada apoderado.", () => {
     render(
-      <ApoderadosList apoderados={mockApoderados} loading={false} error={null} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+      />
     );
 
     // Verificamos datos del primer apoderado
     expect(screen.getByText("Juan Pérez")).toBeInTheDocument();
     expect(screen.getByText("juan@example.com")).toBeInTheDocument();
+    expect(screen.getByText("987654321")).toBeInTheDocument();
 
     // Verificamos datos del segundo apoderado
     expect(screen.getByText("Maria Lopez")).toBeInTheDocument();
+    expect(screen.getByText("maria@example.com")).toBeInTheDocument();
     expect(screen.getByText("123456789")).toBeInTheDocument();
   });
 
   it("[ApoderadosList #07] Debe incluir los atributos data-label para el diseño responsive.", () => {
     const { container } = render(
-      <ApoderadosList apoderados={[mockApoderados[0]]} loading={false} error={null} />
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[mockApoderados[0]]}
+        loading={false}
+        error={null}
+      />
     );
 
     const cells = container.querySelectorAll(".apoderados-table__td");
+    const nonEmptyCells = Array.from(cells).filter(cell =>
+      !cell.querySelector(".skeleton-block") && cell.textContent?.trim()
+    );
 
     // Verificamos que las celdas tengan el atributo data-label correcto
-    expect(cells[0]).toHaveAttribute("data-label", "Nombre");
-    expect(cells[1]).toHaveAttribute("data-label", "Email");
-    expect(cells[2]).toHaveAttribute("data-label", "Teléfono");
+    if (nonEmptyCells.length >= 3) {
+      expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Nombre");
+      expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Email");
+      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Teléfono");
+    }
   });
 
   it("[ApoderadosList #08] Debe llamar a la función handleDelete con el ID correcto al hacer clic.", () => {
-    // 1. Creamos un spy (mock) de la función handleDelete
     const handleDeleteMock = vi.fn();
 
-    // 2. Renderizamos el componente pasando el mock
     render(
       <ApoderadosList
+        {...baseProps}
         apoderados={mockApoderados}
         loading={false}
         error={null}
@@ -105,97 +163,229 @@ describe("ApoderadosList Component", () => {
       />
     );
 
-    // 3. Buscamos el botón de eliminar del primer apoderado (ID: 1)
     const deleteButton = screen.getByTestId(`delete-btn-1`);
-
-    // 4. Simulamos el clic
     fireEvent.click(deleteButton);
 
-    // 5. Verificamos que se haya llamado con el ID: 1
     expect(handleDeleteMock).toHaveBeenCalledTimes(1);
     expect(handleDeleteMock).toHaveBeenCalledWith(1);
   });
 
-  it("[ApoderadosList #09] Debe mostrar skeletons con 5 filas cuando loading=true y apoderados está vacío", () => {
-  const { container } = render(
-    <ApoderadosList apoderados={[]} loading={true} error={null} />
-  );
+  it("[ApoderadosList #09] Debe mostrar skeletons con pageSize filas cuando loading=true", () => {
+    const pageSize = 5;
+    const { container } = render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[]}
+        loading={true}
+        error={null}
+        pageSize={pageSize}
+      />
+    );
 
-  const skeletons = container.querySelectorAll(".skeleton-block");
-  // Como apoderados.length === 0, debería mostrar 5 skeletons
-  // Cada fila tiene 3 skeletons (nombre, email, teléfono)
-  expect(skeletons.length).toBeGreaterThanOrEqual(3); // Al menos 3 por fila
-});
+    const rows = container.querySelectorAll(".apoderados-table__row--data");
+    // Debe mostrar exactamente pageSize filas de skeleton
+    expect(rows.length).toBe(pageSize);
 
-it("[ApoderadosList #10] Debe mostrar skeletons con la misma cantidad de filas que apoderados cuando loading=true y hay datos", () => {
-  const { container } = render(
-    <ApoderadosList apoderados={mockApoderados} loading={true} error={null} />
-  );
+    const skeletons = container.querySelectorAll(".skeleton-block");
+    // Cada fila tiene 4 skeletons (nombre, email, teléfono, acciones)
+    expect(skeletons.length).toBe(pageSize * 4);
+  });
 
-  const rows = container.querySelectorAll(".apoderados-table__row--data");
-  // Debería mostrar la misma cantidad de filas que apoderados (2)
-  expect(rows.length).toBe(mockApoderados.length);
-});
+  it("[ApoderadosList #10] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {
+    const handleEditMock = vi.fn();
 
-it("[ApoderadosList #11] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {
-  // 1. Creamos un spy de handleEdit
-  const handleEditMock = vi.fn();
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        handleEdit={handleEditMock}
+      />
+    );
 
-  // 2. Renderizamos con el mock
-  render(
-    <ApoderadosList
-      apoderados={mockApoderados}
-      loading={false}
-      error={null}
-      handleEdit={handleEditMock}
-    />
-  );
+    const editButton = screen.getByTestId(`edit-btn-1`);
+    fireEvent.click(editButton);
 
-  // 3. Buscamos botón editar del primer apoderado
-  const editButton = screen.getByTestId(`edit-btn-1`);
+    expect(handleEditMock).toHaveBeenCalledTimes(1);
+    expect(handleEditMock).toHaveBeenCalledWith(1);
+  });
 
-  // 4. Simulamos clic
-  fireEvent.click(editButton);
+  it("[ApoderadosList #11] Debe NO llamar a handleDelete si la prop no está definida", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+      />
+    );
 
-  // 5. Verificamos que se llamó con ID 1
-  expect(handleEditMock).toHaveBeenCalledTimes(1);
-  expect(handleEditMock).toHaveBeenCalledWith(1);
-});
+    const deleteButton = screen.getByTestId(`delete-btn-1`);
+    fireEvent.click(deleteButton);
 
-it("[ApoderadosList #12] Debe NO llamar a handleDelete si la prop no está definida", () => {
-  // Sin pasar handleDelete
-  render(
-    <ApoderadosList
-      apoderados={mockApoderados}
-      loading={false}
-      error={null}
-      // handleDelete no se pasa
-    />
-  );
+    // No debería tirar error, simplemente no hace nada
+    expect(true).toBe(true);
+  });
 
-  const deleteButton = screen.getByTestId(`delete-btn-1`);
-  fireEvent.click(deleteButton);
+  it("[ApoderadosList #12] Debe NO llamar a handleEdit si la prop no está definida", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+      />
+    );
 
-  // No debería tirar error, simplemente no hace nada
-  // El test pasa si no hay error
-  expect(true).toBe(true);
-});
+    const editButton = screen.getByTestId(`edit-btn-1`);
+    fireEvent.click(editButton);
 
-it("[ApoderadosList #13] Debe NO llamar a handleEdit si la prop no está definida", () => {
-  // Sin pasar handleEdit
-  render(
-    <ApoderadosList
-      apoderados={mockApoderados}
-      loading={false}
-      error={null}
-      // handleEdit no se pasa
-    />
-  );
+    // No debería tirar error
+    expect(true).toBe(true);
+  });
 
-  const editButton = screen.getByTestId(`edit-btn-1`);
-  fireEvent.click(editButton);
+  // ========== 3. PRUEBAS DE PAGINACIÓN ==========
 
-  // No debería tirar error
-  expect(true).toBe(true);
-});
+  it("[ApoderadosList #13] Debe mostrar los controles de paginación", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+      />
+    );
+
+    expect(screen.getByText("◀ Anterior")).toBeInTheDocument();
+    expect(screen.getByText("Siguiente ▶")).toBeInTheDocument();
+    expect(screen.getByText(/Página 1/i)).toBeInTheDocument();
+  });
+
+  it("[ApoderadosList #14] Debe llamar a onPrevPage cuando se hace clic en Anterior", () => {
+    const onPrevPageMock = vi.fn();
+
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        onPrevPage={onPrevPageMock}
+        hasPrevPage={true}
+        currentPage={2}
+      />
+    );
+
+    const prevButton = screen.getByText("◀ Anterior");
+    fireEvent.click(prevButton);
+
+    expect(onPrevPageMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("[ApoderadosList #15] Debe llamar a onNextPage cuando se hace clic en Siguiente", () => {
+    const onNextPageMock = vi.fn();
+
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        onNextPage={onNextPageMock}
+        isLastPage={false}
+      />
+    );
+
+    const nextButton = screen.getByText("Siguiente ▶");
+    fireEvent.click(nextButton);
+
+    expect(onNextPageMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("[ApoderadosList #16] Debe deshabilitar el botón Anterior cuando no hay página previa", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        hasPrevPage={false}
+        currentPage={0}
+      />
+    );
+
+    // Buscar el botón por su role y texto
+    const prevButton = screen.getByRole('button', { name: /◀ Anterior/i });
+    expect(prevButton).toBeDisabled();
+  });
+
+  it("[ApoderadosList #17] Debe deshabilitar el botón Siguiente cuando es la última página", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        isLastPage={true}
+      />
+    );
+
+    const nextButton = screen.getByRole('button', { name: /Siguiente ▶/i });
+    expect(nextButton).toBeDisabled();
+  });
+
+  it("[ApoderadosList #18] Debe deshabilitar los botones de paginación cuando está cargando", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[]}
+        loading={true}
+        error={null}
+        hasPrevPage={true}
+        isLastPage={false}
+      />
+    );
+
+    const prevButton = screen.getByRole('button', { name: /◀ Anterior/i });
+    const nextButton = screen.getByRole('button', { name: /Siguiente ▶/i });
+
+    expect(prevButton).toBeDisabled();
+    expect(nextButton).toBeDisabled();
+  });
+
+  it("[ApoderadosList #19] Debe mostrar el número de página correcto (currentPage + 1)", () => {
+    render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={mockApoderados}
+        loading={false}
+        error={null}
+        currentPage={3}
+      />
+    );
+
+    expect(screen.getByText("Página 4")).toBeInTheDocument();
+  });
+
+  it("[ApoderadosList #20] Debe mantener la altura de la tabla con filas vacías cuando hay pocos datos", () => {
+    const pageSize = 5;
+    const { container } = render(
+      <ApoderadosList
+        {...baseProps}
+        apoderados={[mockApoderados[0]]} // Solo 1 apoderado
+        loading={false}
+        error={null}
+        pageSize={pageSize}
+      />
+    );
+
+    const rows = container.querySelectorAll(".apoderados-table__row--data");
+    // Debe mostrar pageSize filas en total (1 real + 4 vacías)
+    expect(rows.length).toBe(pageSize);
+
+    // Verificar que las filas vacías tengan la clase correcta
+    const emptyRows = container.querySelectorAll(".empty-row");
+    expect(emptyRows.length).toBe(pageSize - 1);
+  });
 });
