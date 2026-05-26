@@ -128,3 +128,7 @@ button {
 a{
   text-decoration: none;
 }
+
+.no-highlight {
+  user-select: none;
+}

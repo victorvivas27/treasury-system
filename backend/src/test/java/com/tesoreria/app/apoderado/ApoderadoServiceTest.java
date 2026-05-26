@@ -5,6 +5,8 @@ import com.tesoreria.app.apoderado.domain.exception.ApoderadoErrorCode;
 import com.tesoreria.app.apoderado.domain.model.Apoderado;
 import com.tesoreria.app.apoderado.domain.port.out.ApoderadoRepositoryOutPort;
 import com.tesoreria.app.shared.domain.exception.DomainException;
+import com.tesoreria.app.shared.domain.pagination.PageRequest;
+import com.tesoreria.app.shared.domain.pagination.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,46 +30,59 @@ public class ApoderadoServiceTest {
 
     @InjectMocks
     private ApoderadoService service;
-
     private Apoderado mockApoderado;
-
+    private static final Long APODERADO_ID = 1L;
 
     @BeforeEach
     void setUp() {
         mockApoderado = new Apoderado();
-        mockApoderado.setId(1L);
+        mockApoderado.setId(APODERADO_ID);
         mockApoderado.setNombre("JUAN PEREZ");
         mockApoderado.setEmail("test@mail.com");
+    }
+    private PageResponse<Apoderado> mockPageResponse() {
+        return new PageResponse<>(
+                List.of(mockApoderado),
+                0,
+                10,
+                1,
+                1
+        );
     }
 
     @Nested
     class FindTests {
         @Test
         void findById_deberiaRetornarApoderadoCuandoExiste() {
-            when(repository.findById(anyLong())).thenReturn(Optional.of(mockApoderado));
-            Apoderado result = service.findById(anyLong());
+            when(repository.findById(APODERADO_ID)).thenReturn(Optional.of(mockApoderado));
+            Apoderado result = service.findById(APODERADO_ID);
             assertNotNull(result);
-            verify(repository).findById(anyLong());
+            verify(repository).findById(APODERADO_ID);
         }
 
         @Test
         void findById_deberiaLanzarExcepcionCuandoNoExiste() {
-            when(repository.findById(anyLong())).thenReturn(Optional.empty());
-            DomainException ex = assertThrows(DomainException.class, () -> service.findById(anyLong()));
+            when(repository.findById(APODERADO_ID)).thenReturn(Optional.empty());
+            DomainException ex = assertThrows(DomainException.class, () -> service.findById(APODERADO_ID));
             assertEquals(ApoderadoErrorCode.NOT_FOUND.getCodigo(), ex.getErrorCode());
         }
 
         @Test
-        void findAll_deberiaRetornarLista() {
-            List<Apoderado> lista = List.of(new Apoderado());
+        void findAll_deberiaRetornarPageResponse() {
+            PageRequest pageRequest = new PageRequest(0, 10, null, null);
+            PageResponse<Apoderado> pageResponse = mockPageResponse();
 
-            when(repository.findAll()).thenReturn(lista);
+            when(repository.findAll(pageRequest)).thenReturn(pageResponse);
 
-            List<Apoderado> resultado = service.findAll();
+            PageResponse<Apoderado> resultado = service.findAll(pageRequest);
 
             assertNotNull(resultado);
-            assertEquals(1, resultado.size());
-            verify(repository).findAll();
+            assertEquals(1, resultado.content().size());
+            assertEquals(0, resultado.page());
+            assertEquals(10, resultado.size());
+            assertEquals(1, resultado.totalPages());
+            assertEquals(1, resultado.totalElements());
+            verify(repository).findAll(pageRequest);
         }
     }
 
@@ -96,7 +111,7 @@ public class ApoderadoServiceTest {
     class UpdateTests{
         @Test
         void update_deberiaLanzarExcepcionCuandoNoExiste() {
-            mockApoderado.setId(1L);
+            mockApoderado.setId(APODERADO_ID);
             when(repository.existsById(mockApoderado.getId())).thenReturn(false);
             DomainException ex = assertThrows(
                     DomainException.class,
@@ -108,7 +123,7 @@ public class ApoderadoServiceTest {
 
         @Test
         void update_deberiaActualizarCuandoExiste() {
-            mockApoderado.setId(1L);
+            mockApoderado.setId(APODERADO_ID);
             when(repository.existsById(mockApoderado.getId())).thenReturn(true);
             when(repository.save(mockApoderado)).thenReturn(mockApoderado);
             Apoderado resultado = service.update(mockApoderado);
@@ -122,15 +137,15 @@ public class ApoderadoServiceTest {
     class DeleteTests {
         @Test
         void deleteById_deberiaEliminarCuandoExiste() {
-            when(repository.existsById(anyLong())).thenReturn(true);
-            service.deleteById(anyLong());
-            verify(repository).deleteById(anyLong());
+            when(repository.existsById(APODERADO_ID)).thenReturn(true);
+            service.deleteById(APODERADO_ID);
+            verify(repository).deleteById(APODERADO_ID);
         }
 
         @Test
         void deleteById_deberiaLanzarExcepcionCuandoNoExiste() {
-            when(repository.existsById(anyLong())).thenReturn(false);
-            assertThrows(DomainException.class, () -> service.deleteById(anyLong()));
+            when(repository.existsById(APODERADO_ID)).thenReturn(false);
+            assertThrows(DomainException.class, () -> service.deleteById(APODERADO_ID));
         }
     }
 

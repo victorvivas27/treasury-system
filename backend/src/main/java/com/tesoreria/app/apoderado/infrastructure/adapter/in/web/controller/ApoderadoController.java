@@ -4,6 +4,8 @@ package com.tesoreria.app.apoderado.infrastructure.adapter.in.web.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.tesoreria.app.shared.domain.pagination.PageRequest;
+import com.tesoreria.app.shared.domain.pagination.PageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -47,18 +49,29 @@ public class ApoderadoController {
         return new ResponseEntity<>(mapper.toResponse(created), HttpStatus.CREATED);
     }
 
- @GetMapping
-public ResponseEntity<List<ApoderadoResponse>> findAll(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
-) {
-    List<ApoderadoResponse> responses = apoderadoService.findAll(page, size)
-            .stream()
-            .map(mapper::toResponse)
-            .collect(Collectors.toList());
+    @GetMapping
+    public ResponseEntity<PageResponse<ApoderadoResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
 
-    return ResponseEntity.ok(responses);
-}
+        PageRequest pageRequest = new PageRequest(page, size, null, null);
+
+        PageResponse<Apoderado> result = apoderadoService.findAll(pageRequest);
+
+        PageResponse<ApoderadoResponse> response = new PageResponse<>(
+                result.content()
+                        .stream()
+                        .map(mapper::toResponse)
+                        .toList(),
+                result.page(),
+                result.size(),
+                result.totalElements(),
+                result.totalPages()
+        );
+
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApoderadoResponse> findById(@PathVariable Long id) {

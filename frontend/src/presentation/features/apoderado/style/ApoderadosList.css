@@ -12,23 +12,6 @@
 
 .apoderados-header__title {
   color: var(--color-accent);
-  font-weight: 600;
-  border-bottom: 1px solid var(--divider);
-}
-
-.apoderados-table__th {
-  padding: var(--sm);
-  font-size: var(--sm);
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--divider);
-  text-align: left;
-}
-
-.apoderados-table__td {
-  padding: var(--sm);
-  font-size: var(--sm);
-  text-align: left;
 }
 
 /* 1. Agregar esto a la tabla */
@@ -38,8 +21,31 @@
   border-collapse: collapse;
 }
 
+.apoderados-table__th {
+  font-size: var(--sm);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--divider);
+  text-align: center;
+}
+
 .apoderados-table__row--data {
   border-bottom: 1px solid var(--divider);
+  height: 44px;
+}
+
+.apoderados-table__td {
+  font-size: var(--sm);
+  text-align: center;
+}
+
+
+
+/* --- Skeleton --- */
+.skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sm);
+  padding: var(--sm) 0;
 }
 
 .skeleton-block {
@@ -70,18 +76,19 @@
 
 /* --- Responsive SOLO tabla real --- */
 @media (max-width: 768px) {
-
-  .apoderados-table,
+.apoderados-table,
   .apoderados-table__head,
   .apoderados-table__body,
   .apoderados-table__th,
   .apoderados-table__td,
   .apoderados-table__row--data {
     display: revert;
+    height: 34px;
   }
 
   .apoderados-table__th {
     display: none;
+
   }
 
   .apoderados-table__td {
@@ -95,4 +102,6 @@
     font-weight: 600;
     color: var(--color-accent);
   }
+
+
 }
