@@ -1,12 +1,14 @@
 package com.tesoreria.app.apoderado;
 
-import com.tesoreria.app.apoderado.domain.model.Apoderado;
-import com.tesoreria.app.shared.domain.exception.DomainException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.tesoreria.app.apoderado.A_domain.model.Apoderado;
+import com.tesoreria.app.shared.domain.exception.DomainException;
 
 class ApoderadoTest {
     private Apoderado a;

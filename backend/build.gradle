@@ -3,6 +3,8 @@ plugins {
 	id 'org.springframework.boot' version '4.0.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'jacoco'
+  id 'pmd'
+
 }
 
 group = 'com.tesoreria'
@@ -113,6 +115,22 @@ jacocoTestCoverageVerification {
 			fileTree(dir: it, exclude: excludedClasses)
 		}))
 	}
+}
+
+// ========== CONFIGURACIÓN PMD ==========
+pmd {
+    toolVersion = '6.55.0'
+    consoleOutput = true
+    ignoreFailures = false
+    ruleSets = []
+    ruleSetFiles = files("config/pmd/ruleset.xml")
+}
+
+tasks.withType(Pmd).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 check.dependsOn jacocoTestCoverageVerification

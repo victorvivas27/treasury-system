@@ -7,10 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class TesoreriaAppApplication {
-    public static Logger logger = LoggerFactory.getLogger(TesoreriaAppApplication.class);
+  public static final Logger logger = LoggerFactory.getLogger(TesoreriaAppApplication.class);
 
-    public static void main(String[] args) {
-        SpringApplication.run(TesoreriaAppApplication.class, args);
-        logger.info("🚀 Tesorería App iniciada.");
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(TesoreriaAppApplication.class, args);
+    logger.info("🚀 Tesorería App iniciada.");
+  }
 }
