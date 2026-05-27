@@ -1,17 +1,18 @@
 package com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.adapter;
 
-import com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.entity.ApoderadoEntity;
-import com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.mapper.ApoderadoPersistenceMapper;
-import com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
-import com.tesoreria.app.apoderado.A_domain.model.Apoderado;
-import com.tesoreria.app.apoderado.A_domain.port.out.ApoderadoRepositoryOutPort;
-import com.tesoreria.app.shared.domain.pagination.PageRequest;
-import com.tesoreria.app.shared.domain.pagination.PageResponse;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
 
+import com.tesoreria.app.apoderado.A_domain.model.Apoderado;
+import com.tesoreria.app.apoderado.A_domain.port.out.ApoderadoRepositoryOutPort;
+import com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.entity.ApoderadoEntity;
+import com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.mapper.ApoderadoPersistenceMapper;
+import com.tesoreria.app.apoderado.C_infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
+import com.tesoreria.app.shared.domain.pagination.PageRequest;
+import com.tesoreria.app.shared.domain.pagination.PageResponse;
 
 @Repository
 public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort {
@@ -42,24 +43,21 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   @Override
   public PageResponse<Apoderado> findAll(PageRequest pageRequest) {
     Pageable pageable = org.springframework.data.domain.PageRequest.of(
-            pageRequest.page(),
-            pageRequest.size()
-    );
+        pageRequest.page(),
+        pageRequest.size());
 
     Page<ApoderadoEntity> pageEntity = jpaRepository.findAll(pageable);
 
     return new PageResponse<>(
-            pageEntity.getContent()
-                    .stream()
-                    .map(persistenceMapper::toDomain)
-                    .toList(),
-            pageEntity.getNumber(),
-            pageEntity.getSize(),
-            pageEntity.getTotalElements(),
-            pageEntity.getTotalPages()
-    );
+        pageEntity.getContent()
+            .stream()
+            .map(persistenceMapper::toDomain)
+            .toList(),
+        pageEntity.getNumber(),
+        pageEntity.getSize(),
+        pageEntity.getTotalElements(),
+        pageEntity.getTotalPages());
   }
-
 
   @Override
   public void deleteById(Long id) {
