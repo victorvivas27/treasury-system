@@ -121,6 +121,11 @@ pnpm run test:single 'nombre-del-test'
 
 ## Generar reporte de cobertura
 
+-Un archivo especifico
+```bash
+ pnpm vitest run --coverage --coverage.include="**/NombreArchivo"
+ ```
+ -Todos el preoyecto
 ```bash
 pnpm run test:coverage
 ```

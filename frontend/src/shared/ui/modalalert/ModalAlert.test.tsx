@@ -6,13 +6,13 @@ import { act } from "react";
 
 describe("ModalAlert Component", () => {
   beforeEach(() => {
-    vi.useFakeTimers(); // Habilitamos timers falsos antes de cada test
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     cleanup();
-    vi.restoreAllMocks(); // Restauramos los mocks y timers
-    vi.clearAllMocks(); // Asegura limpiar contadores de llamadas
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   const defaultProps = {
@@ -52,7 +52,6 @@ describe("ModalAlert Component", () => {
 
   it("[ModalAlert #05] Debe llamar a onClose al hacer clic en el overlay.", () => {
     render(<ModalAlert {...defaultProps} />);
-    // El aside tiene el role dialog y es el overlay
     fireEvent.click(screen.getByRole("dialog"));
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
@@ -74,7 +73,6 @@ describe("ModalAlert Component", () => {
     const autoCloseTime = 3000;
     render(<ModalAlert {...defaultProps} autoCloseTime={autoCloseTime} />);
 
-    // Adelantamos el tiempo 3 segundos
     act(() => {
       vi.advanceTimersByTime(autoCloseTime);
     });

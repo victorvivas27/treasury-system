@@ -51,7 +51,7 @@
   gap: 12px;
   padding: 20px;
   background: var(--color-divider);
-  border: none; /* Quitamos bordes */
+  border: none;
 }
 
 .modal-header-success {
@@ -118,7 +118,6 @@
   height: 100%;
   width: 100%;
   transform-origin: left;
-  /* Usamos la variable --duration que viene de React */
   animation: progressLinear var(--duration) linear forwards;
 }
 
@@ -132,14 +131,12 @@
 
 @keyframes progressLinear {
   from {
-    transform: scaleX(1); /* Empieza llena */
+    transform: scaleX(1);
   }
   to {
-    transform: scaleX(0); /* Termina vacía */
+    transform: scaleX(0);
   }
 }
-
-
 
 .modal-footer {
   padding: 15px 20px 20px;

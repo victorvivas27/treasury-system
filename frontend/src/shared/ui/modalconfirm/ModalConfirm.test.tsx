@@ -30,9 +30,7 @@ describe("ModalConfirm", () => {
   test("[ModalConfirm #03] debe ejecutar onCancel al hacer clic en el botón de cancelar o en el overlay", () => {
     render(<ModalConfirm {...mockProps} />);
 
-    // Click en botón cancelar
     fireEvent.click(screen.getByText("Cancelar"));
-    // Click en overlay (el aside es el role dialog)
     fireEvent.click(screen.getByRole("dialog"));
 
     expect(mockProps.onCancel).toHaveBeenCalledTimes(2);

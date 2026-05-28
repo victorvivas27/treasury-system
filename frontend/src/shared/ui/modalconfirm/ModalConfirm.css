@@ -7,7 +7,6 @@
   justify-content: center;
   padding: 1rem;
   background-color: rgba(0, 0, 0, 0.6);
-  /* puedes dejarlo así o crear variable */
 }
 
 .modal-confirm-container {
@@ -37,7 +36,6 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  /* 👇 uso de warning (confirmación) */
   background-color: var(--color-warning);
   color: var(--color-background);
   font-size: 1.1rem;
@@ -70,7 +68,6 @@
   border-top: 1px solid var(--color-divider);
 }
 
-/* Hover opcional para interacción más rica */
 .modal-confirm-container:hover {
   border-color: var(--color-active);
 }
