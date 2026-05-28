@@ -16,15 +16,12 @@ export const useEditApoderado = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Memorizamos el ID numérico para evitar recálculos innecesarios
   const numericId = useMemo(() => (id ? parseInt(id, 10) : undefined), [id]);
 
-  // Estados de carga (Entrada y Salida)
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<{ message: string } | null>(null);
 
-  // Instancias de arquitectura (Memorizadas para evitar recreación en cada render)
   const { getUseCase, updateUseCase } = useMemo(() => {
     const repository = new ApoderadoRepositoryImpl();
     return {
@@ -57,7 +54,7 @@ export const useEditApoderado = () => {
   const loadApoderadoData = useCallback(async () => {
     if (numericId === undefined || isNaN(numericId)) {
       setLoadError({ message: "ID de apoderado no válido" });
-      setInitialLoading(false); // <--- Agrega esto
+      setInitialLoading(false);
       return;
     }
 
@@ -122,7 +119,6 @@ export const useEditApoderado = () => {
         navigate("/parents");
       }, 2000);
     } catch (error: any) {
-      // Importante: No retornamos inmediatamente sin apagar el loading
       if (axios.isAxiosError(error) && error.response) {
         const { code, errors, message } = error.response.data;
         if (code === "ERROR_VALIDACION" && errors) {

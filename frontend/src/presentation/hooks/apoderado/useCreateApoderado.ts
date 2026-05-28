@@ -85,6 +85,5 @@ export const useCreateApoderado = () => {
     closeModal,
     navigate,
     setModal,
-    //showAlert
   };
 };

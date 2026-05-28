@@ -3,8 +3,6 @@ import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useDeleteApoderado } from "../useDeleteApoderado";
 
-
-// Mock del repositorio con función tradicional para permitir 'new'
 vi.mock("@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl", () => ({
   ApoderadoRepositoryImpl: vi.fn(),
 }));
@@ -14,8 +12,6 @@ describe("useDeleteApoderado", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Configuramos el mock para que devuelva un objeto con el método delete
     vi.mocked(ApoderadoRepositoryImpl).mockImplementation(function () {
       return {
         delete: mockDelete,
@@ -49,12 +45,9 @@ describe("useDeleteApoderado", () => {
   it("[useDeleteApoderado #04] debe gestionar exitosamente la eliminación", async () => {
     const onSuccess = vi.fn();
     mockDelete.mockResolvedValue(undefined);
-
     const { result } = renderHook(() => useDeleteApoderado(onSuccess));
-
     act(() => { result.current.openDeleteConfirm(1); });
     await act(async () => { await result.current.confirmDelete(); });
-
     expect(result.current.alert.message).toBe("Apoderado eliminado correctamente.");
     expect(result.current.alert.type).toBe("success");
     expect(onSuccess).toHaveBeenCalled();
@@ -64,12 +57,9 @@ describe("useDeleteApoderado", () => {
 
   it("[useDeleteApoderado #05] debe gestionar el error de eliminación", async () => {
     mockDelete.mockRejectedValue(new Error("Network Error"));
-
     const { result } = renderHook(() => useDeleteApoderado());
-
     act(() => { result.current.openDeleteConfirm(1); });
     await act(async () => { await result.current.confirmDelete(); });
-
     expect(result.current.alert.message).toBe("No se pudo eliminar el apoderado.");
     expect(result.current.alert.type).toBe("error");
     expect(result.current.isDeleting).toBe(false);
@@ -80,21 +70,15 @@ describe("useDeleteApoderado", () => {
     let resolvePromise: any;
     const promise = new Promise<void>((resolve) => { resolvePromise = resolve; });
     mockDelete.mockReturnValue(promise);
-
     const { result } = renderHook(() => useDeleteApoderado());
-
     act(() => { result.current.openDeleteConfirm(1); });
-
     let deletePromise: any;
     act(() => { deletePromise = result.current.confirmDelete(); });
-
     expect(result.current.isDeleting).toBe(true);
-
     await act(async () => {
       resolvePromise();
       await deletePromise;
     });
-
     expect(result.current.isDeleting).toBe(false);
   });
 
@@ -102,8 +86,6 @@ describe("useDeleteApoderado", () => {
     const { result } = renderHook(() => useDeleteApoderado());
     act(() => {
       result.current.openDeleteConfirm(1);
-      // Simulamos que la alerta está abierta (aunque el hook la abre en confirmDelete)
-      // O simplemente llamamos a closeAlert y verificamos el estado
       result.current.closeAlert();
     });
     expect(result.current.alert.isOpen).toBe(false);
@@ -111,22 +93,12 @@ describe("useDeleteApoderado", () => {
 
   it("[useDeleteApoderado #08] no debe hacer nada si se llama a confirmDelete sin un id seleccionado", async () => {
     const { result } = renderHook(() => useDeleteApoderado());
-
-    // Aseguramos que idToDelete es null explícitamente
     expect(result.current.idToDelete).toBe(null);
-
-    // Ejecutamos confirmDelete
     await act(async () => {
       await result.current.confirmDelete();
     });
-
-    // Verificamos que el repositorio NUNCA fue llamado
     expect(mockDelete).not.toHaveBeenCalled();
-
-    // Verificamos que el estado de carga nunca cambió a true
     expect(result.current.isDeleting).toBe(false);
-
-    // Verificamos que la alerta siga cerrada
     expect(result.current.alert.isOpen).toBe(false);
   });
 });
