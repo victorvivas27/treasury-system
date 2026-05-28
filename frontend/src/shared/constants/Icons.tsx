@@ -62,6 +62,15 @@ export const APODERADOS_ICONS = {
   edit:GrEdit
 };
 
+export const ALUMNOS_ICONS = {
+  conference: FcConferenceCall,
+  reload: TfiReload,
+  add: RiUserAddLine,
+  delete: MdOutlineDeleteOutline,
+  edit: GrEdit,
+  save: GrEdit
+};
+
 export const SIDEBAR_USER_MOCK = {
   name: "John Doe",
   email: "john.doe@example.com",

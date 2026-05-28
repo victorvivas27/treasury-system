@@ -1,0 +1,48 @@
+info:
+  name: 01-Create Alumno
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Juan Perez",
+        "curso": "4A",
+        "apoderadoId": {{alumnoApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("Response should contain id", function () {
+          expect(body.id).to.not.be.undefined;
+        });
+
+        test("Name should be uppercase", function () {
+          expect(body.nombre).to.equal("JUAN PEREZ");
+        });
+
+        test("Response should contain apoderadoId", function () {
+          expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("alumnoApoderadoId")));
+        });
+
+        bru.setEnvVar("alumnoId", body.id.toString(), { persist: true });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

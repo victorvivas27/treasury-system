@@ -7,7 +7,7 @@ import com.tesoreria.apoderado.application.usecase.ApoderadoService;
 import com.tesoreria.apoderado.core.port.out.ApoderadoRepositoryOutPort;
 
 @Configuration
-public class DomainConfig {
+public class ApoderadoDomainConfig {
   @Bean
   public ApoderadoService apoderadoService(ApoderadoRepositoryOutPort repository) {
     return new ApoderadoService(repository);

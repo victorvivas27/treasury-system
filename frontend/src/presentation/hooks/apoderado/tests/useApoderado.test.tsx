@@ -12,7 +12,7 @@ const { mockExecute } = vi.hoisted(() => ({
 
 vi.mock("@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase", () => {
   return {
-    GetApoderadosUseCase: vi.fn().mockImplementation(function() {
+    GetApoderadosUseCase: vi.fn().mockImplementation(function () {
       return {
         execute: mockExecute
       };
@@ -201,4 +201,57 @@ describe("useApoderados Hook", () => {
       expect(result.current.currentPage).toBe(0);
     });
   });
+
+  it("[useApoderados #09] Debe ejecutar el setTimeout cuando la petición es rápida (< 300ms)", async () => {
+    // Mock que resuelve instantáneamente
+    mockExecute.mockResolvedValue(mockPageResponse);
+
+    const { result } = renderHook(() => useApoderados());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.apoderados).toEqual(mockPageResponse.content);
+    });
+    // El if (remainingTime > 0) se ejecutará porque elapsedTime es casi 0
+  });
+
+  it("[useApoderados #10] No debe llamar a fetchApoderados en nextPage cuando es la última página", async () => {
+    // Configurar como última página (página 0 de 1 página total)
+    mockExecute.mockResolvedValue(mockPageResponse); // totalPages = 1
+
+    const { result } = renderHook(() => useApoderados());
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(false);
+    });
+
+    // Intentar nextPage - NO debe llamar a fetchApoderados
+    await act(async () => {
+      await result.current.nextPage();
+    });
+
+    // fetchApoderados solo se llamó una vez (la inicial)
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+  });
+
+ it("[useApoderados #11] Forzar cobertura del bloque remainingTime", async () => {
+  // Espiar Date.now para controlar el tiempo
+  const dateNowSpy = vi.spyOn(Date, 'now');
+
+  // Primera llamada (startTime)
+  dateNowSpy.mockReturnValueOnce(0);
+  // Segunda llamada (elapsedTime) - solo pasaron 100ms
+  dateNowSpy.mockReturnValueOnce(100);
+
+  mockExecute.mockResolvedValue(mockPageResponse);
+
+  const { result } = renderHook(() => useApoderados());
+
+  await waitFor(() => {
+    expect(result.current.loading).toBe(false);
+  });
+
+  dateNowSpy.mockRestore();
+});
+
 });

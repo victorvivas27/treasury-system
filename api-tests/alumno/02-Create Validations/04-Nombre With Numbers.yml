@@ -1,0 +1,38 @@
+info:
+  name: 04-Nombre With Numbers
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Juan123",
+        "curso": "4A",
+        "apoderadoId": {{alumnoApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        test("Should reject numbers in nombre", function () {
+          expect(body.errors.nombre).to.match(/letras/);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

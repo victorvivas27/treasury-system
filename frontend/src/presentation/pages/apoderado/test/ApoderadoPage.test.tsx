@@ -4,23 +4,32 @@ import { useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApoderadoPage } from "../ApoderadoPage";
 
-
-// 1. Mocks de las dependencias externas
 vi.mock("@/presentation/hooks/apoderado/useApoderados");
 vi.mock("react-router-dom");
 
 describe("ApoderadoPage Integration", () => {
   const mockNavigate = vi.fn();
   const mockRefetch = vi.fn();
+  const mockPagination = {
+    currentPage: 0,
+    nextPage: vi.fn(),
+    prevPage: vi.fn(),
+    hasPrevPage: false,
+    hasNextPage: false,
+    isLastPage: true,
+    pageSize: 3,
+    totalPages: 1,
+    totalElements: 0,
+  };
 
   beforeEach(() => {
-    // Configuración por defecto de los mocks antes de cada test
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
     vi.mocked(useApoderados).mockReturnValue({
       apoderados: [],
       loading: false,
       error: null,
       refetch: mockRefetch,
+      ...mockPagination,
     });
   });
 
@@ -29,7 +38,7 @@ describe("ApoderadoPage Integration", () => {
     vi.clearAllMocks();
   });
 
-  it("[ApoderadoPage #01] Debe navegar a la ruta de creación al hacer clic en 'Crear Apoderado'.", () => {
+  it("[ApoderadoPage #01] Debe navegar a la ruta de creacion al hacer clic en Crear Apoderado.", () => {
     render(<ApoderadoPage />);
 
     const btnCreate = screen.getByRole("button", { name: /crear apoderado/i });
@@ -38,7 +47,7 @@ describe("ApoderadoPage Integration", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/parents/new");
   });
 
-  it("[ApoderadoPage #02] Debe ejecutar refetch al hacer clic en el botón de recargar.", () => {
+  it("[ApoderadoPage #02] Debe ejecutar refetch al hacer clic en el boton de recargar.", () => {
     render(<ApoderadoPage />);
 
     const btnReload = screen.getByRole("button", { name: /recargar/i });
@@ -47,54 +56,48 @@ describe("ApoderadoPage Integration", () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it("[ApoderadoPage #03] El botón de recargar debe mostrar estado de carga cuando loading es true.", () => {
-    // Simulamos que el hook está en estado loading
+  it("[ApoderadoPage #03] El boton de recargar debe mostrar estado de carga cuando loading es true.", () => {
     vi.mocked(useApoderados).mockReturnValue({
       apoderados: [],
       loading: true,
       error: null,
       refetch: mockRefetch,
+      ...mockPagination,
     });
 
     render(<ApoderadoPage />);
 
     expect(screen.getByText(/cargando/i)).toBeInTheDocument();
     const btnReload = screen.getByRole("button", { name: /cargando/i });
-    expect(btnReload).toBeDisabled(); // Asumiendo que tu Button maneja el atributo disabled en loading
+    expect(btnReload).toBeDisabled();
   });
-  it("[ApoderadoPage #04] Debe navegar a la ruta de edición con el ID correcto al hacer clic en editar un apoderado", () => {
-    // 1. Mock de datos con apoderados
+
+  it("[ApoderadoPage #04] Debe navegar a la ruta de edicion con el ID correcto al hacer clic en editar.", () => {
     const mockApoderados = [
-      { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "987654321" },
+      { id: 1, nombre: "Juan Perez", email: "juan@example.com", telefono: "987654321" },
       { id: 2, nombre: "Maria Lopez", email: "maria@example.com", telefono: "123456789" },
     ];
 
-    // 2. Configurar el mock de useApoderados con datos
     vi.mocked(useApoderados).mockReturnValue({
       apoderados: mockApoderados,
       loading: false,
       error: null,
       refetch: mockRefetch,
+      ...mockPagination,
+      totalElements: mockApoderados.length,
     });
 
-    // 3. Renderizar el componente
     render(<ApoderadoPage />);
 
-    // 4. Buscar el botón de editar del primer apoderado (ID: 1)
-    // Usamos testId que viene del componente ApoderadosList
-    const editButton = screen.getByTestId(`edit-btn-1`);
+    fireEvent.click(screen.getByTestId("edit-btn-1"));
 
-    // 5. Simular clic
-    fireEvent.click(editButton);
-
-    // 6. Verificar que navegó a la ruta correcta con el ID
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith("/parents/edit/1");
   });
 
-  it("[ApoderadoPage #05] Debe navegar a la ruta de edición con el ID del segundo apoderado", () => {
+  it("[ApoderadoPage #05] Debe navegar a la ruta de edicion con el ID del segundo apoderado.", () => {
     const mockApoderados = [
-      { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "987654321" },
+      { id: 1, nombre: "Juan Perez", email: "juan@example.com", telefono: "987654321" },
       { id: 2, nombre: "Maria Lopez", email: "maria@example.com", telefono: "123456789" },
     ];
 
@@ -103,13 +106,13 @@ describe("ApoderadoPage Integration", () => {
       loading: false,
       error: null,
       refetch: mockRefetch,
+      ...mockPagination,
+      totalElements: mockApoderados.length,
     });
 
     render(<ApoderadoPage />);
 
-    // Buscar botón de editar del segundo apoderado (ID: 2)
-    const editButton = screen.getByTestId(`edit-btn-2`);
-    fireEvent.click(editButton);
+    fireEvent.click(screen.getByTestId("edit-btn-2"));
 
     expect(mockNavigate).toHaveBeenCalledWith("/parents/edit/2");
   });

@@ -1,0 +1,111 @@
+import { AlumnosList } from "@/presentation/features/alumno/AlumnosList";
+import { useAlumnos } from "@/presentation/hooks/alumno/useAlumnos";
+import type { FC } from "react";
+import "./style/AlumnoPage.css";
+import { Button } from "@/shared/ui/button/Button";
+import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
+import { useNavigate } from "react-router-dom";
+import { useDeleteAlumno } from "@/presentation/hooks/alumno/useDeleteAlumno";
+import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+
+export const AlumnoPage: FC = () => {
+  const {
+    alumnos,
+    loading,
+    error,
+    refetch,
+    currentPage,
+    nextPage,
+    prevPage,
+    hasPrevPage,
+    pageSize,
+    isLastPage,
+  } = useAlumnos();
+
+  const navigate = useNavigate();
+
+  const handleEdit = (id: number) => {
+    navigate(`/students/edit/${id}`);
+  };
+
+  const {
+    isDeleting,
+    isConfirmOpen,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    confirmDelete,
+    alert,
+    closeAlert,
+  } = useDeleteAlumno(refetch);
+
+  return (
+    <main className="page-container">
+      <header className="page-header">
+        <div className="page-header__content">
+          <h1 className="page-header__title">Gestión de Alumnos</h1>
+          <p className="page-header__subtitle">
+            Visualiza y administra la información de los alumnos inscritos.
+          </p>
+        </div>
+
+        <div className="page-header__actions">
+          <Button
+            onClick={refetch}
+            variant="secondary"
+            size="medium"
+            icon={<ALUMNOS_ICONS.reload style={{ margin: "3px" }} />}
+            iconPosition="left"
+            loading={loading}
+            label={loading ? "Cargando" : "Recargar"}
+          />
+
+          <Button
+            onClick={() => navigate("/students/new")}
+            variant="primary"
+            size="medium"
+            icon={<ALUMNOS_ICONS.add style={{ margin: "3px" }} />}
+            iconPosition="left"
+            label="Crear Alumno"
+          />
+        </div>
+      </header>
+
+      <section className="page-content">
+        <AlumnosList
+          alumnos={alumnos}
+          loading={loading || isDeleting}
+          error={error}
+          onRefresh={refetch}
+          handleDelete={openDeleteConfirm}
+          handleEdit={handleEdit}
+          currentPage={currentPage}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+          hasPrevPage={hasPrevPage}
+          pageSize={pageSize}
+          isLastPage={isLastPage}
+        />
+      </section>
+
+      <ModalConfirm
+        isOpen={isConfirmOpen}
+        title="Eliminar alumno"
+        message="¿Estás seguro de eliminar este alumno? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteConfirm}
+      />
+
+      <ModalAlert
+        isOpen={alert.isOpen}
+        message={alert.message}
+        type={alert.type}
+        onClose={closeAlert}
+        autoCloseTime={2500}
+      />
+    </main>
+  );
+};

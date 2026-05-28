@@ -1,0 +1,38 @@
+info:
+  name: 01-Nombre Empty
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "",
+        "curso": "4A",
+        "apoderadoId": {{alumnoApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        test("Should report nombre validation", function () {
+          expect(body.errors).to.have.property("nombre");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
