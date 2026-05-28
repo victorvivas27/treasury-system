@@ -151,10 +151,11 @@ class AlumnoTest {
   class ConstructorTest {
     @Test
     void constructor_deberiaValidarYNormalizar() {
-      a = new Alumno(1L, "  juan  ", "  4a  ", 1L);
+      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  ", 1L);
       assertEquals("JUAN", a.getNombre());
       assertEquals("4a", a.getCurso());
       assertEquals(1L, a.getApoderadoId());
+      assertEquals("AL-123456789", a.getCodigo());
     }
   }
 }

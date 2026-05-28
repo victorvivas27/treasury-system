@@ -13,6 +13,7 @@ public class Alumno {
   private static final int LONGITUD_MAXIMA_CURSO = 50;
 
   private Long id;
+  private String codigo;
   private String nombre;
   private String curso;
   private Long apoderadoId;
@@ -20,8 +21,9 @@ public class Alumno {
   public Alumno() {
   }
 
-  public Alumno(Long id, String nombre, String curso, Long apoderadoId) {
+  public Alumno(Long id, String codigo, String nombre, String curso, Long apoderadoId) {
     this.id = id;
+    this.codigo = codigo;
     setNombre(nombre);
     setCurso(curso);
     setApoderadoId(apoderadoId);
@@ -33,6 +35,14 @@ public class Alumno {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
   }
 
   public String getNombre() {

@@ -1,12 +1,15 @@
 package com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -16,6 +19,9 @@ public final class AlumnoEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
+  private String codigo;
 
   @Column(nullable = false, length = 100)
   private String nombre;
@@ -35,20 +41,24 @@ public final class AlumnoEntity {
   public AlumnoEntity() {
   }
 
-  public AlumnoEntity(Long id, String nombre, String curso, Long apoderadoId) {
+  public AlumnoEntity(Long id, String codigo, String nombre, String curso, Long apoderadoId) {
     this.id = id;
+    this.codigo = codigo;
     this.nombre = nombre;
     this.curso = curso;
     this.apoderadoId = apoderadoId;
   }
 
-  @jakarta.persistence.PrePersist
+  @PrePersist
   protected void onCreate() {
     createdAt = LocalDateTime.now();
     updatedAt = LocalDateTime.now();
+    if (this.codigo == null) {
+      this.codigo = "AL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
   }
 
-  @jakarta.persistence.PreUpdate
+  @PreUpdate
   protected void onUpdate() {
     updatedAt = LocalDateTime.now();
   }
@@ -59,6 +69,14 @@ public final class AlumnoEntity {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
   }
 
   public String getNombre() {

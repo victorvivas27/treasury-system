@@ -342,6 +342,7 @@ class ApoderadoTest {
     void constructor_deberiaValidarYNormalizar() {
       a = new Apoderado(
           1L,
+          "AP-123456789",
           " juan ",
           "TEST@MAIL.COM ",
           "123456789",
@@ -351,6 +352,7 @@ class ApoderadoTest {
       assertEquals("test@mail.com", a.getEmail());
       assertEquals("123456789", a.getTelefono());
       assertEquals("obs", a.getObservaciones());
+      assertEquals("AP-123456789", a.getCodigo());
     }
 
   }

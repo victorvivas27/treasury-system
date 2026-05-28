@@ -13,6 +13,7 @@ public class ApoderadoMapper {
     public ApoderadoResponse toResponse(Apoderado apoderado) {
         return new ApoderadoResponse(
                 apoderado.getId(),
+                apoderado.getCodigo(),
                 apoderado.getNombre(),
                 apoderado.getEmail(),
                 apoderado.getTelefono(),
@@ -22,6 +23,7 @@ public class ApoderadoMapper {
 
     public Apoderado toDomain(ApoderadoRequest request) {
         return new Apoderado(
+                null,
                 null,
                 request.getNombre(),
                 request.getEmail(),

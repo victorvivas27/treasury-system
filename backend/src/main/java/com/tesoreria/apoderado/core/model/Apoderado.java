@@ -9,6 +9,7 @@ import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
 public class Apoderado {
 
   private Long id;
+  private String codigo;
   private String nombre;
   private String email;
   private String telefono;
@@ -19,11 +20,13 @@ public class Apoderado {
 
   public Apoderado(
       Long id,
+      String codigo,
       String nombre,
       String email,
       String telefono,
       String observaciones) {
     this.id = id;
+    this.codigo = codigo;
     setNombre(nombre);
     setEmail(email);
     setTelefono(telefono);
@@ -251,6 +254,10 @@ public class Apoderado {
 
   public Long getId() {
     return id;
+  }
+
+  public String getCodigo() {
+    return codigo;
   }
 
   public String getNombre() {

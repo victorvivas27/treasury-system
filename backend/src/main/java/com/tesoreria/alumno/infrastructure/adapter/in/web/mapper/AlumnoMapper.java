@@ -12,6 +12,7 @@ public class AlumnoMapper {
   public AlumnoResponse toResponse(Alumno alumno) {
     return new AlumnoResponse(
         alumno.getId(),
+        alumno.getCodigo(),
         alumno.getNombre(),
         alumno.getCurso(),
         alumno.getApoderadoId());
@@ -19,6 +20,7 @@ public class AlumnoMapper {
 
   public Alumno toDomain(AlumnoRequest request) {
     return new Alumno(
+        null,
         null,
         request.getNombre(),
         request.getCurso(),

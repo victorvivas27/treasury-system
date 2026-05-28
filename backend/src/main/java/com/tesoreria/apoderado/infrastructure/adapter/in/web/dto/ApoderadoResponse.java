@@ -2,6 +2,7 @@ package com.tesoreria.apoderado.infrastructure.adapter.in.web.dto;
 public class ApoderadoResponse {
 
     private Long id;
+    private String codigo;
     private String nombre;
     private String email;
     private String telefono;
@@ -12,12 +13,14 @@ public class ApoderadoResponse {
 
     public ApoderadoResponse(
             Long id,
+            String codigo,
             String nombre,
             String email,
             String telefono,
             String observaciones
     ) {
         this.id = id;
+        this.codigo = codigo;
         this.nombre = nombre;
         this.email = email;
         this.telefono = telefono;
@@ -30,6 +33,14 @@ public class ApoderadoResponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public String getNombre() {

@@ -8,23 +8,23 @@ import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.Apo
 @Component
 public class ApoderadoPersistenceMapper {
 
-    public Apoderado toDomain(ApoderadoEntity entity) {
-        return new Apoderado(
-                entity.getId(),
-                entity.getNombre(),
-                entity.getEmail(),
-                entity.getTelefono(),
-                entity.getObservaciones()
-        );
-    }
+  public Apoderado toDomain(ApoderadoEntity entity) {
+    return new Apoderado(
+        entity.getId(),
+        entity.getCodigo(),
+        entity.getNombre(),
+        entity.getEmail(),
+        entity.getTelefono(),
+        entity.getObservaciones());
+  }
 
-    public ApoderadoEntity toEntity(Apoderado domain) {
-        return new ApoderadoEntity(
-                domain.getId(),
-                domain.getNombre(),
-                domain.getEmail(),
-                domain.getTelefono(),
-                domain.getObservaciones()
-        );
-    }
+  public ApoderadoEntity toEntity(Apoderado domain) {
+    return new ApoderadoEntity(
+        domain.getId(),
+        domain.getCodigo(),
+        domain.getNombre(),
+        domain.getEmail(),
+        domain.getTelefono(),
+        domain.getObservaciones());
+  }
 }

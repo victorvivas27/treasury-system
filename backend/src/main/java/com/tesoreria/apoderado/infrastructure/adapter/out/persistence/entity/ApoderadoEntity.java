@@ -1,118 +1,141 @@
 package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity;
 
-import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "apoderados")
 public final class ApoderadoEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, length = 50)
-    private String nombre;
+  @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
+  private String codigo;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
+  @Column(nullable = false, length = 50)
+  private String nombre;
 
-    @Column(nullable = false, length = 15)
-    private String telefono;
+  @Column(nullable = false, unique = true, length = 100)
+  private String email;
 
-    @Column(length = 500)
-    private String observaciones;
+  @Column(nullable = false, length = 15)
+  private String telefono;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+  @Column(length = 500)
+  private String observaciones;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
+
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
+    if (this.codigo == null) {
+      this.codigo = "AP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
+  }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+  @PreUpdate
+  protected void onUpdate() {
+    updatedAt = LocalDateTime.now();
+  }
 
-    // Constructores
-    public ApoderadoEntity() {
-    }
+  // Constructores
+  public ApoderadoEntity() {
+  }
 
-    public ApoderadoEntity(
-            Long id,
-            String nombre,
-            String email,
-            String telefono,
-            String observaciones
-    ) {
-        this.id = id;
-        this.nombre = nombre;
-        this.email = email;
-        this.telefono = telefono;
-        this.observaciones = observaciones;
-    }
+  public ApoderadoEntity(
+      Long id,
+      String codigo,
+      String nombre,
+      String email,
+      String telefono,
+      String observaciones) {
+    this.id = id;
+    this.codigo = codigo;
+    this.nombre = nombre;
+    this.email = email;
+    this.telefono = telefono;
+    this.observaciones = observaciones;
+  }
 
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
+  // Getters y Setters
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
+  public String getCodigo() {
+    return codigo;
+  }
 
-    public String getNombre() {
-        return nombre;
-    }
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
+  }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+  public String getNombre() {
+    return nombre;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  public void setNombre(String nombre) {
+    this.nombre = nombre;
+  }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  public String getEmail() {
+    return email;
+  }
 
-    public String getTelefono() {
-        return telefono;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
+  public String getTelefono() {
+    return telefono;
+  }
 
-    public String getObservaciones() {
-        return observaciones;
-    }
+  public void setTelefono(String telefono) {
+    this.telefono = telefono;
+  }
 
-    public void setObservaciones(String observaciones) {
-        this.observaciones = observaciones;
-    }
+  public String getObservaciones() {
+    return observaciones;
+  }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+  public void setObservaciones(String observaciones) {
+    this.observaciones = observaciones;
+  }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
 }

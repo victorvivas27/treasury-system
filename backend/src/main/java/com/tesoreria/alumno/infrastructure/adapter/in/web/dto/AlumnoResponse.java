@@ -3,6 +3,7 @@ package com.tesoreria.alumno.infrastructure.adapter.in.web.dto;
 public class AlumnoResponse {
 
   private Long id;
+  private String codigo;
   private String nombre;
   private String curso;
   private Long apoderadoId;
@@ -10,8 +11,9 @@ public class AlumnoResponse {
   public AlumnoResponse() {
   }
 
-  public AlumnoResponse(Long id, String nombre, String curso, Long apoderadoId) {
+  public AlumnoResponse(Long id, String codigo, String nombre, String curso, Long apoderadoId) {
     this.id = id;
+    this.codigo = codigo;
     this.nombre = nombre;
     this.curso = curso;
     this.apoderadoId = apoderadoId;
@@ -23,6 +25,14 @@ public class AlumnoResponse {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
   }
 
   public String getNombre() {
