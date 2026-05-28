@@ -21,11 +21,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {icon && <div className="empty-state__icon">{icon}</div>}
       <h3 className="empty-state__title">{title}</h3>
       <p className="empty-state__message">{message}</p>
-
-       
       {actionText && onAction && (
 
-      <div className="empty-state__actions">
+        <div className="empty-state__actions">
           <Button
             label={actionText}
             onClick={onAction}

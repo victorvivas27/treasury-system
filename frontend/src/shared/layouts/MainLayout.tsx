@@ -6,7 +6,7 @@ import { useSidebarBehavior } from "@/presentation/hooks/sidebar/useSidebarBehav
 
 
 export const MainLayout = () => {
- const { isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick } = useSidebarBehavior();
+const { isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick } = useSidebarBehavior();
 
   return (
     <main className="main-layout">
