@@ -14,6 +14,7 @@ interface AlumnosListProps {
   onRefresh?: () => void;
   handleDelete?: (id: number) => void;
   handleEdit?: (id: number) => void;
+  handleFamilia?: (id: number) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -36,6 +37,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   onRefresh,
   handleDelete,
   handleEdit,
+  handleFamilia,
   currentPage,
   onNextPage,
   onPrevPage,
@@ -169,6 +171,14 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                           />
                         }
                         testId={`edit-btn-${alumno.id}`}
+                      />
+
+                      <Button
+                        variant="secondary"
+                        size="small"
+                        onClick={() => handleFamilia?.(alumno.id)}
+                        label="Familia"
+                        testId={`family-btn-${alumno.id}`}
                       />
                     </div>
                   ) : (

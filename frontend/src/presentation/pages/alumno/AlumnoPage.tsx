@@ -29,6 +29,10 @@ export const AlumnoPage: FC = () => {
     navigate(`/students/edit/${id}`);
   };
 
+  const handleFamilia = (id: number) => {
+    navigate(`/students/${id}/parents`);
+  };
+
   const {
     isDeleting,
     isConfirmOpen,
@@ -79,6 +83,7 @@ export const AlumnoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
           handleEdit={handleEdit}
+          handleFamilia={handleFamilia}
           currentPage={currentPage}
           onNextPage={nextPage}
           onPrevPage={prevPage}

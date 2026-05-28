@@ -18,6 +18,8 @@ import com.tesoreria.alumno.core.model.Alumno;
 import com.tesoreria.alumno.infrastructure.adapter.in.web.dto.AlumnoRequest;
 import com.tesoreria.alumno.infrastructure.adapter.in.web.dto.AlumnoResponse;
 import com.tesoreria.alumno.infrastructure.adapter.in.web.mapper.AlumnoMapper;
+import com.tesoreria.familia.application.usecase.FamiliaService;
+import com.tesoreria.familia.infrastructure.adapter.in.web.mapper.FamiliaMapper;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
@@ -30,11 +32,19 @@ import jakarta.validation.Valid;
 public class AlumnoController {
 
   private final AlumnoService alumnoService;
+  private final FamiliaService familiaService;
   private final AlumnoMapper mapper;
+  private final FamiliaMapper familiaMapper;
 
-  public AlumnoController(AlumnoService alumnoService, AlumnoMapper mapper) {
+  public AlumnoController(
+      AlumnoService alumnoService,
+      FamiliaService familiaService,
+      AlumnoMapper mapper,
+      FamiliaMapper familiaMapper) {
     this.alumnoService = alumnoService;
+    this.familiaService = familiaService;
     this.mapper = mapper;
+    this.familiaMapper = familiaMapper;
   }
 
   @PostMapping
@@ -64,7 +74,12 @@ public class AlumnoController {
   @GetMapping("/{id}")
   public ResponseEntity<AlumnoResponse> findById(@PathVariable Long id) {
     Alumno alumno = alumnoService.findById(id);
-    return ResponseEntity.ok(mapper.toResponse(alumno));
+    AlumnoResponse response = mapper.toResponse(alumno);
+    response.setApoderados(
+        familiaService.listarApoderadosPorAlumno(id).stream()
+            .map(familiaMapper::toResponse)
+            .toList());
+    return ResponseEntity.ok(response);
   }
 
   @PutMapping("/{id}")

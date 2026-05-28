@@ -1,0 +1,31 @@
+info:
+  name: 01-Parentesco Empty
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos/{{familiaAlumnoId}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "apoderadoId": {{familiaApoderadoId}},
+        "parentesco": "",
+        "principal": false
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -13,6 +13,7 @@ import { ApoderadoEditFormPage } from "../pages/apoderado/ApoderadoEditFormPage"
 import { ApoderadoCrearFormPage } from "../pages/apoderado/ApoderadoCreateFormPage";
 import { AlumnoCrearFormPage } from "../pages/alumno/AlumnoCrearFormPage";
 import { AlumnoEditFormPage } from "../pages/alumno/AlumnoEditFormPage";
+import { AlumnoFamiliaPage } from "../pages/alumno/AlumnoFamiliaPage";
 
 export const AppRouter = () => {
   return (
@@ -31,6 +32,7 @@ export const AppRouter = () => {
         <Route path="/parents/edit/:id" element={<ApoderadoEditFormPage />} />
         <Route path="students/new" element={<AlumnoCrearFormPage />} />
         <Route path="/students/edit/:id" element={<AlumnoEditFormPage />} />
+        <Route path="/students/:id/parents" element={<AlumnoFamiliaPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

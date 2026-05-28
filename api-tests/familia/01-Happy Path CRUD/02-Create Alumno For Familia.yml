@@ -1,0 +1,35 @@
+info:
+  name: 02-Create Alumno For Familia
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Alumno Familia",
+        "curso": "4A",
+        "apoderadoId": {{familiaApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        bru.setEnvVar("familiaAlumnoId", body.id.toString(), { persist: true });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
