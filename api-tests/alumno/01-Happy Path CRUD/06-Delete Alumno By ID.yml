@@ -1,0 +1,24 @@
+info:
+  name: 06-Delete Alumno By ID
+  type: http
+  seq: 6
+
+http:
+  method: DELETE
+  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 204", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

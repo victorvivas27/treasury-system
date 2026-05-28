@@ -1,0 +1,39 @@
+info:
+  name: 01-Update Non Existing ID
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/alumnos/999999"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Juan Perez",
+        "curso": "4A",
+        "apoderadoId": {{alumnoApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 404", function () {
+          expect(res.getStatus()).to.equal(404);
+        });
+
+        test("Should report alumno not found", function () {
+          expect(body.code).to.equal("AL-404");
+          expect(body.errors).to.have.property("id");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

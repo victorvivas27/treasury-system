@@ -5,12 +5,14 @@ import { DashboardPage } from "@/presentation/pages/dashboard/DashboardPage";
 import { ApoderadoPage } from "@/presentation/pages/apoderado/ApoderadoPage";
 import { NotFoundPage } from "../pages/NotFoundPage/NotFoundPage";
 import { User } from "../pages/user/User";
-import { Alumno } from "../pages/alumno/Alumno";
+import { AlumnoPage } from "../pages/alumno/AlumnoPage";
 import { Tesoreria } from "../pages/tesoreria/Tesoreria";
 import { Notificacion } from "../pages/notificacion/Notificacion";
 import { Configuracion } from "../pages/configuracion/Configuracion";
 import { ApoderadoEditFormPage } from "../pages/apoderado/ApoderadoEditFormPage";
 import { ApoderadoCrearFormPage } from "../pages/apoderado/ApoderadoCreateFormPage";
+import { AlumnoCrearFormPage } from "../pages/alumno/AlumnoCrearFormPage";
+import { AlumnoEditFormPage } from "../pages/alumno/AlumnoEditFormPage";
 
 export const AppRouter = () => {
   return (
@@ -19,7 +21,7 @@ export const AppRouter = () => {
       <Route path="/" element={<MainLayout />} >
         <Route index element={<HomePage />} />
         <Route path="users" element={<User />} />
-        <Route path="students" element={<Alumno />} />
+        <Route path="students" element={<AlumnoPage />} />
         <Route path="parents" element={<ApoderadoPage />} />
         <Route path="treasury" element={<Tesoreria />} />
         <Route path="dashboard" element={<DashboardPage />} />
@@ -27,6 +29,8 @@ export const AppRouter = () => {
         <Route path="configuration" element={<Configuracion />} />
         <Route path="parents/new" element={< ApoderadoCrearFormPage/>} />
         <Route path="/parents/edit/:id" element={<ApoderadoEditFormPage />} />
+        <Route path="students/new" element={<AlumnoCrearFormPage />} />
+        <Route path="/students/edit/:id" element={<AlumnoEditFormPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

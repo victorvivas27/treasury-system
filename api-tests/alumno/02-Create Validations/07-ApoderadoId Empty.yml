@@ -1,0 +1,38 @@
+info:
+  name: 07-ApoderadoId Empty
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Juan Perez",
+        "curso": "4A",
+        "apoderadoId": null
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        test("Should report apoderadoId validation", function () {
+          expect(body.errors).to.have.property("apoderadoId");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

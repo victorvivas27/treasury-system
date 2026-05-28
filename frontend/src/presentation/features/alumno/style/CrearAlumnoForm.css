@@ -1,0 +1,100 @@
+.form-card {
+  background-color: var(--color-surface);
+  padding: var(--sm);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sm);
+}
+
+.form-label {
+  color: var(--text-main);
+  font-size: var(--sm);
+}
+
+.form-input {
+  width: var(--wh-100);
+  padding: var(--md);
+  background: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--sm);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--color-accent);
+}
+
+.form-input::placeholder {
+  color: transparent;
+  transition: color 0.3s ease;
+}
+
+.form-input:focus::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-input.input-error {
+  border-color: var(--color-error) !important;
+}
+
+.error-message {
+  color: var(--color-error);
+  font-size: var(--xs);
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.floating-group {
+  position: relative;
+  margin-top: var(--sm);
+}
+
+.floating-label {
+  position: absolute;
+  left: 12px;
+  top: 40%;
+  transform: translateY(-65%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: all 0.2s ease-out;
+  background: transparent;
+  padding: 0 4px;
+}
+
+.form-input:focus+.floating-label,
+.form-input:not(:placeholder-shown)+.floating-label {
+  top: 0;
+  transform: translateY(-90%) scale(0.90);
+  color: var(--color-accent);
+}
+
+.input-error:focus+.floating-label,
+.input-error:not(:placeholder-shown)+.floating-label {
+  color: var(--color-error);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sm);
+}
+
+@media (max-width: 640px) {
+  .form-card {
+    grid-template-columns: 1fr;
+  }
+}

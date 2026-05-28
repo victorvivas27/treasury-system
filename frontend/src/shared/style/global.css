@@ -119,13 +119,15 @@ h3 {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 button {
   cursor: pointer;
   border: none;
   background: none;
   outline: none;
 }
-a{
+
+a {
   text-decoration: none;
 }
 

@@ -1,0 +1,39 @@
+info:
+  name: 03-Update Alumno By ID
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Juan Actualizado",
+        "curso": "5B",
+        "apoderadoId": {{alumnoApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("Alumno should be updated", function () {
+          expect(body.nombre).to.equal("JUAN ACTUALIZADO");
+          expect(body.curso).to.equal("5B");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

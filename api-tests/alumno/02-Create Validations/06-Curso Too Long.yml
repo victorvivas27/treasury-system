@@ -1,0 +1,38 @@
+info:
+  name: 06-Curso Too Long
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Juan Perez",
+        "curso": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "apoderadoId": {{alumnoApoderadoId}}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        test("Error message should indicate maximum 50 characters", function () {
+          expect(body.errors.curso).to.match(/50 caracteres/);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

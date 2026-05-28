@@ -1,0 +1,24 @@
+info:
+  name: 02-Delete Invalid ID Format
+  type: http
+  seq: 2
+
+http:
+  method: DELETE
+  url: "{{Url_Base}}/alumnos/abc"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

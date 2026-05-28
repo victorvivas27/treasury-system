@@ -1,19 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GetApoderadosUseCase } from "./GetApoderadosUseCase";
 import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/IApoderadoRepository";
-import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
+import type { Apoderado, PageResponse } from "@/core/A-domain/entities/apoderado/Apoderado";
 
 describe("GetApoderadosUseCase", () => {
   let useCase: GetApoderadosUseCase;
   let mockRepository: IApoderadoRepository;
 
-  // Mock de datos para las pruebas
   const mockApoderados: Apoderado[] = [
-    { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "987654321" },
+    { id: 1, nombre: "Juan Perez", email: "juan@example.com", telefono: "987654321" },
   ];
 
+  const mockPageResponse: PageResponse<Apoderado> = {
+    content: mockApoderados,
+    page: 0,
+    size: 5,
+    totalElements: 1,
+    totalPages: 1,
+  };
+
   beforeEach(() => {
-    // Inicializamos el mock del repositorio
     mockRepository = {
       getAll: vi.fn(),
     } as unknown as IApoderadoRepository;
@@ -21,32 +27,24 @@ describe("GetApoderadosUseCase", () => {
     useCase = new GetApoderadosUseCase(mockRepository);
   });
 
-  // ========== PRUEBAS DE LÓGICA DE NEGOCIO ==========
+  it("[GetApoderados #01] Debe retornar la lista paginada de apoderados desde el repositorio.", async () => {
+    vi.mocked(mockRepository.getAll).mockResolvedValue(mockPageResponse);
 
-  it("[GetApoderados #01] Debe retornar la lista de apoderados desde el repositorio.", async () => {
-    // Arrange
-    vi.mocked(mockRepository.getAll).mockResolvedValue(mockApoderados);
+    const result = await useCase.execute(0, 5);
 
-    // Act
-    const result = await useCase.execute();
-
-    // Assert
-    expect(result).toEqual(mockApoderados);
+    expect(result).toEqual(mockPageResponse);
     expect(mockRepository.getAll).toHaveBeenCalledTimes(1);
+    expect(mockRepository.getAll).toHaveBeenCalledWith(0, 5);
   });
 
   it("[GetApoderados #02] Debe lanzar un error personalizado si el repositorio falla.", async () => {
-    // Arrange
     const rawError = new Error("Connection Refused");
     vi.mocked(mockRepository.getAll).mockRejectedValue(rawError);
 
-    // Act & Assert
-    // Verificamos el mensaje del error
-    await expect(useCase.execute()).rejects.toThrow("No se pudieron obtener los apoderados");
+    await expect(useCase.execute(0, 5)).rejects.toThrow("No se pudieron obtener los apoderados");
 
-    // Verificamos que la causa (cause) sea el error original
     try {
-      await useCase.execute();
+      await useCase.execute(0, 5);
     } catch (error: any) {
       expect(error.cause).toBe(rawError);
     }
