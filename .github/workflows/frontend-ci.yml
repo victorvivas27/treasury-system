@@ -23,6 +23,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # CORRECCIÓN 1: Primero se instala pnpm en el sistema (Actualizado a v4)
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9 # Se recomienda v9 para Node 22, cámbialo a 8 solo si tu pnpm-lock es v8
+
+      # CORRECCIÓN 2: Segundo se levanta Node.js y se asocia al caché del pnpm ya instalado
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -30,13 +37,8 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Show versions
         run: |
