@@ -141,6 +141,18 @@ Para cada tarea:
 
 ---
 
+- Revisar cobertura de tests, use cases o lógica importante.
+- Si existen líneas sin cubrir, agregar los tests faltantes.
+- Priorizar cobertura de ramas reales de negocio y manejo de errores.
+- No crear tests artificiales solo para aumentar porcentaje.
+
+Comando recomendado:
+
+```bash
+cd frontend
+pnpm test -- --coverage
+```
+
 ## Formato de respuesta del agente
 
 Al finalizar una tarea, responder con:
