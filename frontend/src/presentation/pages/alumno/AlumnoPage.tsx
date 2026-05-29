@@ -64,7 +64,7 @@ export const AlumnoPage: FC = () => {
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<ALUMNOS_ICONS.reload style={{ margin: "3px" }} />}
+            icon={<ALUMNOS_ICONS.reload/>}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando" : "Recargar"}
@@ -74,7 +74,7 @@ export const AlumnoPage: FC = () => {
             onClick={() => navigate("/students/new")}
             variant="primary"
             size="medium"
-            icon={<ALUMNOS_ICONS.add style={{ margin: "3px" }} />}
+            icon={<ALUMNOS_ICONS.add/>}
             iconPosition="left"
             label="Crear Alumno"
           />
