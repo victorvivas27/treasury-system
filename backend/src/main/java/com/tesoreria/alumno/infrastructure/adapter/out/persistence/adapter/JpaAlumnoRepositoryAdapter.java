@@ -19,7 +19,6 @@ import com.tesoreria.shared.domain.pagination.PageResponse;
 public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
 
   private final AlumnoJpaRepository jpaRepository;
-  private final ApoderadoJpaRepository apoderadoJpaRepository;
   private final AlumnoPersistenceMapper persistenceMapper;
 
   public JpaAlumnoRepositoryAdapter(
@@ -27,7 +26,6 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
       ApoderadoJpaRepository apoderadoJpaRepository,
       AlumnoPersistenceMapper persistenceMapper) {
     this.jpaRepository = jpaRepository;
-    this.apoderadoJpaRepository = apoderadoJpaRepository;
     this.persistenceMapper = persistenceMapper;
   }
 
@@ -67,10 +65,5 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
   @Override
   public boolean existsById(Long id) {
     return jpaRepository.existsById(id);
-  }
-
-  @Override
-  public boolean existsByApoderadoId(Long apoderadoId) {
-    return apoderadoJpaRepository.existsById(apoderadoId);
   }
 }

@@ -13,8 +13,8 @@ public class AlumnoPersistenceMapper {
         entity.getId(),
         entity.getCodigo(),
         entity.getNombre(),
-        entity.getCurso(),
-        entity.getApoderadoId());
+        entity.getCurso()
+      );
   }
 
   public AlumnoEntity toEntity(Alumno domain) {
@@ -22,7 +22,7 @@ public class AlumnoPersistenceMapper {
         domain.getId(),
         domain.getCodigo(),
         domain.getNombre(),
-        domain.getCurso(),
-        domain.getApoderadoId());
+        domain.getCurso()
+      );
   }
 }

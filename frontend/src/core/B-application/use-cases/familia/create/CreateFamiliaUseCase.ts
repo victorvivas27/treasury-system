@@ -1,4 +1,4 @@
-import type { CreateFamiliaDTO, Familia } from "@/core/A-domain/entities/familia/Familia";
+import type { CreateFamiliaPorAlumnoDTO, Familia } from "@/core/A-domain/entities/familia/Familia";
 import type { IFamiliaRepository } from "@/core/A-domain/repository/familia/IFamiliaRepository";
 
 export class CreateFamiliaUseCase {
@@ -8,7 +8,7 @@ export class CreateFamiliaUseCase {
     this.familiaRepository = familiaRepository;
   }
 
-  async execute(alumnoId: number, familia: CreateFamiliaDTO): Promise<Familia> {
+  async execute(alumnoId: number, familia: CreateFamiliaPorAlumnoDTO): Promise<Familia> {
     return await this.familiaRepository.vincular(alumnoId, familia);
   }
 }

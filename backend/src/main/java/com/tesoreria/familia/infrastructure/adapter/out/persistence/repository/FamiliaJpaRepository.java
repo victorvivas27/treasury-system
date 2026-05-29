@@ -13,6 +13,8 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
 
   List<FamiliaEntity> findByAlumnoId(Long alumnoId);
 
+  List<FamiliaEntity> findByApoderadoId(Long apoderadoId);
+
   boolean existsByAlumnoIdAndApoderadoId(Long alumnoId, Long apoderadoId);
 
   boolean existsByAlumnoIdAndPrincipalTrue(Long alumnoId);

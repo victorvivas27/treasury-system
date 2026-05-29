@@ -11,8 +11,7 @@ http:
     data: |-
       {
         "nombre": "Juan Perez",
-        "curso": "4A",
-        "apoderadoId": {{alumnoApoderadoId}}
+        "curso": "4A"
       }
   auth: inherit
 
@@ -34,10 +33,6 @@ runtime:
           expect(body.nombre).to.equal("JUAN PEREZ");
         });
 
-        test("Response should contain apoderadoId", function () {
-          expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("alumnoApoderadoId")));
-        });
-
         bru.setEnvVar("alumnoId", body.id.toString(), { persist: true });
 
 settings:
@@ -45,4 +40,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

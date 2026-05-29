@@ -36,7 +36,6 @@ public class AlumnoServiceTest {
   private AlumnoService service;
   private Alumno mockAlumno;
   private static final Long ALUMNO_ID = 1L;
-  private static final Long APODERADO_ID = 1L;
 
   @BeforeEach
   void setUp() {
@@ -44,7 +43,6 @@ public class AlumnoServiceTest {
     mockAlumno.setId(ALUMNO_ID);
     mockAlumno.setNombre("JUAN PEREZ");
     mockAlumno.setCurso("4A");
-    mockAlumno.setApoderadoId(APODERADO_ID);
   }
 
   private PageResponse<Alumno> mockPageResponse() {
@@ -94,17 +92,11 @@ public class AlumnoServiceTest {
 
   @Nested
   class CreateTests {
-    @Test
-    void create_deberiaLanzarExcepcionCuandoApoderadoNoExiste() {
-      when(repository.existsByApoderadoId(APODERADO_ID)).thenReturn(false);
-      DomainException ex = assertThrows(DomainException.class, () -> service.create(mockAlumno));
-      assertEquals(AlumnoErrorCode.APODERADO_NOT_FOUND.getCodigo(), ex.getErrorCode());
-    }
 
-    @Test
-    void create_deberiaGuardarCuandoApoderadoExiste() {
-      when(repository.existsByApoderadoId(APODERADO_ID)).thenReturn(true);
-      when(repository.save(mockAlumno)).thenReturn(mockAlumno);
+  @Test
+    void create_deberiaGuardarCuandoAlumnoNoExiste() {
+      when(repository.save(mockAlumno))
+          .thenReturn(mockAlumno);
       Alumno resultado = service.create(mockAlumno);
       assertNotNull(resultado);
       verify(repository).save(mockAlumno);
@@ -123,19 +115,9 @@ public class AlumnoServiceTest {
     }
 
     @Test
-    void update_deberiaLanzarExcepcionCuandoApoderadoNoExiste() {
+    void update_deberiaActualizarCuandoAlumnoExiste() {
       mockAlumno.setId(ALUMNO_ID);
       when(repository.existsById(ALUMNO_ID)).thenReturn(true);
-      when(repository.existsByApoderadoId(APODERADO_ID)).thenReturn(false);
-      DomainException ex = assertThrows(DomainException.class, () -> service.update(mockAlumno));
-      assertEquals(AlumnoErrorCode.APODERADO_NOT_FOUND.getCodigo(), ex.getErrorCode());
-    }
-
-    @Test
-    void update_deberiaActualizarCuandoAlumnoYApoderadoExisten() {
-      mockAlumno.setId(ALUMNO_ID);
-      when(repository.existsById(ALUMNO_ID)).thenReturn(true);
-      when(repository.existsByApoderadoId(APODERADO_ID)).thenReturn(true);
       when(repository.save(mockAlumno)).thenReturn(mockAlumno);
       Alumno resultado = service.update(mockAlumno);
       assertNotNull(resultado);

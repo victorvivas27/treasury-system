@@ -165,13 +165,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                           size="small"
                           onClick={() => handleDelete?.(apoderado.id)}
                           icon={
-                            <APODERADOS_ICONS.delete
-                              style={{
-                                fontSize: "1rem",
-                                color: "var(--color-surface)",
-                              }}
-                            />
-                          }
+                            <APODERADOS_ICONS.delete/>}
                           testId={`delete-btn-${apoderado.id}`}
                         />
 
@@ -179,14 +173,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                           variant="secondary"
                           size="small"
                           onClick={() => handleEdit?.(apoderado.id)}
-                          icon={
-                            <APODERADOS_ICONS.edit
-                              style={{
-                                fontSize: "1rem",
-                                color: "var(--color-surface)",
-                              }}
-                            />
-                          }
+                          icon={<APODERADOS_ICONS.edit/>}
                           testId={`edit-btn-${apoderado.id}`}
                         />
                       </div>

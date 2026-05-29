@@ -1,9 +1,7 @@
 package com.tesoreria.alumno.infrastructure.adapter.in.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class AlumnoRequest {
@@ -19,17 +17,12 @@ public class AlumnoRequest {
   @Size(max = 50, message = "El curso no puede tener más de 50 caracteres")
   private String curso;
 
-  @NotNull(message = "El apoderado ID no puede estar vacío")
-  @Positive(message = "El apoderado ID debe ser un número positivo")
-  private Long apoderadoId;
-
   public AlumnoRequest() {
   }
 
-  public AlumnoRequest(String nombre, String curso, Long apoderadoId) {
+  public AlumnoRequest(String nombre, String curso) {
     this.nombre = nombre;
     this.curso = curso;
-    this.apoderadoId = apoderadoId;
   }
 
   public String getNombre() {
@@ -48,13 +41,5 @@ public class AlumnoRequest {
 
   public void setCurso(String curso) {
     this.curso = curso != null ? curso.trim() : null;
-  }
-
-  public Long getApoderadoId() {
-    return apoderadoId;
-  }
-
-  public void setApoderadoId(Long apoderadoId) {
-    this.apoderadoId = apoderadoId;
   }
 }

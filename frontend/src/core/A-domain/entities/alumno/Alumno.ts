@@ -1,12 +1,8 @@
-import type { AlumnoApoderado } from "@/core/A-domain/entities/familia/Familia";
-
 export interface Alumno {
   id: number;
   codigo?: string;
   nombre: string;
   curso: string;
-  apoderadoId: number;
-  apoderados?: AlumnoApoderado[];
 }
 
 export type CreateAlumnoDTO = Omit<Alumno, "id">;

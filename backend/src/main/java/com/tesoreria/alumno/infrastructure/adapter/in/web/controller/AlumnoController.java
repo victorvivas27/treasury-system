@@ -18,8 +18,6 @@ import com.tesoreria.alumno.core.model.Alumno;
 import com.tesoreria.alumno.infrastructure.adapter.in.web.dto.AlumnoRequest;
 import com.tesoreria.alumno.infrastructure.adapter.in.web.dto.AlumnoResponse;
 import com.tesoreria.alumno.infrastructure.adapter.in.web.mapper.AlumnoMapper;
-import com.tesoreria.familia.application.usecase.FamiliaService;
-import com.tesoreria.familia.infrastructure.adapter.in.web.mapper.FamiliaMapper;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
@@ -32,19 +30,13 @@ import jakarta.validation.Valid;
 public class AlumnoController {
 
   private final AlumnoService alumnoService;
-  private final FamiliaService familiaService;
   private final AlumnoMapper mapper;
-  private final FamiliaMapper familiaMapper;
 
   public AlumnoController(
       AlumnoService alumnoService,
-      FamiliaService familiaService,
-      AlumnoMapper mapper,
-      FamiliaMapper familiaMapper) {
+      AlumnoMapper mapper) {
     this.alumnoService = alumnoService;
-    this.familiaService = familiaService;
     this.mapper = mapper;
-    this.familiaMapper = familiaMapper;
   }
 
   @PostMapping
@@ -62,7 +54,10 @@ public class AlumnoController {
     PageResponse<Alumno> result = alumnoService.findAll(new PageRequest(page, size, null, null));
 
     PageResponse<AlumnoResponse> response = new PageResponse<>(
-        result.content().stream().map(mapper::toResponse).toList(),
+        result.content()
+            .stream()
+            .map(mapper::toResponse)
+            .toList(),
         result.page(),
         result.size(),
         result.totalElements(),
@@ -75,10 +70,6 @@ public class AlumnoController {
   public ResponseEntity<AlumnoResponse> findById(@PathVariable Long id) {
     Alumno alumno = alumnoService.findById(id);
     AlumnoResponse response = mapper.toResponse(alumno);
-    response.setApoderados(
-        familiaService.listarApoderadosPorAlumno(id).stream()
-            .map(familiaMapper::toResponse)
-            .toList());
     return ResponseEntity.ok(response);
   }
 

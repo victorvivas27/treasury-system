@@ -11,8 +11,7 @@ http:
     data: |-
       {
         "nombre": "Juan Actualizado",
-        "curso": "5B",
-        "apoderadoId": {{alumnoApoderadoId}}
+        "curso": "5B"
       }
   auth: inherit
 
@@ -36,4 +35,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

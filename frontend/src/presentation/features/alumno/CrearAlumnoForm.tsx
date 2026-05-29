@@ -1,8 +1,8 @@
 import { Button } from "@/shared/ui/button/Button";
-import "./style/CrearAlumnoForm.css";
 import { useCreateAlumno } from "@/presentation/hooks/alumno/useCreateAlumno";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
+import "./style/CrearAlumnoForm.css";
 
 export const CrearAlumnoForm = () => {
   const {
@@ -13,7 +13,7 @@ export const CrearAlumnoForm = () => {
     handleChange,
     handleActionSubmit,
     navigate,
-    setModal,
+    closeModal,
   } = useCreateAlumno();
 
   return (
@@ -45,20 +45,6 @@ export const CrearAlumnoForm = () => {
           {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
         </div>
 
-        <div className="form-group floating-group">
-          <input
-            id="apoderadoId_input"
-            name="apoderadoId"
-            type="number"
-            value={formData.apoderadoId || ''}
-            onChange={handleChange}
-            placeholder="1"
-            className={`form-input ${fieldErrors.apoderadoId ? 'input-error' : ''}`}
-          />
-          <label htmlFor="apoderadoId_input" className="floating-label form-label">ID del Apoderado</label>
-          {fieldErrors.apoderadoId && <span className="error-message">{fieldErrors.apoderadoId}</span>}
-        </div>
-
         <div className="form-actions">
           <Button
             variant="primary"
@@ -66,14 +52,15 @@ export const CrearAlumnoForm = () => {
             onClick={handleActionSubmit}
             loading={loading}
             label={loading ? "Guardando..." : "Guardar"}
-            icon={<ALUMNOS_ICONS.add style={{ margin: "3px" }} />}
+            icon={<ALUMNOS_ICONS.reload  />}
           />
 
           <Button
-            variant="secondary"
+            variant="danger"
             size="medium"
             onClick={() => navigate("/students")}
             label="Cancelar"
+            icon={<ALUMNOS_ICONS.cancel/>}
           />
         </div>
       </form>
@@ -82,7 +69,7 @@ export const CrearAlumnoForm = () => {
         isOpen={modal.isOpen}
         message={modal.message}
         type={modal.type}
-        onClose={() => setModal({ ...modal, isOpen: false })}
+        onClose={closeModal}
         autoCloseTime={2500}
       />
     </div>

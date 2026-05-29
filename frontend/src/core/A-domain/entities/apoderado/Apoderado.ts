@@ -1,6 +1,7 @@
 // domain/entities/Apoderado.ts
 export interface Apoderado {
   id: number;
+  codigo?: string;
   nombre: string;
   email: string;
   telefono: string;
@@ -16,4 +17,3 @@ export interface PageResponse<T> {
   totalElements: number;
   totalPages: number;
 }
-

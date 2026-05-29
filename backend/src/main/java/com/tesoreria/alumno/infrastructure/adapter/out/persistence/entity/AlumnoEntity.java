@@ -29,9 +29,6 @@ public final class AlumnoEntity {
   @Column(nullable = false, length = 50)
   private String curso;
 
-  @Column(name = "apoderado_id", nullable = false)
-  private Long apoderadoId;
-
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
@@ -41,12 +38,11 @@ public final class AlumnoEntity {
   public AlumnoEntity() {
   }
 
-  public AlumnoEntity(Long id, String codigo, String nombre, String curso, Long apoderadoId) {
+  public AlumnoEntity(Long id, String codigo, String nombre, String curso) {
     this.id = id;
     this.codigo = codigo;
     this.nombre = nombre;
     this.curso = curso;
-    this.apoderadoId = apoderadoId;
   }
 
   @PrePersist
@@ -93,14 +89,6 @@ public final class AlumnoEntity {
 
   public void setCurso(String curso) {
     this.curso = curso;
-  }
-
-  public Long getApoderadoId() {
-    return apoderadoId;
-  }
-
-  public void setApoderadoId(Long apoderadoId) {
-    this.apoderadoId = apoderadoId;
   }
 
   public LocalDateTime getCreatedAt() {

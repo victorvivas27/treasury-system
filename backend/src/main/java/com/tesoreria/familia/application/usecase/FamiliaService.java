@@ -2,21 +2,27 @@ package com.tesoreria.familia.application.usecase;
 
 import java.util.List;
 
+import com.tesoreria.familia.core.model.AlumnoVinculado;
 import com.tesoreria.familia.core.exception.FamiliaErrorCode;
 import com.tesoreria.familia.core.model.AlumnoApoderadoVinculado;
 import com.tesoreria.familia.core.model.Familia;
+import com.tesoreria.familia.core.model.FamiliaDetalle;
 import com.tesoreria.familia.core.port.in.CreateFamiliaUseCase;
 import com.tesoreria.familia.core.port.in.DeleteFamiliaUseCase;
 import com.tesoreria.familia.core.port.in.GetFamiliaUseCase;
 import com.tesoreria.familia.core.port.in.UpdateFamiliaUseCase;
 import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.shared.domain.pagination.PageRequest;
+import com.tesoreria.shared.domain.pagination.PageResponse;
 
 public class FamiliaService implements
     CreateFamiliaUseCase,
     GetFamiliaUseCase,
     UpdateFamiliaUseCase,
     DeleteFamiliaUseCase {
+
+  private static final String NO_ENCONTRADO = " no encontrado";
 
   private final FamiliaRepositoryOutPort repository;
 
@@ -42,10 +48,29 @@ public class FamiliaService implements
   }
 
   @Override
+  public FamiliaDetalle obtenerPorId(Long id) {
+    validarId(id);
+    return repository.findDetalleById(id)
+        .orElseThrow(() -> vinculoNoEncontrado(id));
+  }
+
+  @Override
+  public PageResponse<FamiliaDetalle> listar(PageRequest pageRequest) {
+    return repository.findAll(pageRequest);
+  }
+
+  @Override
   public List<AlumnoApoderadoVinculado> listarApoderadosPorAlumno(Long alumnoId) {
     validarAlumnoId(alumnoId);
     validarAlumnoExiste(alumnoId);
     return repository.findApoderadosByAlumnoId(alumnoId);
+  }
+
+  @Override
+  public List<AlumnoVinculado> listarAlumnosPorApoderado(Long apoderadoId) {
+    validarApoderadoId(apoderadoId);
+    validarApoderadoExiste(apoderadoId);
+    return repository.findAlumnosByApoderadoId(apoderadoId);
   }
 
   @Override
@@ -66,6 +91,21 @@ public class FamiliaService implements
   }
 
   @Override
+  public Familia actualizar(Long id, Familia familia) {
+    validarId(id);
+
+    Familia existente = repository.findById(id)
+        .orElseThrow(() -> vinculoNoEncontrado(id));
+
+    existente.setParentesco(familia.getParentesco());
+    existente.setPrincipal(familia.getPrincipal());
+    existente.setObservaciones(familia.getObservaciones());
+
+    validarPrincipalDisponible(existente);
+    return repository.save(existente);
+  }
+
+  @Override
   public void eliminar(Long alumnoId, Long apoderadoId) {
     validarAlumnoId(alumnoId);
     validarApoderadoId(apoderadoId);
@@ -76,6 +116,15 @@ public class FamiliaService implements
         .orElseThrow(() -> vinculoNoEncontrado(alumnoId, apoderadoId));
 
     repository.delete(familia);
+  }
+
+  @Override
+  public void eliminar(Long id) {
+    validarId(id);
+    if (!repository.existsById(id)) {
+      throw vinculoNoEncontrado(id);
+    }
+    repository.deleteById(id);
   }
 
   private void validarPrincipalDisponible(Familia familia) {
@@ -103,7 +152,7 @@ public class FamiliaService implements
           FamiliaErrorCode.ALUMNO_NOT_FOUND.getCodigo(),
           FamiliaErrorCode.ALUMNO_NOT_FOUND.getField(),
           FamiliaErrorCode.ALUMNO_NOT_FOUND.getStatus(),
-          "Alumno con id " + alumnoId + " no encontrado");
+          "Alumno con id " + alumnoId + NO_ENCONTRADO);
     }
   }
 
@@ -114,7 +163,7 @@ public class FamiliaService implements
           FamiliaErrorCode.APODERADO_NOT_FOUND.getCodigo(),
           FamiliaErrorCode.APODERADO_NOT_FOUND.getField(),
           FamiliaErrorCode.APODERADO_NOT_FOUND.getStatus(),
-          "Apoderado con id " + apoderadoId + " no encontrado");
+          "Apoderado con id " + apoderadoId + NO_ENCONTRADO);
     }
   }
 
@@ -138,11 +187,29 @@ public class FamiliaService implements
     }
   }
 
+  private void validarId(Long id) {
+    if (id == null || id <= 0) {
+      throw new DomainException(
+          FamiliaErrorCode.NOT_FOUND.getCodigo(),
+          FamiliaErrorCode.NOT_FOUND.getField(),
+          FamiliaErrorCode.NOT_FOUND.getStatus(),
+          "Vínculo con id " + id + NO_ENCONTRADO);
+    }
+  }
+
   private DomainException vinculoNoEncontrado(Long alumnoId, Long apoderadoId) {
     return new DomainException(
         FamiliaErrorCode.NOT_FOUND.getCodigo(),
         FamiliaErrorCode.NOT_FOUND.getField(),
         FamiliaErrorCode.NOT_FOUND.getStatus(),
         "No existe vínculo entre alumno " + alumnoId + " y apoderado " + apoderadoId);
+  }
+
+  private DomainException vinculoNoEncontrado(Long id) {
+    return new DomainException(
+        FamiliaErrorCode.NOT_FOUND.getCodigo(),
+        FamiliaErrorCode.NOT_FOUND.getField(),
+        FamiliaErrorCode.NOT_FOUND.getStatus(),
+        "Vínculo con id " + id + NO_ENCONTRADO);
   }
 }

@@ -41,7 +41,13 @@ export const AlumnoPage: FC = () => {
     confirmDelete,
     alert,
     closeAlert,
-  } = useDeleteAlumno(refetch);
+  } = useDeleteAlumno(() => {
+    if (alumnos.length === 1 && currentPage > 0) {
+      prevPage();
+    } else {
+      refetch();
+    }
+  });
 
   return (
     <main className="page-container">

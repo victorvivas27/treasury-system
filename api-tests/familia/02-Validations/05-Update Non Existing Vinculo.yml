@@ -1,0 +1,30 @@
+info:
+  name: 05-Update Non Existing Vinculo
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/familias/alumno-apoderado/999999"
+  body:
+    type: json
+    data: |-
+      {
+        "parentesco": "Tutor",
+        "principal": false
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 404", function () {
+          expect(res.getStatus()).to.equal(404);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

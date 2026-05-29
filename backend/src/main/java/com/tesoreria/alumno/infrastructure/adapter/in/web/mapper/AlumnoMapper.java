@@ -14,8 +14,8 @@ public class AlumnoMapper {
         alumno.getId(),
         alumno.getCodigo(),
         alumno.getNombre(),
-        alumno.getCurso(),
-        alumno.getApoderadoId());
+        alumno.getCurso()
+    );
   }
 
   public Alumno toDomain(AlumnoRequest request) {
@@ -23,7 +23,7 @@ public class AlumnoMapper {
         null,
         null,
         request.getNombre(),
-        request.getCurso(),
-        request.getApoderadoId());
+        request.getCurso()
+    );
   }
 }

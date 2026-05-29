@@ -9,7 +9,7 @@ import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { FcHighPriority } from "react-icons/fc";
 
 
-export const EditarApoderadoForm  = () => {
+export const EditarApoderadoForm = () => {
   const {
     formData,
     loading,
@@ -22,17 +22,17 @@ export const EditarApoderadoForm  = () => {
     initialLoading,
     loadError
   } = useEditApoderado();
-  
+
   // Estado de Error
-    if (loadError) {
-      return (
-        <FeedbackState
-          message={loadError.message}
-          type="error"
-          icon={<FcHighPriority />}
-        />
-      );
-    }
+  if (loadError) {
+    return (
+      <FeedbackState
+        message={loadError.message}
+        type="error"
+        icon={<FcHighPriority />}
+      />
+    );
+  }
 
 
   return (
@@ -124,18 +124,27 @@ export const EditarApoderadoForm  = () => {
             />
           </SkeletonWrapper>
         </div>
+        <div className="form-actions">
+          <Button
+            variant="primary"
+            size="medium"
+            onClick={handleSubmit}
+            loading={loading}
+            label={loading ? "Actualizando..." : "Actualizar"}
+            icon={<APODERADOS_ICONS.reload />}
+          />
+
+          <Button
+            variant="danger"
+            size="medium"
+            onClick={() => navigate("/parents")}
+            label="Cancelar"
+            icon={<APODERADOS_ICONS.cancel />}
+          />
+        </div>
       </form>
 
-      <Button
-        type="button"
-        disabled={loading}
-        loading={loading}
-        icon={<APODERADOS_ICONS.reload style={{ margin: "3px" }} />}
-        label={loading ? "Actualizando Apoderado" : "Actualizar Apoderado"}
-        onClick={handleSubmit}
-        variant="primary"
-        size="medium"
-      />
+
 
       <ModalAlert
         isOpen={modal.isOpen}

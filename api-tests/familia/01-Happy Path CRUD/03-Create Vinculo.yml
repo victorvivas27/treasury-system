@@ -5,11 +5,12 @@ info:
 
 http:
   method: POST
-  url: "{{Url_Base}}/alumnos/{{familiaAlumnoId}}/apoderados"
+  url: "{{Url_Base}}/familias/alumno-apoderado"
   body:
     type: json
     data: |-
       {
+        "alumnoId": {{familiaAlumnoId}},
         "apoderadoId": {{familiaApoderadoId}},
         "parentesco": "Madre",
         "principal": true,
@@ -31,6 +32,8 @@ runtime:
           expect(body.alumnoId).to.equal(Number(bru.getEnvVar("familiaAlumnoId")));
           expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("familiaApoderadoId")));
         });
+
+        bru.setEnvVar("familiaVinculoId", body.id.toString(), { persist: true });
 
 settings:
   encodeUrl: true

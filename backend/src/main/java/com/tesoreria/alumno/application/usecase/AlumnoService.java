@@ -25,7 +25,6 @@ public class AlumnoService implements
 
   @Override
   public Alumno create(Alumno alumno) {
-    validarApoderadoExiste(alumno.getApoderadoId());
     return repository.save(alumno);
   }
 
@@ -46,7 +45,6 @@ public class AlumnoService implements
       throw alumnoNoEncontrado(alumno.getId());
     }
 
-    validarApoderadoExiste(alumno.getApoderadoId());
     return repository.save(alumno);
   }
 
@@ -58,17 +56,7 @@ public class AlumnoService implements
     repository.deleteById(id);
   }
 
-  private void validarApoderadoExiste(Long apoderadoId) {
-    if (!repository.existsByApoderadoId(apoderadoId)) {
-      throw new DomainException(
-          AlumnoErrorCode.APODERADO_NOT_FOUND.getCodigo(),
-          AlumnoErrorCode.APODERADO_NOT_FOUND.getField(),
-          AlumnoErrorCode.APODERADO_NOT_FOUND.getStatus(),
-          "Apoderado con id " + apoderadoId + " no encontrado");
-    }
-  }
-
-  private DomainException alumnoNoEncontrado(Long id) {
+private DomainException alumnoNoEncontrado(Long id) {
     return new DomainException(
         AlumnoErrorCode.NOT_FOUND.getCodigo(),
         AlumnoErrorCode.NOT_FOUND.getField(),

@@ -10,7 +10,6 @@ export const useCreateAlumno = () => {
   const initialFormState: CreateAlumnoDTO = {
     nombre: "",
     curso: "",
-    apoderadoId: 0,
   };
 
   const [formData, setFormData] = useState<CreateAlumnoDTO>({
@@ -37,10 +36,7 @@ export const useCreateAlumno = () => {
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "apoderadoId" ? (value ? parseInt(value, 10) : 0) : value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {

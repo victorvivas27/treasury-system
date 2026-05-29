@@ -1,0 +1,32 @@
+info:
+  name: 03-Apoderado Not Found
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{Url_Base}}/familias/alumno-apoderado"
+  body:
+    type: json
+    data: |-
+      {
+        "alumnoId": {{familiaAlumnoId}},
+        "apoderadoId": 999999,
+        "parentesco": "Padre",
+        "principal": false
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 404", function () {
+          expect(res.getStatus()).to.equal(404);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

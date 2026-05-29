@@ -8,7 +8,7 @@ interface SidebarNavProps {
 
 export const SidebarNav = ({ onNavLinkClick }: SidebarNavProps) => {
 
-   const handleClick = () => {
+  const handleClick = () => {
     onNavLinkClick();
   };
 

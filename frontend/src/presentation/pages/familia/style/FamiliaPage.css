@@ -1,0 +1,139 @@
+.familia-page {
+  width: 100%;
+  padding: 24px;
+}
+
+.familia-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.familia-header__title {
+  margin: 0;
+  font-size: 28px;
+  color: #1f2937;
+}
+
+.familia-header__subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.familia-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.familia-form,
+.familia-list {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 18px;
+}
+
+.familia-section-title {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.familia-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.familia-field input,
+.familia-field select,
+.familia-field textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.familia-field small,
+.familia-message--error {
+  color: #b91c1c;
+}
+
+.familia-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: #334155;
+}
+
+.familia-actions,
+.familia-table__actions,
+.familia-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.familia-message {
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.familia-message--success {
+  color: #047857;
+}
+
+.familia-empty {
+  margin: 0;
+  color: #64748b;
+}
+
+.familia-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.familia-table th,
+.familia-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.familia-table th {
+  color: #475569;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.familia-table td span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.familia-pagination {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .familia-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .familia-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

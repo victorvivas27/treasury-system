@@ -1,11 +1,11 @@
 info:
   name: 05-Update Vinculo
   type: http
-  seq: 5
+  seq: 6
 
 http:
   method: PUT
-  url: "{{Url_Base}}/alumnos/{{familiaAlumnoId}}/apoderados/{{familiaApoderadoId}}"
+  url: "{{Url_Base}}/familias/alumno-apoderado/{{familiaVinculoId}}"
   body:
     type: json
     data: |-

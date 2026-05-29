@@ -17,5 +17,4 @@ public interface AlumnoRepositoryOutPort {
 
   boolean existsById(Long id);
 
-  boolean existsByApoderadoId(Long apoderadoId);
 }

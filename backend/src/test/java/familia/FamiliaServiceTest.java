@@ -20,9 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.tesoreria.familia.application.usecase.FamiliaService;
 import com.tesoreria.familia.core.exception.FamiliaErrorCode;
 import com.tesoreria.familia.core.model.AlumnoApoderadoVinculado;
+import com.tesoreria.familia.core.model.AlumnoVinculado;
 import com.tesoreria.familia.core.model.Familia;
+import com.tesoreria.familia.core.model.FamiliaDetalle;
 import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.shared.domain.pagination.PageRequest;
+import com.tesoreria.shared.domain.pagination.PageResponse;
 
 @SuppressWarnings({
     "PMD.JUnitAssertionsShouldIncludeMessage",
@@ -121,6 +125,42 @@ class FamiliaServiceTest {
   }
 
   @Test
+  void listar_deberiaRetornarVinculosPaginados() {
+    PageRequest pageRequest = new PageRequest(0, 5, null, null);
+    FamiliaDetalle detalle = new FamiliaDetalle(
+        10L, ALUMNO_ID, "AL-123", "JUAN", "4A", APODERADO_ID, "AP-123", "MARIA", "Madre", true, null);
+    when(repository.findAll(pageRequest)).thenReturn(new PageResponse<>(List.of(detalle), 0, 5, 1, 1));
+
+    PageResponse<FamiliaDetalle> resultado = service.listar(pageRequest);
+
+    assertEquals(1, resultado.totalElements());
+    assertEquals("AL-123", resultado.content().get(0).getAlumnoCodigo());
+  }
+
+  @Test
+  void obtenerPorId_deberiaRetornarDetalleCuandoExiste() {
+    FamiliaDetalle detalle = new FamiliaDetalle(
+        10L, ALUMNO_ID, "AL-123", "JUAN", "4A", APODERADO_ID, "AP-123", "MARIA", "Madre", true, null);
+    when(repository.findDetalleById(10L)).thenReturn(Optional.of(detalle));
+
+    FamiliaDetalle resultado = service.obtenerPorId(10L);
+
+    assertEquals("AP-123", resultado.getApoderadoCodigo());
+  }
+
+  @Test
+  void listarAlumnosPorApoderado_deberiaRetornarAlumnosCuandoApoderadoExiste() {
+    AlumnoVinculado vinculado = new AlumnoVinculado(ALUMNO_ID, "AL-123", "JUAN", "4A", "Padre", true);
+    when(repository.existsApoderadoById(APODERADO_ID)).thenReturn(true);
+    when(repository.findAlumnosByApoderadoId(APODERADO_ID)).thenReturn(List.of(vinculado));
+
+    List<AlumnoVinculado> resultado = service.listarAlumnosPorApoderado(APODERADO_ID);
+
+    assertEquals(1, resultado.size());
+    assertEquals("AL-123", resultado.get(0).getCodigo());
+  }
+
+  @Test
   void actualizar_deberiaActualizarVinculoExistente() {
     Familia existente = new Familia(10L, ALUMNO_ID, APODERADO_ID, "Padre", false, null);
     Familia cambios = new Familia(null, ALUMNO_ID, APODERADO_ID, "Madre", true, "Contacto");
@@ -138,6 +178,24 @@ class FamiliaServiceTest {
   }
 
   @Test
+  void actualizarPorId_deberiaActualizarVinculoExistente() {
+    Familia existente = new Familia(10L, ALUMNO_ID, APODERADO_ID, "Padre", false, null);
+    Familia cambios = new Familia();
+    cambios.setParentesco("Tutor");
+    cambios.setPrincipal(true);
+    cambios.setObservaciones("Contacto");
+    when(repository.findById(10L)).thenReturn(Optional.of(existente));
+    when(repository.existsPrincipalByAlumnoIdAndApoderadoIdNot(ALUMNO_ID, APODERADO_ID)).thenReturn(false);
+    when(repository.save(existente)).thenReturn(existente);
+
+    Familia resultado = service.actualizar(10L, cambios);
+
+    assertEquals("Tutor", resultado.getParentesco());
+    assertEquals(true, resultado.getPrincipal());
+    verify(repository).save(existente);
+  }
+
+  @Test
   void eliminar_deberiaEliminarVinculoExistente() {
     Familia existente = new Familia(10L, ALUMNO_ID, APODERADO_ID, "Padre", false, null);
     when(repository.existsAlumnoById(ALUMNO_ID)).thenReturn(true);
@@ -147,5 +205,14 @@ class FamiliaServiceTest {
     service.eliminar(ALUMNO_ID, APODERADO_ID);
 
     verify(repository).delete(existente);
+  }
+
+  @Test
+  void eliminarPorId_deberiaEliminarVinculoExistente() {
+    when(repository.existsById(10L)).thenReturn(true);
+
+    service.eliminar(10L);
+
+    verify(repository).deleteById(10L);
   }
 }

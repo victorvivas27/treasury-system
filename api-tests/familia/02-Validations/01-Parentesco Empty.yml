@@ -5,11 +5,12 @@ info:
 
 http:
   method: POST
-  url: "{{Url_Base}}/alumnos/{{familiaAlumnoId}}/apoderados"
+  url: "{{Url_Base}}/familias/alumno-apoderado"
   body:
     type: json
     data: |-
       {
+        "alumnoId": {{familiaAlumnoId}},
         "apoderadoId": {{familiaApoderadoId}},
         "parentesco": "",
         "principal": false

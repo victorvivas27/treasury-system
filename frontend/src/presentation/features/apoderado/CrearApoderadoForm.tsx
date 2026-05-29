@@ -80,18 +80,26 @@ export const CrearApoderadoForm = () => {
             placeholder="escribe aquí"
           />
         </div>
-      </form>
 
-      <Button
-        type="button"
-        disabled={loading}
-        loading={loading}
-        icon={<APODERADOS_ICONS.reload style={{ margin:"3px" }} />}
-        label={loading ? "Creando Apoderado" : "Crear Apoderado"}
-        onClick={handleActionSubmit}
-        variant="primary"
-        size="medium"
-      />
+        <div className="form-actions">
+          <Button
+            variant="primary"
+            size="medium"
+            onClick={handleActionSubmit}
+            loading={loading}
+            label={loading ? "Actualizando..." : "Actualizar"}
+            icon={<APODERADOS_ICONS.reload />}
+          />
+
+          <Button
+            variant="danger"
+            size="medium"
+            onClick={() => navigate("/parents")}
+            label="Cancelar"
+            icon={<APODERADOS_ICONS.cancel />}
+          />
+        </div>
+      </form>
 
       <ModalAlert
         isOpen={modal.isOpen}

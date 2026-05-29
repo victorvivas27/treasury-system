@@ -37,7 +37,6 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   onRefresh,
   handleDelete,
   handleEdit,
-  handleFamilia,
   currentPage,
   onNextPage,
   onPrevPage,
@@ -92,7 +91,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
           <tr>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
-            <th className="alumnos-table__th">Apoderado ID</th>
+            <th className="alumnos-table__th">Codigo</th>
             <th className="alumnos-table__th">Acciones</th>
           </tr>
         </thead>
@@ -134,7 +133,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    alumno.apoderadoId
+                    alumno.codigo
                   )}
                 </td>
 
@@ -148,13 +147,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                         size="small"
                         onClick={() => handleDelete?.(alumno.id)}
                         icon={
-                          <ALUMNOS_ICONS.delete
-                            style={{
-                              fontSize: "1rem",
-                              color: "var(--color-surface)",
-                            }}
-                          />
-                        }
+                          <ALUMNOS_ICONS.delete/>}
                         testId={`delete-btn-${alumno.id}`}
                       />
 
@@ -163,22 +156,8 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                         size="small"
                         onClick={() => handleEdit?.(alumno.id)}
                         icon={
-                          <ALUMNOS_ICONS.edit
-                            style={{
-                              fontSize: "1rem",
-                              color: "var(--color-surface)",
-                            }}
-                          />
-                        }
+                          <ALUMNOS_ICONS.edit/>}
                         testId={`edit-btn-${alumno.id}`}
-                      />
-
-                      <Button
-                        variant="secondary"
-                        size="small"
-                        onClick={() => handleFamilia?.(alumno.id)}
-                        label="Familia"
-                        testId={`family-btn-${alumno.id}`}
                       />
                     </div>
                   ) : (

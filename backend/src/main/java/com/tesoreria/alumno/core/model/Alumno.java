@@ -16,17 +16,15 @@ public class Alumno {
   private String codigo;
   private String nombre;
   private String curso;
-  private Long apoderadoId;
 
   public Alumno() {
   }
 
-  public Alumno(Long id, String codigo, String nombre, String curso, Long apoderadoId) {
+  public Alumno(Long id, String codigo, String nombre, String curso) {
     this.id = id;
     this.codigo = codigo;
     setNombre(nombre);
     setCurso(curso);
-    setApoderadoId(apoderadoId);
   }
 
   public Long getId() {
@@ -121,27 +119,4 @@ public class Alumno {
     this.curso = cursoNormalizado;
   }
 
-  public Long getApoderadoId() {
-    return apoderadoId;
-  }
-
-  public final void setApoderadoId(Long apoderadoId) {
-    if (apoderadoId == null) {
-      throw new DomainException(
-          AlumnoErrorCode.APODERADO_ID_INVALIDO.getCodigo(),
-          AlumnoErrorCode.APODERADO_ID_INVALIDO.getField(),
-          AlumnoErrorCode.APODERADO_ID_INVALIDO.getStatus(),
-          "El apoderado ID no puede estar vacío");
-    }
-
-    if (apoderadoId <= 0) {
-      throw new DomainException(
-          AlumnoErrorCode.APODERADO_ID_INVALIDO.getCodigo(),
-          AlumnoErrorCode.APODERADO_ID_INVALIDO.getField(),
-          AlumnoErrorCode.APODERADO_ID_INVALIDO.getStatus(),
-          "El apoderado ID debe ser un número positivo");
-    }
-
-    this.apoderadoId = apoderadoId;
-  }
 }

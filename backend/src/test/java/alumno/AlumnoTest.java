@@ -119,42 +119,13 @@ class AlumnoTest {
       assertEquals("4 A", a.getCurso());
     }
   }
-
-  @Nested
-  class ApoderadoIdTest {
-    @Test
-    void deberiaFallarSiApoderadoIdEsNull() {
-      DomainException ex = assertThrows(DomainException.class, () -> a.setApoderadoId(null));
-      assertEquals("El apoderado ID no puede estar vacío", ex.getMessage());
-    }
-
-    @Test
-    void deberiaFallarSiApoderadoIdEsCero() {
-      DomainException ex = assertThrows(DomainException.class, () -> a.setApoderadoId(0L));
-      assertEquals("El apoderado ID debe ser un número positivo", ex.getMessage());
-    }
-
-    @Test
-    void deberiaFallarSiApoderadoIdEsNegativo() {
-      DomainException ex = assertThrows(DomainException.class, () -> a.setApoderadoId(-1L));
-      assertEquals("El apoderado ID debe ser un número positivo", ex.getMessage());
-    }
-
-    @Test
-    void deberiaAceptarApoderadoIdPositivo() {
-      a.setApoderadoId(1L);
-      assertEquals(1L, a.getApoderadoId());
-    }
-  }
-
-  @Nested
+@Nested
   class ConstructorTest {
     @Test
     void constructor_deberiaValidarYNormalizar() {
-      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  ", 1L);
+      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  ");
       assertEquals("JUAN", a.getNombre());
       assertEquals("4a", a.getCurso());
-      assertEquals(1L, a.getApoderadoId());
       assertEquals("AL-123456789", a.getCodigo());
     }
   }

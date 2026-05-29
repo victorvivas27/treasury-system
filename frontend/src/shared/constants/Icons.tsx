@@ -8,8 +8,13 @@ import { BiExit } from "react-icons/bi";
 import { FcConferenceCall } from "react-icons/fc";
 import { TfiReload } from "react-icons/tfi";
 import { RiUserAddLine } from "react-icons/ri";
-import { MdOutlineDeleteOutline } from "react-icons/md";
+import { MdOutlineDeleteOutline, MdFamilyRestroom } from "react-icons/md";
 import { GrEdit } from "react-icons/gr";
+import { AiOutlineUsergroupAdd } from "react-icons/ai";
+import { TiArrowBackOutline } from "react-icons/ti";
+import { MdOutlineCancel } from "react-icons/md";
+
+
 
 export const ICONS = {
   home: RxHome,
@@ -17,11 +22,12 @@ export const ICONS = {
   usuarios: RxPerson,
   alumnos: PiStudent,
   apoderados: BsPerson,
+  familia: MdFamilyRestroom,
   tesoreria: TbPigMoney,
   notifications: IoNotificationsOutline,
   settings: IoSettingsOutline,
   logout: BiExit,
-
+  crearFamilia: AiOutlineUsergroupAdd
 };
 
 export const SIDEBAR_LINKS = [
@@ -38,6 +44,7 @@ export const SIDEBAR_LINKS = [
       { label: "Usuarios", path: "/users", icon: ICONS.usuarios },
       { label: "Alumnos", path: "/students", icon: ICONS.alumnos },
       { label: "Apoderados", path: "/parents", icon: ICONS.apoderados },
+      { label: "Familia", path: "/family", icon: ICONS.familia },
     ],
   },
   {
@@ -59,7 +66,9 @@ export const APODERADOS_ICONS = {
   reload: TfiReload,
   add: RiUserAddLine,
   delete: MdOutlineDeleteOutline,
-  edit:GrEdit
+  edit: GrEdit,
+  back: TiArrowBackOutline,
+  cancel: MdOutlineCancel
 };
 
 export const ALUMNOS_ICONS = {
@@ -68,8 +77,24 @@ export const ALUMNOS_ICONS = {
   add: RiUserAddLine,
   delete: MdOutlineDeleteOutline,
   edit: GrEdit,
-  save: GrEdit
+  save: GrEdit,
+  back: TiArrowBackOutline,
+  cancel: MdOutlineCancel
 };
+
+export const FAMILIA_ICONS = {
+  conference: FcConferenceCall,
+  reload: TfiReload,
+  add: RiUserAddLine,
+  delete: MdOutlineDeleteOutline,
+  edit: GrEdit,
+  save: GrEdit,
+  crearFamilia: AiOutlineUsergroupAdd,
+  back: TiArrowBackOutline,
+  cancel: MdOutlineCancel
+};
+
+
 
 export const SIDEBAR_USER_MOCK = {
   name: "John Doe",

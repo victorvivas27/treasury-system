@@ -36,7 +36,14 @@ export const ApoderadoPage: FC = () => {
     confirmDelete,
     alert,
     closeAlert,
-  } = useDeleteApoderado(refetch);
+  } = useDeleteApoderado(() => {
+    if (apoderados.length === 1 && currentPage > 0) {
+      prevPage();
+    } else {
+      refetch();
+    }
+  });
+
   const navigate = useNavigate();
 
   return (
@@ -54,7 +61,7 @@ export const ApoderadoPage: FC = () => {
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<APODERADOS_ICONS.reload style={{ margin: "3px" }} />}
+            icon={<APODERADOS_ICONS.reload />}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando" : "Recargar"}
@@ -65,7 +72,7 @@ export const ApoderadoPage: FC = () => {
             onClick={() => navigate("/parents/new")}
             variant="primary"
             size="medium"
-            icon={<APODERADOS_ICONS.add style={{ margin: "3px" }} />}
+            icon={<APODERADOS_ICONS.add  />}
             iconPosition="left"
             label="Crear Apoderado"
           />
