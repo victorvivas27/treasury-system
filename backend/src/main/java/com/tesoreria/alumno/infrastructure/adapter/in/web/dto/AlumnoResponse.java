@@ -1,51 +1,17 @@
 package com.tesoreria.alumno.infrastructure.adapter.in.web.dto;
 
-public class AlumnoResponse {
+import java.time.LocalDateTime;
 
-  private Long id;
-  private String codigo;
-  private String nombre;
-  private String curso;;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
-  public AlumnoResponse() {
-  }
+public record AlumnoResponse(
+    Long alumnoId,
+    String codigo,
+    String nombre,
+    String curso,
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    LocalDateTime createdAt,
 
-  public AlumnoResponse(Long id, String codigo, String nombre, String curso) {
-    this.id = id;
-    this.codigo = codigo;
-    this.nombre = nombre;
-    this.curso = curso;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getCodigo() {
-    return codigo;
-  }
-
-  public void setCodigo(String codigo) {
-    this.codigo = codigo;
-  }
-
-  public String getNombre() {
-    return nombre;
-  }
-
-  public void setNombre(String nombre) {
-    this.nombre = nombre;
-  }
-
-  public String getCurso() {
-    return curso;
-  }
-
-  public void setCurso(String curso) {
-    this.curso = curso;
-  }
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    LocalDateTime updatedAt) {
 }

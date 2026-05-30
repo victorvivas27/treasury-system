@@ -12,7 +12,7 @@ http:
       {
         "nombre": "MARIA FAMILIA",
         "email": "maria.familia{{$timestamp}}@gmail.com",
-        "telefono": "987654321",
+        "telefono": "+987654321",
         "observaciones": "Apoderado para vínculo"
       }
   auth: inherit

@@ -37,8 +37,8 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
   }
 
   @Override
-  public Optional<Alumno> findById(Long id) {
-    return jpaRepository.findById(id).map(persistenceMapper::toDomain);
+  public Optional<Alumno> findById(Long alumnoId) {
+    return jpaRepository.findById(alumnoId).map(persistenceMapper::toDomain);
   }
 
   @Override
@@ -58,12 +58,12 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
   }
 
   @Override
-  public void deleteById(Long id) {
-    jpaRepository.deleteById(id);
+  public void deleteById(Long alumnoId) {
+    jpaRepository.deleteById(alumnoId);
   }
 
   @Override
-  public boolean existsById(Long id) {
-    return jpaRepository.existsById(id);
+  public boolean existsById(Long alumnoId) {
+    return jpaRepository.existsById(alumnoId);
   }
 }

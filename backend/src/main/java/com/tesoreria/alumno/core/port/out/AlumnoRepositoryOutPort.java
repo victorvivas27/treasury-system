@@ -9,12 +9,12 @@ import com.tesoreria.shared.domain.pagination.PageResponse;
 public interface AlumnoRepositoryOutPort {
   Alumno save(Alumno alumno);
 
-  Optional<Alumno> findById(Long id);
+  Optional<Alumno> findById(Long alumnoId);
 
   PageResponse<Alumno> findAll(PageRequest pageRequest);
 
-  void deleteById(Long id);
+  void deleteById(Long alumnoId);
 
-  boolean existsById(Long id);
+  boolean existsById(Long alumnoId);
 
 }

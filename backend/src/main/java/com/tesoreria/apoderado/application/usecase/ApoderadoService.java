@@ -1,4 +1,6 @@
 package com.tesoreria.apoderado.application.usecase;
+import java.util.List;
+
 import com.tesoreria.apoderado.core.exception.ApoderadoErrorCode;
 import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.apoderado.core.port.in.CreateApoderadoUseCase;
@@ -77,5 +79,14 @@ public class ApoderadoService implements
             );
         }
         repository.deleteById(id);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<Apoderado> findByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return repository.findAllByIds(ids);
     }
 }

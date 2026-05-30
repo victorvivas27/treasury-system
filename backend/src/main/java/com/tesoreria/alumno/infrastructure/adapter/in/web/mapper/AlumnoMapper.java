@@ -11,11 +11,12 @@ public class AlumnoMapper {
 
   public AlumnoResponse toResponse(Alumno alumno) {
     return new AlumnoResponse(
-        alumno.getId(),
+        alumno.getAlumnoId(),
         alumno.getCodigo(),
         alumno.getNombre(),
-        alumno.getCurso()
-    );
+        alumno.getCurso(),
+        alumno.getCreatedAt(),
+        alumno.getUpdatedAt());
   }
 
   public Alumno toDomain(AlumnoRequest request) {
@@ -23,7 +24,9 @@ public class AlumnoMapper {
         null,
         null,
         request.getNombre(),
-        request.getCurso()
-    );
+        request.getCurso(),
+        null,
+        null);
   }
+
 }

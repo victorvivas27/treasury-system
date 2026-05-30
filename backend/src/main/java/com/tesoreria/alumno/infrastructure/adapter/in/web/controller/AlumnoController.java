@@ -43,7 +43,7 @@ public class AlumnoController {
   public ResponseEntity<AlumnoResponse> create(@Valid @RequestBody AlumnoRequest request) {
     Alumno alumno = mapper.toDomain(request);
     Alumno created = alumnoService.create(alumno);
-    return new ResponseEntity<>(mapper.toResponse(created), HttpStatus.CREATED);
+    return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(created));
   }
 
   @GetMapping
@@ -66,26 +66,26 @@ public class AlumnoController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<AlumnoResponse> findById(@PathVariable Long id) {
-    Alumno alumno = alumnoService.findById(id);
-    AlumnoResponse response = mapper.toResponse(alumno);
-    return ResponseEntity.ok(response);
+  @GetMapping("/{alumnoId}")
+  public ResponseEntity<AlumnoResponse> findById(@PathVariable Long alumnoId) {
+    Alumno alumno = alumnoService.findById(alumnoId);
+    return ResponseEntity.ok(mapper.toResponse(alumno));
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/{alumnoId}")
   public ResponseEntity<AlumnoResponse> update(
-      @PathVariable Long id,
+      @PathVariable Long alumnoId,
       @Valid @RequestBody AlumnoRequest request) {
+
     Alumno alumno = mapper.toDomain(request);
-    alumno.setId(id);
+    alumno.setAlumnoId(alumnoId);
     Alumno updated = alumnoService.update(alumno);
     return ResponseEntity.ok(mapper.toResponse(updated));
   }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
-    alumnoService.deleteById(id);
+  @DeleteMapping("/{alumnoId}")
+  public ResponseEntity<Void> delete(@PathVariable Long alumnoId) {
+    alumnoService.deleteById(alumnoId);
     return ResponseEntity.noContent().build();
   }
 }

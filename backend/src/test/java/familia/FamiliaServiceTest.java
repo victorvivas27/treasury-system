@@ -121,7 +121,7 @@ class FamiliaServiceTest {
     List<AlumnoApoderadoVinculado> resultado = service.listarApoderadosPorAlumno(ALUMNO_ID);
 
     assertEquals(1, resultado.size());
-    assertEquals("AP-123", resultado.get(0).getCodigo());
+    assertEquals("AP-123", resultado.get(0).codigo());
   }
 
   @Test
@@ -157,7 +157,7 @@ class FamiliaServiceTest {
     List<AlumnoVinculado> resultado = service.listarAlumnosPorApoderado(APODERADO_ID);
 
     assertEquals(1, resultado.size());
-    assertEquals("AL-123", resultado.get(0).getCodigo());
+    assertEquals("AL-123", resultado.get(0).codigo());
   }
 
   @Test

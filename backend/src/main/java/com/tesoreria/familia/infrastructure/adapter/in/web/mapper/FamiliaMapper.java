@@ -1,104 +1,87 @@
 package com.tesoreria.familia.infrastructure.adapter.in.web.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Component;
-
-import com.tesoreria.familia.core.model.AlumnoVinculado;
-import com.tesoreria.familia.core.model.AlumnoApoderadoVinculado;
+import com.tesoreria.alumno.infrastructure.adapter.in.web.dto.AlumnoResponse;
 import com.tesoreria.familia.core.model.Familia;
-import com.tesoreria.familia.core.model.FamiliaDetalle;
-import com.tesoreria.familia.infrastructure.adapter.in.web.dto.AlumnoApoderadoResponse;
-import com.tesoreria.familia.infrastructure.adapter.in.web.dto.AlumnoVinculadoResponse;
-import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaCrudRequest;
+import com.tesoreria.familia.infrastructure.adapter.in.web.dto.ApoderadoDetalleResponse;
 import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaDetalleResponse;
 import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaRequest;
 import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaResponse;
-import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaUpdateRequest;
-
 @Component
 public class FamiliaMapper {
 
-  public Familia toDomain(Long alumnoId, FamiliaRequest request) {
+  // 1. Único método para mapear datos de entrada (sirve para POST y para PUT)
+  public Familia toDomain(Long id, Long alumnoId, FamiliaRequest request) {
+    if (request == null) return null;
     return new Familia(
-        null,
+        id, // Puede ser null en POST, o el ID real en PUT
         alumnoId,
-        request.getApoderadoId(),
+        request.getCodigo(),
+        request.getApoderadosIds(),
         request.getParentesco(),
         request.getPrincipal(),
         request.getObservaciones());
   }
 
-  public Familia toDomain(FamiliaCrudRequest request) {
-    return new Familia(
-        null,
-        request.getAlumnoId(),
-        request.getApoderadoId(),
-        request.getParentesco(),
-        request.getPrincipal(),
-        request.getObservaciones());
-  }
-
-  public Familia toDomain(FamiliaUpdateRequest request) {
-    Familia familia = new Familia();
-    familia.setParentesco(request.getParentesco());
-    familia.setPrincipal(request.getPrincipal());
-    familia.setObservaciones(request.getObservaciones());
-    return familia;
-  }
-
-  public Familia toDomain(Long alumnoId, Long apoderadoId, FamiliaUpdateRequest request) {
-    return new Familia(
-        null,
-        alumnoId,
-        apoderadoId,
-        request.getParentesco(),
-        request.getPrincipal(),
-        request.getObservaciones());
-  }
-
+  // 2. Mapear desde el Dominio al único Record de salida que existe (FamiliaResponse)
   public FamiliaResponse toResponse(Familia familia) {
+    if (familia == null) return null;
+
+    List<Long> apoderadosList = familia.getApoderadosIds() != null
+        ? new ArrayList<>(familia.getApoderadosIds())
+        : new ArrayList<>();
+
     return new FamiliaResponse(
         familia.getId(),
         familia.getAlumnoId(),
-        familia.getApoderadoId(),
+        familia.getCodigo(),
+        apoderadosList,
         familia.getParentesco(),
         familia.getPrincipal(),
         familia.getObservaciones());
   }
 
-  public AlumnoApoderadoResponse toResponse(AlumnoApoderadoVinculado apoderado) {
-    return new AlumnoApoderadoResponse(
-        apoderado.getId(),
-        apoderado.getCodigo(),
-        apoderado.getNombre(),
-        apoderado.getEmail(),
-        apoderado.getTelefono(),
-        apoderado.getParentesco(),
-        apoderado.getPrincipal(),
-        apoderado.getObservaciones());
-  }
+  // Paso 2: Agregar método de hidratación pesada en el FamiliaMapper
+  public FamiliaDetalleResponse toDetalleResponse(
+      Familia familia,
+      com.tesoreria.alumno.core.model.Alumno alumno,
+      List<com.tesoreria.apoderado.core.model.Apoderado> apoderados) {
 
-  public FamiliaDetalleResponse toResponse(FamiliaDetalle familia) {
+    if (familia == null) return null;
+
+    // 1. Transformamos la lista de dominios de apoderados en la lista de DTOs detallados que creaste recién
+    List<ApoderadoDetalleResponse> apoderadosDetalle = new java.util.ArrayList<>();
+    if (apoderados != null) {
+      for (com.tesoreria.apoderado.core.model.Apoderado ap : apoderados) {
+        apoderadosDetalle.add(new ApoderadoDetalleResponse(
+            ap.getId(),
+            ap.getCodigo(),
+            ap.getNombre(),
+            ap.getEmail(),
+            ap.getTelefono()
+        ));
+      }
+    }
+
+    // 2. Armamos el FamiliaDetalleResponse con todos los datos mezclados
     return new FamiliaDetalleResponse(
         familia.getId(),
         familia.getAlumnoId(),
-        familia.getAlumnoCodigo(),
-        familia.getAlumnoNombre(),
-        familia.getAlumnoCurso(),
-        familia.getApoderadoId(),
-        familia.getApoderadoCodigo(),
-        familia.getApoderadoNombre(),
+        alumno != null ? alumno.getCodigo() : "SIN CÓDIGO",
+        alumno != null ? alumno.getNombre() : "SIN NOMBRE",
+        familia.getCodigo(),
         familia.getParentesco(),
         familia.getPrincipal(),
-        familia.getObservaciones());
+        familia.getObservaciones(),
+        apoderadosDetalle // La lista con nombres y datos reales
+    );
   }
 
-  public AlumnoVinculadoResponse toResponse(AlumnoVinculado alumno) {
-    return new AlumnoVinculadoResponse(
-        alumno.getId(),
-        alumno.getCodigo(),
-        alumno.getNombre(),
-        alumno.getCurso(),
-        alumno.getParentesco(),
-        alumno.getPrincipal());
+  // 3. Dejado por contrato si usas la respuesta compuesta externa
+  public AlumnoResponse toResponse(Object apoderado) {
+    if (apoderado == null) return null;
+    throw new UnsupportedOperationException("Mapear propiedades de lectura de Apoderado.");
   }
 }

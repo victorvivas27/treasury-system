@@ -1,11 +1,11 @@
 info:
-  name: 04-List Vinculos
+  name: 04-List Familia
   type: http
   seq: 4
 
 http:
   method: GET
-  url: "{{Url_Base}}/familias/alumno-apoderado?page=0&size=5"
+  url: "{{Url_Base}}/familias/all"
   auth: inherit
 
 runtime:

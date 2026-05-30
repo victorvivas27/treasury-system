@@ -9,6 +9,9 @@ http:
   auth: inherit
 
 runtime:
+  variables:
+    - name: alumnoId
+      value: "1"
   scripts:
     - type: tests
       code: |-
@@ -21,4 +24,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

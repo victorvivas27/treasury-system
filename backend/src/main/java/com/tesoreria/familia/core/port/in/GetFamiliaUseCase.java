@@ -1,19 +1,18 @@
 package com.tesoreria.familia.core.port.in;
 
 import java.util.List;
-
-import com.tesoreria.familia.core.model.AlumnoVinculado;
-import com.tesoreria.familia.core.model.AlumnoApoderadoVinculado;
-import com.tesoreria.familia.core.model.FamiliaDetalle;
+import com.tesoreria.apoderado.core.model.Apoderado;
+import com.tesoreria.familia.core.model.Familia;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
 public interface GetFamiliaUseCase {
-  FamiliaDetalle obtenerPorId(Long id);
+Familia obtenerPorId(Long id);
 
-  PageResponse<FamiliaDetalle> listar(PageRequest pageRequest);
+  PageResponse<Familia> listar(PageRequest pageRequest);
 
-  List<AlumnoApoderadoVinculado> listarApoderadosPorAlumno(Long alumnoId);
+  // CORREGIDO: El tipo de retorno debe ser Apoderado, no Alumno
+  List<Apoderado> listarApoderadosPorAlumno(Long alumnoId);
 
-  List<AlumnoVinculado> listarAlumnosPorApoderado(Long apoderadoId);
+  List<Familia> listarTodas();
 }

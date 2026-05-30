@@ -40,7 +40,7 @@ public class AlumnoServiceTest {
   @BeforeEach
   void setUp() {
     mockAlumno = new Alumno();
-    mockAlumno.setId(ALUMNO_ID);
+    mockAlumno.setAlumnoId(ALUMNO_ID);
     mockAlumno.setNombre("JUAN PEREZ");
     mockAlumno.setCurso("4A");
   }
@@ -107,7 +107,7 @@ public class AlumnoServiceTest {
   class UpdateTests {
     @Test
     void update_deberiaLanzarExcepcionCuandoAlumnoNoExiste() {
-      mockAlumno.setId(ALUMNO_ID);
+      mockAlumno.setAlumnoId(ALUMNO_ID);
       when(repository.existsById(ALUMNO_ID)).thenReturn(false);
       DomainException ex = assertThrows(DomainException.class, () -> service.update(mockAlumno));
       assertEquals(AlumnoErrorCode.NOT_FOUND.getCodigo(), ex.getErrorCode());
@@ -116,7 +116,7 @@ public class AlumnoServiceTest {
 
     @Test
     void update_deberiaActualizarCuandoAlumnoExiste() {
-      mockAlumno.setId(ALUMNO_ID);
+      mockAlumno.setAlumnoId(ALUMNO_ID);
       when(repository.existsById(ALUMNO_ID)).thenReturn(true);
       when(repository.save(mockAlumno)).thenReturn(mockAlumno);
       Alumno resultado = service.update(mockAlumno);

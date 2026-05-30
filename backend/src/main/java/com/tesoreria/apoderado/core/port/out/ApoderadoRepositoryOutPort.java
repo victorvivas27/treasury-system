@@ -1,5 +1,6 @@
 package com.tesoreria.apoderado.core.port.out;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.tesoreria.apoderado.core.model.Apoderado;
@@ -19,5 +20,7 @@ public interface ApoderadoRepositoryOutPort {
   boolean existsByEmail(String email);
 
   boolean existsById(Long id);
+
+  List<Apoderado> findAllByIds(List<Long> ids);
 
 }

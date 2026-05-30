@@ -10,16 +10,18 @@ public class AlumnoPersistenceMapper {
 
   public Alumno toDomain(AlumnoEntity entity) {
     return new Alumno(
-        entity.getId(),
+        entity.getAlumnoId(),
         entity.getCodigo(),
         entity.getNombre(),
-        entity.getCurso()
+        entity.getCurso(),
+        entity.getCreatedAt(),
+        entity.getUpdatedAt()
       );
   }
 
   public AlumnoEntity toEntity(Alumno domain) {
     return new AlumnoEntity(
-        domain.getId(),
+        domain.getAlumnoId(),
         domain.getCodigo(),
         domain.getNombre(),
         domain.getCurso()

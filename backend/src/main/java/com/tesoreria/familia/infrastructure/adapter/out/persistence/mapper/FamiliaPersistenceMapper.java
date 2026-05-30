@@ -1,4 +1,5 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.mapper;
+import java.util.ArrayList;
 
 import org.springframework.stereotype.Component;
 
@@ -8,23 +9,37 @@ import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.Famil
 @Component
 public class FamiliaPersistenceMapper {
 
+  // Eliminada la inyección intrusa de AlumnoMapper del constructor
+
   public Familia toDomain(FamiliaEntity entity) {
+    if (entity == null) {
+      return null;
+    }
+
     return new Familia(
         entity.getId(),
         entity.getAlumnoId(),
-        entity.getApoderadoId(),
+        entity.getCodigo(),
+        entity.getApoderadosIds(), 
         entity.getParentesco(),
         entity.getPrincipal(),
         entity.getObservaciones());
   }
 
   public FamiliaEntity toEntity(Familia domain) {
+    if (domain == null) {
+      return null;
+    }
+
     return new FamiliaEntity(
         domain.getId(),
         domain.getAlumnoId(),
-        domain.getApoderadoId(),
+        domain.getCodigo(),
+        new ArrayList<>(domain.getApoderadosIds()),
         domain.getParentesco(),
         domain.getPrincipal(),
+        null,
+        null,
         domain.getObservaciones());
   }
 }

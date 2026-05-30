@@ -5,7 +5,7 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
 public interface GetAlumnoUseCase {
-  Alumno findById(Long id);
+  Alumno findById(Long alumnoId);
 
   PageResponse<Alumno> findAll(PageRequest pageRequest);
 }

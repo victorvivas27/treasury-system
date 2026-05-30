@@ -29,9 +29,9 @@ public class AlumnoService implements
   }
 
   @Override
-  public Alumno findById(Long id) {
-    return repository.findById(id)
-        .orElseThrow(() -> alumnoNoEncontrado(id));
+  public Alumno findById(Long alumnoId) {
+    return repository.findById(alumnoId)
+        .orElseThrow(() -> alumnoNoEncontrado(alumnoId));
   }
 
   @Override
@@ -41,26 +41,26 @@ public class AlumnoService implements
 
   @Override
   public Alumno update(Alumno alumno) {
-    if (!repository.existsById(alumno.getId())) {
-      throw alumnoNoEncontrado(alumno.getId());
+    if (!repository.existsById(alumno.getAlumnoId())) {
+      throw alumnoNoEncontrado(alumno.getAlumnoId());
     }
 
     return repository.save(alumno);
   }
 
   @Override
-  public void deleteById(Long id) {
-    if (!repository.existsById(id)) {
-      throw alumnoNoEncontrado(id);
+  public void deleteById(Long alumnoId) {
+    if (!repository.existsById(alumnoId)) {
+      throw alumnoNoEncontrado(alumnoId);
     }
-    repository.deleteById(id);
+    repository.deleteById(alumnoId);
   }
 
-private DomainException alumnoNoEncontrado(Long id) {
+private DomainException alumnoNoEncontrado(Long alumnoId) {
     return new DomainException(
         AlumnoErrorCode.NOT_FOUND.getCodigo(),
         AlumnoErrorCode.NOT_FOUND.getField(),
         AlumnoErrorCode.NOT_FOUND.getStatus(),
-        "Alumno con id " + id + " no encontrado");
+        "Alumno con id " + alumnoId + " no encontrado");
   }
 }

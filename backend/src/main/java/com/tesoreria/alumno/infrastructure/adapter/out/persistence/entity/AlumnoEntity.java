@@ -3,6 +3,11 @@ package com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +23,7 @@ public final class AlumnoEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Long alumnoId;
 
   @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
   private String codigo;
@@ -29,17 +34,21 @@ public final class AlumnoEntity {
   @Column(nullable = false, length = 50)
   private String curso;
 
+
+  @CreationTimestamp
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
+
+  @UpdateTimestamp
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
   public AlumnoEntity() {
   }
 
-  public AlumnoEntity(Long id, String codigo, String nombre, String curso) {
-    this.id = id;
+  public AlumnoEntity(Long alumnoId, String codigo, String nombre, String curso) {
+    this.alumnoId = alumnoId;
     this.codigo = codigo;
     this.nombre = nombre;
     this.curso = curso;
@@ -59,12 +68,12 @@ public final class AlumnoEntity {
     updatedAt = LocalDateTime.now();
   }
 
-  public Long getId() {
-    return id;
+  public Long getAlumnoId() {
+    return alumnoId;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void setAlumnoId(Long alumnoId) {
+    this.alumnoId = alumnoId;
   }
 
   public String getCodigo() {

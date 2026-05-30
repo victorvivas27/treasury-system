@@ -17,6 +17,8 @@ public class AlumnoRequest {
   @Size(max = 50, message = "El curso no puede tener más de 50 caracteres")
   private String curso;
 
+  
+
   public AlumnoRequest() {
   }
 

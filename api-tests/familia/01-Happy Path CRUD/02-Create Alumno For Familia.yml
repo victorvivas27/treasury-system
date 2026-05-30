@@ -11,8 +11,7 @@ http:
     data: |-
       {
         "nombre": "Alumno Familia",
-        "curso": "4A",
-        "apoderadoId": {{familiaApoderadoId}}
+        "curso": "4A"
       }
   auth: inherit
 

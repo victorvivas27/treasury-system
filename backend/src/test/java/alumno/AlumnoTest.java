@@ -123,7 +123,7 @@ class AlumnoTest {
   class ConstructorTest {
     @Test
     void constructor_deberiaValidarYNormalizar() {
-      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  ");
+      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  " , null, null);
       assertEquals("JUAN", a.getNombre());
       assertEquals("4a", a.getCurso());
       assertEquals("AL-123456789", a.getCodigo());

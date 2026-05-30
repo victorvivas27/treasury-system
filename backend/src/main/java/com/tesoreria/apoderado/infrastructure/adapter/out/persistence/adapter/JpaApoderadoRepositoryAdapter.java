@@ -1,10 +1,12 @@
 package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.adapter;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.apoderado.core.port.out.ApoderadoRepositoryOutPort;
@@ -57,6 +59,19 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
         pageEntity.getSize(),
         pageEntity.getTotalElements(),
         pageEntity.getTotalPages());
+  }
+
+  // AGREGADO: Implementación real del método masivo que faltaba en este adaptador
+  @Override
+  @Transactional(readOnly = true)
+  public List<Apoderado> findAllByIds(List<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+    return jpaRepository.findAllById(ids)
+        .stream()
+        .map(persistenceMapper::toDomain)
+        .toList();
   }
 
   @Override

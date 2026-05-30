@@ -1,11 +1,11 @@
 info:
-  name: 04-Get Vinculo By ID
+  name: 04-Get Familia By ID
   type: http
   seq: 5
 
 http:
   method: GET
-  url: "{{Url_Base}}/familias/alumno-apoderado/{{familiaVinculoId}}"
+  url: "{{Url_Base}}/familias/by-id/2"
   auth: inherit
 
 runtime:

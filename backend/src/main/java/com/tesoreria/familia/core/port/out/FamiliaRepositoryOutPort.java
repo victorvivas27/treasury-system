@@ -3,10 +3,10 @@ package com.tesoreria.familia.core.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import com.tesoreria.familia.core.model.AlumnoVinculado;
-import com.tesoreria.familia.core.model.AlumnoApoderadoVinculado;
+import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.familia.core.model.Familia;
-import com.tesoreria.familia.core.model.FamiliaDetalle;
+
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
@@ -16,15 +16,15 @@ public interface FamiliaRepositoryOutPort {
 
   Optional<Familia> findById(Long id);
 
-  Optional<FamiliaDetalle> findDetalleById(Long id);
+  Optional<Familia> findDetalleById(Long id);
 
-  Optional<Familia> findByAlumnoIdAndApoderadoId(Long alumnoId, Long apoderadoId);
+  Optional<Familia> findByAlumnoId(Long alumnoId);
 
-  PageResponse<FamiliaDetalle> findAll(PageRequest pageRequest);
+  PageResponse<Familia> findAll(PageRequest pageRequest);
 
-  List<AlumnoApoderadoVinculado> findApoderadosByAlumnoId(Long alumnoId);
+  List<Apoderado> findApoderadosByAlumnoId(Long alumnoId);
 
-  List<AlumnoVinculado> findAlumnosByApoderadoId(Long apoderadoId);
+  List<Alumno> findAlumnosByApoderadoId(Long apoderadoId);
 
   void delete(Familia familia);
 
@@ -32,13 +32,10 @@ public interface FamiliaRepositoryOutPort {
 
   boolean existsById(Long id);
 
-  boolean existsAlumnoById(Long alumnoId);
-
-  boolean existsApoderadoById(Long apoderadoId);
-
-  boolean existsByAlumnoIdAndApoderadoId(Long alumnoId, Long apoderadoId);
+  boolean existsByAlumnoId(Long alumnoId);
 
   boolean existsPrincipalByAlumnoId(Long alumnoId);
+  
+  List<Familia> findAll();
 
-  boolean existsPrincipalByAlumnoIdAndApoderadoIdNot(Long alumnoId, Long apoderadoId);
 }

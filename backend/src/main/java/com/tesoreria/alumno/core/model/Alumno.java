@@ -1,5 +1,6 @@
 package com.tesoreria.alumno.core.model;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 import com.tesoreria.alumno.core.exception.AlumnoErrorCode;
@@ -12,27 +13,37 @@ public class Alumno {
   private static final int LONGITUD_MINIMA_CURSO = 1;
   private static final int LONGITUD_MAXIMA_CURSO = 50;
 
-  private Long id;
+  private Long alumnoId;
   private String codigo;
   private String nombre;
   private String curso;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 
   public Alumno() {
   }
 
-  public Alumno(Long id, String codigo, String nombre, String curso) {
-    this.id = id;
+  public Alumno(
+      Long alumnoId,
+      String codigo,
+      String nombre,
+      String curso,
+      LocalDateTime createdAt,
+      LocalDateTime updatedAt) {
+    this.alumnoId = alumnoId;
     this.codigo = codigo;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
     setNombre(nombre);
     setCurso(curso);
   }
 
-  public Long getId() {
-    return id;
+  public Long getAlumnoId() {
+    return alumnoId;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void setAlumnoId(Long alumnoId) {
+    this.alumnoId = alumnoId;
   }
 
   public String getCodigo() {
@@ -45,6 +56,14 @@ public class Alumno {
 
   public String getNombre() {
     return nombre;
+  }
+
+public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
   }
 
   public final void setNombre(String nombre) {
