@@ -23,20 +23,6 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        // test("Error code should be AP-004", function() {
-        //   expect(res.body.code).to.equal("AP-004");
-        // });
-
-        // test("Status should be 400", function() {
-        //   expect(res.status).to.equal(400);
-        // });
-
-        // test("Should only report email field error", function() {
-        //   expect(res.body.errors).to.not.have.property("nombre");
-        //   expect(res.body.errors).to.have.property("email");
-        //   expect(res.body.errors).to.not.have.property("telefono");
-        // });
-
         //Debe rechazar los correos electrónicos con guion inmediatamente después de @.
         test("Should reject email with hyphen immediately after @", function() {
           expect(res.body.errors.email).to.equal("Formato de email inválido. Ejemplo válido: usuario@dominio.com");

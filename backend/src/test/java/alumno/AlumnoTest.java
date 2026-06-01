@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import com.tesoreria.alumno.core.model.Alumno;
 import com.tesoreria.shared.domain.exception.DomainException;
 
+@SuppressWarnings("unused")
 class AlumnoTest {
   private Alumno a;
 
@@ -119,11 +120,12 @@ class AlumnoTest {
       assertEquals("4 A", a.getCurso());
     }
   }
-@Nested
+
+  @Nested
   class ConstructorTest {
     @Test
     void constructor_deberiaValidarYNormalizar() {
-      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  " , null, null);
+      a = new Alumno(1L, "AL-123456789", "  juan  ", "  4a  ", null, null);
       assertEquals("JUAN", a.getNombre());
       assertEquals("4a", a.getCurso());
       assertEquals("AL-123456789", a.getCodigo());

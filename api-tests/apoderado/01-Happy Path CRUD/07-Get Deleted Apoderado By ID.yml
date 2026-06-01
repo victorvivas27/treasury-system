@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/apoderados/3"
+  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
   auth: inherit
 
 runtime:

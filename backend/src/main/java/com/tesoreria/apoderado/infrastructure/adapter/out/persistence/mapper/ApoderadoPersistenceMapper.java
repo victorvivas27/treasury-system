@@ -10,21 +10,24 @@ public class ApoderadoPersistenceMapper {
 
   public Apoderado toDomain(ApoderadoEntity entity) {
     return new Apoderado(
-        entity.getId(),
+        entity.getApoderadoId(),
         entity.getCodigo(),
         entity.getNombre(),
         entity.getEmail(),
         entity.getTelefono(),
-        entity.getObservaciones());
+        entity.getObservaciones(),
+        entity.getCreatedAt(),
+        entity.getUpdatedAt());
   }
 
   public ApoderadoEntity toEntity(Apoderado domain) {
     return new ApoderadoEntity(
-        domain.getId(),
+        domain.getApoderadoId(),
         domain.getCodigo(),
         domain.getNombre(),
         domain.getEmail(),
         domain.getTelefono(),
-        domain.getObservaciones());
+        domain.getObservaciones()
+      );
   }
 }

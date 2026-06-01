@@ -3,6 +3,9 @@ package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +21,7 @@ public final class ApoderadoEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Long apoderadoId;
 
   @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
   private String codigo;
@@ -35,9 +38,11 @@ public final class ApoderadoEntity {
   @Column(length = 500)
   private String observaciones;
 
+  @CreationTimestamp
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
+  @UpdateTimestamp
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
@@ -60,13 +65,13 @@ public final class ApoderadoEntity {
   }
 
   public ApoderadoEntity(
-      Long id,
+      Long apoderadoId,
       String codigo,
       String nombre,
       String email,
       String telefono,
       String observaciones) {
-    this.id = id;
+    this.apoderadoId = apoderadoId;
     this.codigo = codigo;
     this.nombre = nombre;
     this.email = email;
@@ -75,13 +80,14 @@ public final class ApoderadoEntity {
   }
 
   // Getters y Setters
-  public Long getId() {
-    return id;
+  public Long getApoderadoId() {
+    return apoderadoId;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void setApoderadoId(Long apoderadoId) {
+    this.apoderadoId = apoderadoId;
   }
+
   public String getCodigo() {
     return codigo;
   }

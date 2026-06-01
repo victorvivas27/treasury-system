@@ -7,12 +7,10 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
 public interface GetFamiliaUseCase {
-Familia obtenerPorId(Long id);
+  Familia obtenerFamiliaPorId(Long familiaId);
 
-  PageResponse<Familia> listar(PageRequest pageRequest);
+  PageResponse<Familia> listarFamilia(PageRequest pageRequest);
 
-  // CORREGIDO: El tipo de retorno debe ser Apoderado, no Alumno
   List<Apoderado> listarApoderadosPorAlumno(Long alumnoId);
 
-  List<Familia> listarTodas();
 }

@@ -68,25 +68,25 @@ public class ApoderadoController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<ApoderadoResponse> findById(@PathVariable Long id) {
-    Apoderado apoderado = apoderadoService.findById(id);
+  @GetMapping("/{apoderadoId}")
+  public ResponseEntity<ApoderadoResponse> findById(@PathVariable Long apoderadoId) {
+    Apoderado apoderado = apoderadoService.findById(apoderadoId);
     return ResponseEntity.ok(mapper.toResponse(apoderado));
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/{apoderadoId}")
   public ResponseEntity<ApoderadoResponse> update(
-      @PathVariable Long id,
+      @PathVariable Long apoderadoId,
       @Valid @RequestBody ApoderadoRequest request) {
     Apoderado apoderado = mapper.toDomain(request);
-    apoderado.setId(id);
+    apoderado.setApoderadoId(apoderadoId);
     Apoderado updated = apoderadoService.update(apoderado);
     return ResponseEntity.ok(mapper.toResponse(updated));
   }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
-    apoderadoService.deleteById(id);
+  @DeleteMapping("/{apoderadoId}")
+  public ResponseEntity<Void> delete(@PathVariable Long apoderadoId) {
+    apoderadoService.deleteById(apoderadoId);
     return ResponseEntity.noContent().build();
   }
 }

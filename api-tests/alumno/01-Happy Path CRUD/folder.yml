@@ -5,4 +5,31 @@ info:
 
 request:
   auth: inherit
+  scripts:
+    - type: before-request
+      code: |-
+        // const baseUrl = bru.getEnvVar('Url_Base');
 
+        // try {
+        //   const listar = await bru.sendRequest({
+        //     url: `${baseUrl}/alumnos?size=100`,
+        //     method: 'GET',
+        //     headers: { 'Content-Type': 'application/json' }
+        //   });
+
+        //   const alumnos = listar.data && listar.data.content ? listar.data.content : null;
+          
+        //   if (alumnos && alumnos.length > 0) {
+        //     for (const ap of alumnos) {
+        //       if (ap.alumnoId) {
+        //         await bru.sendRequest({
+        //           url: `${baseUrl}/alumnos/${ap.alumnoId}`,
+        //           method: 'DELETE',
+        //           headers: { 'Content-Type': 'application/json' }
+        //         });
+        //       }
+        //     }
+        //   }
+        // } catch (e) {
+        //   // Silenciado
+        // }

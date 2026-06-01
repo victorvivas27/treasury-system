@@ -31,10 +31,15 @@ runtime:
 
         test("Response should contain alumnoId and apoderadoId", function () {
           expect(body.alumnoId).to.equal(Number(bru.getEnvVar("familiaAlumnoId")));
-          expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("familiaApoderadoId")));
+          // Acceso al primer elemento del arreglo [0]
+          expect(body.apoderadosIds[0]).to.equal(Number(bru.getEnvVar("familiaApoderadoId")));
         });
 
-        bru.setEnvVar("familiaVinculoId", body.id.toString(), { persist: true });
+        // Guardar la variable de forma segura e independiente del formateo
+        // if (body && body.familiaId) {
+        //   // Bruno persiste las variables de entorno automáticamente en memoria durante la sesión
+        //   bru.setEnvVar("familiaId", String(body.familiaId));
+        // }
 
 settings:
   encodeUrl: true

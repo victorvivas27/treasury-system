@@ -6,6 +6,34 @@ info:
 request:
   auth: inherit
   scripts:
+    - type: before-request
+      code: |-
+        // Pre-Request Script corregido y adaptado a tu JSON de paginación
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/apoderados`,
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          // CRÍTICO: Tu API devuelve la matriz dentro de 'content'
+          const apoderados = listar.body && listar.body.content ? listar.body.content : [];
+
+          // Eliminar secuencialmente
+          for (const ap of apoderados) {
+            if (ap.id) {
+              await bru.sendRequest({
+                url: `${baseUrl}/apoderados/${ap.id}`,
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+              });
+            }
+          }
+        } catch (error) {
+         
+        }
     - type: after-response
       code: |-
         // Leemos el texto de la variable (ej: "nombre,email,telefono")

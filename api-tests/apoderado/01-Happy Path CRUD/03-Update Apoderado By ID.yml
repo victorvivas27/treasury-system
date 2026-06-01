@@ -27,9 +27,9 @@ runtime:
           expect(res.getStatus()).to.equal(200);
         });
         //La respuesta debe contener el ID.
-        test("Response should contain id", function () {
+        test("Response should contain apoderadoId", function () {
           //expect(body.id).to.equal(Number(bru.getVar("apoderadoId")));
-          expect(body.id).to.equal(Number(bru.getEnvVar("apoderadoId")));
+          expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("apoderadoId")));
         });
         //El nombre debe escribirse en mayúsculas.
         test("Name should be uppercase", function () {

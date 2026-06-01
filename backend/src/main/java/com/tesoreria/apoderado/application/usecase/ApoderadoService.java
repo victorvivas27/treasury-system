@@ -39,13 +39,13 @@ public class ApoderadoService implements
     }
 
     @Override
-    public Apoderado findById(Long id) {
-        return repository.findById(id)
+    public Apoderado findById(Long apoderadoId) {
+        return repository.findById(apoderadoId)
                 .orElseThrow(() -> new DomainException(
                         ApoderadoErrorCode.NOT_FOUND.getCodigo(),
                         ApoderadoErrorCode.NOT_FOUND.getField(),
                         ApoderadoErrorCode.NOT_FOUND.getStatus(),
-                        "Apoderado con id " + id + " no encontrado"
+                        "Apoderado con Id " + apoderadoId + " no encontrado"
                 ));
     }
 
@@ -57,28 +57,28 @@ public class ApoderadoService implements
 
     @Override
     public Apoderado update(Apoderado apoderado) {
-        if (!repository.existsById(apoderado.getId())) {
+        if (!repository.existsById(apoderado.getApoderadoId())) {
             throw new DomainException(
                     ApoderadoErrorCode.NOT_FOUND.getCodigo(),
                     ApoderadoErrorCode.NOT_FOUND.getField(),
                     ApoderadoErrorCode.NOT_FOUND.getStatus(),
-                    "Apoderado con id " + apoderado.getId() + " no encontrado"
+                    "Apoderado con apoderadoId " + apoderado.getApoderadoId() + " no encontrado"
             );
         }
         return repository.save(apoderado);
     }
 
     @Override
-    public void deleteById(Long id) {
-        if (!repository.existsById(id)) {
+    public void deleteById(Long apoderadoId) {
+        if (!repository.existsById(apoderadoId)) {
             throw new DomainException(
                     ApoderadoErrorCode.NOT_FOUND.getCodigo(),
                     ApoderadoErrorCode.NOT_FOUND.getField(),
                     ApoderadoErrorCode.NOT_FOUND.getStatus(),
-                    "Apoderado con id " + id + " no encontrado"
+                    "Apoderado con apoderadoId " + apoderadoId + " no encontrado"
             );
         }
-        repository.deleteById(id);
+        repository.deleteById(apoderadoId);
     }
 
     @Override

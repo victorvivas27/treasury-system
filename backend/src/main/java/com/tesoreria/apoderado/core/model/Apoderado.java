@@ -1,5 +1,6 @@
 package com.tesoreria.apoderado.core.model;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 import com.tesoreria.apoderado.core.exception.ApoderadoErrorCode;
@@ -8,33 +9,41 @@ import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
 
 public class Apoderado {
 
-  private Long id;
+  private Long apoderadoId;
   private String codigo;
   private String nombre;
   private String email;
   private String telefono;
   private String observaciones;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 
   public Apoderado() {
   }
 
   public Apoderado(
-      Long id,
+      Long apoderadoId,
       String codigo,
       String nombre,
       String email,
       String telefono,
-      String observaciones) {
-    this.id = id;
+      String observaciones,
+      LocalDateTime createdAt,
+      LocalDateTime updatedAt
+
+  ) {
+    this.apoderadoId = apoderadoId;
     this.codigo = codigo;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
     setNombre(nombre);
     setEmail(email);
     setTelefono(telefono);
     setObservaciones(observaciones);
   }
 
-  public final void setId(Long id) {
-    this.id = id;
+  public final void setApoderadoId(Long apoderadoId) {
+    this.apoderadoId = apoderadoId;
   }
 
   /**
@@ -53,21 +62,21 @@ public class Apoderado {
           "El nombre no puede estar vacío");
     }
 
-    if (nombreNormalizado.length() < ValidationConstants.LONGITUD_MINIMA_NOMBRE) {
+    if (nombreNormalizado.length() < ValidationConstants.LONGITUD_MINIMA_TRES) {
       throw new DomainException(
           ApoderadoErrorCode.NOMBRE_INVALIDO.getCodigo(),
           ApoderadoErrorCode.NOMBRE_INVALIDO.getField(),
           ApoderadoErrorCode.NOMBRE_INVALIDO.getStatus(),
-          "El nombre debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_NOMBRE
+          "El nombre debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_TRES
               + ValidationConstants.CARACTERES);
     }
 
-    if (nombreNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_NOMBRE) {
+    if (nombreNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CINCUENTA) {
       throw new DomainException(
           ApoderadoErrorCode.NOMBRE_INVALIDO.getCodigo(),
           ApoderadoErrorCode.NOMBRE_INVALIDO.getField(),
           ApoderadoErrorCode.NOMBRE_INVALIDO.getStatus(),
-          "El nombre no puede tener más de " + ValidationConstants.LONGITUD_MAXIMA_NOMBRE
+          "El nombre no puede tener más de " + ValidationConstants.LONGITUD_MAXIMA_CINCUENTA
               + ValidationConstants.CARACTERES);
     }
 
@@ -84,8 +93,8 @@ public class Apoderado {
     this.nombre = nombreNormalizado.toUpperCase(Locale.ROOT);
   }
 
-  /*
-   * ============================================================================
+  /**
+   * =========================================================
    */
 
   /**
@@ -105,12 +114,12 @@ public class Apoderado {
 
     String emailNormalizado = email.trim().toLowerCase(java.util.Locale.ROOT);
 
-    if (emailNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_EMAIL) {
+    if (emailNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CIEN) {
       throw new DomainException(
           ApoderadoErrorCode.EMAIL_INVALIDO.getCodigo(),
           ApoderadoErrorCode.EMAIL_INVALIDO.getField(),
           ApoderadoErrorCode.EMAIL_INVALIDO.getStatus(),
-          "El email no puede tener más de " + ValidationConstants.LONGITUD_MAXIMA_EMAIL
+          "El email no puede tener más de " + ValidationConstants.LONGITUD_MAXIMA_CIEN
               + ValidationConstants.CARACTERES);
     }
     // En tu servicio o validador - validación de la parte LOCAL
@@ -118,12 +127,12 @@ public class Apoderado {
         ? emailNormalizado.split("@")[0]
         : emailNormalizado;
 
-    if (localPart.length() < ValidationConstants.LONGITUD_MINIMA_EMAIL) {
+    if (localPart.length() < ValidationConstants.LONGITUD_MINIMA_TRES) {
       throw new DomainException(
           ApoderadoErrorCode.EMAIL_INVALIDO.getCodigo(),
           ApoderadoErrorCode.EMAIL_INVALIDO.getField(),
           ApoderadoErrorCode.EMAIL_INVALIDO.getStatus(),
-          "El nombre local del email debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_EMAIL
+          "El nombre local del email debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_TRES
               + ValidationConstants.CARACTERES);
     }
 
@@ -158,12 +167,12 @@ public class Apoderado {
 
     // Validación 4: la extensión debe tener al menos 2 caracteres
     String extension = dominio.substring(dominio.lastIndexOf('.') + 1);
-    if (extension.length() < ValidationConstants.EXTENSION_MINIMA_EMAIL) {
+    if (extension.length() < ValidationConstants.LONGITUD_MINIMA_DOS) {
       throw new DomainException(
           ApoderadoErrorCode.EMAIL_INVALIDO.getCodigo(),
           ApoderadoErrorCode.EMAIL_INVALIDO.getField(),
           ApoderadoErrorCode.EMAIL_INVALIDO.getStatus(),
-          "La extensión del email debe tener al menos " + ValidationConstants.EXTENSION_MINIMA_EMAIL
+          "La extensión del email debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_DOS
               + ValidationConstants.CARACTERES);
     }
 
@@ -211,18 +220,18 @@ public class Apoderado {
     }
 
     // Luego validar largo
-    if (telefonoNormalizado.replaceAll("\\+", "").length() < ValidationConstants.LONGITUD_MINIMA_TELEFONO) {
+    if (telefonoNormalizado.replaceAll("\\+", "").length() < ValidationConstants.LONGITUD_MINIMA_OCHO) {
       throw new DomainException(
           ApoderadoErrorCode.TELEFONO_INVALIDO.getCodigo(),
           ApoderadoErrorCode.TELEFONO_INVALIDO.getField(),
           ApoderadoErrorCode.TELEFONO_INVALIDO.getStatus(),
-          "El teléfono debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_TELEFONO + " dígitos");
-    } else if (telefonoNormalizado.replaceAll("\\+", "").length() > ValidationConstants.LONGITUD_MAXIMA_TELEFONO) {
+          "El teléfono debe tener al menos " + ValidationConstants.LONGITUD_MINIMA_OCHO + " dígitos");
+    } else if (telefonoNormalizado.replaceAll("\\+", "").length() > ValidationConstants.LONGITUD_MAXIMA_QUINCE) {
       throw new DomainException(
           ApoderadoErrorCode.TELEFONO_INVALIDO.getCodigo(),
           ApoderadoErrorCode.TELEFONO_INVALIDO.getField(),
           ApoderadoErrorCode.TELEFONO_INVALIDO.getStatus(),
-          "El teléfono debe tener máximo " + ValidationConstants.LONGITUD_MAXIMA_TELEFONO + " dígitos");
+          "El teléfono debe tener máximo " + ValidationConstants.LONGITUD_MAXIMA_QUINCE + " dígitos");
     }
 
     this.telefono = telefonoNormalizado;
@@ -236,12 +245,12 @@ public class Apoderado {
 
     String observacionesNormalizadas = observaciones.trim();
 
-    if (observacionesNormalizadas.length() > ValidationConstants.LONGITUD_MAXIMA_OBSERVACIONES) {
+    if (observacionesNormalizadas.length() > ValidationConstants.LONGITUD_MAXIMA_DOSCIENTOS) {
       throw new DomainException(
           ApoderadoErrorCode.OBSERVACIONES_INVALIDO.getCodigo(),
           ApoderadoErrorCode.OBSERVACIONES_INVALIDO.getField(),
           ApoderadoErrorCode.OBSERVACIONES_INVALIDO.getStatus(),
-          "Las observaciones no pueden tener más de " + ValidationConstants.LONGITUD_MAXIMA_OBSERVACIONES
+          "Las observaciones no pueden tener más de " + ValidationConstants.LONGITUD_MAXIMA_DOSCIENTOS
               + ValidationConstants.CARACTERES);
     }
 
@@ -252,8 +261,8 @@ public class Apoderado {
    * ============================================================================
    */
 
-  public Long getId() {
-    return id;
+  public Long getApoderadoId() {
+    return apoderadoId;
   }
 
   public String getCodigo() {
@@ -274,6 +283,14 @@ public class Apoderado {
 
   public String getObservaciones() {
     return observaciones;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
   }
 
 }

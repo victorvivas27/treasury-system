@@ -9,9 +9,6 @@ http:
   auth: inherit
 
 runtime:
-  variables:
-    - name: apoderadoId
-      value: "2"
   scripts:
     - type: tests
       code: |-

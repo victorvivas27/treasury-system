@@ -12,12 +12,14 @@ public class ApoderadoMapper {
 
     public ApoderadoResponse toResponse(Apoderado apoderado) {
         return new ApoderadoResponse(
-                apoderado.getId(),
+                apoderado.getApoderadoId(),
                 apoderado.getCodigo(),
                 apoderado.getNombre(),
                 apoderado.getEmail(),
                 apoderado.getTelefono(),
-                apoderado.getObservaciones()
+                apoderado.getObservaciones(),
+                apoderado.getCreatedAt(),
+                apoderado.getUpdatedAt()
         );
     }
 
@@ -28,7 +30,9 @@ public class ApoderadoMapper {
                 request.getNombre(),
                 request.getEmail(),
                 request.getTelefono(),
-                request.getObservaciones()
+                request.getObservaciones(),
+                null,
+                null
         );
     }
 

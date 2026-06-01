@@ -38,17 +38,12 @@ runtime:
         });
 
         const creadoRaw = preResponse.data || preResponse.body;
-
         const creado = typeof creadoRaw === "string"
           ? JSON.parse(creadoRaw)
           : creadoRaw;
 
-        //console.log("Respuesta Pre:", creado);
-
         bru.setVar("apoderadoIdCreadoPre", creado.id);
         bru.setVar("bodyData", JSON.stringify(apoderado));
-
-        //console.log(`✅ Apoderado creado en Pre Request: ${creado.id}`);
     - type: after-response
       code: |-
         const baseUrl = bru.getEnvVar('Url_Base');

@@ -3,7 +3,7 @@ package com.tesoreria.familia.infrastructure.adapter.in.web.dto;
 import java.util.List;
 
 public record FamiliaDetalleResponse(
-    Long id,
+    Long familiaId,
     Long alumnoId,
     String alumnoCodigo,
     String alumnoNombre,

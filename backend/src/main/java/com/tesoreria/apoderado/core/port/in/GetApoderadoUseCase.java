@@ -5,9 +5,9 @@ import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 public interface GetApoderadoUseCase {
-    Apoderado findById(Long id);
-    
+    Apoderado findById(Long apoderadoId);
+
     PageResponse<Apoderado> findAll(PageRequest pageRequest);
 
-    List<Apoderado> findByIds(List<Long> ids);
+    List<Apoderado> findByIds(List<Long> apoderadoIds);
 }

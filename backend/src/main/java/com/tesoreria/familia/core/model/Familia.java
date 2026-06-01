@@ -6,13 +6,10 @@ import java.util.List;
 
 import com.tesoreria.familia.core.exception.FamiliaErrorCode;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
 
 public class Familia {
-
-  private static final int LONGITUD_MAXIMA_PARENTESCO = 50;
-  private static final int LONGITUD_MAXIMA_OBSERVACIONES = 500;
-
-  private Long id;
+  private Long familiaId;
   private Long alumnoId;
   private String codigo;
   private List<Long> apoderadosIds = new ArrayList<>();
@@ -24,14 +21,14 @@ public class Familia {
   }
 
   public Familia(
-      Long id,
+      Long familiaId,
       Long alumnoId,
       String codigo,
       List<Long> apoderadosIds,
       String parentesco,
       Boolean principal,
       String observaciones) {
-    this.id = id;
+    this.familiaId = familiaId;
     this.codigo = codigo;
     setAlumnoId(alumnoId);
     setApoderadosIds(apoderadosIds);
@@ -40,22 +37,20 @@ public class Familia {
     setObservaciones(observaciones);
   }
 
-  public Long getId() {
-    return id;
+  /**
+   * Set the familiaId of the familia.
+   * 
+   * @param familiaId
+   */
+  public void setFamiliaId(Long familiaId) {
+    this.familiaId = familiaId;
   }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Long getAlumnoId() {
-    return alumnoId;
-  }
-
-  public String getCodigo() {
-    return codigo;
-  }
-
+  /**
+   * Set the alumnoId of the familia.
+   * 
+   * @param alumnoId
+   */
   public final void setAlumnoId(Long alumnoId) {
     if (alumnoId == null) {
       throw new DomainException(
@@ -67,10 +62,11 @@ public class Familia {
     this.alumnoId = alumnoId;
   }
 
-  public List<Long> getApoderadosIds() {
-    return Collections.unmodifiableList(apoderadosIds);
-  }
-
+  /**
+   * Set the apoderadosIds of the familia.
+   * 
+   * @param apoderadosIds
+   */
   public final void setApoderadosIds(List<Long> apoderadosIds) {
     if (apoderadosIds == null || apoderadosIds.isEmpty()) {
       throw new DomainException(
@@ -100,10 +96,11 @@ public class Familia {
     this.apoderadosIds.add(apoderadoId);
   }
 
-  public String getParentesco() {
-    return parentesco;
-  }
-
+  /**
+   * Set the parentesco of the familia.
+   * 
+   * @param parentesco
+   */
   public final void setParentesco(String parentesco) {
     String normalizado = parentesco == null ? null : parentesco.trim();
 
@@ -115,27 +112,20 @@ public class Familia {
           "El parentesco no puede estar vacío");
     }
 
-    if (normalizado.length() > LONGITUD_MAXIMA_PARENTESCO) {
+    if (normalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CINCUENTA) {
       throw new DomainException(
           FamiliaErrorCode.PARENTESCO_INVALIDO.getCodigo(),
           FamiliaErrorCode.PARENTESCO_INVALIDO.getField(),
           FamiliaErrorCode.PARENTESCO_INVALIDO.getStatus(),
-          "El parentesco no puede tener más de 50 caracteres");
+          "El parentesco no puede tener más de " + ValidationConstants.LONGITUD_MAXIMA_CINCUENTA
+              + ValidationConstants.CARACTERES);
     }
 
     this.parentesco = normalizado;
   }
 
-  public Boolean getPrincipal() {
-    return principal;
-  }
-
   public final void setPrincipal(Boolean principal) {
     this.principal = Boolean.TRUE.equals(principal);
-  }
-
-  public String getObservaciones() {
-    return observaciones;
   }
 
   @SuppressWarnings("PMD.NullAssignment")
@@ -146,14 +136,44 @@ public class Familia {
     }
 
     String normalizadas = observaciones.trim();
-    if (normalizadas.length() > LONGITUD_MAXIMA_OBSERVACIONES) {
+    if (normalizadas.length() > ValidationConstants.LONGITUD_MAXIMA_DOSCIENTOS) {
       throw new DomainException(
           FamiliaErrorCode.OBSERVACIONES_INVALIDO.getCodigo(),
           FamiliaErrorCode.OBSERVACIONES_INVALIDO.getField(),
           FamiliaErrorCode.OBSERVACIONES_INVALIDO.getStatus(),
-          "Las observaciones no pueden tener más de 500 caracteres");
+          "Las observaciones no pueden tener más de " + ValidationConstants.LONGITUD_MAXIMA_DOSCIENTOS
+              + ValidationConstants.CARACTERES);
     }
 
     this.observaciones = normalizadas;
   }
+
+  public Long getFamiliaId() {
+    return familiaId;
+  }
+
+  public Long getAlumnoId() {
+    return alumnoId;
+  }
+
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public List<Long> getApoderadosIds() {
+    return Collections.unmodifiableList(apoderadosIds);
+  }
+
+  public String getParentesco() {
+    return parentesco;
+  }
+
+  public Boolean getPrincipal() {
+    return principal;
+  }
+
+  public String getObservaciones() {
+    return observaciones;
+  }
+
 }

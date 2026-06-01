@@ -27,6 +27,7 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unused")
 public class ApoderadoServiceTest {
 
   @Mock
@@ -40,7 +41,7 @@ public class ApoderadoServiceTest {
   @BeforeEach
   void setUp() {
     mockApoderado = new Apoderado();
-    mockApoderado.setId(APODERADO_ID);
+    mockApoderado.setApoderadoId(APODERADO_ID);
     mockApoderado.setNombre("JUAN PEREZ");
     mockApoderado.setEmail("test@mail.com");
   }
@@ -115,8 +116,8 @@ public class ApoderadoServiceTest {
   class UpdateTests {
     @Test
     void update_deberiaLanzarExcepcionCuandoNoExiste() {
-      mockApoderado.setId(APODERADO_ID);
-      when(repository.existsById(mockApoderado.getId())).thenReturn(false);
+      mockApoderado.setApoderadoId(APODERADO_ID);
+      when(repository.existsById(mockApoderado.getApoderadoId())).thenReturn(false);
       DomainException ex = assertThrows(
           DomainException.class,
           () -> service.update(mockApoderado));
@@ -126,8 +127,8 @@ public class ApoderadoServiceTest {
 
     @Test
     void update_deberiaActualizarCuandoExiste() {
-      mockApoderado.setId(APODERADO_ID);
-      when(repository.existsById(mockApoderado.getId())).thenReturn(true);
+      mockApoderado.setApoderadoId(APODERADO_ID);
+      when(repository.existsById(mockApoderado.getApoderadoId())).thenReturn(true);
       when(repository.save(mockApoderado)).thenReturn(mockApoderado);
       Apoderado resultado = service.update(mockApoderado);
       assertNotNull(resultado);

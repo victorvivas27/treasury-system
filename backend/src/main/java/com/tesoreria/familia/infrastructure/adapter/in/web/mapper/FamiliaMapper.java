@@ -12,11 +12,11 @@ import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaResponse;
 @Component
 public class FamiliaMapper {
 
-  // 1. Único método para mapear datos de entrada (sirve para POST y para PUT)
-  public Familia toDomain(Long id, Long alumnoId, FamiliaRequest request) {
+  // 1. Método para mapear datos de entrada
+  public Familia toDomain(Long familiaId, Long alumnoId, FamiliaRequest request) {
     if (request == null) return null;
     return new Familia(
-        id, // Puede ser null en POST, o el ID real en PUT
+        familiaId, 
         alumnoId,
         request.getCodigo(),
         request.getApoderadosIds(),
@@ -25,7 +25,7 @@ public class FamiliaMapper {
         request.getObservaciones());
   }
 
-  // 2. Mapear desde el Dominio al único Record de salida que existe (FamiliaResponse)
+  // 2. Mapear desde el Dominio al Record de salida (FamiliaResponse)
   public FamiliaResponse toResponse(Familia familia) {
     if (familia == null) return null;
 
@@ -34,7 +34,7 @@ public class FamiliaMapper {
         : new ArrayList<>();
 
     return new FamiliaResponse(
-        familia.getId(),
+        familia.getFamiliaId(),
         familia.getAlumnoId(),
         familia.getCodigo(),
         apoderadosList,
@@ -43,7 +43,7 @@ public class FamiliaMapper {
         familia.getObservaciones());
   }
 
-  // Paso 2: Agregar método de hidratación pesada en el FamiliaMapper
+  // 3. Mapear desde el Dominio al Record de salida (FamiliaDetalleResponse)
   public FamiliaDetalleResponse toDetalleResponse(
       Familia familia,
       com.tesoreria.alumno.core.model.Alumno alumno,
@@ -51,12 +51,12 @@ public class FamiliaMapper {
 
     if (familia == null) return null;
 
-    // 1. Transformamos la lista de dominios de apoderados en la lista de DTOs detallados que creaste recién
+    // Transformamos la lista de dominios de apoderados en la lista de DTOs detallados 
     List<ApoderadoDetalleResponse> apoderadosDetalle = new java.util.ArrayList<>();
     if (apoderados != null) {
       for (com.tesoreria.apoderado.core.model.Apoderado ap : apoderados) {
         apoderadosDetalle.add(new ApoderadoDetalleResponse(
-            ap.getId(),
+            ap.getApoderadoId(),
             ap.getCodigo(),
             ap.getNombre(),
             ap.getEmail(),
@@ -67,7 +67,7 @@ public class FamiliaMapper {
 
     // 2. Armamos el FamiliaDetalleResponse con todos los datos mezclados
     return new FamiliaDetalleResponse(
-        familia.getId(),
+        familia.getFamiliaId(),
         familia.getAlumnoId(),
         alumno != null ? alumno.getCodigo() : "SIN CÓDIGO",
         alumno != null ? alumno.getNombre() : "SIN NOMBRE",
@@ -75,11 +75,10 @@ public class FamiliaMapper {
         familia.getParentesco(),
         familia.getPrincipal(),
         familia.getObservaciones(),
-        apoderadosDetalle // La lista con nombres y datos reales
+        apoderadosDetalle 
     );
   }
 
-  // 3. Dejado por contrato si usas la respuesta compuesta externa
   public AlumnoResponse toResponse(Object apoderado) {
     if (apoderado == null) return null;
     throw new UnsupportedOperationException("Mapear propiedades de lectura de Apoderado.");

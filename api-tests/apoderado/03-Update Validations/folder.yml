@@ -5,3 +5,45 @@ info:
 
 request:
   auth: inherit
+  scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        const apoderado = {
+          nombre: "Victor Vivas",
+          email: "victor@gmail.com",
+          telefono: "+987654321"
+        };
+
+        const preResponse = await bru.sendRequest({
+          url: `${baseUrl}/apoderados`,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          data: apoderado
+        });
+
+        const creadoRaw = preResponse.data || preResponse.body;
+
+        const creado = typeof creadoRaw === "string"
+          ? JSON.parse(creadoRaw)
+          : creadoRaw;
+
+        bru.setVar("apoderadoIdCreadoPre", creado.apoderadoId);
+        bru.setVar("bodyData", JSON.stringify(apoderado));
+    - type: after-response
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+        const apoderadoId = bru.getVar('apoderadoIdCreadoPre');
+
+
+          try {
+            await bru.sendRequest({
+              url: `${baseUrl}/apoderados/${apoderadoId}`,
+              method: 'DELETE'
+            });
+        } catch(error) {
+            
+          }

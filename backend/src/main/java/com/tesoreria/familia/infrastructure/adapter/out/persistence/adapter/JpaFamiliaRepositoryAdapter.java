@@ -20,13 +20,12 @@ import com.tesoreria.shared.domain.pagination.PageResponse;
 
 
 @Repository
-@Transactional() // Forzar uso de Spring para readOnly
+@Transactional()
 public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
 
     private final FamiliaJpaRepository jpaRepository;
-    private final FamiliaPersistenceMapper mapper; // INYECTADO: El mapper real que creamos
+    private final FamiliaPersistenceMapper mapper;
 
-    // Constructor con ambas dependencias necesarias
     public JpaFamiliaRepositoryAdapter(FamiliaJpaRepository jpaRepository, FamiliaPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
@@ -34,21 +33,21 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
 
     @Override
     public Familia save(Familia familia) {
-        FamiliaEntity entity = mapper.toEntity(familia); // Usa el componente real
+        FamiliaEntity entity = mapper.toEntity(familia);
         FamiliaEntity savedEntity = jpaRepository.save(entity);
-        return mapper.toDomain(savedEntity); // Usa el componente real
+        return mapper.toDomain(savedEntity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Familia> findById(Long id) {
-        return jpaRepository.findById(id).map(mapper::toDomain);
+    public Optional<Familia> findById(Long familiaId) {
+        return jpaRepository.findById(familiaId).map(mapper::toDomain);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Familia> findDetalleById(Long id) {
-        return jpaRepository.findById(id).map(mapper::toDomain);
+    public Optional<Familia> findDetalleById(Long familiaId) {
+        return jpaRepository.findById(familiaId).map(mapper::toDomain);
     }
 
     @Override
@@ -57,11 +56,25 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
         return jpaRepository.findByAlumnoId(alumnoId).map(mapper::toDomain);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public PageResponse<Familia> findAll(PageRequest pageRequest) {
-        throw new UnsupportedOperationException("Implementar paginación acoplada a la especificación de tu infraestructura.");
-    }
+@Override
+@Transactional(readOnly = true)
+public PageResponse<Familia> findAll(PageRequest pageRequest) {
+    org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+        pageRequest.page(),
+        pageRequest.size());
+
+    org.springframework.data.domain.Page<FamiliaEntity> pageEntity = jpaRepository.findAll(pageable);
+
+    return new PageResponse<>(
+        pageEntity.getContent()
+            .stream()
+            .map(mapper::toDomain) // Usando tu mapper de familia
+            .toList(),
+        pageEntity.getNumber(),
+        pageEntity.getSize(),
+        pageEntity.getTotalElements(),
+        pageEntity.getTotalPages());
+}
 
     @Override
     @Transactional(readOnly = true)
@@ -81,14 +94,14 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
     }
 
     @Override
-    public void deleteById(Long id) {
-        jpaRepository.deleteById(id);
+    public void deleteById(Long familiaId) {
+        jpaRepository.deleteById(familiaId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public boolean existsById(Long id) {
-        return jpaRepository.existsById(id);
+    public boolean existsById(Long familiaId) {
+        return jpaRepository.existsById(familiaId);
     }
 
     @Override
@@ -102,13 +115,4 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
     public boolean existsPrincipalByAlumnoId(Long alumnoId) {
         return jpaRepository.existsByAlumnoIdAndPrincipalTrue(alumnoId);
     }
-
-    @Override
-@Transactional(readOnly = true)
-public List<Familia> findAll() {
-    return jpaRepository.findAll()
-        .stream()
-        .map(mapper::toDomain)
-        .toList();
-}
 }

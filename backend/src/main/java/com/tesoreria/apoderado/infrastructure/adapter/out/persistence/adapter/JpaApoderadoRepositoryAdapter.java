@@ -37,8 +37,8 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   }
 
   @Override
-  public Optional<Apoderado> findById(Long id) {
-    return jpaRepository.findById(id)
+  public Optional<Apoderado> findById(Long apoderadoId) {
+    return jpaRepository.findById(apoderadoId)
         .map(persistenceMapper::toDomain);
   }
 
@@ -64,19 +64,19 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   // AGREGADO: Implementación real del método masivo que faltaba en este adaptador
   @Override
   @Transactional(readOnly = true)
-  public List<Apoderado> findAllByIds(List<Long> ids) {
-    if (ids == null || ids.isEmpty()) {
+  public List<Apoderado> findAllByIds(List<Long> apoderadoIds) {
+    if (apoderadoIds == null || apoderadoIds.isEmpty()) {
       return java.util.Collections.emptyList();
     }
-    return jpaRepository.findAllById(ids)
+    return jpaRepository.findAllById(apoderadoIds)
         .stream()
         .map(persistenceMapper::toDomain)
         .toList();
   }
 
   @Override
-  public void deleteById(Long id) {
-    jpaRepository.deleteById(id);
+  public void deleteById(Long apoderadoId) {
+    jpaRepository.deleteById(apoderadoId);
   }
 
   @Override
@@ -85,7 +85,7 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   }
 
   @Override
-  public boolean existsById(Long id) {
-    return jpaRepository.existsById(id);
+  public boolean existsById(Long apoderadoId) {
+    return jpaRepository.existsById(apoderadoId);
   }
 }

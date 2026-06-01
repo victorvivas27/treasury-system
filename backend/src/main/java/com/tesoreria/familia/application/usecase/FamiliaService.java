@@ -32,7 +32,7 @@ public class FamiliaService implements
 
   // --- CreateFamiliaUseCase ---
   @Override
-  public Familia vincular(Familia familia) {
+  public Familia crearFamilia(Familia familia) {
     // Validar si ya existe una configuración familiar para el alumno
     if (familiaRepository.existsByAlumnoId(familia.getAlumnoId())) {
       throw new DomainException(
@@ -56,7 +56,7 @@ public class FamiliaService implements
 
   // --- GetFamiliaUseCase ---
   @Override
-  public Familia obtenerPorId(Long id) {
+  public Familia obtenerFamiliaPorId(Long id) {
     return familiaRepository.findById(id)
         .orElseThrow(() -> new DomainException(
             FamiliaErrorCode.NOT_FOUND.getCodigo(),
@@ -66,7 +66,7 @@ public class FamiliaService implements
   }
 
   @Override
-  public PageResponse<Familia> listar(PageRequest pageRequest) {
+  public PageResponse<Familia> listarFamilia(PageRequest pageRequest) {
     return familiaRepository.findAll(pageRequest);
   }
 
@@ -77,8 +77,8 @@ public class FamiliaService implements
 
   // --- UpdateFamiliaUseCase ---
   @Override
-  public Familia actualizar(Long id, Familia familia) {
-    Familia familiaExistente = obtenerPorId(id);
+  public Familia actualizarFamilia(Long id, Familia familia) {
+    Familia familiaExistente = obtenerFamiliaPorId(id);
 
     // Actualizar campos permitidos resguardando las invariantes del dominio
     familiaExistente.setAlumnoId(familia.getAlumnoId());
@@ -92,7 +92,7 @@ public class FamiliaService implements
 
   // --- DeleteFamiliaUseCase ---
   @Override
-  public void eliminar(Long id) {
+  public void eliminarFamilia(Long id) {
     if (!familiaRepository.existsById(id)) {
       throw new DomainException(
           FamiliaErrorCode.NOT_FOUND.getCodigo(),
@@ -145,9 +145,4 @@ public class FamiliaService implements
 
     familiaRepository.save(familia);
   }
-
-  @Override
-public List<Familia> listarTodas() {
-    return familiaRepository.findAll();
-}
 }

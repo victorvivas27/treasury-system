@@ -22,20 +22,6 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        // test("Error code should be ERROR_VALIDACION", function() {
-        //   expect(res.body.code).to.equal("ERROR_VALIDACION");
-        // });
-
-        // test("Status should be 400", function() {
-        //   expect(res.status).to.equal(400);
-        // });
-
-        // test("Should only report missing nombre field", function() {
-        //   expect(res.body.errors).to.not.property("nombre");
-        //   expect(res.body.errors).to.have.have.property("email");
-        //   expect(res.body.errors).to.not.have.property("telefono");
-        // });
-
         //El mensaje de error para el correo electrónico debe ser correcto.
         test("Error message for email should be correct", function() {
           expect(res.body.errors.email).to.equal("El email no puede estar vacío");

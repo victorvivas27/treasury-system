@@ -27,7 +27,6 @@ runtime:
             expect(res.body.errors.telefono).to.equal("El teléfono no puede estar vacío");
           });
 
-
         test("Error messages should be descriptive", function() {
             expect(res.body.errors.nombre).to.equal("El nombre no puede estar vacío");
         });

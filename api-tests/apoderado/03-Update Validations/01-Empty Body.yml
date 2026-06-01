@@ -13,56 +13,6 @@ http:
 
 runtime:
   scripts:
-    - type: before-request
-      code: |-
-        const baseUrl = bru.getEnvVar('Url_Base');
-
-        const apoderado = {
-          nombre: "Victor Vivas",
-          email: "victor@gmail.com",
-          telefono: "+987654321"
-        };
-
-        const preResponse = await bru.sendRequest({
-          url: `${baseUrl}/apoderados`,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          data: apoderado
-        });
-
-        const creadoRaw = preResponse.data || preResponse.body;
-
-        const creado = typeof creadoRaw === "string"
-          ? JSON.parse(creadoRaw)
-          : creadoRaw;
-
-        //console.log("Respuesta Pre:", creado);
-
-        bru.setVar("apoderadoIdCreadoPre", creado.id);
-        bru.setVar("bodyData", JSON.stringify(apoderado));
-
-        //console.log(`✅ Apoderado creado en Pre Request: ${creado.id}`);
-    - type: after-response
-      code: |-
-        const baseUrl = bru.getEnvVar('Url_Base');
-        const id = bru.getVar('apoderadoIdCreadoPre');
-
-        if (id) {
-          try {
-            await bru.sendRequest({
-              url: `${baseUrl}/apoderados/${id}`,
-              method: 'DELETE'
-            });
-
-            console.log(`✅ Apoderado ${id} eliminado`);
-          } catch(error) {
-            console.log(`❌ Error eliminando: ${error}`);
-          }
-        } else {
-          console.log('⚠️ No se encontró ID para eliminar');
-        }
     - type: tests
       code: |-
         //El estado debería ser 400
@@ -79,7 +29,7 @@ runtime:
             expect(res.body.errors).to.have.property("email");
             expect(res.body.errors).to.have.property("telefono");
           });
-        console.log("Campos:", bru.getRequestVar("fields_present")); 
+        //console.log("Campos:", bru.getRequestVar("fields_present")); 
         //Los mensajes de error deben ser descriptivos.
           test("Error messages should be descriptive", function() {
             expect(res.body.errors.nombre).to.equal("El nombre no puede estar vacío");

@@ -30,7 +30,7 @@ public final class FamiliaEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Long familiaId;
 
   @Column(name = "alumno_id", nullable = false)
   private Long alumnoId;
@@ -38,8 +38,8 @@ public final class FamiliaEntity {
   @Column(name = "codigo", nullable = false)
   private String codigo;
 
-  // SOLUCIÓN AL RUIDO: Ahora la entidad de persistencia maneja la misma lista que tu Dominio
-  @ElementCollection(fetch = FetchType.LAZY)
+
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(
       name = "familia_apoderados",
       joinColumns = @JoinColumn(name = "familia_id"),
@@ -66,7 +66,7 @@ public final class FamiliaEntity {
   }
 
   public FamiliaEntity(
-      Long id,
+      Long familiaId,
       Long alumnoId,
       String codigo,
       List<Long> apoderadosIds,
@@ -75,7 +75,7 @@ public final class FamiliaEntity {
       LocalDateTime createdAt,
       LocalDateTime updatedAt,
       String observaciones) {
-    this.id = id;
+    this.familiaId = familiaId;
     this.alumnoId = alumnoId;
     this.codigo = codigo;
     this.apoderadosIds = apoderadosIds != null ? apoderadosIds : new ArrayList<>();
@@ -100,8 +100,8 @@ public final class FamiliaEntity {
     updatedAt = LocalDateTime.now();
   }
 
-  public Long getId() {
-    return id;
+  public Long getFamiliaId() {
+    return familiaId;
   }
 
   public Long getAlumnoId() {

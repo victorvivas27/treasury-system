@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tesoreria.alumno.application.usecase.AlumnoService;
@@ -26,6 +27,8 @@ import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaDetalleRes
 import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaRequest;
 import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaResponse;
 import com.tesoreria.familia.infrastructure.adapter.in.web.mapper.FamiliaMapper;
+import com.tesoreria.shared.domain.pagination.PageRequest;
+import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 
 import jakarta.validation.Valid;
@@ -62,7 +65,7 @@ public class FamiliaController {
       @PathVariable Long alumnoId,
       @Valid @RequestBody FamiliaRequest request) {
     Familia familia = mapper.toDomain(null, alumnoId, request);
-    Familia creada = createUseCase.vincular(familia);
+    Familia creada = createUseCase.crearFamilia(familia);
     return new ResponseEntity<>(mapper.toResponse(creada), HttpStatus.CREATED);
   }
   /**
@@ -73,19 +76,33 @@ public class FamiliaController {
   // 2. Listar todos los registros familiares con su detalle completo,
   // incluyendo la información del alumno y la lista de apoderados vinculados
   // (GET)
-  @GetMapping("/all")
-  public ResponseEntity<List<FamiliaDetalleResponse>> listarDetalleFamilias() {
-    List<Familia> familias = getUseCase.listarTodas();
-    List<FamiliaDetalleResponse> response = familias.stream()
-        .map(familia -> {
-          Alumno alumno = alumnoService.findById(familia.getAlumnoId());
-          List<Apoderado> apoderados = apoderadoService.findByIds(
-              familia.getApoderadosIds());
-          return mapper.toDetalleResponse(familia, alumno, apoderados);
-        })
-        .toList();
-    return ResponseEntity.ok(response);
-  }
+@GetMapping("/all")
+public ResponseEntity<PageResponse<FamiliaDetalleResponse>> listarDetalleFamilias(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "5") int size) {
+
+  PageResponse<Familia> result = getUseCase.listarFamilia(
+      new PageRequest(page, size, null, null));
+
+  PageResponse<FamiliaDetalleResponse> response = new PageResponse<>(
+      result.content()
+          .stream()
+          .map(familia -> {
+            Alumno alumno = alumnoService.findById(familia.getAlumnoId());
+
+            List<Apoderado> apoderados = apoderadoService.findByIds(
+                familia.getApoderadosIds());
+
+            return mapper.toDetalleResponse(familia, alumno, apoderados);
+          })
+          .toList(),
+      result.page(),
+      result.size(),
+      result.totalElements(),
+      result.totalPages());
+
+  return ResponseEntity.ok(response);
+}
 
   /**
    * =============================================================================
@@ -95,9 +112,9 @@ public class FamiliaController {
   // 3. Obtener el detalle completo de un registro familiar por su ID,
   // incluyendo la información del alumno y la lista de apoderados vinculados
   // (GET)
-  @GetMapping("by-id/{id}")
-  public ResponseEntity<FamiliaDetalleResponse> obtenerDetalleFamiliar(@PathVariable Long id) {
-    Familia familia = getUseCase.obtenerPorId(id);
+  @GetMapping("by-id/{familiaId}")
+  public ResponseEntity<FamiliaDetalleResponse> obtenerDetalleFamiliar(@PathVariable Long familiaId) {
+    Familia familia = getUseCase.obtenerFamiliaPorId(familiaId);
     Alumno alumno = alumnoService.findById(familia.getAlumnoId());
     List<Apoderado> apoderados = apoderadoService.findByIds(familia.getApoderadosIds());
     FamiliaDetalleResponse response = mapper.toDetalleResponse(familia, alumno, apoderados);
@@ -109,10 +126,10 @@ public class FamiliaController {
    * ==================
    */
 
-    // 4. Eliminar por completo el registro familiar (DELETE)
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> eliminarPorId(@PathVariable Long id) {
-    deleteUseCase.eliminar(id);
+  // 4. Eliminar por completo el registro familiar (DELETE)
+  @DeleteMapping("/{familiaId}")
+  public ResponseEntity<Void> eliminarPorId(@PathVariable Long familiaId) {
+    deleteUseCase.eliminarFamilia(familiaId);
     return ResponseEntity.noContent().build();
   }
 
@@ -132,11 +149,11 @@ public class FamiliaController {
 
 
   // 5. Desvincular un apoderado de la lista familiar (DELETE)
-  @DeleteMapping("/{alumnoId}/familias/apoderados/{apoderadoId}")
+  @DeleteMapping("/{familiaId}/apoderados/{apoderadoId}")
   public ResponseEntity<Void> desvincularApoderado(
-      @PathVariable Long alumnoId,
+      @PathVariable Long familiaId,
       @PathVariable Long apoderadoId) {
-    deleteUseCase.desvincularApoderado(alumnoId, apoderadoId);
+    deleteUseCase.desvincularApoderado(familiaId, apoderadoId);
     return ResponseEntity.noContent().build();
   }
 

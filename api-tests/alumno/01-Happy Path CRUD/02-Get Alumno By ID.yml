@@ -19,7 +19,7 @@ runtime:
         });
 
         test("Should return requested alumno", function () {
-          expect(body.id).to.equal(Number(bru.getEnvVar("alumnoId")));
+          expect(body.alumnoId).to.equal(Number(bru.getEnvVar("alumnoId")));
           expect(body.nombre).to.equal("JUAN PEREZ");
           expect(body.curso).to.equal("4A");
         });
@@ -29,4 +29,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

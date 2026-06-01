@@ -10,28 +10,32 @@ http:
 
 runtime:
   scripts:
-    - type: before-request
+    - type: after-response
       code: |-
-        // Pre Request
         const baseUrl = bru.getEnvVar('Url_Base');
 
-        // Listar todos
-        const listar = await bru.sendRequest({
-          url: `${baseUrl}/apoderados`,
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        //console.log(listar)
-
-        const apoderados = listar.data;
-
-        // Eliminar uno por uno
-        for (const ap of apoderados) {
-          await bru.sendRequest({
-            url: `${baseUrl}/apoderados/${ap.id}`,
-            method: 'DELETE',
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/apoderados?size=100`,
+            method: 'GET',
             headers: { 'Content-Type': 'application/json' }
           });
+
+          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+          
+          if (apoderados && apoderados.length > 0) {
+            for (const ap of apoderados) {
+              if (ap.apoderadoId) {
+                await bru.sendRequest({
+                  url: `${baseUrl}/apoderados/${ap.apoderadoId}`,
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // Silenciado
         }
     - type: tests
       code: |-
@@ -39,8 +43,10 @@ runtime:
 
         test("Listar apoderados cuando no hay debe retornar lista vacia", function() {
           expect(res.getStatus()).to.equal(200);
-          expect(Array.isArray(response)).to.be.true;
-          expect(response.length).to.equal(0);
+          expect(Array.isArray(response.content)).to.be.true;
+          
+          // CORRECCIÓN: Validar el tamaño del array 'content'
+          expect(response.content.length).to.equal(0);
         });
 
 settings:

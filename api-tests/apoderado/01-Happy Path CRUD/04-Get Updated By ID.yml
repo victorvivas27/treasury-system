@@ -37,7 +37,7 @@ runtime:
         // El ID debe ser el mismo (no cambió)
         test("ID should remain the same", function () { 
           // Comparar convirtiendo a number
-          expect(body.id).to.equal(Number(idOriginal));
+          expect(body.apoderadoId).to.equal(Number(idOriginal));
         });
 
 settings:

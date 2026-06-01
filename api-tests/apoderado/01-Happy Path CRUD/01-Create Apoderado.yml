@@ -30,8 +30,8 @@ runtime:
         });
 
         //La respuesta debe contener el ID.
-        test("Response should contain id", function () {
-        expect(body.id).to.not.be.undefined;
+        test("Response should contain apoderadoId", function () {
+        expect(body.apoderadoId).to.not.be.undefined;
         });
 
         //El nombre debe escribirse en mayúsculas.
@@ -39,14 +39,11 @@ runtime:
          expect(body.nombre).to.equal("VICTOR JAVIER");
         });
 
-        // Guarda el id en variable
-        // Variable temporal (solo runtime de ejecución)
-        // bru.setVar("apoderadoId", body.id);
-
-        // Variable persistente en el environment
-        //bru.setEnvVar("apoderadoId", body.id);
-        //Variable de environment intentando persistir en disco
-        bru.setEnvVar("apoderadoId", body.id.toString(), { persist: true });
+        // Guardar la variable de forma segura e independiente del formateo
+        if (body && body.apoderadoId) {
+          // Bruno persiste las variables de entorno automáticamente en memoria durante la sesión
+          bru.setEnvVar("apoderadoId", String(body.apoderadoId));
+        }
 
 settings:
   encodeUrl: true

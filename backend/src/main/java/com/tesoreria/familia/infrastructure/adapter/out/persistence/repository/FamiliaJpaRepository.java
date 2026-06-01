@@ -35,10 +35,4 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
       "(SELECT f.alumnoId FROM FamiliaEntity f JOIN f.apoderadosIds a WHERE a = :apoderadoId)")
   List<Alumno> findAlumnosByApoderadoId(@Param("apoderadoId") Long apoderadoId);
 
-  // --- MÉTODOS ELIMINADOS O REEMPLAZADOS POR CONTRATO ---
-  // - findByAlumnoIdAndApoderadoId (Eliminado: No se usa en el adaptador limpio)
-  // - existsByAlumnoIdAndApoderadoId (Eliminado: No se usa en el adaptador
-  // limpio)
-  // - existsByAlumnoIdAndApoderadoIdNotAndPrincipalTrue (Eliminado: El principal
-  // ahora aplica a toda la lista)
 }

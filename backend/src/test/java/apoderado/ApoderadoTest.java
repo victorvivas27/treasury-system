@@ -13,17 +13,17 @@ import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
 
+@SuppressWarnings("unused")
 class ApoderadoTest {
   private Apoderado a;
 
   @BeforeEach
-  @SuppressWarnings("unused")
+
   void setUp() {
     a = new Apoderado();
   }
 
   @Nested
-  @SuppressWarnings("unused")
   class NombreTest {
     @Test
     void deberiaEliminarEspaciosEnBlancoYConvertirAMayusculas() {
@@ -115,7 +115,6 @@ class ApoderadoTest {
   }
 
   @Nested
-  @SuppressWarnings("unused")
   class EmailTest {
 
     @Test
@@ -133,7 +132,7 @@ class ApoderadoTest {
           () -> a.setEmail(email));
       assertEquals(
           "El email no puede tener más de "
-              + ValidationConstants.LONGITUD_MAXIMA_EMAIL
+              + ValidationConstants.LONGITUD_MAXIMA_CIEN
               + ValidationConstants.CARACTERES,
           ex.getMessage());
     }
@@ -240,7 +239,7 @@ class ApoderadoTest {
 
     @Test
     void deberiaAceptarEmailConLongitudExactaMaxima() {
-      String localPart = "a".repeat(ValidationConstants.LONGITUD_MAXIMA_EMAIL - 11); // -11 para "@mail.com"
+      String localPart = "a".repeat(ValidationConstants.LONGITUD_MAXIMA_CIEN - 11); // -11 para "@mail.com"
       a.setEmail(localPart + "@mail.com");
       assertNotNull(a.getEmail());
     }
@@ -253,7 +252,6 @@ class ApoderadoTest {
   }
 
   @Nested
-  @SuppressWarnings("unused")
   class TelefonoTest {
 
     @Test
@@ -318,7 +316,6 @@ class ApoderadoTest {
   }
 
   @Nested
-  @SuppressWarnings("unused")
   class ObservacionesTest {
     @Test
     void deberiaAceptarNull() {
@@ -335,7 +332,6 @@ class ApoderadoTest {
   }
 
   @Nested
-  @SuppressWarnings("unused")
   class ConstructorTest {
 
     @Test
@@ -346,7 +342,9 @@ class ApoderadoTest {
           " juan ",
           "TEST@MAIL.COM ",
           "123456789",
-          " obs ");
+          " obs ",
+          null,
+          null);
 
       assertEquals("JUAN", a.getNombre());
       assertEquals("test@mail.com", a.getEmail());

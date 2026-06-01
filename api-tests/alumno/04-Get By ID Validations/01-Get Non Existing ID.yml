@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/999999"
+  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
   auth: inherit
 
 runtime:
@@ -28,4 +28,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

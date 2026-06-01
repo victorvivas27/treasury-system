@@ -14,9 +14,9 @@ public interface FamiliaRepositoryOutPort {
 
   Familia save(Familia familia);
 
-  Optional<Familia> findById(Long id);
+  Optional<Familia> findById(Long familiaId);
 
-  Optional<Familia> findDetalleById(Long id);
+  Optional<Familia> findDetalleById(Long familiaId);
 
   Optional<Familia> findByAlumnoId(Long alumnoId);
 
@@ -28,14 +28,13 @@ public interface FamiliaRepositoryOutPort {
 
   void delete(Familia familia);
 
-  void deleteById(Long id);
+  void deleteById(Long familiaId);
 
-  boolean existsById(Long id);
+  boolean existsById(Long familiaId);
 
   boolean existsByAlumnoId(Long alumnoId);
 
   boolean existsPrincipalByAlumnoId(Long alumnoId);
   
-  List<Familia> findAll();
 
 }

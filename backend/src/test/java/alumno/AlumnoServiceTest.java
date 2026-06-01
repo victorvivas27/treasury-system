@@ -25,7 +25,7 @@ import com.tesoreria.alumno.core.port.out.AlumnoRepositoryOutPort;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
-
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 public class AlumnoServiceTest {
 
@@ -93,7 +93,7 @@ public class AlumnoServiceTest {
   @Nested
   class CreateTests {
 
-  @Test
+    @Test
     void create_deberiaGuardarCuandoAlumnoNoExiste() {
       when(repository.save(mockAlumno))
           .thenReturn(mockAlumno);

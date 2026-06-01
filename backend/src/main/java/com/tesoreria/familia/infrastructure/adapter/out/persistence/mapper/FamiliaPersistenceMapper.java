@@ -9,15 +9,13 @@ import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.Famil
 @Component
 public class FamiliaPersistenceMapper {
 
-  // Eliminada la inyección intrusa de AlumnoMapper del constructor
-
   public Familia toDomain(FamiliaEntity entity) {
     if (entity == null) {
       return null;
     }
 
     return new Familia(
-        entity.getId(),
+        entity.getFamiliaId(),
         entity.getAlumnoId(),
         entity.getCodigo(),
         entity.getApoderadosIds(), 
@@ -32,7 +30,7 @@ public class FamiliaPersistenceMapper {
     }
 
     return new FamiliaEntity(
-        domain.getId(),
+        domain.getFamiliaId(),
         domain.getAlumnoId(),
         domain.getCodigo(),
         new ArrayList<>(domain.getApoderadosIds()),

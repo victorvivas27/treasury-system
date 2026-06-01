@@ -5,13 +5,9 @@ import java.util.Locale;
 
 import com.tesoreria.alumno.core.exception.AlumnoErrorCode;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
 
 public class Alumno {
-
-  private static final int LONGITUD_MINIMA_NOMBRE = 2;
-  private static final int LONGITUD_MAXIMA_NOMBRE = 100;
-  private static final int LONGITUD_MINIMA_CURSO = 1;
-  private static final int LONGITUD_MAXIMA_CURSO = 50;
 
   private Long alumnoId;
   private String codigo;
@@ -38,34 +34,15 @@ public class Alumno {
     setCurso(curso);
   }
 
-  public Long getAlumnoId() {
-    return alumnoId;
-  }
-
   public void setAlumnoId(Long alumnoId) {
     this.alumnoId = alumnoId;
   }
 
-  public String getCodigo() {
-    return codigo;
-  }
-
-  public void setCodigo(String codigo) {
-    this.codigo = codigo;
-  }
-
-  public String getNombre() {
-    return nombre;
-  }
-
-public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-  }
-
+  /**
+   * Set the nombre of the alumno.
+   *
+   * @param nombre
+   */
   public final void setNombre(String nombre) {
     String nombreNormalizado = nombre == null ? null : nombre.trim();
 
@@ -77,7 +54,7 @@ public LocalDateTime getCreatedAt() {
           "El nombre no puede estar vacío");
     }
 
-    if (nombreNormalizado.length() < LONGITUD_MINIMA_NOMBRE) {
+    if (nombreNormalizado.length() < ValidationConstants.LONGITUD_MINIMA_DOS) {
       throw new DomainException(
           AlumnoErrorCode.NOMBRE_INVALIDO.getCodigo(),
           AlumnoErrorCode.NOMBRE_INVALIDO.getField(),
@@ -85,7 +62,7 @@ public LocalDateTime getCreatedAt() {
           "El nombre debe tener al menos 2 caracteres");
     }
 
-    if (nombreNormalizado.length() > LONGITUD_MAXIMA_NOMBRE) {
+    if (nombreNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CIEN) {
       throw new DomainException(
           AlumnoErrorCode.NOMBRE_INVALIDO.getCodigo(),
           AlumnoErrorCode.NOMBRE_INVALIDO.getField(),
@@ -104,9 +81,15 @@ public LocalDateTime getCreatedAt() {
     this.nombre = nombreNormalizado.toUpperCase(Locale.ROOT);
   }
 
-  public String getCurso() {
-    return curso;
-  }
+  /**
+   * =====================================================================
+   */
+
+  /**
+   * Set the curso of the alumno.
+   *
+   * @param curso
+   */
 
   public final void setCurso(String curso) {
     String cursoNormalizado = curso == null ? null : curso.trim();
@@ -119,7 +102,7 @@ public LocalDateTime getCreatedAt() {
           "El curso no puede estar vacío");
     }
 
-    if (cursoNormalizado.length() < LONGITUD_MINIMA_CURSO) {
+    if (cursoNormalizado.length() < ValidationConstants.LONGITUD_MINIMA_UNO) {
       throw new DomainException(
           AlumnoErrorCode.CURSO_INVALIDO.getCodigo(),
           AlumnoErrorCode.CURSO_INVALIDO.getField(),
@@ -127,7 +110,7 @@ public LocalDateTime getCreatedAt() {
           "El curso debe tener al menos 1 carácter");
     }
 
-    if (cursoNormalizado.length() > LONGITUD_MAXIMA_CURSO) {
+    if (cursoNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CINCUENTA) {
       throw new DomainException(
           AlumnoErrorCode.CURSO_INVALIDO.getCodigo(),
           AlumnoErrorCode.CURSO_INVALIDO.getField(),
@@ -136,6 +119,30 @@ public LocalDateTime getCreatedAt() {
     }
 
     this.curso = cursoNormalizado;
+  }
+
+  public Long getAlumnoId() {
+    return alumnoId;
+  }
+
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public String getNombre() {
+    return nombre;
+  }
+
+  public String getCurso() {
+    return curso;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
   }
 
 }
