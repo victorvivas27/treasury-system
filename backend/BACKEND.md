@@ -119,7 +119,11 @@ PMD permite detectar:
 ### Abrir reporte HTML
 
 ```bash
+linux:
 xdg-open build/reports/pmd/main.html
+
+windows:
+start build/reports/pmd/main.html
 ```
 
 > 💡 Compatible con entornos Linux que tengan interfaz gráfica.
