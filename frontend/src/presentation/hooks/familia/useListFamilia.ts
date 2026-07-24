@@ -1,11 +1,8 @@
 
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ListAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/familia/list/ListAlumnoApoderadoUseCase";
-
-const repository = new FamiliaRepositoryImpl();
-const getFamiliaByAlumnoUseCase = new ListAlumnoApoderadoUseCase(repository);
 
 interface UseListFamiliaOptions {
   initialPage?: number;
@@ -13,13 +10,17 @@ interface UseListFamiliaOptions {
 }
 
 export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
-  const { initialPage = 0, pageSize = 3 } = options;
+  const { initialPage = 0, pageSize = 5 } = options;
   const [familia, setFamilia] = useState<FamiliaDetalle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const getFamiliaByAlumnoUseCase = useMemo(
+    () => new ListAlumnoApoderadoUseCase(new FamiliaRepositoryImpl()),
+    [],
+  );
 
   const fetchFamilia = useCallback(async (page: number) => {
     const MIN_LOADING_TIME = 300;
@@ -49,7 +50,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
 
       setLoading(false);
     }
-  }, [pageSize]);
+  }, [getFamiliaByAlumnoUseCase, pageSize]);
 
   const nextPage = useCallback(async () => {
     if (currentPage + 1 < totalPages) {
@@ -77,6 +78,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
 
   return {
     familia,
+    vinculos: familia,
     loading,
     error,
     refetch,
@@ -91,3 +93,5 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
     totalElements,
   };
 };
+
+export const useListAlumnoApoderado = useListFamilia;

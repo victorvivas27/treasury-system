@@ -88,7 +88,7 @@ describe("AlumnosList Component", () => {
     expect(screen.getByText("Lista de Alumnos")).toBeInTheDocument();
     expect(screen.getByText("Nombre")).toBeInTheDocument();
     expect(screen.getByText("Curso")).toBeInTheDocument();
-    expect(screen.getByText("Apoderado ID")).toBeInTheDocument();
+    expect(screen.getByText("Codigo")).toBeInTheDocument();
     expect(screen.getByText("Acciones")).toBeInTheDocument();
   });
 
@@ -147,7 +147,7 @@ describe("AlumnosList Component", () => {
     if (nonEmptyCells.length >= 3) {
       expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Nombre");
       expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Curso");
-      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Apoderado ID");
+      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Codigo");
     }
   });
 

@@ -2,6 +2,8 @@ info:
   name: 01-Email Already Exists
   type: http
   seq: 1
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -22,6 +24,31 @@ runtime:
       code: |-
         const baseUrl = bru.getEnvVar('Url_Base');
 
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/apoderados?size=100`,
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+          
+          if (apoderados && apoderados.length > 0) {
+            for (const ap of apoderados) {
+              if (ap.codigo) {
+                await bru.sendRequest({
+                  url: `${baseUrl}/apoderados/${ap.codigo}`,
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // Silenciado
+        }
+
+
         const apoderado = {
           nombre: "Victor Vivas",
           email: "victor@gmail.com",
@@ -36,32 +63,24 @@ runtime:
           },
           data: apoderado
         });
-
-        const creadoRaw = preResponse.data || preResponse.body;
-        const creado = typeof creadoRaw === "string"
-          ? JSON.parse(creadoRaw)
-          : creadoRaw;
-
-        bru.setVar("apoderadoIdCreadoPre", creado.id);
-        bru.setVar("bodyData", JSON.stringify(apoderado));
     - type: after-response
       code: |-
         const baseUrl = bru.getEnvVar('Url_Base');
-        const id = bru.getVar('apoderadoIdCreadoPre');
+        const codigo = bru.getVar('apoderadoIdCreadoPre');
 
-        if (id) {
+        if (codigo) {
           try {
             await bru.sendRequest({
-              url: `${baseUrl}/apoderados/${id}`,
+              url: `${baseUrl}/apoderados/${codigo}`,
               method: 'DELETE'
             });
 
-            console.log(`✅ Apoderado ${id} eliminado`);
+            console.log(`✅ Apoderado ${codigo} eliminado`);
           } catch(error) {
-            console.log(`❌ Error eliminando: ${error}`);
+            //console.log(`❌ Error eliminando: ${error}`);
           }
         } else {
-          console.log('⚠️ No se encontró ID para eliminar');
+          //console.log('⚠️ No se encontró ID para eliminar');
         }
     - type: tests
       code: |-

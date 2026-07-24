@@ -6,57 +6,30 @@ info:
 request:
   auth: inherit
   scripts:
-    - type: before-request
-      code: |-
-        const baseUrl = bru.getEnvVar('Url_Base');
-
-        try {
-          const listar = await bru.sendRequest({
-            url: `${baseUrl}/apoderados?size=100`,
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
-          
-          if (apoderados && apoderados.length > 0) {
-            for (const ap of apoderados) {
-              if (ap.apoderadoId) {
-                await bru.sendRequest({
-                  url: `${baseUrl}/apoderados/${ap.apoderadoId}`,
-                  method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' }
-                });
-              }
-            }
-          }
-        } catch (e) {
-          // Silenciado
-        }
     - type: after-response
       code: |-
-        const baseUrl = bru.getEnvVar('Url_Base');
+        // const baseUrl = bru.getEnvVar('Url_Base');
 
-        try {
-          const listar = await bru.sendRequest({
-            url: `${baseUrl}/apoderados?size=100`,
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
+        // try {
+        //   const listar = await bru.sendRequest({
+        //     url: `${baseUrl}/apoderados?size=100`,
+        //     method: 'GET',
+        //     headers: { 'Content-Type': 'application/json' }
+        //   });
 
-          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+        //   const apoderados = listar.data && listar.data.content ? listar.data.content : null;
           
-          if (apoderados && apoderados.length > 0) {
-            for (const ap of apoderados) {
-              if (ap.apoderadoId) {
-                await bru.sendRequest({
-                  url: `${baseUrl}/apoderados/${ap.apoderadoId}`,
-                  method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' }
-                });
-              }
-            }
-          }
-        } catch (e) {
-          // Silenciado
-        }
+        //   if (apoderados && apoderados.length > 0) {
+        //     for (const ap of apoderados) {
+        //       if (ap.apoderadoId) {
+        //         await bru.sendRequest({
+        //           url: `${baseUrl}/apoderados/${ap.apoderadoId}`,
+        //           method: 'DELETE',
+        //           headers: { 'Content-Type': 'application/json' }
+        //         });
+        //       }
+        //     }
+        //   }
+        // } catch (e) {
+        //   // Silenciado
+        // }

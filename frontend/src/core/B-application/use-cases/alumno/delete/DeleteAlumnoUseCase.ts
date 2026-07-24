@@ -7,7 +7,7 @@ export class DeleteAlumnoUseCase {
     this.alumnoRepository = alumnoRepository;
   }
 
-  async execute(id: number): Promise<void> {
-    return await this.alumnoRepository.delete(id);
+  async execute(codigo: string): Promise<void> {
+    return await this.alumnoRepository.deleteByCodigo(codigo);
   }
 }

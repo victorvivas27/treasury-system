@@ -6,15 +6,18 @@ import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const useCreateAlumno = () => {
+
   const navigate = useNavigate();
-  const initialFormState: CreateAlumnoDTO = {
+  const initialFormState: CreateAlumnoDTO & { apoderadoId?: number } = {
     nombre: "",
     curso: "",
+    apoderadoId: 0,
   };
 
-  const [formData, setFormData] = useState<CreateAlumnoDTO>({
+  const [formData, setFormData] = useState<CreateAlumnoDTO & { apoderadoId?: number }>({
     ...initialFormState,
   });
+
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
@@ -27,16 +30,20 @@ export const useCreateAlumno = () => {
     setModal({ isOpen: true, message, type });
   };
 
+
   const closeModal = () => {
     setModal((prev) => ({ ...prev, isOpen: false }));
     if (modal.type === "success") navigate("/students");
   };
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name.endsWith("Id") ? (value ? Number(value) : 0) : value,
+    }));
 
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
@@ -50,23 +57,29 @@ export const useCreateAlumno = () => {
   const handleActionSubmit = async () => {
     setLoading(true);
     setFieldErrors({});
+
     const repository = new AlumnoRepositoryImpl();
     const useCase = new CreateAlumnoUseCase(repository);
 
     try {
       await useCase.execute(formData);
+
       showAlert("¡Datos guardados con éxito!", "success");
       setFormData(initialFormState);
+      setFieldErrors({});
     } catch (error: any) {
       if (!axios.isAxiosError(error) || !error.response) {
         showAlert("Ocurrió un error inesperado", "error");
         return;
       }
-      const { code, errors, message } = error.response.data;
-      if (code === "ERROR_VALIDACION" && errors) {
+
+      const { errors, message } = error.response.data;
+
+      if (errors && Object.keys(errors).length > 0) {
         setFieldErrors(errors);
         return;
       }
+
       showAlert(message || "Error al procesar la solicitud", "error");
     } finally {
       setLoading(false);

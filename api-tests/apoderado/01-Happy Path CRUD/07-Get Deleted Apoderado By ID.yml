@@ -2,10 +2,12 @@ info:
   name: 07-Get Deleted Apoderado By ID
   type: http
   seq: 7
+  tags:
+    - apoderados
 
 http:
   method: GET
-  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  url: "{{Url_Base}}/apoderados/{{codigo}}"
   auth: inherit
 
 runtime:

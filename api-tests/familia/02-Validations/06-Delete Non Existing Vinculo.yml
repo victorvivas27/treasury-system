@@ -1,11 +1,11 @@
 info:
-  name: 06-Delete Non Existing Vinculo
+  name: 06-Delete Non Existing Familia
   type: http
   seq: 6
 
 http:
   method: DELETE
-  url: "{{Url_Base}}/familias/alumno-apoderado/999999"
+  url: "{{Url_Base}}/familias/999999"
   auth: inherit
 
 runtime:

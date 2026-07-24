@@ -11,16 +11,18 @@ public interface ApoderadoRepositoryOutPort {
 
   Apoderado save(Apoderado apoderado);
 
+  Optional<Apoderado> findByCodigo(String codigo);
+
   Optional<Apoderado> findById(Long apoderadoId);
+
+  List<Apoderado> findAllByIds(List<Long> apoderadoIds);
 
   PageResponse<Apoderado> findAll(PageRequest pageRequest);
 
-  void deleteById(Long apoderadoId);
+  void deleteByCodigo(String codigo);
 
   boolean existsByEmail(String email);
 
-  boolean existsById(Long apoderadoId);
-
-  List<Apoderado> findAllByIds(List<Long> apoderadoIds);
+  boolean existsByCodigo(String codigo);
 
 }

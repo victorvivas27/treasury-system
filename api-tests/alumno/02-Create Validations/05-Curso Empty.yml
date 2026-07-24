@@ -2,6 +2,8 @@ info:
   name: 05-Curso Empty
   type: http
   seq: 5
+  tags:
+    - alumno
 
 http:
   method: POST

@@ -71,9 +71,11 @@ describe('useEditApoderado Hook', () => {
     expect(result.current.modal.type).toBe("error");
   });
 
-  it("[useEditApoderado #05] Debe actualizar el estado formData cuando se dispara handleChange.", () => {
-    (useParams as any).mockReturnValue({ id: 1 });
+  it("[useEditApoderado #05] Debe actualizar el estado formData cuando se dispara handleChange.", async () => {
+    (useParams as any).mockReturnValue({ apoderadoId: "AP-1" });
+    mockGetUseCase.execute.mockResolvedValue({ nombre: "", email: "", telefono: "", observaciones: "" });
     const { result } = renderHook(() => useEditApoderado(), { wrapper: MemoryRouter });
+    await act(async () => { await vi.runAllTimersAsync(); });
     act(() => {
       result.current.handleChange({ target: { name: "nombre", value: "Carlos" } } as any);
     });

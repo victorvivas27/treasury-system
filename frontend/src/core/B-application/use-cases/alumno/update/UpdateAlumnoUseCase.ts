@@ -8,8 +8,8 @@ export class UpdateAlumnoUseCase {
     this.alumnoRepository = alumnoRepository;
   }
 
-  async execute(id: number, datosActualizados: Partial<Alumno>): Promise<Alumno> {
-    const alumno = await this.alumnoRepository.update(id, datosActualizados);
+  async execute(codigo: string, datosActualizados: Partial<Alumno>): Promise<Alumno> {
+    const alumno = await this.alumnoRepository.updateByCodigo(codigo, datosActualizados);
     return alumno;
   }
 }

@@ -2,6 +2,8 @@ info:
   name: 13-Email With Uppercase (normalization test)
   type: http
   seq: 13
+  tags:
+    - apoderados
 
 http:
   method: POST

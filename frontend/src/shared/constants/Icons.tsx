@@ -13,6 +13,7 @@ import { GrEdit } from "react-icons/gr";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { TiArrowBackOutline } from "react-icons/ti";
 import { MdOutlineCancel } from "react-icons/md";
+import { IoMdAddCircleOutline } from "react-icons/io";
 
 
 
@@ -28,6 +29,7 @@ export const ICONS = {
   settings: IoSettingsOutline,
   logout: BiExit,
   crearFamilia: AiOutlineUsergroupAdd
+
 };
 
 export const SIDEBAR_LINKS = [
@@ -68,7 +70,8 @@ export const APODERADOS_ICONS = {
   delete: MdOutlineDeleteOutline,
   edit: GrEdit,
   back: TiArrowBackOutline,
-  cancel: MdOutlineCancel
+  cancel: MdOutlineCancel,
+  addCircle: IoMdAddCircleOutline
 };
 
 export const ALUMNOS_ICONS = {
@@ -79,7 +82,8 @@ export const ALUMNOS_ICONS = {
   edit: GrEdit,
   save: GrEdit,
   back: TiArrowBackOutline,
-  cancel: MdOutlineCancel
+  cancel: MdOutlineCancel,
+  addCircle: IoMdAddCircleOutline
 };
 
 export const FAMILIA_ICONS = {
@@ -91,7 +95,8 @@ export const FAMILIA_ICONS = {
   save: GrEdit,
   crearFamilia: AiOutlineUsergroupAdd,
   back: TiArrowBackOutline,
-  cancel: MdOutlineCancel
+  cancel: MdOutlineCancel,
+  addCircle: IoMdAddCircleOutline
 };
 
 

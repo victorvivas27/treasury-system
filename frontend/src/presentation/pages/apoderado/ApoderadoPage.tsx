@@ -24,8 +24,8 @@ export const ApoderadoPage: FC = () => {
     pageSize,
     isLastPage,
   } = useApoderados();
-  const handleEdit = (id: number) => {
-    navigate(`/parents/edit/${id}`);
+  const handleEdit = (codigo: string) => {
+    navigate(`/parents/edit/${codigo}`);
   };
 
   const {

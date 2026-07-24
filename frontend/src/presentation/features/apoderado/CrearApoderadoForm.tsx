@@ -16,79 +16,92 @@ export const CrearApoderadoForm = () => {
     handleActionSubmit,
     navigate,
     setModal,
-    //showAlert
   } = useCreateApoderado();
 
   return (
-    <div className="form-view-container">
-      <form className="form-card">
-
-
+    <main>
+      <form className="form-card-apoderado">
         {/* Campo Nombre */}
-        <div className="form-group floating-group ">
+        <div className="form-group-apoderado">
           <input
             id="nombre_input"
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
             placeholder="Juan Carlos Perez Example"
-            className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
+            className={`form-input-apoderado ${fieldErrors.nombre ?
+              'input-error-apoderado input-error' : ''}`}
           />
-          <label htmlFor="nombre_input" className="floating-label form-label">Nombre completo </label>
-          {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
+          <label htmlFor="nombre_input" className="floating-label-apoderado form-label-apoderado">
+            Nombre completo
+          </label>
+          {fieldErrors.nombre && (
+            <span className="error-message-apoderado">{fieldErrors.nombre}</span>
+          )}
         </div>
 
-
         {/* Campo Email */}
-        <div className="form-group floating-group">
+        <div className="form-group-apoderado">
           <input
             id="email_input"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="ejemplo@email.com" /* El ejemplo va aquí */
-            className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
+            placeholder="ejemplo@email.com"
+            className={`form-input-apoderado ${fieldErrors.email ?
+              'input-error-apoderado input-error' : ''}`}
           />
-          <label htmlFor="email_input" className="floating-label form-label">Email </label>
-          {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
+          <label htmlFor="email_input" className="floating-label-apoderado">
+            Email
+          </label>
+          {fieldErrors.email && (
+            <span className="error-message-apoderado">{fieldErrors.email}</span>
+          )}
         </div>
 
-
         {/* Campo Teléfono */}
-        <div className="form-group floating-group">
-
+        <div className="form-group-apoderado">
           <input
             id="telefono_input"
             name="telefono"
             value={formData.telefono}
             onChange={handleChange}
-            placeholder="+56 9 888 88 88 "
-            className={`form-input ${fieldErrors.telefono ? 'input-error' : ''}`}
+            placeholder="+56 9 888 88 88"
+            className={`form-input-apoderado ${fieldErrors.telefono ?
+              'input-error-apoderado input-error' : ''}`}
           />
-          <label htmlFor="telefono_input" className="floating-label form-label">Teléfono</label>
-          {fieldErrors.telefono && <span className="error-message">{fieldErrors.telefono}</span>}
+          <label htmlFor="telefono_input" className="floating-label-apoderado form-label-apoderado">
+            Teléfono
+          </label>
+          {fieldErrors.telefono && (
+            <span className="error-message-apoderado">{fieldErrors.telefono}</span>
+          )}
         </div>
 
-        <div className="form-group col-span-3">
-          <label htmlFor="observaciones_input" className="form-label">Observaciones</label>
+        {/* Campo Observaciones */}
+        <div className="form-group-apoderado">
+          <label htmlFor="observaciones_input" className="form-label-apoderado">
+            Observaciones
+          </label>
           <textarea
             id="observaciones_input"
             name="observaciones"
             value={formData.observaciones}
             onChange={handleChange}
-            className="form-input form-textarea"
+            className="form-input-apoderado"
             placeholder="escribe aquí"
           />
         </div>
 
-        <div className="form-actions">
+        {/* Acciones */}
+        <div className="form-actions-apoderado">
           <Button
             variant="primary"
             size="medium"
             onClick={handleActionSubmit}
             loading={loading}
-            label={loading ? "Actualizando..." : "Actualizar"}
-            icon={<APODERADOS_ICONS.reload />}
+            label={loading ? "Creando Apoderado" : "Crear Apoderado"}
+            icon={<APODERADOS_ICONS.addCircle />}
           />
 
           <Button
@@ -113,13 +126,6 @@ export const CrearApoderadoForm = () => {
         }}
         autoCloseTime={2000}
       />
-
-      {/* <Button
-        label="Probar Modal"
-        onClick={() => showAlert("¡Esto es una prueba sin backend!", "error")}
-        variant="secondary"
-      /> */}
-
-    </div>
+    </main>
   );
 };

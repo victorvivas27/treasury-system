@@ -1,18 +1,24 @@
 info:
-  name: 05-Update Vinculo
+  name: 05-Update Familia
   type: http
   seq: 6
 
 http:
   method: PUT
-  url: "{{Url_Base}}/familias/alumno-apoderado/{{familiaVinculoId}}"
+  url: "{{Url_Base}}/familias/{{familiaId}}"
   body:
     type: json
     data: |-
       {
-        "parentesco": "Tutor",
-        "principal": false,
-        "observaciones": "Contacto secundario"
+        "alumnoId": {{familiaAlumnoId}},
+        "observacionesGenerales": "Contacto secundario actualizado",
+        "apoderados": [
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Tutor",
+            "esPrincipal": false
+          }
+        ]
       }
   auth: inherit
 
@@ -26,9 +32,9 @@ runtime:
           expect(res.getStatus()).to.equal(200);
         });
 
-        test("Vinculo should be updated", function () {
-          expect(body.parentesco).to.equal("Tutor");
-          expect(body.principal).to.equal(false);
+        test("Familia should be updated", function () {
+          expect(body.apoderados[0].parentesco).to.equal("Tutor");
+          expect(body.apoderados[0].esPrincipal).to.equal(false);
         });
 
 settings:

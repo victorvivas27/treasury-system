@@ -2,6 +2,8 @@ info:
   name: 05-Telefono Too Long
   type: http
   seq: 5
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -11,8 +13,8 @@ http:
     data: |-
       {
         "nombre":"Victor Javier",
-        "email":"victor@gmail.com",
-        "telefono":"+123456789101213"
+        "email":"victorr@gmail.com",
+        "telefono":"+1234567891012134"
       }
   auth: inherit
 
@@ -25,7 +27,9 @@ runtime:
       code: |-
         //Debe rechazar los telefonos con mas de 15 digitos.
         test("Should reject telefono with more than 15 digits", function() {
-          expect(res.body.errors.telefono).to.equal("El teléfono no puede tener más de 15 dígitos");
+          expect(res.body.errors.telefono).to.equal(
+            "El teléfono debe tener máximo 15 dígitos"
+          );
         });
 
 settings:

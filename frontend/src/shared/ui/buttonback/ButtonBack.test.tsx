@@ -1,8 +1,16 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it } from "vitest";
 import { ButtonBack } from "./ButtonBack";
-import { describe, expect } from "vitest";
 
-describe("renderiza el botón volver", () => {
-  render(<ButtonBack />);
-  expect(screen.getByText("Volver")).toBeInTheDocument();
+describe("ButtonBack", () => {
+  it("renderiza el boton volver", () => {
+    render(
+      <MemoryRouter>
+        <ButtonBack />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Volver")).toBeInTheDocument();
+  });
 });

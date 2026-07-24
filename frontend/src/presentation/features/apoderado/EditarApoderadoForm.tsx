@@ -1,6 +1,6 @@
 // components/apoderado/EditarApoderadoForm.tsx
 import { Button } from "@/shared/ui/button/Button";
-import "./style/CrearApoderadoForm.css"; // Reutilizamos el mismo CSS
+import "./style/CrearApoderadoForm.css";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
@@ -23,7 +23,6 @@ export const EditarApoderadoForm = () => {
     loadError
   } = useEditApoderado();
 
-  // Estado de Error
   if (loadError) {
     return (
       <FeedbackState
@@ -36,11 +35,11 @@ export const EditarApoderadoForm = () => {
 
 
   return (
-    <div className="form-view-container">
+    <main>
 
-      <form className="form-card">
+      <form className="form-card-apoderado">
         {/* Campo Nombre */}
-        <div className="form-group floating-group">
+        <div className="form-group-apoderado">
           <SkeletonWrapper
             isLoading={initialLoading}
             className="skeleton-name"
@@ -52,18 +51,21 @@ export const EditarApoderadoForm = () => {
               value={formData.nombre}
               onChange={handleChange}
               placeholder="Juan Carlos Perez Example"
-              className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
+              className={`form-input-apoderado ${fieldErrors.nombre ?
+                'input-error-apoderado input-error' : ''}`}
             />
           </SkeletonWrapper>
-          <label htmlFor="nombre_input" className="floating-label form-label">
+          <label htmlFor="nombre_input" className="floating-label-apoderado form-label-apoderado">
             Nombre completo
           </label>
-          {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
+          {fieldErrors.nombre &&(
+           <span className="error-message-apoderado">{fieldErrors.nombre}</span>
+           )}
 
         </div>
 
         {/* Campo Email */}
-        <div className="form-group floating-group">
+        <div className="form-group-apoderado">
           <SkeletonWrapper
             isLoading={initialLoading}
             className="skeleton-name"
@@ -75,17 +77,20 @@ export const EditarApoderadoForm = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="ejemplo@email.com"
-              className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
+              className={`form-input-apoderado ${fieldErrors.email ?
+                 'input-error-apoderado input-error' : ''}`}
             />
           </SkeletonWrapper>
-          <label htmlFor="email_input" className="floating-label form-label">
+          <label htmlFor="email_input" className="floating-label-apoderado form-label-apoderado">
             Email
           </label>
-          {fieldErrors.email && <span className="error-message">{fieldErrors.email}</span>}
+          {fieldErrors.email &&(
+           <span className="error-message-apoderado">{fieldErrors.email}</span>
+           )}
         </div>
 
         {/* Campo Teléfono */}
-        <div className="form-group floating-group">
+        <div className="form-group-apoderado">
           <SkeletonWrapper
             isLoading={initialLoading}
             className="skeleton-name"
@@ -97,18 +102,23 @@ export const EditarApoderadoForm = () => {
               value={formData.telefono}
               onChange={handleChange}
               placeholder="+56 9 8888 8888"
-              className={`form-input ${fieldErrors.telefono ? 'input-error' : ''}`}
+              className={`form-input-apoderado ${fieldErrors.telefono ?
+                 'input-error-apoderado input-error' : ''}`}
             />
           </SkeletonWrapper>
-          <label htmlFor="telefono_input" className="floating-label form-label">
+          <label htmlFor="telefono_input" className="floating-label-apoderado form-label-apoderado">
             Teléfono
           </label>
-          {fieldErrors.telefono && <span className="error-message">{fieldErrors.telefono}</span>}
+          {fieldErrors.telefono &&(
+          <span className="error-message-apoderado">{fieldErrors.telefono}</span>
+          )}
         </div>
 
         {/* Campo Observaciones */}
-        <div className="form-group col-span-3">
-          <label htmlFor="observaciones_input" className="form-label">Observaciones</label>
+        <div className="form-group-apoderado">
+          <label htmlFor="observaciones_input" className="form-label-apoderado">
+            Observaciones
+            </label>
           <SkeletonWrapper
             isLoading={initialLoading}
             className="skeleton-name"
@@ -119,7 +129,7 @@ export const EditarApoderadoForm = () => {
               name="observaciones"
               value={formData.observaciones}
               onChange={handleChange}
-              className="form-input form-textarea"
+              className="form-input-apoderado"
               placeholder="Escribe aquí..."
             />
           </SkeletonWrapper>
@@ -130,7 +140,7 @@ export const EditarApoderadoForm = () => {
             size="medium"
             onClick={handleSubmit}
             loading={loading}
-            label={loading ? "Actualizando..." : "Actualizar"}
+            label={loading ? "Actualizando Apoderado" : "Actualizar"}
             icon={<APODERADOS_ICONS.reload />}
           />
 
@@ -158,6 +168,6 @@ export const EditarApoderadoForm = () => {
         }}
         autoCloseTime={2000}
       />
-    </div>
+    </main>
   );
 };

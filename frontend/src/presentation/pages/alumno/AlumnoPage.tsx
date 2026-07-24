@@ -25,13 +25,13 @@ export const AlumnoPage: FC = () => {
 
   const navigate = useNavigate();
 
-  const handleEdit = (id: number) => {
-    navigate(`/students/edit/${id}`);
+  const handleEdit = (codigo: string) => {
+    navigate(`/students/edit/${codigo}`);
   };
 
-  const handleFamilia = (id: number) => {
-    navigate(`/students/${id}/parents`);
-  };
+  // const handleFamilia = (id: number) => {
+  //   navigate(`/students/${id}/parents`);
+  // };
 
   const {
     isDeleting,
@@ -89,7 +89,7 @@ export const AlumnoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
           handleEdit={handleEdit}
-          handleFamilia={handleFamilia}
+         //handleFamilia={handleFamilia}
           currentPage={currentPage}
           onNextPage={nextPage}
           onPrevPage={prevPage}

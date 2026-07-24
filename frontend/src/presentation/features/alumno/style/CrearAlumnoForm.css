@@ -1,55 +1,106 @@
-.form-card {
+.form-card-alumno {
   background-color: var(--color-surface);
-  padding: var(--sm);
+  padding: var(--xl);
   border-radius: 12px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--sm);
+  gap: var(--md);
 }
 
-.form-label {
-  color: var(--text-main);
-  font-size: var(--sm);
+.form-group-alumno {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: var(--md)
 }
 
-.form-input {
+.form-input-alumno {
   width: var(--wh-100);
+  min-height: 48px;
   padding: var(--md);
   background: var(--color-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--sm);
   color: var(--text-main);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-input:focus {
+.form-input-alumno:hover {
+  border-color: var(--color-text-muted);
+}
+
+.form-input-alumno:focus {
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb,
+   var(--color-accent) 20%, transparent
+   );
 }
 
-.form-input::placeholder {
+textarea.form-input-alumno {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.floating-label-alumno {
+  position: absolute;
+  left: 12px;
+  top: 24px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: all 0.2s ease-out;
+  background: transparent;
+  padding: 0 4px;
+  font-size: var(--sm);
+}
+
+.form-input-alumno::placeholder {
   color: transparent;
-  transition: color 0.3s ease;
 }
 
-.form-input:focus::placeholder {
+.form-input-alumno:focus::placeholder {
   color: var(--color-text-muted);
 }
 
-.form-input.input-error {
-  border-color: var(--color-error) !important;
+.form-input-alumno:focus+.floating-label-alumno,
+.form-input-alumno:not(:placeholder-shown)+.floating-label-alumno {
+  top: 0;
+  transform: translateY(-100%) scale(0.9);
+  color: var(--color-accent);
 }
 
-.error-message {
+.form-input-alumno.input-error-alumno {
+  border-color: var(--color-error);
+}
+
+.input-error-alumno:focus+.floating-label-alumno,
+.input-error-alumno:not(:placeholder-shown)+.floating-label-alumno {
+  color: var(--color-error);
+}
+
+.error-message-alumno {
   color: var(--color-error);
   font-size: var(--xs);
+  line-height: 1.2;
+  margin-top: 2px;
   animation: fadeIn 0.2s ease-in;
+}
+
+.form-actions-alumno {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--sm);
+  margin-top: var(--sm);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(-4px);
   }
 
   to {
@@ -58,43 +109,12 @@
   }
 }
 
-.floating-group {
-  position: relative;
-  margin-top: var(--sm);
-}
-
-.floating-label {
-  position: absolute;
-  left: 12px;
-  top: 40%;
-  transform: translateY(-65%);
-  color: var(--color-text-muted);
-  pointer-events: none;
-  transition: all 0.2s ease-out;
-  background: transparent;
-  padding: 0 4px;
-}
-
-.form-input:focus+.floating-label,
-.form-input:not(:placeholder-shown)+.floating-label {
-  top: 0;
-  transform: translateY(-90%) scale(0.90);
-  color: var(--color-accent);
-}
-
-.input-error:focus+.floating-label,
-.input-error:not(:placeholder-shown)+.floating-label {
-  color: var(--color-error);
-}
-
-.form-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--sm);
-}
-
 @media (max-width: 640px) {
-  .form-card {
+  .form-card-alumno {
     grid-template-columns: 1fr;
+  }
+
+  .form-actions-alumno {
+    flex-direction: column;
   }
 }

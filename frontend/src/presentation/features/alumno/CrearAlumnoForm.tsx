@@ -7,7 +7,6 @@ import "./style/CrearAlumnoForm.css";
 export const CrearAlumnoForm = () => {
   const {
     formData,
-    loading,
     fieldErrors,
     modal,
     handleChange,
@@ -17,32 +16,42 @@ export const CrearAlumnoForm = () => {
   } = useCreateAlumno();
 
   return (
-    <div className="form-view-container">
-      <form className="form-card">
-        <div className="form-group floating-group">
+    <main>
+      <form className="form-card-alumno">
+        {/* Campo Nombre */}
+        <div className="form-group-alumno">
           <input
             id="nombre_input"
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
-            placeholder="Juan Carlos Perez Example"
-            className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
+            placeholder="Jorge Luis Example"
+            className={`form-input-alumno ${fieldErrors.nombre ? 'input-error-alumno' : ''}`}
           />
-          <label htmlFor="nombre_input" className="floating-label form-label">Nombre completo</label>
-          {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
+          <label htmlFor="nombre_input" className="floating-label-alumno form-label-alumno">
+            Nombre completo
+          </label>
+          {fieldErrors.nombre && (
+            <span className="error-message-alumno">{fieldErrors.nombre}</span>
+          )}
         </div>
 
-        <div className="form-group floating-group">
+        {/* Campo Curso */}
+        <div className="form-group-alumno">
           <input
             id="curso_input"
             name="curso"
             value={formData.curso}
             onChange={handleChange}
             placeholder="4A"
-            className={`form-input ${fieldErrors.curso ? 'input-error' : ''}`}
+            className={`form-input-alumno ${fieldErrors.curso ? 'input-error-alumno' : ''}`}
           />
-          <label htmlFor="curso_input" className="floating-label form-label">Curso</label>
-          {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
+          <label htmlFor="curso_input" className="floating-label-alumno form-label-alumno">
+            Curso
+          </label>
+          {fieldErrors.curso &&(
+          <span className="error-message-alumno">{fieldErrors.curso}</span>
+        )}
         </div>
 
         <div className="form-actions">
@@ -50,9 +59,8 @@ export const CrearAlumnoForm = () => {
             variant="primary"
             size="medium"
             onClick={handleActionSubmit}
-            loading={loading}
-            label={loading ? "Guardando..." : "Guardar"}
-            icon={<ALUMNOS_ICONS.reload  />}
+            label={"Crear Alumno"}
+            icon={<ALUMNOS_ICONS.addCircle />}
           />
 
           <Button
@@ -60,7 +68,7 @@ export const CrearAlumnoForm = () => {
             size="medium"
             onClick={() => navigate("/students")}
             label="Cancelar"
-            icon={<ALUMNOS_ICONS.cancel/>}
+            icon={<ALUMNOS_ICONS.cancel />}
           />
         </div>
       </form>
@@ -72,6 +80,6 @@ export const CrearAlumnoForm = () => {
         onClose={closeModal}
         autoCloseTime={2500}
       />
-    </div>
+    </main>
   );
 };

@@ -1,11 +1,11 @@
 info:
-  name: 04-Get Non Existing Vinculo
+  name: 04-Get Non Existing Familia
   type: http
   seq: 4
 
 http:
   method: GET
-  url: "{{Url_Base}}/familias/alumno-apoderado/999999"
+  url: "{{Url_Base}}/familias/999999"
   auth: inherit
 
 runtime:

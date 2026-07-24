@@ -1,9 +1,10 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.mapper;
-import java.util.ArrayList;
 
 import org.springframework.stereotype.Component;
 
 import com.tesoreria.familia.core.model.Familia;
+import com.tesoreria.familia.core.model.FamiliaApoderado;
+import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaApoderadoEntity;
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaEntity;
 
 @Component
@@ -18,10 +19,13 @@ public class FamiliaPersistenceMapper {
         entity.getFamiliaId(),
         entity.getAlumnoId(),
         entity.getCodigo(),
-        entity.getApoderadosIds(), 
-        entity.getParentesco(),
-        entity.getPrincipal(),
-        entity.getObservaciones());
+        entity.getApoderados().stream()
+            .map(apoderado -> new FamiliaApoderado(
+                apoderado.getApoderadoId(),
+                apoderado.getParentesco(),
+                apoderado.getEsPrincipal()))
+            .toList(),
+        entity.getObservacionesGenerales());
   }
 
   public FamiliaEntity toEntity(Familia domain) {
@@ -33,9 +37,12 @@ public class FamiliaPersistenceMapper {
         domain.getFamiliaId(),
         domain.getAlumnoId(),
         domain.getCodigo(),
-        new ArrayList<>(domain.getApoderadosIds()),
-        domain.getParentesco(),
-        domain.getPrincipal(),
+        domain.getApoderados().stream()
+            .map(apoderado -> new FamiliaApoderadoEntity(
+                apoderado.getApoderadoId(),
+                apoderado.getParentesco(),
+                apoderado.getEsPrincipal()))
+            .toList(),
         null,
         null,
         domain.getObservaciones());

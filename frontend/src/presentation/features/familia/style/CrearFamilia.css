@@ -1,0 +1,111 @@
+
+
+.familia-create__form {
+  background-color: var(--color-surface);
+  padding: var(--sm);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--sm);
+}
+
+.familia-field input,
+.familia-field select,
+.familia-field textarea {
+  background: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  min-height:3rem;
+  padding: 0 var(--sm);
+  width: var(--wh-100);
+}
+
+.familia-field textarea {
+  padding: var(--sm);
+
+}
+
+.familia-field input:focus,
+.familia-field select:focus,
+.familia-field textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.familia-field .input-error {
+  border-color: var(--color-error);
+}
+
+.familia-field small {
+  color: var(--color-error);
+  font-size: var(--xs);
+}
+
+.familia-form__apoderado {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  display: grid;
+  gap: var(--sm);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: var(--sm);
+}
+
+.familia-form__apoderado-header {
+  align-items: center;
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+
+.familia-check {
+  align-items: center;
+  color: var(--text-main);
+  display: flex;
+  gap: var(--xs);
+  min-height: 44px;
+}
+
+.familia-check input {
+  accent-color: var(--color-accent);
+  height: 18px;
+  width: 18px;
+}
+
+.familia-message {
+  border-radius: 8px;
+  font-size: var(--sm);
+  margin: 0;
+  padding: var(--xs) var(--sm);
+}
+
+.familia-message--error {
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+}
+
+.familia-message--success {
+  background: color-mix(in srgb, var(--color-success, #28a745) 12%, transparent);
+  color: var(--color-success, #28a745);
+}
+
+.familia-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sm);
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .familia-create__form {
+    padding: var(--sm);
+  }
+
+  .familia-form__apoderado {
+    grid-template-columns: 1fr;
+  }
+
+  .familia-actions {
+    justify-content: stretch;
+  }
+}

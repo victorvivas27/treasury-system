@@ -1,0 +1,39 @@
+info:
+  name: 08-Familia Empty
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{Url_Base}}/familias"
+  body:
+    type: json
+    data: |+
+      {
+        "alumnoId": 6,
+        "observacionesGenerales": null,
+        "apoderados": [
+          {
+            "apoderadoId": 0,
+            "parentesco": "Padre",
+            "esPrincipal": true
+          }
+        ]
+      }
+
+
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

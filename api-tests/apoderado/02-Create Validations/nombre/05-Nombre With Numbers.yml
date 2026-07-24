@@ -2,6 +2,8 @@ info:
   name: 05-Nombre With Numbers
   type: http
   seq: 5
+  tags:
+    - apoderados
 
 http:
   method: POST

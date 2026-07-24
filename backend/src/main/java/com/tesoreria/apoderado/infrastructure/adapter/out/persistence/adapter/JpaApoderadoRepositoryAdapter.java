@@ -1,12 +1,12 @@
 package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.adapter;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.apoderado.core.port.out.ApoderadoRepositoryOutPort;
@@ -37,9 +37,24 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   }
 
   @Override
+  public Optional<Apoderado> findByCodigo(String codigo) {
+    return jpaRepository.findByCodigo(codigo).map(persistenceMapper::toDomain);
+  }
+
+  @Override
   public Optional<Apoderado> findById(Long apoderadoId) {
-    return jpaRepository.findById(apoderadoId)
-        .map(persistenceMapper::toDomain);
+    return jpaRepository.findById(apoderadoId).map(persistenceMapper::toDomain);
+  }
+
+  @Override
+  public List<Apoderado> findAllByIds(List<Long> apoderadoIds) {
+    if (apoderadoIds == null || apoderadoIds.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+    return jpaRepository.findAllById(apoderadoIds)
+        .stream()
+        .map(persistenceMapper::toDomain)
+        .toList();
   }
 
   @Override
@@ -62,21 +77,21 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   }
 
   // AGREGADO: Implementación real del método masivo que faltaba en este adaptador
-  @Override
-  @Transactional(readOnly = true)
-  public List<Apoderado> findAllByIds(List<Long> apoderadoIds) {
-    if (apoderadoIds == null || apoderadoIds.isEmpty()) {
-      return java.util.Collections.emptyList();
-    }
-    return jpaRepository.findAllById(apoderadoIds)
-        .stream()
-        .map(persistenceMapper::toDomain)
-        .toList();
-  }
+  // @Override
+  // @Transactional(readOnly = true)
+  // public List<Apoderado> findAllByIds(List<Long> apoderadoIds) {
+  //   if (apoderadoIds == null || apoderadoIds.isEmpty()) {
+  //     return java.util.Collections.emptyList();
+  //   }
+  //   return jpaRepository.findAllById(apoderadoIds)
+  //       .stream()
+  //       .map(persistenceMapper::toDomain)
+  //       .toList();
+  // }
 
   @Override
-  public void deleteById(Long apoderadoId) {
-    jpaRepository.deleteById(apoderadoId);
+  public void deleteByCodigo(String codigo) {
+    jpaRepository.deleteByCodigo(codigo);
   }
 
   @Override
@@ -85,7 +100,7 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
   }
 
   @Override
-  public boolean existsById(Long apoderadoId) {
-    return jpaRepository.existsById(apoderadoId);
+  public boolean existsByCodigo(String codigo) {
+    return jpaRepository.existsByCodigo(codigo);
   }
 }

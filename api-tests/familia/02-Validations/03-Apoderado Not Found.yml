@@ -5,15 +5,19 @@ info:
 
 http:
   method: POST
-  url: "{{Url_Base}}/familias/alumno-apoderado"
+  url: "{{Url_Base}}/familias"
   body:
     type: json
     data: |-
       {
         "alumnoId": {{familiaAlumnoId}},
-        "apoderadoId": 999999,
-        "parentesco": "Padre",
-        "principal": false
+        "apoderados": [
+          {
+            "apoderadoId": 999999,
+            "parentesco": "Padre",
+            "esPrincipal": false
+          }
+        ]
       }
   auth: inherit
 

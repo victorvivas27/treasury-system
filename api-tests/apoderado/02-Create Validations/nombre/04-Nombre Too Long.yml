@@ -2,6 +2,8 @@ info:
   name: "04-Nombre Too Long "
   type: http
   seq: 4
+  tags:
+    - apoderados
 
 http:
   method: POST

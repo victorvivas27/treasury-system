@@ -18,10 +18,11 @@ describe("ApoderadoRepositoryImpl", () => {
   const baseUrl = "/apoderados";
 
   const mockApoderado: Apoderado = {
-    id: 1,
+    apoderadoId: 1,
     nombre: "Juan Perez",
     email: "juan@test.com",
-    telefono: "123456"
+    telefono: "123456",
+    codigo: ""
   };
 
   const mockPageResponse: PageResponse<Apoderado> = {
@@ -64,13 +65,16 @@ describe("ApoderadoRepositoryImpl", () => {
   // ========== 2. MÉTODOS DE ESCRITURA ==========
 
   it("[ApoderadoRepo #03] create: debe enviar un POST con los datos del nuevo apoderado", async () => {
-    const dto: CreateApoderadoDTO = { nombre: "Nuevo", email: "nuevo@test.com", telefono: "999" };
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { ...dto, id: 2 } });
+    const dto: CreateApoderadoDTO = {
+      nombre: "Nuevo", email: "nuevo@test.com", telefono: "999",
+      codigo: ""
+    };
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { ...dto, apoderadoId: 2 } });
 
     const result = await repository.create(dto);
 
     expect(apiClient.post).toHaveBeenCalledWith(baseUrl, dto);
-    expect(result.id).toBe(2);
+    expect(result.apoderadoId).toBe(2);
   });
 
   it("[ApoderadoRepo #04] update: debe enviar un PUT con los datos parciales", async () => {

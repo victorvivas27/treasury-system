@@ -2,6 +2,8 @@ info:
   name: 05-List All Apoderados
   type: http
   seq: 5
+  tags:
+    - apoderados
 
 http:
   method: GET

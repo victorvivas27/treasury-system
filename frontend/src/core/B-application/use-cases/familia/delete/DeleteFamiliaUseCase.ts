@@ -7,7 +7,7 @@ export class DeleteFamiliaUseCase {
     this.familiaRepository = familiaRepository;
   }
 
-  async execute(alumnoId: number, apoderadoId: number): Promise<void> {
-    return await this.familiaRepository.eliminar(alumnoId, apoderadoId);
+  async execute(familiaId: number): Promise<void> {
+    return await this.familiaRepository.delete(familiaId);
   }
 }

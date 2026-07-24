@@ -28,14 +28,19 @@ request:
                 expect(res.status).to.equal(400);
             });
 
-            test("Error code should be ERROR_VALIDACION", () => {
-                expect(res.body.code).to.equal("ERROR_VALIDACION");
+            test("Status should have ERROR_VALIDACION", () => {
+                expect(res.body).to.not.have.property("code");
+                // Para tu estructura, verificamos que exista el objeto errors
+                expect(res.body).to.have.property("errors");
             });
 
             test("Field validation check", () => {
                 fieldsPresent.forEach(f => {
                     // Trim elimina espacios accidentales
-                    expect(res.body.errors).to.have.property(f.trim());
+                    const fieldName = f.trim();
+                    expect(res.body.errors).to.have.property(fieldName);
+                    // Opcional: verificar que el mensaje de error no esté vacío
+                    expect(res.body.errors[fieldName]).to.be.a('string').and.not.empty;
                 });
             });
         }

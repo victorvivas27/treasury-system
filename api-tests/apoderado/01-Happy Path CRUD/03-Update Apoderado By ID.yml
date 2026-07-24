@@ -2,19 +2,15 @@ info:
   name: 03-Update Apoderado By ID
   type: http
   seq: 3
+  tags:
+    - apoderados
 
 http:
   method: PUT
-  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  url: "{{Url_Base}}/apoderados/{{codigo}}"
   body:
     type: json
-    data: |-
-      {
-        "nombre": "VICTOR JAVIER VIVAS", 
-        "email": "vivasvivas@gmail.com",
-        "telefono": "+5624187541222", 
-        "observaciones": "Todo bien" 
-      }
+    data: "{{bodyDataUpdate}}"
   auth: inherit
 
 runtime:
@@ -30,6 +26,10 @@ runtime:
         test("Response should contain apoderadoId", function () {
           //expect(body.id).to.equal(Number(bru.getVar("apoderadoId")));
           expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("apoderadoId")));
+        });
+
+        test("Response should contain codigo", function () {
+          expect(body.codigo).to.equal(bru.getEnvVar("codigo"));
         });
         //El nombre debe escribirse en mayúsculas.
         test("Name should be uppercase", function () {

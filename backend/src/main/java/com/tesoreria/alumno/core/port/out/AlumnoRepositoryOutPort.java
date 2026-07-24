@@ -1,20 +1,23 @@
 package com.tesoreria.alumno.core.port.out;
 
-import java.util.Optional;
-
 import com.tesoreria.alumno.core.model.Alumno;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
+import java.util.Optional;
+
 public interface AlumnoRepositoryOutPort {
-  Alumno save(Alumno alumno);
 
-  Optional<Alumno> findById(Long alumnoId);
+    Alumno save(Alumno alumno);
 
-  PageResponse<Alumno> findAll(PageRequest pageRequest);
+    Optional<Alumno> findByCodigo(String codigo);
 
-  void deleteById(Long alumnoId);
+    Optional<Alumno> findById(Long alumnoId);
 
-  boolean existsById(Long alumnoId);
+    PageResponse<Alumno> findAll(PageRequest pageRequest);
+
+    void deleteByCodigo(String codigo);
+
+    boolean existsByCodigo(String codigo);
 
 }

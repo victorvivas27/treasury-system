@@ -22,15 +22,20 @@ import com.tesoreria.alumno.application.usecase.AlumnoService;
 import com.tesoreria.alumno.core.exception.AlumnoErrorCode;
 import com.tesoreria.alumno.core.model.Alumno;
 import com.tesoreria.alumno.core.port.out.AlumnoRepositoryOutPort;
+import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+
 @SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 public class AlumnoServiceTest {
 
   @Mock
   private AlumnoRepositoryOutPort repository;
+
+  @Mock
+  private FamiliaRepositoryOutPort familiaRepository;
 
   @InjectMocks
   private AlumnoService service;
@@ -42,6 +47,7 @@ public class AlumnoServiceTest {
     mockAlumno = new Alumno();
     mockAlumno.setAlumnoId(ALUMNO_ID);
     mockAlumno.setNombre("JUAN PEREZ");
+    mockAlumno.setCodigo("AL-3291DF6A");
     mockAlumno.setCurso("4A");
   }
 
@@ -57,18 +63,18 @@ public class AlumnoServiceTest {
   @Nested
   class FindTests {
     @Test
-    void findById_deberiaRetornarAlumnoCuandoExiste() {
-      when(repository.findById(ALUMNO_ID)).thenReturn(Optional.of(mockAlumno));
-      Alumno result = service.findById(ALUMNO_ID);
+    void findByCodigo_deberiaRetornarAlumnoCuandoExiste() {
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.of(mockAlumno));
+      Alumno result = service.findByCodigo(mockAlumno.getCodigo());
       assertNotNull(result);
-      verify(repository).findById(ALUMNO_ID);
+      verify(repository).findByCodigo(mockAlumno.getCodigo());
     }
 
     @Test
-    void findById_deberiaLanzarExcepcionCuandoNoExiste() {
-      when(repository.findById(ALUMNO_ID)).thenReturn(Optional.empty());
-      DomainException ex = assertThrows(DomainException.class, () -> service.findById(ALUMNO_ID));
-      assertEquals(AlumnoErrorCode.NOT_FOUND.getCodigo(), ex.getErrorCode());
+    void findByCodigo_deberiaLanzarExcepcionCuandoNoExiste() {
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.empty());
+      DomainException ex = assertThrows(DomainException.class, () -> service.findByCodigo(mockAlumno.getCodigo()));
+      assertEquals(AlumnoErrorCode.NOT_FOUND.getStatus(), ex.getStatus());
     }
 
     @Test
@@ -108,16 +114,16 @@ public class AlumnoServiceTest {
     @Test
     void update_deberiaLanzarExcepcionCuandoAlumnoNoExiste() {
       mockAlumno.setAlumnoId(ALUMNO_ID);
-      when(repository.existsById(ALUMNO_ID)).thenReturn(false);
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.empty());
       DomainException ex = assertThrows(DomainException.class, () -> service.update(mockAlumno));
-      assertEquals(AlumnoErrorCode.NOT_FOUND.getCodigo(), ex.getErrorCode());
+      assertEquals(AlumnoErrorCode.NOT_FOUND.getStatus(), ex.getStatus());
       verify(repository, never()).save(any(Alumno.class));
     }
 
     @Test
     void update_deberiaActualizarCuandoAlumnoExiste() {
       mockAlumno.setAlumnoId(ALUMNO_ID);
-      when(repository.existsById(ALUMNO_ID)).thenReturn(true);
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.of(mockAlumno));
       when(repository.save(mockAlumno)).thenReturn(mockAlumno);
       Alumno resultado = service.update(mockAlumno);
       assertNotNull(resultado);
@@ -129,17 +135,40 @@ public class AlumnoServiceTest {
   @Nested
   class DeleteTests {
     @Test
-    void deleteById_deberiaEliminarCuandoExiste() {
-      when(repository.existsById(ALUMNO_ID)).thenReturn(true);
-      service.deleteById(ALUMNO_ID);
-      verify(repository).deleteById(ALUMNO_ID);
+    void deleteByCodigo_deberiaEliminarCuandoExiste() {
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.of(mockAlumno));
+      when(familiaRepository.existsByAlumnoId(ALUMNO_ID)).thenReturn(false);
+
+      service.deleteByCodigo(mockAlumno.getCodigo());
+
+      verify(repository).deleteByCodigo(mockAlumno.getCodigo());
     }
 
     @Test
-    void deleteById_deberiaLanzarExcepcionCuandoNoExiste() {
-      when(repository.existsById(ALUMNO_ID)).thenReturn(false);
-      DomainException ex = assertThrows(DomainException.class, () -> service.deleteById(ALUMNO_ID));
-      assertNotNull(ex);
+    void deleteByCodigo_deberiaImpedirEliminarAlumnoConFamilia() {
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.of(mockAlumno));
+      when(familiaRepository.existsByAlumnoId(ALUMNO_ID)).thenReturn(true);
+
+      DomainException ex = assertThrows(DomainException.class,
+          () -> service.deleteByCodigo(mockAlumno.getCodigo()));
+
+      assertEquals(AlumnoErrorCode.FAMILIA_ASIGNADA.getStatus(), ex.getStatus());
+      assertEquals(
+          "No se puede eliminar el alumno porque pertenece a una familia. "
+              + "Primero debe desvincularlo de la familia.",
+          ex.getMessage());
+      verify(repository, never()).deleteByCodigo(any(String.class));
+    }
+
+    @Test
+    void deleteByCodigo_deberiaLanzarExcepcionCuandoNoExiste() {
+      when(repository.findByCodigo(mockAlumno.getCodigo())).thenReturn(Optional.empty());
+
+      DomainException ex = assertThrows(DomainException.class,
+          () -> service.deleteByCodigo(mockAlumno.getCodigo()));
+
+      assertEquals(AlumnoErrorCode.NOT_FOUND.getStatus(), ex.getStatus());
+      verify(repository, never()).deleteByCodigo(any(String.class));
     }
   }
 }

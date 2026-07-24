@@ -2,6 +2,8 @@ info:
   name: 06-Email With Domain Missing Extension
   type: http
   seq: 6
+  tags:
+    - apoderados
 
 http:
   method: POST

@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: "{{Url_Base}}/familias/5"
+  url: "{{Url_Base}}/familias/{{familiaId}}"
   auth: inherit
 
 runtime:

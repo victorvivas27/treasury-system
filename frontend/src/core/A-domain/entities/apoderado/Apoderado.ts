@@ -1,14 +1,14 @@
-// domain/entities/Apoderado.ts
+
 export interface Apoderado {
-  id: number;
-  codigo?: string;
+  apoderadoId: number;
+  codigo: string;
   nombre: string;
   email: string;
   telefono: string;
   observaciones?: string;
 }
 
-export type CreateApoderadoDTO = Omit<Apoderado, "id">;
+export type CreateApoderadoDTO = Omit<Apoderado, "apoderadoId" | "codigo">;
 
 export interface PageResponse<T> {
   content: T[];

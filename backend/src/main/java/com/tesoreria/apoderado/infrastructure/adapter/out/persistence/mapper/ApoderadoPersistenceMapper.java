@@ -21,13 +21,23 @@ public class ApoderadoPersistenceMapper {
   }
 
   public ApoderadoEntity toEntity(Apoderado domain) {
-    return new ApoderadoEntity(
+    // ✅ CREAR ENTIDAD CON TODOS LOS CAMPOS
+    ApoderadoEntity entity = new ApoderadoEntity(
         domain.getApoderadoId(),
         domain.getCodigo(),
         domain.getNombre(),
         domain.getEmail(),
         domain.getTelefono(),
-        domain.getObservaciones()
-      );
+        domain.getObservaciones());
+
+    // ✅ PRESERVAR TIMESTAMPS (importante para UPDATE)
+    if (domain.getCreatedAt() != null) {
+      entity.setCreatedAt(domain.getCreatedAt());
+    }
+    if (domain.getUpdatedAt() != null) {
+      entity.setUpdatedAt(domain.getUpdatedAt());
+    }
+
+    return entity;
   }
 }

@@ -2,13 +2,18 @@ info:
   name: 06-Delete Apoderado By ID
   type: http
   seq: 6
+  tags:
+    - apoderados
 
 http:
   method: DELETE
-  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  url: "{{Url_Base}}/apoderados/{{codigo}}"
   auth: inherit
 
 runtime:
+  variables:
+    - name: apoderadoId
+      value: AP-2C2F820E
   scripts:
     - type: tests
       code: |-

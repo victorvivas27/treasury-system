@@ -8,7 +8,14 @@ import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.Apo
 
 public interface ApoderadoJpaRepository extends JpaRepository<ApoderadoEntity, Long> {
 
+  Optional<ApoderadoEntity> findByCodigo(String codigo);
+
   Optional<ApoderadoEntity> findByEmail(String email);
 
   boolean existsByEmail(String email);
+
+  boolean existsByCodigo(String codigo);
+
+  void deleteByCodigo(String codigo);
+
 }

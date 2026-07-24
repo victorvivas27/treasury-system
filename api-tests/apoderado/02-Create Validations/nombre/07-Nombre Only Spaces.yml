@@ -2,6 +2,8 @@ info:
   name: 07-Nombre Only Spaces
   type: http
   seq: 7
+  tags:
+    - apoderados
 
 http:
   method: POST

@@ -10,7 +10,10 @@ describe("GetAlumnosUseCase", () => {
   let mockRepository: IAlumnoRepository;
 
   const mockAlumnos: Alumno[] = [
-    { id: 1, nombre: "Juan Perez", curso: "4A", apoderadoId: 1 },
+    {
+      alumnoId: 1, nombre: "Juan Perez", curso: "4A",
+      codigo: ""
+    },
   ];
 
   const mockPageResponse: PageResponse<Alumno> = {

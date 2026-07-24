@@ -19,11 +19,12 @@ describe("CrearApoderadoForm Component", () => {
   const dto: CreateApoderadoDTO = {
     nombre: "Juan Pérez",
     email: "juan@example.com",
-    telefono: "987654321"
+    telefono: "987654321",
+    codigo: ""
   };
 
   const expectedResult: Apoderado = {
-    id: 1,
+    apoderadoId: 1,
     ...dto
   };
 

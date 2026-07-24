@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/familias/all"
+  url: "{{Url_Base}}/familias?page=0&size=5"
   auth: inherit
 
 runtime:
@@ -18,11 +18,11 @@ runtime:
           expect(res.getStatus()).to.equal(200);
         });
 
-        // test("Response should include apoderado data and link fields", function () {
-        //   expect(body.content.length).to.be.greaterThan(1);
-        //   expect(body.content[0].alumnoCodigo).to.not.be.undefined;
-        //   expect(body.content[0].apoderadoCodigo).to.not.be.undefined;
-        // });
+        test("Response should be paginated", function () {
+          expect(body.content).to.be.an("array");
+          expect(body.page).to.equal(0);
+          expect(body.size).to.equal(5);
+        });
 
 settings:
   encodeUrl: true

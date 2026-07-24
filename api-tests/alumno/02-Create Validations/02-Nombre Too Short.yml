@@ -2,6 +2,8 @@ info:
   name: 02-Nombre Too Short
   type: http
   seq: 2
+  tags:
+    - alumno
 
 http:
   method: POST

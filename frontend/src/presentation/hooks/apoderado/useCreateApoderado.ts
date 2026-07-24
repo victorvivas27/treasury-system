@@ -17,6 +17,7 @@ export const useCreateApoderado = () => {
   const [formData, setFormData] = useState<CreateApoderadoDTO>({
     ...initialFormState,
   });
+
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
@@ -52,20 +53,26 @@ export const useCreateApoderado = () => {
   const handleActionSubmit = async () => {
     setLoading(true);
     setFieldErrors({});
+
     const repository = new ApoderadoRepositoryImpl();
     const useCase = new CreateApoderadoUseCase(repository);
 
     try {
       await useCase.execute(formData);
+
       showAlert("¡Datos guardados con éxito!", "success");
       setFormData(initialFormState);
+      setFieldErrors({});
+      
     } catch (error: any) {
       if (!axios.isAxiosError(error) || !error.response) {
         showAlert("Ocurrió un error inesperado", "error");
         return;
       }
-      const { code, errors, message } = error.response.data;
-      if (code === "ERROR_VALIDACION" && errors) {
+
+      const { errors, message } = error.response.data;
+
+      if (errors && Object.keys(errors).length > 0) {
         setFieldErrors(errors);
         return;
       }

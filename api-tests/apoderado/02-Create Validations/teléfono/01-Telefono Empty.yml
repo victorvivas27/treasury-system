@@ -2,6 +2,8 @@ info:
   name: 01-Telefono Empty
   type: http
   seq: 1
+  tags:
+    - apoderados
 
 http:
   method: POST

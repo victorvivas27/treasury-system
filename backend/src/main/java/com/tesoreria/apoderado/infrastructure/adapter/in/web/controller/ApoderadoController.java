@@ -2,7 +2,6 @@ package com.tesoreria.apoderado.infrastructure.adapter.in.web.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +25,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(ApiConstants.APODERADOS)
-@CrossOrigin
 public class ApoderadoController {
 
   private final ApoderadoService apoderadoService;
@@ -68,25 +66,24 @@ public class ApoderadoController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/{apoderadoId}")
-  public ResponseEntity<ApoderadoResponse> findById(@PathVariable Long apoderadoId) {
-    Apoderado apoderado = apoderadoService.findById(apoderadoId);
+  @GetMapping("/{codigo}")
+  public ResponseEntity<ApoderadoResponse> findByCodigo(@PathVariable String codigo) {
+    Apoderado apoderado = apoderadoService.findByCodigo(codigo);
     return ResponseEntity.ok(mapper.toResponse(apoderado));
   }
 
-  @PutMapping("/{apoderadoId}")
-  public ResponseEntity<ApoderadoResponse> update(
-      @PathVariable Long apoderadoId,
+  @PutMapping("/{codigo}")
+  public ResponseEntity<ApoderadoResponse> updateByCodigo(
+      @PathVariable String codigo,
       @Valid @RequestBody ApoderadoRequest request) {
     Apoderado apoderado = mapper.toDomain(request);
-    apoderado.setApoderadoId(apoderadoId);
-    Apoderado updated = apoderadoService.update(apoderado);
+    Apoderado updated = apoderadoService.updateByCodigo(codigo, apoderado);
     return ResponseEntity.ok(mapper.toResponse(updated));
   }
 
-  @DeleteMapping("/{apoderadoId}")
-  public ResponseEntity<Void> delete(@PathVariable Long apoderadoId) {
-    apoderadoService.deleteById(apoderadoId);
+  @DeleteMapping("/{codigo}")
+  public ResponseEntity<Void> deleteByCodigo(@PathVariable String codigo) {
+    apoderadoService.deleteByCodigo(codigo);
     return ResponseEntity.noContent().build();
   }
 }

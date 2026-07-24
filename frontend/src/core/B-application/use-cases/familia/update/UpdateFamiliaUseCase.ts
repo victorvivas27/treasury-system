@@ -8,11 +8,7 @@ export class UpdateFamiliaUseCase {
     this.familiaRepository = familiaRepository;
   }
 
-  async execute(
-    alumnoId: number,
-    apoderadoId: number,
-    familia: UpdateFamiliaDTO,
-  ): Promise<Familia> {
-    return await this.familiaRepository.actualizar(alumnoId, apoderadoId, familia);
+  async execute(familiaId: number, familia: UpdateFamiliaDTO): Promise<Familia> {
+    return await this.familiaRepository.update(familiaId, familia);
   }
 }

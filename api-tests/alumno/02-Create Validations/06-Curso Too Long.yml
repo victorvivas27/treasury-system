@@ -2,6 +2,8 @@ info:
   name: 06-Curso Too Long
   type: http
   seq: 6
+  tags:
+    - alumno
 
 http:
   method: POST
@@ -25,8 +27,8 @@ runtime:
           expect(res.getStatus()).to.equal(400);
         });
 
-        test("Error message should indicate maximum 50 characters", function () {
-          expect(body.errors.curso).to.match(/50 caracteres/);
+        test("Error message should indicate maximum 4 characters", function () {
+          expect(body.errors.curso).to.match(/4 caracteres/);
         });
 
 settings:

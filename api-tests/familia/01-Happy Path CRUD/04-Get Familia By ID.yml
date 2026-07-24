@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/familias/by-id/6"
+  url: "{{Url_Base}}/familias/{{familiaId}}"
   auth: inherit
 
 runtime:
@@ -19,10 +19,11 @@ runtime:
         });
 
         test("Response should include student and apoderado display fields", function () {
-          expect(body.id).to.equal(Number(bru.getEnvVar("familiaVinculoId")));
-          expect(body.alumnoCodigo).to.not.be.undefined;
-          expect(body.apoderadoCodigo).to.not.be.undefined;
-          expect(body.parentesco).to.equal("Madre");
+          expect(body.familiaId).to.equal(Number(bru.getEnvVar("familiaId")));
+          expect(body.codigoFamilia).to.not.be.undefined;
+          expect(body.alumno.codigo).to.not.be.undefined;
+          expect(body.apoderados[0].codigo).to.not.be.undefined;
+          expect(body.apoderados[0].relacion.parentesco).to.equal("Tutor Legal");
         });
 
 settings:

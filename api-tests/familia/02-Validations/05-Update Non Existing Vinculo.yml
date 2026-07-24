@@ -1,17 +1,23 @@
 info:
-  name: 05-Update Non Existing Vinculo
+  name: 05-Update Non Existing Familia
   type: http
   seq: 5
 
 http:
   method: PUT
-  url: "{{Url_Base}}/familias/alumno-apoderado/999999"
+  url: "{{Url_Base}}/familias/999999"
   body:
     type: json
     data: |-
       {
-        "parentesco": "Tutor",
-        "principal": false
+        "alumnoId": {{familiaAlumnoId}},
+        "apoderados": [
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Tutor",
+            "esPrincipal": false
+          }
+        ]
       }
   auth: inherit
 

@@ -14,7 +14,7 @@ interface ApoderadosListProps {
   error: string | null;
   onRefresh?: () => void;
   handleDelete?: (id: number) => void;
-  handleEdit?: (id: number) => void;
+  handleEdit?: (codigo: string) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -24,11 +24,16 @@ interface ApoderadosListProps {
 }
 
 type EmptyRow = {
-  id: string;
+  apoderadoId: string;
   empty: true;
 };
 
 type RowItem = Apoderado | EmptyRow;
+type ApoderadoWithLegacyId = Apoderado & { id?: number };
+
+const getApoderadoIdentifier = (apoderado: ApoderadoWithLegacyId): number | string => (
+  apoderado.apoderadoId ?? apoderado.id ?? ""
+);
 
 export const ApoderadosList: FC<ApoderadosListProps> = ({
   apoderados,
@@ -53,18 +58,18 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
-      id: `loading-${index}`,
+      apoderadoId: `loading-${index}`,
       empty: true,
     }))
     : [
       ...apoderados,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
-        id: `empty-${index}`,
+        apoderadoId: `empty-${index}`,
         empty: true as const,
       })),
     ];
 
-    /*================================*/
+  /*================================*/
 
 
   /**
@@ -104,108 +109,109 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       </header>
 
 
-        <table className="apoderados-table">
-          <thead>
-            <tr>
-              <th className="apoderados-table__th">Nombre</th>
-              <th className="apoderados-table__th">Correo</th>
-              <th className="apoderados-table__th">Teléfono</th>
-              <th className="apoderados-table__th">Acciones</th>
-            </tr>
-          </thead>
+      <table className="apoderados-table">
+        <thead>
+          <tr>
+            <th className="apoderados-table__th">Nombre</th>
+            <th className="apoderados-table__th">Correo</th>
+            <th className="apoderados-table__th">Teléfono</th>
+            <th className="apoderados-table__th">Acciones</th>
+          </tr>
+        </thead>
 
-          <tbody>
-            {rows.map((item) => {
-              const isEmptyRow = "empty" in item;
-              const apoderado = item as Apoderado;
+        <tbody>
+          {rows.map((item) => {
+            const isEmptyRow = "empty" in item;
+            const apoderado = item as ApoderadoWithLegacyId;
+            const apoderadoIdentifier = getApoderadoIdentifier(apoderado);
 
-              return (
-                <tr
-                  key={item.id}
-                  className={`apoderados-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
-                    }`}
-                >
-                  <td className="apoderados-table__td" data-label="Nombre">
-                    {loading ? (
-                      <div className="skeleton-block skeleton-input" />
-                    ) : isEmptyRow ? (
-                      <span>&nbsp;</span>
-                    ) : (
-                      apoderado.nombre
-                    )}
-                  </td>
+            return (
+              <tr
+                key={"empty" in item ? item.apoderadoId : apoderadoIdentifier}
+                className={`apoderados-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
+                  }`}
+              >
+                <td className="apoderados-table__td" data-label="Nombre">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    apoderado.nombre
+                  )}
+                </td>
 
-                  <td className="apoderados-table__td" data-label="Email">
-                    {loading ? (
-                      <div className="skeleton-block skeleton-input" />
-                    ) : isEmptyRow ? (
-                      <span>&nbsp;</span>
-                    ) : (
-                      apoderado.email
-                    )}
-                  </td>
+                <td className="apoderados-table__td" data-label="Email">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    apoderado.email
+                  )}
+                </td>
 
-                  <td className="apoderados-table__td" data-label="Teléfono">
-                    {loading ? (
-                      <div className="skeleton-block skeleton-input" />
-                    ) : isEmptyRow ? (
-                      <span>&nbsp;</span>
-                    ) : (
-                      apoderado.telefono
-                    )}
-                  </td>
+                <td className="apoderados-table__td" data-label="Teléfono">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    apoderado.telefono
+                  )}
+                </td>
 
-                  <td className="apoderados-table__td" data-label="Acciones">
-                    {loading ? (
-                      <div className="skeleton-block skeleton-input" />
-                    ) : !isEmptyRow && apoderado ? (
-                      <div className="apoderados-table__td--actions">
-                        <Button
-                          variant="danger"
-                          size="small"
-                          onClick={() => handleDelete?.(apoderado.id)}
-                          icon={
-                            <APODERADOS_ICONS.delete/>}
-                          testId={`delete-btn-${apoderado.id}`}
-                        />
+                <td className="apoderados-table__td" data-label="Acciones">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : !isEmptyRow && apoderado ? (
+                    <div className="apoderados-table__td--actions">
+                      <Button
+                        variant="danger"
+                        size="small"
+                        onClick={() => handleDelete?.(apoderadoIdentifier as number)}
+                        icon={
+                          <APODERADOS_ICONS.delete />}
+                        testId={`delete-btn-${apoderadoIdentifier}`}
+                      />
 
-                        <Button
-                          variant="secondary"
-                          size="small"
-                          onClick={() => handleEdit?.(apoderado.id)}
-                          icon={<APODERADOS_ICONS.edit/>}
-                          testId={`edit-btn-${apoderado.id}`}
-                        />
-                      </div>
-                    ) : (
-                      <span>&nbsp;</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                      <Button
+                        variant="secondary"
+                        size="small"
+                        onClick={() => handleEdit?.(apoderado.codigo || String(apoderadoIdentifier))}
+                        icon={<APODERADOS_ICONS.edit />}
+                        testId={`edit-btn-${apoderadoIdentifier}`}
+                      />
+                    </div>
+                  ) : (
+                    <span>&nbsp;</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
 
-        <div className="pagination">
-          <Button
-            onClick={onPrevPage}
-            disabled={!hasPrevPage || loading}
-            variant="secondary"
-            size="small"
-            label="◀ Anterior"
-          />
+      <div className="pagination">
+        <Button
+          onClick={onPrevPage}
+          disabled={!hasPrevPage || loading}
+          variant="secondary"
+          size="small"
+          label="◀ Anterior"
+        />
 
-          <span className="no-highlight">Página {currentPage + 1}</span>
+        <span className="no-highlight">Página {currentPage + 1}</span>
 
-          <Button
-            onClick={onNextPage}
-            disabled={loading || isLastPage}
-            variant="secondary"
-            size="small"
-            label="Siguiente ▶"
-          />
-        </div>
+        <Button
+          onClick={onNextPage}
+          disabled={loading || isLastPage}
+          variant="secondary"
+          size="small"
+          label="Siguiente ▶"
+        />
+      </div>
 
     </article>
   );

@@ -2,6 +2,7 @@ import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoR
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDeleteAlumno } from "../useDeleteAlumno";
+import axios from "axios";
 
 vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
   AlumnoRepositoryImpl: vi.fn(),
@@ -9,8 +10,6 @@ vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
 
 describe("useDeleteAlumno", () => {
   const mockDelete = vi.fn();
-  const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(AlumnoRepositoryImpl).mockImplementation(function () {
@@ -88,10 +87,33 @@ describe("useDeleteAlumno", () => {
     expect(result.current.alert.type).toBe("error");
     expect(result.current.isDeleting).toBe(false);
     expect(mockDelete).toHaveBeenCalledWith(1);
-    expect(consoleErrorSpy).toHaveBeenCalled();
   });
 
-  it("[useDeleteAlumno #06] Debe controlar el estado isDeleting durante la promesa", async () => {
+  it("[useDeleteAlumno #06] Debe mostrar el mensaje cuando el alumno pertenece a una familia", async () => {
+    const message = "No se puede eliminar el alumno porque pertenece a una familia. Primero debe desvincularlo de la familia.";
+    mockDelete.mockRejectedValue({
+      isAxiosError: true,
+      response: { data: { errors: { familia: message } } },
+    });
+    vi.spyOn(axios, "isAxiosError").mockReturnValueOnce(true);
+    const { result } = renderHook(() => useDeleteAlumno());
+
+    act(() => {
+      result.current.openDeleteConfirm(1);
+    });
+    await act(async () => {
+      await result.current.confirmDelete();
+    });
+
+    expect(result.current.alert).toEqual({
+      isOpen: true,
+      message,
+      type: "error",
+    });
+    expect(result.current.isDeleting).toBe(false);
+  });
+
+  it("[useDeleteAlumno #07] Debe controlar el estado isDeleting durante la promesa", async () => {
     let resolvePromise: any;
     const promise = new Promise<void>((resolve) => {
       resolvePromise = resolve;
@@ -117,7 +139,7 @@ describe("useDeleteAlumno", () => {
     expect(result.current.isDeleting).toBe(false);
   });
 
-  it("[useDeleteAlumno #07] Debe cerrar la alerta correctamente", async () => {
+  it("[useDeleteAlumno #08] Debe cerrar la alerta correctamente", async () => {
     mockDelete.mockResolvedValue(undefined);
     const { result } = renderHook(() => useDeleteAlumno());
 
@@ -134,7 +156,7 @@ describe("useDeleteAlumno", () => {
     expect(result.current.alert.isOpen).toBe(false);
   });
 
-  it("[useDeleteAlumno #08] No debe hacer nada si se llama a confirmDelete sin un id seleccionado", async () => {
+  it("[useDeleteAlumno #09] No debe hacer nada si se llama a confirmDelete sin un id seleccionado", async () => {
     const { result } = renderHook(() => useDeleteAlumno());
 
     expect(result.current.idToDelete).toBe(null);

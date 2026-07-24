@@ -1,23 +1,23 @@
 package com.tesoreria.apoderado.infrastructure.adapter.in.web.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+// import jakarta.validation.constraints.NotBlank;
+// import jakarta.validation.constraints.Pattern;
+// import jakarta.validation.constraints.Size;
 
 public class ApoderadoRequest {
-  @NotBlank(message = "El nombre no puede estar vacío")
-  @Size(min = 3, message = "El nombre debe tener al menos 3 caracteres")
-  @Size(max = 50, message = "El nombre no puede tener más de 50 caracteres")
-  @Pattern(regexp = "^[A-Za-zÁÉÍÓÚáéíóúñÑ\\s]+$", message = "El nombre solo puede contener letras, espacios y tildes")
+  // @NotBlank(message = "El nombre no puede estar vacío")
+  // @Size(min = 3, message = "El nombre debe tener al menos 3 caracteres")
+  // @Size(max = 50, message = "El nombre no puede tener más de 50 caracteres")
+  // @Pattern(regexp = "^[A-Za-zÁÉÍÓÚáéíóúñÑ\\s]+$", message = "El nombre solo puede contener letras, espacios y tildes")
   private String nombre;
 
-  @NotBlank(message = "El email no puede estar vacío")
-  @Size(max = 100, message = "El email no puede tener más de {max} caracteres")
+  // @NotBlank(message = "El email no puede estar vacío")
+  // @Size(max = 100, message = "El email no puede tener más de {max} caracteres")
   private String email;
 
-  @NotBlank(message = "El teléfono no puede estar vacío")
-  @Size(min = 8, message = "El teléfono debe tener al menos {min} dígitos")
-  @Size(max = 15, message = "El teléfono no puede tener más de {max} dígitos")
+  // @NotBlank(message = "El teléfono no puede estar vacío")
+  // @Size(min = 8, message = "El teléfono debe tener al menos {min} dígitos")
+  // @Size(max = 15, message = "El teléfono no puede tener más de {max} dígitos")
   private String telefono;
 
   private String observaciones;

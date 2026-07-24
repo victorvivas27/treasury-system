@@ -1,150 +1,233 @@
-import type { CreateFamiliaDTO, FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
-import { useAlumnos } from "@/presentation/hooks/alumno/useAlumnos";
-import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
 import { useCreateFamilia } from "@/presentation/hooks/familia/useCreateFamilia";
-import { useEditFamilia } from "@/presentation/hooks/familia/useEditFamilia";
-import { useListFamilia } from "@/presentation/hooks/familia/useListFamilia";
+
+import { FAMILIA_ICONS } from "@/shared/constants/Icons";
+
+import "./style/CrearFamilia.css";
+
 import { Button } from "@/shared/ui/button/Button";
-import { useState, type ChangeEvent } from "react";
 
+import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 
+const parentescos = [
+  "Padre",
+  "Madre",
+  "Tutor",
+  "Abuelo",
+  "Abuela",
+  "Hermano",
+  "Hermana",
+];
 
-const initialForm: CreateFamiliaDTO = {
-  alumnoId: 0,
-  apoderadoId: 0,
-  parentesco: "",
-  principal: false,
-  observaciones: "",
-};
 export const CrearFamilia = () => {
-  const [formData, setFormData] = useState<CreateFamiliaDTO>(initialForm);
-  const [editing, setEditing] = useState<FamiliaDetalle | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const { alumnos } = useAlumnos({ pageSize: 100 });
-  const { apoderados } = useApoderados({ pageSize: 100 });
   const {
-    refetch,
-
-  } = useListFamilia();
-
-  const createHook = useCreateFamilia();
-  const editHook = useEditFamilia();
-
-  const saving = createHook.loading || editHook.loading;
-  const formErrors = editing ? editHook.fieldErrors : createHook.fieldErrors;
-  const formError = editing ? editHook.error : createHook.error;
-
-  const handleChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value, type } = event.target;
-    const checked = "checked" in event.target ? event.target.checked : false;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox"
-        ? checked
-        : name === "alumnoId" || name === "apoderadoId"
-          ? (value ? Number(value) : 0)
-          : value,
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData(initialForm);
-    setEditing(null);
-  };
+    formData,
+    loading,
+    fieldErrors,
+    modal,
+    handleHeaderChange,
+    handleApoderadoChange,
+    addApoderado,
+    removeApoderado,
+    handleActionSubmit,
+    closeModal,
+    navigate,
+    alumnos,
+    loadingAlumnos,
+    alumnosError,
+    apoderados,
+    loadingApoderados,
+    apoderadosError,
+  } = useCreateFamilia();
 
 
 
-  const submit = async () => {
-    try {
-      if (editing) {
-        await editHook.edit(editing.id, {
-          parentesco: formData.parentesco,
-          principal: formData.principal,
-          observaciones: formData.observaciones,
-        });
-        setMessage("Vínculo actualizado");
-      } else {
-        await createHook.create(formData);
-        setMessage("Vínculo creado");
-      }
-      resetForm();
-      await refetch();
-    } catch {
-      setMessage(null);
-    }
-  };
   return (
-    <section className="familia-grid">
-      <form className="familia-form">
-        <h2 className="familia-section-title">{editing ? "Editar vínculo" : "Crear vínculo"}</h2>
+    <main className="familia-create">
+
+      <form className="familia-create__form" onSubmit={(e) => {
+        e.preventDefault();
+        handleActionSubmit();
+      }}>
+
 
         <label className="familia-field">
           <span>Alumno</span>
-          <select name="alumnoId" value={formData.alumnoId || ""} onChange={handleChange} disabled={Boolean(editing)}>
-            <option value="">Seleccionar alumno</option>
-            {alumnos.map((alumno) => (
-              <option key={alumno.id} value={alumno.id}>
-                {alumno.codigo} - {alumno.nombre} - {alumno.curso}
-              </option>
-            ))}
-          </select>
-          {formErrors.alumnoId && <small>{formErrors.alumnoId}</small>}
-        </label>
 
-        <label className="familia-field">
-          <span>Apoderado</span>
           <select
-            name="apoderadoId"
-            value={formData.apoderadoId || ""}
-            onChange={handleChange}
-            disabled={Boolean(editing)}
+            name="alumnoId"
+            value={formData.alumnoId ?? ""}
+            onChange={handleHeaderChange}
+            disabled={loadingAlumnos || Boolean(alumnosError)}
+            className={fieldErrors.alumnoId ? "input-error" : ""}
           >
-            <option value="">Seleccionar apoderado</option>
-            {apoderados.map((apoderado) => (
-              <option key={apoderado.id} value={apoderado.id}>
-                {apoderado.codigo} - {apoderado.nombre}
+            <option value="">
+              {loadingAlumnos ? "Cargando alumnos..." : "Seleccionar alumno"}
+            </option>
+
+            {alumnos.map((alumno) => (
+              <option key={alumno.alumnoId} value={alumno.alumnoId}>
+                {[alumno.codigo, alumno.nombre, alumno.curso]
+                  .filter(Boolean)
+                  .join(" - ")}
               </option>
             ))}
           </select>
-          {formErrors.apoderadoId && <small>{formErrors.apoderadoId}</small>}
+
+          {(fieldErrors.alumnoId || alumnosError) && (
+            <small>{fieldErrors.alumnoId || alumnosError}</small>
+          )}
         </label>
 
-        <label className="familia-field">
-          <span>Parentesco</span>
-          <input name="parentesco" value={formData.parentesco} onChange={handleChange} />
-          {formErrors.parentesco && <small>{formErrors.parentesco}</small>}
-        </label>
+        {(formData.apoderados ?? []).map((relacion, index) => (
+          <div className="familia-form__apoderado" key={index}>
+            <div className="familia-form__apoderado-header">
 
-        <label className="familia-check">
-          <input name="principal" type="checkbox" checked={formData.principal} onChange={handleChange} />
-          <span>Apoderado principal</span>
-        </label>
+              {(formData.apoderados ?? []).length > 1 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="small"
+                  onClick={() => removeApoderado(index)}
+                  label="Quitar"
+                />
+              )}
+            </div>
+
+            <label className="familia-field">
+              <span>Apoderado</span>
+
+              <select
+                name="apoderadoId"
+                value={relacion.apoderadoId || ""}
+                onChange={(event) => handleApoderadoChange(index, event)}
+                disabled={loadingApoderados || Boolean(apoderadosError)}
+                className={
+                  fieldErrors[`apoderados.${index}.apoderadoId`]
+                    ? "input-error"
+                    : ""
+                }
+              >
+                <option value="">
+                  {loadingApoderados
+                    ? "Cargando apoderados..."
+                    : "Seleccionar apoderado"}
+                </option>
+
+                {apoderados.map((apoderado) => (
+                  <option key={apoderado.apoderadoId} value={apoderado.apoderadoId}>
+                    {[apoderado.codigo, apoderado.nombre]
+                      .filter(Boolean)
+                      .join(" - ")}
+                  </option>
+                ))}
+              </select>
+
+              {(fieldErrors[`apoderados.${index}.apoderadoId`] ||
+                apoderadosError) && (
+                  <small>
+                    {fieldErrors[`apoderados.${index}.apoderadoId`] ||
+                      apoderadosError}
+                  </small>
+                )}
+            </label>
+
+            <label className="familia-field">
+              <span>Parentesco</span>
+
+              <select
+                name="parentesco"
+                value={relacion.parentesco}
+                onChange={(event) => handleApoderadoChange(index, event)}
+                className={
+                  fieldErrors[`apoderados.${index}.parentesco`]
+                    ? "input-error"
+                    : ""
+                }
+              >
+                <option value="">Seleccionar parentesco</option>
+
+                {parentescos.map((parentesco) => (
+                  <option key={parentesco} value={parentesco}>
+                    {parentesco}
+                  </option>
+                ))}
+              </select>
+
+              {fieldErrors[`apoderados.${index}.parentesco`] && (
+                <small>{fieldErrors[`apoderados.${index}.parentesco`]}</small>
+              )}
+            </label>
+
+            <label className="familia-check">
+              <input
+                name="esPrincipal"
+                type="checkbox"
+                checked={relacion.esPrincipal}
+                onChange={(event) => handleApoderadoChange(index, event)}
+              />
+
+              <span>Apoderado principal</span>
+            </label>
+          </div>
+        ))}
+
+        {fieldErrors.apoderados && (
+          <p className="familia-message familia-message--error">
+            {fieldErrors.apoderados}
+          </p>
+        )}
+<div className="familia-form__add-apoderado">
+        <Button
+          type="button"
+          variant="secondary"
+          size="small"
+          onClick={addApoderado}
+          label="Agregar apoderado"
+          icon={<FAMILIA_ICONS.crearFamilia />}
+        />
+        </div>
 
         <label className="familia-field">
           <span>Observaciones</span>
-          <textarea name="observaciones" value={formData.observaciones ?? ""} onChange={handleChange} rows={4} />
-        </label>
 
-        {formError && <p className="familia-message familia-message--error">{formError}</p>}
-        {message && <p className="familia-message familia-message--success">{message}</p>}
+          <textarea
+            name="observacionesGenerales"
+            value={formData.observacionesGenerales ?? ""}
+            onChange={handleHeaderChange}
+            rows={4}
+          />
+        </label>
 
         <div className="familia-actions">
           <Button
             variant="primary"
             size="medium"
-            onClick={submit}
-            loading={saving}
-            label={editing ? "Actualizar" : "Crear vínculo"}
+            type="submit"
+            loading={loading}
+            disabled={loading || loadingAlumnos || loadingApoderados}
+            label={loading ? "Creando..." : "Crear familia"}
+            icon={<FAMILIA_ICONS.save />}
+            onClick={() => { }}
+
           />
-          {editing && <Button variant="secondary" size="medium" onClick={resetForm} label="Cancelar" />}
+
+          <Button
+            type="button"
+            variant="secondary"
+            size="medium"
+            onClick={() => navigate("/family")}
+            label="Cancelar"
+          />
         </div>
       </form>
 
-    </section>
-  )
-}
-
-
+      <ModalAlert
+        isOpen={modal.isOpen}
+        message={modal.message}
+        type={modal.type}
+        onClose={closeModal}
+        autoCloseTime={2500}
+      />
+    </main>
+  );
+};

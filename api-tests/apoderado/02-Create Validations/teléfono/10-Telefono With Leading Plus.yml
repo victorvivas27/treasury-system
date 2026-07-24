@@ -2,6 +2,8 @@ info:
   name: 10-Telefono With Leading Plus
   type: http
   seq: 10
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -18,16 +20,43 @@ http:
 
 runtime:
   scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/apoderados?size=100`,
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+          
+          if (apoderados && apoderados.length > 0) {
+            for (const ap of apoderados) {
+              if (ap.codigo) {
+                await bru.sendRequest({
+                  url: `${baseUrl}/apoderados/${ap.codigo}`,
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // Silenciado
+        }
     - type: after-response
       code: |-
         // Post Request
         const response = res.getBody();
-        const apoderadoId = response.id;
+        const apoderadoId = response.codigo;
         // Obtener variable de entorno
         const baseUrl = bru.getEnvVar('Url_Base');
         try {
             await bru.sendRequest({
-              url: `${baseUrl}/apoderados/${apoderadoId}`,
+              url: `${baseUrl}/apoderados/${codigo}`,
               method: 'DELETE'
             });
           } catch(error) {

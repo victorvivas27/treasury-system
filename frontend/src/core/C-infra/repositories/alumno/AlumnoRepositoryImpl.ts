@@ -16,9 +16,13 @@ export class AlumnoRepositoryImpl implements IAlumnoRepository {
     return response.data;
   }
 
-  async getById(id: number): Promise<Alumno | null> {
-    const response = await apiClient.get<Alumno>(`${this.baseUrl}/${id}`);
+  async getByCodigo(codigo: string): Promise<Alumno | null> {
+    const response = await apiClient.get<Alumno>(`${this.baseUrl}/${codigo}`);
     return response.data;
+  }
+
+  async getById(alumnoId: number): Promise<Alumno | null> {
+    return this.getByCodigo(String(alumnoId));
   }
 
   async create(alumno: CreateAlumnoDTO): Promise<Alumno> {
@@ -26,15 +30,23 @@ export class AlumnoRepositoryImpl implements IAlumnoRepository {
     return response.data;
   }
 
-  async update(id: number, alumno: Partial<Alumno>): Promise<Alumno> {
+  async updateByCodigo(codigo: string, alumno: Partial<Alumno>): Promise<Alumno> {
     const response = await apiClient.put<Alumno>(
-      `${this.baseUrl}/${id}`,
+      `${this.baseUrl}/${codigo}`,
       alumno,
     );
     return response.data;
   }
 
-  async delete(id: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/${id}`);
+  async update(alumnoId: number, alumno: Partial<Alumno>): Promise<Alumno> {
+    return this.updateByCodigo(String(alumnoId), alumno);
+  }
+
+  async deleteByCodigo(codigo: string): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/${codigo}`);
+  }
+
+  async delete(alumnoId: number): Promise<void> {
+    await this.deleteByCodigo(String(alumnoId));
   }
 }

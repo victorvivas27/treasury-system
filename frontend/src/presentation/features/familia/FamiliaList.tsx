@@ -23,7 +23,7 @@ interface FamiliaListProps {
 }
 
 type EmptyRow = {
-  id: string;
+  familiaId: string;
   empty: true;
 };
 
@@ -43,28 +43,21 @@ export const FamiliaList: FC<FamiliaListProps> = ({
   isLastPage,
   pageSize,
 }) => {
-  /**
-   * Cálculo de filas vacías para mantener la altura de la tabla
-   * consistente durante la carga y cuando hay pocos datos
-   */
   const emptyRows = Math.max(pageSize - familias.length, 0);
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
-        id: `loading-${index}`,
+        familiaId: `loading-${index}`,
         empty: true,
       }))
     : [
         ...familias,
         ...Array.from({ length: emptyRows }).map((_, index) => ({
-          id: `empty-${index}`,
+          familiaId: `empty-${index}`,
           empty: true as const,
         })),
       ];
 
-  /**
-   * Manejo de estados de error y vacío
-   */
   if (error) {
     return (
       <FeedbackState
@@ -76,9 +69,6 @@ export const FamiliaList: FC<FamiliaListProps> = ({
     );
   }
 
-  /**
-   * Manejo de estados de vacío
-   */
   if (!loading && familias.length === 0) {
     return (
       <EmptyState
@@ -98,12 +88,12 @@ export const FamiliaList: FC<FamiliaListProps> = ({
       <table className="familia-table">
         <thead>
           <tr>
+            <th className="familia-table__th">Codigo Familia</th>
+            <th className="familia-table__th">Alumno Codigo</th>
             <th className="familia-table__th">Alumno</th>
-            <th className="familia-table__th">Curso</th>
-            <th className="familia-table__th">Apoderado</th>
-            <th className="familia-table__th">Código Apoderado</th>
-            <th className="familia-table__th">Parentesco</th>
+            <th className="familia-table__th">Cantidad Apoderados</th>
             <th className="familia-table__th">Principal</th>
+            <th className="familia-table__th">Secundarios</th>
             <th className="familia-table__th">Acciones</th>
           </tr>
         </thead>
@@ -112,61 +102,59 @@ export const FamiliaList: FC<FamiliaListProps> = ({
           {rows.map((item) => {
             const isEmptyRow = "empty" in item;
             const familia = item as FamiliaDetalle;
+            const principal = !isEmptyRow
+              ? familia.apoderados.find((apoderado) => apoderado.relacion.esPrincipal)
+              : undefined;
+            const secundarios = !isEmptyRow
+              ? familia.apoderados.filter(
+                  (apoderado) => !apoderado.relacion.esPrincipal,
+                )
+              : [];
 
             return (
               <tr
-                key={item.id}
+                key={item.familiaId}
                 className={`familia-table__row--data ${
                   isEmptyRow && !loading ? "empty-row" : ""
                 }`}
               >
+                <td className="familia-table__td" data-label="Codigo Familia">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    <strong>{familia.codigoFamilia}</strong>
+                  )}
+                </td>
+
+                <td className="familia-table__td" data-label="Alumno Codigo">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    familia.alumno.codigo
+                  )}
+                </td>
+
                 <td className="familia-table__td" data-label="Alumno">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    <strong>{familia.alumnoNombre}</strong>
+                    familia.alumno.nombre
                   )}
                 </td>
 
-                <td className="familia-table__td" data-label="Curso">
+                <td className="familia-table__td" data-label="Cantidad Apoderados">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    familia.alumnoCurso
-                  )}
-                </td>
-
-                <td className="familia-table__td" data-label="Apoderado">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    familia.apoderadoNombre
-                  )}
-                </td>
-
-                <td className="familia-table__td" data-label="Código Apoderado">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    familia.apoderadoCodigo
-                  )}
-                </td>
-
-                <td className="familia-table__td" data-label="Parentesco">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    familia.parentesco
+                    `${familia.apoderados.length} apoderados`
                   )}
                 </td>
 
@@ -176,8 +164,22 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    <span className={familia.principal ? "badge-success" : "badge-secondary"}>
-                      {familia.principal ? "Sí" : "No"}
+                    <span className={principal ? "badge-success" : "badge-secondary"}>
+                      {principal?.nombre ?? "-"}
+                    </span>
+                  )}
+                </td>
+
+                <td className="familia-table__td" data-label="Secundarios">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    <span className="badge-secondary">
+                      {secundarios.length > 0
+                        ? secundarios.map((apoderado) => apoderado.nombre).join(", ")
+                        : "-"}
                     </span>
                   )}
                 </td>
@@ -190,31 +192,17 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                       <Button
                         variant="danger"
                         size="small"
-                        onClick={() => handleDelete?.(familia.id)}
-                        icon={
-                          <FAMILIA_ICONS.delete
-                            style={{
-                              fontSize: "1rem",
-                              color: "var(--color-surface)",
-                            }}
-                          />
-                        }
-                        testId={`delete-btn-${familia.id}`}
+                        onClick={() => handleDelete?.(familia.familiaId)}
+                        icon={<FAMILIA_ICONS.delete />}
+                        testId={`delete-btn-${familia.familiaId}`}
                       />
 
                       <Button
                         variant="secondary"
                         size="small"
-                        onClick={() => handleEdit?.(familia.id)}
-                        icon={
-                          <FAMILIA_ICONS.edit
-                            style={{
-                              fontSize: "1rem",
-                              color: "var(--color-surface)",
-                            }}
-                          />
-                        }
-                        testId={`edit-btn-${familia.id}`}
+                        onClick={() => handleEdit?.(familia.familiaId)}
+                        icon={<FAMILIA_ICONS.edit />}
+                        testId={`edit-btn-${familia.familiaId}`}
                       />
                     </div>
                   ) : (
@@ -233,17 +221,17 @@ export const FamiliaList: FC<FamiliaListProps> = ({
           disabled={!hasPrevPage || loading}
           variant="secondary"
           size="small"
-          label="◀ Anterior"
+          label="Anterior"
         />
 
-        <span className="no-highlight">Página {currentPage + 1}</span>
+        <span className="no-highlight">Pagina {currentPage + 1}</span>
 
         <Button
           onClick={onNextPage}
           disabled={loading || isLastPage}
           variant="secondary"
           size="small"
-          label="Siguiente ▶"
+          label="Siguiente"
         />
       </div>
     </article>

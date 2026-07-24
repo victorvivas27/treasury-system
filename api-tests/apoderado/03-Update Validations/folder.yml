@@ -10,6 +10,30 @@ request:
       code: |-
         const baseUrl = bru.getEnvVar('Url_Base');
 
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/apoderados?size=100`,
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+          
+          if (apoderados && apoderados.length > 0) {
+            for (const ap of apoderados) {
+              if (ap.codigo) {
+                await bru.sendRequest({
+                  url: `${baseUrl}/apoderados/${ap.codigo}`,
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // Silenciado
+        }
+
         const apoderado = {
           nombre: "Victor Vivas",
           email: "victor@gmail.com",
@@ -31,8 +55,8 @@ request:
           ? JSON.parse(creadoRaw)
           : creadoRaw;
 
-        bru.setVar("apoderadoIdCreadoPre", creado.apoderadoId);
-        bru.setVar("bodyData", JSON.stringify(apoderado));
+        bru.setEnvVar("codigo", creado.codigo);
+        //bru.setVar("bodyData", JSON.stringify(apoderado));
     - type: after-response
       code: |-
         const baseUrl = bru.getEnvVar('Url_Base');

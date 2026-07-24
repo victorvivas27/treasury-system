@@ -4,12 +4,8 @@ import java.util.List;
 
 public record FamiliaDetalleResponse(
     Long familiaId,
-    Long alumnoId,
-    String alumnoCodigo,
-    String alumnoNombre,
     String codigoFamilia,
-    String parentesco,
-    Boolean principal,
-    String observaciones,
-    List<ApoderadoDetalleResponse> apoderados 
-) {}
+    String observacionesGenerales,
+    AlumnoFamiliaResponse alumno,
+    List<ApoderadoDetalleResponse> apoderados) {
+}

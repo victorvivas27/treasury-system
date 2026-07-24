@@ -11,16 +11,15 @@ describe("Alumno use cases", () => {
   let repository: IAlumnoRepository;
 
   const alumno: Alumno = {
-    id: 1,
+    alumnoId: 1,
     nombre: "JUAN PEREZ",
     curso: "4A",
-    apoderadoId: 1,
+    codigo: "ABC123",
   };
 
   const createDto: CreateAlumnoDTO = {
     nombre: "Juan Perez",
     curso: "4A",
-    apoderadoId: 1,
   };
 
   const pageResponse: PageResponse<Alumno> = {
@@ -35,9 +34,9 @@ describe("Alumno use cases", () => {
     repository = {
       getAll: vi.fn(),
       create: vi.fn(),
-      getById: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
+      getByCodigo: vi.fn(),
+      updateByCodigo: vi.fn(),
+      deleteByCodigo: vi.fn(),
     };
   });
 
@@ -59,29 +58,29 @@ describe("Alumno use cases", () => {
     expect(result).toEqual(pageResponse);
   });
 
-  it("GetAlumnoByIdUseCase busca por id", async () => {
-    vi.mocked(repository.getById).mockResolvedValue(alumno);
+  it("GetAlumnoByIdUseCase busca por codigo", async () => {
+    vi.mocked(repository.getByCodigo).mockResolvedValue(alumno);
 
-    const result = await new GetAlumnoByIdUseCase(repository).execute(1);
+    const result = await new GetAlumnoByIdUseCase(repository).execute("ABC123");
 
-    expect(repository.getById).toHaveBeenCalledWith(1);
+    expect(repository.getByCodigo).toHaveBeenCalledWith("ABC123");
     expect(result).toEqual(alumno);
   });
 
-  it("UpdateAlumnoUseCase actualiza por id", async () => {
-    vi.mocked(repository.update).mockResolvedValue({ ...alumno, curso: "5B" });
+  it("UpdateAlumnoUseCase actualiza por codigo", async () => {
+    vi.mocked(repository.updateByCodigo).mockResolvedValue({ ...alumno, curso: "5B" });
 
-    const result = await new UpdateAlumnoUseCase(repository).execute(1, { curso: "5B" });
+    const result = await new UpdateAlumnoUseCase(repository).execute("ABC123", { curso: "5B" });
 
-    expect(repository.update).toHaveBeenCalledWith(1, { curso: "5B" });
+    expect(repository.updateByCodigo).toHaveBeenCalledWith("ABC123", { curso: "5B" });
     expect(result.curso).toBe("5B");
   });
 
-  it("DeleteAlumnoUseCase elimina por id", async () => {
-    vi.mocked(repository.delete).mockResolvedValue(undefined);
+  it("DeleteAlumnoUseCase elimina por codigo", async () => {
+    vi.mocked(repository.deleteByCodigo).mockResolvedValue(undefined);
 
-    await new DeleteAlumnoUseCase(repository).execute(1);
+    await new DeleteAlumnoUseCase(repository).execute("ABC123");
 
-    expect(repository.delete).toHaveBeenCalledWith(1);
+    expect(repository.deleteByCodigo).toHaveBeenCalledWith("ABC123");
   });
 });

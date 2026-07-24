@@ -2,6 +2,8 @@ info:
   name: 12-Email With Space In Domain
   type: http
   seq: 12
+  tags:
+    - apoderados
 
 http:
   method: POST

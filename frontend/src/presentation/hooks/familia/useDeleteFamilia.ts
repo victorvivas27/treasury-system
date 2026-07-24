@@ -1,9 +1,11 @@
 
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
+import { DeleteAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/familia/delete/DeleteAlumnoApoderadoUseCase";
 import { useMemo, useState } from "react";
 
 export const useDeleteFamilia = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [idToDelete, setIdToDelete] = useState<number | null>(null);
   const [alert, setAlert] = useState({
     isOpen: false,
@@ -23,6 +25,7 @@ export const useDeleteFamilia = (onSuccess?: () => void) => {
     if (idToDelete === null) return;
 
     setIsDeleting(true);
+    setError(null);
 
     try {
       await familiaRepository.delete(idToDelete);
@@ -36,6 +39,7 @@ export const useDeleteFamilia = (onSuccess?: () => void) => {
       onSuccess?.();
     } catch (error) {
       console.error("Error al eliminar familia:", error);
+      setError("No se pudo eliminar la familia.");
 
       setAlert({
         isOpen: true,
@@ -57,12 +61,52 @@ export const useDeleteFamilia = (onSuccess?: () => void) => {
 
   return {
     isDeleting,
+    loading: isDeleting,
+    error,
     idToDelete,
     isConfirmOpen: idToDelete !== null,
     openDeleteConfirm,
     closeDeleteConfirm,
     confirmDelete,
+    remove: async (id: number) => {
+      setIdToDelete(id);
+      setIsDeleting(true);
+      setError(null);
+      try {
+        await familiaRepository.delete(id);
+      } catch {
+        setError("No se pudo eliminar la familia.");
+      } finally {
+        setIsDeleting(false);
+        setIdToDelete(null);
+      }
+    },
     alert,
     closeAlert,
   };
+};
+
+export const useDeleteAlumnoApoderado = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const deleteUseCase = useMemo(
+    () => new DeleteAlumnoApoderadoUseCase(new FamiliaRepositoryImpl()),
+    [],
+  );
+
+  const remove = async (id: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteUseCase.execute(id);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo eliminar la familia.";
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { remove, loading, error };
 };

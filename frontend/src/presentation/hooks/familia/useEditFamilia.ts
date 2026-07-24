@@ -1,6 +1,6 @@
-
-import type { AlumnoApoderado, UpdateFamiliaDTO } from "@/core/A-domain/entities/familia/Familia";
-import { GetFamiliaByAlumnoUseCase } from "@/core/B-application/use-cases/familia/byid/GetFamiliaByAlumnoUseCase";
+import type { CreateFamiliaDTO, FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
+import { GetFamiliaUseCase } from "@/core/B-application/use-cases/familia/get/GetFamiliaUseCase";
+import { EditAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/familia/update/EditAlumnoApoderadoUseCase";
 import { UpdateFamiliaUseCase } from "@/core/B-application/use-cases/familia/update/UpdateFamiliaUseCase";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
 import axios from "axios";
@@ -9,32 +9,22 @@ import { useNavigate, useParams } from "react-router-dom";
 
 export const useEditFamilia = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
-
-  const numericId = useMemo(() => (id ? parseInt(id, 10) : undefined), [id]);
+  const { familiaId } = useParams();
+  const numericId = useMemo(
+    () => (familiaId ? Number(familiaId) : undefined),
+    [familiaId],
+  );
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<{ message: string } | null>(null);
-  const [familiaData, setFamiliaData] = useState<AlumnoApoderado | null>(null);
-
-  // Guardar los IDs de la relación por separado
-  const [relacionIds, setRelacionIds] = useState<{ alumnoId: number; apoderadoId: number } | null>(null);
-
-  const { getUseCase, updateUseCase } = useMemo(() => {
-    const repository = new FamiliaRepositoryImpl();
-    return {
-      getUseCase: new GetFamiliaByAlumnoUseCase(repository),
-      updateUseCase: new UpdateFamiliaUseCase(repository),
-    };
-  }, []);
-
-  const [formData, setFormData] = useState<UpdateFamiliaDTO>({
-    parentesco: "",
-    principal: false,
-    observaciones: "",
+  const [familiaData, setFamiliaData] = useState<FamiliaDetalle | null>(null);
+  const [formData, setFormData] = useState<CreateFamiliaDTO>({
+    alumnoId: 0,
+    observacionesGenerales: "",
+    apoderados: [],
   });
-
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
     isOpen: false,
@@ -42,16 +32,17 @@ export const useEditFamilia = () => {
     type: "success" as "success" | "error",
   });
 
-  const showAlert = useCallback(
-    (message: string, type: "success" | "error") => {
-      setModal({ isOpen: true, message, type });
-    },
-    [],
-  );
+  const { getUseCase, updateUseCase } = useMemo(() => {
+    const repository = new FamiliaRepositoryImpl();
+    return {
+      getUseCase: new GetFamiliaUseCase(repository),
+      updateUseCase: new UpdateFamiliaUseCase(repository),
+    };
+  }, []);
 
   const loadFamiliaData = useCallback(async () => {
     if (numericId === undefined || isNaN(numericId)) {
-      setLoadError({ message: "ID de alumno no válido" });
+      setLoadError({ message: "ID de familia no valido" });
       setInitialLoading(false);
       return;
     }
@@ -60,58 +51,44 @@ export const useEditFamilia = () => {
     setLoadError(null);
 
     try {
-      const relaciones = await getUseCase.execute(numericId);
-
-      // Toma la primera relación o la que es principal
-      const relacion = relaciones.find(r => r.principal) || relaciones[0];
-
-      if (!relacion) {
-        setLoadError({ message: "No hay relaciones familiares para este alumno" });
-        showAlert("No hay relaciones familiares", "error");
-        setTimeout(() => navigate("/family"), 2000);
-        return;
-      }
-
-      setFamiliaData(relacion);
-
-      // IMPORTANTE: Necesitas guardar el alumnoId y apoderadoId en otro lado
-      // Como AlumnoApoderado no tiene esos campos, tendrás que obtenerlos de otra forma
-      // Por ahora, usamos numericId como alumnoId, pero necesitas el apoderadoId
-
-      setRelacionIds({
-        alumnoId: numericId,
-        apoderadoId: relacion.id, // Esto es incorrecto: relacion.id es el ID del apoderado, no el ID de la relación
-      });
-
+      const familia = await getUseCase.execute(numericId);
+      const alumnoId = familia.alumno.alumnoId ?? familia.alumno.id;
+      setFamiliaData(familia);
       setFormData({
-        parentesco: relacion.parentesco,
-        principal: relacion.principal,
-        observaciones: relacion.observaciones || "",
+        alumnoId: alumnoId ?? 0,
+        observacionesGenerales: familia.observacionesGenerales ?? "",
+        apoderados: familia.apoderados.map((apoderado) => {
+          const apoderadoId = apoderado.apoderadoId ?? apoderado.id;
+          return {
+            apoderadoId: apoderadoId ?? 0,
+            parentesco: apoderado.relacion.parentesco,
+            esPrincipal: apoderado.relacion.esPrincipal,
+          };
+        }),
       });
     } catch {
-      setLoadError({ message: "Error de conexión al cargar los datos" });
-      showAlert("Error al cargar los datos de la familia", "error");
-      setTimeout(() => navigate("/family"), 2000);
+      setLoadError({ message: "Error de conexion al cargar los datos" });
     } finally {
       setInitialLoading(false);
     }
-  }, [numericId, getUseCase, navigate, showAlert]);
+  }, [numericId, getUseCase]);
 
   useEffect(() => {
     loadFamiliaData();
   }, [loadFamiliaData]);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
 
-    if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    setFormData((prev) => {
+      if (name === "observacionesGenerales") {
+        return { ...prev, observacionesGenerales: value };
+      }
+
+      return prev;
+    });
 
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
@@ -122,30 +99,54 @@ export const useEditFamilia = () => {
     }
   };
 
+  const handleApoderadoChange = (
+    index: number,
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      apoderados: (prev.apoderados ?? []).map((apoderado, currentIndex) => {
+        if (name === "esPrincipal") {
+          return {
+            ...apoderado,
+            esPrincipal: currentIndex === index,
+          };
+        }
+
+        return currentIndex === index
+          ? { ...apoderado, parentesco: value }
+          : apoderado;
+      }),
+    }));
+
+    const fieldName = `apoderados[${index}].${name}`;
+    setFieldErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      delete newErrors[name];
+      return newErrors;
+    });
+  };
+
   const handleSubmit = async () => {
-    if (!relacionIds) return;
+    if (numericId === undefined || isNaN(numericId)) return;
 
     setLoading(true);
     setFieldErrors({});
 
     try {
-      await updateUseCase.execute(relacionIds.alumnoId, relacionIds.apoderadoId, formData);
-      showAlert("¡Familia actualizada con éxito!", "success");
-
-      setTimeout(() => {
-        navigate("/family");
-      }, 2000);
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response) {
-        const { code, errors, message } = error.response.data;
-        if (code === "ERROR_VALIDACION" && errors) {
-          setFieldErrors(errors);
-        } else {
-          showAlert(message || "Error al procesar la solicitud", "error");
-        }
-      } else {
-        showAlert("Ocurrió un error inesperado", "error");
+      setError(null);
+      await updateUseCase.execute(numericId, formData);
+      setModal({ isOpen: true, message: "Familia actualizada con exito", type: "success" });
+      setTimeout(() => navigate("/family"), 2000);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data?.errors) {
+        setFieldErrors(error.response.data.errors);
       }
+      setError("No se pudo actualizar la familia");
+      setModal({ isOpen: true, message: "No se pudo actualizar la familia", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -157,11 +158,58 @@ export const useEditFamilia = () => {
     loading,
     initialLoading,
     fieldErrors,
+    error,
     modal,
     handleChange,
+    handleApoderadoChange,
     handleSubmit,
     setModal,
     navigate,
     loadError,
+    edit: async (familiaId: number, payload: CreateFamiliaDTO) => {
+      setLoading(true);
+      setError(null);
+      try {
+        return await updateUseCase.execute(familiaId, payload);
+      } catch {
+        setError("No se pudo actualizar la familia");
+        throw new Error("No se pudo actualizar la familia");
+      } finally {
+        setLoading(false);
+      }
+    },
   };
+};
+
+export const useEditAlumnoApoderado = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const updateUseCase = useMemo(
+    () => new EditAlumnoApoderadoUseCase(new FamiliaRepositoryImpl()),
+    [],
+  );
+
+  const edit = async (familiaId: number, payload: CreateFamiliaDTO) => {
+    setLoading(true);
+    setError(null);
+    setFieldErrors({});
+    try {
+      return await updateUseCase.execute(familiaId, payload);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.data?.errors) {
+        setFieldErrors(err.response.data.errors);
+      }
+      setError(
+        axios.isAxiosError(err)
+          ? err.response?.data?.message ?? "No se pudo actualizar la familia"
+          : "No se pudo actualizar la familia",
+      );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { edit, loading, error, fieldErrors };
 };

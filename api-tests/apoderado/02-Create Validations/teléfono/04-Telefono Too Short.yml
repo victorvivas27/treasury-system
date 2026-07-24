@@ -2,6 +2,8 @@ info:
   name: 04-Telefono Too Short
   type: http
   seq: 4
+  tags:
+    - apoderados
 
 http:
   method: POST

@@ -2,10 +2,12 @@ info:
   name: 01-Delete Non Existing ID
   type: http
   seq: 1
+  tags:
+    - alumno
 
 http:
   method: DELETE
-  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -19,8 +21,8 @@ runtime:
         });
 
         test("Should report alumno not found", function () {
-          expect(body.code).to.equal("AL-404");
-          expect(body.errors).to.have.property("id");
+          expect(body.status).to.equal(404);
+          expect(body.errors).to.have.property("codigo");
         });
 
 settings:

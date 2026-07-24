@@ -1,6 +1,7 @@
 package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,7 +33,7 @@ public final class ApoderadoEntity {
   @Column(nullable = false, unique = true, length = 100)
   private String email;
 
-  @Column(nullable = false, length = 15)
+  @Column(nullable = false, length = 20)
   private String telefono;
 
   @Column(length = 500)
@@ -51,7 +52,7 @@ public final class ApoderadoEntity {
     this.createdAt = LocalDateTime.now();
     this.updatedAt = LocalDateTime.now();
     if (this.codigo == null) {
-      this.codigo = "AP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+      this.codigo = "AP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
     }
   }
 

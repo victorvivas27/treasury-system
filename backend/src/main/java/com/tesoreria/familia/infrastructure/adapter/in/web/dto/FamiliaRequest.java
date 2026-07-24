@@ -2,66 +2,44 @@ package com.tesoreria.familia.infrastructure.adapter.in.web.dto;
 
 import java.util.List;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class FamiliaRequest {
 
-  
-  private String codigo;
+  @NotNull(message = "El ID del alumno no puede ser nulo")
+  private Long alumnoId;
 
-  // MODIFICADO: Reemplaza apoderadoId por la lista requerida por el dominio
-  @NotEmpty(message = "Debe vincular al menos un ID de apoderado")
-  private List<@NotNull(message = "El ID de apoderado no puede ser nulo") Long> apoderadosIds;
+  @Size(max = 200, message = "Las observaciones no pueden tener mas de 200 caracteres")
+  private String observacionesGenerales;
 
-  @NotBlank(message = "El parentesco no puede estar vacío")
-  @Size(max = 50, message = "El parentesco no puede tener más de 50 caracteres")
-  private String parentesco;
+  @Valid
+  @NotEmpty(message = "Debe vincular al menos un apoderado")
+  private List<FamiliaApoderadoRequest> apoderados;
 
-  private Boolean principal;
-
-  @Size(max = 500, message = "Las observaciones no pueden tener más de 500 caracteres")
-  private String observaciones;
-
-  public String getCodigo() {
-    return codigo;
+  public Long getAlumnoId() {
+    return alumnoId;
   }
 
-  public void setCodigo(String codigo) {
-    this.codigo = codigo == null ? null : codigo.trim();
+  public void setAlumnoId(Long alumnoId) {
+    this.alumnoId = alumnoId;
   }
 
-  public List<Long> getApoderadosIds() {
-    return apoderadosIds;
+  public String getObservacionesGenerales() {
+    return observacionesGenerales;
   }
 
-  public void setApoderadosIds(List<Long> apoderadosIds) {
-    this.apoderadosIds = apoderadosIds;
+  public void setObservacionesGenerales(String observacionesGenerales) {
+    this.observacionesGenerales = observacionesGenerales == null ? null : observacionesGenerales.trim();
   }
 
-  public String getParentesco() {
-    return parentesco;
+  public List<FamiliaApoderadoRequest> getApoderados() {
+    return apoderados;
   }
 
-  public void setParentesco(String parentesco) {
-    this.parentesco = parentesco == null ? null : parentesco.trim();
-  }
-
-  public Boolean getPrincipal() {
-    return principal;
-  }
-
-  public void setPrincipal(Boolean principal) {
-    this.principal = principal;
-  }
-
-  public String getObservaciones() {
-    return observaciones;
-  }
-
-  public void setObservaciones(String observaciones) {
-    this.observaciones = observaciones == null ? null : observaciones.trim();
+  public void setApoderados(List<FamiliaApoderadoRequest> apoderados) {
+    this.apoderados = apoderados;
   }
 }

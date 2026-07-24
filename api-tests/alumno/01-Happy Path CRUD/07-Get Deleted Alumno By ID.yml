@@ -2,10 +2,12 @@ info:
   name: 07-Get Deleted Alumno By ID
   type: http
   seq: 7
+  tags:
+    - alumno
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -21,4 +23,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

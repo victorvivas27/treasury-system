@@ -2,17 +2,15 @@ info:
   name: 01-Create Alumno
   type: http
   seq: 1
+  tags:
+    - alumno
 
 http:
   method: POST
   url: "{{Url_Base}}/alumnos"
   body:
     type: json
-    data: |-
-      {
-        "nombre": "Juan Perez",
-        "curso": "4A"
-      }
+    data: "{{bodyDataAlumno}}"
   auth: inherit
 
 runtime:
@@ -32,9 +30,9 @@ runtime:
           
           if (alumnos && alumnos.length > 0) {
             for (const ap of alumnos) {
-              if (ap.alumnoId) {
+              if (ap.codigo) {
                 await bru.sendRequest({
-                  url: `${baseUrl}/alumnos/${ap.alumnoId}`,
+                  url: `${baseUrl}/alumnos/${ap.codigo}`,
                   method: 'DELETE',
                   headers: { 'Content-Type': 'application/json' }
                 });
@@ -48,6 +46,11 @@ runtime:
       code: |-
         const body = res.getBody();
 
+        bru.setEnvVar("codigo", body.codigo, { persist: true });
+        if (body && body.alumnoId) {
+          bru.setEnvVar("alumnoId", String(body.alumnoId), { persist: true });
+        }
+
         test("Status should be 201", function () {
           expect(res.getStatus()).to.equal(201);
         });
@@ -56,11 +59,13 @@ runtime:
           expect(body.alumnoId).to.not.be.undefined;
         });
 
+        test("Response should contain codigo", function () {
+          expect(body.codigo).to.not.be.undefined;
+        });
+
         test("Name should be uppercase", function () {
           expect(body.nombre).to.equal("JUAN PEREZ");
         });
-
-        bru.setEnvVar("alumnoId", body.alumnoId.toString(), { persist: true });
 
 settings:
   encodeUrl: true

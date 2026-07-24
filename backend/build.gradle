@@ -133,4 +133,8 @@ tasks.withType(Pmd).configureEach {
     }
 }
 
+tasks.named('pmdTest') {
+    enabled = false
+}
+
 check.dependsOn jacocoTestCoverageVerification

@@ -2,6 +2,8 @@ info:
   name: 11-Email With Hyphen At Domain End
   type: http
   seq: 11
+  tags:
+    - apoderados
 
 http:
   method: POST

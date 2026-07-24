@@ -56,6 +56,7 @@ describe("useDeleteApoderado", () => {
   });
 
   it("[useDeleteApoderado #05] debe gestionar el error de eliminación", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mockDelete.mockRejectedValue(new Error("Network Error"));
     const { result } = renderHook(() => useDeleteApoderado());
     act(() => { result.current.openDeleteConfirm(1); });
@@ -64,6 +65,7 @@ describe("useDeleteApoderado", () => {
     expect(result.current.alert.type).toBe("error");
     expect(result.current.isDeleting).toBe(false);
     expect(mockDelete).toHaveBeenCalledWith(1);
+    consoleErrorSpy.mockRestore();
   });
 
   it("[useDeleteApoderado #06] debe controlar el estado isDeleting durante la promesa", async () => {
