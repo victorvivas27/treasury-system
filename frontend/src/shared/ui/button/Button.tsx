@@ -28,6 +28,10 @@ export const Button = ({
   testId,
   className = ''
 }: ButtonProps) => {
+  const displayedIcon = loading
+    ? <span className="button-loader" aria-hidden="true" />
+    : icon;
+
   return (
     <button
       type={type}
@@ -38,14 +42,14 @@ export const Button = ({
       data-testid={testId}
     >
       <span className="button-content">
-        {icon && iconPosition === 'left' && (
-          <span className="button-icon button-icon--left">{icon}</span>
+        {displayedIcon && iconPosition === 'left' && (
+          <span className="button-icon button-icon--left">{displayedIcon}</span>
         )}
 
         {label && <span className="button-label">{label}</span>}
 
-        {icon && iconPosition === 'right' && (
-          <span className="button-icon button-icon--right">{icon}</span>
+        {displayedIcon && iconPosition === 'right' && (
+          <span className="button-icon button-icon--right">{displayedIcon}</span>
         )}
       </span>
     </button>

@@ -14,10 +14,15 @@ export const EditarFamiliaForm = () => {
     modal,
     handleChange,
     handleApoderadoChange,
+    addApoderado,
+    removeApoderado,
     handleSubmit,
     setModal,
     navigate,
     loadError,
+    apoderados,
+    loadingApoderados,
+    apoderadosError,
   } = useEditFamilia();
 
   if (initialLoading) {
@@ -60,7 +65,17 @@ export const EditarFamiliaForm = () => {
         </div>
 
         {(formData.apoderados ?? []).map((relacion, index) => {
-          const apoderado = familiaData?.apoderados[index];
+          const apoderado = apoderados.find(
+            (item) => item.apoderadoId === relacion.apoderadoId,
+          ) ?? familiaData?.apoderados.find(
+            (item) => (item.apoderadoId ?? item.id) === relacion.apoderadoId,
+          );
+          const esNuevo = !familiaData?.apoderados.some(
+            (item) => (item.apoderadoId ?? item.id) === relacion.apoderadoId,
+          );
+          const apoderadoIdError =
+            fieldErrors[`apoderados[${index}].apoderadoId`] ??
+            fieldErrors[`apoderados.${index}.apoderadoId`];
           const parentescoError =
             fieldErrors[`apoderados[${index}].parentesco`] ??
             fieldErrors[`apoderados.${index}.parentesco`] ??
@@ -69,14 +84,48 @@ export const EditarFamiliaForm = () => {
           return (
           <section className="info-section" key={relacion.apoderadoId}>
             <h3>Apoderado {index + 1}</h3>
-            <div className="info-row">
-              <span className="info-label">Nombre:</span>
-              <span className="info-value">
-                {apoderado
-                  ? `${apoderado.nombre} (${apoderado.codigo})`
-                  : `ID ${relacion.apoderadoId}`}
-              </span>
-            </div>
+            {esNuevo ? (
+              <div className="form-group floating-group">
+                <select
+                  id={`apoderado_input_${index}`}
+                  name="apoderadoId"
+                  value={relacion.apoderadoId || ""}
+                  onChange={(event) => handleApoderadoChange(index, event)}
+                  disabled={loadingApoderados || Boolean(apoderadosError)}
+                  className={`form-input ${apoderadoIdError ? "input-error" : ""}`}
+                >
+                  <option value="">
+                    {loadingApoderados ? "Cargando apoderados..." : "Seleccionar apoderado"}
+                  </option>
+                  {apoderados
+                    .filter((item) => !(formData.apoderados ?? []).some(
+                      (seleccionado, currentIndex) =>
+                        currentIndex !== index &&
+                        seleccionado.apoderadoId === item.apoderadoId,
+                    ))
+                    .map((item) => (
+                      <option key={item.apoderadoId} value={item.apoderadoId}>
+                        {[item.codigo, item.nombre].filter(Boolean).join(" - ")}
+                      </option>
+                    ))}
+                </select>
+                <label htmlFor={`apoderado_input_${index}`} className="floating-label form-label">
+                  Apoderado
+                </label>
+                {(apoderadoIdError || apoderadosError) && (
+                  <span className="error-message">{apoderadoIdError || apoderadosError}</span>
+                )}
+              </div>
+            ) : (
+              <div className="info-row">
+                <span className="info-label">Nombre:</span>
+                <span className="info-value">
+                  {apoderado
+                    ? `${apoderado.nombre} (${apoderado.codigo})`
+                    : `ID ${relacion.apoderadoId}`}
+                </span>
+              </div>
+            )}
 
             <div className="form-group floating-group">
               <select
@@ -112,11 +161,36 @@ export const EditarFamiliaForm = () => {
                 <span>Seleccionar como apoderado principal</span>
               </label>
             </div>
+            {esNuevo && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="small"
+                onClick={() => removeApoderado(index)}
+                label="Quitar"
+              />
+            )}
           </section>
           );
         })}
 
-        <div className="form-group floating-group">
+        {(formData.apoderados ?? []).length < 2 && (
+          <div className="familia-form__add-apoderado">
+            <Button
+              type="button"
+              variant="secondary"
+              size="small"
+              onClick={addApoderado}
+              label="Agregar segundo apoderado"
+              icon={<FAMILIA_ICONS.crearFamilia />}
+            />
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="observaciones_input" className="form-label">
+            Observaciones (opcional)
+          </label>
           <textarea
             id="observaciones_input"
             name="observacionesGenerales"
@@ -126,7 +200,6 @@ export const EditarFamiliaForm = () => {
             rows={3}
             className={`form-input ${fieldErrors.observacionesGenerales ? "input-error" : ""}`}
           />
-          <label htmlFor="observaciones_input" className="floating-label form-label">Observaciones (opcional)</label>
           {fieldErrors.observacionesGenerales && (
             <span className="error-message">{fieldErrors.observacionesGenerales}</span>
           )}

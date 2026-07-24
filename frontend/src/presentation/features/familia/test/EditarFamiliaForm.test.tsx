@@ -9,6 +9,8 @@ vi.mock("@/presentation/hooks/familia/useEditFamilia", () => ({
 
 describe("EditarFamiliaForm", () => {
   const handleApoderadoChange = vi.fn();
+  const addApoderado = vi.fn();
+  const removeApoderado = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -55,10 +57,15 @@ describe("EditarFamiliaForm", () => {
       modal: { isOpen: false, message: "", type: "success" },
       handleChange: vi.fn(),
       handleApoderadoChange,
+      addApoderado,
+      removeApoderado,
       handleSubmit: vi.fn(),
       setModal: vi.fn(),
       navigate: vi.fn(),
       loadError: null,
+      apoderados: [],
+      loadingApoderados: false,
+      apoderadosError: null,
       edit: vi.fn(),
     });
   });
@@ -78,5 +85,35 @@ describe("EditarFamiliaForm", () => {
     fireEvent.click(screen.getAllByRole("radio")[1]);
 
     expect(handleApoderadoChange).toHaveBeenCalledWith(1, expect.any(Object));
+  });
+
+  it("[EditarFamiliaForm #03] Debe permitir agregar un segundo apoderado cuando existe uno solo", () => {
+    vi.mocked(useEditFamilia).mockReturnValue({
+      ...vi.mocked(useEditFamilia)(),
+      formData: {
+        alumnoId: 1,
+        observacionesGenerales: "",
+        apoderados: [{ apoderadoId: 1, parentesco: "Madre", esPrincipal: true }],
+      },
+      familiaData: {
+        ...vi.mocked(useEditFamilia)().familiaData!,
+        apoderados: [vi.mocked(useEditFamilia)().familiaData!.apoderados[0]],
+      },
+    });
+
+    render(<EditarFamiliaForm />);
+    fireEvent.click(screen.getByRole("button", { name: /agregar segundo apoderado/i }));
+
+    expect(addApoderado).toHaveBeenCalledOnce();
+  });
+
+  it("[EditarFamiliaForm #04] Debe mantener la etiqueta de observaciones dentro de su grupo", () => {
+    render(<EditarFamiliaForm />);
+
+    const textarea = screen.getByLabelText("Observaciones (opcional)");
+    const label = screen.getByText("Observaciones (opcional)");
+
+    expect(label).not.toHaveClass("floating-label");
+    expect(label.nextElementSibling).toBe(textarea);
   });
 });

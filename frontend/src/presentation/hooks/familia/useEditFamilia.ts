@@ -6,8 +6,14 @@ import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/Famil
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useApoderados } from "../apoderado/useApoderados";
 
 export const useEditFamilia = () => {
+  const {
+    apoderados,
+    loading: loadingApoderados,
+    error: apoderadosError,
+  } = useApoderados({ pageSize: 100 });
   const navigate = useNavigate();
   const { familiaId } = useParams();
   const numericId = useMemo(
@@ -116,7 +122,10 @@ export const useEditFamilia = () => {
         }
 
         return currentIndex === index
-          ? { ...apoderado, parentesco: value }
+          ? {
+              ...apoderado,
+              [name]: name === "apoderadoId" ? Number(value) : value,
+            }
           : apoderado;
       }),
     }));
@@ -128,6 +137,29 @@ export const useEditFamilia = () => {
       delete newErrors[name];
       return newErrors;
     });
+  };
+
+  const addApoderado = () => {
+    setFormData((prev) => {
+      if ((prev.apoderados ?? []).length >= 2) return prev;
+
+      return {
+        ...prev,
+        apoderados: [
+          ...(prev.apoderados ?? []),
+          { apoderadoId: 0, parentesco: "", esPrincipal: false },
+        ],
+      };
+    });
+  };
+
+  const removeApoderado = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      apoderados: (prev.apoderados ?? []).filter(
+        (_, currentIndex) => currentIndex !== index,
+      ),
+    }));
   };
 
   const handleSubmit = async () => {
@@ -162,10 +194,15 @@ export const useEditFamilia = () => {
     modal,
     handleChange,
     handleApoderadoChange,
+    addApoderado,
+    removeApoderado,
     handleSubmit,
     setModal,
     navigate,
     loadError,
+    apoderados,
+    loadingApoderados,
+    apoderadosError,
     edit: async (familiaId: number, payload: CreateFamiliaDTO) => {
       setLoading(true);
       setError(null);

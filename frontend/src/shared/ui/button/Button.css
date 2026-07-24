@@ -65,11 +65,13 @@
 }
 
 /* Loader animation para iconos cuando está cargando */
-.is-loading .button-icon {
-  animation: spin 1s linear infinite;
-}
-
-.is-loading .button-icon svg {
+.button-loader {
+  width: 1.1em;
+  height: 1.1em;
+  display: block;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
