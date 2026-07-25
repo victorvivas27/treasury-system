@@ -21,6 +21,13 @@
   width: var(--wh-100);
 }
 
+.familia-field {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding-bottom: 24px;
+}
+
 .familia-field textarea {
   padding: var(--sm);
 
@@ -38,8 +45,16 @@
 }
 
 .familia-field small {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  overflow: hidden;
   color: var(--color-error);
   font-size: var(--xs);
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .familia-form__apoderado {
@@ -77,6 +92,14 @@
   font-size: var(--sm);
   margin: 0;
   padding: var(--xs) var(--sm);
+}
+
+.familia-message--validation {
+  min-height: 32px;
+}
+
+.familia-message--validation.is-empty {
+  visibility: hidden;
 }
 
 .familia-message--error {

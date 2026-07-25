@@ -12,7 +12,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: var(--md)
+  margin: var(--md);
+  padding-bottom: 24px;
 }
 
 .form-input-apoderado {
@@ -82,10 +83,16 @@ textarea.form-input-apoderado {
 }
 
 .error-message-apoderado {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  overflow: hidden;
   color: var(--color-error);
   font-size: var(--xs);
   line-height: 1.2;
-  margin-top: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   animation: fadeIn 0.2s ease-in;
 }
 

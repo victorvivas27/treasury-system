@@ -171,11 +171,14 @@ export const CrearFamilia = () => {
           </div>
         ))}
 
-        {fieldErrors.apoderados && (
-          <p className="familia-message familia-message--error">
-            {fieldErrors.apoderados}
-          </p>
-        )}
+        <p
+          className={`familia-message familia-message--validation ${
+            fieldErrors.apoderados ? "familia-message--error" : "is-empty"
+          }`}
+          aria-live="polite"
+        >
+          {fieldErrors.apoderados || "\u00A0"}
+        </p>
 <div className="familia-form__add-apoderado">
         <Button
           type="button"
@@ -206,7 +209,7 @@ export const CrearFamilia = () => {
             loading={loading}
             disabled={loading || loadingAlumnos || loadingApoderados}
             label={loading ? "Creando..." : "Crear familia"}
-            icon={<FAMILIA_ICONS.save />}
+            icon={<FAMILIA_ICONS.addCircle />}
             onClick={() => { }}
 
           />

@@ -37,6 +37,7 @@ backend/bin/
 .vscode/
 
 ### Frontend / Node ###
+.pnpm-store/
 frontend/node_modules/
 frontend/dist/
 frontend/build/

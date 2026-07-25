@@ -9,5 +9,5 @@ export interface IApoderadoRepository {
 
   update(codigo: string, apoderado: Partial<Apoderado>): Promise<Apoderado>;
 
-  delete(apoderadoId: number): Promise<void>;
+  delete(codigo: string): Promise<void>;
 }

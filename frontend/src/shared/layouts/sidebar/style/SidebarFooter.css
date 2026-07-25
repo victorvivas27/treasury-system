@@ -45,10 +45,21 @@
 /* Usuario */
 .sidebar-user {
   padding: clamp(0.1rem, 1vh, 0.3rem) 0.2rem;
-
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: var(--sm);
+}
+
+.sidebar-user:hover,
+.sidebar-user.active {
+  background-color: var(--color-hover);
+  color: var(--color-accent);
+}
+
+.sidebar-user:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* Avatar */

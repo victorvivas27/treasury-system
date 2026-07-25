@@ -18,6 +18,16 @@ public class DomainException extends RuntimeException {
         this.status = status;
     }
 
+    public DomainException(
+            String field,
+            HttpStatus status,
+            String mensaje,
+            Throwable cause) {
+        super(mensaje, cause);
+        this.field = field;
+        this.status = status;
+    }
+
     public String getField() {
         return field;
     }

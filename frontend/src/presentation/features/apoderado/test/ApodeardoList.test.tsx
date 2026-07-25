@@ -82,7 +82,7 @@ describe("ApoderadosList Component", () => {
     />
     );
     fireEvent.click(screen.getByTestId("edit-btn-1"));
-    expect(handleEdit).toHaveBeenCalledWith(1);
+    expect(handleEdit).toHaveBeenCalledWith("1");
   });
 
   it("[ApoderadosList #07] Debe manejar la navegación entre páginas.", () => {

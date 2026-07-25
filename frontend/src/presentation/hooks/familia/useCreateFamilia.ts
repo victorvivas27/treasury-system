@@ -117,7 +117,7 @@ export const useCreateFamilia = () => {
       }),
     }));
 
-    const fieldName = `apoderados[${index}].${name}`;
+    const fieldName = `apoderados.${index}.${name}`;
 
     if (fieldErrors[fieldName]) {
       setFieldErrors((prev) => {
@@ -173,8 +173,35 @@ export const useCreateFamilia = () => {
   };
 
   const handleActionSubmit = async () => {
+    const validationErrors: Record<string, string> = {};
+
+    if (!formData.alumnoId) {
+      validationErrors.alumnoId = "Seleccione un alumno";
+    }
+
+    if (!formData.apoderados?.length) {
+      validationErrors.apoderados = "Agregue al menos un apoderado";
+    } else {
+      formData.apoderados.forEach((relacion, index) => {
+        if (!relacion.apoderadoId) {
+          validationErrors[`apoderados.${index}.apoderadoId`] =
+            "Seleccione un apoderado";
+        }
+        if (!relacion.parentesco?.trim()) {
+          validationErrors[`apoderados.${index}.parentesco`] =
+            "Seleccione un parentesco";
+        }
+      });
+
+      if (!formData.apoderados.some((relacion) => relacion.esPrincipal)) {
+        validationErrors.apoderados = "Seleccione un apoderado principal";
+      }
+    }
+
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
+
     setLoading(true);
-    setFieldErrors({});
 
     const repository = new FamiliaRepositoryImpl();
     const useCase = new CreateFamiliaUseCase(repository);

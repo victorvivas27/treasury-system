@@ -1,9 +1,3 @@
 
 
-export const User = () => {
-  return (
-    <div>
-      User
-    </div>
-  );
-};
+export { UsersPage as User } from "./UsersPage";

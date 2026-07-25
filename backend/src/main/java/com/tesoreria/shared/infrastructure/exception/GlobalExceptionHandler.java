@@ -8,6 +8,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
+import io.jsonwebtoken.JwtException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
 import java.time.LocalDateTime;
@@ -78,5 +81,20 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 Map.of("error", "Formato de solicitud invalido"));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<StandardErrorResponse> handleAuthenticationException(AuthenticationException exception) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, Map.of("auth", "Credenciales inválidas"));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<StandardErrorResponse> handleAccessDeniedException(AccessDeniedException exception) {
+        return buildResponse(HttpStatus.FORBIDDEN, Map.of("auth", "Acceso denegado"));
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<StandardErrorResponse> handleJwtException(JwtException exception) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, Map.of("auth", "Token inválido o expirado"));
     }
 }

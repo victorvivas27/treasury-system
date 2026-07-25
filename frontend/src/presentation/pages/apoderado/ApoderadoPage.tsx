@@ -86,7 +86,7 @@ export const ApoderadoPage: FC = () => {
           loading={loading || isDeleting}
           error={error}
           onRefresh={refetch}
-          handleDelete={openDeleteConfirm}
+          handleDelete={(codigo) => openDeleteConfirm(String(codigo))}
           handleEdit={handleEdit}
           currentPage={currentPage}
           onNextPage={nextPage}

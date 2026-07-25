@@ -107,9 +107,9 @@ export const AlumnosList: FC<AlumnosListProps> = ({
       <table className="alumnos-table">
         <thead>
           <tr>
+            <th className="alumnos-table__th">Código</th>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
-            <th className="alumnos-table__th">Codigo</th>
             <th className="alumnos-table__th">Acciones</th>
           </tr>
         </thead>
@@ -125,6 +125,16 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 key={getRowKey(item)}
                 className={`alumnos-table__row--data ${empty && !loading ? "empty-row" : ""}`}
               >
+                <td className="alumnos-table__td" data-label="Código">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : empty ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    alumnoIdentifier
+                  )}
+                </td>
+
                 <td className="alumnos-table__td" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
@@ -142,16 +152,6 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                     <span>&nbsp;</span>
                   ) : (
                     alumno.curso
-                  )}
-                </td>
-
-                <td className="alumnos-table__td" data-label="Codigo">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : empty ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    alumnoIdentifier
                   )}
                 </td>
 

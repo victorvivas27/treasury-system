@@ -28,6 +28,8 @@ export const ICONS = {
   notifications: IoNotificationsOutline,
   settings: IoSettingsOutline,
   logout: BiExit,
+  edit: GrEdit,
+  delete: MdOutlineDeleteOutline,
   crearFamilia: AiOutlineUsergroupAdd
 
 };

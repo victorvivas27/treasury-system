@@ -1,0 +1,40 @@
+info:
+  name: 02-Create User
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{Url_Base}}/users"
+  headers:
+    - name: Authorization
+      value: "Bearer {{userToken}}"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Usuario Prueba",
+        "correo": "usuario.prueba@example.com",
+        "password": "Password1!",
+        "rol": "USER",
+        "enabled": true,
+        "accountNonLocked": true
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+        test("Status should be 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("Password should not be exposed", function () {
+          expect(body.password).to.be.undefined;
+        });
+        bru.setEnvVar("createdUserId", String(body.id));
+
+settings:
+  encodeUrl: true
+  timeout: 0

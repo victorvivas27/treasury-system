@@ -34,7 +34,7 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return response.data;
   }
 
-  async delete(apoderadoId: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/${apoderadoId}`);
+  async delete(codigo: string): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/${codigo}`);
   }
 }

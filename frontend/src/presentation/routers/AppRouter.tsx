@@ -16,27 +16,39 @@ import { AlumnoEditFormPage } from "../pages/alumno/AlumnoEditFormPage";
 import { FamiliaPage } from "../pages/familia/FamiliaPage";
 import { FamiliaEditFormPage } from "../pages/familia/FamiliaEditFormPage";
 import { FamiliaCrearFormPage } from "../pages/familia/FamiliaCreateFormPage";
+import { LoginPage } from "../pages/auth/LoginPage";
+import { RegisterPage } from "../pages/auth/RegisterPage";
+import { ProtectedRoute } from "../components/ProtectedRoute";
+import { AdminRoute } from "../components/AdminRoute";
+import { ProfilePage } from "../pages/user/ProfilePage";
 
 export const AppRouter = () => {
   return (
 
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<MainLayout />} >
         <Route index element={<HomePage />} />
-        <Route path="users" element={<User />} />
-        <Route path="students" element={<AlumnoPage />} />
-        <Route path="parents" element={<ApoderadoPage />} />
-        <Route path="family" element={<FamiliaPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="profile" element={<ProfilePage />} />
+        </Route>
+        <Route element={<AdminRoute />}>
+          <Route path="users" element={<User />} />
+          <Route path="students" element={<AlumnoPage />} />
+          <Route path="parents" element={<ApoderadoPage />} />
+          <Route path="family" element={<FamiliaPage />} />
+          <Route path="parents/new" element={< ApoderadoCrearFormPage/>} />
+          <Route path="/parents/edit/:apoderadoId" element={<ApoderadoEditFormPage />} />
+          <Route path="students/new" element={<AlumnoCrearFormPage />} />
+          <Route path="/students/edit/:codigo" element={<AlumnoEditFormPage />} />
+          <Route path="family/new" element={<FamiliaCrearFormPage/>} />
+          <Route path="/family/edit/:familiaId" element={<FamiliaEditFormPage />} />
+        </Route>
         <Route path="treasury" element={<Tesoreria />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="notifications" element={<Notificacion />} />
         <Route path="configuration" element={<Configuracion />} />
-        <Route path="parents/new" element={< ApoderadoCrearFormPage/>} />
-        <Route path="/parents/edit/:apoderadoId" element={<ApoderadoEditFormPage />} />
-        <Route path="students/new" element={<AlumnoCrearFormPage />} />
-        <Route path="/students/edit/:codigo" element={<AlumnoEditFormPage />} />
-        <Route path="family/new" element={<FamiliaCrearFormPage/>} />
-        <Route path="/family/edit/:familiaId" element={<FamiliaEditFormPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

@@ -13,7 +13,7 @@ interface ApoderadosListProps {
   loading: boolean;
   error: string | null;
   onRefresh?: () => void;
-  handleDelete?: (id: number) => void;
+  handleDelete?: (codigo: string | number) => void;
   handleEdit?: (codigo: string) => void;
   currentPage: number;
   onNextPage: () => void;
@@ -112,6 +112,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       <table className="apoderados-table">
         <thead>
           <tr>
+            <th className="apoderados-table__th">Código</th>
             <th className="apoderados-table__th">Nombre</th>
             <th className="apoderados-table__th">Correo</th>
             <th className="apoderados-table__th">Teléfono</th>
@@ -131,6 +132,16 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 className={`apoderados-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
                   }`}
               >
+                <td className="apoderados-table__td" data-label="Código">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : isEmptyRow ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    apoderado.codigo || apoderadoIdentifier
+                  )}
+                </td>
+
                 <td className="apoderados-table__td" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
@@ -169,7 +180,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                       <Button
                         variant="danger"
                         size="small"
-                        onClick={() => handleDelete?.(apoderadoIdentifier as number)}
+                        onClick={() => handleDelete?.(apoderado.codigo || apoderadoIdentifier)}
                         icon={
                           <APODERADOS_ICONS.delete />}
                         testId={`delete-btn-${apoderadoIdentifier}`}

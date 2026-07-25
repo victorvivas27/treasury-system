@@ -15,11 +15,11 @@
     "test:coverage:open": "vitest run --coverage && start coverage/index.html"
   },
   "dependencies": {
-    "axios": "^1.15.2",
+    "axios": "^1.18.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-icons": "^5.6.0",
-    "react-router-dom": "^7.14.0"
+    "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -34,6 +34,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.26",
+    "form-data": "4.0.6",
     "globals": "^15.15.0",
     "jsdom": "^29.0.2",
     "oxlint": "^1.59.0",

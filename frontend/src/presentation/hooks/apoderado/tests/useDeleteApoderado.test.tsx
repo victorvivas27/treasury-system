@@ -22,23 +22,23 @@ describe("useDeleteApoderado", () => {
   it("[useDeleteApoderado #01] debe inicializar los estados con valores por defecto", () => {
     const { result } = renderHook(() => useDeleteApoderado());
     expect(result.current.isDeleting).toBe(false);
-    expect(result.current.idToDelete).toBe(null);
+    expect(result.current.codigoToDelete).toBe(null);
     expect(result.current.isConfirmOpen).toBe(false);
     expect(result.current.alert.isOpen).toBe(false);
   });
 
   it("[useDeleteApoderado #02] debe actualizar idToDelete y activar isConfirmOpen", () => {
     const { result } = renderHook(() => useDeleteApoderado());
-    act(() => { result.current.openDeleteConfirm(123); });
-    expect(result.current.idToDelete).toBe(123);
+    act(() => { result.current.openDeleteConfirm("AP-ABC12345"); });
+    expect(result.current.codigoToDelete).toBe("AP-ABC12345");
     expect(result.current.isConfirmOpen).toBe(true);
   });
 
   it("[useDeleteApoderado #03] debe resetear idToDelete a null al cancelar", () => {
     const { result } = renderHook(() => useDeleteApoderado());
-    act(() => { result.current.openDeleteConfirm(123); });
+    act(() => { result.current.openDeleteConfirm("AP-ABC12345"); });
     act(() => { result.current.closeDeleteConfirm(); });
-    expect(result.current.idToDelete).toBe(null);
+    expect(result.current.codigoToDelete).toBe(null);
     expect(result.current.isConfirmOpen).toBe(false);
   });
 
@@ -46,12 +46,13 @@ describe("useDeleteApoderado", () => {
     const onSuccess = vi.fn();
     mockDelete.mockResolvedValue(undefined);
     const { result } = renderHook(() => useDeleteApoderado(onSuccess));
-    act(() => { result.current.openDeleteConfirm(1); });
+    act(() => { result.current.openDeleteConfirm("AP-ABC12345"); });
     await act(async () => { await result.current.confirmDelete(); });
     expect(result.current.alert.message).toBe("Apoderado eliminado correctamente.");
     expect(result.current.alert.type).toBe("success");
     expect(onSuccess).toHaveBeenCalled();
-    expect(result.current.idToDelete).toBe(null);
+    expect(mockDelete).toHaveBeenCalledWith("AP-ABC12345");
+    expect(result.current.codigoToDelete).toBe(null);
     expect(result.current.isConfirmOpen).toBe(false);
   });
 
@@ -59,12 +60,12 @@ describe("useDeleteApoderado", () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mockDelete.mockRejectedValue(new Error("Network Error"));
     const { result } = renderHook(() => useDeleteApoderado());
-    act(() => { result.current.openDeleteConfirm(1); });
+    act(() => { result.current.openDeleteConfirm("AP-ABC12345"); });
     await act(async () => { await result.current.confirmDelete(); });
     expect(result.current.alert.message).toBe("No se pudo eliminar el apoderado.");
     expect(result.current.alert.type).toBe("error");
     expect(result.current.isDeleting).toBe(false);
-    expect(mockDelete).toHaveBeenCalledWith(1);
+    expect(mockDelete).toHaveBeenCalledWith("AP-ABC12345");
     consoleErrorSpy.mockRestore();
   });
 
@@ -73,7 +74,7 @@ describe("useDeleteApoderado", () => {
     const promise = new Promise<void>((resolve) => { resolvePromise = resolve; });
     mockDelete.mockReturnValue(promise);
     const { result } = renderHook(() => useDeleteApoderado());
-    act(() => { result.current.openDeleteConfirm(1); });
+    act(() => { result.current.openDeleteConfirm("AP-ABC12345"); });
     let deletePromise: any;
     act(() => { deletePromise = result.current.confirmDelete(); });
     expect(result.current.isDeleting).toBe(true);
@@ -87,7 +88,7 @@ describe("useDeleteApoderado", () => {
   it("[useDeleteApoderado #07] debe cerrar la alerta correctamente", () => {
     const { result } = renderHook(() => useDeleteApoderado());
     act(() => {
-      result.current.openDeleteConfirm(1);
+      result.current.openDeleteConfirm("AP-ABC12345");
       result.current.closeAlert();
     });
     expect(result.current.alert.isOpen).toBe(false);
@@ -95,7 +96,7 @@ describe("useDeleteApoderado", () => {
 
   it("[useDeleteApoderado #08] no debe hacer nada si se llama a confirmDelete sin un id seleccionado", async () => {
     const { result } = renderHook(() => useDeleteApoderado());
-    expect(result.current.idToDelete).toBe(null);
+    expect(result.current.codigoToDelete).toBe(null);
     await act(async () => {
       await result.current.confirmDelete();
     });

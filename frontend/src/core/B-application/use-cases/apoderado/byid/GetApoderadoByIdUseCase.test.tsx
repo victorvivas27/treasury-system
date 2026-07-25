@@ -23,19 +23,19 @@ describe('GetApoderadoByIdUseCase', () => {
   });
 
   it('[GetApoderadoByIdUseCase #01] debería llamar a apoderadoRepository.getById con el ID correcto', async () => {
-    await useCase.execute(10);
-    expect(mockRepository.getById).toHaveBeenCalledWith(10);
+    await useCase.execute("AP-ABC12345");
+    expect(mockRepository.getById).toHaveBeenCalledWith("AP-ABC12345");
   });
 
   it('[GetApoderadoByIdUseCase #02] debería retornar el apoderado cuando existe', async () => {
     vi.mocked(mockRepository.getById).mockResolvedValue(mockApoderado);
-    const result = await useCase.execute(10);
+    const result = await useCase.execute("AP-ABC12345");
     expect(result).toEqual(mockApoderado);
   });
 
   it('[GetApoderadoByIdUseCase #03] debería retornar null cuando el repositorio no encuentra resultados', async () => {
     vi.mocked(mockRepository.getById).mockResolvedValue(null);
-    const result = await useCase.execute(99);
+    const result = await useCase.execute("AP-NOTFOUND");
     expect(result).toBeNull();
   });
 
@@ -43,10 +43,10 @@ describe('GetApoderadoByIdUseCase', () => {
     const originalError = new Error("Connection failed");
     vi.mocked(mockRepository.getById).mockRejectedValue(originalError);
 
-    await expect(useCase.execute(10)).rejects.toThrow("Error al obtener el apoderado con ID: 10");
+    await expect(useCase.execute("10")).rejects.toThrow("Error al obtener el apoderado con codigo: 10");
 
     try {
-      await useCase.execute(10);
+      await useCase.execute("10");
     } catch (error: any) {
       expect(error.cause).toBe(originalError);
     }
