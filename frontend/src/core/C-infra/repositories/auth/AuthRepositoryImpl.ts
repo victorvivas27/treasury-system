@@ -26,4 +26,29 @@ export class AuthRepositoryImpl implements IAuthRepository {
     await apiClient.post(`${this.baseUrl}/logout`);
   }
 
+  async verifyEmail(token: string): Promise<string> {
+    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/verify-email`, { token }))
+      .data.message;
+  }
+
+  async resendVerification(email: string): Promise<string> {
+    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/resend-verification`, { email }))
+      .data.message;
+  }
+
+  async forgotPassword(email: string): Promise<string> {
+    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/forgot-password`, { email }))
+      .data.message;
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<string> {
+    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/reset-password`,
+      { token, newPassword })).data.message;
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<string> {
+    return (await apiClient.patch<{ message: string }>(`${this.baseUrl}/change-password`,
+      { currentPassword, newPassword })).data.message;
+  }
+
 }

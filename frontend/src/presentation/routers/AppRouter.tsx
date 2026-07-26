@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import { MainLayout } from "@/shared/layouts/MainLayout";
 import { HomePage } from "../pages/home/HomePage";
 import { DashboardPage } from "@/presentation/pages/dashboard/DashboardPage";
@@ -6,7 +6,7 @@ import { ApoderadoPage } from "@/presentation/pages/apoderado/ApoderadoPage";
 import { NotFoundPage } from "../pages/NotFoundPage/NotFoundPage";
 import { User } from "../pages/user/User";
 import { AlumnoPage } from "../pages/alumno/AlumnoPage";
-import { Tesoreria } from "../pages/tesoreria/Tesoreria";
+import { TreasurySectionPage } from "../pages/tesoreria/TreasurySectionPage";
 import { Notificacion } from "../pages/notificacion/Notificacion";
 import { Configuracion } from "../pages/configuracion/Configuracion";
 import { ApoderadoEditFormPage } from "../pages/apoderado/ApoderadoEditFormPage";
@@ -18,6 +18,8 @@ import { FamiliaEditFormPage } from "../pages/familia/FamiliaEditFormPage";
 import { FamiliaCrearFormPage } from "../pages/familia/FamiliaCreateFormPage";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
+import { CheckEmailPage, ForgotPasswordPage, PasswordUpdatedPage, ResetPasswordPage,
+  VerifyEmailPage } from "../pages/auth/AccountFlowPages";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { AdminRoute } from "../components/AdminRoute";
 import { ProfilePage } from "../pages/user/ProfilePage";
@@ -28,10 +30,24 @@ export const AppRouter = () => {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/revisa-tu-correo" element={<CheckEmailPage />} />
+      <Route path="/verificar-correo" element={<VerifyEmailPage />} />
+      <Route path="/olvide-password" element={<ForgotPasswordPage />} />
+      <Route path="/restablecer-password" element={<ResetPasswordPage />} />
+      <Route path="/password-actualizada" element={<PasswordUpdatedPage />} />
       <Route path="/" element={<MainLayout />} >
         <Route index element={<HomePage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="tesoreria" element={<Navigate to="/tesoreria/resumen" replace />} />
+          <Route path="tesoreria/resumen" element={<TreasurySectionPage section="Resumen" />} />
+          <Route path="tesoreria/cuotas" element={<TreasurySectionPage section="Cuotas" />} />
+          <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
+          <Route path="tesoreria/ingresos" element={<TreasurySectionPage section="Ingresos" />} />
+          <Route path="tesoreria/gastos" element={<TreasurySectionPage section="Gastos" />} />
+          <Route path="tesoreria/eventos" element={<TreasurySectionPage section="Eventos" />} />
+          <Route path="tesoreria/reportes" element={<TreasurySectionPage section="Reportes" />} />
+          <Route path="treasury" element={<Navigate to="/tesoreria/resumen" replace />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="users" element={<User />} />
@@ -45,7 +61,6 @@ export const AppRouter = () => {
           <Route path="family/new" element={<FamiliaCrearFormPage/>} />
           <Route path="/family/edit/:familiaId" element={<FamiliaEditFormPage />} />
         </Route>
-        <Route path="treasury" element={<Tesoreria />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="notifications" element={<Notificacion />} />
         <Route path="configuration" element={<Configuracion />} />

@@ -1,7 +1,8 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { SESSION_EXPIRED_EVENT } from "@/core/D-config/axiosInterceptor";
 
 const loginMock = vi.fn();
 const logoutMock = vi.fn();
@@ -50,5 +51,18 @@ describe("AuthContext", () => {
     await act(() => result.current.logout());
     await waitFor(() => expect(result.current.user).toBeNull());
     expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+  });
+
+  it("[AuthContext #03] debe cerrar la sesión y avisar cuando expira", async () => {
+    loginMock.mockResolvedValue({ token: "jwt", tokenType: "Bearer", expiresIn: 100, user });
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.login("admin@mail.com", "Password1!"));
+
+    act(() => window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)));
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(screen.getByRole("dialog")).toHaveTextContent("Sesión expirada");
+    expect(screen.getByRole("button", { name: "Volver al inicio" })).toBeInTheDocument();
   });
 });

@@ -4,11 +4,12 @@ package com.tesoreria.apoderado.core.port.in;
 import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+
 public interface GetApoderadoUseCase {
 
-  Apoderado findByCodigo(String codigo);
+    Apoderado findByCodigo(String codigo);
 
-  PageResponse<Apoderado> findAll(PageRequest pageRequest);
+    PageResponse<Apoderado> findAll(PageRequest pageRequest);
 
-  //List<Apoderado> findByApoderadoIds(List<Long> apoderadoIds);
+    //List<Apoderado> findByApoderadoIds(List<Long> apoderadoIds);
 }

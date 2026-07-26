@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Button } from "@/shared/ui/button/Button";
 import { RxEyeClosed } from "react-icons/rx";
@@ -118,6 +119,7 @@ export const LoginPage = () => {
             size="medium"
           />
         </div>
+        <Link className="auth-text-link" to="/olvide-password">¿Olvidaste tu contraseña?</Link>
       </form>
     </main>
   );

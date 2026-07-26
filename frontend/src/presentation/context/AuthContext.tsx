@@ -3,7 +3,8 @@ import { GetCurrentUserUseCase } from "@/core/B-application/use-cases/auth/GetCu
 import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
 import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
-import { AUTH_TOKEN_KEY } from "@/core/D-config/axiosInterceptor";
+import { AUTH_TOKEN_KEY, SESSION_EXPIRED_EVENT } from "@/core/D-config/axiosInterceptor";
+import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import {
   createContext,
   useCallback,
@@ -29,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState(() => localStorage.getItem(AUTH_TOKEN_KEY));
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(Boolean(token));
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const useCases = useMemo(() => {
     const repository = new AuthRepositoryImpl();
@@ -44,6 +46,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
     setUser(null);
   }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      clearSession();
+      setLoading(false);
+      setSessionExpired(true);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+  }, [clearSession]);
 
   useEffect(() => {
     if (!token) {
@@ -80,13 +92,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  return (
+  return <>
     <AuthContext.Provider
       value={{ user, token, loading, isAuthenticated: Boolean(token && user), login, logout }}
     >
       {children}
     </AuthContext.Provider>
-  );
+    <ModalAlert
+      isOpen={sessionExpired}
+      title="Sesión expirada"
+      message="Tu sesión terminó. Por seguridad, vuelve a iniciar sesión."
+      type="error"
+      buttonLabel="Volver al inicio"
+      onClose={() => setSessionExpired(false)}
+    />
+  </>;
 };
 
 export const useAuth = () => {

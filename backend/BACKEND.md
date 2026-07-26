@@ -82,13 +82,13 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
 # 📌 Comandos Útiles
 
-| Acción | Comando |
-|---|---|
-| Iniciar backend | `./gradlew bootRun` |
-| Limpiar proyecto | `./gradlew clean` |
-| Ejecutar tests | `./gradlew test` |
+| Acción            | Comando                      |
+|-------------------|------------------------------|
+| Iniciar backend   | `./gradlew bootRun`          |
+| Limpiar proyecto  | `./gradlew clean`            |
+| Ejecutar tests    | `./gradlew test`             |
 | Generar cobertura | `./gradlew jacocoTestReport` |
-| Build completo | `./gradlew build` |
+| Build completo    | `./gradlew build`            |
 
 ---
 
@@ -98,7 +98,6 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado:
 - `test` → ejecuta pruebas unitarias 🧪
 - `jacocoTestReport` → genera cobertura HTML 📊
 - Todo se ejecuta desde `backend/` 📁
-
 
 ## 🔍 PMD (Análisis Estático de Código)
 

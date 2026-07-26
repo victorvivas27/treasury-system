@@ -37,8 +37,7 @@ export const useDeleteFamilia = (onSuccess?: () => void) => {
       });
 
       onSuccess?.();
-    } catch (error) {
-      console.error("Error al eliminar familia:", error);
+    } catch {
       setError("No se pudo eliminar la familia.");
 
       setAlert({

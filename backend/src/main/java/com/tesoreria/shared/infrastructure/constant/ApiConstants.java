@@ -8,6 +8,7 @@ public final class ApiConstants {
     public static final String FAMILIAS = API_V1 + "/familias";
     public static final String USERS = API_V1 + "/users";
     public static final String AUTH = API_V1 + "/auth";
+
     private ApiConstants() {
 
     }

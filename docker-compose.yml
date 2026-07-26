@@ -15,8 +15,14 @@ services:
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       APP_PROFILE: ${APP_PROFILE:-dev}
+      PORT: ${PORT:-5055}
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-gmail}
+      GMAIL_USER: ${GMAIL_USER:?GMAIL_USER is required}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:?GMAIL_APP_PASSWORD is required}
+      EMAIL_FROM: ${EMAIL_FROM:?EMAIL_FROM is required}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       - postgres
     networks:

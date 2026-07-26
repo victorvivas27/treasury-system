@@ -1,5 +1,35 @@
 # Treasury System
 
+## Correos de autenticación
+
+El registro crea cuentas pendientes y envía mediante Gmail SMTP un enlace de verificación de
+24 horas. También están disponibles el reenvío de verificación, la recuperación de
+contraseña (60 minutos), el restablecimiento y el cambio autenticado de contraseña.
+Los tokens son aleatorios, de un solo uso y en la base de datos sólo se conserva su hash
+SHA-256.
+
+Configura en `.env`:
+
+```env
+EMAIL_PROVIDER=gmail
+GMAIL_USER=tesoreria.colegio@gmail.com
+GMAIL_APP_PASSWORD=xxxxxxxxxxxxxxxx
+EMAIL_FROM=Tesorería Escolar <tesoreria.colegio@gmail.com>
+FRONTEND_URL=http://localhost:5173
+```
+
+`GMAIL_APP_PASSWORD` debe ser una contraseña de aplicación de Google, nunca la
+contraseña normal de la cuenta. La cuenta necesita verificación en dos pasos para crearla.
+No agregues `.env` al repositorio; ya está ignorado. En Google Cloud configura
+`GMAIL_APP_PASSWORD` como secreto (por ejemplo, con Secret Manager) e inyecta las demás
+variables en el servicio.
+
+Para probarlo en local, levanta PostgreSQL, inicia el backend con
+`cd backend && ./gradlew bootRun` y el frontend con `cd frontend && pnpm dev`.
+Registra una cuenta en `/register`, abre el enlace recibido y luego inicia sesión.
+El flujo de recuperación comienza en `/olvide-password`. Para comprobar el tercer
+correo, cambia la contraseña desde el enlace de recuperación o desde la sesión iniciada.
+
 Sistema de gestion escolar orientado a tesoreria y administracion de alumnos, apoderados y relaciones familiares. Incluye backend Spring Boot, frontend React/Vite y colecciones declarativas de pruebas API en `api-tests`.
 
 ## Project Overview
@@ -73,6 +103,11 @@ Backend:
 - `DB_PASSWORD`: password de base de datos. Requerido; no debe versionarse con valores reales.
 - `JPA_DDL_AUTO`: estrategia Hibernate en `prod`. Default: `validate`.
 - `APP_CORS_ALLOWED_ORIGINS`: origenes permitidos por CORS separados por coma. Default local: `http://localhost:5173,http://127.0.0.1:5173`.
+- `EMAIL_PROVIDER`: proveedor de correo; debe ser `gmail`.
+- `GMAIL_USER`: dirección de la cuenta Gmail remitente.
+- `GMAIL_APP_PASSWORD`: contraseña de aplicación de Google, almacenada como secreto.
+- `EMAIL_FROM`: remitente visible, por ejemplo `Tesorería Escolar <tesoreria.colegio@gmail.com>`.
+- `FRONTEND_URL`: origen usado para construir enlaces de verificación y recuperación.
 
 Frontend:
 

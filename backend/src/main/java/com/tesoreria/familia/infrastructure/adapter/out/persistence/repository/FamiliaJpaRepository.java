@@ -1,14 +1,13 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.repository;
 
-import java.util.Optional;
-
+import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaEntity;
+import java.util.Optional;
 
 public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long> {
 
-  Optional<FamiliaEntity> findByAlumnoId(Long alumnoId);
+    Optional<FamiliaEntity> findByAlumnoId(Long alumnoId);
 
-  boolean existsByAlumnoId(Long alumnoId);
+    boolean existsByAlumnoId(Long alumnoId);
 }

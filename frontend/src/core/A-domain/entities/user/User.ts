@@ -8,6 +8,7 @@ export interface User {
   rol: UserRole;
   enabled: boolean;
   accountNonLocked: boolean;
+  emailVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

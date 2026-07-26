@@ -1,118 +1,106 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.entity;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.Column;
-
 @Entity
 @Table(
-    name = "familias",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_familias_alumno",
-        columnNames = {"alumno_id"}))
+        name = "familias",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_familias_alumno",
+                columnNames = {"alumno_id"}))
 public final class FamiliaEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long familiaId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long familiaId;
 
-  @Column(name = "alumno_id", nullable = false)
-  private Long alumnoId;
+    @Column(name = "alumno_id", nullable = false)
+    private Long alumnoId;
 
-  @Column(name = "codigo", nullable = false)
-  private String codigo;
+    @Column(name = "codigo", nullable = false)
+    private String codigo;
 
-  @ElementCollection(fetch = FetchType.EAGER)
-  @CollectionTable(
-      name = "familia_apoderados",
-      joinColumns = @JoinColumn(name = "familia_id"),
-      uniqueConstraints = @UniqueConstraint(columnNames = {"familia_id", "apoderado_id"}))
-  private List<FamiliaApoderadoEntity> apoderados = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "familia_apoderados",
+            joinColumns = @JoinColumn(name = "familia_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"familia_id", "apoderado_id"}))
+    private List<FamiliaApoderadoEntity> apoderados = new ArrayList<>();
 
-  @Column(name = "observaciones_generales", length = 200)
-  private String observacionesGenerales;
+    @Column(name = "observaciones_generales", length = 200)
+    private String observacionesGenerales;
 
-  @Column(name = "created_at")
-  private LocalDateTime createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-  public FamiliaEntity() {
-  }
-
-  public FamiliaEntity(
-      Long familiaId,
-      Long alumnoId,
-      String codigo,
-      List<FamiliaApoderadoEntity> apoderados,
-      LocalDateTime createdAt,
-      LocalDateTime updatedAt,
-      String observacionesGenerales) {
-    this.familiaId = familiaId;
-    this.alumnoId = alumnoId;
-    this.codigo = codigo;
-    this.apoderados = apoderados != null ? apoderados : new ArrayList<>();
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-    this.observacionesGenerales = observacionesGenerales;
-  }
-
-  @PrePersist
-  protected void onCreate() {
-    this.createdAt = LocalDateTime.now();
-    this.updatedAt = LocalDateTime.now();
-    if (this.codigo == null) {
-      this.codigo = "FAM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
+    public FamiliaEntity() {
     }
-  }
 
-  @PreUpdate
-  protected void onUpdate() {
-    updatedAt = LocalDateTime.now();
-  }
+    public FamiliaEntity(
+            Long familiaId,
+            Long alumnoId,
+            String codigo,
+            List<FamiliaApoderadoEntity> apoderados,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            String observacionesGenerales) {
+        this.familiaId = familiaId;
+        this.alumnoId = alumnoId;
+        this.codigo = codigo;
+        this.apoderados = apoderados != null ? apoderados : new ArrayList<>();
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.observacionesGenerales = observacionesGenerales;
+    }
 
-  public Long getFamiliaId() {
-    return familiaId;
-  }
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.codigo == null) {
+            this.codigo = "FAM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
+        }
+    }
 
-  public Long getAlumnoId() {
-    return alumnoId;
-  }
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
-  public String getCodigo() {
-    return codigo;
-  }
+    public Long getFamiliaId() {
+        return familiaId;
+    }
 
-  public List<FamiliaApoderadoEntity> getApoderados() {
-    return apoderados;
-  }
+    public Long getAlumnoId() {
+        return alumnoId;
+    }
 
-  public String getObservacionesGenerales() {
-    return observacionesGenerales;
-  }
+    public String getCodigo() {
+        return codigo;
+    }
 
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
+    public List<FamiliaApoderadoEntity> getApoderados() {
+        return apoderados;
+    }
 
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-  }
+    public String getObservacionesGenerales() {
+        return observacionesGenerales;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

@@ -5,5 +5,5 @@ import com.tesoreria.apoderado.core.model.Apoderado;
 
 public interface UpdateApoderadoUseCase {
 
-  Apoderado updateByCodigo(String codigo,Apoderado apoderado);
+    Apoderado updateByCodigo(String codigo, Apoderado apoderado);
 }

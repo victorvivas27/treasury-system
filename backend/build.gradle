@@ -1,9 +1,9 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.0.6'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'jacoco'
-  id 'pmd'
+    id 'java'
+    id 'org.springframework.boot' version '4.0.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+    id 'pmd'
 
 }
 
@@ -11,125 +11,126 @@ group = 'com.tesoreria'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	// SPRING
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
+    // SPRING
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// JWT
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-	// OpenAPI
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
+    // OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
 
-	// MAPSTRUCT
-	implementation 'org.mapstruct:mapstruct:1.6.3'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    // MAPSTRUCT
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-	// LOMBOK
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    // LOMBOK
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-	// DEVTOOLS
-	//developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    // DEVTOOLS
+    //developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	// DB
-	runtimeOnly 'com.h2database:h2'
-	implementation 'org.postgresql:postgresql:42.7.3'
+    // DB
+    runtimeOnly 'com.h2database:h2'
+    implementation 'org.postgresql:postgresql:42.7.3'
 
     // TEST (ÚNICO QUE SE USA)
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
-	testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport
-	// Permitir filtrado por tags desde la consola
-	if (project.hasProperty("includeTags")) {
-		useJUnitPlatform {
-			includeTags project.getProperty("includeTags").split(',')
-		}
-	}
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+    // Permitir filtrado por tags desde la consola
+    if (project.hasProperty("includeTags")) {
+        useJUnitPlatform {
+            includeTags project.getProperty("includeTags").split(',')
+        }
+    }
 
-	if (project.hasProperty("excludeTags")) {
-		useJUnitPlatform {
-			excludeTags project.getProperty("excludeTags").split(',')
-		}
-	}
+    if (project.hasProperty("excludeTags")) {
+        useJUnitPlatform {
+            excludeTags project.getProperty("excludeTags").split(',')
+        }
+    }
 }
 
 // ========== CONFIGURACIÓN JACOCO ==========
 jacoco {
-	toolVersion = "0.8.12"
+    toolVersion = "0.8.12"
 }
 
 def excludedClasses = [
-		'**/TesoreriaAppApplication.class',
-		'**/config/**',
-		'**/dto/**',
-		'**/exception/**',
-		'**/constant/**',
-		'**/entity/**',
-		'**/mapper/**',
-		'**/*Controller.*',
-		'**/*Repository.*',
-		'**/port/**',
-		'**/adapter/**',
-		'**/shared/**'
+        '**/TesoreriaAppApplication.class',
+        '**/config/**',
+        '**/dto/**',
+        '**/exception/**',
+        '**/constant/**',
+        '**/entity/**',
+        '**/mapper/**',
+        '**/*Controller.*',
+        '**/*Repository.*',
+        '**/port/**',
+        '**/adapter/**',
+        '**/shared/**'
 ]
 
 jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required = true
-		html.required = true
-		csv.required = false
-	}
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
 
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: excludedClasses)
-		}))
-	}
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: excludedClasses)
+        }))
+    }
 }
 
 jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			limit {
-				minimum = 0.70
-			}
-		}
-	}
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.70
+            }
+        }
+    }
 
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: excludedClasses)
-		}))
-	}
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: excludedClasses)
+        }))
+    }
 }
 
 // ========== CONFIGURACIÓN PMD ==========

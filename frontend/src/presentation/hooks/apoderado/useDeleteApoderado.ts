@@ -34,9 +34,7 @@ export const useDeleteApoderado = (onSuccess?: () => void) => {
       });
 
       onSuccess?.();
-    } catch (error) {
-      console.error("Error al eliminar apoderado:", error);
-
+    } catch {
       setAlert({
         isOpen: true,
         message: "No se pudo eliminar el apoderado.",

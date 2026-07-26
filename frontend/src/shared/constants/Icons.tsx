@@ -14,6 +14,7 @@ import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { TiArrowBackOutline } from "react-icons/ti";
 import { MdOutlineCancel } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
+import { IoChevronDownOutline } from "react-icons/io5";
 
 
 
@@ -25,6 +26,7 @@ export const ICONS = {
   apoderados: BsPerson,
   familia: MdFamilyRestroom,
   tesoreria: TbPigMoney,
+  expand: IoChevronDownOutline,
   notifications: IoNotificationsOutline,
   settings: IoSettingsOutline,
   logout: BiExit,
@@ -54,11 +56,20 @@ export const SIDEBAR_LINKS = [
   {
     title: "Finanzas",
     links: [
-      { label: "Tesorería", path: "/treasury", icon: ICONS.tesoreria },
       { label: "Dashboard", path: "/dashboard", icon: ICONS.dashboard },
     ],
   },
 ];
+
+export const TREASURY_LINKS = [
+  { label: "Resumen", path: "/tesoreria/resumen" },
+  { label: "Cuotas", path: "/tesoreria/cuotas" },
+  { label: "Pagos", path: "/tesoreria/pagos" },
+  { label: "Ingresos", path: "/tesoreria/ingresos" },
+  { label: "Gastos", path: "/tesoreria/gastos" },
+  { label: "Eventos", path: "/tesoreria/eventos" },
+  { label: "Reportes", path: "/tesoreria/reportes" },
+] as const;
 
 export const SIDEBAR_FOOTER_LINKS = [
   { label: "Notificaciones", path: "/notifications", icon: ICONS.notifications },

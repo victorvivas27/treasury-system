@@ -6,19 +6,19 @@ import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
 
 public interface UserUseCase {
-  User create(User user);
+    User create(User user);
 
-  User findById(Long id);
+    User findById(Long id);
 
-  User findByCode(String code);
+    User findByCode(String code);
 
-  User findByCorreo(String correo);
+    User findByCorreo(String correo);
 
-  PageResponse<User> findAll(PageRequest request);
+    PageResponse<User> findAll(PageRequest request);
 
-  User update(Long id, User changes, String authenticatedEmail);
+    User update(Long id, User changes, String authenticatedEmail);
 
-  User changeRole(Long id, RoleEnum role, String authenticatedEmail);
+    User changeRole(Long id, RoleEnum role, String authenticatedEmail);
 
-  void delete(Long id);
+    void delete(Long id);
 }

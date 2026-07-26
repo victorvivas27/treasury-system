@@ -3,8 +3,6 @@ package com.tesoreria.user.application.usecase;
 import java.util.Locale;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +19,6 @@ import com.tesoreria.user.core.port.in.UserUseCase;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 
 public class UserService implements UserUseCase {
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
   private final UserRepositoryOutPort repository;
   private final PasswordEncoder passwordEncoder;
 
@@ -44,11 +41,7 @@ public class UserService implements UserUseCase {
     }
     User.validateRawPassword(user.getPassword());
     user.setPassword(passwordEncoder.encode(user.getPassword()));
-    User saved = repository.save(user);
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Usuario {} creado con rol {}", saved.getCode(), saved.getRol());
-    }
-    return saved;
+    return repository.save(user);
   }
 
   @Override
@@ -110,9 +103,6 @@ public class UserService implements UserUseCase {
       throw lastAdminError();
     }
     existing.setRol(role);
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Rol del usuario {} cambiado a {}", existing.getCode(), role);
-    }
     return repository.save(existing);
   }
 
@@ -124,9 +114,6 @@ public class UserService implements UserUseCase {
       throw lastAdminError();
     }
     repository.deleteById(id);
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Usuario {} eliminado", existing.getCode());
-    }
   }
 
   private DomainException lastAdminError() {

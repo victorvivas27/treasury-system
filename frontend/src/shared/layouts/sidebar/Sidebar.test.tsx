@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 import { MemoryRouter } from "react-router-dom";
 import { SidebarNav } from "./SidebarNav";
-import { SIDEBAR_FOOTER_LINKS, SIDEBAR_LINKS, SIDEBAR_USER_MOCK } from "@/shared/constants/Icons";
+import { SIDEBAR_FOOTER_LINKS, SIDEBAR_LINKS, SIDEBAR_USER_MOCK,
+  TREASURY_LINKS } from "@/shared/constants/Icons";
 import { SidebarFooter } from "./SidebarFooter";
 
 
@@ -130,6 +131,40 @@ describe('Sidebar Component', () => {
     const enlace = screen.getByRole('link', { name: new RegExp(SIDEBAR_LINKS[0].links[0].label, 'i') });
     fireEvent.click(enlace);
     expect(mockNavLinkClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('[Sidebar #08.2] Expande Tesorería y navega por sus siete secciones', () => {
+    renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
+
+    const treasuryButton = screen.getByRole('button', { name: /tesorería/i });
+    expect(treasuryButton).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(treasuryButton);
+    expect(treasuryButton).toHaveAttribute('aria-expanded', 'true');
+
+    TREASURY_LINKS.forEach((link) => {
+      expect(screen.getByRole('link', { name: link.label })).toHaveAttribute('href', link.path);
+    });
+
+    fireEvent.click(screen.getByRole('link', { name: 'Pagos' }));
+    expect(mockNavLinkClick).not.toHaveBeenCalled();
+    expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
+  });
+
+  it('[Sidebar #08.3] Cierra automáticamente el submenú de Tesorería', () => {
+    vi.useFakeTimers();
+    try {
+      renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
+      const treasuryButton = screen.getByRole('button', { name: /tesorería/i });
+      fireEvent.click(treasuryButton);
+
+      expect(screen.getByRole('link', { name: 'Resumen' })).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(6000));
+
+      expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
+      expect(treasuryButton).toHaveAttribute('aria-expanded', 'false');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('[Sidebar #08.1] Cierra el sidebar desde perfil, notificaciones y configuraciÃ³n', () => {

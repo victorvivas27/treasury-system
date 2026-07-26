@@ -8,9 +8,19 @@ interface ModalProps {
   type: "success" | "error";
   onClose: () => void;
   autoCloseTime?: number;
+  title?: string;
+  buttonLabel?: string;
 }
 
-export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: ModalProps) => {
+export const ModalAlert = ({
+  isOpen,
+  message,
+  type,
+  onClose,
+  autoCloseTime,
+  title,
+  buttonLabel = "Entendido",
+}: ModalProps) => {
   useEffect(() => {
     if (isOpen && autoCloseTime) {
       const timer = setTimeout(() => {
@@ -41,7 +51,7 @@ export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: Mo
             {type === "success" ? "✔" : "✖"}
           </span>
           <h3 className="modal-title">
-            {type === "success" ? "¡Logrado!" : "Hubo un error"}
+            {title ?? (type === "success" ? "¡Logrado!" : "Hubo un error")}
           </h3>
         </header>
 
@@ -51,7 +61,7 @@ export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: Mo
 
         <footer className="modal-footer">
           <Button
-            label="Entendido"
+            label={buttonLabel}
             onClick={onClose}
             size="medium"
             variant={type === "success" ? "primary" : "secondary"}

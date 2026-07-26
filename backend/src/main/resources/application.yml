@@ -1,16 +1,37 @@
 spring:
   application:
     name: tesoreria-app
+  config:
+    import: optional:file:.env[.properties],optional:file:backend/.env[.properties]
   profiles:
-      active: ${APP_PROFILE:dev}
+    active: ${APP_PROFILE:dev}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USER:}
+    password: ${GMAIL_APP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
 
 server:
-      port: 5056
-      servlet:
-        context-path: /tesoreria
+  port: ${PORT:5055}
+  servlet:
+    context-path: /tesoreria
 
 app:
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174}
   jwt:
     expiration-ms: ${JWT_EXPIRATION_MS:900000}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  email:
+    provider: ${EMAIL_PROVIDER:gmail}
+    from: ${EMAIL_FROM:}
