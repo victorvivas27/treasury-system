@@ -23,8 +23,17 @@
 }
 
 /* Activo */
+.sidebar-footer-link.active {
+  background: var(--color-hover);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
 .sidebar-footer-link.active .sidebar-footer-icon,
 .sidebar-footer-link.active .sidebar-footer-text {
+  color: var(--color-accent);
+}
+
+.sidebar-footer-link.active .sidebar-footer-icon {
   color: var(--color-warning);
 }
 
@@ -55,6 +64,10 @@
 .sidebar-user.active {
   background-color: var(--color-hover);
   color: var(--color-accent);
+}
+
+.sidebar-user.active {
+  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 .sidebar-user:focus-visible {

@@ -17,9 +17,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
   const auth = useOptionalAuth();
   const currentRole = role ?? auth?.user?.rol;
   const location = useLocation();
-  const [isTreasuryOpen, setIsTreasuryOpen] = useState(
-    location.pathname.startsWith("/tesoreria"),
-  );
+  const [isTreasuryOpen, setIsTreasuryOpen] = useState(false);
 
   const handleClick = () => {
     onNavLinkClick();
@@ -85,7 +83,10 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
           </button>
           {isTreasuryOpen && (
             <ul id="treasury-submenu" className="sidebar-submenu">
-              {TREASURY_LINKS.map((link) => (
+              {TREASURY_LINKS
+                .filter((link) =>
+                  currentRole === "ADMIN" || link.path === "/tesoreria/resumen")
+                .map((link) => (
                 <li key={link.path}>
                   <NavLink
                     to={link.path}

@@ -7,6 +7,9 @@ import { NotFoundPage } from "../pages/NotFoundPage/NotFoundPage";
 import { User } from "../pages/user/User";
 import { AlumnoPage } from "../pages/alumno/AlumnoPage";
 import { TreasurySectionPage } from "../pages/tesoreria/TreasurySectionPage";
+import { AnnualFeesPage } from "../pages/tesoreria/AnnualFeesPage";
+import { TreasuryOverviewPage } from "../pages/tesoreria/TreasuryOverviewPage";
+import { TreasuryReportsPage } from "../pages/tesoreria/TreasuryReportsPage";
 import { Notificacion } from "../pages/notificacion/Notificacion";
 import { Configuracion } from "../pages/configuracion/Configuracion";
 import { ApoderadoEditFormPage } from "../pages/apoderado/ApoderadoEditFormPage";
@@ -23,11 +26,15 @@ import { CheckEmailPage, ForgotPasswordPage, PasswordUpdatedPage, ResetPasswordP
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { AdminRoute } from "../components/AdminRoute";
 import { ProfilePage } from "../pages/user/ProfilePage";
+import { FamilyContributionsPage } from "../pages/tesoreria/FamilyContributionsPage";
+import { ExpensesPage } from "../pages/tesoreria/ExpensesPage";
+import { IncomesPage } from "../pages/tesoreria/IncomesPage";
 
 export const AppRouter = () => {
   return (
 
     <Routes>
+      <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/revisa-tu-correo" element={<CheckEmailPage />} />
@@ -35,21 +42,21 @@ export const AppRouter = () => {
       <Route path="/olvide-password" element={<ForgotPasswordPage />} />
       <Route path="/restablecer-password" element={<ResetPasswordPage />} />
       <Route path="/password-actualizada" element={<PasswordUpdatedPage />} />
-      <Route path="/" element={<MainLayout />} >
-        <Route index element={<HomePage />} />
+      <Route element={<MainLayout />} >
         <Route element={<ProtectedRoute />}>
           <Route path="profile" element={<ProfilePage />} />
           <Route path="tesoreria" element={<Navigate to="/tesoreria/resumen" replace />} />
-          <Route path="tesoreria/resumen" element={<TreasurySectionPage section="Resumen" />} />
-          <Route path="tesoreria/cuotas" element={<TreasurySectionPage section="Cuotas" />} />
-          <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
-          <Route path="tesoreria/ingresos" element={<TreasurySectionPage section="Ingresos" />} />
-          <Route path="tesoreria/gastos" element={<TreasurySectionPage section="Gastos" />} />
-          <Route path="tesoreria/eventos" element={<TreasurySectionPage section="Eventos" />} />
-          <Route path="tesoreria/reportes" element={<TreasurySectionPage section="Reportes" />} />
+          <Route path="tesoreria/resumen" element={<TreasuryOverviewPage />} />
           <Route path="treasury" element={<Navigate to="/tesoreria/resumen" replace />} />
         </Route>
         <Route element={<AdminRoute />}>
+          <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
+          <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
+          <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
+          <Route path="tesoreria/ingresos" element={<IncomesPage />} />
+          <Route path="tesoreria/gastos" element={<ExpensesPage />} />
+          <Route path="tesoreria/eventos" element={<TreasurySectionPage section="Eventos" />} />
+          <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />
           <Route path="students" element={<AlumnoPage />} />
           <Route path="parents" element={<ApoderadoPage />} />

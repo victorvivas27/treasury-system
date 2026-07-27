@@ -127,6 +127,21 @@ button {
   outline: none;
 }
 
+/* Inputs numéricos integrados al tema: elimina los controles nativos claros
+   de Chrome, Edge, Safari y Firefox sin perder validación ni teclado numérico. */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  color-scheme: dark;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
 a {
   text-decoration: none;
 }

@@ -33,7 +33,6 @@
   align-items: center;
   gap: clamp(0.25rem, 1vh, 0.5rem);
   overflow: hidden;
-
 }
 
 .sidebar-brand-icon {
@@ -41,14 +40,12 @@
 }
 
 .sidebar-brand-name {
-  font-weight: 600;
-  color: var(--color-primary);
-  white-space: nowrap;
-  overflow: hidden;
-
   max-width: 8rem;
+  overflow: hidden;
+  color: var(--color-primary);
+  font-weight: 600;
+  white-space: nowrap;
   opacity: 1;
-
   transition: max-width 0.3s ease, opacity 0.15s ease;
 }
 

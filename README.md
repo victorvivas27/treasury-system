@@ -32,6 +32,21 @@ correo, cambia la contraseña desde el enlace de recuperación o desde la sesió
 
 Sistema de gestion escolar orientado a tesoreria y administracion de alumnos, apoderados y relaciones familiares. Incluye backend Spring Boot, frontend React/Vite y colecciones declarativas de pruebas API en `api-tests`.
 
+## Cuota anual
+
+El módulo disponible en `/tesoreria/cuotas` permite configurar una cuota única por
+año, habilitar modalidad anual, dos cuotas o ambas, asignar la modalidad a cada
+familia, generar obligaciones idempotentes y registrar o anular pagos. Los pagos no
+se eliminan y las mutaciones quedan registradas en `treasury_audit` con usuario y fecha.
+
+Las consultas admiten filtros por año, curso, familia, modalidad y estado. El resumen
+se encuentra en `/tesoreria/resumen` y los reportes de familias al día, con deuda,
+cuota anual pagada, primera cuota pagada y segunda pendiente en
+`/tesoreria/reportes`.
+
+La API parte de `/api/v1/tesoreria` y permite los roles autenticados `ADMIN` y `USER`
+mientras el sistema no disponga de un rol específico de tesorero.
+
 ## Project Overview
 
 La aplicacion permite administrar alumnos, apoderados y familias. Los endpoints publicos de alumnos y apoderados operan por `codigo`; las relaciones familiares usan IDs internos para vincular alumno y apoderados.
@@ -285,3 +300,109 @@ Nota: `pmdTest` queda deshabilitado en Gradle porque el ruleset actual genera ru
 - [x] Lint passing
 - [x] Type checking passing
 - [ ] Production ready: quedan pendientes autenticacion, autorizacion, origenes CORS productivos y migraciones versionadas
+
+## Cuota CEPA y Cuota Solidaria
+
+La pantalla `/tesoreria/aportes` permite consultar los dos aportes independientes por
+familia y año escolar. Los usuarios `USER` pueden ver cards, métricas, buscar y filtrar.
+Los usuarios `ADMIN` además pueden configurar montos, registrar pagos y anularlos con
+un motivo auditable.
+
+### Flujo de prueba
+
+1. Iniciar backend y frontend e ingresar con una cuenta `ADMIN`.
+2. Abrir `Tesorería > CEPA y Solidaria`.
+3. Seleccionar el año escolar.
+4. Abrir una familia y marcar cada estado por separado.
+5. Comprobar que la card y los contadores cambian sin recargar.
+6. Anular un registro, ingresar el motivo y verificar que vuelve a mostrarse pendiente.
+7. Ingresar como `USER` y comprobar que puede consultar, pero no modificar.
+
+Los endpoints se encuentran bajo `/api/v1/tesoreria/aportes`:
+
+- `GET /aportes` lista familias y acepta `year`, `course`, `familyId`,
+  `cepaStatus`, `solidarityStatus` y `search`.
+- `GET /aportes/resumen` entrega los contadores del año.
+- `GET|PUT /aportes/configuraciones` consulta o configura los aportes anuales.
+- `POST /aportes/{familyId}/pagos` registra un pago.
+- `PATCH /aportes/{id}/anulacion` anula un pago sin eliminar su registro.
+
+La cuota anual continúa disponible en `/tesoreria/cuotas`. Sus entidades, tablas,
+servicios, endpoints y pantalla no fueron reemplazados por este módulo.
+
+Para corregir la modalidad de una familia:
+
+1. Anular todos sus pagos activos indicando el motivo.
+2. Seleccionar la familia y cambiar entre `Cuota única` y `Dos cuotas`.
+3. Guardar la modalidad; las nuevas obligaciones se regeneran automáticamente.
+
+Los pagos anulados permanecen en auditoría, pero no bloquean el cambio de modalidad
+ni forman parte del total recaudado. Si aún existe otro pago activo de la familia,
+el cambio continúa bloqueado hasta anularlo.
+
+## Egresos de Tesorería
+
+La ruta `/tesoreria/gastos`, visible como `Tesorería > Egresos`, administra el dinero
+utilizado por el curso. El resumen conserva el total recaudado y calcula en backend:
+
+```text
+Saldo disponible = cuota del curso pagada + ingresos extraordinarios - egresos activos
+```
+
+Los egresos anulados desaparecen del panel y dejan de descontarse. El backend conserva
+el registro para auditoría, sin eliminarlo físicamente.
+Los usuarios `USER` pueden consultar; los usuarios `ADMIN` pueden registrar, corregir
+con motivo y anular. Si un nuevo egreso supera el saldo, se solicita confirmación.
+
+### Prueba manual
+
+1. Ingresar como `ADMIN` y abrir `Tesorería > Egresos`.
+2. Seleccionar el año y pulsar `Registrar egreso`.
+3. Completar descripción, monto, fecha y categoría.
+4. Guardar y verificar la card, el total de egresos y el saldo disponible.
+5. Abrir `Ver detalle` para corregir el registro indicando un motivo.
+6. Anularlo indicando el motivo y comprobar que desaparece del panel.
+7. Confirmar que el total recaudado no cambió y que el saldo recuperó el monto anulado.
+
+API bajo `/api/v1/tesoreria`:
+
+- `GET|POST /egresos`
+- `GET|PATCH /egresos/{id}`
+- `PATCH /egresos/{id}/anulacion`
+- `GET /resumen-financiero?year=2026`
+
+## Ingresos extraordinarios
+
+La ruta `/tesoreria/ingresos` diferencia los ingresos automáticos por cuotas de los
+ingresos extraordinarios creados manualmente. Las pestañas `Todos`, `Cuotas` y
+`Otros ingresos` evitan registrar nuevamente una cuota como ingreso manual.
+
+El resumen financiero se calcula exclusivamente en backend:
+
+```text
+Ingresos por cuotas = cuota anual del curso pagada
+Ingresos totales = ingresos por cuotas + ingresos extraordinarios activos
+Saldo disponible = ingresos totales - egresos activos
+```
+
+Los ingresos extraordinarios pueden corregirse con motivo o anularse. Los anulados
+desaparecen del panel y dejan de sumarse, aunque el backend conserva el registro de
+auditoría sin eliminarlo físicamente. Un envío duplicado con la misma
+descripción, monto y fecha se rechaza.
+
+### Prueba manual
+
+1. Ingresar como `ADMIN` y abrir `Tesorería > Ingresos`.
+2. Verificar que la pestaña `Cuotas` muestra el total automático de solo lectura.
+3. Pulsar `Registrar ingreso` y guardar una rifa o donación.
+4. Comprobar que aumentan `Otros ingresos`, `Ingresos totales` y `Saldo disponible`.
+5. Abrir el detalle para corregir el monto indicando un motivo.
+6. Anularlo indicando un motivo y comprobar que desaparece del panel.
+7. Verificar que el ingreso anulado dejó de sumarse y que las cuotas no se duplicaron.
+
+API bajo `/api/v1/tesoreria`:
+
+- `GET|POST /ingresos`
+- `GET|PATCH /ingresos/{id}`
+- `PATCH /ingresos/{id}/anulacion`
+- `GET /resumen-financiero?year=2026`

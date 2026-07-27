@@ -117,6 +117,24 @@ class SecurityConfigTest {
         }
     }
 
+    @Test
+    void resumenTesoreria_deberiaPermitirUsuarioAutenticado() throws Exception {
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/tesoreria/dashboard?year=2026")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void administracionTesoreria_deberiaRechazarUsuarioComun() throws Exception {
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/tesoreria/configuraciones?year=2026")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
     private void createUser(String code, String correo, RoleEnum role) {
         UserEntity user = new UserEntity();
         user.setCode(code);

@@ -26,6 +26,11 @@
   gap: var(--sm);
 }
 
+.sidebar-nav-link-item.active {
+  background: var(--color-hover);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
 /* Activo icono */
 .sidebar-nav-link-item.active .sidebar-nav-icon {
   color: var(--color-warning);
@@ -33,7 +38,7 @@
 
 /* Activo texto */
 .sidebar-nav-link-item.active .sidebar-nav-label {
-  color: var(--color-warning);
+  color: var(--color-accent);
   font-weight: 600;
 
 }
@@ -72,6 +77,10 @@
 .sidebar-nav-parent.is-open .sidebar-nav-label,
 .sidebar-nav-parent.is-open .sidebar-nav-chevron {
   color: var(--color-accent);
+}
+
+.sidebar-nav-parent.is-open .sidebar-nav-icon {
+  color: var(--color-warning);
 }
 
 .sidebar-nav-section--treasury {

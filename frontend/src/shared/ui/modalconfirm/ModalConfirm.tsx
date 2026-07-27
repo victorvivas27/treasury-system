@@ -1,5 +1,6 @@
 import { Button } from "../button/Button";
 import "./ModalConfirm.css";
+import type { ReactNode } from "react";
 
 interface ModalConfirmProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface ModalConfirmProps {
   isLoading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  children?: ReactNode;
 }
 
 export const ModalConfirm = ({
@@ -21,6 +23,7 @@ export const ModalConfirm = ({
   isLoading = false,
   onConfirm,
   onCancel,
+  children,
 }: ModalConfirmProps) => {
   if (!isOpen) return null;
 
@@ -45,6 +48,7 @@ export const ModalConfirm = ({
 
         <main className="modal-confirm-body">
           <p>{message}</p>
+          {children && <div className="modal-confirm-content">{children}</div>}
         </main>
 
         <footer className="modal-confirm-footer">

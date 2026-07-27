@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-const SIDEBAR_AUTO_CLOSE_MS = 3000;
+const SIDEBAR_AUTO_CLOSE_MS = 1500;
 
 export const useSidebarBehavior = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

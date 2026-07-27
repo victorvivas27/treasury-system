@@ -75,7 +75,7 @@ describe('Sidebar Component', () => {
 
   it('[Sidebar #04] Aplica la clase "active" al enlace de la ruta actual', () => {
     const primeraRuta = SIDEBAR_LINKS[0].links[0].path;
-    renderWithRouter(<SidebarNav onNavLinkClick={mockNavLinkClick} />, { route: primeraRuta });
+    renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />, { route: primeraRuta });
     const activeLink = screen.getByRole('link', { name: new RegExp(SIDEBAR_LINKS[0].links[0].label, 'i') });
     expect(activeLink).toHaveClass('active');
   });
@@ -127,14 +127,14 @@ describe('Sidebar Component', () => {
   });
 
   it('[Sidebar #08] Ejecuta onNavLinkClick al hacer clic en un enlace', () => {
-    renderWithRouter(<SidebarNav onNavLinkClick={mockNavLinkClick} />);
+    renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />);
     const enlace = screen.getByRole('link', { name: new RegExp(SIDEBAR_LINKS[0].links[0].label, 'i') });
     fireEvent.click(enlace);
     expect(mockNavLinkClick).toHaveBeenCalledTimes(1);
   });
 
-  it('[Sidebar #08.2] Expande Tesorería y navega por sus siete secciones', () => {
-    renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
+  it('[Sidebar #08.2] Expande Tesorería y muestra todas sus secciones al administrador', () => {
+    renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />);
 
     const treasuryButton = screen.getByRole('button', { name: /tesorería/i });
     expect(treasuryButton).toHaveAttribute('aria-expanded', 'false');
@@ -148,6 +148,22 @@ describe('Sidebar Component', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Pagos' }));
     expect(mockNavLinkClick).not.toHaveBeenCalled();
     expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
+  });
+
+  it('[Sidebar #08.4] Muestra solo Resumen de Tesorería al usuario común', () => {
+    renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /tesorería/i }));
+
+    expect(screen.getByRole('link', { name: 'Resumen' })).toHaveAttribute(
+      'href',
+      '/tesoreria/resumen',
+    );
+    TREASURY_LINKS
+      .filter((link) => link.path !== '/tesoreria/resumen')
+      .forEach((link) => {
+        expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
+      });
   });
 
   it('[Sidebar #08.3] Cierra automáticamente el submenú de Tesorería', () => {

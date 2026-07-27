@@ -27,7 +27,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
     try {
       await (onLogout ?? auth?.logout)?.();
       setIsLogoutModalOpen(false);
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } finally {
       setIsLoggingOut(false);
     }

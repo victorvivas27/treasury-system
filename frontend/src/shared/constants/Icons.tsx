@@ -1,4 +1,4 @@
-import { RxHome, RxPerson } from "react-icons/rx";
+import { RxPerson } from "react-icons/rx";
 import { PiStudent } from "react-icons/pi";
 import { BsPerson } from "react-icons/bs";
 import { TbPigMoney } from "react-icons/tb";
@@ -19,7 +19,6 @@ import { IoChevronDownOutline } from "react-icons/io5";
 
 
 export const ICONS = {
-  home: RxHome,
   dashboard: GrPieChart,
   usuarios: RxPerson,
   alumnos: PiStudent,
@@ -37,13 +36,6 @@ export const ICONS = {
 };
 
 export const SIDEBAR_LINKS = [
-  {
-    title: "General",
-    links: [
-      { label: "Home", path: "/", icon: ICONS.home },
-
-    ],
-  },
   {
     title: "Gestión de Personas",
     links: [
@@ -64,9 +56,10 @@ export const SIDEBAR_LINKS = [
 export const TREASURY_LINKS = [
   { label: "Resumen", path: "/tesoreria/resumen" },
   { label: "Cuotas", path: "/tesoreria/cuotas" },
+  { label: "CEPA y Solidaria", path: "/tesoreria/aportes" },
   { label: "Pagos", path: "/tesoreria/pagos" },
   { label: "Ingresos", path: "/tesoreria/ingresos" },
-  { label: "Gastos", path: "/tesoreria/gastos" },
+  { label: "Egresos", path: "/tesoreria/gastos" },
   { label: "Eventos", path: "/tesoreria/eventos" },
   { label: "Reportes", path: "/tesoreria/reportes" },
 ] as const;

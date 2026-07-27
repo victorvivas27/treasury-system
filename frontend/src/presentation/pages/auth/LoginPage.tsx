@@ -35,7 +35,10 @@ export const LoginPage = () => {
 
     try {
       await login(correo.trim(), password);
-      const destination = (location.state as { from?: string } | null)?.from ?? "/";
+      const requestedDestination = (location.state as { from?: string } | null)?.from;
+      const destination = requestedDestination && requestedDestination !== "/login"
+        ? requestedDestination
+        : "/tesoreria/resumen";
       navigate(destination, { replace: true });
     } catch {
       setError("Correo o contraseña inválidos");

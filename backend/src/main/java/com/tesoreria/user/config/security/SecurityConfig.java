@@ -4,6 +4,7 @@ import com.tesoreria.shared.infrastructure.exception.StandardErrorResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -47,6 +48,12 @@ public class SecurityConfig {
                                 "/api/v1/auth/reset-password")
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/tesoreria/dashboard",
+                                "/api/v1/tesoreria/resumen-financiero")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/tesoreria/**")
                         .hasRole("ADMIN")
                         .requestMatchers(
                                 "/api/v1/alumnos/**",
