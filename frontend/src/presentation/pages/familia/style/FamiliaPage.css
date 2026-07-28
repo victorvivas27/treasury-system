@@ -139,3 +139,12 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 480px) {
+  .familia-page { padding: var(--sm); }
+  .familia-form, .familia-list { padding: var(--sm); }
+  .familia-header { align-items: stretch; }
+  .familia-header .base-button { width: 100%; margin: 0; }
+  .familia-actions, .familia-pagination { flex-wrap: wrap; }
+  .familia-actions .base-button { flex: 1 1 8rem; margin: 0; }
+}

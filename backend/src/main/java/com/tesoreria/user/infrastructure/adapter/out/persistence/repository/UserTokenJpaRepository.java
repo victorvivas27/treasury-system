@@ -12,6 +12,8 @@ public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, L
     Optional<UserTokenEntity> findByTokenHashAndType(String tokenHash, UserTokenType type);
 
     @Modifying
-    @Query("delete from UserTokenEntity t where t.userId = :userId and t.type = :type and t.usedAt is null")
-    void deleteActiveByUserIdAndType(Long userId, UserTokenType type);
+    @Query("delete from UserTokenEntity t where t.userId = :userId and t.type = :type")
+    void deleteByUserIdAndType(Long userId, UserTokenType type);
+
+    void deleteByUserId(Long userId);
 }

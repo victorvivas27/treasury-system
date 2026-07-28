@@ -215,10 +215,35 @@
 @media (max-width: 400px) {
   .profile-page { padding: 8px; }
   .profile-identity, .profile-panel { padding: 16px; }
-  .profile-summary { gap: 16px; }
   .profile-copy h1 { font-size: 20px; }
+  .profile-bio { white-space: normal; overflow-wrap: anywhere; }
   .profile-stats { padding: 24px 8px; }
   .profile-stats strong { font-size: 24px; }
   .profile-tabs { padding: 0 16px; }
   .profile-modal { padding: 24px; }
+  .profile-modal-actions { align-items: stretch; flex-direction: column-reverse; }
+  .profile-modal-actions button { width: 100%; }
+  .profile-toast { right: 8px; bottom: 8px; left: 8px; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .profile-summary {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    flex: 0 0 64px;
+    width: 64px;
+    min-width: 64px;
+    height: 64px;
+    min-height: 64px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    font-size: 20px;
+  }
+
+  .profile-copy { width: 100%; }
 }

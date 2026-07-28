@@ -13,7 +13,7 @@ interface UserTableProps {
 }
 
 export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete }: UserTableProps) => (
-  <article className="usuarios-container">
+  <article className="usuarios-container responsive-data-list">
     <header className="usuarios-header">
       <h2 className="usuarios-header__title">Lista de Usuarios</h2>
     </header>

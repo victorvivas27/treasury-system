@@ -37,4 +37,11 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
   async delete(codigo: string): Promise<void> {
     await apiClient.delete(`${this.baseUrl}/${codigo}`);
   }
+
+  async enableAccess(codigo: string, token?: string): Promise<Apoderado> {
+    return (await apiClient.post<Apoderado>(
+      `${this.baseUrl}/${codigo}/habilitar-acceso`, {}, {
+        ...(token && { headers: { Authorization: `Bearer ${token}` } }),
+      })).data;
+  }
 }

@@ -2,6 +2,7 @@ package com.tesoreria.treasury.infrastructure.adapter.out.persistence.adapter;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
@@ -93,6 +94,14 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
         .map(FeeObligationEntity::getId).toList();
     return !ids.isEmpty() && payments.existsByObligationIdInAndAnnulledFalse(ids);
   }
+  @Override public void deletePaymentsByPlan(Long planId) {
+    List<Long> obligationIds = obligations.findByPlanIdOrderByDueDate(planId).stream()
+        .map(FeeObligationEntity::getId).toList();
+    if (!obligationIds.isEmpty()) payments.deleteByObligationIdIn(obligationIds);
+  }
+  @Override public void deletePayment(Long id) {
+    payments.deleteById(id);
+  }
   @Override public TreasuryAudit saveAudit(TreasuryAudit value) {
     TreasuryAuditEntity entity = new TreasuryAuditEntity();
     entity.setId(value.id()); entity.setAction(value.action());
@@ -128,6 +137,9 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
   @Override public List<FamilyContribution> findContributions(int year) {
     return contributions.findBySchoolYear(year).stream().map(this::contribution).toList();
   }
+  @Override public void deleteContribution(Long id) {
+    contributions.deleteById(id);
+  }
   @Override public TreasuryExpense saveExpense(TreasuryExpense value) {
     return expense(expenses.save(expenseEntity(value)));
   }
@@ -136,6 +148,9 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
   }
   @Override public List<TreasuryExpense> findExpenses(int year) {
     return expenses.findBySchoolYear(year).stream().map(this::expense).toList();
+  }
+  @Override public void deleteExpense(Long id) {
+    expenses.deleteById(id);
   }
   @Override public TreasuryIncome saveIncome(TreasuryIncome value) {
     return income(incomes.save(incomeEntity(value)));
@@ -146,11 +161,39 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
   @Override public List<TreasuryIncome> findIncomes(int year) {
     return incomes.findBySchoolYear(year).stream().map(this::income).toList();
   }
+  @Override public void deleteIncome(Long id) {
+    incomes.deleteById(id);
+  }
+  @Override public void deleteAudits(String entityType, String entityId) {
+    audits.deleteByEntityTypeAndEntityId(entityType, entityId);
+  }
+  @Override public List<TreasuryAudit> findAudits(LocalDateTime from, LocalDateTime to) {
+    return audits.findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to)
+        .stream().map(this::audit).toList();
+  }
+  @Override public void deleteAuditsByIds(List<Long> ids) {
+    audits.deleteAllByIdInBatch(ids);
+  }
+  @Override public void deleteFamilyTreasuryData(Long familyId) {
+    for (FamilyFeePlanEntity plan : plans.findByFamilyId(familyId)) {
+      List<Long> obligationIds = obligations.findByPlanIdOrderByDueDate(plan.getId()).stream()
+          .map(FeeObligationEntity::getId).toList();
+      if (!obligationIds.isEmpty()) payments.deleteByObligationIdIn(obligationIds);
+      obligations.deleteByPlanId(plan.getId());
+      plans.deleteById(plan.getId());
+    }
+    contributions.deleteByFamilyId(familyId);
+    audits.deleteByEntityTypeAndEntityId("FAMILIA", String.valueOf(familyId));
+  }
 
   private AnnualFeeConfig config(AnnualFeeConfigEntity e) {
     return new AnnualFeeConfig(e.getId(), e.getYear(), e.getAnnualAmount(), e.getAllowedMode(),
         e.getAnnualDueDate(), e.getFirstDueDate(), e.getSecondDueDate(),
         e.getCreatedAt(), e.getUpdatedAt());
+  }
+  private TreasuryAudit audit(TreasuryAuditEntity e) {
+    return new TreasuryAudit(e.getId(), e.getAction(), e.getEntityType(), e.getEntityId(),
+        e.getPerformedBy(), e.getDetails(), e.getCreatedAt());
   }
   private AnnualFeeConfigEntity configEntity(AnnualFeeConfig v) {
     AnnualFeeConfigEntity e = new AnnualFeeConfigEntity();

@@ -22,6 +22,11 @@ public class SchoolEventController {
     this.service = service;
   }
 
+  @GetMapping("/curso-administrado")
+  public ManagedCourseResponse managedCourse() {
+    return new ManagedCourseResponse(service.managedCourse());
+  }
+
   @GetMapping
   public List<EventResponse> list(@RequestParam int year) {
     return service.list(year).stream().map(this::response).toList();
@@ -64,7 +69,7 @@ public class SchoolEventController {
     SchoolEventService.ExpenseInput input = new SchoolEventService.ExpenseInput(
         request.description(), request.amount(), request.date(), request.type(), request.course(),
         request.category(), request.responsible(), request.paymentMethod(),
-        request.receiptNumber(), request.observations());
+        request.receiptNumber(), request.observations(), request.deductFromSettlement());
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(response(service.addExpense(id, input, user(principal))));
   }
@@ -75,7 +80,7 @@ public class SchoolEventController {
     SchoolEventService.ExpenseInput input = new SchoolEventService.ExpenseInput(
         request.description(), request.amount(), request.date(), request.type(), request.course(),
         request.category(), request.responsible(), request.paymentMethod(),
-        request.receiptNumber(), request.observations());
+        request.receiptNumber(), request.observations(), request.deductFromSettlement());
     return response(service.updateExpense(id, expenseKey, input));
   }
 
@@ -127,7 +132,8 @@ public class SchoolEventController {
             item.getKey(), item.getDescription(), item.getAmount(), item.getDate(), item.getType(),
             item.getCourse(), item.getCategory(), item.getResponsible(), item.getPaymentMethod(),
             item.getReceiptNumber(), item.getObservations(), item.getStatus(),
-            item.getRegisteredBy(), item.getCancelledAt(), item.getCancellationReason())).toList(),
+            item.getRegisteredBy(), item.getCancelledAt(), item.getCancellationReason(),
+            !Boolean.FALSE.equals(item.getDeductFromSettlement()))).toList(),
         value.getGrossRevenue(), common, own, gross.subtract(common).subtract(own),
         value.getRevenueDate(), value.getRevenueDescription(), value.getRevenuePaymentMethod(),
         value.getRevenueReceipt(), value.getRevenueObservations(), value.getRemainder(),
@@ -137,6 +143,7 @@ public class SchoolEventController {
   private BigDecimal sum(SchoolEventEntity event, EventExpenseType type) {
     return event.getExpenses().stream()
         .filter(item -> item.getStatus() == EventExpenseStatus.ACTIVE && item.getType() == type)
+        .filter(item -> !Boolean.FALSE.equals(item.getDeductFromSettlement()))
         .map(SchoolEventExpenseEmbeddable::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
@@ -158,7 +165,7 @@ public class SchoolEventController {
       @NotNull EventExpenseType type, @Size(max = 80) String course,
       @Size(max = 80) String category, @Size(max = 150) String responsible,
       @Size(max = 40) String paymentMethod, @Size(max = 100) String receiptNumber,
-      @Size(max = 500) String observations) { }
+      @Size(max = 500) String observations, Boolean deductFromSettlement) { }
   public record RevenueRequest(@NotNull @Positive BigDecimal amount, @NotNull LocalDate date,
       @Size(max = 250) String description, @Size(max = 40) String paymentMethod,
       @Size(max = 100) String receiptNumber, @Size(max = 500) String observations) { }
@@ -169,7 +176,8 @@ public class SchoolEventController {
   public record ExpenseResponse(String key, String description, BigDecimal amount, LocalDate date,
       EventExpenseType type, String course, String category, String responsible,
       String paymentMethod, String receiptNumber, String observations, EventExpenseStatus status,
-      String registeredBy, LocalDateTime cancelledAt, String cancellationReason) { }
+      String registeredBy, LocalDateTime cancelledAt, String cancellationReason,
+      boolean deductFromSettlement) { }
   public record EventResponse(Long id, String name, int schoolYear, LocalDate eventDate,
       String description, EventStatus status, String observations,
       List<ParticipantResponse> participants, List<ExpenseResponse> expenses,
@@ -178,4 +186,5 @@ public class SchoolEventController {
       String revenuePaymentMethod, String revenueReceipt, String revenueObservations,
       BigDecimal remainder, boolean settlementConfirmed, LocalDateTime createdAt,
       LocalDateTime updatedAt) { }
+  public record ManagedCourseResponse(String course) { }
 }

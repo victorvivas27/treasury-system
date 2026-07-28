@@ -7,6 +7,7 @@ import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.mapper.UserPersistenceMapper;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
+import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserTokenJpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -15,10 +16,13 @@ import java.util.Optional;
 public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     private final UserJpaRepository repository;
     private final UserPersistenceMapper mapper;
+    private final UserTokenJpaRepository tokens;
 
-    public JpaUserRepositoryAdapter(UserJpaRepository repository, UserPersistenceMapper mapper) {
+    public JpaUserRepositoryAdapter(UserJpaRepository repository, UserPersistenceMapper mapper,
+                                    UserTokenJpaRepository tokens) {
         this.repository = repository;
         this.mapper = mapper;
+        this.tokens = tokens;
     }
 
     @Override
@@ -75,6 +79,7 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
 
     @Override
     public void deleteById(Long id) {
+        tokens.deleteByUserId(id);
         repository.deleteById(id);
     }
 }

@@ -8,10 +8,21 @@ import { useNavigate } from "react-router-dom";
 import { useDeleteApoderado } from "@/presentation/hooks/apoderado/useDeleteApoderado";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { useState } from "react";
+import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
+import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
+import { useOptionalAuth } from "@/presentation/context/AuthContext";
 
 
 
 export const ApoderadoPage: FC = () => {
+  const auth = useOptionalAuth();
+  const token = auth?.token;
+  const [accessGuardian, setAccessGuardian] = useState<Apoderado | null>(null);
+  const [enablingAccess, setEnablingAccess] = useState(false);
+  const [accessAlert, setAccessAlert] = useState({
+    isOpen: false, message: "", type: "success" as "success" | "error",
+  });
   const {
     apoderados,
     loading,
@@ -45,6 +56,27 @@ export const ApoderadoPage: FC = () => {
   });
 
   const navigate = useNavigate();
+
+  const confirmEnableAccess = async () => {
+    if (!accessGuardian || enablingAccess) return;
+    const guardian = accessGuardian;
+    setEnablingAccess(true);
+    try {
+      await new ApoderadoRepositoryImpl().enableAccess(
+        guardian.codigo, token ?? undefined);
+      setAccessGuardian(null);
+      setAccessAlert({ isOpen: true,
+        message: "Invitación enviada. El apoderado figura como usuario pendiente.",
+        type: "success" });
+      refetch();
+    } catch {
+      setAccessGuardian(null);
+      setAccessAlert({ isOpen: true,
+        message: "No fue posible habilitar el acceso del apoderado.", type: "error" });
+    } finally {
+      setEnablingAccess(false);
+    }
+  };
 
   return (
     <main className="page-container">
@@ -88,6 +120,7 @@ export const ApoderadoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={(codigo) => openDeleteConfirm(String(codigo))}
           handleEdit={handleEdit}
+          handleEnableAccess={setAccessGuardian}
           currentPage={currentPage}
           onNextPage={nextPage}
           onPrevPage={prevPage}
@@ -115,6 +148,15 @@ export const ApoderadoPage: FC = () => {
         onClose={closeAlert}
         autoCloseTime={2500}
       />
+      <ModalConfirm isOpen={Boolean(accessGuardian)} title="Habilitar acceso"
+        message={`Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
+        confirmLabel="Enviar invitación" isLoading={enablingAccess}
+        onCancel={() => setAccessGuardian(null)}
+        onConfirm={() => void confirmEnableAccess()} />
+      <ModalAlert isOpen={accessAlert.isOpen} message={accessAlert.message}
+        type={accessAlert.type} onClose={() => setAccessAlert(current => ({
+          ...current, isOpen: false,
+        }))} />
     </main>
   );
 };

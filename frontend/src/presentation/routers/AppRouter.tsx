@@ -49,6 +49,7 @@ export const AppRouter = () => {
           <Route path="tesoreria" element={<Navigate to="/tesoreria/resumen" replace />} />
           <Route path="tesoreria/resumen" element={<TreasuryOverviewPage />} />
           <Route path="treasury" element={<Navigate to="/tesoreria/resumen" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
@@ -69,7 +70,6 @@ export const AppRouter = () => {
           <Route path="family/new" element={<FamiliaCrearFormPage/>} />
           <Route path="/family/edit/:familiaId" element={<FamiliaEditFormPage />} />
         </Route>
-        <Route path="dashboard" element={<DashboardPage />} />
         <Route path="notifications" element={<Notificacion />} />
         <Route path="configuration" element={<Configuracion />} />
       </Route>

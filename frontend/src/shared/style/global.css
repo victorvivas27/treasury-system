@@ -234,6 +234,33 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
+img,
+svg,
+canvas {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .form-group > .error-message {
+    position: static;
+    display: block;
+    min-height: 16px;
+    margin-top: 4px;
+    white-space: normal;
+  }
+
+  .form-group {
+    padding-bottom: 4px;
+  }
+}
+
 a {
   text-decoration: none;
 }

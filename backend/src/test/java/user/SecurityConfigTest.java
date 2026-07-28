@@ -118,6 +118,15 @@ class SecurityConfigTest {
     }
 
     @Test
+    void invitacionApoderado_deberiaAceptarTokenAdministrador() throws Exception {
+        String token = tokenFor("admin@mail.com");
+
+        mockMvc.perform(post("/api/v1/apoderados/APO-INEXISTENTE/habilitar-acceso")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void resumenTesoreria_deberiaPermitirUsuarioAutenticado() throws Exception {
         String token = tokenFor("user@mail.com");
 

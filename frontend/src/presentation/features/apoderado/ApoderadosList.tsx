@@ -15,6 +15,7 @@ interface ApoderadosListProps {
   onRefresh?: () => void;
   handleDelete?: (codigo: string | number) => void;
   handleEdit?: (codigo: string) => void;
+  handleEnableAccess?: (apoderado: Apoderado) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -42,6 +43,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   onRefresh,
   handleDelete,
   handleEdit,
+  handleEnableAccess,
   currentPage,
   onNextPage,
   onPrevPage,
@@ -103,7 +105,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   /*================================*/
 
   return (
-    <article className="apoderados-container">
+    <article className="apoderados-container responsive-data-list">
       <header className="apoderados-header">
         <h2 className="apoderados-header__title">Lista de Apoderados</h2>
       </header>
@@ -116,6 +118,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
             <th className="apoderados-table__th">Nombre</th>
             <th className="apoderados-table__th">Correo</th>
             <th className="apoderados-table__th">Teléfono</th>
+            <th className="apoderados-table__th">Acceso</th>
             <th className="apoderados-table__th">Acciones</th>
           </tr>
         </thead>
@@ -172,26 +175,55 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                   )}
                 </td>
 
+                <td className="apoderados-table__td" data-label="Acceso">
+                  {loading ? <div className="skeleton-block skeleton-input" />
+                    : isEmptyRow ? <span>&nbsp;</span>
+                    : <span className={`guardian-access guardian-access--${
+                      (apoderado.accessStatus ?? "SIN_ACCESO").toLowerCase()}`}>
+                      {apoderado.accessStatus === "ACTIVO" ? "Usuario activo"
+                        : apoderado.accessStatus === "INVITACION_PENDIENTE"
+                          ? "Invitación pendiente"
+                          : apoderado.accessStatus === "BLOQUEADO"
+                            ? "Usuario bloqueado" : "Sin acceso"}
+                    </span>}
+                </td>
+
                 <td className="apoderados-table__td" data-label="Acciones">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : !isEmptyRow && apoderado ? (
                     <div className="apoderados-table__td--actions">
-                      <Button
-                        variant="danger"
-                        size="small"
-                        onClick={() => handleDelete?.(apoderado.codigo || apoderadoIdentifier)}
-                        icon={
-                          <APODERADOS_ICONS.delete />}
-                        testId={`delete-btn-${apoderadoIdentifier}`}
-                      />
-
+                      <span className="apoderados-table__access-slot">
+                        {apoderado.accessStatus !== "ACTIVO"
+                          && apoderado.accessStatus !== "BLOQUEADO" && <Button
+                            variant="primary"
+                            size="small"
+                            className="apoderados-table__access-button"
+                            onClick={() => handleEnableAccess?.(apoderado)}
+                            icon={<APODERADOS_ICONS.add />}
+                            ariaLabel={apoderado.accessStatus === "INVITACION_PENDIENTE"
+                              ? "Reenviar invitación" : "Habilitar acceso"}
+                            label={apoderado.accessStatus === "INVITACION_PENDIENTE"
+                              ? "Reenviar invitación" : "Habilitar acceso"}
+                          />}
+                      </span>
                       <Button
                         variant="secondary"
                         size="small"
-                        onClick={() => handleEdit?.(apoderado.codigo || String(apoderadoIdentifier))}
+                        className="apoderados-table__icon-button"
+                        onClick={() => handleEdit?.(
+                          apoderado.codigo || String(apoderadoIdentifier))}
                         icon={<APODERADOS_ICONS.edit />}
                         testId={`edit-btn-${apoderadoIdentifier}`}
+                      />
+                      <Button
+                        variant="danger"
+                        size="small"
+                        className="apoderados-table__icon-button"
+                        onClick={() => handleDelete?.(
+                          apoderado.codigo || apoderadoIdentifier)}
+                        icon={<APODERADOS_ICONS.delete />}
+                        testId={`delete-btn-${apoderadoIdentifier}`}
                       />
                     </div>
                   ) : (

@@ -12,17 +12,19 @@ interface ModalProps {
   buttonLabel?: string;
 }
 
+const DEFAULT_AUTO_CLOSE_TIME = 4000;
+
 export const ModalAlert = ({
   isOpen,
   message,
   type,
   onClose,
-  autoCloseTime,
+  autoCloseTime = DEFAULT_AUTO_CLOSE_TIME,
   title,
   buttonLabel = "Entendido",
 }: ModalProps) => {
   useEffect(() => {
-    if (isOpen && autoCloseTime) {
+    if (isOpen && autoCloseTime > 0) {
       const timer = setTimeout(() => {
         onClose();
       }, autoCloseTime);
@@ -39,7 +41,7 @@ export const ModalAlert = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* BARRA DE TIEMPO: Solo se muestra si hay autoCloseTime */}
-        {autoCloseTime && (
+        {autoCloseTime > 0 && (
           <div
             className={`modal-progress progress-${type}`}
             style={{ '--duration': `${autoCloseTime}ms` } as React.CSSProperties}

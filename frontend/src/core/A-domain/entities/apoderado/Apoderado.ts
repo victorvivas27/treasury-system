@@ -6,6 +6,7 @@ export interface Apoderado {
   email: string;
   telefono: string;
   observaciones?: string;
+  accessStatus?: "SIN_ACCESO" | "INVITACION_PENDIENTE" | "ACTIVO" | "BLOQUEADO";
 }
 
 export type CreateApoderadoDTO = Omit<Apoderado, "apoderadoId" | "codigo">;

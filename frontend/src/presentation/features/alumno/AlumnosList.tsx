@@ -99,7 +99,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   }
 
   return (
-    <article className="alumnos-container">
+    <article className="alumnos-container responsive-data-list">
       <header className="alumnos-header">
         <h2 className="alumnos-header__title">Lista de Alumnos</h2>
       </header>

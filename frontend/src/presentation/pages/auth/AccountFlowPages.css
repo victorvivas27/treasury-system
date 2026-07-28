@@ -27,3 +27,8 @@
   outline: 3px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   outline-offset: 3px;
 }
+
+@media (max-width: 480px) {
+  .auth-flow { align-items: start; padding: 12px; }
+  .auth-flow__card { gap: 16px; padding: 20px 16px; }
+}

@@ -213,10 +213,9 @@ class TreasuryServiceTest {
   }
 
   @Test
-  void cancelContribution_deberiaConservarRegistroYGuardarAuditoria() {
+  void cancelContribution_deberiaEliminarRegistroYGuardarAuditoria() {
     when(repository.findContributionById(8L))
         .thenReturn(Optional.of(contribution(ContributionType.CEPA, ContributionStatus.PAID)));
-    when(repository.saveContribution(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     FamilyContribution result =
         service.cancelContribution(8L, "Familia incorrecta", "admin@mail.com");
@@ -224,6 +223,8 @@ class TreasuryServiceTest {
     assertAll(() -> assertEquals(ContributionStatus.CANCELLED, result.status()),
         () -> assertEquals("Familia incorrecta", result.cancellationReason()),
         () -> assertNotNull(result.cancelledAt()));
+    verify(repository).deleteContribution(8L);
+    verify(repository, never()).saveContribution(any());
   }
 
   @Test
@@ -253,15 +254,16 @@ class TreasuryServiceTest {
   }
 
   @Test
-  void cancelExpense_deberiaAnularSinEliminar() {
+  void cancelExpense_deberiaEliminarRegistroYGuardarAuditoria() {
     when(repository.findExpenseById(20L)).thenReturn(Optional.of(expense(ExpenseStatus.ACTIVE)));
-    when(repository.saveExpense(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     TreasuryExpense result = service.cancelExpense(20L, "Registro duplicado", "admin@mail.com");
 
     assertAll(() -> assertEquals(ExpenseStatus.CANCELLED, result.status()),
         () -> assertEquals("Registro duplicado", result.cancellationReason()),
         () -> assertNotNull(result.cancelledAt()));
+    verify(repository).deleteExpense(20L);
+    verify(repository, never()).saveExpense(any());
   }
 
   @Test
@@ -319,6 +321,17 @@ class TreasuryServiceTest {
   }
 
   @Test
+  void deleteIncome_deberiaEliminarIngresoYSuAuditoria() {
+    when(repository.findIncomeById(30L)).thenReturn(Optional.of(income(IncomeStatus.ACTIVE)));
+
+    service.deleteIncome(30L);
+
+    var order = inOrder(repository);
+    order.verify(repository).deleteAudits("INGRESO", "30");
+    order.verify(repository).deleteIncome(30L);
+  }
+
+  @Test
   void financialSummary_deberiaSumarSoloIngresosExtraordinariosActivos() {
     when(repository.findConfigByYear(2026)).thenReturn(Optional.empty());
     when(repository.findIncomes(2026)).thenReturn(List.of(
@@ -331,6 +344,25 @@ class TreasuryServiceTest {
         () -> assertEquals(new BigDecimal("50000"), result.otherIncome()),
         () -> assertEquals(new BigDecimal("50000"), result.totalIncome()),
         () -> assertEquals(new BigDecimal("35000"), result.availableBalance()));
+  }
+
+  @Test
+  void dashboardOverview_deberiaUsarMovimientosRealesSinConfiguracionDeCuotas() {
+    when(repository.findConfigByYear(2026)).thenReturn(Optional.empty());
+    when(repository.findIncomes(2026)).thenReturn(List.of(income(IncomeStatus.ACTIVE)));
+    when(repository.findExpenses(2026)).thenReturn(List.of(expense(ExpenseStatus.ACTIVE)));
+
+    TreasuryDashboardOverview result = service.dashboardOverview(2026);
+
+    assertAll(
+        () -> assertEquals(new BigDecimal("50000"), result.finances().totalIncome()),
+        () -> assertEquals(new BigDecimal("15000"), result.finances().totalExpenses()),
+        () -> assertEquals(new BigDecimal("50000"),
+            result.monthlyCashFlow().get(6).income()),
+        () -> assertEquals(new BigDecimal("15000"),
+            result.monthlyCashFlow().get(6).expense()),
+        () -> assertEquals("MATERIALS", result.expensesByCategory().get(0).category()),
+        () -> assertEquals(2, result.recentMovements().size()));
   }
 
   private FeeObligation obligation(InstallmentType installment, ObligationStatus status) {

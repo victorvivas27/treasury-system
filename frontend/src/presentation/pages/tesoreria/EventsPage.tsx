@@ -33,6 +33,7 @@ export const EventsPage = () => {
   const [expenseToEdit, setExpenseToEdit] = useState<SchoolEventExpense>();
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
+  const [managedCourse, setManagedCourse] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,6 +50,18 @@ export const EventsPage = () => {
   }, [year]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    repository.getManagedCourse()
+      .then(setManagedCourse)
+      .catch(() => setFeedback("No fue posible cargar el curso administrado."));
+  }, []);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = window.setTimeout(() => setFeedback(""), 4000);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
 
   const refreshSelected = (event: SchoolEvent) => {
     setSelected(event);
@@ -130,11 +143,13 @@ export const EventsPage = () => {
             onCancelSettlement={() => void cancelSettlement()} />}
         </div>}
 
-      {dialog === "event" && <EventForm year={year} onClose={() => setDialog(null)}
+      {dialog === "event" && <EventForm year={year} managedCourse={managedCourse}
+        onClose={() => setDialog(null)}
         onSaved={event => { setEvents(current => [event, ...current]); setSelected(event);
           setDialog(null); }} />}
       {dialog === "edit" && selected && <EventForm year={year} event={selected}
-        onClose={() => setDialog(null)} onSaved={refreshSelected} />}
+        managedCourse={managedCourse} onClose={() => setDialog(null)}
+        onSaved={refreshSelected} />}
       {dialog === "expense" && selected && <ExpenseForm event={selected} expense={expenseToEdit}
         onClose={() => { setDialog(null); setExpenseToEdit(undefined); }}
         onSaved={event => { setExpenseToEdit(undefined); refreshSelected(event); }} />}
@@ -248,6 +263,9 @@ const EventExpenseCard = ({ expense, editable, onEdit, onDelete }: {
     <header><strong>{expense.description}</strong><span>{expense.status === "ACTIVE"
       ? "Activo" : "Anulado"}</span></header><b>-{money.format(expense.amount)}</b>
     <p>{expense.type === "COMMON" ? "Gasto común" : `Curso: ${expense.course}`}</p>
+    <span className={`expense-settlement-badge ${expense.deductFromSettlement
+      ? "is-deducted" : "is-donated"}`}>{expense.deductFromSettlement
+        ? "Se descuenta en la liquidación" : "Donado · no se descuenta"}</span>
     <small>{expense.date} · {expense.category || "Sin categoría"} · {expense.registeredBy}</small>
     {editable && expense.status === "ACTIVE" && <footer className="event-actions">
       <button type="button" onClick={onEdit}><FiEdit2 /> Editar</button>
@@ -264,8 +282,10 @@ const Metric = ({ label, value, negative = false }: { label: string; value: numb
   negative?: boolean }) => <div><span>{label}</span><strong className={negative ? "negative" : ""}>
     {money.format(value)}</strong></div>;
 
-const EventForm = ({ year, event, onClose, onSaved }: { year: number; event?: SchoolEvent;
-  onClose: () => void; onSaved: (event: SchoolEvent) => void }) => {
+const EventForm = ({ year, event, managedCourse, onClose, onSaved }: {
+  year: number; event?: SchoolEvent; managedCourse: string;
+  onClose: () => void; onSaved: (event: SchoolEvent) => void;
+}) => {
   const [error, setError] = useState("");
   const [form, setForm] = useState({ name: event?.name ?? "Fiesta de la Familia",
     schoolYear: event?.schoolYear ?? year, eventDate: event?.eventDate ?? today,
@@ -273,10 +293,19 @@ const EventForm = ({ year, event, onClose, onSaved }: { year: number; event?: Sc
     courses: event?.participants.map(item => ({
       course: item.course, standType: item.standType ?? "",
     })) ?? [
-      { course: "", standType: "" },
+      { course: managedCourse, standType: "" },
       { course: "", standType: "" },
       { course: "", standType: "" },
     ] });
+  useEffect(() => {
+    if (!event && managedCourse && !form.courses[0]?.course) {
+      setForm(current => {
+        const courses = [...current.courses];
+        courses[0] = { ...courses[0], course: managedCourse };
+        return { ...current, courses };
+      });
+    }
+  }, [event, managedCourse, form.courses]);
   const submit = async (submitEvent: React.FormEvent) => {
     submitEvent.preventDefault();
     const { courses, standName, ...eventFields } = form;
@@ -303,11 +332,18 @@ const EventForm = ({ year, event, onClose, onSaved }: { year: number; event?: Sc
     <label>Nombre del stand<input required value={form.standName}
       onChange={e => setForm({ ...form, standName: e.target.value })} /></label>
     <fieldset><legend>Cursos participantes</legend>{form.courses.map((course, index) =>
-      <div key={index}><input aria-label={`Curso ${index + 1}`}
-        placeholder="Curso" required value={course.course} onChange={e => {
+      <div key={index}>{!event && index === 0 ? <select aria-label="Curso administrado"
+        required value={course.course} onChange={e => {
           const courses = [...form.courses];
           courses[index] = { ...course, course: e.target.value.toUpperCase() };
-          setForm({ ...form, courses }); }} /></div>)}</fieldset>
+          setForm({ ...form, courses }); }}>
+          {!managedCourse && <option value="">Cargando curso administrado…</option>}
+          {managedCourse && <option value={managedCourse}>{managedCourse}</option>}
+        </select> : <input aria-label={`Curso ${index + 1}`}
+          placeholder="Curso" required value={course.course} onChange={e => {
+            const courses = [...form.courses];
+            courses[index] = { ...course, course: e.target.value.toUpperCase() };
+            setForm({ ...form, courses }); }} />}</div>)}</fieldset>
     {error && <p className="events-form-error" role="alert">{error}</p>}
     <footer><button type="button" onClick={onClose}>Cancelar</button>
       <button type="submit">{event ? "Guardar cambios" : "Crear evento"}</button>
@@ -321,7 +357,8 @@ const ExpenseForm = ({ event, expense, onClose, onSaved }: { event: SchoolEvent;
     amount: expense?.amount ?? 0, date: expense?.date ?? today,
     type: expense?.type ?? "COMMON" as "COMMON" | "COURSE", course: expense?.course ?? "",
     category: expense?.category ?? "", responsible: expense?.responsible ?? "",
-    paymentMethod: expense?.paymentMethod ?? "CASH" });
+    paymentMethod: expense?.paymentMethod ?? "CASH",
+    deductFromSettlement: expense?.deductFromSettlement ?? true });
   return <Modal title={expense ? "Editar gasto" : "Registrar gasto"} onClose={onClose}>
     <form onSubmit={async e => {
     e.preventDefault();
@@ -336,6 +373,7 @@ const ExpenseForm = ({ event, expense, onClose, onSaved }: { event: SchoolEvent;
     <label>Descripción<input required value={form.description}
       onChange={e => setForm({ ...form, description: e.target.value })} /></label>
     <div className="form-row"><label>Monto<input required min="1" type="number"
+      value={form.amount || ""}
       onChange={e => setForm({ ...form, amount: Number(e.target.value) })} /></label>
       <label>Fecha<input required type="date" value={form.date}
         onChange={e => setForm({ ...form, date: e.target.value })} /></label></div>
@@ -347,6 +385,13 @@ const ExpenseForm = ({ event, expense, onClose, onSaved }: { event: SchoolEvent;
       {event.participants.map(item => <option key={item.course}>{item.course}</option>)}</select></label>}
     <label>Categoría<input value={form.category}
       onChange={e => setForm({ ...form, category: e.target.value })} /></label>
+    <label className="expense-deduction-option">
+      <input type="checkbox" checked={form.deductFromSettlement}
+        onChange={e => setForm({ ...form, deductFromSettlement: e.target.checked })} />
+      <span><strong>Descontar este gasto en la liquidación final</strong>
+        <small>Desmárcalo si el gasto es donado. Quedará registrado, pero no reducirá
+          el monto que se reparte entre los cursos.</small></span>
+    </label>
     {error && <p className="events-form-error" role="alert">{error}</p>}
     <footer><button type="button" onClick={onClose}>Cancelar</button>
       <button type="submit">{expense ? "Guardar cambios" : "Registrar gasto"}</button>

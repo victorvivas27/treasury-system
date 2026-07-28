@@ -18,6 +18,8 @@
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-elevated);
   animation: modal-confirm-enter 0.25s ease-out;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
 }
 
 .modal-confirm-header {
@@ -58,6 +60,29 @@
   color: var(--color-text-muted);
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+  .modal-confirm-overlay {
+    align-items: flex-end;
+    padding: 0.75rem;
+  }
+
+  .modal-confirm-header,
+  .modal-confirm-body,
+  .modal-confirm-footer {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .modal-confirm-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-confirm-footer .base-button {
+    width: 100%;
+    margin: 0;
+  }
 }
 
 .modal-confirm-content {

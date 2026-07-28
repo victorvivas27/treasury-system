@@ -13,6 +13,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.treasury.application.usecase.SchoolEventService;
+import com.tesoreria.treasury.application.usecase.ManagedCourseService;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.*;
@@ -22,11 +23,13 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.
 class SchoolEventServiceTest {
   @Mock private SchoolEventJpaRepository events;
   @Mock private TreasuryUseCase treasury;
+  @Mock private ManagedCourseService managedCourse;
   @InjectMocks private SchoolEventService service;
   private SchoolEventEntity event;
 
   @BeforeEach
   void setUp() {
+    lenient().when(managedCourse.get()).thenReturn("1° Básico");
     lenient().when(events.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     event = new SchoolEventEntity();
     event.setId(10L);
@@ -120,8 +123,7 @@ class SchoolEventServiceTest {
         () -> assertTrue(event.getParticipants().stream()
             .allMatch(item -> item.getTransferStatus() == EventTransferStatus.PENDING
                 && item.getTransferIncomeId() == null)));
-    verify(treasury, times(3)).cancelIncome(anyLong(),
-        eq("Liquidación cancelada: Fiesta de la Familia"), eq("tesorero"));
+    verify(treasury, times(3)).deleteIncome(anyLong());
 
     service.delete(10L, "tesorero");
     verify(events).deleteById(10L);
@@ -146,6 +148,24 @@ class SchoolEventServiceTest {
         () -> assertEquals(new BigDecimal("286666"), result.courses().get(1).netProfit()),
         () -> assertEquals(EventExpenseStatus.CANCELLED,
             event.getExpenses().get(0).getStatus()));
+  }
+
+  @Test
+  void gastoDonado_deberiaRegistrarseSinDescontarseDeLaLiquidacion() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    event.setGrossRevenue(new BigDecimal("9000"));
+    var donated = new SchoolEventService.ExpenseInput("Mantel donado", new BigDecimal("2000"),
+        LocalDate.now(), EventExpenseType.COURSE, "1° Básico", "MATERIALS",
+        "Apoderado", "CASH", null, "Donación del curso", false);
+
+    service.addExpense(10L, donated, "tesorero");
+    EventSettlementCalculator.Result result = service.calculate(10L);
+
+    assertAll(
+        () -> assertFalse(event.getExpenses().get(0).getDeductFromSettlement()),
+        () -> assertEquals(new BigDecimal("9000"), result.distributable()),
+        () -> assertEquals(new BigDecimal("3000"), result.grossShare()),
+        () -> assertEquals(BigDecimal.ZERO, result.courses().get(0).expenses()));
   }
 
   @Test
@@ -210,14 +230,17 @@ class SchoolEventServiceTest {
     assertAll(() -> assertTrue(confirmed.isSettlementConfirmed()),
         () -> assertEquals(EventStatus.CERRADO, confirmed.getStatus()),
         () -> assertSame(confirmed, repeated),
-        () -> assertTrue(confirmed.getParticipants().stream()
-            .allMatch(item -> item.getTransferStatus() == EventTransferStatus.TRANSFERRED)));
+        () -> assertEquals(1, confirmed.getParticipants().stream()
+            .filter(item -> item.getTransferStatus() == EventTransferStatus.TRANSFERRED).count()),
+        () -> assertEquals("1° Básico", confirmed.getParticipants().stream()
+            .filter(item -> item.getTransferStatus() == EventTransferStatus.TRANSFERRED)
+            .findFirst().orElseThrow().getCourse()));
     ArgumentCaptor<String> descriptions = ArgumentCaptor.forClass(String.class);
-    verify(treasury, times(3)).createIncome(anyInt(), anyString(), any(), any(), any(), anyString(),
+    verify(treasury).createIncome(anyInt(), anyString(), any(), any(), any(), anyString(),
         any(), isNull(), anyString(), isNull(), anyString(), anyString());
-    verify(treasury, times(3)).createIncome(anyInt(), descriptions.capture(), any(), any(), any(),
+    verify(treasury).createIncome(anyInt(), descriptions.capture(), any(), any(), any(),
         anyString(), any(), isNull(), anyString(), isNull(), anyString(), anyString());
-    assertEquals(3, descriptions.getAllValues().stream().distinct().count());
+    assertEquals(1, descriptions.getAllValues().stream().distinct().count());
   }
 
   @Test
@@ -254,6 +277,6 @@ class SchoolEventServiceTest {
   private SchoolEventService.ExpenseInput expense(String description, String amount,
       EventExpenseType type, String course) {
     return new SchoolEventService.ExpenseInput(description, new BigDecimal(amount),
-        LocalDate.now(), type, course, "MATERIALS", null, "CASH", null, null);
+        LocalDate.now(), type, course, "MATERIALS", null, "CASH", null, null, true);
   }
 }

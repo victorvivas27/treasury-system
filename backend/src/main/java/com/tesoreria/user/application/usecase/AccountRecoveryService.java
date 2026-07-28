@@ -74,14 +74,35 @@ public class AccountRecoveryService {
     }
 
     @Transactional
+    public User inviteGuardian(String name, String address) {
+        String normalized = normalize(address);
+        User user = users.findByCorreo(normalized).orElseGet(() -> {
+            String temporaryPassword = "Tmp!" + UUID.randomUUID() + "aA1";
+            User invited = new User(null,
+                    "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT),
+                    name, normalized, temporaryPassword,
+                    com.tesoreria.user.core.constant.RoleEnum.USER,
+                    false, true, null, LocalDateTime.now(), LocalDateTime.now());
+            invited.setPassword(passwordEncoder.encode(temporaryPassword));
+            return users.save(invited);
+        });
+        if (Boolean.TRUE.equals(user.getEnabled()) && user.getEmailVerifiedAt() != null) {
+            return user;
+        }
+        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60);
+        requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
+                frontendUrl + "/restablecer-password?token=" + rawToken));
+        return user;
+    }
+
+    @Transactional
     public void verifyEmail(String rawToken) {
         UserTokenEntity token = validToken(rawToken, UserTokenType.EMAIL_VERIFICATION);
         User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setEnabled(true);
         users.save(user);
-        token.setUsedAt(LocalDateTime.now());
-        tokens.save(token);
+        tokens.delete(token);
     }
 
     @Transactional
@@ -111,16 +132,20 @@ public class AccountRecoveryService {
     @Transactional
     public void resetPassword(String rawToken, String newPassword) {
         User.validateRawPassword(newPassword);
-        UserTokenEntity token = validToken(rawToken, UserTokenType.PASSWORD_RESET);
+        UserTokenEntity token = validPasswordToken(rawToken);
         User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new DomainException(UserErrorCode.PASSWORD_INVALID.getField(),
                     UserErrorCode.PASSWORD_INVALID.getStatus(), "La nueva contraseña debe ser diferente");
         }
         user.setPassword(passwordEncoder.encode(newPassword));
+        if (token.getType() == UserTokenType.ACCOUNT_INVITATION) {
+            user.setEmailVerifiedAt(LocalDateTime.now());
+            user.setEnabled(true);
+            user.setAccountNonLocked(true);
+        }
         users.save(user);
-        token.setUsedAt(LocalDateTime.now());
-        tokens.save(token);
+        tokens.delete(token);
         revocationService.revokeAllForUser(user.getCorreo());
         requireDelivery(email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), LocalDateTime.now()));
     }
@@ -144,7 +169,7 @@ public class AccountRecoveryService {
     }
 
     private String issue(Long userId, UserTokenType type, long minutes) {
-        tokens.deleteActiveByUserIdAndType(userId, type);
+        tokens.deleteByUserIdAndType(userId, type);
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         String raw = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
@@ -161,6 +186,22 @@ public class AccountRecoveryService {
         if (rawToken == null || rawToken.isBlank()) throw invalidToken();
         UserTokenEntity token = tokens.findByTokenHashAndType(hash(rawToken), type)
                 .orElseThrow(this::invalidToken);
+        if (token.getUsedAt() != null) throw invalidToken();
+        if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new DomainException(UserErrorCode.TOKEN_EXPIRED.getField(),
+                    UserErrorCode.TOKEN_EXPIRED.getStatus(), "El enlace ha vencido");
+        }
+        return token;
+    }
+
+    private UserTokenEntity validPasswordToken(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) throw invalidToken();
+        String tokenHash = hash(rawToken);
+        UserTokenEntity token = tokens.findByTokenHashAndType(
+                tokenHash, UserTokenType.PASSWORD_RESET)
+            .or(() -> tokens.findByTokenHashAndType(
+                tokenHash, UserTokenType.ACCOUNT_INVITATION))
+            .orElseThrow(this::invalidToken);
         if (token.getUsedAt() != null) throw invalidToken();
         if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new DomainException(UserErrorCode.TOKEN_EXPIRED.getField(),

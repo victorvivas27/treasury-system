@@ -97,4 +97,14 @@
   .form-card {
     grid-template-columns: 1fr;
   }
+
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .form-actions .base-button {
+    width: 100%;
+    margin: 0;
+  }
 }

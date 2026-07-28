@@ -30,7 +30,9 @@ export const ModalConfirm = ({
   return (
     <aside
       className="modal-confirm-overlay"
-      onClick={onCancel}
+      onClick={() => {
+        if (!isLoading) onCancel();
+      }}
       aria-modal="true"
       role="dialog"
     >
@@ -58,6 +60,7 @@ export const ModalConfirm = ({
             size="medium"
             variant="secondary"
             type="button"
+            disabled={isLoading}
           />
 
           <Button
@@ -66,6 +69,7 @@ export const ModalConfirm = ({
             size="medium"
             variant="primary"
             type="button"
+            loading={isLoading}
           />
         </footer>
       </article>

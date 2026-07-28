@@ -24,6 +24,8 @@ public class SchoolEventExpenseEmbeddable {
   @Column(name = "expense_payment_method", length = 40) private String paymentMethod;
   @Column(name = "expense_receipt", length = 100) private String receiptNumber;
   @Column(name = "expense_notes", length = 500) private String observations;
+  @Column(name = "expense_deduct_from_settlement")
+  private Boolean deductFromSettlement;
   @Enumerated(EnumType.STRING) @Column(name = "expense_status", nullable = false, length = 15)
   private EventExpenseStatus status;
   @Column(name = "expense_registered_by", nullable = false, length = 150) private String registeredBy;

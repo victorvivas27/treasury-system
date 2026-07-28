@@ -86,8 +86,9 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
               {TREASURY_LINKS
                 .filter((link) =>
                   currentRole === "ADMIN" || link.path === "/tesoreria/resumen")
-                .map((link) => (
-                <li key={link.path}>
+                .map((link) => {
+                const TreasuryIcon = link.icon;
+                return <li key={link.path}>
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
@@ -95,10 +96,11 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
                     }
                     onClick={handleTreasuryLinkClick}
                   >
+                    <TreasuryIcon className="sidebar-submenu-icon" aria-hidden="true" />
                     {link.label}
                   </NavLink>
                 </li>
-              ))}
+              })}
             </ul>
           )}
         </li>

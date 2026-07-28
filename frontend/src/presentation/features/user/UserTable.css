@@ -36,6 +36,34 @@
   white-space: nowrap;
 }
 
+.usuarios-table .usuarios-table__email {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 769px) {
+  .usuarios-table__th:nth-child(1),
+  .usuarios-table__td:nth-child(1) { width: 12%; }
+
+  .usuarios-table__th:nth-child(2),
+  .usuarios-table__td:nth-child(2) { width: 18%; }
+
+  .usuarios-table__th:nth-child(3),
+  .usuarios-table__td:nth-child(3) { width: 28%; }
+
+  .usuarios-table__th:nth-child(4),
+  .usuarios-table__td:nth-child(4) { width: 12%; }
+
+  .usuarios-table__th:nth-child(5),
+  .usuarios-table__td:nth-child(5) { width: 12%; }
+
+  .usuarios-table__th:nth-child(6),
+  .usuarios-table__td:nth-child(6) { width: 18%; }
+}
+
 .usuarios-table__td--actions {
   display: flex;
   justify-content: center;
@@ -57,29 +85,3 @@
 .usuarios-role { background-color: var(--color-hover); color: var(--text-main); }
 .usuarios-status.is-active { color: var(--color-success); }
 .usuarios-status.is-inactive { color: var(--color-error); }
-
-@media (max-width: 768px) {
-  .usuarios-table-wrapper { overflow: visible; }
-  .usuarios-table, .usuarios-table tbody, .usuarios-table__row--data, .usuarios-table__td { display: block; }
-  .usuarios-table thead { display: none; }
-  .usuarios-table__row--data { height: auto; padding: var(--sm) 0; }
-
-  .usuarios-table__td {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 40px;
-    text-align: right;
-    white-space: normal;
-  }
-
-  .usuarios-table__td::before {
-    flex: 0 0 35%;
-    color: var(--color-accent);
-    content: attr(data-label);
-    font-weight: 600;
-    text-align: left;
-  }
-
-  .usuarios-table__td--actions { flex-wrap: wrap; justify-content: flex-end; }
-}

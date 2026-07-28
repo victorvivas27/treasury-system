@@ -14,9 +14,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final TokenRevocationService revocationService;
@@ -65,7 +68,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
-        } catch (JwtException | IllegalArgumentException ignored) {
+        } catch (JwtException | IllegalArgumentException exception) {
+            LOGGER.warn("JWT rechazado en {} {}: {}", request.getMethod(),
+                    request.getRequestURI(), exception.getClass().getSimpleName());
             SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);

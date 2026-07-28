@@ -3,6 +3,7 @@ package com.tesoreria.treasury.infrastructure.adapter.in.web.controller;
 import static com.tesoreria.treasury.infrastructure.adapter.in.web.dto.TreasuryDtos.*;
 
 import java.security.Principal;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -118,6 +119,54 @@ public class TreasuryController {
   @GetMapping("/dashboard")
   public TreasuryDashboard dashboard(@RequestParam int year) {
     return treasury.dashboard(year);
+  }
+
+  @GetMapping("/dashboard/overview")
+  public TreasuryDashboardOverview dashboardOverview(@RequestParam int year) {
+    TreasuryDashboardOverview overview = treasury.dashboardOverview(year);
+    if (overview.quotas().totalFamilies() == 0) return overview;
+
+    Set<Long> existingFamilyIds = families.listarFamilia(
+        new PageRequest(0, 10_000, "codigo", "asc")).content().stream()
+        .map(Familia::getFamiliaId).collect(java.util.stream.Collectors.toSet());
+    List<FamilyFeePlan> validPlans = treasury.listPlans(year).stream()
+        .filter(plan -> existingFamilyIds.contains(plan.familyId())).toList();
+    Set<Long> validPlanIds = validPlans.stream().map(FamilyFeePlan::id)
+        .collect(java.util.stream.Collectors.toSet());
+    List<FeeObligation> validObligations = treasury.listObligations(year).stream()
+        .filter(item -> validPlanIds.contains(item.planId())).toList();
+
+    long paid = validObligations.stream()
+        .filter(item -> item.status() == ObligationStatus.PAGADA).count();
+    long pending = validObligations.stream()
+        .filter(item -> item.status() == ObligationStatus.PENDIENTE).count();
+    BigDecimal collected = validObligations.stream()
+        .filter(item -> item.status() == ObligationStatus.PAGADA)
+        .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal pendingAmount = validObligations.stream()
+        .filter(item -> item.status() == ObligationStatus.PENDIENTE)
+        .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    TreasuryDashboard quotas = new TreasuryDashboard(validPlans.size(),
+        validPlans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
+        validPlans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
+        pending, paid, collected, pendingAmount);
+    FinancialSummary current = overview.finances();
+    BigDecimal totalIncome = collected.add(current.otherIncome());
+    FinancialSummary finances = new FinancialSummary(year, collected, current.otherIncome(),
+        totalIncome, current.totalExpenses(), totalIncome.subtract(current.totalExpenses()));
+    List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
+        new TreasuryDashboardOverview.StatusMetric("PAGADA", paid),
+        new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
+    return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
+        overview.expensesByCategory(), overview.recentMovements(), overview.auditTrail());
+  }
+
+  @DeleteMapping("/auditoria")
+  @PreAuthorize(ADMIN_ROLE)
+  public ResponseEntity<Void> clearAudits(@RequestParam int year,
+      @RequestBody AuditCleanupRequest request) {
+    treasury.clearAudits(year, request.ids(), request.all());
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/aportes/configuraciones")
@@ -458,4 +507,5 @@ public class TreasuryController {
   }
 
   private record FamilyData(String code, String studentName, String course) { }
+  public record AuditCleanupRequest(List<Long> ids, boolean all) { }
 }

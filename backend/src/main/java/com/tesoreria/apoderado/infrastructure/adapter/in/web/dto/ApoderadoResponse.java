@@ -11,6 +11,7 @@ public record ApoderadoResponse(
         String email,
         String telefono,
         String observaciones,
+        String accessStatus,
         @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
         LocalDateTime createdAt,
         @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

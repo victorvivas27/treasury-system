@@ -8,4 +8,5 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.Fami
 public interface FamilyFeePlanJpaRepository extends JpaRepository<FamilyFeePlanEntity, Long> {
   Optional<FamilyFeePlanEntity> findByConfigIdAndFamilyId(Long configId, Long familyId);
   List<FamilyFeePlanEntity> findByConfigIdOrderByFamilyId(Long configId);
+  List<FamilyFeePlanEntity> findByFamilyId(Long familyId);
 }

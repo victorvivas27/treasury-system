@@ -8,4 +8,5 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.FeeP
 public interface FeePaymentJpaRepository extends JpaRepository<FeePaymentEntity, Long> {
   Optional<FeePaymentEntity> findFirstByObligationIdAndAnnulledFalse(Long obligationId);
   boolean existsByObligationIdInAndAnnulledFalse(Collection<Long> obligationIds);
+  void deleteByObligationIdIn(Collection<Long> obligationIds);
 }

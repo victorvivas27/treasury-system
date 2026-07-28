@@ -48,6 +48,31 @@ export interface TreasuryDashboard {
   pendingAmount: number;
 }
 
+export interface TreasuryDashboardOverview {
+  quotas: TreasuryDashboard;
+  finances: FinancialSummary;
+  monthlyCashFlow: Array<{ month: number; income: number; expense: number }>;
+  obligationStatus: Array<{ status: "PAGADA" | "PENDIENTE"; count: number }>;
+  expensesByCategory: Array<{ category: ExpenseCategory; amount: number }>;
+  recentMovements: Array<{
+    id: number;
+    type: "INGRESO" | "EGRESO";
+    description: string;
+    amount: number;
+    date: string;
+    status: IncomeStatus | ExpenseStatus;
+  }>;
+  auditTrail: Array<{
+    id: number;
+    action: string;
+    entityType: string;
+    entityId: string;
+    performedBy: string;
+    details?: string;
+    createdAt: string;
+  }>;
+}
+
 export interface TreasuryFilters {
   course?: string;
   familyId?: number;
@@ -252,6 +277,7 @@ export interface SchoolEventExpense {
   paymentMethod?: string;
   receiptNumber?: string;
   observations?: string;
+  deductFromSettlement: boolean;
   status: "ACTIVE" | "CANCELLED";
   registeredBy: string;
   cancellationReason?: string;

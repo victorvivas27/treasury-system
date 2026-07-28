@@ -19,7 +19,9 @@
 .sidebar-nav-link-item {
   padding: clamp(0.25rem, 1.2vh, 0.6rem) 0.8rem;
   color: var(--color-text-muted);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    padding 340ms cubic-bezier(0.32, 0.72, 0, 1),
+    gap 260ms ease;
 
   display: flex;
   align-items: center;
@@ -54,8 +56,12 @@
 
 /* Texto */
 .sidebar-nav-label {
+  max-width: 10rem;
   white-space: nowrap;
-  transition: color 0.2s ease, opacity 0.2s ease;
+  visibility: visible;
+  opacity: 1;
+  transition: color 0.2s ease, max-width 300ms ease,
+    opacity 180ms ease, visibility 0s linear;
   overflow: hidden;
 }
 
@@ -101,7 +107,7 @@
 
 .sidebar-submenu {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: calc(100% + 0.5rem);
   z-index: 20;
   display: grid;
@@ -109,34 +115,45 @@
   width: 12rem;
   margin: 0;
   padding: 0.65rem;
+  list-style: none;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-elevated);
-  transform-origin: left top;
+  transform: translateY(-50%);
+  transform-origin: left center;
   animation: treasurySubmenuIn 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .sidebar-submenu::before {
   content: "";
   position: absolute;
-  top: 0.9rem;
-  left: -6px;
-  width: 10px;
-  height: 10px;
+  top: 50%;
+  left: -8px;
+  width: 14px;
+  height: 14px;
   border-bottom: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
   background: var(--color-surface);
-  transform: rotate(45deg);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .sidebar-submenu-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   padding: 0.35rem 0.5rem;
   border-left: 2px solid var(--border-color);
   color: var(--text-muted);
   font-size: 0.92em;
   transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-submenu-icon {
+  flex: 0 0 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-accent);
 }
 
 .sidebar-submenu-link:hover,
@@ -145,18 +162,45 @@
   border-left-color: var(--color-warning);
 }
 
+.sidebar-submenu-link:hover .sidebar-submenu-icon,
+.sidebar-submenu-link.active .sidebar-submenu-icon {
+  color: var(--color-warning);
+}
+
+.sidebar-submenu-link[href="/tesoreria/ingresos"] .sidebar-submenu-icon {
+  color: var(--color-success);
+}
+
+.sidebar-submenu-link[href="/tesoreria/gastos"] .sidebar-submenu-icon {
+  color: var(--color-error);
+}
+
 .sidebar.sidebar--collapsed .sidebar-nav-chevron {
   display: none;
+}
+
+.sidebar.sidebar--collapsed .sidebar-nav-label {
+  visibility: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 260ms ease, opacity 120ms ease,
+    visibility 0s linear 260ms;
+}
+
+.sidebar.sidebar--collapsed .sidebar-nav-link-item {
+  gap: 0;
+  padding-right: 1.1rem;
+  padding-left: 1.1rem;
 }
 
 @keyframes treasurySubmenuIn {
   from {
     opacity: 0;
-    transform: translateX(-0.65rem) scale(0.96);
+    transform: translate(-0.65rem, -50%) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translate(0, -50%) scale(1);
   }
 }
 

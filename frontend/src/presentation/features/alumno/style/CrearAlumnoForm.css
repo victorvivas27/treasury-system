@@ -124,4 +124,13 @@ textarea.form-input-alumno {
   .form-actions-alumno {
     flex-direction: column;
   }
+
+  .form-actions-alumno .base-button {
+    width: 100%;
+    margin: 0;
+  }
+
+  .error-message {
+    white-space: normal;
+  }
 }

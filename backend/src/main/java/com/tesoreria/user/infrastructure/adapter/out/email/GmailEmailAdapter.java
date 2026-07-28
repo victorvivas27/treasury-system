@@ -11,6 +11,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @Component
@@ -30,22 +32,22 @@ public class GmailEmailAdapter implements EmailOutPort {
 
   @Override
   public boolean sendVerificationEmail(String email, String name, String link) {
-    return send(email, "Verifica tu correo para activar tu cuenta",
+    return send(email, name, "Verifica tu correo para activar tu cuenta",
         EmailTemplates.verification(name, link));
   }
 
   @Override
   public boolean sendPasswordResetEmail(String email, String name, String link) {
-    return send(email, "Restablece tu contraseña", EmailTemplates.passwordReset(name, link));
+    return send(email, name, "Restablece tu contraseña", EmailTemplates.passwordReset(name, link));
   }
 
   @Override
   public boolean sendPasswordChangedEmail(String email, String name, LocalDateTime changedAt) {
-    return send(email, "Tu contraseña fue modificada",
+    return send(email, name, "Tu contraseña fue modificada",
         EmailTemplates.passwordChanged(name, changedAt));
   }
 
-  private boolean send(String to, String subject, String html) {
+  private boolean send(String to, String recipientName, String subject, String html) {
     if (from == null || from.isBlank()) {
       return false;
     }
@@ -53,18 +55,18 @@ public class GmailEmailAdapter implements EmailOutPort {
       MimeMessage message = mailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
       helper.setFrom(parseFrom());
-      helper.setTo(to);
+      helper.setTo(new InternetAddress(to, repairUtf8Mojibake(recipientName), "UTF-8"));
       helper.setSubject(subject);
       helper.setText(html, true);
       mailSender.send(message);
       return true;
-    } catch (MessagingException | MailException exception) {
+    } catch (MessagingException | MailException | UnsupportedEncodingException exception) {
       return false;
     }
   }
 
-  private InternetAddress parseFrom() throws MessagingException {
-    String normalized = from.trim();
+  private InternetAddress parseFrom() throws MessagingException, UnsupportedEncodingException {
+    String normalized = repairUtf8Mojibake(from.trim());
     if (normalized.length() >= QUOTED_VALUE_MIN_LENGTH && normalized.startsWith("\"")
         && normalized.endsWith("\"")) {
       normalized = normalized.substring(1, normalized.length() - 1).trim();
@@ -73,7 +75,17 @@ public class GmailEmailAdapter implements EmailOutPort {
     if (addresses.length != SINGLE_ADDRESS_COUNT) {
       throw new MessagingException("EMAIL_FROM debe contener un único remitente");
     }
-    return addresses[0];
+    InternetAddress parsed = addresses[0];
+    return new InternetAddress(parsed.getAddress(), parsed.getPersonal(), "UTF-8");
+  }
+
+  private String repairUtf8Mojibake(String value) {
+    if (value == null || (!value.contains("Ã") && !value.contains("Â"))) {
+      return value;
+    }
+    String repaired =
+        new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+    return repaired.contains("\uFFFD") ? value : repaired;
   }
 
 }

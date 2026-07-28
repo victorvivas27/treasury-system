@@ -20,6 +20,7 @@ public interface TreasuryUseCase {
       String user, String observations);
   FeePayment annulPayment(Long paymentObligationId, String user, String reason);
   TreasuryDashboard dashboard(int year);
+  TreasuryDashboardOverview dashboardOverview(int year);
   ContributionConfig saveContributionConfig(int year, ContributionType type, String name,
       boolean active, BigDecimal amount, String observations, String user);
   List<ContributionConfig> listContributionConfigs(int year);
@@ -48,4 +49,7 @@ public interface TreasuryUseCase {
       IncomePaymentMethod paymentMethod, String receiptNumber, String course,
       Long familyId, String notes, String correctionReason, String user);
   TreasuryIncome cancelIncome(Long id, String reason, String user);
+  void deleteIncome(Long id);
+  void clearAudits(int year, List<Long> ids, boolean all);
+  void deleteFamilyTreasuryData(Long familyId);
 }

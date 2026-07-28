@@ -8,6 +8,9 @@ import com.tesoreria.apoderado.infrastructure.adapter.in.web.mapper.ApoderadoMap
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.user.application.usecase.AccountRecoveryService;
+import com.tesoreria.user.core.model.User;
+import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +22,18 @@ public class ApoderadoController {
 
     private final ApoderadoService apoderadoService;
     private final ApoderadoMapper mapper;
+    private final UserRepositoryOutPort users;
+    private final AccountRecoveryService accountRecovery;
 
     public ApoderadoController(
             ApoderadoService apoderadoService,
-            ApoderadoMapper mapper) {
+            ApoderadoMapper mapper,
+            UserRepositoryOutPort users,
+            AccountRecoveryService accountRecovery) {
         this.apoderadoService = apoderadoService;
         this.mapper = mapper;
+        this.users = users;
+        this.accountRecovery = accountRecovery;
     }
 
     @PostMapping
@@ -46,7 +55,7 @@ public class ApoderadoController {
         PageResponse<ApoderadoResponse> response = new PageResponse<>(
                 result.content()
                         .stream()
-                        .map(mapper::toResponse)
+                        .map(this::response)
                         .toList(),
                 result.page(),
                 result.size(),
@@ -59,7 +68,7 @@ public class ApoderadoController {
     @GetMapping("/{codigo}")
     public ResponseEntity<ApoderadoResponse> findByCodigo(@PathVariable String codigo) {
         Apoderado apoderado = apoderadoService.findByCodigo(codigo);
-        return ResponseEntity.ok(mapper.toResponse(apoderado));
+        return ResponseEntity.ok(response(apoderado));
     }
 
     @PutMapping("/{codigo}")
@@ -68,12 +77,33 @@ public class ApoderadoController {
             @Valid @RequestBody ApoderadoRequest request) {
         Apoderado apoderado = mapper.toDomain(request);
         Apoderado updated = apoderadoService.updateByCodigo(codigo, apoderado);
-        return ResponseEntity.ok(mapper.toResponse(updated));
+        return ResponseEntity.ok(response(updated));
+    }
+
+    @PostMapping("/{codigo}/habilitar-acceso")
+    public ResponseEntity<ApoderadoResponse> enableAccess(@PathVariable String codigo) {
+        Apoderado guardian = apoderadoService.findByCodigo(codigo);
+        accountRecovery.inviteGuardian(guardian.getNombre(), guardian.getEmail());
+        return ResponseEntity.ok(response(guardian));
     }
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> deleteByCodigo(@PathVariable String codigo) {
         apoderadoService.deleteByCodigo(codigo);
         return ResponseEntity.noContent().build();
+    }
+
+    private ApoderadoResponse response(Apoderado guardian) {
+        String status = users.findByCorreo(guardian.getEmail())
+                .map(this::accessStatus).orElse("SIN_ACCESO");
+        return mapper.toResponse(guardian, status);
+    }
+
+    private String accessStatus(User user) {
+        if (!Boolean.TRUE.equals(user.getAccountNonLocked())) return "BLOQUEADO";
+        if (Boolean.TRUE.equals(user.getEnabled()) && user.getEmailVerifiedAt() != null) {
+            return "ACTIVO";
+        }
+        return "INVITACION_PENDIENTE";
     }
 }

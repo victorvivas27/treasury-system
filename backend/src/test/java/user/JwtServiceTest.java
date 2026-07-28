@@ -29,6 +29,15 @@ class JwtServiceTest {
     }
 
     @Test
+    void generateToken_deberiaCrearUnTokenDistintoEnCadaLogin() {
+        String first = jwtService.generateToken(userDetails);
+        String second = jwtService.generateToken(userDetails);
+
+        assertNotEquals(first, second);
+        assertTrue(jwtService.isTokenValid(second, userDetails));
+    }
+
+    @Test
     void isTokenValid_deberiaRechazarOtroUsuario() {
         String token = jwtService.generateToken(userDetails);
         UserDetails other = User.withUsername("other@mail.com").password("secret").roles("USER").build();

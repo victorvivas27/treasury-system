@@ -10,4 +10,5 @@ public interface FamilyContributionJpaRepository extends JpaRepository<FamilyCon
   Optional<FamilyContributionEntity> findByFamilyIdAndSchoolYearAndType(
       Long familyId, int schoolYear, ContributionType type);
   List<FamilyContributionEntity> findBySchoolYear(int schoolYear);
+  void deleteByFamilyId(Long familyId);
 }

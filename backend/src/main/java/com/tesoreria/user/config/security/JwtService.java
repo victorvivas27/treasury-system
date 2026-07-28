@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -31,6 +32,7 @@ public class JwtService {
     public String generateToken(UserDetails userDetails) {
         Date now = new Date();
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
                 .claim("authorities", userDetails.getAuthorities().stream()
                         .map(Object::toString)

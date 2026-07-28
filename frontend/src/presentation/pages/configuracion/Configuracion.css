@@ -35,6 +35,91 @@
   box-shadow: var(--shadow-card);
 }
 
+.managed-course-card {
+  margin-top: var(--lg);
+  padding: clamp(1.2rem, 4vw, 2rem);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
+  box-shadow: var(--shadow-card);
+}
+
+.managed-course-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--md);
+  margin-bottom: var(--lg);
+}
+
+.managed-course-heading > svg {
+  flex: 0 0 auto;
+  color: var(--color-accent);
+  font-size: 2rem;
+}
+
+.managed-course-heading > div {
+  flex: 1;
+}
+
+.managed-course-heading p,
+.managed-course-help {
+  color: var(--text-muted);
+}
+
+.managed-course-heading strong {
+  color: var(--color-accent);
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+}
+
+.managed-course-card > label {
+  display: block;
+  margin-bottom: .35rem;
+  color: var(--text-muted);
+  font-size: var(--sm);
+  font-weight: 650;
+}
+
+.managed-course-form {
+  display: flex;
+  gap: var(--sm);
+}
+
+.managed-course-form input {
+  width: min(22rem, 100%);
+  min-height: 46px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: .65rem .8rem;
+  background: var(--color-input);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.managed-course-form button {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: .45rem;
+  border-radius: var(--radius-md);
+  padding: .65rem 1rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  font-weight: 750;
+}
+
+.managed-course-form button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.managed-course-help {
+  margin-top: var(--md);
+  font-size: var(--sm);
+}
+
 .appearance-heading {
   display: flex;
   align-items: flex-start;
@@ -155,4 +240,24 @@
   .theme-option {
     min-height: 3.5rem;
   }
+
+  .managed-course-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .managed-course-form {
+    flex-direction: column;
+  }
+
+  .managed-course-form input,
+  .managed-course-form button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .settings-page { padding: var(--sm); }
+  .appearance-card, .managed-course-card { padding: var(--md); }
+  .resolved-theme { white-space: normal; }
 }

@@ -15,6 +15,16 @@ import { TiArrowBackOutline } from "react-icons/ti";
 import { MdOutlineCancel } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { IoChevronDownOutline } from "react-icons/io5";
+import {
+  BsArrowDownCircle,
+  BsArrowUpCircle,
+  BsCalendarEvent,
+  BsCreditCard,
+  BsFileEarmarkBarGraph,
+  BsHeart,
+  BsReceipt,
+  BsSpeedometer2,
+} from "react-icons/bs";
 
 
 
@@ -54,14 +64,14 @@ export const SIDEBAR_LINKS = [
 ];
 
 export const TREASURY_LINKS = [
-  { label: "Resumen", path: "/tesoreria/resumen" },
-  { label: "Cuotas", path: "/tesoreria/cuotas" },
-  { label: "CEPA y Solidaria", path: "/tesoreria/aportes" },
-  { label: "Pagos", path: "/tesoreria/pagos" },
-  { label: "Ingresos", path: "/tesoreria/ingresos" },
-  { label: "Egresos", path: "/tesoreria/gastos" },
-  { label: "Eventos", path: "/tesoreria/eventos" },
-  { label: "Reportes", path: "/tesoreria/reportes" },
+  { label: "Resumen", path: "/tesoreria/resumen", icon: BsSpeedometer2 },
+  { label: "Cuotas", path: "/tesoreria/cuotas", icon: BsReceipt },
+  { label: "CEPA y Solidaria", path: "/tesoreria/aportes", icon: BsHeart },
+  { label: "Pagos", path: "/tesoreria/pagos", icon: BsCreditCard },
+  { label: "Ingresos", path: "/tesoreria/ingresos", icon: BsArrowDownCircle },
+  { label: "Egresos", path: "/tesoreria/gastos", icon: BsArrowUpCircle },
+  { label: "Eventos", path: "/tesoreria/eventos", icon: BsCalendarEvent },
+  { label: "Reportes", path: "/tesoreria/reportes", icon: BsFileEarmarkBarGraph },
 ] as const;
 
 export const SIDEBAR_FOOTER_LINKS = [

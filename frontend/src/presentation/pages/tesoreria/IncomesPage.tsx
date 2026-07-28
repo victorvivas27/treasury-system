@@ -26,8 +26,8 @@ const emptySummary: FinancialSummary = {
   schoolYear: 2026, feeIncome: 0, otherIncome: 0,
   totalIncome: 0, totalExpenses: 0, availableBalance: 0,
 };
-const initialForm = (year: number): IncomePayload => ({
-  schoolYear: year, description: "", amount: 0, incomeDate: today, category: "RAFFLE",
+const initialForm = (year: number, course?: string): IncomePayload => ({
+  schoolYear: year, description: "", amount: 0, incomeDate: today, category: "RAFFLE", course,
 });
 type IncomeView = "ALL" | "FEES" | "OTHER";
 
@@ -52,6 +52,7 @@ export const IncomesPage = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [managedCourse, setManagedCourse] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,6 +74,18 @@ export const IncomesPage = () => {
     return () => window.clearTimeout(timer);
   }, [load]);
 
+  useEffect(() => {
+    repository.getManagedCourse()
+      .then(setManagedCourse)
+      .catch(() => setError("No fue posible cargar el curso administrado."));
+  }, []);
+
+  useEffect(() => {
+    if (managedCourse && formOpen && !editing && !form.course) {
+      setForm(current => ({ ...current, course: managedCourse }));
+    }
+  }, [managedCourse, formOpen, editing, form.course]);
+
   const registeredUsers = useMemo(
     () => [...new Set(items.map((item) => item.registeredBy))].sort(), [items],
   );
@@ -80,7 +93,7 @@ export const IncomesPage = () => {
     setFilters((current) => ({ ...current, [key]: value || undefined }));
 
   const openCreate = () => {
-    setEditing(null); setForm(initialForm(year)); setFormOpen(true);
+    setEditing(null); setForm(initialForm(year, managedCourse || undefined)); setFormOpen(true);
   };
   const openEdit = (income: TreasuryIncome) => {
     setEditing(income); setDetail(null);
@@ -252,8 +265,14 @@ export const IncomesPage = () => {
           onChange={(e) => setForm({ ...form, source: e.target.value })} /></label>
         <label><span>Número de comprobante</span><input maxLength={100} value={form.receiptNumber ?? ""}
           onChange={(e) => setForm({ ...form, receiptNumber: e.target.value })} /></label>
-        <label><span>Curso relacionado</span><input maxLength={80} value={form.course ?? ""}
-          onChange={(e) => setForm({ ...form, course: e.target.value })} /></label>
+        <label><span>Curso relacionado</span><select value={form.course ?? ""}
+          disabled={!managedCourse}
+          onChange={(e) => setForm({ ...form, course: e.target.value || undefined })}>
+          {!managedCourse && <option value="">Cargando curso…</option>}
+          {managedCourse && <option value={managedCourse}>{managedCourse}</option>}
+          {form.course && form.course !== managedCourse &&
+            <option value={form.course}>{form.course} (registro histórico)</option>}
+        </select></label>
         <label><span>ID de familia relacionada</span><input type="number" min="1"
           value={form.familyId ?? ""} onChange={(e) => setForm({ ...form,
             familyId: e.target.value ? Number(e.target.value) : undefined })} /></label>

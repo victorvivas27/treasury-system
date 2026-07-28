@@ -1,0 +1,49 @@
+.managed-course-banner {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  width: min(1280px, calc(100% - 2rem));
+  margin: 0 auto 1rem;
+  padding: .9rem 1.15rem;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
+  color: var(--text-main);
+  box-shadow: var(--shadow-card);
+}
+
+.managed-course-banner > svg {
+  flex: 0 0 auto;
+  color: var(--color-accent);
+  font-size: 1.8rem;
+}
+
+.managed-course-banner div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .35rem .7rem;
+}
+
+.managed-course-banner span {
+  color: var(--text-muted);
+  font-size: .82rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .035em;
+}
+
+.managed-course-banner strong {
+  color: var(--color-accent);
+  font-size: 1.35rem;
+}
+
+@media (max-width: 700px) {
+  .managed-course-banner {
+    align-items: flex-start;
+  }
+
+  .managed-course-banner div {
+    display: grid;
+  }
+}

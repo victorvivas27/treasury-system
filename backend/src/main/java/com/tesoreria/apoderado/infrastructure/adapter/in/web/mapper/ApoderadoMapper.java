@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 public class ApoderadoMapper {
 
     public ApoderadoResponse toResponse(Apoderado apoderado) {
+        return toResponse(apoderado, "SIN_ACCESO");
+    }
+
+    public ApoderadoResponse toResponse(Apoderado apoderado, String accessStatus) {
         return new ApoderadoResponse(
                 apoderado.getApoderadoId(),
                 apoderado.getCodigo(),
@@ -16,6 +20,7 @@ public class ApoderadoMapper {
                 apoderado.getEmail(),
                 apoderado.getTelefono(),
                 apoderado.getObservaciones(),
+                accessStatus,
                 apoderado.getCreatedAt(),
                 apoderado.getUpdatedAt());
     }

@@ -80,7 +80,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
   }
 
   return (
-    <article className="familia-list">
+    <article className="familia-list responsive-data-list">
       <header className="familia-header">
         <h2 className="familia-header__title">Lista de Familias</h2>
       </header>

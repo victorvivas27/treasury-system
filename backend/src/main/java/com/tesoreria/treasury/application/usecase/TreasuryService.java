@@ -95,6 +95,7 @@ public class TreasuryService implements TreasuryUseCase {
     if (reason == null || reason.isBlank()) {
       throw error(TreasuryErrorCode.INVALID, "El motivo es obligatorio");
     }
+    repository.deletePaymentsByPlan(plan.id());
     repository.deleteObligationsByPlan(plan.id());
     repository.deletePlan(plan.id());
     audit("QUITAR_FAMILIA_CUOTA", "FAMILIA", String.valueOf(familyId), user, reason.trim());
@@ -172,10 +173,11 @@ public class TreasuryService implements TreasuryUseCase {
     if (reason == null || reason.isBlank()) {
       throw error(TreasuryErrorCode.INVALID, "El motivo de anulación es obligatorio");
     }
-    FeePayment annulled = repository.savePayment(new FeePayment(payment.id(),
+    FeePayment annulled = new FeePayment(payment.id(),
         payment.obligationId(), payment.paymentDate(), payment.amount(), payment.registeredBy(),
         payment.observations(), true, LocalDateTime.now(), user, reason.trim(),
-        payment.createdAt()));
+        payment.createdAt());
+    repository.deletePayment(payment.id());
     FeeObligation obligation = obligation(obligationId);
     repository.saveObligation(new FeeObligation(obligation.id(), obligation.planId(),
         obligation.installment(), obligation.concept(), obligation.amount(), obligation.dueDate(),
@@ -201,6 +203,104 @@ public class TreasuryService implements TreasuryUseCase {
         obligations.stream().filter(item -> item.status() == ObligationStatus.PENDIENTE).count(),
         obligations.stream().filter(item -> item.status() == ObligationStatus.PAGADA).count(),
         collected, pending);
+  }
+
+  @Override
+  public TreasuryDashboardOverview dashboardOverview(int year) {
+    if (year < MIN_YEAR) {
+      throw error(TreasuryErrorCode.INVALID, "El año escolar es inválido");
+    }
+    AnnualFeeConfig config = repository.findConfigByYear(year).orElse(null);
+    List<FeeObligation> obligations = config == null
+        ? List.of() : repository.findObligationsByConfig(config.id());
+    TreasuryDashboard quotas = config == null
+        ? new TreasuryDashboard(0, 0, 0, 0, 0, BigDecimal.ZERO, BigDecimal.ZERO)
+        : dashboard(year);
+    List<TreasuryIncome> incomes = repository.findIncomes(year);
+    List<TreasuryExpense> expenses = repository.findExpenses(year);
+
+    List<TreasuryDashboardOverview.MonthlyCashFlow> monthly = new java.util.ArrayList<>();
+    for (int month = 1; month <= 12; month++) {
+      final int currentMonth = month;
+      BigDecimal income = incomes.stream()
+          .filter(item -> item.status() == IncomeStatus.ACTIVE
+              && item.incomeDate().getMonthValue() == currentMonth)
+          .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+      BigDecimal expense = expenses.stream()
+          .filter(item -> item.status() == ExpenseStatus.ACTIVE
+              && item.expenseDate().getMonthValue() == currentMonth)
+          .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+      monthly.add(new TreasuryDashboardOverview.MonthlyCashFlow(month, income, expense));
+    }
+
+    List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
+        new TreasuryDashboardOverview.StatusMetric("PAGADA", obligations.stream()
+            .filter(item -> item.status() == ObligationStatus.PAGADA).count()),
+        new TreasuryDashboardOverview.StatusMetric("PENDIENTE", obligations.stream()
+            .filter(item -> item.status() == ObligationStatus.PENDIENTE).count()));
+
+    List<TreasuryDashboardOverview.CategoryMetric> categories = expenses.stream()
+        .filter(item -> item.status() == ExpenseStatus.ACTIVE)
+        .collect(java.util.stream.Collectors.groupingBy(TreasuryExpense::category,
+            java.util.stream.Collectors.reducing(BigDecimal.ZERO, TreasuryExpense::amount,
+                BigDecimal::add)))
+        .entrySet().stream()
+        .map(entry -> new TreasuryDashboardOverview.CategoryMetric(
+            entry.getKey().name(), entry.getValue()))
+        .sorted(java.util.Comparator.comparing(
+            TreasuryDashboardOverview.CategoryMetric::amount).reversed())
+        .toList();
+
+    List<TreasuryDashboardOverview.RecentMovement> recent = java.util.stream.Stream.concat(
+        incomes.stream().filter(item -> item.status() == IncomeStatus.ACTIVE)
+            .map(item -> new TreasuryDashboardOverview.RecentMovement(
+            item.id(), "INGRESO", item.description(), item.amount(), item.incomeDate(),
+            item.status().name())),
+        expenses.stream().filter(item -> item.status() == ExpenseStatus.ACTIVE)
+            .map(item -> new TreasuryDashboardOverview.RecentMovement(
+            item.id(), "EGRESO", item.description(), item.amount(), item.expenseDate(),
+            item.status().name())))
+        .sorted(java.util.Comparator.comparing(
+            TreasuryDashboardOverview.RecentMovement::date).reversed())
+        .limit(8)
+        .toList();
+
+    List<TreasuryDashboardOverview.AuditEntry> auditTrail = repository.findAudits(
+        LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay())
+        .stream().limit(100)
+        .map(item -> new TreasuryDashboardOverview.AuditEntry(item.id(), item.action(),
+            item.entityType(), item.entityId(), item.performedBy(), item.details(),
+            item.createdAt()))
+        .toList();
+
+    return new TreasuryDashboardOverview(quotas, financialSummary(year), monthly, statuses,
+        categories, recent, auditTrail);
+  }
+
+  @Override
+  @Transactional
+  public void clearAudits(int year, List<Long> ids, boolean all) {
+    if (year < MIN_YEAR) {
+      throw error(TreasuryErrorCode.INVALID, "El año escolar es inválido");
+    }
+    List<TreasuryAudit> yearAudits = repository.findAudits(
+        LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay());
+    List<Long> allowedIds = yearAudits.stream()
+        .filter(item -> all || ids != null && ids.contains(item.id()))
+        .map(TreasuryAudit::id).toList();
+    if (!all && allowedIds.isEmpty()) {
+      throw error(TreasuryErrorCode.INVALID, "Selecciona al menos una traza para limpiar");
+    }
+    if (!allowedIds.isEmpty()) repository.deleteAuditsByIds(allowedIds);
+  }
+
+  @Override
+  @Transactional
+  public void deleteFamilyTreasuryData(Long familyId) {
+    if (familyId == null || familyId <= 0) {
+      throw error(TreasuryErrorCode.INVALID, "La familia es inválida");
+    }
+    repository.deleteFamilyTreasuryData(familyId);
   }
 
   @Override
@@ -264,13 +364,14 @@ public class TreasuryService implements TreasuryUseCase {
       throw error(TreasuryErrorCode.INVALID, "El motivo y el usuario son obligatorios");
     }
     LocalDateTime now = LocalDateTime.now();
-    FamilyContribution saved = repository.saveContribution(new FamilyContribution(
+    FamilyContribution removed = new FamilyContribution(
         current.id(), current.familyId(), current.schoolYear(), current.type(),
         ContributionStatus.CANCELLED, current.amount(), current.paymentDate(),
         current.registeredBy(), current.notes(), now, user, reason.trim(),
-        current.createdAt(), now));
+        current.createdAt(), now);
+    repository.deleteContribution(id);
     audit("ANULAR_APORTE", "APORTE_FAMILIAR", String.valueOf(id), user, reason.trim());
-    return saved;
+    return removed;
   }
 
   @Override
@@ -337,13 +438,14 @@ public class TreasuryService implements TreasuryUseCase {
       throw error(TreasuryErrorCode.INVALID, "Motivo y usuario son obligatorios");
     }
     LocalDateTime now = LocalDateTime.now();
-    TreasuryExpense saved = repository.saveExpense(new TreasuryExpense(current.id(),
+    TreasuryExpense removed = new TreasuryExpense(current.id(),
         current.schoolYear(), current.description(), current.amount(), current.expenseDate(),
         current.category(), current.paymentMethod(), current.recipient(), current.receiptNumber(),
         current.notes(), ExpenseStatus.CANCELLED, current.registeredBy(), now, user,
-        reason.trim(), current.createdAt(), now));
+        reason.trim(), current.createdAt(), now);
+    repository.deleteExpense(id);
     audit("EXPENSE_CANCELLED", "EGRESO", String.valueOf(id), user, reason.trim());
-    return saved;
+    return removed;
   }
 
   @Override
@@ -446,6 +548,14 @@ public class TreasuryService implements TreasuryUseCase {
         current.registeredBy(), now, user, reason.trim(), current.createdAt(), now));
     audit("INCOME_CANCELLED", "INGRESO", String.valueOf(id), user, reason.trim());
     return saved;
+  }
+
+  @Override
+  @Transactional
+  public void deleteIncome(Long id) {
+    getIncome(id);
+    repository.deleteAudits("INGRESO", String.valueOf(id));
+    repository.deleteIncome(id);
   }
 
   private void saveObligation(Long planId, InstallmentType installment, String concept,

@@ -19,10 +19,17 @@ public class SchoolEventService {
   private static final int MIN_YEAR = 2000;
   private final SchoolEventJpaRepository events;
   private final TreasuryUseCase treasury;
+  private final ManagedCourseService managedCourse;
 
-  public SchoolEventService(SchoolEventJpaRepository events, TreasuryUseCase treasury) {
+  public SchoolEventService(SchoolEventJpaRepository events, TreasuryUseCase treasury,
+      ManagedCourseService managedCourse) {
     this.events = events;
     this.treasury = treasury;
+    this.managedCourse = managedCourse;
+  }
+
+  public String managedCourse() {
+    return managedCourse.get();
   }
 
   public List<SchoolEventEntity> list(int year) {
@@ -145,6 +152,8 @@ public class SchoolEventService {
     expense.setPaymentMethod(normalize(input.paymentMethod()));
     expense.setReceiptNumber(normalize(input.receiptNumber()));
     expense.setObservations(normalize(input.observations()));
+    expense.setDeductFromSettlement(input.deductFromSettlement() == null
+        || input.deductFromSettlement());
     expense.setStatus(EventExpenseStatus.ACTIVE);
     expense.setRegisteredBy(user);
     expense.setCreatedAt(LocalDateTime.now());
@@ -187,6 +196,8 @@ public class SchoolEventService {
     expense.setPaymentMethod(normalize(input.paymentMethod()));
     expense.setReceiptNumber(normalize(input.receiptNumber()));
     expense.setObservations(normalize(input.observations()));
+    expense.setDeductFromSettlement(input.deductFromSettlement() == null
+        || input.deductFromSettlement());
     event.setUpdatedAt(LocalDateTime.now());
     return events.save(event);
   }
@@ -271,12 +282,19 @@ public class SchoolEventService {
   public SchoolEventEntity confirm(Long eventId, String user) {
     SchoolEventEntity event = get(eventId);
     if (event.isSettlementConfirmed()) return event;
+    String currentManagedCourse = managedCourse.get();
+    if (event.getParticipants().stream()
+        .noneMatch(item -> item.getCourse().equalsIgnoreCase(currentManagedCourse))) {
+      throw error(TreasuryErrorCode.CONFLICT,
+          "El evento no incluye el curso administrado " + currentManagedCourse);
+    }
     EventSettlementCalculator.Result result = calculate(eventId);
     if (result.courses().stream().anyMatch(item -> item.netProfit().signum() < 0)) {
       throw error(TreasuryErrorCode.CONFLICT,
           "Debe resolver los saldos negativos antes de confirmar");
     }
     for (SchoolEventParticipantEmbeddable participant : event.getParticipants()) {
+      if (!participant.getCourse().equalsIgnoreCase(currentManagedCourse)) continue;
       if (participant.getTransferIncomeId() != null) continue;
       TreasuryIncome income = treasury.createIncome(event.getSchoolYear(),
           "Ganancia " + event.getName() + " " + event.getSchoolYear()
@@ -302,8 +320,7 @@ public class SchoolEventService {
     }
     for (SchoolEventParticipantEmbeddable participant : event.getParticipants()) {
       if (participant.getTransferIncomeId() != null) {
-        treasury.cancelIncome(participant.getTransferIncomeId(),
-            "Liquidación cancelada: " + event.getName(), user);
+        treasury.deleteIncome(participant.getTransferIncomeId());
       }
       participant.setTransferIncomeId(null);
       participant.setTransferStatus(EventTransferStatus.PENDING);
@@ -327,8 +344,13 @@ public class SchoolEventService {
   private BigDecimal activeExpenses(SchoolEventEntity event, EventExpenseType type, String course) {
     return event.getExpenses().stream()
         .filter(item -> item.getStatus() == EventExpenseStatus.ACTIVE && item.getType() == type)
+        .filter(this::deductsFromSettlement)
         .filter(item -> course == null || course.equalsIgnoreCase(item.getCourse()))
         .map(SchoolEventExpenseEmbeddable::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  private boolean deductsFromSettlement(SchoolEventExpenseEmbeddable expense) {
+    return !Boolean.FALSE.equals(expense.getDeductFromSettlement());
   }
 
   private void validateEvent(String name, int year, LocalDate date,
@@ -388,5 +410,6 @@ public class SchoolEventService {
       String description, String responsible, String observations) { }
   public record ExpenseInput(String description, BigDecimal amount, LocalDate date,
       EventExpenseType type, String course, String category, String responsible,
-      String paymentMethod, String receiptNumber, String observations) { }
+      String paymentMethod, String receiptNumber, String observations,
+      Boolean deductFromSettlement) { }
 }

@@ -4,7 +4,8 @@ import type { ContributionConfig, ContributionFilters,
   ContributionType } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ExpenseFilters, ExpensePayload } from "@/core/A-domain/entities/treasury/Treasury";
 import type { IncomeFilters, IncomePayload } from "@/core/A-domain/entities/treasury/Treasury";
-import type { EventSettlement, SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
+  import type { EventSettlement, SchoolEvent,
+    TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ITreasuryRepository } from "@/core/A-domain/repository/treasury/ITreasuryRepository";
 import { apiClient } from "@/core/D-config/api";
 
@@ -13,6 +14,14 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
 
   async listConfigs() {
     return (await apiClient.get(`${this.baseUrl}/configuraciones`)).data;
+  }
+  async getManagedCourse(): Promise<string> {
+    return (await apiClient.get<{ course: string }>(
+      `${this.baseUrl}/configuracion-general/curso`)).data.course;
+  }
+  async saveManagedCourse(course: string): Promise<string> {
+    return (await apiClient.put<{ course: string }>(
+      `${this.baseUrl}/configuracion-general/curso`, { course })).data.course;
   }
   async saveConfig(year: number, payload: AnnualFeeConfigPayload) {
     return (await apiClient.put(`${this.baseUrl}/configuraciones/${year}`, payload)).data;
@@ -47,6 +56,16 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   }
   async dashboard(year: number) {
     return (await apiClient.get(`${this.baseUrl}/dashboard`, { params: { year } })).data;
+  }
+  async dashboardOverview(year: number): Promise<TreasuryDashboardOverview> {
+    return (await apiClient.get(`${this.baseUrl}/dashboard/overview`,
+      { params: { year } })).data;
+  }
+  async clearAudits(year: number, ids: number[] = [], all = false): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/auditoria`, {
+      params: { year },
+      data: { ids, all },
+    });
   }
   async reports(year: number, type: TreasuryReportType) {
     return (await apiClient.get(`${this.baseUrl}/reportes`, { params: { year, type } })).data;
@@ -135,12 +154,14 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async addEventExpense(id: number, payload: {
     description: string; amount: number; date: string; type: "COMMON" | "COURSE";
     course?: string; category?: string; responsible?: string; paymentMethod?: string;
+    deductFromSettlement?: boolean;
   }): Promise<SchoolEvent> {
     return (await apiClient.post(`${this.baseUrl}/eventos/${id}/gastos`, payload)).data;
   }
   async updateEventExpense(id: number, key: string, payload: {
     description: string; amount: number; date: string; type: "COMMON" | "COURSE";
     course?: string; category?: string; responsible?: string; paymentMethod?: string;
+    deductFromSettlement?: boolean;
   }): Promise<SchoolEvent> {
     return (await apiClient.put(`${this.baseUrl}/eventos/${id}/gastos/${key}`, payload)).data;
   }
