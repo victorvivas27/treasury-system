@@ -13,6 +13,8 @@ export const useAnnualFees = () => {
   const [obligations, setObligations] = useState<FeeObligation[]>([]);
   const [dashboard, setDashboard] = useState<TreasuryDashboard | null>(null);
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [familiesLoading, setFamiliesLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const useCases = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
@@ -25,11 +27,14 @@ export const useAnnualFees = () => {
     } catch {
       setFamilies([]);
       setError("No fue posible cargar las familias.");
+    } finally {
+      setFamiliesLoading(false);
     }
   }, [familyRepository]);
 
   const refresh = useCallback(async (filters: TreasuryFilters = {}) => {
     setLoading(true);
+    setDataLoading(true);
     setError("");
     try {
       const [currentPlans, currentObligations, currentDashboard] =
@@ -47,6 +52,7 @@ export const useAnnualFees = () => {
       setDashboard(null);
       setError("Configura la cuota anual para comenzar.");
     } finally {
+      setDataLoading(false);
       setLoading(false);
     }
   }, [useCases, year]);
@@ -61,15 +67,18 @@ export const useAnnualFees = () => {
       await operation();
       setMessage(success);
       await refresh();
+      return true;
     } catch {
       setError("No fue posible completar la operación.");
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
   return {
-    year, setYear, families, plans, obligations, dashboard, loading, message, error,
+    year, setYear, families, plans, obligations, dashboard, loading, dataLoading,
+    familiesLoading, message, error,
     clearMessage: () => setMessage(""),
     refresh,
     saveConfig: (payload: AnnualFeeConfigPayload) =>

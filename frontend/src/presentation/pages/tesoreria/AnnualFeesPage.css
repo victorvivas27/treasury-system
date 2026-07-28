@@ -4,6 +4,9 @@
 .treasury-dashboard article { padding: 1rem; display: grid; gap: .35rem; }
 .treasury-dashboard span, .treasury-panel p, .treasury-panel small { color: var(--text-muted); }
 .treasury-dashboard strong { color: var(--color-accent); font-size: 1.25rem; }
+.treasury-dashboard-skeleton { min-height: 78px; }
+.treasury-dashboard-skeleton .skeleton-block:first-child { width: 58%; height: .8rem; }
+.treasury-dashboard-skeleton .skeleton-block:last-child { width: 76%; height: 1.35rem; }
 .treasury-year-selector { display: grid; width: min(220px, 100%); gap: .35rem; margin-top: 1rem; color: var(--text-muted); font-size: .85rem; }
 .treasury-year-selector select { min-height: 44px; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: .55rem .75rem; background: var(--color-surface); color: var(--text-main); font: inherit; cursor: pointer; }
 .treasury-year-selector select:hover { border-color: var(--color-active); }
@@ -25,6 +28,12 @@
 .treasury-plan-list article { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--color-bg); }
 .treasury-plan-list article div { display: grid; }
 .treasury-plan-list article span { color: var(--text-muted); font-size: .8rem; }
+.treasury-plan-count-skeleton { width: 55%; height: 1rem; margin-top: .8rem; }
+.treasury-plan-skeleton > div:first-child { width: 58%; gap: .45rem; }
+.treasury-plan-skeleton > div:first-child .skeleton-block:first-child { width: 42%; height: 1rem; }
+.treasury-plan-skeleton > div:first-child .skeleton-block:last-child { width: 85%; height: .8rem; }
+.treasury-plan-skeleton > .skeleton-block { width: 28%; height: 1.8rem; }
+.treasury-cell-skeleton { min-width: 4rem; height: 1.4rem; border-radius: var(--radius-sm); }
 .treasury-plan-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
 .treasury-plan-actions button { min-height: 34px; border-radius: var(--radius-md); padding: .35rem .6rem; background: var(--color-hover); color: var(--text-main); font-size: .74rem; }
 .treasury-plan-actions button.is-danger { background: color-mix(in srgb, var(--color-error) 14%, transparent); color: var(--color-error); }

@@ -8,6 +8,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./FamilyContributionsPage.css";
 
 const repository = new TreasuryRepositoryImpl();
@@ -130,12 +131,17 @@ export const FamilyContributionsPage = () => {
       </header>
 
       <section className="contributions-summary" aria-label="Resumen de aportes">
-        <SummaryCard label="Total familias" value={summary.totalFamilies} />
-        <SummaryCard label="CEPA pagada" value={summary.cepaPaid} positive />
-        <SummaryCard label="CEPA pendiente" value={summary.cepaPending} />
-        <SummaryCard label="Solidaria pagada" value={summary.solidarityPaid} positive />
-        <SummaryCard label="Solidaria pendiente" value={summary.solidarityPending} />
-        <SummaryCard label="Completamente al día" value={summary.fullyPaid} positive />
+        {loading ? Array.from({ length: 6 }, (_, index) =>
+          <article className="contribution-summary-skeleton" key={index} aria-hidden="true">
+            <div className="skeleton-block" /><div className="skeleton-block" />
+          </article>) : <>
+          <SummaryCard label="Total familias" value={summary.totalFamilies} />
+          <SummaryCard label="CEPA pagada" value={summary.cepaPaid} positive />
+          <SummaryCard label="CEPA pendiente" value={summary.cepaPending} />
+          <SummaryCard label="Solidaria pagada" value={summary.solidarityPaid} positive />
+          <SummaryCard label="Solidaria pendiente" value={summary.solidarityPending} />
+          <SummaryCard label="Completamente al día" value={summary.fullyPaid} positive />
+        </>}
       </section>
 
       <section className="contributions-filters" aria-label="Filtros">
@@ -157,7 +163,7 @@ export const FamilyContributionsPage = () => {
       </section>
 
       {loading ? (
-        <p className="contributions-page__empty" role="status">Cargando familias…</p>
+        <ContributionsSkeleton />
       ) : items.length === 0 ? (
         <p className="contributions-page__empty">No hay familias para los filtros seleccionados.</p>
       ) : (
@@ -264,6 +270,23 @@ export const FamilyContributionsPage = () => {
 const SummaryCard = ({ label, value, positive = false }: {
   label: string; value: number; positive?: boolean;
 }) => <article className={positive ? "is-positive" : ""}><span>{label}</span><strong>{value}</strong></article>;
+
+const ContributionsSkeleton = () => (
+  <section className="contributions-grid" aria-label="Cargando familias" role="status">
+    {Array.from({ length: 6 }, (_, index) => (
+      <article className="contribution-card contribution-card--skeleton" key={index}
+        aria-hidden="true">
+        <div className="contribution-card__heading">
+          <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
+          <div className="skeleton-block" />
+        </div>
+        <div className="skeleton-block contribution-badge-skeleton" />
+        <div className="skeleton-block contribution-badge-skeleton" />
+        <div className="skeleton-block contribution-button-skeleton" />
+      </article>
+    ))}
+  </section>
+);
 
 const Filter = ({ label, value, onChange, options, labels, allLabel = "Todos" }: {
   label: string; value: string; onChange: (value: string) => void; options: string[];

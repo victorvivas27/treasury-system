@@ -43,4 +43,17 @@ describe("AdminRoute", () => {
     expect(screen.getByText("Inicio")).toBeInTheDocument();
     expect(screen.queryByText("Alumnos privados")).not.toBeInTheDocument();
   });
+
+  it("[AdminRoute #03] debe volver al inicio cuando termina la sesión", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      isAuthenticated: false,
+      loading: false,
+    } as ReturnType<typeof useAuth>);
+
+    renderRoute();
+
+    expect(screen.getByText("Inicio")).toBeInTheDocument();
+    expect(screen.queryByText("Login")).not.toBeInTheDocument();
+  });
 });

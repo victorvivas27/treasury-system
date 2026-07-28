@@ -29,6 +29,7 @@ import { ProfilePage } from "../pages/user/ProfilePage";
 import { FamilyContributionsPage } from "../pages/tesoreria/FamilyContributionsPage";
 import { ExpensesPage } from "../pages/tesoreria/ExpensesPage";
 import { IncomesPage } from "../pages/tesoreria/IncomesPage";
+import { EventsPage } from "../pages/tesoreria/EventsPage";
 
 export const AppRouter = () => {
   return (
@@ -55,7 +56,7 @@ export const AppRouter = () => {
           <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
           <Route path="tesoreria/ingresos" element={<IncomesPage />} />
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
-          <Route path="tesoreria/eventos" element={<TreasurySectionPage section="Eventos" />} />
+          <Route path="tesoreria/eventos" element={<EventsPage />} />
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />
           <Route path="students" element={<AlumnoPage />} />

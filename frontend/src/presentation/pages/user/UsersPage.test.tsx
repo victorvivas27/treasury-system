@@ -8,6 +8,29 @@ vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("@/presentation/hooks/user/useUsers", () => ({ useUsers: vi.fn() }));
 
 describe("UsersPage", () => {
+  it("[UsersPage #00] muestra skeletons dentro de la tabla durante la carga", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 1, rol: "ADMIN" },
+    } as ReturnType<typeof useAuth>);
+    vi.mocked(useUsers).mockReturnValue({
+      users: [],
+      loading: true,
+      error: null,
+      totalPages: 1,
+      load: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      changeRole: vi.fn(),
+      remove: vi.fn(),
+    });
+
+    const { container } = render(<UsersPage />);
+
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(48);
+    expect(screen.queryByText("Sin usuarios")).not.toBeInTheDocument();
+  });
+
   it("[UsersPage #01] solicita confirmación antes de eliminar", async () => {
     const remove = vi.fn().mockResolvedValue(undefined);
     vi.mocked(useAuth).mockReturnValue({

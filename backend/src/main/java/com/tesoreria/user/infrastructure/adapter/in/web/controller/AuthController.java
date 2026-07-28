@@ -12,6 +12,7 @@ import com.tesoreria.user.config.security.TokenRevocationService;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.core.model.User;
+import com.tesoreria.user.infrastructure.adapter.in.web.dto.UserRequestDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.UserResponseDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.auth.*;
 import com.tesoreria.user.infrastructure.adapter.in.web.mapper.UserMapper;
@@ -20,7 +21,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.net.InetAddress;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +42,8 @@ public class AuthController {
     private final TokenRevocationService revocationService;
     private final RegistrationRateLimiter registrationRateLimiter;
     private final AccountRecoveryService accountRecoveryService;
+    private final String bootstrapAdminKey;
+    private final boolean allowLocalBootstrapWithoutKey;
 
     @Autowired
     public AuthController(
@@ -46,7 +53,9 @@ public class AuthController {
             JwtService jwtService,
             TokenRevocationService revocationService,
             RegistrationRateLimiter registrationRateLimiter,
-            AccountRecoveryService accountRecoveryService) {
+            AccountRecoveryService accountRecoveryService,
+            @Value("${app.bootstrap.admin-key:}") String bootstrapAdminKey,
+            @Value("${app.bootstrap.allow-local-without-key:false}") boolean allowLocalBootstrapWithoutKey) {
         this.authService = authService;
         this.userService = userService;
         this.mapper = mapper;
@@ -54,6 +63,8 @@ public class AuthController {
         this.revocationService = revocationService;
         this.registrationRateLimiter = registrationRateLimiter;
         this.accountRecoveryService = accountRecoveryService;
+        this.bootstrapAdminKey = bootstrapAdminKey;
+        this.allowLocalBootstrapWithoutKey = allowLocalBootstrapWithoutKey;
     }
 
     public AuthController(
@@ -64,7 +75,7 @@ public class AuthController {
             TokenRevocationService revocationService,
             RegistrationRateLimiter registrationRateLimiter) {
         this(authService, userService, mapper, jwtService, revocationService,
-                registrationRateLimiter, null);
+                registrationRateLimiter, null, "", false);
     }
 
     @Operation(summary = "Iniciar sesión")
@@ -98,6 +109,28 @@ public class AuthController {
                 ? userService.create(newUser)
                 : accountRecoveryService.register(newUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(registered));
+    }
+
+    @Operation(summary = "Inicializar el primer administrador")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Administrador inicial creado"),
+            @ApiResponse(responseCode = "403", description = "Clave de inicialización inválida"),
+            @ApiResponse(responseCode = "409", description = "Ya existen usuarios")
+    })
+    @PostMapping("/bootstrap-admin")
+    public ResponseEntity<UserResponseDTO> bootstrapAdmin(
+            @RequestHeader(value = "X-Bootstrap-Key", required = false) String key,
+            HttpServletRequest httpRequest,
+            @Valid @RequestBody UserRequestDTO request) {
+        if (!validBootstrapKey(key) && !isLocalBootstrapRequest(httpRequest)) {
+            throw new DomainException("bootstrap", HttpStatus.FORBIDDEN, "Acceso denegado");
+        }
+        User user = mapper.toDomain(request);
+        user.setRol(RoleEnum.ADMIN);
+        user.setEnabled(true);
+        user.setAccountNonLocked(true);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mapper.toResponse(userService.bootstrapAdmin(user)));
     }
 
     @PostMapping("/verify-email")
@@ -184,5 +217,20 @@ public class AuthController {
                     "Token revocado");
         }
         return token;
+    }
+
+    private boolean validBootstrapKey(String key) {
+        return key != null && !bootstrapAdminKey.isBlank()
+                && MessageDigest.isEqual(key.getBytes(StandardCharsets.UTF_8),
+                    bootstrapAdminKey.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private boolean isLocalBootstrapRequest(HttpServletRequest request) {
+        if (!allowLocalBootstrapWithoutKey) return false;
+        try {
+            return InetAddress.getByName(request.getRemoteAddr()).isLoopbackAddress();
+        } catch (java.net.UnknownHostException exception) {
+            return false;
+        }
     }
 }

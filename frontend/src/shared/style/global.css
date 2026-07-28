@@ -9,12 +9,20 @@
   --color-error: #EF4444;
   --color-warning: #F59E0B;
   --color-info: #3B82F6;
+  --color-success-soft: rgba(34, 197, 94, 0.12);
+  --color-error-soft: rgba(239, 68, 68, 0.12);
+  --color-warning-soft: rgba(245, 158, 11, 0.12);
+  --color-info-soft: rgba(59, 130, 246, 0.12);
 
   /* 2. SUPERFICIES Y FONDOS */
   --color-bg: #0A0F1A;
   --color-surface: #111827;
   --color-hover: #1F2937;
   --color-active: #374151;
+  --color-input: #111827;
+  --color-elevated: #111827;
+  --color-sidebar: #111827;
+  --color-accent-soft: rgba(14, 235, 205, 0.12);
 
   /* 3. TEXTOS */
   --text-main: #E5E7EB;
@@ -23,6 +31,19 @@
   /* 4. LÍNEAS */
   --border-color: #858688;
   --divider: #051e57;
+  --focus-ring: rgba(14, 235, 205, 0.42);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-elevated: 0 14px 35px rgba(0, 0, 0, 0.35);
+
+  /* Alias heredados para mantener una sola fuente de color. */
+  --color-background: var(--color-bg);
+  --color-border: var(--border-color);
+  --color-divider: var(--divider);
+  --color-secondary: var(--color-hover);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-text-secondary: var(--text-muted);
 
   /* 5. SISTEMA DE MEDIDAS (REM) */
   --xs: 0.6rem;
@@ -55,6 +76,35 @@
   --border-style: 1px solid var(--color-success);
 }
 
+:root[data-theme="light"] {
+  --color-primary: #294f78;
+  --color-accent: #087f74;
+  --color-bg: #eef1f4;
+  --color-surface: #f8f9fa;
+  --color-hover: #e4e8ec;
+  --color-active: #d9dfe5;
+  --color-input: #f3f5f6;
+  --color-elevated: #fafafa;
+  --color-sidebar: #e4e8ec;
+  --color-accent-soft: rgba(8, 127, 116, 0.12);
+  --text-main: #25282c;
+  --text-muted: #62676d;
+  --border-color: #cbd1d7;
+  --divider: #d5d9de;
+  --focus-ring: rgba(8, 127, 116, 0.34);
+  --overlay: rgba(24, 30, 36, 0.35);
+  --shadow-card: 0 1px 3px rgba(28, 35, 42, 0.08);
+  --shadow-elevated: 0 14px 35px rgba(28, 35, 42, 0.16);
+  --color-success: #187a3c;
+  --color-error: #c63737;
+  --color-warning: #9a5c05;
+  --color-info: #2466b1;
+  --color-success-soft: rgba(24, 122, 60, 0.11);
+  --color-error-soft: rgba(198, 55, 55, 0.1);
+  --color-warning-soft: rgba(154, 92, 5, 0.1);
+  --color-info-soft: rgba(36, 102, 177, 0.1);
+}
+
 /* =========================================
    RESET & BASE
    ========================================= */
@@ -68,6 +118,7 @@ html {
   /* No uses spacing-md aquí para no confundir. 16px es el estándar. */
   font-size: 16px;
   scroll-behavior: smooth;
+  background: var(--color-bg);
 }
 
 body {
@@ -127,12 +178,53 @@ button {
   outline: none;
 }
 
+body,
+button,
+input,
+select,
+textarea {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+input,
+select,
+textarea {
+  color-scheme: inherit;
+}
+
+::placeholder {
+  color: var(--text-muted);
+  opacity: 0.86;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    transition: none;
+  }
+}
+
 /* Inputs numéricos integrados al tema: elimina los controles nativos claros
    de Chrome, Edge, Safari y Firefox sin perder validación ni teclado numérico. */
 input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
-  color-scheme: dark;
+  color-scheme: inherit;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

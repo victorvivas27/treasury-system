@@ -3,7 +3,7 @@ import { apiClient } from "@/core/D-config/api";
 import { TreasuryRepositoryImpl } from "./TreasuryRepositoryImpl";
 
 vi.mock("@/core/D-config/api", () => ({
-  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn() },
+  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
 describe("TreasuryRepositoryImpl", () => {
@@ -139,5 +139,48 @@ describe("TreasuryRepositoryImpl", () => {
     expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/ingresos", payload);
     expect(apiClient.patch).toHaveBeenCalledWith("/tesoreria/ingresos/1/anulacion",
       { reason: "Duplicado" });
+  });
+
+  it("[Tesorería repository #11] gestiona el flujo de eventos y liquidación", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 7 } });
+    vi.mocked(apiClient.put).mockResolvedValue({ data: { id: 7 } });
+    vi.mocked(apiClient.delete).mockResolvedValue({ data: { id: 7 } });
+    const eventPayload = {
+      name: "Fiesta de la Familia", schoolYear: 2026, eventDate: "2026-09-15",
+      participants: [{ course: "1° Básico", standName: "Hamburguesas" }],
+    };
+    const expense = {
+      description: "Ingredientes", amount: 45000, date: "2026-09-10",
+      type: "COURSE" as const, course: "1° Básico",
+    };
+
+    await repository.listEvents(2026);
+    await repository.createEvent(eventPayload);
+    await repository.updateEvent(7, eventPayload);
+    await repository.addEventExpense(7, expense);
+    await repository.updateEventExpense(7, "expense-1", expense);
+    await repository.deleteEventExpense(7, "expense-1");
+    await repository.registerEventRevenue(7, { amount: 900000, date: "2026-09-15" });
+    await repository.calculateEvent(7);
+    await repository.confirmEvent(7);
+    await repository.cancelEventSettlement(7);
+    await repository.deleteEvent(7);
+
+    expect(apiClient.get).toHaveBeenCalledWith("/tesoreria/eventos", {
+      params: { year: 2026 },
+    });
+    expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos", eventPayload);
+    expect(apiClient.put).toHaveBeenCalledWith("/tesoreria/eventos/7", eventPayload);
+    expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/gastos", expense);
+    expect(apiClient.put).toHaveBeenCalledWith(
+      "/tesoreria/eventos/7/gastos/expense-1", expense);
+    expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/eventos/7/gastos/expense-1");
+    expect(apiClient.put).toHaveBeenCalledWith("/tesoreria/eventos/7/recaudacion",
+      { amount: 900000, date: "2026-09-15" });
+    expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/calcular");
+    expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/confirmar");
+    expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/cancelar");
+    expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/eventos/7");
   });
 });

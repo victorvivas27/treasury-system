@@ -1,0 +1,15 @@
+info:
+  name: admin
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:5055/tesoreria/api/v1/auth/bootstrap-admin
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -16,6 +16,11 @@ http:
   auth: inherit
 
 runtime:
+  variables:
+    - name: Admin_Email
+      value: victorjaviervivas@gmail.com
+    - name: Admin_Password
+      value: Theoamiel2019$
   scripts:
     - type: tests
       code: |-
@@ -31,3 +36,5 @@ runtime:
 settings:
   encodeUrl: true
   timeout: 0
+  followRedirects: true
+  maxRedirects: 5

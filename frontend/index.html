@@ -1,11 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="es" data-theme="dark">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/icono_tesoreria_03.png" />
   <title>Tesoreria App</title>
+  <script>
+    (() => {
+      const saved = localStorage.getItem("app-theme");
+      const preference = ["dark", "light", "system"].includes(saved) ? saved : "dark";
+      const theme = preference === "system"
+        ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        : preference;
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
 </head>
 
 <body>

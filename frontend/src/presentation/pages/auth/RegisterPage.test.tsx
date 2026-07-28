@@ -31,4 +31,24 @@ describe("RegisterPage", () => {
     await waitFor(() => expect(registerMock).toHaveBeenCalled());
     expect(await screen.findByRole("heading", { name: "Revisa tu correo" })).toBeInTheDocument();
   });
+
+  it("[RegisterPage #02] muestra ejemplos flotantes y permite volver", () => {
+    render(
+      <MemoryRouter initialEntries={["/", "/register"]} initialIndex={1}>
+        <Routes>
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<h1>Página de inicio</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByLabelText("Nombre")).toHaveAttribute("placeholder", "Ej.: Ana Pérez");
+    expect(screen.getByLabelText("Correo")).toHaveAttribute(
+      "placeholder", "Ej.: nombre@correo.cl");
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute(
+      "placeholder", "Ej.: ClaveSegura1!");
+
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    expect(screen.getByRole("heading", { name: "Página de inicio" })).toBeInTheDocument();
+  });
 });

@@ -8,7 +8,7 @@ export const AdminRoute = () => {
 
   if (loading) return <LoadingState mesage="Validando permisos..." />;
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/" replace state={{ from: location.pathname, sessionEnded: true }} />;
   }
   if (user?.rol !== "ADMIN") return <Navigate to="/" replace />;
   return <Outlet />;

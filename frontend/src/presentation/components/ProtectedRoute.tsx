@@ -8,7 +8,7 @@ export const ProtectedRoute = () => {
 
   if (loading) return <LoadingState mesage="Validando sesión..." />;
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/" replace state={{ from: location.pathname, sessionEnded: true }} />;
   }
   return <Outlet />;
 };

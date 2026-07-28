@@ -219,3 +219,73 @@ export interface IncomeFilters {
   sort?: "DATE_DESC" | "DATE_ASC" | "AMOUNT_DESC" | "AMOUNT_ASC"
     | "DESCRIPTION" | "CATEGORY";
 }
+
+export type SchoolEventStatus =
+  | "BORRADOR" | "EN_PREPARACION" | "REALIZADO" | "EN_LIQUIDACION"
+  | "CERRADO" | "CANCELADO";
+export type EventExpenseType = "COMMON" | "COURSE";
+export type EventTransferStatus =
+  | "PENDING" | "TRANSFERRED" | "CANCELLED" | "REQUIRES_RESOLUTION";
+
+export interface SchoolEventParticipant {
+  course: string;
+  standName: string;
+  standType?: string;
+  description?: string;
+  responsible?: string;
+  observations?: string;
+  grossShare?: number;
+  ownExpenses?: number;
+  netProfit?: number;
+  transferStatus: EventTransferStatus;
+}
+
+export interface SchoolEventExpense {
+  key: string;
+  description: string;
+  amount: number;
+  date: string;
+  type: EventExpenseType;
+  course?: string;
+  category?: string;
+  responsible?: string;
+  paymentMethod?: string;
+  receiptNumber?: string;
+  observations?: string;
+  status: "ACTIVE" | "CANCELLED";
+  registeredBy: string;
+  cancellationReason?: string;
+}
+
+export interface SchoolEvent {
+  id: number;
+  name: string;
+  schoolYear: number;
+  eventDate: string;
+  description?: string;
+  status: SchoolEventStatus;
+  observations?: string;
+  participants: SchoolEventParticipant[];
+  expenses: SchoolEventExpense[];
+  grossRevenue?: number;
+  commonExpenses: number;
+  courseExpenses: number;
+  netProfit: number;
+  remainder?: number;
+  settlementConfirmed: boolean;
+}
+
+export interface EventSettlement {
+  grossRevenue: number;
+  commonExpenses: number;
+  distributable: number;
+  grossShare: number;
+  remainder: number;
+  courses: Array<{
+    course: string;
+    grossShare: number;
+    expenses: number;
+    netProfit: number;
+    transferStatus: EventTransferStatus;
+  }>;
+}

@@ -1,0 +1,42 @@
+.income-summary-skeleton {
+  min-height: 96px;
+}
+
+.income-summary-skeleton .skeleton-block:nth-child(1) { width: 65%; height: .75rem; }
+.income-summary-skeleton .skeleton-block:nth-child(2) { width: 82%; height: 1.4rem; }
+.income-summary-skeleton .skeleton-block:nth-child(3) { width: 72%; height: .7rem; }
+
+.fee-income-skeleton {
+  display: grid;
+  gap: .55rem;
+}
+
+.fee-income-skeleton .skeleton-block:nth-child(1) { width: 12rem; height: 1rem; }
+.fee-income-skeleton .skeleton-block:nth-child(2) { width: 9rem; height: 1.6rem; }
+.fee-income-skeleton .skeleton-block:nth-child(3) { width: min(700px, 90%); height: 1rem; }
+
+.income-card--skeleton {
+  border-color: var(--border-color);
+}
+
+.income-card--skeleton header .skeleton-block:first-child { width: 48%; height: .85rem; }
+.income-card--skeleton header .skeleton-block:last-child { width: 20%; height: 1.4rem; }
+.income-card--skeleton > header + .skeleton-block {
+  width: 72%;
+  height: 1.1rem;
+  margin-top: 1rem;
+}
+.income-card--skeleton > header + .skeleton-block + .skeleton-block {
+  width: 48%;
+  height: 1.45rem;
+  margin-top: .5rem;
+}
+
+.income-details-skeleton {
+  display: grid;
+  gap: .55rem;
+  margin: 1rem 0;
+}
+
+.income-details-skeleton .skeleton-block { height: .8rem; }
+.income-action-skeleton { height: 2.6rem; border-radius: var(--radius-md); }

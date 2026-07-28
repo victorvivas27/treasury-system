@@ -14,7 +14,7 @@ describe("LoginPage", () => {
     } as unknown as ReturnType<typeof useAuth>);
 
     render(
-      <MemoryRouter initialEntries={["/login"]}>
+      <MemoryRouter initialEntries={["/", "/login"]} initialIndex={1}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<h1>Registrar usuario</h1>} />
@@ -61,5 +61,28 @@ describe("LoginPage", () => {
     expect(correo).toHaveAttribute("aria-invalid", "true");
     expect(password).toHaveAttribute("aria-invalid", "true");
     expect(login).not.toHaveBeenCalled();
+  });
+
+  it("[LoginPage #04] muestra ejemplos y permite volver al inicio", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      login: vi.fn(),
+      loading: false,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(
+      <MemoryRouter initialEntries={["/", "/login"]} initialIndex={1}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<h1>Página de inicio</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByLabelText("Correo")).toHaveAttribute(
+      "placeholder", "Ej.: nombre@correo.cl");
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute(
+      "placeholder", "Ej.: ClaveSegura1!");
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    expect(screen.getByRole("heading", { name: "Página de inicio" })).toBeInTheDocument();
   });
 });

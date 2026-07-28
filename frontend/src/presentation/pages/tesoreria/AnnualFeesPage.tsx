@@ -5,6 +5,7 @@ import { useAnnualFees } from "@/presentation/hooks/treasury/useAnnualFees";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./AnnualFeesPage.css";
 
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP",
@@ -39,12 +40,17 @@ export const AnnualFeesPage = () => {
     </header>
 
     <section className="treasury-dashboard" aria-label="Resumen de cuotas">
-      <article><span>Familias</span><strong>{fees.dashboard?.totalFamilies ?? 0}</strong></article>
-      <article><span>Cuota única</span><strong>{fees.dashboard?.annualFamilies ?? 0}</strong></article>
-      <article><span>Dos cuotas</span><strong>{fees.dashboard?.twoInstallmentFamilies ?? 0}</strong></article>
-      <article><span>Pendientes</span><strong>{fees.dashboard?.pendingObligations ?? 0}</strong></article>
-      <article><span>Recaudado</span><strong>{money.format(fees.dashboard?.collectedAmount ?? 0)}</strong></article>
-      <article><span>Por recaudar</span><strong>{money.format(fees.dashboard?.pendingAmount ?? 0)}</strong></article>
+      {fees.dataLoading ? Array.from({ length: 6 }, (_, index) =>
+        <article className="treasury-dashboard-skeleton" key={index} aria-hidden="true">
+          <div className="skeleton-block" /><div className="skeleton-block" />
+        </article>) : <>
+        <article><span>Familias</span><strong>{fees.dashboard?.totalFamilies ?? 0}</strong></article>
+        <article><span>Cuota única</span><strong>{fees.dashboard?.annualFamilies ?? 0}</strong></article>
+        <article><span>Dos cuotas</span><strong>{fees.dashboard?.twoInstallmentFamilies ?? 0}</strong></article>
+        <article><span>Pendientes</span><strong>{fees.dashboard?.pendingObligations ?? 0}</strong></article>
+        <article><span>Recaudado</span><strong>{money.format(fees.dashboard?.collectedAmount ?? 0)}</strong></article>
+        <article><span>Por recaudar</span><strong>{money.format(fees.dashboard?.pendingAmount ?? 0)}</strong></article>
+      </>}
     </section>
 
     <div className="annual-fees-grid">
@@ -71,9 +77,9 @@ export const AnnualFeesPage = () => {
 
       <section className="treasury-panel">
         <h2>Modalidad por familia</h2>
-        <label>Familia<select value={familyId}
+        <label>Familia<select value={familyId} disabled={fees.familiesLoading}
           onChange={event => setFamilyId(Number(event.target.value))}>
-          <option value={0}>Seleccionar familia</option>
+          <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
           {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
             {family.codigoFamilia} · {family.alumno.nombre}
           </option>)}
@@ -84,15 +90,26 @@ export const AnnualFeesPage = () => {
           <option value="DOS_CUOTAS">Dos cuotas</option>
         </select></label>
         <Button label="Guardar y generar cuotas" loading={fees.loading}
-          disabled={!familyId} onClick={() => void fees.assignMode(familyId, mode)} size="medium" />
-        <p>{fees.plans.length} familias configuradas para {fees.year}.</p>
+          disabled={!familyId} onClick={() => void fees.assignMode(familyId, mode)
+            .then(success => {
+              if (success) setFamilyId(0);
+            })} size="medium" />
+        {fees.dataLoading
+          ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true" />
+          : <p>{fees.plans.length} familias configuradas para {fees.year}.</p>}
         <p className="treasury-mode-help">
           Para cambiar la modalidad de una familia con pagos, anula primero todos sus pagos
           activos. Luego selecciona la nueva modalidad y guárdala; las obligaciones se
           regenerarán automáticamente.
         </p>
         <div className="treasury-plan-list" aria-label="Familias con modalidad configurada">
-          {fees.plans.length === 0
+          {fees.dataLoading
+            ? Array.from({ length: 4 }, (_, index) =>
+              <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
+                <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
+                <div className="skeleton-block" />
+              </article>)
+            : fees.plans.length === 0
             ? <p>Aún no hay familias con modalidad configurada.</p>
             : fees.plans.map(plan => <article key={plan.id}>
                 <div>
@@ -139,7 +156,12 @@ export const AnnualFeesPage = () => {
       {fees.error && <p className="treasury-error" role="alert">{fees.error}</p>}
       <div className="treasury-table-wrap"><table><thead><tr><th>Familia</th><th>Curso</th>
         <th>Concepto</th><th>Vence</th><th>Monto</th><th>Estado</th><th>Acción</th></tr></thead>
-        <tbody>{fees.obligations.map(item => <tr key={item.id}>
+        <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
+          <tr key={`loading-${row}`} aria-hidden="true">
+            {Array.from({ length: 7 }, (_, column) => <td key={column}>
+              <div className="skeleton-block treasury-cell-skeleton" />
+            </td>)}
+          </tr>) : fees.obligations.map(item => <tr key={item.id}>
           <td>{item.familyCode}<small>{item.studentName}</small></td><td>{item.course}</td>
           <td>{item.concept}</td><td>{item.dueDate}</td><td>{money.format(item.amount)}</td>
           <td><span className={`fee-status fee-status--${item.status.toLowerCase()}`}>

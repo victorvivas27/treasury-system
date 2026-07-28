@@ -1,0 +1,62 @@
+.session-notice {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1100;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  width: min(26rem, calc(100vw - 2rem));
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 55%, var(--border-color));
+  border-radius: var(--radius-lg);
+  background: var(--color-elevated);
+  color: var(--text-main);
+  box-shadow: var(--shadow-elevated);
+  animation: sessionNoticeIn 180ms ease-out;
+}
+
+.session-notice > svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--color-warning);
+}
+
+.session-notice strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.session-notice p {
+  margin-top: 0.1rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.session-notice button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.session-notice button:hover {
+  background: var(--color-hover);
+  color: var(--text-main);
+}
+
+@keyframes sessionNoticeIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-notice {
+    animation: none;
+  }
+}

@@ -3,6 +3,7 @@ import type { UserPayload } from "@/core/A-domain/entities/user/User";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import { UserForm } from "@/presentation/features/user/UserForm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { useNavigate } from "react-router-dom";
 
 export const RegisterPage = () => {
@@ -37,6 +38,7 @@ export const RegisterPage = () => {
         showRole={false}
         showAccountStatus={false}
       />
+      <ButtonBack />
       <ModalAlert
         isOpen={Boolean(error)}
         message={error ?? ""}

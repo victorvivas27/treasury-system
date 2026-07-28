@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: var(--overlay);
 }
 
 .modal-confirm-container {
@@ -16,7 +16,7 @@
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-elevated);
   animation: modal-confirm-enter 0.25s ease-out;
 }
 

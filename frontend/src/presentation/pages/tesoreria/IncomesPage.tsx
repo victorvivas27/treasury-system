@@ -8,11 +8,13 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   INCOME_CATEGORIES, INCOME_PAYMENT_METHODS, incomeCategoryLabel, incomePaymentLabel,
 } from "@/shared/constants/IncomeConstants";
 import "./ExpensesPage.css";
 import "./IncomesPage.css";
+import "./IncomesSkeleton.css";
 
 const repository = new TreasuryRepositoryImpl();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
@@ -138,6 +140,11 @@ export const IncomesPage = () => {
         <FiPlus /> Registrar ingreso</button>}</header>
 
     <section className="income-summary" aria-label="Resumen financiero">
+      {loading ? Array.from({ length: 5 }, (_, index) =>
+        <article className="income-summary-skeleton" key={index} aria-hidden="true">
+          <div className="skeleton-block" /><div className="skeleton-block" />
+          <div className="skeleton-block" />
+        </article>) : <>
       <article><span>Ingresos por cuotas</span><strong>{money.format(summary.feeIncome)}</strong>
         <small>Cuota anual del curso</small></article>
       <article><span>Otros ingresos</span><strong>{money.format(summary.otherIncome)}</strong>
@@ -149,6 +156,7 @@ export const IncomesPage = () => {
       <article className={summary.availableBalance < 0 ? "is-negative" : ""}>
         <span>Saldo disponible</span><strong>{money.format(summary.availableBalance)}</strong>
         <small>Ingresos totales menos egresos</small></article>
+      </>}
     </section>
 
     <nav className="income-tabs" aria-label="Tipo de ingreso">
@@ -195,13 +203,18 @@ export const IncomesPage = () => {
     </section>}
 
     {(view === "ALL" || view === "FEES") && <article className="fee-income-card">
+      {loading ? <div className="fee-income-skeleton" aria-hidden="true">
+        <div className="skeleton-block" /><div className="skeleton-block" />
+        <div className="skeleton-block" />
+      </div> : <>
       <span><FiArrowDownCircle /> Ingresos por cuotas</span>
       <strong>+{money.format(summary.feeIncome)}</strong>
       <p>Este monto proviene automáticamente de la cuota anual del curso.
         CEPA y Solidaria son solo datos de seguimiento institucional y no forman parte de la caja.</p>
+      </>}
     </article>}
 
-    {view !== "FEES" && (loading ? <p className="expenses-empty">Cargando ingresos…</p>
+    {view !== "FEES" && (loading ? <IncomeCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay ingresos extraordinarios para los filtros seleccionados.</p>
       : <section className="expenses-grid">{items.map((item) =>
         <article className={`expense-card income-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
@@ -290,3 +303,19 @@ export const IncomesPage = () => {
       message={error} onClose={() => setError("")} />
   </main>;
 };
+
+const IncomeCardsSkeleton = () => (
+  <section className="expenses-grid" aria-label="Cargando ingresos" role="status">
+    {Array.from({ length: 6 }, (_, index) => (
+      <article className="expense-card income-card income-card--skeleton" key={index}
+        aria-hidden="true">
+        <header><div className="skeleton-block" /><div className="skeleton-block" /></header>
+        <div className="skeleton-block" /><div className="skeleton-block" />
+        <div className="income-details-skeleton">
+          {Array.from({ length: 4 }, (_, row) => <div className="skeleton-block" key={row} />)}
+        </div>
+        <div className="skeleton-block income-action-skeleton" />
+      </article>
+    ))}
+  </section>
+);

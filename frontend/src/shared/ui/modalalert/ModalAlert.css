@@ -10,6 +10,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  background: var(--overlay);
 
 }
 
@@ -21,7 +22,7 @@
   width: 380px;
   max-width: 90%;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-elevated);
   border: 1px solid var(--color-border);
 
 }

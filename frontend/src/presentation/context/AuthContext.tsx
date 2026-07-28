@@ -4,13 +4,15 @@ import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
 import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import { AUTH_TOKEN_KEY, SESSION_EXPIRED_EVENT } from "@/core/D-config/axiosInterceptor";
-import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { FiAlertCircle, FiX } from "react-icons/fi";
+import "./AuthContext.css";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -31,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(Boolean(token));
   const [sessionExpired, setSessionExpired] = useState(false);
+  const hadActiveSession = useRef(false);
 
   const useCases = useMemo(() => {
     const repository = new AuthRepositoryImpl();
@@ -42,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const clearSession = useCallback(() => {
+    hadActiveSession.current = false;
     localStorage.removeItem(AUTH_TOKEN_KEY);
     setToken(null);
     setUser(null);
@@ -49,9 +53,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const handleSessionExpired = () => {
+      const shouldNotify = hadActiveSession.current;
       clearSession();
       setLoading(false);
-      setSessionExpired(true);
+      if (shouldNotify) setSessionExpired(true);
     };
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
@@ -67,7 +72,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     useCases.current.execute()
-      .then(setUser)
+      .then((currentUser) => {
+        hadActiveSession.current = true;
+        setUser(currentUser);
+      })
       .catch(clearSession)
       .finally(() => setLoading(false));
   }, [token, user, useCases, clearSession]);
@@ -77,6 +85,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await useCases.login.execute({ correo, password });
       localStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      hadActiveSession.current = true;
+      setSessionExpired(false);
       setToken(response.token);
       setUser(response.user);
     } finally {
@@ -98,14 +108,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </AuthContext.Provider>
-    <ModalAlert
-      isOpen={sessionExpired}
-      title="Sesión expirada"
-      message="Tu sesión terminó. Por seguridad, vuelve a iniciar sesión."
-      type="error"
-      buttonLabel="Volver al inicio"
-      onClose={() => setSessionExpired(false)}
-    />
+    {sessionExpired && (
+      <aside className="session-notice" role="status" aria-live="polite">
+        <FiAlertCircle aria-hidden="true" />
+        <div>
+          <strong>Tu sesión terminó</strong>
+          <p>Inicia sesión nuevamente para continuar.</p>
+        </div>
+        <button aria-label="Cerrar aviso" onClick={() => setSessionExpired(false)}>
+          <FiX aria-hidden="true" />
+        </button>
+      </aside>
+    )}
   </>;
 };
 

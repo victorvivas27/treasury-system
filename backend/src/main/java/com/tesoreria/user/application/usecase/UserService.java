@@ -44,6 +44,18 @@ public class UserService implements UserUseCase {
     return repository.save(user);
   }
 
+  @Transactional
+  public User bootstrapAdmin(User user) {
+    if (repository.count() > 0) {
+      throw new DomainException("bootstrap", org.springframework.http.HttpStatus.CONFLICT,
+          "La inicialización del administrador ya no está disponible");
+    }
+    user.setRol(RoleEnum.ADMIN);
+    user.setEnabled(true);
+    user.setAccountNonLocked(true);
+    return create(user);
+  }
+
   @Override
   public User findById(Long id) {
     return repository.findById(id)

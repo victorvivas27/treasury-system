@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Button } from "@/shared/ui/button/Button";
+import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
 import "./PasswordVisibility.css";
@@ -52,30 +53,37 @@ export const LoginPage = () => {
         <p className="form-page-header__subtitle">Accede a Treasury System</p>
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
-        <label className="form-group">
-          <span className="form-label">Correo</span>
-          <input
-            className={`form-input ${fieldErrors.correo ? "input-error" : ""}`}
-            type="email"
-            value={correo}
-            onChange={(event) => {
-              setCorreo(event.target.value);
-              setFieldErrors((current) => ({ ...current, correo: "" }));
-            }}
-            aria-invalid={Boolean(fieldErrors.correo)}
-            aria-describedby={fieldErrors.correo ? "login-correo-error" : undefined}
-            required
-          />
+        <div className="form-group">
+          <span className="login-input-wrapper login-floating-field">
+            <input
+              id="login-correo"
+              className={`form-input ${fieldErrors.correo ? "input-error" : ""}`}
+              type="email"
+              placeholder="Ej.: nombre@correo.cl"
+              autoComplete="email"
+              value={correo}
+              onChange={(event) => {
+                setCorreo(event.target.value);
+                setFieldErrors((current) => ({ ...current, correo: "" }));
+              }}
+              aria-invalid={Boolean(fieldErrors.correo)}
+              aria-describedby={fieldErrors.correo ? "login-correo-error" : undefined}
+              required
+            />
+            <label htmlFor="login-correo" className="login-floating-label">Correo</label>
+          </span>
           {fieldErrors.correo && (
             <span id="login-correo-error" className="error-message">{fieldErrors.correo}</span>
           )}
-        </label>
-        <label className="form-group">
-          <span className="form-label">Contraseña</span>
-          <span className="password-input-wrapper">
+        </div>
+        <div className="form-group">
+          <span className="password-input-wrapper login-floating-field">
             <input
+              id="login-password"
               className="form-input password-input"
               type={showPassword ? "text" : "password"}
+              placeholder="Ej.: ClaveSegura1!"
+              autoComplete="current-password"
               value={password}
               onChange={(event) => {
                 setPassword(event.target.value);
@@ -85,6 +93,7 @@ export const LoginPage = () => {
               aria-describedby={fieldErrors.password ? "login-password-error" : undefined}
               required
             />
+            <label htmlFor="login-password" className="login-floating-label">Contraseña</label>
             <button
               className="password-visibility-button"
               type="button"
@@ -98,7 +107,7 @@ export const LoginPage = () => {
           {fieldErrors.password && (
             <span id="login-password-error" className="error-message">{fieldErrors.password}</span>
           )}
-        </label>
+        </div>
         <p
           className={`form-submit-message ${error ? "is-visible" : ""}`}
           role={error ? "alert" : undefined}
@@ -124,6 +133,7 @@ export const LoginPage = () => {
         </div>
         <Link className="auth-text-link" to="/olvide-password">¿Olvidaste tu contraseña?</Link>
       </form>
+      <ButtonBack />
     </main>
   );
 };

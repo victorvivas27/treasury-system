@@ -169,6 +169,20 @@
   box-shadow: 0 35px 90px rgba(0, 0, 0, 0.38);
 }
 
+:root[data-theme="light"] .public-home__preview,
+:root[data-theme="light"] .public-home__feature-grid article {
+  border-color: var(--border-color);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme="light"] .public-home__stats article,
+:root[data-theme="light"] .public-home__chart,
+:root[data-theme="light"] .public-home__module-list span {
+  border-color: var(--border-color);
+  background: var(--color-input);
+}
+
 .public-home__preview::before {
   position: absolute;
   z-index: -1;

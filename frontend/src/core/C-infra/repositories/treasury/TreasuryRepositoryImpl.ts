@@ -4,6 +4,7 @@ import type { ContributionConfig, ContributionFilters,
   ContributionType } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ExpenseFilters, ExpensePayload } from "@/core/A-domain/entities/treasury/Treasury";
 import type { IncomeFilters, IncomePayload } from "@/core/A-domain/entities/treasury/Treasury";
+import type { EventSettlement, SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ITreasuryRepository } from "@/core/A-domain/repository/treasury/ITreasuryRepository";
 import { apiClient } from "@/core/D-config/api";
 
@@ -112,5 +113,52 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async cancelIncome(id: number, reason: string) {
     return (await apiClient.patch(`${this.baseUrl}/ingresos/${id}/anulacion`,
       { reason })).data;
+  }
+  async listEvents(year: number): Promise<SchoolEvent[]> {
+    return (await apiClient.get(`${this.baseUrl}/eventos`, { params: { year } })).data;
+  }
+  async createEvent(payload: {
+    name: string; schoolYear: number; eventDate: string; description?: string;
+    participants: Array<{ course: string; standName: string; standType?: string }>;
+  }): Promise<SchoolEvent> {
+    return (await apiClient.post(`${this.baseUrl}/eventos`, payload)).data;
+  }
+  async updateEvent(id: number, payload: {
+    name: string; schoolYear: number; eventDate: string; description?: string;
+    participants: Array<{ course: string; standName: string; standType?: string }>;
+  }): Promise<SchoolEvent> {
+    return (await apiClient.put(`${this.baseUrl}/eventos/${id}`, payload)).data;
+  }
+  async deleteEvent(id: number): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/eventos/${id}`);
+  }
+  async addEventExpense(id: number, payload: {
+    description: string; amount: number; date: string; type: "COMMON" | "COURSE";
+    course?: string; category?: string; responsible?: string; paymentMethod?: string;
+  }): Promise<SchoolEvent> {
+    return (await apiClient.post(`${this.baseUrl}/eventos/${id}/gastos`, payload)).data;
+  }
+  async updateEventExpense(id: number, key: string, payload: {
+    description: string; amount: number; date: string; type: "COMMON" | "COURSE";
+    course?: string; category?: string; responsible?: string; paymentMethod?: string;
+  }): Promise<SchoolEvent> {
+    return (await apiClient.put(`${this.baseUrl}/eventos/${id}/gastos/${key}`, payload)).data;
+  }
+  async deleteEventExpense(id: number, key: string): Promise<SchoolEvent> {
+    return (await apiClient.delete(`${this.baseUrl}/eventos/${id}/gastos/${key}`)).data;
+  }
+  async registerEventRevenue(id: number, payload: {
+    amount: number; date: string; description?: string; paymentMethod?: string;
+  }): Promise<SchoolEvent> {
+    return (await apiClient.put(`${this.baseUrl}/eventos/${id}/recaudacion`, payload)).data;
+  }
+  async calculateEvent(id: number): Promise<EventSettlement> {
+    return (await apiClient.post(`${this.baseUrl}/eventos/${id}/liquidacion/calcular`)).data;
+  }
+  async confirmEvent(id: number): Promise<SchoolEvent> {
+    return (await apiClient.post(`${this.baseUrl}/eventos/${id}/liquidacion/confirmar`)).data;
+  }
+  async cancelEventSettlement(id: number): Promise<SchoolEvent> {
+    return (await apiClient.post(`${this.baseUrl}/eventos/${id}/liquidacion/cancelar`)).data;
   }
 }

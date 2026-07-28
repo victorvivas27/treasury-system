@@ -7,7 +7,6 @@ import { useUsers } from "@/presentation/hooks/user/useUsers";
 import { Button } from "@/shared/ui/button/Button";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import "./UsersPage.css";
@@ -67,7 +66,6 @@ export const UsersPage = () => {
     }
   };
 
-  if (loading && users.length === 0) return <LoadingState mesage="Cargando usuarios..." />;
   if (error) return <FeedbackState message={error} onRefresh={() => load()} />;
 
   return (
@@ -105,11 +103,12 @@ export const UsersPage = () => {
       )}
 
       <section>
-        {users.length === 0 ? (
+        {!loading && users.length === 0 ? (
           <EmptyState title="Sin usuarios" message="No hay usuarios registrados." />
         ) : (
           <UserTable
             users={users}
+            loading={loading}
             isAdmin={user?.rol === "ADMIN"}
             onEdit={(selectedUser) => {
               setShowForm(false);

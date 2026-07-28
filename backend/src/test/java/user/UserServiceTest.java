@@ -68,6 +68,33 @@ class UserServiceTest {
     }
 
     @Nested
+    class BootstrapAdminTests {
+        @Test
+        void bootstrapAdmin_deberiaCrearPrimerUsuarioComoAdministradorActivo() {
+            User initialAdmin = user(null, "initial-admin@mail.com", RoleEnum.USER);
+            when(encoder.encode("Password1!")).thenReturn("$2a$hash");
+            when(repository.save(initialAdmin)).thenReturn(initialAdmin);
+
+            User result = service.bootstrapAdmin(initialAdmin);
+
+            assertAll(
+                    () -> assertEquals(RoleEnum.ADMIN, result.getRol()),
+                    () -> assertTrue(result.getEnabled()),
+                    () -> assertTrue(result.getAccountNonLocked()));
+            verify(repository).count();
+            verify(repository).save(initialAdmin);
+        }
+
+        @Test
+        void bootstrapAdmin_deberiaBloquearseSiYaExisteUnUsuario() {
+            when(repository.count()).thenReturn(1L);
+
+            assertThrows(DomainException.class, () -> service.bootstrapAdmin(user));
+            verify(repository, never()).save(user);
+        }
+    }
+
+    @Nested
     class FindAndListTests {
         @Test
         void findById_deberiaRetornarUsuario() {

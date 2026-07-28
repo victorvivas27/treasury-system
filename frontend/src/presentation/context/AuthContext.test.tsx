@@ -62,7 +62,26 @@ describe("AuthContext", () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(localStorage.getItem("treasury.auth.token")).toBeNull();
-    expect(screen.getByRole("dialog")).toHaveTextContent("Sesión expirada");
-    expect(screen.getByRole("button", { name: "Volver al inicio" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Tu sesión terminó");
+    expect(screen.getByRole("button", { name: "Cerrar aviso" })).toBeInTheDocument();
+  });
+  it("[AuthContext #04] no debe avisar expiración si nunca hubo una sesión activa", () => {
+    renderHook(() => useAuth(), { wrapper });
+
+    act(() => window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)));
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("[AuthContext #05] limpia silenciosamente un token inválido al iniciar", async () => {
+    localStorage.setItem("treasury.auth.token", "token-viejo");
+    meMock.mockRejectedValue({ response: { status: 401 } });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

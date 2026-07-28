@@ -75,39 +75,41 @@ export const UserForm = ({
 
   return (
     <form className="form-card" onSubmit={handleSubmit} noValidate>
-      <label className="form-group">
-        <span className="form-label">Nombre</span>
-        <input
-          className={`form-input ${errors.nombre ? "input-error" : ""}`}
-          name="nombre"
-          value={formData.nombre}
-          onChange={handleChange}
-        />
+      <div className="form-group">
+        <span className="login-input-wrapper login-floating-field">
+          <input id="user-form-nombre"
+            className={`form-input ${errors.nombre ? "input-error" : ""}`}
+            name="nombre" placeholder="Ej.: Ana Pérez" autoComplete="name"
+            value={formData.nombre} onChange={handleChange} />
+          <label htmlFor="user-form-nombre" className="login-floating-label">Nombre</label>
+        </span>
         {errors.nombre && <span className="error-message">{errors.nombre}</span>}
-      </label>
+      </div>
 
-      <label className="form-group">
-        <span className="form-label">Correo</span>
-        <input
-          className={`form-input ${errors.correo ? "input-error" : ""}`}
-          name="correo"
-          type="email"
-          value={formData.correo}
-          onChange={handleChange}
-        />
+      <div className="form-group">
+        <span className="login-input-wrapper login-floating-field">
+          <input id="user-form-correo"
+            className={`form-input ${errors.correo ? "input-error" : ""}`}
+            name="correo" type="email" placeholder="Ej.: nombre@correo.cl"
+            autoComplete="email" value={formData.correo} onChange={handleChange} />
+          <label htmlFor="user-form-correo" className="login-floating-label">Correo</label>
+        </span>
         {errors.correo && <span className="error-message">{errors.correo}</span>}
-      </label>
+      </div>
 
-      <label className="form-group">
-        <span className="form-label">Contraseña</span>
-        <span className="password-input-wrapper">
+      <div className="form-group">
+        <span className="password-input-wrapper login-floating-field">
           <input
+            id="user-form-password"
             className={`form-input password-input ${errors.password ? "input-error" : ""}`}
             name="password"
             type={showPassword ? "text" : "password"}
+            placeholder="Ej.: ClaveSegura1!"
+            autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
           />
+          <label htmlFor="user-form-password" className="login-floating-label">Contraseña</label>
           <button
             className="password-visibility-button"
             type="button"
@@ -119,7 +121,7 @@ export const UserForm = ({
           </button>
         </span>
         {errors.password && <span className="error-message">{errors.password}</span>}
-      </label>
+      </div>
 
       {showRole && (
         <label className="form-group">

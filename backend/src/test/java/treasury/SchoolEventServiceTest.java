@@ -1,0 +1,259 @@
+package treasury;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.treasury.application.usecase.SchoolEventService;
+import com.tesoreria.treasury.core.model.*;
+import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
+import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.*;
+import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.SchoolEventJpaRepository;
+
+@ExtendWith(MockitoExtension.class)
+class SchoolEventServiceTest {
+  @Mock private SchoolEventJpaRepository events;
+  @Mock private TreasuryUseCase treasury;
+  @InjectMocks private SchoolEventService service;
+  private SchoolEventEntity event;
+
+  @BeforeEach
+  void setUp() {
+    lenient().when(events.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    event = new SchoolEventEntity();
+    event.setId(10L);
+    event.setName("Fiesta de la Familia");
+    event.setSchoolYear(2026);
+    event.setEventDate(LocalDate.of(2026, 9, 15));
+    event.setStatus(EventStatus.EN_PREPARACION);
+    event.setParticipants(new ArrayList<>(List.of(participant("1° Básico", "Hamburguesas"),
+        participant("2° Básico", "Hamburguesas"),
+        participant("3° Básico", "Hamburguesas"))));
+    event.setExpenses(new ArrayList<>());
+  }
+
+  @Test
+  void crear_deberiaGuardarCursosConfigurables() {
+    SchoolEventEntity saved = service.create(" Fiesta ", 2026, LocalDate.now(), "Descripción",
+        null, null, List.of(
+            new SchoolEventService.ParticipantInput("1a", "Comida", null, null, null, null),
+            new SchoolEventService.ParticipantInput("1b", "Comida", null, null, null, null)));
+
+    assertAll(() -> assertEquals("Fiesta", saved.getName()),
+        () -> assertEquals(EventStatus.BORRADOR, saved.getStatus()),
+        () -> assertEquals(2, saved.getParticipants().size()),
+        () -> assertEquals("1A", saved.getParticipants().get(0).getCourse()));
+    verify(events).save(saved);
+  }
+
+  @Test
+  void crear_deberiaRechazarCursosDuplicadosYDatosInvalidos() {
+    var duplicate = List.of(
+        new SchoolEventService.ParticipantInput("A", "Uno", null, null, null, null),
+        new SchoolEventService.ParticipantInput(" a ", "Dos", null, null, null, null));
+    assertAll(
+        () -> assertThrows(DomainException.class, () -> service.create("Fiesta", 2026,
+            LocalDate.now(), null, null, null, duplicate)),
+        () -> assertThrows(DomainException.class, () -> service.list(1999)));
+  }
+
+  @Test
+  void actualizarYEliminar_deberiaPermitirBorradorSinMovimientos() {
+    event.setStatus(EventStatus.BORRADOR);
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    var participants = List.of(
+        new SchoolEventService.ParticipantInput("1° Básico", "Completos",
+            "Comida", null, null, null),
+        new SchoolEventService.ParticipantInput("2° Básico", "Completos",
+            null, null, null, null));
+
+    SchoolEventEntity updated = service.update(10L, "Fiesta actualizada", 2026,
+        LocalDate.of(2026, 10, 1), "Nueva descripción", EventStatus.EN_PREPARACION,
+        null, participants);
+    updated.setStatus(EventStatus.BORRADOR);
+    service.delete(10L);
+
+    assertAll(
+        () -> assertEquals("Fiesta actualizada", updated.getName()),
+        () -> assertEquals(2, updated.getParticipants().size()),
+        () -> assertEquals("Completos", updated.getParticipants().get(0).getStandName()));
+    verify(events).deleteById(10L);
+  }
+
+  @Test
+  void eliminar_deberiaBorrarFisicamenteEventoConMovimientos() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    event.setStatus(EventStatus.BORRADOR);
+    event.setGrossRevenue(BigDecimal.TEN);
+
+    service.delete(10L);
+
+    verify(events).deleteById(10L);
+    verify(events, never()).save(event);
+  }
+
+  @Test
+  void cancelarLiquidacion_deberiaVolverUnPasoAntesDePermitirEliminar() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    event.setStatus(EventStatus.CERRADO);
+    event.setSettlementConfirmed(true);
+    long incomeId = 100L;
+    for (SchoolEventParticipantEmbeddable participant : event.getParticipants()) {
+      participant.setTransferIncomeId(incomeId++);
+      participant.setTransferStatus(EventTransferStatus.TRANSFERRED);
+    }
+
+    assertThrows(DomainException.class, () -> service.delete(10L, "tesorero"));
+    service.cancelSettlement(10L, "tesorero");
+
+    assertAll(
+        () -> assertEquals(EventStatus.EN_LIQUIDACION, event.getStatus()),
+        () -> assertFalse(event.isSettlementConfirmed()),
+        () -> assertTrue(event.getParticipants().stream()
+            .allMatch(item -> item.getTransferStatus() == EventTransferStatus.PENDING
+                && item.getTransferIncomeId() == null)));
+    verify(treasury, times(3)).cancelIncome(anyLong(),
+        eq("Liquidación cancelada: Fiesta de la Familia"), eq("tesorero"));
+
+    service.delete(10L, "tesorero");
+    verify(events).deleteById(10L);
+    verify(events).save(event);
+  }
+
+  @Test
+  void gasto_deberiaValidarCursoYExcluirAnuladoDelCalculo() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    service.addExpense(10L, expense("Sonido", "60000", EventExpenseType.COMMON, null), "tesorero");
+    service.addExpense(10L, expense("Ingredientes", "40000",
+        EventExpenseType.COURSE, "1° Básico"), "tesorero");
+    String commonKey = event.getExpenses().get(0).getKey();
+    service.cancelExpense(10L, commonKey, "Duplicado", "tesorero");
+    event.setGrossRevenue(new BigDecimal("900000"));
+
+    EventSettlementCalculator.Result result = service.calculate(10L);
+
+    assertAll(() -> assertEquals(BigDecimal.ZERO, result.commonExpenses()),
+        () -> assertEquals(new BigDecimal("300000"), result.grossShare()),
+        () -> assertEquals(new BigDecimal("286666"), result.courses().get(0).netProfit()),
+        () -> assertEquals(new BigDecimal("286666"), result.courses().get(1).netProfit()),
+        () -> assertEquals(EventExpenseStatus.CANCELLED,
+            event.getExpenses().get(0).getStatus()));
+  }
+
+  @Test
+  void gasto_deberiaRechazarAsociacionesIncompatibles() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    assertAll(
+        () -> assertThrows(DomainException.class, () -> service.addExpense(10L,
+            expense("Común", "10", EventExpenseType.COMMON, "1° Básico"), "user")),
+        () -> assertThrows(DomainException.class, () -> service.addExpense(10L,
+            expense("Curso", "10", EventExpenseType.COURSE, "4° Básico"), "user")));
+  }
+
+  @Test
+  void gasto_deberiaPermitirEditarYAnularUnRegistroActivo() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    SchoolEventEntity created = service.addExpense(10L,
+        expense("Ingredientes", "3000", EventExpenseType.COURSE, "1° Básico"), "tesorero");
+    String key = created.getExpenses().get(0).getKey();
+
+    SchoolEventEntity updated = service.updateExpense(10L, key,
+        expense("Ingredientes corregidos", "3500", EventExpenseType.COURSE, "1° Básico"));
+    service.cancelExpense(10L, key, "Eliminado desde el evento", "tesorero");
+
+    SchoolEventExpenseEmbeddable changed = updated.getExpenses().get(0);
+    assertAll(
+        () -> assertEquals("Ingredientes corregidos", changed.getDescription()),
+        () -> assertEquals(new BigDecimal("3500"), changed.getAmount()),
+        () -> assertEquals(EventExpenseStatus.CANCELLED, changed.getStatus()),
+        () -> assertThrows(DomainException.class, () -> service.updateExpense(10L, key,
+            expense("Otro", "4000", EventExpenseType.COURSE, "1° Básico"))));
+  }
+
+  @Test
+  void gasto_deberiaEliminarFisicamenteElRegistro() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    SchoolEventEntity created = service.addExpense(10L,
+        expense("Ingredientes", "3000", EventExpenseType.COURSE, "1° Básico"), "tesorero");
+    String key = created.getExpenses().get(0).getKey();
+
+    SchoolEventEntity updated = service.deleteExpense(10L, key);
+
+    assertTrue(updated.getExpenses().isEmpty());
+    verify(events, times(2)).save(event);
+  }
+
+  @Test
+  void liquidacion_deberiaRegistrarIngresosUnaSolaVez() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    service.registerRevenue(10L, new BigDecimal("901000"), LocalDate.now(),
+        "Cierre", "CASH", null, null);
+    service.addExpense(10L, expense("Sonido", "60000", EventExpenseType.COMMON, null), "user");
+    service.addExpense(10L, expense("Ingredientes", "40000",
+        EventExpenseType.COURSE, "1° Básico"), "user");
+    TreasuryIncome income = mock(TreasuryIncome.class);
+    when(income.id()).thenReturn(99L);
+    when(treasury.createIncome(anyInt(), anyString(), any(), any(), any(), anyString(), any(),
+        isNull(), anyString(), isNull(), anyString(), anyString())).thenReturn(income);
+
+    SchoolEventEntity confirmed = service.confirm(10L, "tesorero");
+    SchoolEventEntity repeated = service.confirm(10L, "tesorero");
+
+    assertAll(() -> assertTrue(confirmed.isSettlementConfirmed()),
+        () -> assertEquals(EventStatus.CERRADO, confirmed.getStatus()),
+        () -> assertSame(confirmed, repeated),
+        () -> assertTrue(confirmed.getParticipants().stream()
+            .allMatch(item -> item.getTransferStatus() == EventTransferStatus.TRANSFERRED)));
+    ArgumentCaptor<String> descriptions = ArgumentCaptor.forClass(String.class);
+    verify(treasury, times(3)).createIncome(anyInt(), anyString(), any(), any(), any(), anyString(),
+        any(), isNull(), anyString(), isNull(), anyString(), anyString());
+    verify(treasury, times(3)).createIncome(anyInt(), descriptions.capture(), any(), any(), any(),
+        anyString(), any(), isNull(), anyString(), isNull(), anyString(), anyString());
+    assertEquals(3, descriptions.getAllValues().stream().distinct().count());
+  }
+
+  @Test
+  void liquidacion_deberiaPermitirRemanenteYBloquearGastosMayoresALaRecaudacion() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    event.setGrossRevenue(new BigDecimal("100000"));
+    TreasuryIncome income = mock(TreasuryIncome.class);
+    when(income.id()).thenReturn(99L);
+    when(treasury.createIncome(anyInt(), anyString(), any(), any(), any(), anyString(), any(),
+        isNull(), anyString(), isNull(), anyString(), anyString())).thenReturn(income);
+
+    SchoolEventEntity confirmed = service.confirm(10L, "user");
+
+    assertAll(
+        () -> assertTrue(confirmed.isSettlementConfirmed()),
+        () -> assertEquals(BigDecimal.ONE, confirmed.getRemainder()));
+
+    confirmed.setSettlementConfirmed(false);
+    confirmed.setStatus(EventStatus.EN_LIQUIDACION);
+    event.setGrossRevenue(new BigDecimal("100000"));
+    service.addExpense(10L, expense("Exceso", "120000",
+        EventExpenseType.COURSE, "1° Básico"), "user");
+    assertThrows(DomainException.class, () -> service.confirm(10L, "user"));
+  }
+
+  private SchoolEventParticipantEmbeddable participant(String course, String stand) {
+    SchoolEventParticipantEmbeddable value = new SchoolEventParticipantEmbeddable();
+    value.setCourse(course);
+    value.setStandName(stand);
+    value.setTransferStatus(EventTransferStatus.PENDING);
+    return value;
+  }
+
+  private SchoolEventService.ExpenseInput expense(String description, String amount,
+      EventExpenseType type, String course) {
+    return new SchoolEventService.ExpenseInput(description, new BigDecimal(amount),
+        LocalDate.now(), type, course, "MATERIALS", null, "CASH", null, null);
+  }
+}

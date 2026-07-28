@@ -42,6 +42,11 @@
   gap: var(--xs);
 }
 
+.usuarios-table__skeleton {
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+}
+
 .usuarios-role,
 .usuarios-status {
   display: inline-block;

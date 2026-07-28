@@ -8,11 +8,13 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   EXPENSE_CATEGORIES, EXPENSE_PAYMENT_METHODS,
   expenseCategoryLabel, expensePaymentLabel,
 } from "@/shared/constants/ExpenseConstants";
 import "./ExpensesPage.css";
+import "./ExpensesSkeleton.css";
 
 const repository = new TreasuryRepositoryImpl();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
@@ -171,6 +173,11 @@ export const ExpensesPage = () => {
     </header>
 
     <section className="expenses-summary" aria-label="Resumen financiero">
+      {loading ? Array.from({ length: 3 }, (_, index) =>
+        <article className="expense-summary-skeleton" key={index} aria-hidden="true">
+          <div className="skeleton-block" /><div className="skeleton-block" />
+          <div className="skeleton-block" />
+        </article>) : <>
       <article><span>Total recaudado</span><strong>{money.format(summary.totalIncome)}</strong>
         <small>Ingresos válidos del año</small></article>
       <article className="is-expense"><span>Total de egresos</span>
@@ -179,6 +186,7 @@ export const ExpensesPage = () => {
         <span>Saldo disponible</span><strong>{money.format(summary.availableBalance)}</strong>
         <small>{summary.availableBalance < 0 ? "Saldo negativo" : "Ingresos menos egresos"}</small>
       </article>
+      </>}
     </section>
 
     <section className="expenses-filters" aria-label="Filtros de egresos">
@@ -217,7 +225,7 @@ export const ExpensesPage = () => {
       </select></label>
     </section>
 
-    {loading ? <p className="expenses-empty">Cargando egresos…</p>
+    {loading ? <ExpenseCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
       : <section className="expenses-grid" aria-label="Listado de egresos">
         {items.map((item) => <article className={`expense-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
@@ -310,3 +318,18 @@ export const ExpensesPage = () => {
       message={error} onClose={() => setError("")} />
   </main>;
 };
+
+const ExpenseCardsSkeleton = () => (
+  <section className="expenses-grid" aria-label="Cargando egresos" role="status">
+    {Array.from({ length: 6 }, (_, index) => (
+      <article className="expense-card expense-card--skeleton" key={index} aria-hidden="true">
+        <header><div className="skeleton-block" /><div className="skeleton-block" /></header>
+        <div className="skeleton-block" /><div className="skeleton-block" />
+        <div className="expense-details-skeleton">
+          {Array.from({ length: 3 }, (_, row) => <div className="skeleton-block" key={row} />)}
+        </div>
+        <div className="skeleton-block expense-action-skeleton" />
+      </article>
+    ))}
+  </section>
+);
