@@ -4,6 +4,7 @@ import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";
 import { Button } from "@/shared/ui/button/Button";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import type { FC } from "react";
 
@@ -236,25 +237,9 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
         </tbody>
       </table>
 
-      <div className="pagination">
-        <Button
-          onClick={onPrevPage}
-          disabled={!hasPrevPage || loading}
-          variant="secondary"
-          size="small"
-          label="◀ Anterior"
-        />
-
-        <span className="no-highlight">Página {currentPage + 1}</span>
-
-        <Button
-          onClick={onNextPage}
-          disabled={loading || isLastPage}
-          variant="secondary"
-          size="small"
-          label="Siguiente ▶"
-        />
-      </div>
+      <Pagination currentPage={currentPage + 1} hasPrevious={hasPrevPage}
+        hasNext={!isLastPage} loading={loading} onPrevious={onPrevPage}
+        onNext={onNextPage} ariaLabel="Paginación de apoderados" />
 
     </article>
   );

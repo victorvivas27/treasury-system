@@ -129,6 +129,14 @@ export const EventsPage = () => {
           </aside>
           {selected && <EventDetail event={selected} settlement={settlement}
             onExpense={() => setDialog("expense")} onRevenue={() => setDialog("revenue")}
+            onDeleteRevenue={async () => {
+              try {
+                refreshSelected(await repository.deleteEventRevenue(selected.id));
+                setFeedback("Recaudación eliminada.");
+              } catch (error) {
+                setFeedback(apiErrorMessage(error, "No fue posible eliminar la recaudación."));
+              }
+            }}
             onEdit={() => setDialog("edit")}
             onEditExpense={expense => { setExpenseToEdit(expense); setDialog("expense"); }}
             onDeleteExpense={async expense => {
@@ -183,14 +191,17 @@ const EventsSkeleton = () => <div className="events-skeleton" role="status" aria
 </div>;
 
 const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDeleted,
-  onCalculate, onConfirm, onCancelSettlement, onEditExpense, onDeleteExpense }: {
+  onCalculate, onConfirm, onCancelSettlement, onEditExpense, onDeleteExpense,
+  onDeleteRevenue }: {
   event: SchoolEvent; settlement?: EventSettlement; onExpense: () => void; onRevenue: () => void;
+  onDeleteRevenue: () => Promise<void>;
   onEdit: () => void; onDeleted: () => void; onCalculate: () => void; onConfirm: () => void;
   onCancelSettlement: () => void;
   onEditExpense: (expense: SchoolEventExpense) => void;
   onDeleteExpense: (expense: SchoolEventExpense) => Promise<void>;
 }) => {
   const [deleteArmed, setDeleteArmed] = useState(false);
+  const [revenueDeleteArmed, setRevenueDeleteArmed] = useState(false);
   const [cancelArmed, setCancelArmed] = useState(false);
   const closed = event.status === "CERRADO" || event.status === "CANCELADO";
   return <section className="event-detail">
@@ -199,7 +210,17 @@ const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDelete
         <p><FiCalendar /> {event.eventDate} · <FiUsers /> {event.participants.length} cursos</p></div>
         <div className="event-actions">
           {!closed && <><button onClick={onExpense}>Registrar gasto</button>
-          <button onClick={onRevenue}>Registrar recaudación</button>
+          <button onClick={onRevenue}>{event.grossRevenue != null
+            ? "Editar recaudación" : "Registrar recaudación"}</button>
+          {event.grossRevenue != null && <button className={revenueDeleteArmed ? "danger" : ""}
+            onClick={async () => {
+              if (!revenueDeleteArmed) { setRevenueDeleteArmed(true); return; }
+              await onDeleteRevenue();
+              setRevenueDeleteArmed(false);
+            }}><FiTrash2 /> {revenueDeleteArmed
+              ? "Confirmar eliminación" : "Eliminar recaudación"}</button>}
+          {revenueDeleteArmed && <button type="button"
+            onClick={() => setRevenueDeleteArmed(false)}>Cancelar</button>}
           <button onClick={onEdit}><FiEdit2 /> Editar</button></>}
           {closed && <button className={cancelArmed ? "danger" : ""} onClick={() => {
             if (!cancelArmed) { setCancelArmed(true); return; }
@@ -402,10 +423,18 @@ const RevenueForm = ({ event, onClose, onSaved }: { event: SchoolEvent; onClose:
   onSaved: (event: SchoolEvent) => void }) => {
   const [error, setError] = useState("");
   const [amount, setAmount] = useState(event.grossRevenue?.toString() ?? "");
-  const payload = useMemo(() => ({ amount: Number(amount), date: today,
-    description: `Recaudación total ${event.name} ${event.schoolYear}`, paymentMethod: "CASH" }),
-    [amount, event]);
-  return <Modal title="Registrar recaudación" onClose={onClose}><form onSubmit={async e => {
+  const [date, setDate] = useState(event.revenueDate ?? today);
+  const [description, setDescription] = useState(event.revenueDescription ??
+    `Recaudación total ${event.name} ${event.schoolYear}`);
+  const [paymentMethod, setPaymentMethod] = useState(event.revenuePaymentMethod ?? "CASH");
+  const [receiptNumber, setReceiptNumber] = useState(event.revenueReceipt ?? "");
+  const [observations, setObservations] = useState(event.revenueObservations ?? "");
+  const payload = useMemo(() => ({ amount: Number(amount), date, description, paymentMethod,
+    receiptNumber: receiptNumber || undefined, observations: observations || undefined }),
+    [amount, date, description, paymentMethod, receiptNumber, observations]);
+  const editing = event.grossRevenue != null;
+  return <Modal title={editing ? "Editar recaudación" : "Registrar recaudación"}
+    onClose={onClose}><form onSubmit={async e => {
     e.preventDefault();
     try { setError(""); onSaved(await repository.registerEventRevenue(event.id, payload)); }
     catch (requestError) {
@@ -415,10 +444,27 @@ const RevenueForm = ({ event, onClose, onSaved }: { event: SchoolEvent; onClose:
     <label>Monto total recaudado<input autoFocus required min="1" type="number"
       inputMode="numeric" placeholder="0" value={amount}
       onChange={e => setAmount(e.target.value)} /></label>
+    <div className="form-row">
+      <label>Fecha<input required type="date" value={date}
+        onChange={e => setDate(e.target.value)} /></label>
+      <label>Medio de pago<select value={paymentMethod}
+        onChange={e => setPaymentMethod(e.target.value)}>
+        <option value="CASH">Efectivo</option>
+        <option value="TRANSFER">Transferencia</option>
+        <option value="MIXED">Mixto</option>
+      </select></label>
+    </div>
+    <label>Descripción<input value={description}
+      onChange={e => setDescription(e.target.value)} /></label>
+    <label>Número de comprobante (opcional)<input value={receiptNumber}
+      onChange={e => setReceiptNumber(e.target.value)} /></label>
+    <label>Observaciones (opcional)<textarea value={observations}
+      onChange={e => setObservations(e.target.value)} /></label>
     <p>La recaudación se dividirá por la cantidad real de cursos participantes.</p>
     {error && <p className="events-form-error" role="alert">{error}</p>}
     <footer><button type="button" onClick={onClose}>Cancelar</button>
-      <button type="submit"><FiDollarSign /> Guardar recaudación</button></footer></form></Modal>;
+      <button type="submit"><FiDollarSign /> {editing
+        ? "Guardar cambios" : "Guardar recaudación"}</button></footer></form></Modal>;
 };
 
 const Modal = ({ title, onClose, children }: { title: string; onClose: () => void;

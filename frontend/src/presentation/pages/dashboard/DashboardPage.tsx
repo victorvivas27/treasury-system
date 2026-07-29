@@ -12,6 +12,7 @@ import { expenseCategoryLabel } from "@/shared/constants/ExpenseConstants";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./DashboardPage.css";
@@ -23,6 +24,8 @@ const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
 });
 const compact = new Intl.NumberFormat("es-CL", { notation: "compact" });
+const ACTIVITY_PAGE_SIZE = 5;
+const AUDIT_PAGE_SIZE = 5;
 const monthName = (month: number) => new Intl.DateTimeFormat("es-CL", { month: "short" })
   .format(new Date(2026, month - 1, 1)).replace(".", "");
 
@@ -39,6 +42,8 @@ export const DashboardPage = () => {
   const [cleanup, setCleanup] = useState<"selected" | "all" | null>(null);
   const [cleanupMessage, setCleanupMessage] = useState("");
   const [cleanupError, setCleanupError] = useState("");
+  const [activityPage, setActivityPage] = useState(1);
+  const [auditPage, setAuditPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,6 +56,8 @@ export const DashboardPage = () => {
       setData(overview);
       setContributions(contributionSummary);
       setSelectedAudits(new Set());
+      setActivityPage(1);
+      setAuditPage(1);
     } catch {
       setData(undefined);
       setContributions(undefined);
@@ -68,6 +75,16 @@ export const DashboardPage = () => {
   const categories = useMemo(() => data?.expensesByCategory.slice(0, 6).map(item => ({
     ...item, name: expenseCategoryLabel(item.category),
   })) ?? [], [data]);
+  const activityPages = Math.max(1,
+    Math.ceil((data?.recentMovements.length ?? 0) / ACTIVITY_PAGE_SIZE));
+  const visibleMovements = useMemo(() => data?.recentMovements.slice(
+    (activityPage - 1) * ACTIVITY_PAGE_SIZE, activityPage * ACTIVITY_PAGE_SIZE) ?? [],
+    [data, activityPage]);
+  const auditPages = Math.max(1,
+    Math.ceil((data?.auditTrail.length ?? 0) / AUDIT_PAGE_SIZE));
+  const visibleAudits = useMemo(() => data?.auditTrail.slice(
+    (auditPage - 1) * AUDIT_PAGE_SIZE, auditPage * AUDIT_PAGE_SIZE) ?? [],
+    [data, auditPage]);
 
   const clearAudits = async () => {
     if (!cleanup) return;
@@ -205,25 +222,37 @@ export const DashboardPage = () => {
         </article>
       </section>
 
-      {isAdmin && <section className="dashboard-panel dashboard-activity">
+      <section className="dashboard-panel dashboard-activity">
         <header><div><span>Últimos registros</span><h2>Actividad reciente</h2></div></header>
         {data.recentMovements.length === 0 ? <p className="dashboard-empty">
           No hay movimientos registrados para {year}.</p> : <div className="dashboard-table-wrap">
           <table><thead><tr><th>Tipo</th><th>Descripción</th><th>Fecha</th>
             <th>Estado</th><th>Monto</th><th>Detalle</th></tr></thead>
-            <tbody>{data.recentMovements.map(item => <tr key={`${item.type}-${item.id}`}>
+            <tbody>{visibleMovements.map(item => <tr key={`${item.type}-${item.id}`}>
               <td><span className={`movement-type movement-type--${item.type.toLowerCase()}`}>
-                {item.type === "INGRESO" ? "Ingreso" : "Egreso"}</span></td>
+                {item.type === "INGRESO" ? "Ingreso" :
+                  item.type === "CUOTA" ? "Cuota" : "Egreso"}</span></td>
               <td>{item.description}</td><td>{new Date(`${item.date}T00:00:00`)
                 .toLocaleDateString("es-CL")}</td>
               <td>{item.status === "ACTIVE" ? "Activo" : "Anulado"}</td>
-              <td className={item.type === "INGRESO" ? "is-positive" : "is-negative"}>
-                {item.type === "INGRESO" ? "+" : "-"}{money.format(item.amount)}</td>
-              <td><Link to={item.type === "INGRESO"
-                ? "/tesoreria/ingresos" : "/tesoreria/gastos"}>Abrir</Link></td>
-            </tr>)}</tbody></table>
+              <td className={item.type !== "EGRESO" ? "is-positive" : "is-negative"}>
+                {item.type !== "EGRESO" ? "+" : "-"}{money.format(item.amount)}</td>
+              <td><Link to={item.type === "CUOTA" ? "/tesoreria/cuotas"
+                : item.type === "INGRESO" ? "/tesoreria/ingresos"
+                : "/tesoreria/gastos"}>Abrir</Link></td>
+            </tr>)}
+            {Array.from({ length: ACTIVITY_PAGE_SIZE - visibleMovements.length },
+              (_, index) => <tr className="dashboard-empty-row" aria-hidden="true"
+                key={`empty-${index}`}><td colSpan={6}>&nbsp;</td></tr>)}
+            </tbody></table>
+          {activityPages > 1 && <Pagination currentPage={activityPage}
+            totalPages={activityPages} hasPrevious={activityPage > 1}
+            hasNext={activityPage < activityPages}
+            onPrevious={() => setActivityPage(page => page - 1)}
+            onNext={() => setActivityPage(page => page + 1)}
+            ariaLabel="Paginación de actividad reciente" />}
         </div>}
-      </section>}
+      </section>
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
         <header><div><span>Historial del sistema</span><h2>Trazas de Tesorería</h2>
@@ -240,19 +269,34 @@ export const DashboardPage = () => {
           <table><thead><tr>
             <th className="audit-checkbox">
               <input type="checkbox" aria-label="Seleccionar todas las trazas visibles"
-                checked={selectedAudits.size === data.auditTrail.length}
-                onChange={event => setSelectedAudits(event.target.checked
-                  ? new Set(data.auditTrail.map(item => item.id)) : new Set())} />
+                checked={visibleAudits.length > 0
+                  && visibleAudits.every(item => selectedAudits.has(item.id))}
+                onChange={event => setSelectedAudits(current => {
+                  const next = new Set(current);
+                  visibleAudits.forEach(item => {
+                    if (event.target.checked) next.add(item.id); else next.delete(item.id);
+                  });
+                  return next;
+                })} />
             </th>
             <th>Acción</th><th>Tipo</th><th>Detalle</th><th>Usuario</th><th>Fecha</th>
-          </tr></thead><tbody>{data.auditTrail.map(item => <tr key={item.id}>
+          </tr></thead><tbody>{visibleAudits.map(item => <tr key={item.id}>
             <td className="audit-checkbox"><input type="checkbox"
               aria-label={`Seleccionar traza ${item.id}`} checked={selectedAudits.has(item.id)}
               onChange={() => toggleAudit(item.id)} /></td>
             <td>{item.action.replaceAll("_", " ")}</td><td>{item.entityType}</td>
             <td>{item.details || `Registro ${item.entityId}`}</td><td>{item.performedBy}</td>
             <td>{new Date(item.createdAt).toLocaleString("es-CL")}</td>
-          </tr>)}</tbody></table>
+          </tr>)}
+          {Array.from({ length: AUDIT_PAGE_SIZE - visibleAudits.length },
+            (_, index) => <tr className="dashboard-empty-row" aria-hidden="true"
+              key={`empty-audit-${index}`}><td colSpan={6}>&nbsp;</td></tr>)}
+          </tbody></table>
+          {auditPages > 1 && <Pagination currentPage={auditPage} totalPages={auditPages}
+            hasPrevious={auditPage > 1} hasNext={auditPage < auditPages}
+            onPrevious={() => setAuditPage(page => page - 1)}
+            onNext={() => setAuditPage(page => page + 1)}
+            ariaLabel="Paginación de trazas de Tesorería" />}
         </div>}
       </section>}
     </>}

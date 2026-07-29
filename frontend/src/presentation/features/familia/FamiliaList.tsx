@@ -1,4 +1,5 @@
 import { Button } from "@/shared/ui/button/Button";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "./style/FamiliaList.css";
 import type { FC } from "react";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
@@ -215,25 +216,9 @@ export const FamiliaList: FC<FamiliaListProps> = ({
         </tbody>
       </table>
 
-      <div className="pagination">
-        <Button
-          onClick={onPrevPage}
-          disabled={!hasPrevPage || loading}
-          variant="secondary"
-          size="small"
-          label="Anterior"
-        />
-
-        <span className="no-highlight">Pagina {currentPage + 1}</span>
-
-        <Button
-          onClick={onNextPage}
-          disabled={loading || isLastPage}
-          variant="secondary"
-          size="small"
-          label="Siguiente"
-        />
-      </div>
+      <Pagination currentPage={currentPage + 1} hasPrevious={hasPrevPage}
+        hasNext={!isLastPage} loading={loading} onPrevious={onPrevPage}
+        onNext={onNextPage} ariaLabel="Paginación de familias" />
     </article>
   );
 };

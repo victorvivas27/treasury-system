@@ -56,7 +56,7 @@ export interface TreasuryDashboardOverview {
   expensesByCategory: Array<{ category: ExpenseCategory; amount: number }>;
   recentMovements: Array<{
     id: number;
-    type: "INGRESO" | "EGRESO";
+    type: "INGRESO" | "EGRESO" | "CUOTA";
     description: string;
     amount: number;
     date: string;
@@ -294,6 +294,11 @@ export interface SchoolEvent {
   participants: SchoolEventParticipant[];
   expenses: SchoolEventExpense[];
   grossRevenue?: number;
+  revenueDate?: string;
+  revenueDescription?: string;
+  revenuePaymentMethod?: string;
+  revenueReceipt?: string;
+  revenueObservations?: string;
   commonExpenses: number;
   courseExpenses: number;
   netProfit: number;

@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -213,6 +214,14 @@ public class TreasuryService implements TreasuryUseCase {
     AnnualFeeConfig config = repository.findConfigByYear(year).orElse(null);
     List<FeeObligation> obligations = config == null
         ? List.of() : repository.findObligationsByConfig(config.id());
+    List<FamilyFeePlan> plans = config == null
+        ? List.of() : repository.findPlansByConfig(config.id());
+    List<FeePayment> feePayments = repository.findActivePaymentsByObligationIds(
+        obligations.stream().map(FeeObligation::id).toList());
+    Map<Long, FeeObligation> obligationsById = obligations.stream()
+        .collect(java.util.stream.Collectors.toMap(FeeObligation::id, item -> item));
+    Map<Long, FamilyFeePlan> plansById = plans.stream()
+        .collect(java.util.stream.Collectors.toMap(FamilyFeePlan::id, item -> item));
     TreasuryDashboard quotas = config == null
         ? new TreasuryDashboard(0, 0, 0, 0, 0, BigDecimal.ZERO, BigDecimal.ZERO)
         : dashboard(year);
@@ -226,6 +235,9 @@ public class TreasuryService implements TreasuryUseCase {
           .filter(item -> item.status() == IncomeStatus.ACTIVE
               && item.incomeDate().getMonthValue() == currentMonth)
           .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+      income = income.add(feePayments.stream()
+          .filter(item -> item.paymentDate().getMonthValue() == currentMonth)
+          .map(FeePayment::amount).reduce(BigDecimal.ZERO, BigDecimal::add));
       BigDecimal expense = expenses.stream()
           .filter(item -> item.status() == ExpenseStatus.ACTIVE
               && item.expenseDate().getMonthValue() == currentMonth)
@@ -251,7 +263,7 @@ public class TreasuryService implements TreasuryUseCase {
             TreasuryDashboardOverview.CategoryMetric::amount).reversed())
         .toList();
 
-    List<TreasuryDashboardOverview.RecentMovement> recent = java.util.stream.Stream.concat(
+    var ordinaryMovements = java.util.stream.Stream.concat(
         incomes.stream().filter(item -> item.status() == IncomeStatus.ACTIVE)
             .map(item -> new TreasuryDashboardOverview.RecentMovement(
             item.id(), "INGRESO", item.description(), item.amount(), item.incomeDate(),
@@ -259,10 +271,19 @@ public class TreasuryService implements TreasuryUseCase {
         expenses.stream().filter(item -> item.status() == ExpenseStatus.ACTIVE)
             .map(item -> new TreasuryDashboardOverview.RecentMovement(
             item.id(), "EGRESO", item.description(), item.amount(), item.expenseDate(),
-            item.status().name())))
+            item.status().name())));
+    var feeMovements = feePayments.stream().map(payment -> {
+      FeeObligation obligation = obligationsById.get(payment.obligationId());
+      FamilyFeePlan plan = obligation == null ? null : plansById.get(obligation.planId());
+      String concept = obligation == null ? "Cuota familiar" : obligation.concept();
+      String family = plan == null ? "" : " · Familia #" + plan.familyId();
+      return new TreasuryDashboardOverview.RecentMovement(payment.id(), "CUOTA",
+          concept + family, payment.amount(), payment.paymentDate(), "ACTIVE");
+    });
+    List<TreasuryDashboardOverview.RecentMovement> recent = java.util.stream.Stream.concat(
+        ordinaryMovements, feeMovements)
         .sorted(java.util.Comparator.comparing(
             TreasuryDashboardOverview.RecentMovement::date).reversed())
-        .limit(8)
         .toList();
 
     List<TreasuryDashboardOverview.AuditEntry> auditTrail = repository.findAudits(

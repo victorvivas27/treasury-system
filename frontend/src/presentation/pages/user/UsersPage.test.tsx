@@ -17,6 +17,7 @@ describe("UsersPage", () => {
       loading: true,
       error: null,
       totalPages: 1,
+      pageSize: 5,
       load: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -27,7 +28,7 @@ describe("UsersPage", () => {
     const { container } = render(<UsersPage />);
 
     expect(screen.getByRole("table")).toBeInTheDocument();
-    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(48);
+    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(30);
     expect(screen.queryByText("Sin usuarios")).not.toBeInTheDocument();
   });
 
@@ -51,6 +52,7 @@ describe("UsersPage", () => {
       loading: false,
       error: null,
       totalPages: 1,
+      pageSize: 5,
       load: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -71,6 +73,6 @@ describe("UsersPage", () => {
     fireEvent.click(screen.getByTestId("delete-btn-2"));
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Eliminar" }));
 
-    await waitFor(() => expect(remove).toHaveBeenCalledWith(2));
+    await waitFor(() => expect(remove).toHaveBeenCalledWith(2, 0));
   });
 });

@@ -13,3 +13,6 @@
   .contribution-donut{padding:.75rem}
   .contribution-donut__chart{height:200px}
 }
+
+.movement-type--cuota{background:color-mix(in srgb,var(--color-info) 15%,transparent);color:var(--color-info)}
+.dashboard-empty-row{visibility:hidden}

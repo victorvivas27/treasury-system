@@ -249,6 +249,32 @@ public class SchoolEventService {
   }
 
   @Transactional
+  public SchoolEventEntity deleteRevenue(Long eventId) {
+    SchoolEventEntity event = editable(eventId);
+    if (event.getGrossRevenue() == null) {
+      throw error(TreasuryErrorCode.NOT_FOUND, "Recaudación de evento no encontrada");
+    }
+    event.setGrossRevenue(null);
+    event.setRevenueDate(null);
+    event.setRevenueDescription(null);
+    event.setRevenuePaymentMethod(null);
+    event.setRevenueReceipt(null);
+    event.setRevenueObservations(null);
+    event.setRemainder(null);
+    event.setSettlementConfirmed(false);
+    event.setStatus(EventStatus.REALIZADO);
+    event.getParticipants().forEach(participant -> {
+      participant.setGrossShare(null);
+      participant.setOwnExpenses(null);
+      participant.setNetProfit(null);
+      participant.setTransferStatus(EventTransferStatus.PENDING);
+      participant.setTransferIncomeId(null);
+    });
+    event.setUpdatedAt(LocalDateTime.now());
+    return events.save(event);
+  }
+
+  @Transactional
   public EventSettlementCalculator.Result calculate(Long eventId) {
     SchoolEventEntity event = get(eventId);
     BigDecimal common = activeExpenses(event, EventExpenseType.COMMON, null);

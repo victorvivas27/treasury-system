@@ -13,7 +13,8 @@ import "./UsersPage.css";
 
 export const UsersPage = () => {
   const { user } = useAuth();
-  const { users, loading, error, load, create, update, remove } = useUsers();
+  const { users, loading, error, totalPages, pageSize, load, create, update, remove } = useUsers();
+  const [currentPage, setCurrentPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -29,13 +30,14 @@ export const UsersPage = () => {
   }, [load]);
 
   const handleCreate = async (payload: UserPayload) => {
-    await create(payload);
+    await create(payload, 0);
+    setCurrentPage(0);
     setShowForm(false);
   };
 
   const handleUpdate = async (payload: UserPayload) => {
     if (!editingUser) return;
-    await update(editingUser.id, payload);
+    await update(editingUser.id, payload, currentPage);
     setEditingUser(null);
   };
 
@@ -48,7 +50,10 @@ export const UsersPage = () => {
     if (!userToDelete) return;
     setIsDeleting(true);
     try {
-      await remove(userToDelete.id);
+      const targetPage = users.length === 1 && currentPage > 0
+        ? currentPage - 1 : currentPage;
+      await remove(userToDelete.id, targetPage);
+      setCurrentPage(targetPage);
       setUserToDelete(null);
       setDeleteAlert({
         isOpen: true,
@@ -117,6 +122,19 @@ export const UsersPage = () => {
             onDelete={(id) => {
               const selectedUser = users.find((listedUser) => listedUser.id === id);
               if (selectedUser) setUserToDelete(selectedUser);
+            }}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            onPrevious={() => {
+              const page = currentPage - 1;
+              setCurrentPage(page);
+              void load(page);
+            }}
+            onNext={() => {
+              const page = currentPage + 1;
+              setCurrentPage(page);
+              void load(page);
             }}
           />
         )}

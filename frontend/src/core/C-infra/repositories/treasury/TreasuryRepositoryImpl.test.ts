@@ -162,6 +162,7 @@ describe("TreasuryRepositoryImpl", () => {
     await repository.updateEventExpense(7, "expense-1", expense);
     await repository.deleteEventExpense(7, "expense-1");
     await repository.registerEventRevenue(7, { amount: 900000, date: "2026-09-15" });
+    await repository.deleteEventRevenue(7);
     await repository.calculateEvent(7);
     await repository.confirmEvent(7);
     await repository.cancelEventSettlement(7);
@@ -178,6 +179,7 @@ describe("TreasuryRepositoryImpl", () => {
     expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/eventos/7/gastos/expense-1");
     expect(apiClient.put).toHaveBeenCalledWith("/tesoreria/eventos/7/recaudacion",
       { amount: 900000, date: "2026-09-15" });
+    expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/eventos/7/recaudacion");
     expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/calcular");
     expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/confirmar");
     expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/cancelar");

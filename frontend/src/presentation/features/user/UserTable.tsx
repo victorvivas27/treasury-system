@@ -1,6 +1,7 @@
 import type { User } from "@/core/A-domain/entities/user/User";
 import { ICONS } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./UserTable.css";
 
@@ -10,9 +11,15 @@ interface UserTableProps {
   isAdmin: boolean;
   onEdit: (user: User) => void;
   onDelete: (id: number) => void;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  onPrevious: () => void;
+  onNext: () => void;
 }
 
-export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete }: UserTableProps) => (
+export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
+  currentPage, totalPages, pageSize, onPrevious, onNext }: UserTableProps) => (
   <article className="usuarios-container responsive-data-list">
     <header className="usuarios-header">
       <h2 className="usuarios-header__title">Lista de Usuarios</h2>
@@ -31,7 +38,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete }:
           </tr>
         </thead>
         <tbody>
-          {loading ? Array.from({ length: 8 }, (_, row) => (
+          {loading ? Array.from({ length: pageSize }, (_, row) => (
             <tr key={`loading-${row}`} className="usuarios-table__row--data"
               aria-hidden="true">
               {Array.from({ length: isAdmin ? 6 : 5 }, (_, column) => (
@@ -40,7 +47,8 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete }:
                 </td>
               ))}
             </tr>
-          )) : users.map((user) => {
+          )) : <>
+          {users.map((user) => {
             const isActive = user.enabled && user.accountNonLocked;
             return (
               <tr key={user.id} className="usuarios-table__row--data">
@@ -76,8 +84,18 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete }:
               </tr>
             );
           })}
+          {Array.from({ length: Math.max(pageSize - users.length, 0) }, (_, row) =>
+            <tr className="usuarios-table__row--data empty-row" aria-hidden="true"
+              key={`empty-${row}`}>
+              <td colSpan={isAdmin ? 6 : 5}>&nbsp;</td>
+            </tr>)}
+          </>}
         </tbody>
       </table>
     </div>
+    <Pagination currentPage={currentPage + 1} totalPages={Math.max(totalPages, 1)}
+      hasPrevious={currentPage > 0} hasNext={currentPage + 1 < totalPages}
+      loading={loading} onPrevious={onPrevious} onNext={onNext}
+      ariaLabel="Paginación de usuarios" />
   </article>
 );

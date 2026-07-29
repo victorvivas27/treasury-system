@@ -89,6 +89,12 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
   @Override public Optional<FeePayment> findActivePayment(Long obligationId) {
     return payments.findFirstByObligationIdAndAnnulledFalse(obligationId).map(this::payment);
   }
+  @Override public List<FeePayment> findActivePaymentsByObligationIds(
+      List<Long> obligationIds) {
+    if (obligationIds.isEmpty()) return List.of();
+    return payments.findByObligationIdInAndAnnulledFalse(obligationIds).stream()
+        .map(this::payment).toList();
+  }
   @Override public boolean hasActivePaymentForPlan(Long planId) {
     List<Long> ids = obligations.findByPlanIdOrderByDueDate(planId).stream()
         .map(FeeObligationEntity::getId).toList();

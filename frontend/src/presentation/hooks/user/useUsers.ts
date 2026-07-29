@@ -10,6 +10,7 @@ import {
 import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
 
 export const useUsers = () => {
+  const pageSize = 5;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export const useUsers = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await useCases.list.execute(page, 10);
+      const response = await useCases.list.execute(page, pageSize);
       setUsers(response.content);
       setTotalPages(response.totalPages);
     } catch {
@@ -40,11 +41,11 @@ export const useUsers = () => {
     }
   }, [useCases]);
 
-  const create = async (payload: UserPayload) => {
+  const create = async (payload: UserPayload, page = 0) => {
     setLoading(true);
     try {
       await useCases.create.execute(payload);
-      await load();
+      await load(page);
     } finally {
       setLoading(false);
     }
@@ -55,20 +56,21 @@ export const useUsers = () => {
     await load();
   };
 
-  const update = async (id: number, payload: UserPayload) => {
+  const update = async (id: number, payload: UserPayload, page = 0) => {
     setLoading(true);
     try {
       await useCases.update.execute(id, payload);
-      await load();
+      await load(page);
     } finally {
       setLoading(false);
     }
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: number, page = 0) => {
     await useCases.delete.execute(id);
-    await load();
+    await load(page);
   };
 
-  return { users, loading, error, totalPages, load, create, update, changeRole, remove };
+  return { users, loading, error, totalPages, pageSize, load, create, update,
+    changeRole, remove };
 };

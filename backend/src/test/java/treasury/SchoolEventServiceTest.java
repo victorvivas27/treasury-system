@@ -212,6 +212,28 @@ class SchoolEventServiceTest {
   }
 
   @Test
+  void recaudacion_deberiaPermitirEditarYEliminarElRegistro() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    service.registerRevenue(10L, new BigDecimal("900000"),
+        LocalDate.of(2026, 9, 15), "Recaudación inicial", "CASH", "COMP-1", "Cierre");
+
+    service.registerRevenue(10L, new BigDecimal("850000"),
+        LocalDate.of(2026, 9, 16), "Recaudación corregida", "TRANSFER", null, null);
+    SchoolEventEntity deleted = service.deleteRevenue(10L);
+
+    assertAll(
+        () -> assertNull(deleted.getGrossRevenue()),
+        () -> assertNull(deleted.getRevenueDate()),
+        () -> assertNull(deleted.getRevenueDescription()),
+        () -> assertNull(deleted.getRemainder()),
+        () -> assertEquals(EventStatus.REALIZADO, deleted.getStatus()),
+        () -> assertFalse(deleted.isSettlementConfirmed()),
+        () -> assertTrue(deleted.getParticipants().stream()
+            .allMatch(item -> item.getTransferStatus() == EventTransferStatus.PENDING)));
+    verify(events, times(3)).save(event);
+  }
+
+  @Test
   void liquidacion_deberiaRegistrarIngresosUnaSolaVez() {
     when(events.findById(10L)).thenReturn(Optional.of(event));
     service.registerRevenue(10L, new BigDecimal("901000"), LocalDate.now(),

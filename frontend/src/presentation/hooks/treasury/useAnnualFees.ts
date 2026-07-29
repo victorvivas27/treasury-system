@@ -6,6 +6,19 @@ import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/Treasu
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
 
+const operationErrorMessage = (error: unknown) => {
+  if (typeof error !== "object" || error === null || !("response" in error)) {
+    return "No fue posible completar la operación.";
+  }
+  const data = (error as {
+    response?: { data?: { errors?: Record<string, string>; message?: string } };
+  }).response?.data;
+  const messages = data?.errors ? Object.values(data.errors).filter(Boolean) : [];
+  return messages.length > 0
+    ? messages.join(" ")
+    : data?.message || "No fue posible completar la operación.";
+};
+
 export const useAnnualFees = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [families, setFamilies] = useState<FamiliaDetalle[]>([]);
@@ -17,6 +30,7 @@ export const useAnnualFees = () => {
   const [familiesLoading, setFamiliesLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const useCases = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
   const familyRepository = useMemo(() => new FamiliaRepositoryImpl(), []);
 
@@ -63,13 +77,14 @@ export const useAnnualFees = () => {
   const execute = async (operation: () => Promise<unknown>, success: string) => {
     setLoading(true);
     setError("");
+    setActionError("");
     try {
       await operation();
       setMessage(success);
       await refresh();
       return true;
-    } catch {
-      setError("No fue posible completar la operación.");
+    } catch (operationError) {
+      setActionError(operationErrorMessage(operationError));
       return false;
     } finally {
       setLoading(false);
@@ -78,8 +93,9 @@ export const useAnnualFees = () => {
 
   return {
     year, setYear, families, plans, obligations, dashboard, loading, dataLoading,
-    familiesLoading, message, error,
+    familiesLoading, message, error, actionError,
     clearMessage: () => setMessage(""),
+    clearActionError: () => setActionError(""),
     refresh,
     saveConfig: (payload: AnnualFeeConfigPayload) =>
       execute(() => useCases.saveConfig(year, payload), "Configuración anual guardada."),

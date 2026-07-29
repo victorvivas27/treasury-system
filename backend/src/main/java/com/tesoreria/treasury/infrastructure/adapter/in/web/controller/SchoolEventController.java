@@ -103,6 +103,11 @@ public class SchoolEventController {
         request.observations()));
   }
 
+  @DeleteMapping("/{id}/recaudacion")
+  public EventResponse deleteRevenue(@PathVariable Long id) {
+    return response(service.deleteRevenue(id));
+  }
+
   @PostMapping("/{id}/liquidacion/calcular")
   public EventSettlementCalculator.Result calculate(@PathVariable Long id) {
     return service.calculate(id);

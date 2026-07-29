@@ -365,6 +365,27 @@ class TreasuryServiceTest {
         () -> assertEquals(2, result.recentMovements().size()));
   }
 
+  @Test
+  void dashboardOverview_deberiaIncluirPagosDeCuotasEnFlujoYActividad() {
+    FeeObligation paid = obligation(InstallmentType.PRIMERA, ObligationStatus.PAGADA);
+    FeePayment payment = new FeePayment(9L, paid.id(), LocalDate.of(2026, 4, 15),
+        new BigDecimal("35000"), "admin@mail.com", null, false, null, null, null,
+        LocalDateTime.now());
+    when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+    when(repository.findPlansByConfig(1L)).thenReturn(List.of(plan));
+    when(repository.findObligationsByConfig(1L)).thenReturn(List.of(paid));
+    when(repository.findActivePaymentsByObligationIds(List.of(3L))).thenReturn(List.of(payment));
+
+    TreasuryDashboardOverview result = service.dashboardOverview(2026);
+
+    assertAll(
+        () -> assertEquals(new BigDecimal("35000"),
+            result.monthlyCashFlow().get(3).income()),
+        () -> assertEquals(1, result.recentMovements().size()),
+        () -> assertEquals("CUOTA", result.recentMovements().get(0).type()),
+        () -> assertTrue(result.recentMovements().get(0).description().contains("Familia #10")));
+  }
+
   private FeeObligation obligation(InstallmentType installment, ObligationStatus status) {
     return new FeeObligation(3L, 2L, installment, "Cuota", new BigDecimal("35000"),
         LocalDate.of(2026, 4, 15), status, LocalDateTime.now(), LocalDateTime.now());

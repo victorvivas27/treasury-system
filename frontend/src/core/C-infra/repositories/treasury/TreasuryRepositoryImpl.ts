@@ -170,8 +170,12 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   }
   async registerEventRevenue(id: number, payload: {
     amount: number; date: string; description?: string; paymentMethod?: string;
+    receiptNumber?: string; observations?: string;
   }): Promise<SchoolEvent> {
     return (await apiClient.put(`${this.baseUrl}/eventos/${id}/recaudacion`, payload)).data;
+  }
+  async deleteEventRevenue(id: number): Promise<SchoolEvent> {
+    return (await apiClient.delete(`${this.baseUrl}/eventos/${id}/recaudacion`)).data;
   }
   async calculateEvent(id: number): Promise<EventSettlement> {
     return (await apiClient.post(`${this.baseUrl}/eventos/${id}/liquidacion/calcular`)).data;

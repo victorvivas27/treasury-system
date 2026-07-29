@@ -1,15 +1,17 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { AllowedPaymentMode, PaymentMode, TreasuryFilters }
   from "@/core/A-domain/entities/treasury/Treasury";
 import { useAnnualFees } from "@/presentation/hooks/treasury/useAnnualFees";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./AnnualFeesPage.css";
 
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP",
   maximumFractionDigits: 0 });
+const PLAN_PAGE_SIZE = 2;
 
 export const AnnualFeesPage = () => {
   const fees = useAnnualFees();
@@ -25,6 +27,19 @@ export const AnnualFeesPage = () => {
   const [annulmentReason, setAnnulmentReason] = useState("");
   const [removePlan, setRemovePlan] = useState<{ familyId: number; code: string } | null>(null);
   const [removePlanReason, setRemovePlanReason] = useState("");
+  const [planPage, setPlanPage] = useState(1);
+  const planPages = Math.max(1, Math.ceil(fees.plans.length / PLAN_PAGE_SIZE));
+  const visiblePlans = useMemo(() => fees.plans.slice(
+    (planPage - 1) * PLAN_PAGE_SIZE, planPage * PLAN_PAGE_SIZE),
+    [fees.plans, planPage]);
+
+  useEffect(() => {
+    setPlanPage(current => Math.min(current, planPages));
+  }, [planPages]);
+
+  useEffect(() => {
+    setPlanPage(1);
+  }, [fees.year]);
 
   const saveConfig = (event: FormEvent) => {
     event.preventDefault();
@@ -104,14 +119,14 @@ export const AnnualFeesPage = () => {
         </p>
         <div className="treasury-plan-list" aria-label="Familias con modalidad configurada">
           {fees.dataLoading
-            ? Array.from({ length: 4 }, (_, index) =>
+            ? Array.from({ length: 2 }, (_, index) =>
               <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
                 <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
                 <div className="skeleton-block" />
               </article>)
             : fees.plans.length === 0
             ? <p>Aún no hay familias con modalidad configurada.</p>
-            : fees.plans.map(plan => <article key={plan.id}>
+            : visiblePlans.map(plan => <article key={plan.id}>
                 <div>
                   <strong>{plan.familyCode}</strong>
                   <span>{plan.studentName} · {plan.course}</span>
@@ -131,7 +146,23 @@ export const AnnualFeesPage = () => {
                     })}>Quitar familia</button>
                 </div>
               </article>)}
+          {!fees.dataLoading && fees.plans.length > 0
+            && Array.from({ length: PLAN_PAGE_SIZE - visiblePlans.length }, (_, index) =>
+              <article className="treasury-plan-placeholder" aria-hidden="true"
+                key={`empty-plan-${index}`}>
+                <div><strong>&nbsp;</strong><span>&nbsp;</span></div>
+                <div className="treasury-plan-actions">
+                  <span className="payment-mode">&nbsp;</span>
+                  <button type="button">Cambiar modalidad</button>
+                  <button type="button">Quitar familia</button>
+                </div>
+              </article>)}
         </div>
+        {!fees.dataLoading && planPages > 1 && <Pagination currentPage={planPage}
+          totalPages={planPages} hasPrevious={planPage > 1} hasNext={planPage < planPages}
+          onPrevious={() => setPlanPage(page => page - 1)}
+          onNext={() => setPlanPage(page => page + 1)}
+          ariaLabel="Paginación de familias configuradas" />}
       </section>
     </div>
 
@@ -175,6 +206,9 @@ export const AnnualFeesPage = () => {
     </section>
     <ModalAlert isOpen={Boolean(fees.message)} message={fees.message} type="success"
       onClose={fees.clearMessage} />
+    <ModalAlert isOpen={Boolean(fees.actionError)} message={fees.actionError} type="error"
+      title="No se pudo guardar la modalidad" buttonLabel="Entendido" autoCloseTime={0}
+      onClose={fees.clearActionError} />
     <ModalConfirm
       isOpen={annulmentId !== null}
       title="Anular pago de cuota"

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardPage } from "./DashboardPage";
@@ -64,7 +64,7 @@ describe("DashboardPage", () => {
       .toHaveAttribute("href", "/tesoreria/ingresos");
   });
 
-  it("oculta la actividad y las trazas al usuario común", async () => {
+  it("muestra la actividad y oculta las trazas al usuario común", async () => {
     currentUser.rol = "USER";
     dashboardOverview.mockResolvedValue(overview);
     contributionSummary.mockResolvedValue({
@@ -75,8 +75,66 @@ describe("DashboardPage", () => {
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
-    expect(screen.queryByText("Actividad reciente")).not.toBeInTheDocument();
+    expect(screen.getByText("Actividad reciente")).toBeInTheDocument();
+    expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
     expect(screen.queryByText("Trazas de Tesorería")).not.toBeInTheDocument();
     expect(screen.getByText("Estado de obligaciones")).toBeInTheDocument();
+  });
+
+  it("pagina la actividad reciente de cinco en cinco", async () => {
+    dashboardOverview.mockResolvedValue({
+      ...overview,
+      recentMovements: Array.from({ length: 6 }, (_, index) => ({
+        id: index + 1,
+        type: index === 5 ? "CUOTA" : "INGRESO",
+        description: `Movimiento ${index + 1}`,
+        amount: 35000,
+        date: `2026-07-${String(20 - index).padStart(2, "0")}`,
+        status: "ACTIVE",
+      })),
+    });
+    contributionSummary.mockResolvedValue({
+      totalFamilies: 0, cepaPaid: 0, cepaPending: 0,
+      solidarityPaid: 0, solidarityPending: 0, fullyPaid: 0, withPending: 0,
+    });
+
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+
+    await waitFor(() => expect(screen.getByText("Movimiento 1")).toBeInTheDocument());
+    expect(screen.queryByText("Movimiento 6")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Siguiente ▶" }));
+    expect(screen.getByText("Movimiento 6")).toBeInTheDocument();
+    expect(screen.getByText("Cuota")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir" }))
+      .toHaveAttribute("href", "/tesoreria/cuotas");
+  });
+
+  it("pagina cinco trazas por página", async () => {
+    dashboardOverview.mockResolvedValue({
+      ...overview,
+      auditTrail: Array.from({ length: 6 }, (_, index) => ({
+        id: index + 1,
+        action: "REGISTRAR_PAGO",
+        entityType: "OBLIGACION",
+        entityId: String(index + 1),
+        performedBy: "admin@mail.com",
+        details: `Traza ${index + 1}`,
+        createdAt: `2026-07-${String(20 - index).padStart(2, "0")}T10:00:00`,
+      })),
+    });
+    contributionSummary.mockResolvedValue({
+      totalFamilies: 0, cepaPaid: 0, cepaPending: 0,
+      solidarityPaid: 0, solidarityPending: 0, fullyPaid: 0, withPending: 0,
+    });
+
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+
+    await waitFor(() => expect(screen.getByText("Traza 1")).toBeInTheDocument());
+    expect(screen.queryByText("Traza 6")).not.toBeInTheDocument();
+    const pagination = screen.getByRole("navigation",
+      { name: "Paginación de trazas de Tesorería" });
+    fireEvent.click(within(pagination).getByRole("button", { name: "Siguiente ▶" }));
+    expect(screen.getByText("Traza 6")).toBeInTheDocument();
+    expect(screen.getByText("Página 2 de 2")).toBeInTheDocument();
   });
 });
