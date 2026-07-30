@@ -20,22 +20,26 @@ const expiresSoon = (token: string) => {
 export const configureAxiosInterceptors = (client: AxiosInstance) => {
   let refreshPromise: Promise<string> | null = null;
 
+  const refreshToken = (token: string) => {
+    refreshPromise ??= axios.post<{ token: string }>(
+      `${client.defaults.baseURL}/auth/refresh`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    ).then(({ data }) => {
+      localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+      return data.token;
+    }).finally(() => {
+      refreshPromise = null;
+    });
+    return refreshPromise;
+  };
+
   client.interceptors.request.use(async (config) => {
     let token = localStorage.getItem(AUTH_TOKEN_KEY);
     const isAuthRequest = config.url?.includes("/auth/") ?? false;
     if (token && !isAuthRequest && expiresSoon(token)) {
-      refreshPromise ??= axios.post<{ token: string }>(
-        `${client.defaults.baseURL}/auth/refresh`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
-      ).then(({ data }) => {
-        localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-        return data.token;
-      }).finally(() => {
-        refreshPromise = null;
-      });
       try {
-        token = await refreshPromise;
+        token = await refreshToken(token);
       } catch {
         // La respuesta original determinará si corresponde cerrar la sesión.
       }
@@ -48,14 +52,28 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
 
   client.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
       if (error.response?.status === 401) {
         const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);
         const failedToken = requestToken(error.config?.headers?.Authorization);
+        const requestConfig = error.config as
+          | (typeof error.config & { _authRetry?: boolean })
+          | undefined;
+        const isAuthRequest = requestConfig?.url?.includes("/auth/") ?? false;
 
         // Un 401 anterior al login o perteneciente a otro token no debe
         // eliminar una sesión que acaba de iniciarse.
         if (currentToken && failedToken === currentToken) {
+          if (requestConfig && !requestConfig._authRetry && !isAuthRequest) {
+            requestConfig._authRetry = true;
+            try {
+              const renewedToken = await refreshToken(currentToken);
+              requestConfig.headers.Authorization = `Bearer ${renewedToken}`;
+              return client.request(requestConfig);
+            } catch {
+              // Solo se cierra la sesión cuando también falla la renovación.
+            }
+          }
           localStorage.removeItem(AUTH_TOKEN_KEY);
           window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
         }

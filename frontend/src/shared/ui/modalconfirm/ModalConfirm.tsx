@@ -9,6 +9,7 @@ interface ModalConfirmProps {
   confirmLabel?: string;
   cancelLabel?: string;
   isLoading?: boolean;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   children?: ReactNode;
@@ -21,6 +22,7 @@ export const ModalConfirm = ({
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   isLoading = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
   children,
@@ -60,7 +62,7 @@ export const ModalConfirm = ({
             size="medium"
             variant="secondary"
             type="button"
-            disabled={isLoading}
+            disabled={isLoading || confirmDisabled}
           />
 
           <Button

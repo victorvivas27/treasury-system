@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import axios from "axios";
 import type { AxiosInstance } from "axios";
 import {
   AUTH_TOKEN_KEY,
@@ -6,12 +7,21 @@ import {
   SESSION_EXPIRED_EVENT,
 } from "./axiosInterceptor";
 
+vi.mock("axios", () => ({
+  default: { post: vi.fn() },
+}));
+
 describe("configureAxiosInterceptors", () => {
   let rejectResponse: (error: unknown) => Promise<never>;
+  let request: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     localStorage.clear();
+    vi.clearAllMocks();
+    request = vi.fn();
     const client = {
+      defaults: { baseURL: "http://api.test" },
+      request,
       interceptors: {
         request: { use: vi.fn() },
         response: {
@@ -52,6 +62,7 @@ describe("configureAxiosInterceptors", () => {
 
   it("cierra la sesión cuando falla exactamente el token vigente", async () => {
     localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    vi.mocked(axios.post).mockRejectedValue(new Error("refresh rechazado"));
     const expired = vi.fn();
     window.addEventListener(SESSION_EXPIRED_EVENT, expired);
 
@@ -63,5 +74,21 @@ describe("configureAxiosInterceptors", () => {
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(expired).toHaveBeenCalledOnce();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
+  });
+
+  it("renueva el token y repite una petición protegida antes de cerrar la sesión", async () => {
+    localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    vi.mocked(axios.post).mockResolvedValue({ data: { token: "token-renovado" } });
+    request.mockResolvedValue({ data: [] });
+    const config = {
+      url: "/tesoreria/stands",
+      headers: { Authorization: "Bearer token-vigente" },
+    };
+
+    await rejectResponse({ response: { status: 401 }, config });
+
+    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
+    expect(config.headers.Authorization).toBe("Bearer token-renovado");
+    expect(request).toHaveBeenCalledWith(config);
   });
 });

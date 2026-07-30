@@ -144,6 +144,15 @@ class SecurityConfigTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void gestionStand_deberiaAceptarTokenAdministrador() throws Exception {
+        String token = tokenFor("admin@mail.com");
+
+        mockMvc.perform(get("/api/v1/tesoreria/stands?eventId=999999")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
     private void createUser(String code, String correo, RoleEnum role) {
         UserEntity user = new UserEntity();
         user.setCode(code);

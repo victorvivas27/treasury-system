@@ -24,6 +24,7 @@ import {
   BsHeart,
   BsReceipt,
   BsSpeedometer2,
+  BsShop,
 } from "react-icons/bs";
 
 
@@ -71,6 +72,7 @@ export const TREASURY_LINKS = [
   { label: "Ingresos", path: "/tesoreria/ingresos", icon: BsArrowDownCircle },
   { label: "Egresos", path: "/tesoreria/gastos", icon: BsArrowUpCircle },
   { label: "Eventos", path: "/tesoreria/eventos", icon: BsCalendarEvent },
+  { label: "Gestión de Stand", path: "/tesoreria/stands", icon: BsShop },
   { label: "Reportes", path: "/tesoreria/reportes", icon: BsFileEarmarkBarGraph },
 ] as const;
 
