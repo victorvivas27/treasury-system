@@ -1,0 +1,67 @@
+info:
+  name: 02-Create Alumno For Familia
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{Url_Base}}/alumnos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Alumno Familia",
+        "curso": "4A"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // const baseUrl = bru.getEnvVar('Url_Base');
+
+        // try {
+        //   const listar = await bru.sendRequest({
+        //     url: `${baseUrl}/alumnos?size=100`,
+        //     method: 'GET',
+        //     headers: { 'Content-Type': 'application/json' }
+        //   });
+
+        //   const alumnos = listar.data && listar.data.content ? listar.data.content : null;
+          
+        //   if (alumnos && alumnos.length > 0) {
+        //     for (const ap of alumnos) {
+        //       if (ap.alumnoId) {
+        //         await bru.sendRequest({
+        //           url: `${baseUrl}/alumnos/${ap.alumnoId}`,
+        //           method: 'DELETE',
+        //           headers: { 'Content-Type': 'application/json' }
+        //         });
+        //       }
+        //     }
+        //   }
+        // } catch (e) {
+        //   // Silenciado
+        // }
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        // bru.setEnvVar("familiaAlumnoId", body.alumnoId.toString(), { persist: true });
+
+        // Guardar la variable de forma segura e independiente del formateo
+        if (body && body.alumnoId) {
+          // Bruno persiste las variables de entorno automáticamente en memoria durante la sesión
+          bru.setEnvVar("familiaAlumnoId", String(body.alumnoId));
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

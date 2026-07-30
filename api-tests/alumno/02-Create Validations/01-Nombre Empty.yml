@@ -2,6 +2,8 @@ info:
   name: 01-Nombre Empty
   type: http
   seq: 1
+  tags:
+    - alumno
 
 http:
   method: POST
@@ -11,8 +13,7 @@ http:
     data: |-
       {
         "nombre": "",
-        "curso": "4A",
-        "apoderadoId": {{alumnoApoderadoId}}
+        "curso": "4A"
       }
   auth: inherit
 
@@ -35,4 +36,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

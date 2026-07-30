@@ -2,10 +2,12 @@ info:
   name: 02-Get Alumno By ID
   type: http
   seq: 2
+  tags:
+    - alumno
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -19,7 +21,8 @@ runtime:
         });
 
         test("Should return requested alumno", function () {
-          expect(body.id).to.equal(Number(bru.getEnvVar("alumnoId")));
+          expect(body.alumnoId).to.equal(Number(bru.getEnvVar("alumnoId")));
+          expect(body.codigo).to.equal(bru.getEnvVar("codigo"));
           expect(body.nombre).to.equal("JUAN PEREZ");
           expect(body.curso).to.equal("4A");
         });
@@ -29,4 +32,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

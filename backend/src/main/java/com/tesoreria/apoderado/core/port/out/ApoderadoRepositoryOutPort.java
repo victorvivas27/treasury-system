@@ -1,23 +1,28 @@
 package com.tesoreria.apoderado.core.port.out;
 
-import java.util.Optional;
-
 import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface ApoderadoRepositoryOutPort {
 
-  Apoderado save(Apoderado apoderado);
+    Apoderado save(Apoderado apoderado);
 
-  Optional<Apoderado> findById(Long id);
+    Optional<Apoderado> findByCodigo(String codigo);
 
-  PageResponse<Apoderado> findAll(PageRequest pageRequest);
+    Optional<Apoderado> findById(Long apoderadoId);
 
-  void deleteById(Long id);
+    List<Apoderado> findAllByIds(List<Long> apoderadoIds);
 
-  boolean existsByEmail(String email);
+    PageResponse<Apoderado> findAll(PageRequest pageRequest);
 
-  boolean existsById(Long id);
+    void deleteByCodigo(String codigo);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByCodigo(String codigo);
 
 }

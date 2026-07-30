@@ -1,0 +1,59 @@
+info:
+  name: 08-Multiples Principales
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{Url_Base}}/familias"
+  body:
+    type: json
+    data: |-
+      {
+        "alumnoId": {{familiaAlumnoId}},
+        "apoderados": [
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Padre",
+            "esPrincipal": true
+          },
+          {
+            "apoderadoId": {{familiaApoderadoIdSecundario}},
+            "parentesco": "Tutor",
+            "esPrincipal": true
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar("Url_Base");
+        const response = await bru.sendRequest({
+          url: `${baseUrl}/apoderados`,
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            nombre: "JUAN FAMILIA",
+            email: `juan.familia${Date.now()}@gmail.com`,
+            telefono: "+955555555"
+          }
+        });
+
+        const body = response.data || response.body;
+        if (body && body.apoderadoId) {
+          bru.setEnvVar("familiaApoderadoIdSecundario", String(body.apoderadoId));
+        }
+    - type: tests
+      code: |-
+        test("Status should be 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

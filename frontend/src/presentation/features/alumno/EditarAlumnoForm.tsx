@@ -1,9 +1,10 @@
 import { Button } from "@/shared/ui/button/Button";
-import "./style/EditarAlumnoForm.css";
 import { useEditAlumno } from "@/presentation/hooks/alumno/useEditAlumno";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
+import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
+import "./style/EditarAlumnoForm.css";
 
 export const EditarAlumnoForm = () => {
   const {
@@ -19,18 +20,6 @@ export const EditarAlumnoForm = () => {
     loadError,
   } = useEditAlumno();
 
-  if (initialLoading) {
-    return (
-      <div className="form-view-container">
-        <div className="form-card">
-          <div className="skeleton-block skeleton-input" style={{ height: "60px" }} />
-          <div className="skeleton-block skeleton-input" style={{ height: "60px" }} />
-          <div className="skeleton-block skeleton-input" style={{ height: "60px" }} />
-        </div>
-      </div>
-    );
-  }
-
   if (loadError) {
     return (
       <FeedbackState
@@ -43,45 +32,46 @@ export const EditarAlumnoForm = () => {
 
   return (
     <div className="form-view-container">
+
       <form className="form-card">
+        {/* Campo Nombre */}
         <div className="form-group floating-group">
-          <input
-            id="nombre_input"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            placeholder="Juan Carlos Perez"
-            className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
-          />
+          <SkeletonWrapper
+            isLoading={initialLoading}
+            className="skeleton-name"
+            height="48px"
+            width="100%">
+            <input
+              id="nombre_input"
+              name="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              placeholder="Juan Carlos Perez"
+              className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
+            />
+          </SkeletonWrapper>
           <label htmlFor="nombre_input" className="floating-label form-label">Nombre completo</label>
           {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
         </div>
 
+        {/* Campo Curso */}
         <div className="form-group floating-group">
-          <input
-            id="curso_input"
-            name="curso"
-            value={formData.curso}
-            onChange={handleChange}
-            placeholder="4A"
-            className={`form-input ${fieldErrors.curso ? 'input-error' : ''}`}
-          />
+          <SkeletonWrapper
+            isLoading={initialLoading}
+            className="skeleton-name"
+            height="48px"
+            width="100%">
+            <input
+              id="curso_input"
+              name="curso"
+              value={formData.curso}
+              onChange={handleChange}
+              placeholder="4A"
+              className={`form-input ${fieldErrors.curso ? 'input-error' : ''}`}
+            />
+          </SkeletonWrapper>
           <label htmlFor="curso_input" className="floating-label form-label">Curso</label>
           {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
-        </div>
-
-        <div className="form-group floating-group">
-          <input
-            id="apoderadoId_input"
-            name="apoderadoId"
-            type="number"
-            value={formData.apoderadoId || ''}
-            onChange={handleChange}
-            placeholder="1"
-            className={`form-input ${fieldErrors.apoderadoId ? 'input-error' : ''}`}
-          />
-          <label htmlFor="apoderadoId_input" className="floating-label form-label">ID del Apoderado</label>
-          {fieldErrors.apoderadoId && <span className="error-message">{fieldErrors.apoderadoId}</span>}
         </div>
 
         <div className="form-actions">
@@ -91,14 +81,15 @@ export const EditarAlumnoForm = () => {
             onClick={handleSubmit}
             loading={loading}
             label={loading ? "Actualizando..." : "Actualizar"}
-            icon={<ALUMNOS_ICONS.save style={{ margin: "3px" }} />}
+            icon={<ALUMNOS_ICONS.reload/>}
           />
 
           <Button
-            variant="secondary"
+            variant="danger"
             size="medium"
             onClick={() => navigate("/students")}
             label="Cancelar"
+            icon={<ALUMNOS_ICONS.cancel/>}
           />
         </div>
       </form>

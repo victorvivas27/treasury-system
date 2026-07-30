@@ -8,11 +8,23 @@ interface ModalProps {
   type: "success" | "error";
   onClose: () => void;
   autoCloseTime?: number;
+  title?: string;
+  buttonLabel?: string;
 }
 
-export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: ModalProps) => {
+const DEFAULT_AUTO_CLOSE_TIME = 4000;
+
+export const ModalAlert = ({
+  isOpen,
+  message,
+  type,
+  onClose,
+  autoCloseTime = DEFAULT_AUTO_CLOSE_TIME,
+  title,
+  buttonLabel = "Entendido",
+}: ModalProps) => {
   useEffect(() => {
-    if (isOpen && autoCloseTime) {
+    if (isOpen && autoCloseTime > 0) {
       const timer = setTimeout(() => {
         onClose();
       }, autoCloseTime);
@@ -29,7 +41,7 @@ export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: Mo
         onClick={(e) => e.stopPropagation()}
       >
         {/* BARRA DE TIEMPO: Solo se muestra si hay autoCloseTime */}
-        {autoCloseTime && (
+        {autoCloseTime > 0 && (
           <div
             className={`modal-progress progress-${type}`}
             style={{ '--duration': `${autoCloseTime}ms` } as React.CSSProperties}
@@ -41,7 +53,7 @@ export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: Mo
             {type === "success" ? "✔" : "✖"}
           </span>
           <h3 className="modal-title">
-            {type === "success" ? "¡Logrado!" : "Hubo un error"}
+            {title ?? (type === "success" ? "¡Logrado!" : "Hubo un error")}
           </h3>
         </header>
 
@@ -51,7 +63,7 @@ export const ModalAlert = ({ isOpen, message, type, onClose, autoCloseTime }: Mo
 
         <footer className="modal-footer">
           <Button
-            label="Entendido"
+            label={buttonLabel}
             onClick={onClose}
             size="medium"
             variant={type === "success" ? "primary" : "secondary"}

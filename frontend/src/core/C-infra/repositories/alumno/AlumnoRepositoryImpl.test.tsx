@@ -17,10 +17,10 @@ describe("AlumnoRepositoryImpl", () => {
   const baseUrl = "/alumnos";
 
   const alumno: Alumno = {
-    id: 1,
+    alumnoId: 1,
     nombre: "JUAN PEREZ",
     curso: "4A",
-    apoderadoId: 1,
+    codigo: ""
   };
 
   const pageResponse: PageResponse<Alumno> = {
@@ -55,7 +55,10 @@ describe("AlumnoRepositoryImpl", () => {
   });
 
   it("create envia un POST con el nuevo alumno", async () => {
-    const dto: CreateAlumnoDTO = { nombre: "Juan Perez", curso: "4A", apoderadoId: 1 };
+    const dto: CreateAlumnoDTO = {
+      nombre: "Juan Perez", curso: "4A",
+      codigo: ""
+    };
     vi.mocked(apiClient.post).mockResolvedValue({ data: alumno });
 
     const result = await repository.create(dto);

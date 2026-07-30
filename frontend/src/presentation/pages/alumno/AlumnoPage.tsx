@@ -25,9 +25,13 @@ export const AlumnoPage: FC = () => {
 
   const navigate = useNavigate();
 
-  const handleEdit = (id: number) => {
-    navigate(`/students/edit/${id}`);
+  const handleEdit = (codigo: string) => {
+    navigate(`/students/edit/${codigo}`);
   };
+
+  // const handleFamilia = (id: number) => {
+  //   navigate(`/students/${id}/parents`);
+  // };
 
   const {
     isDeleting,
@@ -37,7 +41,13 @@ export const AlumnoPage: FC = () => {
     confirmDelete,
     alert,
     closeAlert,
-  } = useDeleteAlumno(refetch);
+  } = useDeleteAlumno(() => {
+    if (alumnos.length === 1 && currentPage > 0) {
+      prevPage();
+    } else {
+      refetch();
+    }
+  });
 
   return (
     <main className="page-container">
@@ -54,7 +64,7 @@ export const AlumnoPage: FC = () => {
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<ALUMNOS_ICONS.reload style={{ margin: "3px" }} />}
+            icon={<ALUMNOS_ICONS.reload/>}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando" : "Recargar"}
@@ -64,7 +74,7 @@ export const AlumnoPage: FC = () => {
             onClick={() => navigate("/students/new")}
             variant="primary"
             size="medium"
-            icon={<ALUMNOS_ICONS.add style={{ margin: "3px" }} />}
+            icon={<ALUMNOS_ICONS.add/>}
             iconPosition="left"
             label="Crear Alumno"
           />
@@ -79,6 +89,7 @@ export const AlumnoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
           handleEdit={handleEdit}
+         //handleFamilia={handleFamilia}
           currentPage={currentPage}
           onNextPage={nextPage}
           onPrevPage={prevPage}

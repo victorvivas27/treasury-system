@@ -8,10 +8,11 @@ describe('UpdateApoderadoUseCase', () => {
   let mockRepository: IApoderadoRepository;
 
   const mockApoderado: Apoderado = {
-    id: 1,
+    apoderadoId: 1,
     nombre: "Juan Pérez",
     email: "juan@example.com",
-    telefono: "123456789"
+    telefono: "123456789",
+    codigo: ""
   };
 
   beforeEach(() => {

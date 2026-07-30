@@ -2,6 +2,8 @@ info:
   name: 02-Nombre Too Short
   type: http
   seq: 2
+  tags:
+    - alumno
 
 http:
   method: POST
@@ -11,8 +13,7 @@ http:
     data: |-
       {
         "nombre": "J",
-        "curso": "4A",
-        "apoderadoId": {{alumnoApoderadoId}}
+        "curso": "4A"
       }
   auth: inherit
 
@@ -35,4 +36,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

@@ -1,0 +1,44 @@
+info:
+  name: 05-Update Familia
+  type: http
+  seq: 6
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/familias/{{familiaId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "alumnoId": {{familiaAlumnoId}},
+        "observacionesGenerales": "Contacto secundario actualizado",
+        "apoderados": [
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Tutor",
+            "esPrincipal": false
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("Familia should be updated", function () {
+          expect(body.apoderados[0].parentesco).to.equal("Tutor");
+          expect(body.apoderados[0].esPrincipal).to.equal(false);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

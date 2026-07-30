@@ -1,0 +1,69 @@
+info:
+  name: 01-Create Apoderado For Familia
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/apoderados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "MARIA FAMILIA",
+        "email": "maria.familia{{$timestamp}}@gmail.com",
+        "telefono": "+987654321",
+        "observaciones": "Apoderado para vínculo"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // const baseUrl = bru.getEnvVar('Url_Base');
+
+        // try {
+        // const listar = await bru.sendRequest({
+        //   url: `${baseUrl}/apoderados?size=100`,
+        //   method: 'GET',
+        //   headers: { 'Content-Type': 'application/json' }
+        // });
+
+        // const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+
+        // if (apoderados && apoderados.length > 0) {
+        //   for (const ap of apoderados) {
+        //     if (ap.apoderadoId) {
+        //       await bru.sendRequest({
+        //         url: `${baseUrl}/apoderados/${ap.apoderadoId}`,
+        //         method: 'DELETE',
+        //         headers: { 'Content-Type': 'application/json' }
+        //       });
+        //     }
+        //   }
+        // }
+        // } catch (e) {
+        // // Silenciado
+        // }
+    - type: tests
+      code: |-
+        const body = res.getBody();
+
+        test("Status should be 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        // bru.setEnvVar("familiaApoderadoId", body.apoderadoId.toString(), { persist: true });
+
+        // Guardar la variable de forma segura e independiente del formateo
+        if (body && body.apoderadoId) {
+          // Bruno persiste las variables de entorno automáticamente en memoria durante la sesión
+          bru.setEnvVar("familiaApoderadoId", String(body.apoderadoId));
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

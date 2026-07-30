@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/shared/layouts/sidebar/Sidebar";
 import "./MainLayout.css";
 import { useSidebarBehavior } from "@/presentation/hooks/sidebar/useSidebarBehavior";
+import { ManagedCourseBanner } from "./ManagedCourseBanner";
 
 
 
@@ -17,6 +18,7 @@ const { isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick } = useSidebarB
         onNavLinkClick={onNavLinkClick}
       />
       <section className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
+        <ManagedCourseBanner />
         <Outlet />
       </section>
     </main>

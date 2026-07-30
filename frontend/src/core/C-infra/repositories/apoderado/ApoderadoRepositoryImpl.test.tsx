@@ -18,10 +18,11 @@ describe("ApoderadoRepositoryImpl", () => {
   const baseUrl = "/apoderados";
 
   const mockApoderado: Apoderado = {
-    id: 1,
+    apoderadoId: 1,
     nombre: "Juan Perez",
     email: "juan@test.com",
-    telefono: "123456"
+    telefono: "123456",
+    codigo: "AP-ABC12345"
   };
 
   const mockPageResponse: PageResponse<Apoderado> = {
@@ -55,39 +56,42 @@ describe("ApoderadoRepositoryImpl", () => {
   it("[ApoderadoRepo #02] getById: debe retornar un apoderado por ID", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: mockApoderado });
 
-    const result = await repository.getById(1);
+    const result = await repository.getById("AP-ABC12345");
 
-    expect(apiClient.get).toHaveBeenCalledWith(`${baseUrl}/1`);
+    expect(apiClient.get).toHaveBeenCalledWith(`${baseUrl}/AP-ABC12345`);
     expect(result).toEqual(mockApoderado);
   });
 
   // ========== 2. MÉTODOS DE ESCRITURA ==========
 
   it("[ApoderadoRepo #03] create: debe enviar un POST con los datos del nuevo apoderado", async () => {
-    const dto: CreateApoderadoDTO = { nombre: "Nuevo", email: "nuevo@test.com", telefono: "999" };
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { ...dto, id: 2 } });
+    const dto: CreateApoderadoDTO = {
+      nombre: "Nuevo", email: "nuevo@test.com", telefono: "999",
+      codigo: ""
+    };
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { ...dto, apoderadoId: 2 } });
 
     const result = await repository.create(dto);
 
     expect(apiClient.post).toHaveBeenCalledWith(baseUrl, dto);
-    expect(result.id).toBe(2);
+    expect(result.apoderadoId).toBe(2);
   });
 
   it("[ApoderadoRepo #04] update: debe enviar un PUT con los datos parciales", async () => {
     const updateData = { nombre: "Nombre Editado" };
     vi.mocked(apiClient.put).mockResolvedValue({ data: { ...mockApoderado, ...updateData } });
 
-    const result = await repository.update(1, updateData);
+    const result = await repository.update("AP-ABC12345", updateData);
 
-    expect(apiClient.put).toHaveBeenCalledWith(`${baseUrl}/1`, updateData);
+    expect(apiClient.put).toHaveBeenCalledWith(`${baseUrl}/AP-ABC12345`, updateData);
     expect(result.nombre).toBe("Nombre Editado");
   });
 
   it("[ApoderadoRepo #05] delete: debe enviar un DELETE al endpoint correcto", async () => {
     vi.mocked(apiClient.delete).mockResolvedValue({ data: {} });
 
-    await repository.delete(1);
+    await repository.delete("AP-ABC12345");
 
-    expect(apiClient.delete).toHaveBeenCalledWith(`${baseUrl}/1`);
+    expect(apiClient.delete).toHaveBeenCalledWith(`${baseUrl}/AP-ABC12345`);
   });
 });

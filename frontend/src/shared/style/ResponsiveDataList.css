@@ -1,0 +1,136 @@
+@media (max-width: 768px) {
+  .main-content .responsive-data-list {
+    width: calc(100% + 1rem);
+    max-width: none;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+    padding: 0;
+    background: transparent;
+  }
+
+  .responsive-data-list .usuarios-table-wrapper {
+    overflow: visible;
+  }
+
+  .responsive-data-list table thead {
+    display: none;
+  }
+
+  .responsive-data-list table,
+  .responsive-data-list tbody,
+  .responsive-data-list tbody > tr,
+  .responsive-data-list tbody > tr > td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-data-list tbody {
+    padding-top: 0.65rem;
+  }
+
+  .responsive-data-list tbody > tr {
+    height: auto;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-lg);
+    padding: 0.65rem 0.7rem;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .responsive-data-list tbody > tr.empty-row {
+    display: none;
+  }
+
+  .responsive-data-list tbody > tr > td {
+    display: grid;
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+    min-width: 0;
+    min-height: 32px;
+    align-items: center;
+    column-gap: 0.5rem;
+    padding: 0.3rem 0.2rem;
+    overflow: visible;
+    font-size: 0.85rem;
+    text-align: left;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .responsive-data-list tbody > tr > td::before {
+    color: var(--text-muted);
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .responsive-data-list tbody > tr > td[data-label="Acciones"] {
+    display: block;
+    width: 100%;
+    margin-top: 0.35rem;
+    border-top: 1px solid var(--divider);
+    padding-top: 0.65rem;
+  }
+
+  .responsive-data-list tbody > tr > td[data-label="Acciones"]::before {
+    display: none;
+    content: "";
+  }
+
+  .responsive-data-list tbody > tr > td[data-label="Acciones"] > div {
+    display: flex;
+    width: 100%;
+    margin-left: auto;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  .responsive-data-list tbody > tr > td[data-label="Acciones"] .base-button {
+    margin: 0;
+  }
+
+  .responsive-data-list .apoderados-table__td--actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, 28px);
+    justify-content: end;
+    gap: 0.4rem;
+  }
+
+  .responsive-data-list .apoderados-table__td:last-child {
+    width: 100%;
+  }
+
+  .responsive-data-list .apoderados-table__access-slot {
+    display: flex;
+    width: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    justify-content: center;
+  }
+
+  .responsive-data-list .apoderados-table__access-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0.25rem;
+  }
+
+  .responsive-data-list .apoderados-table__access-button .button-label {
+    display: none;
+  }
+
+  .responsive-data-list .apoderados-table__icon-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+
+  .responsive-data-list .pagination {
+    flex-wrap: wrap;
+  }
+}

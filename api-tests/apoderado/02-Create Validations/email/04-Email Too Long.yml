@@ -2,6 +2,8 @@ info:
   name: 04-Email Too Long
   type: http
   seq: 4
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -23,20 +25,6 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        // test("Error code should be ERROR_VALIDACION", function() {
-        //   expect(res.body.code).to.equal("ERROR_VALIDACION");
-        // });
-
-        // test("Status should be 400", function() {
-        //   expect(res.status).to.equal(400);
-        // });
-
-        // test("Should only report email invalid format", function() {
-        //   expect(res.body.errors).to.not.have.property("nombre");
-        //   expect(res.body.errors).to.have.property("email");
-        //   expect(res.body.errors).to.not.have.property("telefono");
-        // });
-
         //Debe rechazar los correos electrónicos con más de 100 caracteres.
         test("Should reject email with more than 100 characters", function() {
           expect(res.status).to.equal(400);

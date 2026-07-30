@@ -31,7 +31,7 @@
 .empty-state__button {
   padding: 0.5rem 1rem;
   background-color: var(--color-accent);
-  color: #111827;
+  color: var(--color-bg);
   border: none;
   border-radius: 8px;
   font-weight: 600;

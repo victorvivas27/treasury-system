@@ -2,10 +2,12 @@ info:
   name: 02-Get Apoderado By ID
   type: http
   seq: 2
+  tags:
+    - apoderados
 
 http:
   method: GET
-  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  url: "{{Url_Base}}/apoderados/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -20,7 +22,11 @@ runtime:
         //La respuesta debe contener el ID de posesión solicitado
         test("Response should contain the requested apoderado id", function () {
           //expect(body.id).to.equal(Number(bru.getVar("apoderadoId")));
-           expect(body.id).to.equal(Number(bru.getEnvVar("apoderadoId")));
+           expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("apoderadoId")));
+        });
+
+        test("Response should contain codigo", function () {
+        expect(body.codigo).to.equal(bru.getEnvVar("codigo"));
         });
         //El nombre debe ser VÍCTOR JAVIER
         test("Name should be VICTOR JAVIER", function () {

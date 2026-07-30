@@ -27,7 +27,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9 # Se recomienda v9 para Node 22, cámbialo a 8 solo si tu pnpm-lock es v8
+          version: 11.5.0
 
       # CORRECCIÓN 2: Segundo se levanta Node.js y se asocia al caché del pnpm ya instalado
       - name: Setup Node.js

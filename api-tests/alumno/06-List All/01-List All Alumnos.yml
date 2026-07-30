@@ -2,6 +2,8 @@ info:
   name: 01-List All Alumnos
   type: http
   seq: 1
+  tags:
+    - alumno
 
 http:
   method: GET
@@ -27,4 +29,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

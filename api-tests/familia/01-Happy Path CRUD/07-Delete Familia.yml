@@ -1,0 +1,23 @@
+info:
+  name: 07-Delete Familia
+  type: http
+  seq: 8
+
+http:
+  method: DELETE
+  url: "{{Url_Base}}/familias/{{familiaId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 204", function () {
+          expect(res.getStatus()).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

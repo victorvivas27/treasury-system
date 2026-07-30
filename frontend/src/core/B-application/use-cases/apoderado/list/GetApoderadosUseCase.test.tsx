@@ -8,7 +8,7 @@ describe("GetApoderadosUseCase", () => {
   let mockRepository: IApoderadoRepository;
 
   const mockApoderados: Apoderado[] = [
-    { id: 1, nombre: "Juan Perez", email: "juan@example.com", telefono: "987654321" },
+    { apoderadoId: 1, nombre: "Juan Perez", email: "juan@example.com", telefono: "987654321", codigo: "" },
   ];
 
   const mockPageResponse: PageResponse<Apoderado> = {

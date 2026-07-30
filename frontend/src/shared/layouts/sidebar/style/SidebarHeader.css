@@ -27,32 +27,45 @@
 }
 
 .sidebar-brand-header {
-  margin-left: var(--xs);
+  margin-left: 0.45rem;
   margin-top: var(--md);
   display: flex;
   align-items: center;
   gap: clamp(0.25rem, 1vh, 0.5rem);
   overflow: hidden;
-
+  transition: margin-left 360ms cubic-bezier(0.32, 0.72, 0, 1),
+    gap 280ms ease;
 }
 
 .sidebar-brand-icon {
+  display: block;
+  flex: 0 0 2rem;
   width: clamp(1.8rem, 4vh, 2rem);
+  height: 2rem;
+  object-fit: contain;
 }
 
 .sidebar-brand-name {
-  font-weight: 600;
-  color: var(--color-primary);
-  white-space: nowrap;
-  overflow: hidden;
-
   max-width: 8rem;
+  overflow: hidden;
+  color: var(--color-primary);
+  font-weight: 600;
+  white-space: nowrap;
   opacity: 1;
-
-  transition: max-width 0.3s ease, opacity 0.15s ease;
+  visibility: visible;
+  transition: max-width 300ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 180ms ease, visibility 0s linear;
 }
 
 .sidebar--collapsed .sidebar-brand-name {
+  visibility: hidden;
   max-width: 0;
   opacity: 0;
+  transition: max-width 260ms ease, opacity 120ms ease,
+    visibility 0s linear 260ms;
+}
+
+.sidebar--collapsed .sidebar-brand-header {
+  margin-left: 0.75rem;
+  gap: 0;
 }

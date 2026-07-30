@@ -2,10 +2,12 @@ info:
   name: 06-Delete Alumno By ID
   type: http
   seq: 6
+  tags:
+    - alumno
 
 http:
   method: DELETE
-  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -21,4 +23,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

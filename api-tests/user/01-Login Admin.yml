@@ -1,0 +1,40 @@
+info:
+  name: 01-Login Admin
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "correo": "{{Admin_Email}}",
+        "password": "{{Admin_Password}}"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: Admin_Email
+      value: victorjaviervivas@gmail.com
+    - name: Admin_Password
+      value: Theoamiel2019$
+  scripts:
+    - type: tests
+      code: |-
+        const body = res.getBody();
+        test("Status should be 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("Response should contain JWT", function () {
+          expect(body.token).to.be.a("string");
+        });
+        bru.setEnvVar("userToken", body.token);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

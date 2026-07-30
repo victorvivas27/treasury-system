@@ -4,6 +4,7 @@ import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";
 import { Button } from "@/shared/ui/button/Button";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import type { FC } from "react";
 
@@ -12,8 +13,8 @@ interface AlumnosListProps {
   loading: boolean;
   error: string | null;
   onRefresh?: () => void;
-  handleDelete?: (id: number) => void;
-  handleEdit?: (id: number) => void;
+  handleDelete?: (codigo: string) => void;
+  handleEdit?: (codigo: string) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -23,11 +24,30 @@ interface AlumnosListProps {
 }
 
 type EmptyRow = {
-  id: string;
+  rowKey: string;  // Cambiado de 'id' a 'rowKey' para evitar conflicto
   empty: true;
 };
 
 type RowItem = Alumno | EmptyRow;
+type AlumnoWithLegacyId = Alumno & { id?: number };
+
+// Type guard para saber si es EmptyRow
+const isEmptyRow = (item: RowItem): item is EmptyRow => {
+  return "empty" in item && item.empty === true;
+};
+
+// Función para obtener la key única de cada fila
+const getRowKey = (item: RowItem): string => {
+  if (isEmptyRow(item)) {
+    return item.rowKey;
+  }
+  const alumno = item as AlumnoWithLegacyId;
+  return `alumno-${alumno.codigo ?? alumno.alumnoId ?? alumno.id}`;
+};
+
+const getAlumnoIdentifier = (alumno: AlumnoWithLegacyId): string | number => (
+  alumno.codigo ?? alumno.alumnoId ?? alumno.id ?? ""
+);
 
 export const AlumnosList: FC<AlumnosListProps> = ({
   alumnos,
@@ -47,13 +67,13 @@ export const AlumnosList: FC<AlumnosListProps> = ({
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
-      id: `loading-${index}`,
+      rowKey: `loading-${index}`,
       empty: true,
     }))
     : [
       ...alumnos,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
-        id: `empty-${index}`,
+        rowKey: `empty-${index}`,
         empty: true as const,
       })),
     ];
@@ -80,7 +100,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   }
 
   return (
-    <article className="alumnos-container">
+    <article className="alumnos-container responsive-data-list">
       <header className="alumnos-header">
         <h2 className="alumnos-header__title">Lista de Alumnos</h2>
       </header>
@@ -88,28 +108,38 @@ export const AlumnosList: FC<AlumnosListProps> = ({
       <table className="alumnos-table">
         <thead>
           <tr>
+            <th className="alumnos-table__th">Código</th>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
-            <th className="alumnos-table__th">Apoderado ID</th>
             <th className="alumnos-table__th">Acciones</th>
           </tr>
         </thead>
 
         <tbody>
           {rows.map((item) => {
-            const isEmptyRow = "empty" in item;
-            const alumno = item as Alumno;
+            const empty = isEmptyRow(item);
+            const alumno = item as AlumnoWithLegacyId;
+            const alumnoIdentifier = getAlumnoIdentifier(alumno);
 
             return (
               <tr
-                key={item.id}
-                className={`alumnos-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
-                  }`}
+                key={getRowKey(item)}
+                className={`alumnos-table__row--data ${empty && !loading ? "empty-row" : ""}`}
               >
+                <td className="alumnos-table__td" data-label="Código">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : empty ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    alumnoIdentifier
+                  )}
+                </td>
+
                 <td className="alumnos-table__td" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
+                  ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (
                     alumno.nombre
@@ -119,56 +149,32 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 <td className="alumnos-table__td" data-label="Curso">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
+                  ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (
                     alumno.curso
                   )}
                 </td>
 
-                <td className="alumnos-table__td" data-label="Apoderado ID">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    alumno.apoderadoId
-                  )}
-                </td>
-
                 <td className="alumnos-table__td" data-label="Acciones">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
-                  ) : !isEmptyRow && alumno ? (
+                  ) : !empty && alumno ? (
                     <div className="alumnos-table__td--actions">
                       <Button
                         variant="danger"
                         size="small"
-                        onClick={() => handleDelete?.(alumno.id)}
-                        icon={
-                          <ALUMNOS_ICONS.delete
-                            style={{
-                              fontSize: "1rem",
-                              color: "var(--color-surface)",
-                            }}
-                          />
-                        }
-                        testId={`delete-btn-${alumno.id}`}
+                        onClick={() => handleDelete?.(alumnoIdentifier as string)}
+                        icon={<ALUMNOS_ICONS.delete />}
+                        testId={`delete-btn-${alumnoIdentifier}`}
                       />
 
                       <Button
                         variant="secondary"
                         size="small"
-                        onClick={() => handleEdit?.(alumno.id)}
-                        icon={
-                          <ALUMNOS_ICONS.edit
-                            style={{
-                              fontSize: "1rem",
-                              color: "var(--color-surface)",
-                            }}
-                          />
-                        }
-                        testId={`edit-btn-${alumno.id}`}
+                        onClick={() => handleEdit?.(alumnoIdentifier as string)}
+                        icon={<ALUMNOS_ICONS.edit />}
+                        testId={`edit-btn-${alumnoIdentifier}`}
                       />
                     </div>
                   ) : (
@@ -181,25 +187,9 @@ export const AlumnosList: FC<AlumnosListProps> = ({
         </tbody>
       </table>
 
-      <div className="pagination">
-        <Button
-          onClick={onPrevPage}
-          disabled={!hasPrevPage || loading}
-          variant="secondary"
-          size="small"
-          label="◀ Anterior"
-        />
-
-        <span className="no-highlight">Página {currentPage + 1}</span>
-
-        <Button
-          onClick={onNextPage}
-          disabled={loading || isLastPage}
-          variant="secondary"
-          size="small"
-          label="Siguiente ▶"
-        />
-      </div>
+      <Pagination currentPage={currentPage + 1} hasPrevious={hasPrevPage}
+        hasNext={!isLastPage} loading={loading} onPrevious={onPrevPage}
+        onNext={onNextPage} ariaLabel="Paginación de alumnos" />
     </article>
   );
 };

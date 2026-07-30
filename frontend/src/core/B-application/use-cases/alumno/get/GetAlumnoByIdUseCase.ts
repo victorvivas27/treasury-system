@@ -8,7 +8,7 @@ export class GetAlumnoByIdUseCase {
     this.alumnoRepository = alumnoRepository;
   }
 
-  async execute(id: number): Promise<Alumno | null> {
-    return await this.alumnoRepository.getById(id);
+  async execute(codigo:string): Promise<Alumno | null> {
+    return await this.alumnoRepository.getByCodigo(codigo);
   }
 }

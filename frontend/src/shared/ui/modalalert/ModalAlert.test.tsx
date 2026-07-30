@@ -11,6 +11,7 @@ describe("ModalAlert Component", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });
@@ -80,12 +81,12 @@ describe("ModalAlert Component", () => {
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("[ModalAlert #08] Debe mostrar la barra de progreso solo si existe autoCloseTime.", () => {
+  it("[ModalAlert #08] Debe mostrar progreso por defecto y permitir desactivar el autocierre.", () => {
     const { container, rerender } = render(<ModalAlert {...defaultProps} />);
-    expect(container.querySelector(".modal-progress")).not.toBeInTheDocument();
-
-    rerender(<ModalAlert {...defaultProps} autoCloseTime={5000} />);
     expect(container.querySelector(".modal-progress")).toBeInTheDocument();
+
+    rerender(<ModalAlert {...defaultProps} autoCloseTime={0} />);
+    expect(container.querySelector(".modal-progress")).not.toBeInTheDocument();
   });
 
   // ========== 4. ACCESIBILIDAD ==========

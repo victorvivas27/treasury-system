@@ -1,32 +1,31 @@
-// Instanciamos el repositorio
+
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useMemo, useState } from "react";
 
 export const useDeleteApoderado = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [idToDelete, setIdToDelete] = useState<number | null>(null);
+  const [codigoToDelete, setCodigoToDelete] = useState<string | null>(null);
   const [alert, setAlert] = useState({
     isOpen: false,
     message: "",
     type: "success" as "success" | "error",
   });
-  // Instanciación dentro del hook para mejorar la testabilidad
   const apoderadoRepository = useMemo(() => new ApoderadoRepositoryImpl(), []);
-  const openDeleteConfirm = (id: number) => {
-    setIdToDelete(id);
+  const openDeleteConfirm = (codigo: string) => {
+    setCodigoToDelete(codigo);
   };
 
   const closeDeleteConfirm = () => {
-    setIdToDelete(null);
+    setCodigoToDelete(null);
   };
 
   const confirmDelete = async () => {
-    if (idToDelete === null) return;
+    if (codigoToDelete === null) return;
 
     setIsDeleting(true);
 
     try {
-      await apoderadoRepository.delete(idToDelete);
+      await apoderadoRepository.delete(codigoToDelete);
 
       setAlert({
         isOpen: true,
@@ -35,9 +34,7 @@ export const useDeleteApoderado = (onSuccess?: () => void) => {
       });
 
       onSuccess?.();
-    } catch (error) {
-      console.error("Error al eliminar apoderado:", error);
-
+    } catch {
       setAlert({
         isOpen: true,
         message: "No se pudo eliminar el apoderado.",
@@ -45,7 +42,7 @@ export const useDeleteApoderado = (onSuccess?: () => void) => {
       });
     } finally {
       setIsDeleting(false);
-      setIdToDelete(null);
+      setCodigoToDelete(null);
     }
   };
 
@@ -58,8 +55,8 @@ export const useDeleteApoderado = (onSuccess?: () => void) => {
 
   return {
     isDeleting,
-    idToDelete,
-    isConfirmOpen: idToDelete !== null,
+    codigoToDelete,
+    isConfirmOpen: codigoToDelete !== null,
     openDeleteConfirm,
     closeDeleteConfirm,
     confirmDelete,

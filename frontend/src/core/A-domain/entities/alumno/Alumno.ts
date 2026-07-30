@@ -1,11 +1,11 @@
 export interface Alumno {
-  id: number;
+  alumnoId: number;
+  codigo: string;
   nombre: string;
   curso: string;
-  apoderadoId: number;
 }
 
-export type CreateAlumnoDTO = Omit<Alumno, "id">;
+export type CreateAlumnoDTO = Omit<Alumno, "alumnoId" | "codigo">;
 
 export interface PageResponse<T> {
   content: T[];

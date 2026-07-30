@@ -2,18 +2,15 @@ info:
   name: 03-Update Alumno By ID
   type: http
   seq: 3
+  tags:
+    - alumno
 
 http:
   method: PUT
-  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   body:
     type: json
-    data: |-
-      {
-        "nombre": "Juan Actualizado",
-        "curso": "5B",
-        "apoderadoId": {{alumnoApoderadoId}}
-      }
+    data: "{{bodyDataAlumnoUpdate}}"
   auth: inherit
 
 runtime:
@@ -27,6 +24,8 @@ runtime:
         });
 
         test("Alumno should be updated", function () {
+          expect(body.alumnoId).to.equal(Number(bru.getEnvVar("alumnoId")));
+          expect(body.codigo).to.equal(bru.getEnvVar("codigo"));
           expect(body.nombre).to.equal("JUAN ACTUALIZADO");
           expect(body.curso).to.equal("5B");
         });
@@ -36,4 +35,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

@@ -15,7 +15,8 @@
   width: var(--wh-100);
   padding: clamp(0.2rem, 1vh,var(--xs))var(--sm);
   color: var(--text-main);
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, padding 340ms cubic-bezier(0.32, 0.72, 0, 1),
+    gap 260ms ease;
 
   display: flex;
   align-items: center;
@@ -23,8 +24,17 @@
 }
 
 /* Activo */
+.sidebar-footer-link.active {
+  background: var(--color-hover);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
 .sidebar-footer-link.active .sidebar-footer-icon,
 .sidebar-footer-link.active .sidebar-footer-text {
+  color: var(--color-accent);
+}
+
+.sidebar-footer-link.active .sidebar-footer-icon {
   color: var(--color-warning);
 }
 
@@ -39,29 +49,63 @@
 
 /* Texto */
 .sidebar-footer-text {
+  max-width: 10rem;
   overflow: hidden;
+  white-space: nowrap;
+  visibility: visible;
+  opacity: 1;
+  transition: max-width 300ms ease, opacity 180ms ease,
+    visibility 0s linear;
 }
 
 /* Usuario */
 .sidebar-user {
   padding: clamp(0.1rem, 1vh, 0.3rem) 0.2rem;
-
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: var(--sm);
+  transition: padding 340ms cubic-bezier(0.32, 0.72, 0, 1),
+    gap 260ms ease;
+}
+
+.sidebar-user:hover,
+.sidebar-user.active {
+  background-color: var(--color-hover);
+  color: var(--color-accent);
+}
+
+.sidebar-user.active {
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.sidebar-user:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* Avatar */
 .sidebar-user-avatar img {
+  display: block;
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
+  object-fit: cover;
+}
+
+.sidebar-user-avatar {
+  flex: 0 0 2.5rem;
 }
 
 /* Info */
 .sidebar-user-info {
+  max-width: 10rem;
   overflow: hidden;
   white-space: nowrap;
+  visibility: visible;
+  opacity: 1;
+  transition: max-width 300ms ease, opacity 180ms ease,
+    visibility 0s linear;
 
   display: flex;
   flex-direction: column;
@@ -81,6 +125,17 @@
 .sidebar-user-logout {
   transition: transform 0.15s ease, color 0.2s ease;
 
+}
+
+.sidebar-footer > .base-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+  margin: 0;
+  padding-right: var(--sm);
+  padding-left: var(--sm);
+  transition: padding 340ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* El span del label */
@@ -104,4 +159,30 @@
   width: auto;
   opacity: 1;
   transform: translateX(0);
+}
+
+.sidebar--collapsed .sidebar-footer-text,
+.sidebar--collapsed .sidebar-user-info {
+  visibility: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 260ms ease, opacity 120ms ease,
+    visibility 0s linear 260ms;
+}
+
+.sidebar--collapsed .sidebar-footer-link {
+  gap: 0;
+  padding-right: 1.1rem;
+  padding-left: 1.1rem;
+}
+
+.sidebar--collapsed .sidebar-user {
+  gap: 0;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.sidebar--collapsed .sidebar-footer > .base-button {
+  padding-right: 1.1rem;
+  padding-left: 1.1rem;
 }

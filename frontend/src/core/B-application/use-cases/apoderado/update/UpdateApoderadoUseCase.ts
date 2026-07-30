@@ -8,9 +8,9 @@ export class UpdateApoderadoUseCase {
     this.apoderadoRepository = apoderadoRepository;
   }
 
-  async execute(id: number, datosActualizados: Partial<Apoderado>): Promise<Apoderado> {
+  async execute(codigo: string, datosActualizados: Partial<Apoderado>): Promise<Apoderado> {
 
-      const apoderado = await this.apoderadoRepository.update(id, datosActualizados);
+      const apoderado = await this.apoderadoRepository.update(codigo, datosActualizados);
       return apoderado;
 
   }

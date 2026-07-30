@@ -2,11 +2,21 @@
   margin-top: 2.5rem;
   width: 94%;
   margin-left: auto;
+}
 
+.main-content {
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
   .main-layout {
-    width: 84%;
+    width: calc(100% - 3.5rem);
+    margin-left: 3.5rem;
+    margin-right: 0;
+  }
+
+  .main-content {
+    width: 100%;
+    overflow: clip;
   }
 }

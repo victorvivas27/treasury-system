@@ -31,11 +31,80 @@
 .apoderados-table__row--data {
   border-bottom: 1px solid var(--divider);
   height: 44px;
+
 }
 
 .apoderados-table__td {
   font-size: var(--sm);
   text-align: center;
+  padding: 0.45rem 0.65rem;
+  overflow-wrap: anywhere;
+
+}
+
+@media (min-width: 769px) {
+.apoderados-table__th:nth-child(1),
+.apoderados-table__td:nth-child(1) {
+  width: 10%;
+}
+
+.apoderados-table__th:nth-child(2),
+.apoderados-table__td:nth-child(2) {
+  width: 15%;
+}
+
+.apoderados-table__th:nth-child(3),
+.apoderados-table__td:nth-child(3) {
+  width: 20%;
+}
+
+.apoderados-table__th:nth-child(4),
+.apoderados-table__td:nth-child(4) {
+  width: 12%;
+}
+
+.apoderados-table__th:nth-child(5),
+.apoderados-table__td:nth-child(5) {
+  width: 13%;
+}
+
+.apoderados-table__th:nth-child(6),
+.apoderados-table__td:nth-child(6) {
+  width: 30%;
+
+}
+}
+
+.apoderados-table__td--actions {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, max-content) 32px 32px;;
+  gap: .5rem;
+  min-width: 0;
+
+}
+
+
+
+.apoderados-table__td--actions .apoderados-table__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: .35rem;
+  margin: 0;
+
+}
+
+.apoderados-table__td--actions .apoderados-table__access-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: .4rem .9rem;
+  margin: 0;
+  white-space: nowrap;
 }
 
 
@@ -72,36 +141,4 @@
   100% {
     background-position: -200% 0;
   }
-}
-
-/* --- Responsive SOLO tabla real --- */
-@media (max-width: 768px) {
-.apoderados-table,
-  .apoderados-table__head,
-  .apoderados-table__body,
-  .apoderados-table__th,
-  .apoderados-table__td,
-  .apoderados-table__row--data {
-    display: revert;
-    height: 34px;
-  }
-
-  .apoderados-table__th {
-    display: none;
-
-  }
-
-  .apoderados-table__td {
-    display: flex;
-    justify-content: space-between;
-
-  }
-
-  .apoderados-table__td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--color-accent);
-  }
-
-
 }

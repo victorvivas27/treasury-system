@@ -1,6 +1,6 @@
 
 import { IoIosArrowBack } from "react-icons/io";
-const icono_tesoreria = ("/icono_tesoreria_03.png");
+const icono_tesoreria = "/icono_tesoreria_03.png";
 import "./style/SidebarHeader.css";
 type SidebarHeaderProps = {
   onToggleSidebar: () => void;

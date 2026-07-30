@@ -1,8 +1,12 @@
 package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.UUID;
 
 @Entity
 @Table(name = "apoderados")
@@ -10,7 +14,10 @@ public final class ApoderadoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long apoderadoId;
+
+    @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
+    private String codigo;
 
     @Column(nullable = false, length = 50)
     private String nombre;
@@ -18,22 +25,46 @@ public final class ApoderadoEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, length = 20)
     private String telefono;
 
     @Column(length = 500)
     private String observaciones;
 
+    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Constructores
+    public ApoderadoEntity() {
+    }
+
+    public ApoderadoEntity(
+            Long apoderadoId,
+            String codigo,
+            String nombre,
+            String email,
+            String telefono,
+            String observaciones) {
+        this.apoderadoId = apoderadoId;
+        this.codigo = codigo;
+        this.nombre = nombre;
+        this.email = email;
+        this.telefono = telefono;
+        this.observaciones = observaciones;
+    }
+
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.codigo == null) {
+            this.codigo = "AP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
+        }
     }
 
     @PreUpdate
@@ -41,31 +72,21 @@ public final class ApoderadoEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    // Constructores
-    public ApoderadoEntity() {
-    }
-
-    public ApoderadoEntity(
-            Long id,
-            String nombre,
-            String email,
-            String telefono,
-            String observaciones
-    ) {
-        this.id = id;
-        this.nombre = nombre;
-        this.email = email;
-        this.telefono = telefono;
-        this.observaciones = observaciones;
-    }
-
     // Getters y Setters
-    public Long getId() {
-        return id;
+    public Long getApoderadoId() {
+        return apoderadoId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setApoderadoId(Long apoderadoId) {
+        this.apoderadoId = apoderadoId;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public String getNombre() {
@@ -115,4 +136,5 @@ public final class ApoderadoEntity {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
 }

@@ -13,6 +13,7 @@ interface ButtonProps {
   disabled?: boolean;
   testId?: string;
   className?: string;
+  ariaLabel?: string;
 }
 
 export const Button = ({
@@ -26,8 +27,13 @@ export const Button = ({
   loading = false,
   disabled = false,
   testId,
-  className = ''
+  className = '',
+  ariaLabel,
 }: ButtonProps) => {
+  const displayedIcon = loading
+    ? <span className="button-loader" aria-hidden="true" />
+    : icon;
+
   return (
     <button
       type={type}
@@ -36,16 +42,17 @@ export const Button = ({
       className={`base-button button-${variant} size-${size} ${loading ? 'is-loading' : ''} ${className}`}
       disabled={disabled || loading}
       data-testid={testId}
+      aria-label={ariaLabel}
     >
       <span className="button-content">
-        {icon && iconPosition === 'left' && (
-          <span className="button-icon button-icon--left">{icon}</span>
+        {displayedIcon && iconPosition === 'left' && (
+          <span className="button-icon button-icon--left">{displayedIcon}</span>
         )}
 
         {label && <span className="button-label">{label}</span>}
 
-        {icon && iconPosition === 'right' && (
-          <span className="button-icon button-icon--right">{icon}</span>
+        {displayedIcon && iconPosition === 'right' && (
+          <span className="button-icon button-icon--right">{displayedIcon}</span>
         )}
       </span>
     </button>

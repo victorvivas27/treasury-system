@@ -14,17 +14,16 @@ import { useNavigate, useParams } from "react-router-dom";
 
 export const useEditApoderado = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { apoderadoId, id: legacyId } = useParams();
+  const routeIdentifier = apoderadoId ?? legacyId;
+  const codigo = routeIdentifier && (/^\d+$/.test(routeIdentifier) || /^AP-/i.test(routeIdentifier))
+    ? routeIdentifier
+    : undefined;
 
-  // Memorizamos el ID numérico para evitar recálculos innecesarios
-  const numericId = useMemo(() => (id ? parseInt(id, 10) : undefined), [id]);
-
-  // Estados de carga (Entrada y Salida)
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<{ message: string } | null>(null);
 
-  // Instancias de arquitectura (Memorizadas para evitar recreación en cada render)
   const { getUseCase, updateUseCase } = useMemo(() => {
     const repository = new ApoderadoRepositoryImpl();
     return {
@@ -55,9 +54,9 @@ export const useEditApoderado = () => {
   );
 
   const loadApoderadoData = useCallback(async () => {
-    if (numericId === undefined || isNaN(numericId)) {
+    if (!codigo) {
       setLoadError({ message: "ID de apoderado no válido" });
-      setInitialLoading(false); // <--- Agrega esto
+      setInitialLoading(false);
       return;
     }
 
@@ -65,7 +64,7 @@ export const useEditApoderado = () => {
     setLoadError(null);
 
     try {
-      const apoderado = await getUseCase.execute(numericId);
+      const apoderado = await getUseCase.execute(codigo);
 
       if (!apoderado) {
         setLoadError({ message: "El apoderado no existe en el sistema" });
@@ -87,7 +86,7 @@ export const useEditApoderado = () => {
     } finally {
       setInitialLoading(false);
     }
-  }, [numericId, getUseCase, navigate, showAlert]);
+  }, [codigo, getUseCase, navigate, showAlert]);
 
   useEffect(() => {
     loadApoderadoData();
@@ -109,30 +108,33 @@ export const useEditApoderado = () => {
   };
 
   const handleSubmit = async () => {
-    if (numericId === undefined || isNaN(numericId)) return;
+    if (!codigo) return;
 
     setLoading(true);
     setFieldErrors({});
 
     try {
-      await updateUseCase.execute(numericId, formData);
+      await updateUseCase.execute(codigo, formData);
       showAlert("¡Apoderado actualizado con éxito!", "success");
 
       setTimeout(() => {
         navigate("/parents");
       }, 2000);
-    } catch (error: any) {
-      // Importante: No retornamos inmediatamente sin apagar el loading
-      if (axios.isAxiosError(error) && error.response) {
-        const { code, errors, message } = error.response.data;
-        if (code === "ERROR_VALIDACION" && errors) {
-          setFieldErrors(errors);
-        } else {
-          showAlert(message || "Error al procesar la solicitud", "error");
-        }
-      } else {
+
+    }catch (error: any) {
+      if (!axios.isAxiosError(error) || !error.response) {
         showAlert("Ocurrió un error inesperado", "error");
+        return;
       }
+
+      const { errors, message } = error.response.data;
+
+      if (errors && Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
+
+      showAlert(message || "Error al procesar la solicitud", "error");
     } finally {
       setLoading(false);
     }

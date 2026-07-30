@@ -1,0 +1,41 @@
+info:
+  name: 07-Apoderado Duplicado
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{Url_Base}}/familias"
+  body:
+    type: json
+    data: |-
+      {
+        "alumnoId": {{familiaAlumnoId}},
+        "apoderados": [
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Padre",
+            "esPrincipal": false
+          },
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Tutor",
+            "esPrincipal": false
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

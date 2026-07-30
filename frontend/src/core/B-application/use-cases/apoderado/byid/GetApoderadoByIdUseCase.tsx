@@ -8,12 +8,12 @@ import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/
     this.apoderadoRepository = apoderadoRepository;
   }
 
-  async execute(id:number): Promise<Apoderado | null> {
+  async execute(codigo: string): Promise<Apoderado | null> {
     try {
-      const apoderado = await this.apoderadoRepository.getById(id);
+      const apoderado = await this.apoderadoRepository.getById(codigo);
       return apoderado;
     } catch (error) {
-      throw new Error(`Error al obtener el apoderado con ID: ${id}`, { cause: error });
+      throw new Error(`Error al obtener el apoderado con codigo: ${codigo}`, { cause: error });
     }
   }
 }

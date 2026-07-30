@@ -2,10 +2,12 @@ info:
   name: 02-Nombre Empty
   type: http
   seq: 2
+  tags:
+    - apoderados
 
 http:
   method: PUT
-  url: "{{Url_Base}}/apoderados/{{apoderadoIdCreadoPre}}"
+  url: "{{Url_Base}}/apoderados/{{codigo}}"
   body:
     type: json
     data: |-
@@ -19,81 +21,33 @@ http:
 
 runtime:
   scripts:
-    - type: before-request
-      code: |-
-        const baseUrl = bru.getEnvVar('Url_Base');
-
-        const apoderado = {
-          nombre: "Victor Vivas",
-          email: "victor@gmail.com",
-          telefono: "+987654321"
-        };
-
-        const preResponse = await bru.sendRequest({
-          url: `${baseUrl}/apoderados`,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          data: apoderado
-        });
-
-        const creadoRaw = preResponse.data || preResponse.body;
-
-        const creado = typeof creadoRaw === "string"
-          ? JSON.parse(creadoRaw)
-          : creadoRaw;
-
-        //console.log("Respuesta Pre:", creado);
-
-        bru.setVar("apoderadoIdCreadoPre", creado.id);
-        bru.setVar("bodyData", JSON.stringify(apoderado));
-
-        //console.log(`✅ Apoderado creado en Pre Request: ${creado.id}`);
-    - type: after-response
-      code: |-
-        const baseUrl = bru.getEnvVar('Url_Base');
-        const id = bru.getVar('apoderadoIdCreadoPre');
-
-        if (id) {
-          try {
-            await bru.sendRequest({
-              url: `${baseUrl}/apoderados/${id}`,
-              method: 'DELETE'
-            });
-
-            console.log(`✅ Apoderado ${id} eliminado`);
-          } catch(error) {
-            console.log(`❌ Error eliminando: ${error}`);
-          }
-        } else {
-          console.log('⚠️ No se encontró ID para eliminar');
-        }
     - type: tests
       code: |-
         //El estado debería ser 400
         test("Status should be 400", function() {
             expect(res.status).to.equal(400);
-          });
-          //El código de error debería ser ERROR_VALIDACION
-          test("Error code should be ERROR_VALIDACION", function() {
-            expect(res.body.code).to.equal("ERROR_VALIDACION");
-          });
-        //Debe enumerar los campos faltantes.
-          test("Should list missing fields", function() {
-            expect(res.body.errors).to.have.property("nombre");
-            expect(res.body.errors).to.not.property("email");
-            expect(res.body.errors).to.not.property("telefono");
-          });
+        });
 
-        test("Error message for nombre should be descriptive", function() {
-          const mensaje = res.body.errors.nombre;
-          const mensajesValidos = [
-            "El nombre no puede estar vacío",
-            "El nombre debe tener al menos 3 caracteres",
-            "El nombre solo puede contener letras, espacios y tildes"
-          ];
-          expect(mensajesValidos).to.include(mensaje);
+        //Verificar que NO tiene código de error
+        test("Error code should NOT exist", function() {
+            expect(res.body).to.not.have.property("code");
+        });
+
+        //Debe enumerar los campos faltantes
+        const fieldsPresent = bru.getRequestVar("fields_present");
+        const expectedFields = fieldsPresent ? fieldsPresent.split(',').map(f => f.trim()) : [];
+
+        test("Should list missing fields", function() {
+            expectedFields.forEach(field => {
+                expect(res.body.errors).to.have.property(field);
+            });
+        });
+
+        //Los mensajes de error deben ser descriptivos
+        test("Error messages should be descriptive", function() {
+            expectedFields.forEach(field => {
+                expect(res.body.errors[field]).to.include("no puede estar vacío");
+            });
         });
 
 settings:

@@ -1,12 +1,8 @@
 .base-button {
-  gap: 0.5rem;
-  border: none;
   border-radius: var(--xs);
-  transition: all 0.2s ease;
-  margin: 0.2rem;
   cursor: pointer;
-  font-weight: 500;
-  white-space: nowrap;
+  color: var(--color-primary);
+  margin: 0.2em;;
 }
 
 .base-button:disabled,
@@ -19,26 +15,15 @@
 /* Variantes */
 .button-primary {
   background-color: var(--color-accent);
-  color: var(--color-bg);
-}
 
-.button-primary:hover:not(:disabled) {
-  filter: brightness(0.95);
 }
 
 .button-secondary {
   background-color: var(--color-info);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
 }
 
 .button-danger {
   background-color: var(--color-error);
-  color: var(--text-main);
-}
-
-.button-danger:hover:not(:disabled) {
-  filter: brightness(0.95);
 }
 
 /* Tamaños */
@@ -70,25 +55,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-}
-
-/* Iconos */
-.button-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  gap: 0.3rem;
 }
 
 .button-icon svg {
-  width: 1em;
-  height: 1em;
+  width: 1.5em;
+  height: 1.5em;
   display: block;
 }
 
 /* Loader animation para iconos cuando está cargando */
-.is-loading .button-icon {
+.button-loader {
+  width: 1.1em;
+  height: 1.1em;
+  display: block;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 

@@ -2,6 +2,7 @@ import { GetAlumnoByIdUseCase } from "@/core/B-application/use-cases/alumno/get/
 import { UpdateAlumnoUseCase } from "@/core/B-application/use-cases/alumno/update/UpdateAlumnoUseCase";
 import type { CreateAlumnoDTO } from "@/core/A-domain/entities/alumno/Alumno";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
   useCallback,
@@ -10,13 +11,14 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+
 
 export const useEditAlumno = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
-
-  const numericId = useMemo(() => (id ? parseInt(id, 10) : undefined), [id]);
+  const params = useParams();
+  const codigo = params.codigo ?? params.id;
+  const legacyNumericId = params.id && /^\d+$/.test(params.id) ? Number(params.id) : undefined;
+  const invalidLegacyId = params.id !== undefined && params.codigo === undefined && legacyNumericId === undefined;
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -33,7 +35,6 @@ export const useEditAlumno = () => {
   const [formData, setFormData] = useState<CreateAlumnoDTO>({
     nombre: "",
     curso: "",
-    apoderadoId: 0,
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -51,7 +52,7 @@ export const useEditAlumno = () => {
   );
 
   const loadAlumnoData = useCallback(async () => {
-    if (numericId === undefined || isNaN(numericId)) {
+    if (!codigo || invalidLegacyId) {
       setLoadError({ message: "ID de alumno no válido" });
       setInitialLoading(false);
       return;
@@ -61,7 +62,7 @@ export const useEditAlumno = () => {
     setLoadError(null);
 
     try {
-      const alumno = await getUseCase.execute(numericId);
+      const alumno = await getUseCase.execute((legacyNumericId ?? codigo) as string);
 
       if (!alumno) {
         setLoadError({ message: "El alumno no existe en el sistema" });
@@ -73,7 +74,7 @@ export const useEditAlumno = () => {
       setFormData({
         nombre: alumno.nombre,
         curso: alumno.curso,
-        apoderadoId: alumno.apoderadoId,
+        ...("apoderadoId" in alumno ? { apoderadoId: alumno.apoderadoId } : {}),
       });
     } catch {
       setLoadError({ message: "Error de conexión al cargar los datos" });
@@ -82,21 +83,24 @@ export const useEditAlumno = () => {
     } finally {
       setInitialLoading(false);
     }
-  }, [numericId, getUseCase, navigate, showAlert]);
+  }, [codigo, getUseCase, navigate, showAlert]);
 
   useEffect(() => {
     loadAlumnoData();
   }, [loadAlumnoData]);
 
+  // ✅ handleChange SIMPLIFICADO - sin lógica de apoderadoId
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "apoderadoId" ? (value ? parseInt(value, 10) : 0) : value,
+      [name]: name.endsWith("Id") ? Number(value) : value,
     }));
 
+    // Limpiar error del campo cuando el usuario empieza a escribir
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -107,29 +111,35 @@ export const useEditAlumno = () => {
   };
 
   const handleSubmit = async () => {
-    if (numericId === undefined || isNaN(numericId)) return;
+    if (!codigo || invalidLegacyId) {
+      setLoadError({ message: "ID de alumno no válido" });
+      return;
+    }
 
     setLoading(true);
     setFieldErrors({});
 
     try {
-      await updateUseCase.execute(numericId, formData);
+      await updateUseCase.execute((legacyNumericId ?? codigo) as string, formData);
       showAlert("¡Alumno actualizado con éxito!", "success");
 
       setTimeout(() => {
         navigate("/students");
       }, 2000);
     } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response) {
-        const { code, errors, message } = error.response.data;
-        if (code === "ERROR_VALIDACION" && errors) {
-          setFieldErrors(errors);
-        } else {
-          showAlert(message || "Error al procesar la solicitud", "error");
-        }
-      } else {
+      if (!axios.isAxiosError(error) || !error.response) {
         showAlert("Ocurrió un error inesperado", "error");
+        return;
       }
+
+      const { errors, message } = error.response.data;
+
+      if (errors && Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
+
+      showAlert(message || "Error al procesar la solicitud", "error");
     } finally {
       setLoading(false);
     }

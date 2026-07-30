@@ -6,6 +6,34 @@ info:
 request:
   auth: inherit
   scripts:
+    - type: before-request
+      code: |-
+        // // Pre-Request Script corregido y adaptado a tu JSON de paginación
+        // const baseUrl = bru.getEnvVar('Url_Base');
+
+        // try {
+        //   const listar = await bru.sendRequest({
+        //     url: `${baseUrl}/apoderados`,
+        //     method: 'GET',
+        //     headers: { 'Content-Type': 'application/json' }
+        //   });
+
+        //   // CRÍTICO: Tu API devuelve la matriz dentro de 'content'
+        //   const apoderados = listar.body && listar.body.content ? listar.body.content : [];
+
+        //   // Eliminar secuencialmente
+        //   for (const ap of apoderados) {
+        //     if (ap.id) {
+        //       await bru.sendRequest({
+        //         url: `${baseUrl}/apoderados/${ap.id}`,
+        //         method: 'DELETE',
+        //         headers: { 'Content-Type': 'application/json' }
+        //       });
+        //     }
+        //   }
+        // } catch (error) {
+         
+        // }
     - type: after-response
       code: |-
         // Leemos el texto de la variable (ej: "nombre,email,telefono")
@@ -19,14 +47,19 @@ request:
                 expect(res.status).to.equal(400);
             });
 
-            test("Error code should be ERROR_VALIDACION Or AP-004", () => {
-              expect(res.body.code).to.be.oneOf(["ERROR_VALIDACION", "AP-004"]);
+            test("Status should have ERROR_VALIDACION", () => {
+                expect(res.body).to.not.have.property("code");
+                // Para tu estructura, verificamos que exista el objeto errors
+                expect(res.body).to.have.property("errors");
             });
 
             test("Field validation check", () => {
                 fieldsPresent.forEach(f => {
                     // Trim elimina espacios accidentales
-                    expect(res.body.errors).to.have.property(f.trim());
+                    const fieldName = f.trim();
+                    expect(res.body.errors).to.have.property(fieldName);
+                    // Opcional: verificar que el mensaje de error no esté vacío
+                    expect(res.body.errors[fieldName]).to.be.a('string').and.not.empty;
                 });
             });
         }

@@ -1,0 +1,87 @@
+.usuarios-container {
+  padding: var(--sm);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+}
+
+.usuarios-header { border-bottom: 1px solid var(--border-color); }
+.usuarios-header__title { color: var(--color-accent); }
+.usuarios-table-wrapper { width: var(--wh-100); overflow-x: auto; }
+
+.usuarios-table {
+  width: var(--wh-100);
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.usuarios-table__th {
+  padding: var(--sm);
+  border-bottom: 1px solid var(--divider);
+  font-size: var(--sm);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.usuarios-table__row--data {
+  height: 56px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.usuarios-table__td {
+  padding: var(--sm);
+  overflow: hidden;
+  font-size: var(--sm);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usuarios-table .usuarios-table__email {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 769px) {
+  .usuarios-table__th:nth-child(1),
+  .usuarios-table__td:nth-child(1) { width: 12%; }
+
+  .usuarios-table__th:nth-child(2),
+  .usuarios-table__td:nth-child(2) { width: 18%; }
+
+  .usuarios-table__th:nth-child(3),
+  .usuarios-table__td:nth-child(3) { width: 28%; }
+
+  .usuarios-table__th:nth-child(4),
+  .usuarios-table__td:nth-child(4) { width: 12%; }
+
+  .usuarios-table__th:nth-child(5),
+  .usuarios-table__td:nth-child(5) { width: 12%; }
+
+  .usuarios-table__th:nth-child(6),
+  .usuarios-table__td:nth-child(6) { width: 18%; }
+}
+
+.usuarios-table__td--actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--xs);
+}
+
+.usuarios-table__skeleton {
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.usuarios-role,
+.usuarios-status {
+  display: inline-block;
+  padding: var(--xs) var(--sm);
+  border-radius: var(--radius-sm);
+}
+
+.usuarios-role { background-color: var(--color-hover); color: var(--text-main); }
+.usuarios-status.is-active { color: var(--color-success); }
+.usuarios-status.is-inactive { color: var(--color-error); }

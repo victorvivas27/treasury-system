@@ -1,9 +1,10 @@
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
+import axios from "axios";
 import { useMemo, useState } from "react";
 
 export const useDeleteAlumno = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [idToDelete, setIdToDelete] = useState<number | null>(null);
+  const [codigoToDelete, setCodigoToDelete] = useState<string | number | null>(null);
   const [alert, setAlert] = useState({
     isOpen: false,
     message: "",
@@ -12,21 +13,28 @@ export const useDeleteAlumno = (onSuccess?: () => void) => {
 
   const alumnoRepository = useMemo(() => new AlumnoRepositoryImpl(), []);
 
-  const openDeleteConfirm = (id: number) => {
-    setIdToDelete(id);
+  const openDeleteConfirm = (codigo: string | number) => {
+    setCodigoToDelete(codigo);
   };
 
   const closeDeleteConfirm = () => {
-    setIdToDelete(null);
+    setCodigoToDelete(null);
   };
 
   const confirmDelete = async () => {
-    if (idToDelete === null) return;
+    if (codigoToDelete === null) return;
 
     setIsDeleting(true);
 
     try {
-      await alumnoRepository.delete(idToDelete);
+      const repository = alumnoRepository as AlumnoRepositoryImpl & {
+        delete?: (id: number) => Promise<void>;
+      };
+      if (typeof repository.delete === "function" && typeof codigoToDelete === "number") {
+        await repository.delete(codigoToDelete);
+      } else {
+        await repository.deleteByCodigo(String(codigoToDelete));
+      }
 
       setAlert({
         isOpen: true,
@@ -36,16 +44,23 @@ export const useDeleteAlumno = (onSuccess?: () => void) => {
 
       onSuccess?.();
     } catch (error) {
-      console.error("Error al eliminar alumno:", error);
+      const responseErrors = axios.isAxiosError(error)
+        ? error.response?.data?.errors
+        : undefined;
+      const apiMessage = responseErrors && typeof responseErrors === "object"
+        ? Object.values(responseErrors).find(
+            (message): message is string => typeof message === "string",
+          )
+        : undefined;
 
       setAlert({
         isOpen: true,
-        message: "No se pudo eliminar el alumno.",
+        message: apiMessage ?? "No se pudo eliminar el alumno.",
         type: "error",
       });
     } finally {
       setIsDeleting(false);
-      setIdToDelete(null);
+      setCodigoToDelete(null);
     }
   };
 
@@ -58,8 +73,9 @@ export const useDeleteAlumno = (onSuccess?: () => void) => {
 
   return {
     isDeleting,
-    idToDelete,
-    isConfirmOpen: idToDelete !== null,
+    codigoToDelete,
+    idToDelete: codigoToDelete,
+    isConfirmOpen: codigoToDelete !== null,
     openDeleteConfirm,
     closeDeleteConfirm,
     confirmDelete,

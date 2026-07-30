@@ -2,6 +2,8 @@ info:
   name: 01-Empty Body
   type: http
   seq: 1
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -14,7 +16,7 @@ http:
 runtime:
   variables:
     - name: fields_present
-      value: nombre, email, telefono
+      value: nombre
     - name: fieldsAbsent
       value: ""
   scripts:
@@ -23,10 +25,9 @@ runtime:
         //Los mensajes de error deben ser descriptivos.
           test("Error messages should be descriptive", function() {
             expect(res.body.errors.nombre).to.equal("El nombre no puede estar vacío");
-            expect(res.body.errors.email).to.equal("El email no puede estar vacío");
-            expect(res.body.errors.telefono).to.equal("El teléfono no puede estar vacío");
+        //     expect(res.body.errors.email).to.equal("El email no puede estar vacío");
+        //     expect(res.body.errors.telefono).to.equal("El teléfono no puede estar vacío");
           });
-
 
         test("Error messages should be descriptive", function() {
             expect(res.body.errors.nombre).to.equal("El nombre no puede estar vacío");

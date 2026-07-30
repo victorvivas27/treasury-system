@@ -2,10 +2,12 @@ info:
   name: 02-Get Invalid ID Format
   type: http
   seq: 2
+  tags:
+    - alumno
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/abc"
+  url: "{{Url_Base}}/alumnos/{{idNumber}}"
   auth: inherit
 
 runtime:
@@ -21,4 +23,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

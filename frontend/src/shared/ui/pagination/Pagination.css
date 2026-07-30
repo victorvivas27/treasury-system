@@ -1,0 +1,14 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sm);
+  margin-top: var(--md);
+}
+
+.pagination .no-highlight {
+  padding: var(--xs) var(--sm);
+  color: var(--text-muted);
+  font-size: var(--sm);
+  white-space: nowrap;
+}

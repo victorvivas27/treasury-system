@@ -5,9 +5,9 @@ export interface IAlumnoRepository {
 
   create(alumno: CreateAlumnoDTO): Promise<Alumno>;
 
-  getById(id: number): Promise<Alumno | null>;
+  getByCodigo(codigo: string): Promise<Alumno | null>;
 
-  update(id: number, alumno: Partial<Alumno>): Promise<Alumno>;
+  updateByCodigo(codigo: string, alumno: Partial<Alumno>): Promise<Alumno>;
 
-  delete(id: number): Promise<void>;
+  deleteByCodigo(codigo: string): Promise<void>;
 }

@@ -2,10 +2,12 @@ info:
   name: 04-Get Updated By ID
   type: http
   seq: 4
+  tags:
+    - apoderados
 
 http:
   method: GET
-  url: "{{Url_Base}}/apoderados/{{apoderadoId}}"
+  url: "{{Url_Base}}/apoderados/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -37,7 +39,7 @@ runtime:
         // El ID debe ser el mismo (no cambió)
         test("ID should remain the same", function () { 
           // Comparar convirtiendo a number
-          expect(body.id).to.equal(Number(idOriginal));
+          expect(body.apoderadoId).to.equal(Number(idOriginal));
         });
 
 settings:

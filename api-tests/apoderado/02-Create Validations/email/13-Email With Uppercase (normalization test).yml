@@ -2,6 +2,8 @@ info:
   name: 13-Email With Uppercase (normalization test)
   type: http
   seq: 13
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -55,14 +57,8 @@ runtime:
           expect(emailEnviado.toLowerCase()).to.equal(body.email);
         });
 
-        // Guarda el id en variable
-        // Variable temporal (solo runtime de ejecución)
-        // bru.setVar("apoderadoId", body.id);
-
-        // Variable persistente en el environment
-        //bru.setEnvVar("apoderadoId", body.id);
         //Variable de environment intentando persistir en disco
-        bru.setEnvVar("apoderadoId", body.id.toString(), { persist: true });
+        bru.setEnvVar("apoderadoId", body.apoderadoId.toString(), { persist: true });
 
 settings:
   encodeUrl: true

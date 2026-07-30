@@ -1,5 +1,6 @@
 import { Button } from "../button/Button";
 import "./ModalConfirm.css";
+import type { ReactNode } from "react";
 
 interface ModalConfirmProps {
   isOpen: boolean;
@@ -8,8 +9,10 @@ interface ModalConfirmProps {
   confirmLabel?: string;
   cancelLabel?: string;
   isLoading?: boolean;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  children?: ReactNode;
 }
 
 export const ModalConfirm = ({
@@ -19,15 +22,19 @@ export const ModalConfirm = ({
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   isLoading = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
+  children,
 }: ModalConfirmProps) => {
   if (!isOpen) return null;
 
   return (
     <aside
       className="modal-confirm-overlay"
-      onClick={onCancel}
+      onClick={() => {
+        if (!isLoading) onCancel();
+      }}
       aria-modal="true"
       role="dialog"
     >
@@ -45,6 +52,7 @@ export const ModalConfirm = ({
 
         <main className="modal-confirm-body">
           <p>{message}</p>
+          {children && <div className="modal-confirm-content">{children}</div>}
         </main>
 
         <footer className="modal-confirm-footer">
@@ -54,6 +62,7 @@ export const ModalConfirm = ({
             size="medium"
             variant="secondary"
             type="button"
+            disabled={isLoading || confirmDisabled}
           />
 
           <Button
@@ -62,6 +71,7 @@ export const ModalConfirm = ({
             size="medium"
             variant="primary"
             type="button"
+            loading={isLoading}
           />
         </footer>
       </article>

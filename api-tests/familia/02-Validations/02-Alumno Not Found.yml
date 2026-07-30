@@ -1,0 +1,36 @@
+info:
+  name: 02-Alumno Not Found
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{Url_Base}}/familias"
+  body:
+    type: json
+    data: |-
+      {
+        "alumnoId": 999999,
+        "apoderados": [
+          {
+            "apoderadoId": {{familiaApoderadoId}},
+            "parentesco": "Padre",
+            "esPrincipal": false
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status should be 404", function () {
+          expect(res.getStatus()).to.equal(404);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

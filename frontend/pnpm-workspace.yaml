@@ -1,0 +1,6 @@
+packages:
+  - '.'
+
+overrides:
+  form-data: 4.0.6
+  hasown: 2.0.3

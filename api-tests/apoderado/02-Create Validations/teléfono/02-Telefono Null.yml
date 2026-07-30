@@ -2,6 +2,8 @@ info:
   name: 02-Telefono Null
   type: http
   seq: 2
+  tags:
+    - apoderados
 
 http:
   method: POST

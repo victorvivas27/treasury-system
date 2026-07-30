@@ -61,4 +61,14 @@ describe('Button Component', () => {
     expect(boton).toBeDisabled();
   });
 
+  it('[Button #07] loading debe reemplazar el icono de accion por un loader', () => {
+    const { container } = renderButton({
+      loading: true,
+      icon: <span data-testid="action-icon">editar</span>,
+    });
+
+    expect(screen.queryByTestId('action-icon')).not.toBeInTheDocument();
+    expect(container.querySelector('.button-loader')).toBeInTheDocument();
+  });
+
 });

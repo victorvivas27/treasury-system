@@ -1,13 +1,15 @@
-// domain/entities/Apoderado.ts
+
 export interface Apoderado {
-  id: number;
+  apoderadoId: number;
+  codigo: string;
   nombre: string;
   email: string;
   telefono: string;
   observaciones?: string;
+  accessStatus?: "SIN_ACCESO" | "INVITACION_PENDIENTE" | "ACTIVO" | "BLOQUEADO";
 }
 
-export type CreateApoderadoDTO = Omit<Apoderado, "id">;
+export type CreateApoderadoDTO = Omit<Apoderado, "apoderadoId" | "codigo">;
 
 export interface PageResponse<T> {
   content: T[];
@@ -16,4 +18,3 @@ export interface PageResponse<T> {
   totalElements: number;
   totalPages: number;
 }
-

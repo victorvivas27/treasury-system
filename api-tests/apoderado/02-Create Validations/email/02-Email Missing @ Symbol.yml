@@ -2,6 +2,8 @@ info:
   name: 02-Email Missing @ Symbol
   type: http
   seq: 2
+  tags:
+    - apoderados
 
 http:
   method: POST
@@ -23,20 +25,6 @@ runtime:
   scripts:
     - type: tests
       code: |-
-        // test("Error code should be AP-004", function() {
-        //   expect(res.body.code).to.equal("AP-004");
-        // });
-
-        // test("Status should be 400", function() {
-        //   expect(res.status).to.equal(400);
-        // });
-
-        // test("Should only report email invalid format", function() {
-        //   expect(res.body.errors).to.not.have.property("nombre");
-        //   expect(res.body.errors).to.have.property("email");
-        //   expect(res.body.errors).to.not.have.property("telefono");
-        // });
-
         //Se deben rechazar los correos electrónicos que no contengan el símbolo @.
         test("Should reject email without @ symbol", function() {
           expect(res.status).to.equal(400);

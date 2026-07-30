@@ -2,10 +2,12 @@ info:
   name: 04-Get Updated Alumno By ID
   type: http
   seq: 4
+  tags:
+    - alumno
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/{{alumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -19,6 +21,8 @@ runtime:
         });
 
         test("Should return updated alumno", function () {
+           expect(body.alumnoId).to.equal(Number(bru.getEnvVar("alumnoId")));
+          expect(body.codigo).to.equal(bru.getEnvVar("codigo"));
           expect(body.nombre).to.equal("JUAN ACTUALIZADO");
           expect(body.curso).to.equal("5B");
         });
@@ -28,4 +32,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

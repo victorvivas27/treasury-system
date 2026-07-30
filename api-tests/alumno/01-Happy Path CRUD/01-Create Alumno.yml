@@ -2,47 +2,73 @@ info:
   name: 01-Create Alumno
   type: http
   seq: 1
+  tags:
+    - alumno
 
 http:
   method: POST
   url: "{{Url_Base}}/alumnos"
   body:
     type: json
-    data: |-
-      {
-        "nombre": "Juan Perez",
-        "curso": "4A",
-        "apoderadoId": {{alumnoApoderadoId}}
-      }
+    data: "{{bodyDataAlumno}}"
   auth: inherit
 
 runtime:
   scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/alumnos?size=100`,
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const alumnos = listar.data && listar.data.content ? listar.data.content : null;
+          
+          if (alumnos && alumnos.length > 0) {
+            for (const ap of alumnos) {
+              if (ap.codigo) {
+                await bru.sendRequest({
+                  url: `${baseUrl}/alumnos/${ap.codigo}`,
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // Silenciado
+        }
     - type: tests
       code: |-
         const body = res.getBody();
+
+        bru.setEnvVar("codigo", body.codigo, { persist: true });
+        if (body && body.alumnoId) {
+          bru.setEnvVar("alumnoId", String(body.alumnoId), { persist: true });
+        }
 
         test("Status should be 201", function () {
           expect(res.getStatus()).to.equal(201);
         });
 
         test("Response should contain id", function () {
-          expect(body.id).to.not.be.undefined;
+          expect(body.alumnoId).to.not.be.undefined;
+        });
+
+        test("Response should contain codigo", function () {
+          expect(body.codigo).to.not.be.undefined;
         });
 
         test("Name should be uppercase", function () {
           expect(body.nombre).to.equal("JUAN PEREZ");
         });
 
-        test("Response should contain apoderadoId", function () {
-          expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("alumnoApoderadoId")));
-        });
-
-        bru.setEnvVar("alumnoId", body.id.toString(), { persist: true });
-
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-

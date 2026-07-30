@@ -16,8 +16,8 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return response.data;
   }
 
-  async getById(id: number): Promise<Apoderado | null> {
-    const response = await apiClient.get<Apoderado>(`${this.baseUrl}/${id}`);
+  async getById(codigo: string): Promise<Apoderado | null> {
+    const response = await apiClient.get<Apoderado>(`${this.baseUrl}/${codigo}`);
     return response.data;
   }
 
@@ -26,15 +26,22 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return response.data;
   }
 
-  async update(id: number, apoderado: Partial<Apoderado>): Promise<Apoderado> {
+  async update(codigo: string, apoderado: Partial<Apoderado>): Promise<Apoderado> {
     const response = await apiClient.put<Apoderado>(
-      `${this.baseUrl}/${id}`,
+      `${this.baseUrl}/${codigo}`,
       apoderado,
     );
     return response.data;
   }
 
-  async delete(id: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/${id}`);
+  async delete(codigo: string): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/${codigo}`);
+  }
+
+  async enableAccess(codigo: string, token?: string): Promise<Apoderado> {
+    return (await apiClient.post<Apoderado>(
+      `${this.baseUrl}/${codigo}/habilitar-acceso`, {}, {
+        ...(token && { headers: { Authorization: `Bearer ${token}` } }),
+      })).data;
   }
 }

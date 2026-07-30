@@ -13,7 +13,6 @@ interface UseApoderadosOptions {
 
 export const useApoderados = (options: UseApoderadosOptions = {}) => {
   const { initialPage = 0, pageSize = 3 } = options;
-
   const [apoderados, setApoderados] = useState<Apoderado[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

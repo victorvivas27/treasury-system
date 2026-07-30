@@ -1,76 +1,71 @@
 package com.tesoreria.alumno.infrastructure.adapter.out.persistence.adapter;
 
-import java.util.Optional;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-
 import com.tesoreria.alumno.core.model.Alumno;
 import com.tesoreria.alumno.core.port.out.AlumnoRepositoryOutPort;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity.AlumnoEntity;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.mapper.AlumnoPersistenceMapper;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository;
-import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
 
-  private final AlumnoJpaRepository jpaRepository;
-  private final ApoderadoJpaRepository apoderadoJpaRepository;
-  private final AlumnoPersistenceMapper persistenceMapper;
+    private final AlumnoJpaRepository jpaRepository;
+    private final AlumnoPersistenceMapper persistenceMapper;
 
-  public JpaAlumnoRepositoryAdapter(
-      AlumnoJpaRepository jpaRepository,
-      ApoderadoJpaRepository apoderadoJpaRepository,
-      AlumnoPersistenceMapper persistenceMapper) {
-    this.jpaRepository = jpaRepository;
-    this.apoderadoJpaRepository = apoderadoJpaRepository;
-    this.persistenceMapper = persistenceMapper;
-  }
+    public JpaAlumnoRepositoryAdapter(
+            AlumnoJpaRepository jpaRepository,
+            AlumnoPersistenceMapper persistenceMapper) {
+        this.jpaRepository = jpaRepository;
+        this.persistenceMapper = persistenceMapper;
+    }
 
-  @Override
-  public Alumno save(Alumno alumno) {
-    AlumnoEntity entity = persistenceMapper.toEntity(alumno);
-    AlumnoEntity saved = jpaRepository.save(entity);
-    return persistenceMapper.toDomain(saved);
-  }
+    @Override
+    public Alumno save(Alumno alumno) {
+        AlumnoEntity entity = persistenceMapper.toEntity(alumno);
+        AlumnoEntity saved = jpaRepository.save(entity);
+        return persistenceMapper.toDomain(saved);
+    }
 
-  @Override
-  public Optional<Alumno> findById(Long id) {
-    return jpaRepository.findById(id).map(persistenceMapper::toDomain);
-  }
+    @Override
+    public Optional<Alumno> findByCodigo(String codigo) {
+        return jpaRepository.findByCodigo(codigo).map(persistenceMapper::toDomain);
+    }
 
-  @Override
-  public PageResponse<Alumno> findAll(PageRequest pageRequest) {
-    Pageable pageable = org.springframework.data.domain.PageRequest.of(
-        pageRequest.page(),
-        pageRequest.size());
+    @Override
+    public Optional<Alumno> findById(Long alumnoId) {
+        return jpaRepository.findById(alumnoId).map(persistenceMapper::toDomain);
+    }
 
-    Page<AlumnoEntity> pageEntity = jpaRepository.findAll(pageable);
+    @Override
+    public PageResponse<Alumno> findAll(PageRequest pageRequest) {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                pageRequest.page(),
+                pageRequest.size());
 
-    return new PageResponse<>(
-        pageEntity.getContent().stream().map(persistenceMapper::toDomain).toList(),
-        pageEntity.getNumber(),
-        pageEntity.getSize(),
-        pageEntity.getTotalElements(),
-        pageEntity.getTotalPages());
-  }
+        Page<AlumnoEntity> pageEntity = jpaRepository.findAll(pageable);
 
-  @Override
-  public void deleteById(Long id) {
-    jpaRepository.deleteById(id);
-  }
+        return new PageResponse<>(
+                pageEntity.getContent().stream().map(persistenceMapper::toDomain).toList(),
+                pageEntity.getNumber(),
+                pageEntity.getSize(),
+                pageEntity.getTotalElements(),
+                pageEntity.getTotalPages());
+    }
 
-  @Override
-  public boolean existsById(Long id) {
-    return jpaRepository.existsById(id);
-  }
+    @Override
+    public void deleteByCodigo(String codigo) {
+        jpaRepository.deleteByCodigo(codigo);
+    }
 
-  @Override
-  public boolean existsByApoderadoId(Long apoderadoId) {
-    return apoderadoJpaRepository.existsById(apoderadoId);
-  }
+    @Override
+    public boolean existsByCodigo(String codigo) {
+        return jpaRepository.existsByCodigo(codigo);
+    }
 }

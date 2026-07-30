@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
+const SIDEBAR_AUTO_CLOSE_MS = 1500;
+
 export const useSidebarBehavior = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -30,7 +32,7 @@ export const useSidebarBehavior = () => {
     timeoutRef.current = setTimeout(() => {
       setIsSidebarOpen(false);
       timeoutRef.current = null;
-    }, 1000);
+    }, SIDEBAR_AUTO_CLOSE_MS);
   }, [isLocked]);
 
   return {

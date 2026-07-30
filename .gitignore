@@ -1,7 +1,8 @@
 ### General ###
 .env
-.env.docker
-.env.fish
+.env.*
+!.env.example
+!.env.*.example
 .DS_Store
 Thumbs.db
 *.log
@@ -16,6 +17,9 @@ Thumbs.db
 backend/.gradle/
 backend/build/
 backend/target/
+*.class
+*.hprof
+hs_err_pid*
 
 ### Spring / STS / Eclipse ###
 .apt_generated
@@ -33,12 +37,16 @@ backend/bin/
 .vscode/
 
 ### Frontend / Node ###
+.pnpm-store/
 frontend/node_modules/
 frontend/dist/
 frontend/build/
 frontend/coverage/
+*.tsbuildinfo
+.eslintcache
 
 ### Bruno API Tests ###
-api-tests/environments/
+api-tests/environments/*
+!api-tests/environments/*.example.yml
+!api-tests/environments/*.example.yaml
 api-tests/.env
-*.bru

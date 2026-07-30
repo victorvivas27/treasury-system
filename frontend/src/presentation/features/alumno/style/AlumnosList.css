@@ -72,30 +72,3 @@
     background-position: -200% 0;
   }
 }
-
-@media (max-width: 768px) {
-  .alumnos-table,
-  .alumnos-table__head,
-  .alumnos-table__body,
-  .alumnos-table__th,
-  .alumnos-table__td,
-  .alumnos-table__row--data {
-    display: revert;
-    height: 34px;
-  }
-
-  .alumnos-table__th {
-    display: none;
-  }
-
-  .alumnos-table__td {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .alumnos-table__td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--color-accent);
-  }
-}

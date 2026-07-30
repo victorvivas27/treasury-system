@@ -5,3 +5,69 @@ info:
 
 request:
   auth: inherit
+  scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+
+        try {
+          const listar = await bru.sendRequest({
+            url: `${baseUrl}/apoderados?size=100`,
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const apoderados = listar.data && listar.data.content ? listar.data.content : null;
+          
+          if (apoderados && apoderados.length > 0) {
+            for (const ap of apoderados) {
+              if (ap.codigo) {
+                await bru.sendRequest({
+                  url: `${baseUrl}/apoderados/${ap.codigo}`,
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // Silenciado
+        }
+
+        const apoderado = {
+          nombre: "Victor Vivas",
+          email: "victor@gmail.com",
+          telefono: "+987654321"
+        };
+
+        const preResponse = await bru.sendRequest({
+          url: `${baseUrl}/apoderados`,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          data: apoderado
+        });
+
+        const creadoRaw = preResponse.data || preResponse.body;
+
+        const creado = typeof creadoRaw === "string"
+          ? JSON.parse(creadoRaw)
+          : creadoRaw;
+
+        bru.setEnvVar("codigo", creado.codigo);
+        //bru.setVar("bodyData", JSON.stringify(apoderado));
+    - type: after-response
+      code: |-
+        const baseUrl = bru.getEnvVar('Url_Base');
+        const apoderadoId = bru.getVar('apoderadoIdCreadoPre');
+
+
+          try {
+            await bru.sendRequest({
+              url: `${baseUrl}/apoderados/${apoderadoId}`,
+              method: 'DELETE'
+            });
+        } catch(error) {
+            
+          }

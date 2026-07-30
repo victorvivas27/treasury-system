@@ -5,9 +5,9 @@ export interface IApoderadoRepository {
 
   create(apoderado: CreateApoderadoDTO): Promise<Apoderado>;
 
-  getById(id:number): Promise<Apoderado | null>;
+  getById(codigo: string): Promise<Apoderado | null>;
 
-  update(id:number, apoderado: Partial<Apoderado>): Promise<Apoderado>;
+  update(codigo: string, apoderado: Partial<Apoderado>): Promise<Apoderado>;
 
-  delete(id: number): Promise<void>;
+  delete(codigo: string): Promise<void>;
 }

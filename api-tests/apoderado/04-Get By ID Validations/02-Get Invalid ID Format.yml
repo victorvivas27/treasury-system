@@ -2,6 +2,8 @@ info:
   name: 02-Get Invalid ID Format
   type: http
   seq: 2
+  tags:
+    - apoderados
 
 http:
   method: GET
@@ -19,11 +21,9 @@ runtime:
       code: |-
         const response = res.getBody();
 
-        test("Get con ID invalido debe retornar 400", function() {
-          expect(res.getStatus()).to.equal(400);
-          expect(response.status).to.equal(400);
-          expect(response.error).to.equal("Bad Request");
-          expect(response.path).to.include("/apoderados/abc");
+        test("Get con codigo invalido debe retornar 400", function() {
+            expect(response.status).to.equal(400);
+            expect(response.errors.codigo).to.equal("Formato de código inválido. Debe ser AP-XXXXXXXX");
         });
 
 settings:

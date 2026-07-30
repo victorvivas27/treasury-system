@@ -2,10 +2,12 @@ info:
   name: 01-Get Non Existing ID
   type: http
   seq: 1
+  tags:
+    - alumno
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/999999"
+  url: "{{Url_Base}}/alumnos/{{codigo}}"
   auth: inherit
 
 runtime:
@@ -19,8 +21,14 @@ runtime:
         });
 
         test("Should report alumno not found", function () {
-          expect(body.code).to.equal("AL-404");
-          expect(body.errors).to.have.property("id");
+          expect(body.status).to.equal(404);
+          expect(body.errors).to.have.property("codigo");
+          expect(body.errors.codigo).to.be.a("string");
+          expect(body.errors.codigo).to.include("no encontrado");
+        });
+
+        test("Should have valid timestamp", function () {
+          expect(body.timestamp).to.not.be.undefined;
         });
 
 settings:
@@ -28,4 +36,3 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-
