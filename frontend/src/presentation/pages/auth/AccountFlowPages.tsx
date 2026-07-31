@@ -78,13 +78,19 @@ export const ForgotPasswordPage = () => {
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const requestingRef = useRef(false);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (requestingRef.current) return;
     setMessage("");
+    requestingRef.current = true;
     setLoading(true);
     try { setSuccessMessage(await repository.forgotPassword(email)); }
     catch { setMessage("No fue posible procesar la solicitud. Intenta más tarde."); }
-    finally { setLoading(false); }
+    finally {
+      requestingRef.current = false;
+      setLoading(false);
+    }
   };
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
