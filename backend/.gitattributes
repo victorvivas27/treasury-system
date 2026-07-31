@@ -1,23 +1,21 @@
-# Normalizar archivos de texto
+# Normalize text files
 * text=auto
 
-# Archivos Java con LF
+# Java and configuration files use LF
 *.java text eol=lf
-
-# Archivos de configuración con LF
 *.yml text eol=lf
 *.yaml text eol=lf
 *.json text eol=lf
 *.xml text eol=lf
 *.properties text eol=lf
 
-# Archivos Gradle con LF
-*.gradle text eol=lf          # ← Agrega esta línea
-*.gradle.kts text eol=lf      # ← Si usas Kotlin DSL
+# Gradle files use LF
+*.gradle text eol=lf
+*.gradle.kts text eol=lf
 
-# Archivos de script con LF
+# Shell scripts use LF
 *.sh text eol=lf
 
-# Archivos batch con CRLF (Windows)
+# Windows scripts use CRLF
 *.bat text eol=crlf
 *.cmd text eol=crlf

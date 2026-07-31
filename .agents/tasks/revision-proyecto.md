@@ -1,46 +1,95 @@
-Revisa todo el repositorio y determina qué configuraciones faltan para desplegar el proyecto en Google Cloud mediante GitHub Actions, Artifact Registry y Cloud Run, usando Workload Identity Federation y sin claves JSON.
+# Auditoría Completa del Proyecto
 
-Antes de modificar cualquier archivo, analiza y entrega un informe con:
+## Objetivo
 
-1. La estructura actual del proyecto.
-2. Los lenguajes, frameworks y versiones detectadas.
-3. Si contiene backend, frontend o ambos.
-4. El sistema de compilación utilizado:
-   - Maven o Gradle para Java.
-   - npm, yarn o pnpm para el frontend.
-5. La versión de Java y Node.js requerida.
-6. Si existe un Dockerfile y si está correctamente configurado para Cloud Run.
-7. Si existe un archivo .dockerignore.
-8. Si la aplicación escucha el puerto definido por la variable de entorno PORT.
-9. Si existen perfiles o configuraciones de producción.
-10. Qué variables de entorno y secretos necesita la aplicación.
-11. Si existen archivos .env, credenciales o secretos que no deban subirse a GitHub.
-12. Si el archivo .gitignore está correctamente configurado.
-13. Si existe la carpeta .github/workflows y algún workflow de despliegue.
-14. Qué configuración falta para:
-    - compilar el proyecto;
-    - ejecutar las pruebas;
-    - construir una imagen Docker;
-    - publicar la imagen en Artifact Registry;
-    - desplegarla en Cloud Run.
-15. Qué permisos necesitará la cuenta de servicio de Google Cloud.
-16. Qué variables deben crearse en GitHub Actions.
-17. Qué servicios externos utiliza el proyecto, como bases de datos, Firebase, APIs o almacenamiento.
-18. Posibles errores que impedirían ejecutar el proyecto dentro de un contenedor.
-19. Recomendaciones de seguridad y producción.
-20. Una lista ordenada de los cambios necesarios, desde el más urgente hasta el opcional.
+Realiza una auditoría completa del proyecto **sin modificar ningún archivo**.
 
-No realices cambios todavía.
+Antes de emitir cualquier conclusión, analiza **todo el proyecto**, incluyendo:
 
-No inventes configuraciones. Basa el informe únicamente en los archivos encontrados en el repositorio.
+- Código fuente.
+- Archivos de configuración.
+- Dependencias.
+- Scripts.
+- Archivos de infraestructura.
+- Archivos de CI/CD.
+- Todos los archivos `*.md`.
+- Carpeta `.agents` y cualquier otra documentación interna.
 
-Cuando encuentres datos sensibles, no muestres sus valores. Indica solamente el nombre del archivo, la variable o el secreto afectado.
+## Elementos a revisar
 
-Al finalizar, presenta:
-- Estado actual.
-- Configuraciones faltantes.
-- Archivos que habría que crear o modificar.
-- Variables de GitHub necesarias.
-- Variables de Cloud Run necesarias.
-- Riesgos o bloqueos detectados.
-- Plan de implementación por etapas.
+Identifica y documenta los siguientes puntos:
+
+- Código duplicado.
+- Código aparentemente sin uso.
+- Archivos que ya no se utilizan.
+- Dependencias sin uso.
+- Dependencias obsoletas o deprecadas.
+- Configuraciones duplicadas, inconsistentes o contradictorias.
+- Documentación que no coincide con el estado actual del proyecto.
+- Referencias a archivos inexistentes.
+- Scripts que ya no se utilizan.
+- Variables de entorno no utilizadas.
+- Carpetas o recursos obsoletos.
+- Oportunidades para simplificar la estructura del proyecto.
+- Riesgos potenciales al eliminar o modificar cada elemento identificado.
+
+## Formato del informe
+
+Organiza el informe en las siguientes secciones:
+
+### 1. Cambios seguros
+
+Elementos que pueden eliminarse o modificarse con un riesgo mínimo.
+
+Para cada elemento incluye:
+
+- Descripción.
+- Ubicación.
+- Motivo.
+- Recomendación.
+
+---
+
+### 2. Cambios que requieren validación
+
+Elementos que parecen innecesarios, pero cuya eliminación o modificación requiere confirmación.
+
+Para cada elemento incluye:
+
+- Descripción.
+- Ubicación.
+- Motivo.
+- Posible impacto.
+- Validación necesaria.
+
+---
+
+### 3. Cambios de alto riesgo
+
+Elementos cuya modificación puede afectar el funcionamiento del proyecto.
+
+Para cada elemento incluye:
+
+- Descripción.
+- Ubicación.
+- Riesgo.
+- Dependencias afectadas.
+- Recomendación.
+
+## Restricciones
+
+Durante esta tarea **NO** debes:
+
+- Editar archivos.
+- Eliminar archivos.
+- Renombrar archivos.
+- Mover archivos.
+- Crear nuevos archivos.
+- Actualizar documentación.
+- Corregir código.
+
+Esta tarea es **únicamente de análisis**.
+
+## Resultado esperado
+
+Entrega un informe claro, priorizado y accionable que servirá como base para planificar la limpieza del proyecto en tareas posteriores.

@@ -118,6 +118,10 @@ Backend:
 - `DB_PASSWORD`: password de base de datos. Requerido; no debe versionarse con valores reales.
 - `JPA_DDL_AUTO`: estrategia Hibernate en `prod`. Default: `validate`.
 - `APP_CORS_ALLOWED_ORIGINS`: origenes permitidos por CORS separados por coma. Default local: `http://localhost:5173,http://127.0.0.1:5173`.
+- `JWT_SECRET`: secreto de firma de tokens; debe ser robusto y mantenerse fuera del repositorio.
+- `JWT_EXPIRATION_MS`: duración del token de acceso en milisegundos.
+- `ADMIN_BOOTSTRAP_KEY`: clave de un solo uso para crear el administrador inicial.
+- `TREASURY_MANAGED_COURSE`: curso administrado por tesorería. Default local: `1A`.
 - `EMAIL_PROVIDER`: proveedor de correo; debe ser `gmail`.
 - `GMAIL_USER`: dirección de la cuenta Gmail remitente.
 - `GMAIL_APP_PASSWORD`: contraseña de aplicación de Google, almacenada como secreto.
@@ -231,9 +235,9 @@ Frontend:
 
 ## Remaining Recommendations
 
-- Implementar autenticacion y autorizacion; actualmente no hay flujo auth en backend ni frontend.
+- Revisar periódicamente la matriz de autorización entre backend y rutas protegidas del frontend.
 - Definir valores productivos estrictos para `APP_CORS_ALLOWED_ORIGINS`.
-- Agregar migraciones versionadas con Flyway o Liquibase antes de depender de `JPA_DDL_AUTO=validate` en produccion.
+- Mantener inmutable la migración Flyway `V1` y crear una nueva versión para cada cambio de esquema.
 - Ejecutar las colecciones `api-tests` contra backend levantado y base limpia.
 - Reparar instalacion local de Bruno CLI o ejecutar con una instalacion limpia; el runner actual falla antes de correr colecciones por modulo Node `qs` faltante.
 - Corregir `.gitattributes` de `backend` para eliminar warnings Git.
@@ -251,7 +255,7 @@ Frontend:
 - Crear `.env` desde `.env.example` y definir `DB_PASSWORD` antes de usar Docker.
 - Consumidores externos deben usar `codigo` en rutas de alumnos y apoderados.
 - Relaciones de familia siguen enviando IDs numericos de alumno/apoderados.
-- Para produccion, preparar esquema PostgreSQL antes de usar `JPA_DDL_AUTO=validate`.
+- Para producción, verificar que Flyway aplique todas las migraciones antes de la validación de Hibernate.
 
 ## Performance Improvements
 
@@ -293,7 +297,7 @@ Nota: `pmdTest` queda deshabilitado en Gradle porque el ruleset actual genera ru
 - [x] Frontend working
 - [x] Backend working
 - [x] APIs working at build/contract level and local smoke test
-- [ ] Authentication working: no existe implementacion de autenticacion en el proyecto revisado
+- [x] Authentication working: autenticación JWT, verificación de correo y recuperación de contraseña implementadas
 - [x] Database working at configuration/test level
 - [x] Build successful
 - [x] Tests passing

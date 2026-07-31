@@ -102,7 +102,6 @@ jobs:
             GMAIL_APP_PASSWORD=${{ secrets.GMAIL_APP_PASSWORD }}
             EMAIL_FROM=${{ secrets.EMAIL_FROM }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-            BACKEND_URL=${{ secrets.BACKEND_URL }}
 
       - name: Show deployed backend URL
         run: |
