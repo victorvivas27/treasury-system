@@ -46,7 +46,7 @@
 }
 
 .sidebar-brand-name {
-  max-width: 8rem;
+  max-width: 10rem;
   overflow: hidden;
   color: var(--color-primary);
   font-weight: 600;

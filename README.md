@@ -103,6 +103,58 @@ El frontend se ejecuta por separado con Vite.
 Backend principales:
 
 - `APP_PROFILE`: `dev`, `test` o `prod`.
+  ### Archivos revisados
+
+  - README.md
+  - frontend/FRONTEND.md
+  - backend/BACKEND.md
+  - backend/NEON_DEPLOYMENT.md
+
+  ### Archivos modificados
+
+  - README.md
+  - frontend/FRONTEND.md
+  - backend/BACKEND.md
+
+  backend/NEON_DEPLOYMENT.md no requirió cambios.
+
+  ### Información eliminada
+
+  - Auditorías e incidencias históricas ya resueltas.
+  - Referencia al supuesto problema pendiente de .gitattributes.
+  - Error antiguo de Bruno por el módulo qs.
+  - Conteos antiguos de archivos y tests.
+  - Resultados de validaciones anteriores presentados como actuales.
+  - Afirmación de que autenticación y autorización estaban pendientes.
+  - Endpoints antiguos por ID.
+  - Listas históricas de correcciones y breaking changes que ya no aportaban valor.
+
+  ### Información actualizada
+
+  - Módulos actuales, incluidos Tesorería, Eventos escolares y Stands.
+  - Autenticación JWT, roles, verificación y recuperación por correo.
+  - PostgreSQL, H2, Flyway y perfiles Spring.
+  - Arquitectura vigente del backend y frontend.
+  - Bruno y autenticación administrativa reutilizable.
+  - PMD 6.55, JaCoCo 70 %, Vitest, Oxlint y type checking.
+  - Comandos reales de Gradle y package.json.
+  - Ejecución local y Docker Compose.
+  - Diferencia entre MockMvc standalone y @SpringBootTest.
+  - Ausencia actual de ESLint, @WebMvcTest, @DataJpaTest y Testcontainers.
+
+  ### Validaciones
+
+  - Enlaces relativos: todos válidos.
+  - Rutas y archivos documentados: comprobados.
+  - Scripts frontend: contrastados con package.json.
+  - Comandos Gradle: contrastados con build.gradle.
+  - Referencias obsoletas por ID: ninguna.
+  - Estadísticas antiguas y errores históricos: eliminados.
+  - “ESLint” aparece únicamente para aclarar explícitamente que no se utiliza.
+  - git diff --check: aprobado; solo avisos informativos LF/CRLF.
+
+  Durante esta tarea solo se modificaron archivos Markdown de documentación general. Los cambios ajenos existentes en .agents, código, Bruno, configuraciones e imágenes permanecieron
+  intactos.
 - `PORT`: puerto del backend.
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
 - `DB_SSL_MODE` y `JPA_DDL_AUTO` para producción.

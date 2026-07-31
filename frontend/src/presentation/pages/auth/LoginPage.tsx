@@ -49,8 +49,13 @@ export const LoginPage = () => {
   return (
     <main className="form-page-container">
       <header className="form-page-header">
+        <img
+          className="login-brand-logo"
+          src="/Tesoreria.png"
+          alt="Logo del Sistema de Tesorería"
+        />
         <h1 className="form-page-header__title">Iniciar sesión</h1>
-        <p className="form-page-header__subtitle">Accede a Treasury System</p>
+        <p className="form-page-header__subtitle">Accede al Sistema de Tesorería</p>
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
         <div className="form-group">

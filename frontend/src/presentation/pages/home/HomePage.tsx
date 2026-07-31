@@ -101,9 +101,9 @@ export const HomePage = () => {
   return (
     <div className="public-home">
       <header className="public-home__header">
-        <Link className="public-home__brand" to="/" aria-label="Tesorería, inicio">
-          <img src="/icono_tesoreria_03.png" alt="" />
-          <span>Tesorería</span>
+        <Link className="public-home__brand" to="/" aria-label="Sistema de Tesorería, inicio">
+          <img src="/Tesoreria.png" alt="" />
+          <span>Sistema de Tesorería</span>
         </Link>
 
         <nav className="public-home__nav" aria-label="Acceso a la plataforma">
@@ -225,8 +225,8 @@ export const HomePage = () => {
       <footer className="public-home__footer" data-home-footer-reveal>
         <div className="public-home__footer-brand">
           <Link className="public-home__brand" to="/">
-            <img src="/icono_tesoreria_03.png" alt="" />
-            <span>Tesorería</span>
+            <img src="/Tesoreria.png" alt="" />
+            <span>Sistema de Tesorería</span>
           </Link>
           <p>Finanzas claras para cada curso.</p>
         </div>
@@ -253,7 +253,7 @@ export const HomePage = () => {
         </address>
 
         <span className="public-home__copyright">
-          © {new Date().getFullYear()} Tesorería
+          © {new Date().getFullYear()} Sistema de Tesorería
         </span>
       </footer>
     </div>
