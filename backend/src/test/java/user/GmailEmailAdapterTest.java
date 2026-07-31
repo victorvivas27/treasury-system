@@ -56,7 +56,7 @@ class GmailEmailAdapterTest {
                 .when(mailSender).send(any(MimeMessage.class));
 
         boolean sent = adapter.sendPasswordResetEmail(
-                "usuario@example.com", "Usuario", "http://localhost:5173/reset?token=abc");
+                "usuario@example.com", "Usuario", "http://localhost:5173/reset?token=abc", "abc");
 
         assertFalse(sent);
     }
