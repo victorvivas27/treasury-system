@@ -12,6 +12,7 @@ export class StandUseCases {
   list(eventId: number) { return this.repository.list(eventId); }
   create(payload: StandPayload) { return this.repository.create(payload); }
   update(id: number, payload: StandPayload) { return this.repository.update(id, payload); }
+  delete(id: number) { return this.repository.delete(id); }
   listProducts(standId: number) { return this.repository.listProducts(standId); }
   addProduct(standId: number, payload: StandProductPayload) {
     return this.repository.addProduct(standId, payload);

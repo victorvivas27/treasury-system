@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+
+.gradle
+build
+bin
+
+.git
+.gitattributes
+.idea
+
+*.log
+hs_err_pid*

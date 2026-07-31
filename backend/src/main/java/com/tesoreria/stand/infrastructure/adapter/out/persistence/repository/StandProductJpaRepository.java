@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StandProductJpaRepository extends JpaRepository<StandProductEntity, Long> {
   List<StandProductEntity> findByStandIdOrderByNameAscVariantAsc(Long standId);
+  void deleteByStandId(Long standId);
 }

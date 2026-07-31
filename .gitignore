@@ -50,3 +50,8 @@ api-tests/environments/*
 !api-tests/environments/*.example.yml
 !api-tests/environments/*.example.yaml
 api-tests/.env
+
+### Google Cloud credentials ###
+*service-account*.json
+google-credentials*.json
+application_default_credentials.json

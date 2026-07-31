@@ -3,7 +3,9 @@ import { apiClient } from "@/core/D-config/api";
 import { StandRepositoryImpl } from "./StandRepositoryImpl";
 
 vi.mock("@/core/D-config/api", () => ({
-  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn() },
+  apiClient: {
+    get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn(),
+  },
 }));
 
 describe("StandRepositoryImpl", () => {
@@ -57,5 +59,10 @@ describe("StandRepositoryImpl", () => {
     await repository.updateSale(3, 9, payload);
     expect(apiClient.put).toHaveBeenCalledWith(
       "/tesoreria/stands/3/ventas/9", payload);
+  });
+  it("[Stand repository #06] elimina el stand por su identificador", async () => {
+    vi.mocked(apiClient.delete).mockResolvedValue({ data: undefined });
+    await repository.delete(3);
+    expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/stands/3");
   });
 });

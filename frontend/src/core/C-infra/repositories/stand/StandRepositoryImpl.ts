@@ -16,6 +16,9 @@ export class StandRepositoryImpl implements IStandRepository {
   async update(id: number, payload: StandPayload) {
     return (await apiClient.put(`${this.baseUrl}/${id}`, payload)).data;
   }
+  async delete(id: number) {
+    await apiClient.delete(`${this.baseUrl}/${id}`);
+  }
   async listProducts(standId: number) {
     return (await apiClient.get(`${this.baseUrl}/${standId}/productos`)).data;
   }

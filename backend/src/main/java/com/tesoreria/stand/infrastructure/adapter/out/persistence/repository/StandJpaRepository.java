@@ -16,4 +16,5 @@ public interface StandJpaRepository extends JpaRepository<StandEntity, Long> {
 
   boolean existsByEventIdAndNameIgnoreCase(Long eventId, String name);
   boolean existsByEventIdAndNameIgnoreCaseAndIdNot(Long eventId, String name, Long id);
+  boolean existsByEventId(Long eventId);
 }

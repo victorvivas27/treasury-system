@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * when a Java enum receives a new value.
  */
 @Component
-@Profile({"dev", "prod"})
+@Profile("dev")
 public class UserTokenSchemaMigration implements ApplicationRunner {
   private final JdbcTemplate jdbc;
 

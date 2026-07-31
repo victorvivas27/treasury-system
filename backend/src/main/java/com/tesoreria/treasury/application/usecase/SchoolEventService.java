@@ -8,6 +8,7 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.stand.infrastructure.adapter.out.persistence.repository.StandJpaRepository;
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
@@ -20,12 +21,14 @@ public class SchoolEventService {
   private final SchoolEventJpaRepository events;
   private final TreasuryUseCase treasury;
   private final ManagedCourseService managedCourse;
+  private final StandJpaRepository stands;
 
   public SchoolEventService(SchoolEventJpaRepository events, TreasuryUseCase treasury,
-      ManagedCourseService managedCourse) {
+      ManagedCourseService managedCourse, StandJpaRepository stands) {
     this.events = events;
     this.treasury = treasury;
     this.managedCourse = managedCourse;
+    this.stands = stands;
   }
 
   public String managedCourse() {
@@ -118,6 +121,10 @@ public class SchoolEventService {
     if (event.isSettlementConfirmed() || event.getStatus() == EventStatus.CERRADO) {
       throw error(TreasuryErrorCode.CONFLICT,
           "Primero debes cancelar la liquidación antes de eliminar el evento");
+    }
+    if (stands.existsByEventId(id)) {
+      throw error(TreasuryErrorCode.CONFLICT,
+          "Elimina primero los stands asociados antes de eliminar el evento");
     }
     events.deleteById(id);
   }

@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
  * que ya existían sin claves foráneas.
  */
 @Component
-@Profile({"dev", "prod"})
+@Profile("dev")
 public class TreasuryDataIntegrityMigration implements ApplicationRunner {
   private final JdbcTemplate jdbc;
 

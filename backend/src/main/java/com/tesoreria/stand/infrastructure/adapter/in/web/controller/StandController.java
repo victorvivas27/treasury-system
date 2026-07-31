@@ -44,6 +44,12 @@ public class StandController {
     return standResponse(service.update(id, input(request)));
   }
 
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable Long id) {
+    service.delete(id);
+  }
+
   @GetMapping("/{id}/productos")
   public List<ProductResponse> products(@PathVariable Long id) {
     return service.listProducts(id).stream().map(this::productResponse).toList();
