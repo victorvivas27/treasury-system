@@ -11,6 +11,7 @@ import {
   type ChangeEvent,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { validateTelefono } from "@/shared/validation/apoderadoValidation";
 
 export const useEditApoderado = () => {
   const navigate = useNavigate();
@@ -110,8 +111,15 @@ export const useEditApoderado = () => {
   const handleSubmit = async () => {
     if (!codigo) return;
 
-    setLoading(true);
     setFieldErrors({});
+
+    const telefonoError = validateTelefono(formData.telefono);
+    if (telefonoError) {
+      setFieldErrors({ telefono: telefonoError });
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await updateUseCase.execute(codigo, formData);

@@ -64,6 +64,10 @@ export const CrearApoderadoForm = () => {
           <input
             id="telefono_input"
             name="telefono"
+            type="tel"
+            inputMode="tel"
+            aria-describedby={fieldErrors.telefono ? "telefono_error" : undefined}
+            aria-invalid={Boolean(fieldErrors.telefono)}
             value={formData.telefono}
             onChange={handleChange}
             placeholder="+56 9 888 88 88"
@@ -74,7 +78,9 @@ export const CrearApoderadoForm = () => {
             Teléfono
           </label>
           {fieldErrors.telefono && (
-            <span className="error-message-apoderado">{fieldErrors.telefono}</span>
+            <span id="telefono_error" className="error-message-apoderado" role="alert">
+              {fieldErrors.telefono}
+            </span>
           )}
         </div>
 

@@ -3,9 +3,20 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import axios from "axios";
 import "./AccountFlowPages.css";
 
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+const recoveryErrorMessage = (error: unknown) => {
+  if (!axios.isAxiosError(error)) return "No fue posible actualizar la contraseña. Intenta nuevamente.";
+  const errors = error.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    const message = Object.values(errors).find(value => typeof value === "string");
+    if (typeof message === "string") return message;
+  }
+  return "No fue posible actualizar la contraseña. Intenta nuevamente.";
+};
 
 const Shell = ({ title, message, children }: {
   title: string; message?: string; children?: React.ReactNode;
@@ -101,6 +112,7 @@ export const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    setMessage("");
     const token = params.get("token");
     if (!token) { setMessage("El enlace no es válido."); return; }
     if (!PASSWORD_PATTERN.test(password)) {
@@ -110,7 +122,7 @@ export const ResetPasswordPage = () => {
     try {
       await repository.resetPassword(token, password);
       setPasswordUpdated(true);
-    } catch { setMessage("El enlace es inválido, venció o ya fue utilizado."); }
+    } catch (error) { setMessage(recoveryErrorMessage(error)); }
     finally { setLoading(false); }
   };
   const returnToLogin = () => navigate("/login", { replace: true });

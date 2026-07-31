@@ -4,6 +4,7 @@ import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/A
 import axios from "axios";
 import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { validateTelefono } from "@/shared/validation/apoderadoValidation";
 
 export const useCreateApoderado = () => {
   const navigate = useNavigate();
@@ -51,8 +52,15 @@ export const useCreateApoderado = () => {
   };
 
   const handleActionSubmit = async () => {
-    setLoading(true);
     setFieldErrors({});
+
+    const telefonoError = validateTelefono(formData.telefono);
+    if (telefonoError) {
+      setFieldErrors({ telefono: telefonoError });
+      return;
+    }
+
+    setLoading(true);
 
     const repository = new ApoderadoRepositoryImpl();
     const useCase = new CreateApoderadoUseCase(repository);
