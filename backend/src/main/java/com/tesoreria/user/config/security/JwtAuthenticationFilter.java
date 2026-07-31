@@ -69,8 +69,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException | IllegalArgumentException exception) {
-            LOGGER.warn("JWT rechazado en {} {}: {}", request.getMethod(),
-                    request.getRequestURI(), exception.getClass().getSimpleName());
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("JWT rechazado en {} {}: {}", request.getMethod(),
+                        request.getRequestURI(), exception.getClass().getSimpleName());
+            }
             SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);

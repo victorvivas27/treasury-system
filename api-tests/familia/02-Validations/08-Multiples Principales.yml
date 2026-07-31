@@ -34,7 +34,7 @@ runtime:
         const response = await bru.sendRequest({
           url: `${baseUrl}/apoderados`,
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${bru.getEnvVar('adminToken')}` },
           data: {
             nombre: "JUAN FAMILIA",
             email: `juan.familia${Date.now()}@gmail.com`,

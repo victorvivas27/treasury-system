@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/apoderados/{{familiaApoderadoId}}"
+  url: "{{Url_Base}}/apoderados/{{familiaApoderadoCodigo}}"
   auth: inherit
 
 runtime:
@@ -19,7 +19,8 @@ runtime:
         });
 
         test("Apoderado should still exist after deleting link", function () {
-          expect(body.id).to.equal(Number(bru.getEnvVar("familiaApoderadoId")));
+          expect(body.apoderadoId).to.equal(Number(bru.getEnvVar("familiaApoderadoId")));
+          expect(body.codigo).to.equal(bru.getEnvVar("familiaApoderadoCodigo"));
         });
 
 settings:

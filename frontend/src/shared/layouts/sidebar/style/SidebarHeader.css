@@ -1,6 +1,6 @@
 .sidebar-btn-arrow {
   position: absolute;
-  top: 2%;
+  top: 1%;
   right: -1rem;
 
   width: var(--xl);
@@ -23,7 +23,7 @@
 
 .sidebar--collapsed .sidebar-btn-arrow {
   transform: rotate(180deg);
-  right: -1.2rem;
+  right: -2rem;
 }
 
 .sidebar-brand-header {
@@ -39,14 +39,14 @@
 
 .sidebar-brand-icon {
   display: block;
-  flex: 0 0 2rem;
-  width: clamp(1.8rem, 4vh, 2rem);
-  height: 2rem;
+  flex: 0 0 1rem;
+  width: clamp(2rem, 5vh, 3rem);
+  height: clamp(2rem, 5vh, 3rem);
   object-fit: contain;
 }
 
 .sidebar-brand-name {
-  max-width: 8rem;
+  max-width: 10rem;
   overflow: hidden;
   color: var(--color-primary);
   font-weight: 600;

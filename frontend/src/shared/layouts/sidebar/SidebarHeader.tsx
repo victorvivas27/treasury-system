@@ -1,6 +1,6 @@
 
 import { IoIosArrowBack } from "react-icons/io";
-const icono_tesoreria = "/icono_tesoreria_03.png";
+const iconoTesoreria = "/Tesoreria.png";
 import "./style/SidebarHeader.css";
 type SidebarHeaderProps = {
   onToggleSidebar: () => void;
@@ -23,10 +23,10 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
       <header className="sidebar-brand-header">
         <img
           className="sidebar-brand-icon"
-          src={icono_tesoreria}
-          alt="Tesorería"
+          src={iconoTesoreria}
+          alt="Logo del Sistema de Tesorería"
         />
-        <span className="sidebar-brand-name">Tesorería</span>
+        <span className="sidebar-brand-name">Sistema de Tesorería</span>
       </header>
     </>
   );

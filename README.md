@@ -1,408 +1,235 @@
 # Treasury System
 
-## Correos de autenticación
+Sistema de gestión escolar orientado a tesorería, administración de alumnos, apoderados, familias y usuarios. Incluye una API Spring Boot, una aplicación React/Vite, PostgreSQL y colecciones Bruno para validar contratos HTTP.
 
-El registro crea cuentas pendientes y envía mediante Gmail SMTP un enlace de verificación de
-24 horas. También están disponibles el reenvío de verificación, la recuperación de
-contraseña (60 minutos), el restablecimiento y el cambio autenticado de contraseña.
-Los tokens son aleatorios, de un solo uso y en la base de datos sólo se conserva su hash
-SHA-256.
+## Funcionalidades
 
-Configura en `.env`:
+- Alumno: creación, listado, consulta, actualización y eliminación por código `AL-XXXXXXXX`.
+- Apoderado: CRUD por código `AP-XXXXXXXX` y habilitación de acceso.
+- Familia: vínculo de un alumno con uno o más apoderados, parentesco y contacto principal.
+- Usuarios: administración de cuentas con roles `ADMIN` y `USER`.
+- Autenticación: JWT, registro, verificación de correo, reenvío, recuperación, restablecimiento y cambio de contraseña.
+- Tesorería: cuota anual, modalidades, obligaciones, pagos, aportes CEPA/Solidaria, ingresos, egresos, resumen financiero, auditoría y reportes.
+- Eventos escolares: configuración, gastos, recaudación, liquidación y transferencias.
+- Stands: configuración por evento, productos, ventas, apertura y cierre.
+- Frontend: dashboard, configuración, perfil, rutas protegidas y vistas responsive de los módulos anteriores.
 
-```env
-EMAIL_PROVIDER=gmail
-GMAIL_USER=tesoreria.colegio@gmail.com
-GMAIL_APP_PASSWORD=xxxxxxxxxxxxxxxx
-EMAIL_FROM=Tesorería Escolar <tesoreria.colegio@gmail.com>
-FRONTEND_URL=http://localhost:5173
+## Tecnologías
+
+- Backend: Java 17, Spring Boot 4.0.6, WebMVC, Spring Security, Spring Data JPA, Bean Validation, Gradle, Flyway, PMD y JaCoCo.
+- Base de datos: PostgreSQL 16 en desarrollo/Docker/producción y H2 en pruebas.
+- Frontend: React 19, TypeScript 5.9, Vite 8, React Router 7, Axios, Recharts, Vitest, Testing Library y Oxlint.
+- API tests: OpenCollection YAML ejecutable con Bruno CLI.
+
+## Arquitectura
+
+Backend hexagonal por módulo:
+
+```text
+core                    dominio, puertos y errores
+application/usecase     casos de uso
+config                  composición Spring
+infrastructure/adapter  API web y persistencia JPA
+shared                  paginación, CORS y manejo de errores
 ```
-
-`GMAIL_APP_PASSWORD` debe ser una contraseña de aplicación de Google, nunca la
-contraseña normal de la cuenta. La cuenta necesita verificación en dos pasos para crearla.
-No agregues `.env` al repositorio; ya está ignorado. En Google Cloud configura
-`GMAIL_APP_PASSWORD` como secreto (por ejemplo, con Secret Manager) e inyecta las demás
-variables en el servicio.
-
-Para probarlo en local, levanta PostgreSQL, inicia el backend con
-`cd backend && ./gradlew bootRun` y el frontend con `cd frontend && pnpm dev`.
-Registra una cuenta en `/register`, abre el enlace recibido y luego inicia sesión.
-El flujo de recuperación comienza en `/olvide-password`. Para comprobar el tercer
-correo, cambia la contraseña desde el enlace de recuperación o desde la sesión iniciada.
-
-Sistema de gestion escolar orientado a tesoreria y administracion de alumnos, apoderados y relaciones familiares. Incluye backend Spring Boot, frontend React/Vite y colecciones declarativas de pruebas API en `api-tests`.
-
-## Cuota anual
-
-El módulo disponible en `/tesoreria/cuotas` permite configurar una cuota única por
-año, habilitar modalidad anual, dos cuotas o ambas, asignar la modalidad a cada
-familia, generar obligaciones idempotentes y registrar o anular pagos. Los pagos no
-se eliminan y las mutaciones quedan registradas en `treasury_audit` con usuario y fecha.
-
-Las consultas admiten filtros por año, curso, familia, modalidad y estado. El resumen
-se encuentra en `/tesoreria/resumen` y los reportes de familias al día, con deuda,
-cuota anual pagada, primera cuota pagada y segunda pendiente en
-`/tesoreria/reportes`.
-
-La API parte de `/api/v1/tesoreria` y permite los roles autenticados `ADMIN` y `USER`
-mientras el sistema no disponga de un rol específico de tesorero.
-
-## Project Overview
-
-La aplicacion permite administrar alumnos, apoderados y familias. Los endpoints publicos de alumnos y apoderados operan por `codigo`; las relaciones familiares usan IDs internos para vincular alumno y apoderados.
-
-## Architecture
-
-Backend hexagonal por modulo:
-
-- `core`: modelos de dominio, puertos y codigos de error.
-- `application`: casos de uso y reglas de aplicacion.
-- `infrastructure/adapter/in/web`: controladores REST, DTOs y mappers HTTP.
-- `infrastructure/adapter/out/persistence`: entidades JPA, repositorios Spring Data y mappers.
-- `shared`: excepciones, respuestas de error, paginacion y constantes.
 
 Frontend por capas:
 
-- `core/A-domain`: entidades y contratos.
-- `core/B-application`: casos de uso.
-- `core/C-infra`: repositorios HTTP con Axios.
-- `core/D-config`: configuracion compartida.
-- `presentation`: paginas, features, hooks y componentes.
-- `shared`: UI reutilizable, iconos y utilidades.
+```text
+core/A-domain       entidades y contratos
+core/B-application casos de uso
+core/C-infra       repositorios Axios
+core/D-config      configuración HTTP
+presentation       contextos, hooks, features, páginas y router
+shared             layout, estilos y UI reutilizable
+```
 
-Comunicacion frontend-backend: Axios usa `VITE_API_URL`; por defecto apunta a `http://localhost:5055/tesoreria/api/v1`.
+Axios usa `VITE_API_URL`; el fallback local es `http://localhost:5055/tesoreria/api/v1`.
 
-## Technologies
+## Contratos principales
 
-- Backend: Java 17, Spring Boot 4.0.6, Spring WebMVC, Spring Data JPA, Bean Validation, Lombok, Gradle, JaCoCo, PMD.
-- Database: PostgreSQL 16 para Docker/dev/prod, H2 para tests.
-- Frontend: React 19.2, TypeScript 5.9, Vite 8, React Router 7, Axios, Vitest, Testing Library, Oxlint.
-- API tests: YAML bajo `api-tests`.
+La API local parte de `http://localhost:5055/tesoreria/api/v1`.
 
-## Installation
+- Alumno y Apoderado usan `codigo` en rutas individuales públicas.
+- Familia usa `familiaId` en sus rutas y IDs internos de Alumno/Apoderado en los cuerpos.
+- Login: `POST /auth/login` con `correo` y `password`.
+- Las rutas protegidas requieren `Authorization: Bearer <token>`.
+- Tesorería se expone bajo `/tesoreria`; los controladores concretos definen cuotas, aportes, ingresos, egresos, eventos, resumen y reportes.
+
+## Ejecución local
+
+### Requisitos
+
+- Java 17.
+- Node.js compatible con Vite 8.
+- pnpm 11.5.0.
+- PostgreSQL 16, o Docker Compose.
+
+Crear los archivos locales a partir de las plantillas y completar sus valores sin versionarlos:
+
+```bash
+cp .env.example .env
+cp frontend/.env.example frontend/.env
+```
+
+Backend:
+
+```bash
+cd backend
+./gradlew bootRun
+```
+
+Frontend, en otra terminal:
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+## Docker Compose
+
+El compose levanta PostgreSQL 16 y el backend. Requiere en `.env` los valores obligatorios de base de datos, JWT y Gmail.
+
+```bash
+docker compose config
+docker compose up --build
+```
+
+El frontend se ejecuta por separado con Vite.
+
+## Variables de entorno
+
+Backend principales:
+
+- `APP_PROFILE`: `dev`, `test` o `prod`.
+  ### Archivos revisados
+
+  - README.md
+  - frontend/FRONTEND.md
+  - backend/BACKEND.md
+  - backend/NEON_DEPLOYMENT.md
+
+  ### Archivos modificados
+
+  - README.md
+  - frontend/FRONTEND.md
+  - backend/BACKEND.md
+
+  backend/NEON_DEPLOYMENT.md no requirió cambios.
+
+  ### Información eliminada
+
+  - Auditorías e incidencias históricas ya resueltas.
+  - Referencia al supuesto problema pendiente de .gitattributes.
+  - Error antiguo de Bruno por el módulo qs.
+  - Conteos antiguos de archivos y tests.
+  - Resultados de validaciones anteriores presentados como actuales.
+  - Afirmación de que autenticación y autorización estaban pendientes.
+  - Endpoints antiguos por ID.
+  - Listas históricas de correcciones y breaking changes que ya no aportaban valor.
+
+  ### Información actualizada
+
+  - Módulos actuales, incluidos Tesorería, Eventos escolares y Stands.
+  - Autenticación JWT, roles, verificación y recuperación por correo.
+  - PostgreSQL, H2, Flyway y perfiles Spring.
+  - Arquitectura vigente del backend y frontend.
+  - Bruno y autenticación administrativa reutilizable.
+  - PMD 6.55, JaCoCo 70 %, Vitest, Oxlint y type checking.
+  - Comandos reales de Gradle y package.json.
+  - Ejecución local y Docker Compose.
+  - Diferencia entre MockMvc standalone y @SpringBootTest.
+  - Ausencia actual de ESLint, @WebMvcTest, @DataJpaTest y Testcontainers.
+
+  ### Validaciones
+
+  - Enlaces relativos: todos válidos.
+  - Rutas y archivos documentados: comprobados.
+  - Scripts frontend: contrastados con package.json.
+  - Comandos Gradle: contrastados con build.gradle.
+  - Referencias obsoletas por ID: ninguna.
+  - Estadísticas antiguas y errores históricos: eliminados.
+  - “ESLint” aparece únicamente para aclarar explícitamente que no se utiliza.
+  - git diff --check: aprobado; solo avisos informativos LF/CRLF.
+
+  Durante esta tarea solo se modificaron archivos Markdown de documentación general. Los cambios ajenos existentes en .agents, código, Bruno, configuraciones e imágenes permanecieron
+  intactos.
+- `PORT`: puerto del backend.
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
+- `DB_SSL_MODE` y `JPA_DDL_AUTO` para producción.
+- `JWT_SECRET`, `JWT_EXPIRATION_MS`, `ADMIN_BOOTSTRAP_KEY`.
+- `APP_CORS_ALLOWED_ORIGINS`, `TREASURY_MANAGED_COURSE`.
+- `EMAIL_PROVIDER`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_FROM` y `FRONTEND_URL`.
+
+Frontend:
+
+- `VITE_API_URL`: URL base de la API.
+
+No guardar secretos reales en Git. Producción utiliza PostgreSQL/Neon con TLS, Flyway y Hibernate `validate`; consulta [backend/NEON_DEPLOYMENT.md](backend/NEON_DEPLOYMENT.md).
+
+## Autenticación por correo
+
+El backend usa Spring Mail y Gmail SMTP. El registro crea una cuenta pendiente y envía un enlace de verificación válido por 24 horas. La recuperación de contraseña usa un enlace válido por 60 minutos. Los tokens son aleatorios, de un solo uso y solo se persiste su hash SHA-256.
+
+`GMAIL_APP_PASSWORD` debe ser una contraseña de aplicación de Google. La cuenta Gmail necesita verificación en dos pasos. En producción debe inyectarse desde Secret Manager.
+
+## Base de datos
+
+- Desarrollo: PostgreSQL con perfil `dev`.
+- Pruebas: H2 en memoria y `create-drop` con perfil `test`.
+- Producción: PostgreSQL TLS, Flyway y `JPA_DDL_AUTO=validate`.
+- Esquema inicial: `backend/src/main/resources/db/migration/V1__create_initial_schema.sql`.
+
+No modificar una migración aplicada; los cambios de esquema deben agregarse en una nueva versión.
+
+## Pruebas y quality gates
 
 Backend:
 
 ```bash
 cd backend
 ./gradlew test
-./gradlew bootRun
+./gradlew pmdMain
+./gradlew check
 ```
+
+`check` incluye PMD para código principal y la verificación JaCoCo. La cobertura mínima configurada es 70 % sobre las clases incluidas; `pmdTest` está deshabilitado.
 
 Frontend:
 
 ```bash
 cd frontend
-pnpm install
+pnpm test:run
+pnpm lint
 pnpm build
-pnpm dev
 ```
 
-Docker:
+`build` ejecuta el type checking con `tsc -b` y genera el bundle con Vite. `lint` utiliza Oxlint; el proyecto no utiliza ESLint.
+
+La suite backend incluye pruebas unitarias JUnit/Mockito, pruebas MockMvc standalone y `SecurityConfigTest` con `@SpringBootTest` y `@AutoConfigureMockMvc`. El frontend usa Vitest, jsdom y Testing Library.
+
+## Colecciones Bruno
+
+Las colecciones principales están en:
+
+- `api-tests/alumno`
+- `api-tests/apoderado`
+- `api-tests/familia`
+
+Cada colección autentica primero un administrador mediante variables `Admin_Email` y `Admin_Password`, guarda `adminToken` y lo reutiliza como Bearer. Deben ejecutarse contra una base limpia o controlada, en orden Alumno, Apoderado y Familia.
 
 ```bash
-cp .env.example .env
-docker compose up --build
+cd api-tests
+bru run ./alumno -r --env tesoreria --env-var Admin_Email=<email> --env-var Admin_Password=<password>
+bru run ./apoderado -r --env tesoreria --env-var Admin_Email=<email> --env-var Admin_Password=<password>
+bru run ./familia -r --env tesoreria --env-var Admin_Email=<email> --env-var Admin_Password=<password>
 ```
 
-## Environment Variables
+Las tres colecciones han sido validadas completamente con autenticación administrativa. `scripts/test-full-flow.sh` continúa ejecutando solamente Apoderado.
 
-Backend:
+## Documentación adicional
 
-- `APP_PROFILE`: perfil Spring activo. Default Docker: `dev`.
-- `PORT`: puerto backend para perfil `prod`. Default: `8080`.
-- `DB_HOST`: host PostgreSQL.
-- `DB_PORT`: puerto PostgreSQL. Default recomendado: `5432`.
-- `DB_NAME`: nombre de base de datos.
-- `DB_USER`: usuario de base de datos.
-- `DB_PASSWORD`: password de base de datos. Requerido; no debe versionarse con valores reales.
-- `JPA_DDL_AUTO`: estrategia Hibernate en `prod`. Default: `validate`.
-- `APP_CORS_ALLOWED_ORIGINS`: origenes permitidos por CORS separados por coma. Default local: `http://localhost:5173,http://127.0.0.1:5173`.
-- `EMAIL_PROVIDER`: proveedor de correo; debe ser `gmail`.
-- `GMAIL_USER`: dirección de la cuenta Gmail remitente.
-- `GMAIL_APP_PASSWORD`: contraseña de aplicación de Google, almacenada como secreto.
-- `EMAIL_FROM`: remitente visible, por ejemplo `Tesorería Escolar <tesoreria.colegio@gmail.com>`.
-- `FRONTEND_URL`: origen usado para construir enlaces de verificación y recuperación.
-
-Frontend:
-
-- `VITE_API_URL`: URL base del backend. Default: `http://localhost:5055/tesoreria/api/v1`.
-
-## Project Structure
-
-- `.agents/tasks`: tareas de auditoria y ejecucion.
-- `api-tests`: colecciones de pruebas HTTP por dominio.
-- `backend`: aplicacion Spring Boot.
-- `frontend`: aplicacion React/Vite.
-- `docker-compose.yml`: backend y PostgreSQL para entorno local.
-- `.env.example`: plantilla de variables sin secretos reales.
-
-## Issues Found
-
-### Critical Issues
-
-- Credencial PostgreSQL real versionada en `docker-compose.yml`.
-  - Root cause: configuracion local con password hardcodeado.
-  - Impact: exposicion de secreto y reutilizacion insegura.
-  - Solution implemented: Docker ahora consume `DB_PASSWORD` desde entorno y se agrego `.env.example`.
-
-- Perfil `prod` usaba H2 local con consola habilitada.
-  - Root cause: configuracion productiva copiada desde entorno de desarrollo.
-  - Impact: riesgo de perdida de datos, consola administrativa expuesta y despliegue no productivo.
-  - Solution implemented: `application-prod.yml` ahora usa PostgreSQL por variables y deshabilita H2 console.
-
-### High Priority Issues
-
-- Backend no compilaba por contratos inconsistentes entre `ApoderadoService` y `FamiliaController`.
-  - Root cause: migracion parcial desde rutas por ID a rutas por `codigo`.
-  - Impact: build backend roto y validaciones de familia incompletas.
-  - Solution implemented: se agregaron busquedas internas reales por ID y lista de IDs sin cambiar la API publica por `codigo`.
-
-- Tests backend de apoderado usaban metodos publicos obsoletos.
-  - Root cause: pruebas desactualizadas despues del cambio a `codigo`.
-  - Impact: `./gradlew test` fallaba en compilacion.
-  - Solution implemented: `ApoderadoServiceTest` fue alineado al contrato vigente.
-
-- CORS estaba abierto con `@CrossOrigin` en cada controlador.
-  - Root cause: configuracion transversal declarada a nivel de controlador sin restriccion de origen.
-  - Impact: cualquier origen podia invocar la API desde navegador.
-  - Solution implemented: se reemplazo por `CorsConfig` centralizado y configurable con `APP_CORS_ALLOWED_ORIGINS`.
-
-- Regla de dominio de `curso` en alumno no coincidia con el test.
-  - Root cause: test esperaba 50 caracteres, dominio valida 4.
-  - Impact: suite backend fallaba.
-  - Solution implemented: test actualizado al limite real.
-
-### Medium Priority Issues
-
-- El build frontend compilaba archivos `*.test.*`.
-  - Root cause: `tsconfig.app.json` incluia todo `src`.
-  - Impact: mocks y tests legacy bloqueaban builds productivos.
-  - Solution implemented: tests excluidos del build TypeScript de aplicacion.
-
-- DTOs y hooks de familia tenian nombres inconsistentes (`apoderadoid`, `id`) frente a `apoderadoId` y `alumnoId`.
-  - Root cause: migracion incompleta de tipos.
-  - Impact: errores TypeScript y mapeo incorrecto al editar familia.
-  - Solution implemented: tipos y hooks corregidos.
-
-- Tests frontend conservaban expectativas legacy por ID numerico.
-  - Root cause: mocks no actualizados con `codigo`, `alumnoId` y `apoderadoId`.
-  - Impact: Vitest fallaba aunque el build productivo compilara.
-  - Solution implemented: fixtures, repositorios y hooks fueron ajustados con compatibilidad controlada.
-
-### Low Priority Issues
-
-- Logs temporales en creacion de familia.
-  - Root cause: depuracion dejada en el hook.
-  - Impact: ruido y posible exposicion de datos en consola.
-  - Solution implemented: logs removidos.
-
-- Tests de hooks emitian advertencias `act(...)` y logs de error esperados.
-  - Root cause: un test no esperaba las actualizaciones asincronas del hook y otro dejaba pasar `console.error` deliberado.
-  - Impact: ruido en la suite y senales falsas durante CI.
-  - Solution implemented: test asincrono ajustado y log esperado silenciado localmente.
-
-- Literales y conversiones sensibles a locale en backend.
-  - Root cause: `toUpperCase()` sin `Locale.ROOT` y magic number en dominio.
-  - Impact: comportamiento inconsistente segun locale y warning PMD.
-  - Solution implemented: normalizacion con `Locale.ROOT` y constante de dominio.
-
-- `.gitattributes` de `backend` emite advertencias de atributos invalidos.
-  - Root cause: lineas invalidas en configuracion Git.
-  - Impact: ruido en comandos Git.
-  - Solution implemented: no modificado porque no afecta build ni runtime.
-
-## Improvements Implemented
-
-- Backend pasa `./gradlew test` y `./gradlew check`.
-- Frontend pasa `pnpm build`, `pnpm exec vitest run` y `pnpm lint`.
-- `ApoderadoService` conserva contrato publico por `codigo` y agrega busquedas internas por ID para familias.
-- Repositorios de alumno y apoderado completan metodos internos requeridos por servicios.
-- Dominio `Apoderado` expone `setCodigo` para mapeo y pruebas.
-- Tests backend actualizados y ampliados con cobertura de dominio `Familia`.
-- Build frontend separado de archivos de test.
-- Hooks de alumno, apoderado y familia manejan mejor loading, errores y compatibilidad de identificadores.
-- Formularios de apoderado mejoran estados de loading y clases de error.
-- Secretos removidos de Docker y documentados en `.env.example`.
-- Perfil `prod` migrado de H2 a PostgreSQL.
-- CORS centralizado en backend y parametrizado por ambiente.
-- Handler global de errores limpiado y validaciones DTO mantenidas con respuesta estandar.
-- Tests de hooks de apoderado ajustados para no emitir ruido en ejecucion normal.
-
-## Remaining Recommendations
-
-- Implementar autenticacion y autorizacion; actualmente no hay flujo auth en backend ni frontend.
-- Definir valores productivos estrictos para `APP_CORS_ALLOWED_ORIGINS`.
-- Agregar migraciones versionadas con Flyway o Liquibase antes de depender de `JPA_DDL_AUTO=validate` en produccion.
-- Ejecutar las colecciones `api-tests` contra backend levantado y base limpia.
-- Reparar instalacion local de Bruno CLI o ejecutar con una instalacion limpia; el runner actual falla antes de correr colecciones por modulo Node `qs` faltante.
-- Corregir `.gitattributes` de `backend` para eliminar warnings Git.
-- Agregar pruebas de integracion HTTP para alumnos, apoderados y familias.
-
-## Breaking Changes
-
-- Los endpoints publicos de alumnos y apoderados operan por `codigo`, no por ID numerico.
-- `application-prod.yml` ahora requiere variables PostgreSQL.
-- Docker requiere `DB_PASSWORD` desde entorno o `.env`.
-- El build productivo frontend ya no compila archivos `*.test.ts` ni `*.test.tsx`.
-
-## Migration Notes
-
-- Crear `.env` desde `.env.example` y definir `DB_PASSWORD` antes de usar Docker.
-- Consumidores externos deben usar `codigo` en rutas de alumnos y apoderados.
-- Relaciones de familia siguen enviando IDs numericos de alumno/apoderados.
-- Para produccion, preparar esquema PostgreSQL antes de usar `JPA_DDL_AUTO=validate`.
-
-## Performance Improvements
-
-- Typecheck productivo frontend reducido al excluir tests.
-- Se removieron logs innecesarios en hooks.
-- Se evitaron caminos nulos/stub en servicios que generaban fallos tardios.
-
-## Security Improvements
-
-- Password real eliminado de `docker-compose.yml`.
-- `.env.example` agregado para documentar configuracion sin secretos.
-- Perfil `prod` deja de usar H2 local y consola H2.
-- CORS abierto removido de controladores y reemplazado por lista configurable de origenes.
-- Pendiente: autenticacion, autorizacion y CSRF segun mecanismo de sesion/token que se adopte.
-
-## Verification
-
-```bash
-cd backend && ./gradlew check
-cd frontend && pnpm build
-cd frontend && pnpm exec vitest run
-cd frontend && pnpm lint
-```
-
-Resultado validado:
-
-- `./gradlew check`: exitoso.
-- `pnpm build`: exitoso.
-- `pnpm exec vitest run`: exitoso, 33 archivos y 217 tests.
-- `pnpm lint`: exitoso.
-- Tests de hooks de apoderado reejecutados sin advertencias `act(...)` ni logs esperados en `stderr`.
-- Backend levantado con perfil `test` y H2; `GET http://localhost:5055/tesoreria/api/v1/alumnos` respondio `200`.
-- Colecciones Bruno `alumno`, `apoderado` y `familia`: no ejecutadas porque `bru.cmd` falla al iniciar con `Cannot find module 'qs'`.
-
-Nota: `pmdTest` queda deshabilitado en Gradle porque el ruleset actual genera ruido masivo en tests legacy; `pmdMain` si corre dentro de `check`.
-
-## Final Checklist
-
-- [x] Frontend working
-- [x] Backend working
-- [x] APIs working at build/contract level and local smoke test
-- [ ] Authentication working: no existe implementacion de autenticacion en el proyecto revisado
-- [x] Database working at configuration/test level
-- [x] Build successful
-- [x] Tests passing
-- [x] Lint passing
-- [x] Type checking passing
-- [ ] Production ready: quedan pendientes autenticacion, autorizacion, origenes CORS productivos y migraciones versionadas
-
-## Cuota CEPA y Cuota Solidaria
-
-La pantalla `/tesoreria/aportes` permite consultar los dos aportes independientes por
-familia y año escolar. Los usuarios `USER` pueden ver cards, métricas, buscar y filtrar.
-Los usuarios `ADMIN` además pueden configurar montos, registrar pagos y anularlos con
-un motivo auditable.
-
-### Flujo de prueba
-
-1. Iniciar backend y frontend e ingresar con una cuenta `ADMIN`.
-2. Abrir `Tesorería > CEPA y Solidaria`.
-3. Seleccionar el año escolar.
-4. Abrir una familia y marcar cada estado por separado.
-5. Comprobar que la card y los contadores cambian sin recargar.
-6. Anular un registro, ingresar el motivo y verificar que vuelve a mostrarse pendiente.
-7. Ingresar como `USER` y comprobar que puede consultar, pero no modificar.
-
-Los endpoints se encuentran bajo `/api/v1/tesoreria/aportes`:
-
-- `GET /aportes` lista familias y acepta `year`, `course`, `familyId`,
-  `cepaStatus`, `solidarityStatus` y `search`.
-- `GET /aportes/resumen` entrega los contadores del año.
-- `GET|PUT /aportes/configuraciones` consulta o configura los aportes anuales.
-- `POST /aportes/{familyId}/pagos` registra un pago.
-- `PATCH /aportes/{id}/anulacion` anula un pago sin eliminar su registro.
-
-La cuota anual continúa disponible en `/tesoreria/cuotas`. Sus entidades, tablas,
-servicios, endpoints y pantalla no fueron reemplazados por este módulo.
-
-Para corregir la modalidad de una familia:
-
-1. Anular todos sus pagos activos indicando el motivo.
-2. Seleccionar la familia y cambiar entre `Cuota única` y `Dos cuotas`.
-3. Guardar la modalidad; las nuevas obligaciones se regeneran automáticamente.
-
-Los pagos anulados permanecen en auditoría, pero no bloquean el cambio de modalidad
-ni forman parte del total recaudado. Si aún existe otro pago activo de la familia,
-el cambio continúa bloqueado hasta anularlo.
-
-## Egresos de Tesorería
-
-La ruta `/tesoreria/gastos`, visible como `Tesorería > Egresos`, administra el dinero
-utilizado por el curso. El resumen conserva el total recaudado y calcula en backend:
-
-```text
-Saldo disponible = cuota del curso pagada + ingresos extraordinarios - egresos activos
-```
-
-Los egresos anulados desaparecen del panel y dejan de descontarse. El backend conserva
-el registro para auditoría, sin eliminarlo físicamente.
-Los usuarios `USER` pueden consultar; los usuarios `ADMIN` pueden registrar, corregir
-con motivo y anular. Si un nuevo egreso supera el saldo, se solicita confirmación.
-
-### Prueba manual
-
-1. Ingresar como `ADMIN` y abrir `Tesorería > Egresos`.
-2. Seleccionar el año y pulsar `Registrar egreso`.
-3. Completar descripción, monto, fecha y categoría.
-4. Guardar y verificar la card, el total de egresos y el saldo disponible.
-5. Abrir `Ver detalle` para corregir el registro indicando un motivo.
-6. Anularlo indicando el motivo y comprobar que desaparece del panel.
-7. Confirmar que el total recaudado no cambió y que el saldo recuperó el monto anulado.
-
-API bajo `/api/v1/tesoreria`:
-
-- `GET|POST /egresos`
-- `GET|PATCH /egresos/{id}`
-- `PATCH /egresos/{id}/anulacion`
-- `GET /resumen-financiero?year=2026`
-
-## Ingresos extraordinarios
-
-La ruta `/tesoreria/ingresos` diferencia los ingresos automáticos por cuotas de los
-ingresos extraordinarios creados manualmente. Las pestañas `Todos`, `Cuotas` y
-`Otros ingresos` evitan registrar nuevamente una cuota como ingreso manual.
-
-El resumen financiero se calcula exclusivamente en backend:
-
-```text
-Ingresos por cuotas = cuota anual del curso pagada
-Ingresos totales = ingresos por cuotas + ingresos extraordinarios activos
-Saldo disponible = ingresos totales - egresos activos
-```
-
-Los ingresos extraordinarios pueden corregirse con motivo o anularse. Los anulados
-desaparecen del panel y dejan de sumarse, aunque el backend conserva el registro de
-auditoría sin eliminarlo físicamente. Un envío duplicado con la misma
-descripción, monto y fecha se rechaza.
-
-### Prueba manual
-
-1. Ingresar como `ADMIN` y abrir `Tesorería > Ingresos`.
-2. Verificar que la pestaña `Cuotas` muestra el total automático de solo lectura.
-3. Pulsar `Registrar ingreso` y guardar una rifa o donación.
-4. Comprobar que aumentan `Otros ingresos`, `Ingresos totales` y `Saldo disponible`.
-5. Abrir el detalle para corregir el monto indicando un motivo.
-6. Anularlo indicando un motivo y comprobar que desaparece del panel.
-7. Verificar que el ingreso anulado dejó de sumarse y que las cuotas no se duplicaron.
-
-API bajo `/api/v1/tesoreria`:
-
-- `GET|POST /ingresos`
-- `GET|PATCH /ingresos/{id}`
-- `PATCH /ingresos/{id}/anulacion`
-- `GET /resumen-financiero?year=2026`
+- [Frontend](frontend/FRONTEND.md)
+- [Backend](backend/BACKEND.md)
+- [Neon y Cloud Run](backend/NEON_DEPLOYMENT.md)

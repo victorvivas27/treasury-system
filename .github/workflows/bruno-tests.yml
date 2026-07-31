@@ -14,7 +14,7 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      SERVER_PORT: 5055
+      PORT: 5055
 
     services:
       postgres:
@@ -63,7 +63,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          SERVER_PORT: 5055
+          PORT: 5055
         run: |
           cd backend
           chmod +x gradlew
@@ -73,7 +73,7 @@ jobs:
           echo "⏳ Esperando backend..."
 
           timeout 120 bash -c '
-            until curl -s http://localhost:5055/actuator/health > /dev/null
+            until curl -s http://localhost:5055/tesoreria/api/v1/auth/me > /dev/null
             do
               sleep 5
             done

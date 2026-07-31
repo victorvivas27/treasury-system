@@ -67,8 +67,8 @@
 }
 
 .public-home__brand img {
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   transition: transform 300ms ease, filter 300ms ease;
 }
@@ -820,6 +820,16 @@
 
   .public-home__header {
     min-height: 72px;
+  }
+
+  .public-home__brand {
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .public-home__brand img {
+    width: 42px;
+    height: 42px;
   }
 
   .public-home__login {

@@ -12,7 +12,11 @@ const Shell = ({ title, message, children }: {
 }) => (
   <main className="auth-flow">
     <section className="auth-flow__card">
-      <img src="/icono_tesoreria_03.png" alt="" className="auth-flow__logo" />
+      <img
+        src="/Tesoreria.png"
+        alt="Logo del Sistema de Tesorería"
+        className="auth-flow__logo"
+      />
       <h1>{title}</h1>
       {message && <p role="status">{message}</p>}
       {children}

@@ -23,7 +23,7 @@ runtime:
           const listar = await bru.sendRequest({
             url: `${baseUrl}/apoderados?size=100`,
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bru.getEnvVar('adminToken')}` }
           });
 
           const apoderados = listar.data && listar.data.content ? listar.data.content : null;
@@ -34,7 +34,7 @@ runtime:
                 await bru.sendRequest({
                   url: `${baseUrl}/apoderados/${ap.codigo}`,
                   method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' }
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bru.getEnvVar('adminToken')}` }
                 });
               }
             }

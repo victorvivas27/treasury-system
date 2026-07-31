@@ -17,6 +17,9 @@ import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
 
 public class TreasuryService implements TreasuryUseCase {
   private static final int MIN_YEAR = 2000;
+  private static final String INVALID_SCHOOL_YEAR_MESSAGE = "El año escolar es inválido";
+  private static final String INCOME_AUDIT_TYPE = "INGRESO";
+  private static final String EXPENSE_AUDIT_TYPE = "EGRESO";
   private final TreasuryRepositoryOutPort repository;
 
   public TreasuryService(TreasuryRepositoryOutPort repository) {
@@ -209,7 +212,7 @@ public class TreasuryService implements TreasuryUseCase {
   @Override
   public TreasuryDashboardOverview dashboardOverview(int year) {
     if (year < MIN_YEAR) {
-      throw error(TreasuryErrorCode.INVALID, "El año escolar es inválido");
+      throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
     }
     AnnualFeeConfig config = repository.findConfigByYear(year).orElse(null);
     List<FeeObligation> obligations = config == null
@@ -266,11 +269,11 @@ public class TreasuryService implements TreasuryUseCase {
     var ordinaryMovements = java.util.stream.Stream.concat(
         incomes.stream().filter(item -> item.status() == IncomeStatus.ACTIVE)
             .map(item -> new TreasuryDashboardOverview.RecentMovement(
-            item.id(), "INGRESO", item.description(), item.amount(), item.incomeDate(),
+            item.id(), INCOME_AUDIT_TYPE, item.description(), item.amount(), item.incomeDate(),
             item.status().name())),
         expenses.stream().filter(item -> item.status() == ExpenseStatus.ACTIVE)
             .map(item -> new TreasuryDashboardOverview.RecentMovement(
-            item.id(), "EGRESO", item.description(), item.amount(), item.expenseDate(),
+            item.id(), EXPENSE_AUDIT_TYPE, item.description(), item.amount(), item.expenseDate(),
             item.status().name())));
     var feeMovements = feePayments.stream().map(payment -> {
       FeeObligation obligation = obligationsById.get(payment.obligationId());
@@ -302,7 +305,7 @@ public class TreasuryService implements TreasuryUseCase {
   @Transactional
   public void clearAudits(int year, List<Long> ids, boolean all) {
     if (year < MIN_YEAR) {
-      throw error(TreasuryErrorCode.INVALID, "El año escolar es inválido");
+      throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
     }
     List<TreasuryAudit> yearAudits = repository.findAudits(
         LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay());
@@ -397,7 +400,7 @@ public class TreasuryService implements TreasuryUseCase {
 
   @Override
   public List<TreasuryExpense> listExpenses(int year) {
-    if (year < MIN_YEAR) throw error(TreasuryErrorCode.INVALID, "El año escolar es inválido");
+    if (year < MIN_YEAR) throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
     return repository.findExpenses(year);
   }
 
@@ -418,7 +421,7 @@ public class TreasuryService implements TreasuryUseCase {
         description.trim(), amount.setScale(0, RoundingMode.UNNECESSARY), expenseDate, category,
         paymentMethod, normalize(recipient), normalize(receiptNumber), normalize(notes),
         ExpenseStatus.ACTIVE, user, null, null, null, now, now));
-    audit("EXPENSE_CREATED", "EGRESO", String.valueOf(saved.id()), user,
+    audit("EXPENSE_CREATED", EXPENSE_AUDIT_TYPE, String.valueOf(saved.id()), user,
         saved.description() + " | " + saved.amount());
     return saved;
   }
@@ -441,7 +444,7 @@ public class TreasuryService implements TreasuryUseCase {
         expenseDate, category, paymentMethod, normalize(recipient), normalize(receiptNumber),
         normalize(notes), current.status(), current.registeredBy(), null, null, null,
         current.createdAt(), LocalDateTime.now()));
-    audit("EXPENSE_UPDATED", "EGRESO", String.valueOf(id), user,
+    audit("EXPENSE_UPDATED", EXPENSE_AUDIT_TYPE, String.valueOf(id), user,
         "Anterior: " + current.description() + " " + current.amount()
             + " | Nuevo: " + saved.description() + " " + saved.amount()
             + " | Motivo: " + correctionReason.trim());
@@ -465,7 +468,7 @@ public class TreasuryService implements TreasuryUseCase {
         current.notes(), ExpenseStatus.CANCELLED, current.registeredBy(), now, user,
         reason.trim(), current.createdAt(), now);
     repository.deleteExpense(id);
-    audit("EXPENSE_CANCELLED", "EGRESO", String.valueOf(id), user, reason.trim());
+    audit("EXPENSE_CANCELLED", EXPENSE_AUDIT_TYPE, String.valueOf(id), user, reason.trim());
     return removed;
   }
 
@@ -490,7 +493,7 @@ public class TreasuryService implements TreasuryUseCase {
 
   @Override
   public List<TreasuryIncome> listIncomes(int year) {
-    if (year < MIN_YEAR) throw error(TreasuryErrorCode.INVALID, "El año escolar es inválido");
+    if (year < MIN_YEAR) throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
     return repository.findIncomes(year);
   }
 
@@ -520,7 +523,7 @@ public class TreasuryService implements TreasuryUseCase {
         description.trim(), amount.setScale(0, RoundingMode.UNNECESSARY), incomeDate, category,
         normalize(source), paymentMethod, normalize(receiptNumber), normalize(course), familyId,
         normalize(notes), IncomeStatus.ACTIVE, user, null, null, null, now, now));
-    audit("INCOME_CREATED", "INGRESO", String.valueOf(saved.id()), user,
+    audit("INCOME_CREATED", INCOME_AUDIT_TYPE, String.valueOf(saved.id()), user,
         saved.description() + " | " + saved.amount());
     return saved;
   }
@@ -544,7 +547,7 @@ public class TreasuryService implements TreasuryUseCase {
         incomeDate, category, normalize(source), paymentMethod, normalize(receiptNumber),
         normalize(course), familyId, normalize(notes), current.status(), current.registeredBy(),
         null, null, null, current.createdAt(), LocalDateTime.now()));
-    audit("INCOME_UPDATED", "INGRESO", String.valueOf(id), user,
+    audit("INCOME_UPDATED", INCOME_AUDIT_TYPE, String.valueOf(id), user,
         "Anterior: " + current.description() + " " + current.amount()
             + " | Nuevo: " + saved.description() + " " + saved.amount()
             + " | Motivo: " + correctionReason.trim());
@@ -567,7 +570,7 @@ public class TreasuryService implements TreasuryUseCase {
         current.category(), current.source(), current.paymentMethod(), current.receiptNumber(),
         current.course(), current.familyId(), current.notes(), IncomeStatus.CANCELLED,
         current.registeredBy(), now, user, reason.trim(), current.createdAt(), now));
-    audit("INCOME_CANCELLED", "INGRESO", String.valueOf(id), user, reason.trim());
+    audit("INCOME_CANCELLED", INCOME_AUDIT_TYPE, String.valueOf(id), user, reason.trim());
     return saved;
   }
 
@@ -575,7 +578,7 @@ public class TreasuryService implements TreasuryUseCase {
   @Transactional
   public void deleteIncome(Long id) {
     getIncome(id);
-    repository.deleteAudits("INGRESO", String.valueOf(id));
+    repository.deleteAudits(INCOME_AUDIT_TYPE, String.valueOf(id));
     repository.deleteIncome(id);
   }
 

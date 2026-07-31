@@ -28,7 +28,7 @@ cd ..
 
 # 2. Esperar backend
 echo "⏳ Esperando backend..."
-timeout 60 bash -c 'until curl -s http://localhost:5055/actuator/health > /dev/null; do sleep 2; done'
+timeout 60 bash -c 'until curl -s http://localhost:5055/tesoreria/api/v1/auth/me > /dev/null; do sleep 2; done'
 
 if [ $? -ne 0 ]; then
   echo "❌ Backend no inició correctamente"
