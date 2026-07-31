@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import { Button } from "@/shared/ui/button/Button";
@@ -110,20 +110,26 @@ export const ResetPasswordPage = () => {
   const [message, setMessage] = useState("");
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submittingRef.current) return;
     setMessage("");
     const token = params.get("token");
     if (!token) { setMessage("El enlace no es válido."); return; }
     if (!PASSWORD_PATTERN.test(password)) {
       setMessage("Usa 8 caracteres, mayúscula, minúscula, número y símbolo."); return;
     }
+    submittingRef.current = true;
     setLoading(true);
     try {
       await repository.resetPassword(token, password);
       setPasswordUpdated(true);
     } catch (error) { setMessage(recoveryErrorMessage(error)); }
-    finally { setLoading(false); }
+    finally {
+      submittingRef.current = false;
+      setLoading(false);
+    }
   };
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
