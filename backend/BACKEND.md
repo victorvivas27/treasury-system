@@ -1,135 +1,86 @@
-# 🚀 Backend - Sistema de Tesorería
+# Backend de Treasury System
 
-Guía rápida para desarrollo, ejecución y pruebas del módulo backend desarrollado con Java + Gradle.
+API Java 17 con Spring Boot 4.0.6, WebMVC, Security, JPA, Flyway y Gradle. Los comandos se ejecutan desde `backend/`.
 
-> Todos los comandos deben ejecutarse dentro de la carpeta:
->
-> ```bash
-> backend/
-> ```
+## Arquitectura
 
----
+Los módulos separan dominio y puertos (`core`), casos de uso (`application`), composición Spring (`config`) y adaptadores web/persistencia (`infrastructure`). `shared` centraliza paginación, CORS, excepciones y respuestas de error.
 
-# 📦 1. Desarrollo Local
+Módulos actuales: Alumno, Apoderado, Familia, Usuario/autenticación, Tesorería, Eventos escolares y Stands.
 
-Para limpiar compilaciones previas y levantar el servicio en modo desarrollo:
+## Perfiles
+
+- `dev`: PostgreSQL y Hibernate `update`.
+- `test`: H2 en memoria y `create-drop`.
+- `prod`: PostgreSQL TLS, Flyway y Hibernate `validate`.
+
+La aplicación usa el context path `/tesoreria`; la API parte de `/api/v1`.
+
+## Ejecución local
+
+Completar las variables requeridas en un `.env` local y ejecutar:
+
+```bash
+./gradlew bootRun
+```
+
+No es necesario construir previamente. Para limpiar artefactos antes de iniciar:
 
 ```bash
 ./gradlew clean bootRun
 ```
 
-## ✅ ¿Qué hace este comando?
-
-- 🧹 Elimina archivos temporales y builds anteriores (`clean`)
-- ⚙️ Compila automáticamente los cambios recientes
-- 🚀 Inicia la aplicación Spring Boot (`bootRun`)
-
-> ℹ️ No es necesario ejecutar `./gradlew build` antes,
-> ya que `bootRun` realiza la compilación automáticamente.
-
----
-
-# 🧪 2. Testing
-
-## Ejecutar pruebas unitarias
-
-Para correr toda la suite de pruebas:
+## Pruebas
 
 ```bash
 ./gradlew test
 ```
 
-## ✅ Resultado esperado
+La suite utiliza JUnit 5 y Mockito. Incluye pruebas unitarias, controladores con MockMvc standalone y una prueba de seguridad con `@SpringBootTest`/`@AutoConfigureMockMvc`.
 
-- Ejecución automática de tests unitarios
-- Validación del comportamiento del backend
-- Generación de reportes de pruebas
-
----
-
-# 📊 3. Cobertura de Código (JaCoCo)
-
-Para generar el reporte HTML de cobertura y abrirlo automáticamente en Linux:
-
-```bash
-./gradlew jacocoTestReport && xdg-open build/reports/jacoco/test/html/index.html
-```
-
-## 📁 Ubicación del reporte
-
-```bash
-build/reports/jacoco/test/html/index.html
-```
-
-## ✅ Incluye
-
-- Cobertura por clase
-- Cobertura por método
-- Líneas cubiertas/no cubiertas
-- Métricas visuales HTML
-
----
-
-# 🛠️ Requisitos Previos
-
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
-
-- ☕ Java 17+ (o versión requerida por el proyecto)
-- 🐘 Gradle Wrapper (`gradlew`)
-- 🐧 Linux/macOS o terminal compatible
-
----
-
-# 📌 Comandos Útiles
-
-| Acción            | Comando                      |
-|-------------------|------------------------------|
-| Iniciar backend   | `./gradlew bootRun`          |
-| Limpiar proyecto  | `./gradlew clean`            |
-| Ejecutar tests    | `./gradlew test`             |
-| Generar cobertura | `./gradlew jacocoTestReport` |
-| Build completo    | `./gradlew build`            |
-
----
-
-# 🧾 Resumen
-
-- `bootRun` → compila y levanta el backend 🚀
-- `test` → ejecuta pruebas unitarias 🧪
-- `jacocoTestReport` → genera cobertura HTML 📊
-- Todo se ejecuta desde `backend/` 📁
-
-## 🔍 PMD (Análisis Estático de Código)
-
-PMD permite detectar:
-
-- Código duplicado
-- Variables innecesarias
-- Métodos complejos
-- Posibles malas prácticas
-- Problemas de mantenibilidad
-
-### Ejecutar análisis PMD
+## PMD y JaCoCo
 
 ```bash
 ./gradlew pmdMain
+./gradlew jacocoTestReport
+./gradlew jacocoTestCoverageVerification
 ```
 
-### Abrir reporte HTML
+- PMD 6.55.0 usa `config/pmd/ruleset.xml`.
+- `pmdTest` está deshabilitado.
+- JaCoCo 0.8.12 genera informes HTML/XML.
+- La cobertura mínima configurada es 70 % sobre las clases incluidas.
+
+Informes principales:
+
+```text
+build/reports/pmd/main.html
+build/reports/jacoco/test/html/index.html
+build/reports/tests/test/index.html
+```
+
+## Build y quality gate
 
 ```bash
-linux:
-xdg-open build/reports/pmd/main.html
-
-windows:
-start build/reports/pmd/main.html
+./gradlew bootJar
+./gradlew check
 ```
 
-> 💡 Compatible con entornos Linux que tengan interfaz gráfica.
-> El reporte HTML facilita revisar problemas detectados visualmente.
+`check` ejecuta los tests, PMD para código principal y la verificación JaCoCo. No deben reducirse reglas, cobertura o exclusiones únicamente para hacer pasar el gate.
 
-## 📄 Abrir preview Markdown
+## Comandos resumidos
 
- ```
- Ctrl + Shift + V
- ```
+| Acción | Comando |
+| --- | --- |
+| Iniciar | `./gradlew bootRun` |
+| Tests | `./gradlew test` |
+| PMD | `./gradlew pmdMain` |
+| Cobertura | `./gradlew jacocoTestReport` |
+| Build ejecutable | `./gradlew bootJar` |
+| Quality gate | `./gradlew check` |
+
+En Windows usar `gradlew.bat` cuando el shell no ejecute `./gradlew`.
+
+## Base de datos
+
+Flyway aplica `src/main/resources/db/migration/V1__create_initial_schema.sql` en producción antes de Hibernate `validate`. No editar migraciones aplicadas; agregar una versión posterior para cualquier cambio de esquema. Consulta [NEON_DEPLOYMENT.md](NEON_DEPLOYMENT.md) para PostgreSQL/Neon, Secret Manager y Cloud Run.

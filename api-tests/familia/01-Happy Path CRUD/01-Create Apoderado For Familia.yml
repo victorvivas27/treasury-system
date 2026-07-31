@@ -60,6 +60,7 @@ runtime:
         if (body && body.apoderadoId) {
           // Bruno persiste las variables de entorno automáticamente en memoria durante la sesión
           bru.setEnvVar("familiaApoderadoId", String(body.apoderadoId));
+          bru.setEnvVar("familiaApoderadoCodigo", body.codigo);
         }
 
 settings:

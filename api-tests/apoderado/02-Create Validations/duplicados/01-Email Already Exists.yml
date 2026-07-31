@@ -28,7 +28,7 @@ runtime:
           const listar = await bru.sendRequest({
             url: `${baseUrl}/apoderados?size=100`,
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bru.getEnvVar('adminToken')}` }
           });
 
           const apoderados = listar.data && listar.data.content ? listar.data.content : null;
@@ -39,7 +39,7 @@ runtime:
                 await bru.sendRequest({
                   url: `${baseUrl}/apoderados/${ap.codigo}`,
                   method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' }
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bru.getEnvVar('adminToken')}` }
                 });
               }
             }
@@ -59,7 +59,8 @@ runtime:
           url: `${baseUrl}/apoderados`,
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${bru.getEnvVar('adminToken')}`
           },
           data: apoderado
         });
@@ -72,7 +73,8 @@ runtime:
           try {
             await bru.sendRequest({
               url: `${baseUrl}/apoderados/${codigo}`,
-              method: 'DELETE'
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${bru.getEnvVar('adminToken')}` }
             });
 
             console.log(`✅ Apoderado ${codigo} eliminado`);

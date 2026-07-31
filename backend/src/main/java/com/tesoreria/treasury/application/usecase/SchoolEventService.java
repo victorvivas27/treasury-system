@@ -18,21 +18,22 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.
 @Service
 public class SchoolEventService {
   private static final int MIN_YEAR = 2000;
+  private static final int EXPECTED_UNIQUE_STANDS = 1;
   private final SchoolEventJpaRepository events;
   private final TreasuryUseCase treasury;
-  private final ManagedCourseService managedCourse;
+  private final ManagedCourseService managedCourseService;
   private final StandJpaRepository stands;
 
   public SchoolEventService(SchoolEventJpaRepository events, TreasuryUseCase treasury,
       ManagedCourseService managedCourse, StandJpaRepository stands) {
     this.events = events;
     this.treasury = treasury;
-    this.managedCourse = managedCourse;
+    this.managedCourseService = managedCourse;
     this.stands = stands;
   }
 
   public String managedCourse() {
-    return managedCourse.get();
+    return managedCourseService.get();
   }
 
   public List<SchoolEventEntity> list(int year) {
@@ -315,7 +316,7 @@ public class SchoolEventService {
   public SchoolEventEntity confirm(Long eventId, String user) {
     SchoolEventEntity event = get(eventId);
     if (event.isSettlementConfirmed()) return event;
-    String currentManagedCourse = managedCourse.get();
+    String currentManagedCourse = managedCourseService.get();
     if (event.getParticipants().stream()
         .noneMatch(item -> item.getCourse().equalsIgnoreCase(currentManagedCourse))) {
       throw error(TreasuryErrorCode.CONFLICT,
@@ -399,7 +400,7 @@ public class SchoolEventService {
     long uniqueStands = participants.stream().map(ParticipantInput::standName)
         .filter(Objects::nonNull).map(String::trim).filter(value -> !value.isEmpty())
         .map(value -> value.toUpperCase(Locale.ROOT)).distinct().count();
-    if (uniqueStands != 1) {
+    if (uniqueStands != EXPECTED_UNIQUE_STANDS) {
       throw invalid("Todos los cursos deben compartir el mismo nombre de stand");
     }
   }

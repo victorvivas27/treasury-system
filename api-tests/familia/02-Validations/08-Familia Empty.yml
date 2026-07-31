@@ -10,11 +10,11 @@ http:
     type: json
     data: |+
       {
-        "alumnoId": 6,
+        "alumnoId": {{familiaConflictAlumnoId}},
         "observacionesGenerales": null,
         "apoderados": [
           {
-            "apoderadoId": 0,
+            "apoderadoId": {{familiaConflictApoderadoId}},
             "parentesco": "Padre",
             "esPrincipal": true
           }
@@ -26,6 +26,49 @@ http:
 
 runtime:
   scripts:
+    - type: before-request
+      code: |-
+        const baseUrl = bru.getEnvVar("Url_Base");
+        const authorization = `Bearer ${bru.getEnvVar("adminToken")}`;
+        const headers = { "Content-Type": "application/json", Authorization: authorization };
+        const suffix = Date.now();
+
+        const alumnoResponse = await bru.sendRequest({
+          url: `${baseUrl}/alumnos`,
+          method: "POST",
+          headers,
+          data: { nombre: "ALUMNO CON FAMILIA", curso: "4A" }
+        });
+        const alumno = alumnoResponse.data || alumnoResponse.body;
+
+        const apoderadoResponse = await bru.sendRequest({
+          url: `${baseUrl}/apoderados`,
+          method: "POST",
+          headers,
+          data: {
+            nombre: "APODERADO CON FAMILIA",
+            email: `familia.conflicto.${suffix}@example.test`,
+            telefono: "+956789012"
+          }
+        });
+        const apoderado = apoderadoResponse.data || apoderadoResponse.body;
+
+        await bru.sendRequest({
+          url: `${baseUrl}/familias`,
+          method: "POST",
+          headers,
+          data: {
+            alumnoId: alumno.alumnoId,
+            apoderados: [{
+              apoderadoId: apoderado.apoderadoId,
+              parentesco: "Padre",
+              esPrincipal: true
+            }]
+          }
+        });
+
+        bru.setEnvVar("familiaConflictAlumnoId", String(alumno.alumnoId));
+        bru.setEnvVar("familiaConflictApoderadoId", String(apoderado.apoderadoId));
     - type: tests
       code: |-
         test("Status should be 409", function () {

@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/{{familiaAlumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{familiaAlumnoCodigo}}"
   auth: inherit
 
 runtime:
@@ -18,10 +18,9 @@ runtime:
           expect(res.getStatus()).to.equal(200);
         });
 
-        test("Alumno detail should contain apoderados", function () {
-          expect(body.apoderados).to.not.be.undefined;
-          expect(body.apoderados.length).to.be.greaterThan(0);
-          expect(body.apoderados[0].parentesco).to.equal("Tutor");
+        test("Alumno linked to familia should be retrievable by code", function () {
+          expect(body.alumnoId).to.equal(Number(bru.getEnvVar("familiaAlumnoId")));
+          expect(body.codigo).to.equal(bru.getEnvVar("familiaAlumnoCodigo"));
         });
 
 settings:

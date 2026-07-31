@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{Url_Base}}/alumnos/{{familiaAlumnoId}}"
+  url: "{{Url_Base}}/alumnos/{{familiaAlumnoCodigo}}"
   auth: inherit
 
 runtime:
@@ -19,7 +19,8 @@ runtime:
         });
 
         test("Alumno should still exist after deleting link", function () {
-          expect(body.id).to.equal(Number(bru.getEnvVar("familiaAlumnoId")));
+          expect(body.alumnoId).to.equal(Number(bru.getEnvVar("familiaAlumnoId")));
+          expect(body.codigo).to.equal(bru.getEnvVar("familiaAlumnoCodigo"));
         });
 
 settings:
