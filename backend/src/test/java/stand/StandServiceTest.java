@@ -61,6 +61,46 @@ class StandServiceTest {
   }
 
   @Test
+  void delete_deberiaEliminarProductosYStandCuandoNoHayVentas() {
+    when(stands.findById(3L)).thenReturn(Optional.of(stand));
+
+    service.delete(3L);
+
+    verify(products).deleteByStandId(3L);
+    verify(stands).deleteById(3L);
+  }
+
+  @Test
+  void delete_deberiaRechazarStandConVentas() {
+    when(stands.findById(3L)).thenReturn(Optional.of(stand));
+    StandSaleEntity activeSale = new StandSaleEntity();
+    activeSale.setStatus(StandSaleStatus.ACTIVE);
+    when(sales.findByStandIdOrderBySoldAtDesc(3L)).thenReturn(List.of(activeSale));
+
+    DomainException error = assertThrows(DomainException.class, () -> service.delete(3L));
+
+    assertEquals(org.springframework.http.HttpStatus.CONFLICT, error.getStatus());
+    verify(sales, never()).deleteAll(any());
+    verify(products, never()).deleteByStandId(anyLong());
+    verify(stands, never()).deleteById(anyLong());
+  }
+
+  @Test
+  void delete_deberiaEliminarCuandoTodasLasVentasEstanAnuladas() {
+    when(stands.findById(3L)).thenReturn(Optional.of(stand));
+    StandSaleEntity cancelledSale = new StandSaleEntity();
+    cancelledSale.setStatus(StandSaleStatus.CANCELLED);
+    List<StandSaleEntity> cancelledSales = List.of(cancelledSale);
+    when(sales.findByStandIdOrderBySoldAtDesc(3L)).thenReturn(cancelledSales);
+
+    service.delete(3L);
+
+    verify(sales).deleteAll(cancelledSales);
+    verify(products).deleteByStandId(3L);
+    verify(stands).deleteById(3L);
+  }
+
+  @Test
   void registerSale_deberiaCalcularTotalVueltoYDescontarStock() {
     StandProductEntity product = new StandProductEntity();
     product.setId(10L);

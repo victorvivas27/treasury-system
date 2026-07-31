@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.stand.infrastructure.adapter.out.persistence.repository.StandJpaRepository;
 import com.tesoreria.treasury.application.usecase.SchoolEventService;
 import com.tesoreria.treasury.application.usecase.ManagedCourseService;
 import com.tesoreria.treasury.core.model.*;
@@ -24,6 +25,7 @@ class SchoolEventServiceTest {
   @Mock private SchoolEventJpaRepository events;
   @Mock private TreasuryUseCase treasury;
   @Mock private ManagedCourseService managedCourse;
+  @Mock private StandJpaRepository stands;
   @InjectMocks private SchoolEventService service;
   private SchoolEventEntity event;
 
@@ -101,6 +103,18 @@ class SchoolEventServiceTest {
 
     verify(events).deleteById(10L);
     verify(events, never()).save(event);
+  }
+
+  @Test
+  void eliminar_deberiaPedirEliminarPrimeroLosStands() {
+    when(events.findById(10L)).thenReturn(Optional.of(event));
+    when(stands.existsByEventId(10L)).thenReturn(true);
+    event.setStatus(EventStatus.BORRADOR);
+
+    DomainException error = assertThrows(DomainException.class, () -> service.delete(10L));
+
+    assertEquals(org.springframework.http.HttpStatus.CONFLICT, error.getStatus());
+    verify(events, never()).deleteById(anyLong());
   }
 
   @Test

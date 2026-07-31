@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   FiAlertTriangle, FiBox, FiCheckCircle, FiDollarSign, FiPlus,
-  FiRefreshCw, FiShoppingCart, FiX,
+  FiRefreshCw, FiShoppingCart, FiTrash2, FiX,
 } from "react-icons/fi";
 import type { SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
@@ -49,6 +49,8 @@ export const StandManagementPage = () => {
   const [editing, setEditing] = useState(false);
   const [closeSummary, setCloseSummary] = useState<StandSummary>();
   const [closing, setClosing] = useState(false);
+  const [standToDelete, setStandToDelete] = useState<Stand>();
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState("");
 
@@ -146,6 +148,23 @@ export const StandManagementPage = () => {
     }
   };
 
+  const confirmDelete = async () => {
+    if (!standToDelete) return;
+    setDeleting(true);
+    try {
+      await stands.delete(standToDelete.id);
+      setStandToDelete(undefined);
+      setSelected(undefined);
+      await loadStands();
+      setFeedback("Stand eliminado. Ahora puedes eliminar el evento si no tiene otros stands.");
+    } catch (error) {
+      setFeedback(errorMessage(error,
+        "No fue posible eliminar el stand. Anula primero todas las ventas activas."));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return <main className="stand-page">
     <header className="stand-page__header">
       <div><span>Tesorería / Gestión de Stand</span><h1>Ventas del stand</h1>
@@ -194,6 +213,8 @@ export const StandManagementPage = () => {
               {selected.status !== "CLOSED" &&
                 <button className="secondary" onClick={() => setEditing(true)}>
                   Configurar</button>}
+              <button className="danger" onClick={() => setStandToDelete(selected)}>
+                <FiTrash2 /> Eliminar stand</button>
               {selected.status === "PREPARATION" &&
                 <button onClick={() => void changeStatus("open")}><FiCheckCircle /> Abrir jornada</button>}
               {selected.status === "OPEN" &&
@@ -218,6 +239,16 @@ export const StandManagementPage = () => {
           {tab === "summary" && summary && <SummaryPanel summary={summary} />}
         </section>}
       </>}
+    <ModalConfirm
+      isOpen={Boolean(standToDelete)}
+      title={`Eliminar ${standToDelete?.name ?? "stand"}`}
+      message="Se eliminarán definitivamente el stand, sus productos y las ventas anuladas. Si queda alguna venta activa, la operación será rechazada."
+      confirmLabel="Eliminar stand"
+      cancelLabel="Conservar stand"
+      isLoading={deleting}
+      onConfirm={() => void confirmDelete()}
+      onCancel={() => setStandToDelete(undefined)}
+    />
     <ModalConfirm
       isOpen={Boolean(closeSummary)}
       title="Confirmar cierre de jornada"

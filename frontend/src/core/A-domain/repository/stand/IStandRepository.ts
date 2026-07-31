@@ -7,6 +7,7 @@ export interface IStandRepository {
   list(eventId: number): Promise<Stand[]>;
   create(payload: StandPayload): Promise<Stand>;
   update(id: number, payload: StandPayload): Promise<Stand>;
+  delete(id: number): Promise<void>;
   listProducts(standId: number): Promise<StandProduct[]>;
   addProduct(standId: number, payload: StandProductPayload): Promise<StandProduct>;
   updateProduct(standId: number, productId: number,

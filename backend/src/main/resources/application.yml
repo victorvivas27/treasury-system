@@ -1,6 +1,8 @@
 spring:
   application:
     name: tesoreria-app
+  flyway:
+    enabled: false
   config:
     import: optional:file:.env[.properties],optional:file:backend/.env[.properties]
   profiles:

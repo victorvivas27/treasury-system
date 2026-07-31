@@ -72,6 +72,18 @@ public class StandService {
     return stands.save(value);
   }
 
+  public void delete(Long id) {
+    get(id);
+    List<StandSaleEntity> standSales = sales.findByStandIdOrderBySoldAtDesc(id);
+    if (standSales.stream().anyMatch(sale -> sale.getStatus() != StandSaleStatus.CANCELLED)) {
+      throw conflict("stand",
+          "Anula todas las ventas activas antes de eliminar el stand");
+    }
+    sales.deleteAll(standSales);
+    products.deleteByStandId(id);
+    stands.deleteById(id);
+  }
+
   public StandProductEntity addProduct(Long standId, ProductInput input) {
     StandEntity stand = get(standId);
     ensureNotClosed(stand);
