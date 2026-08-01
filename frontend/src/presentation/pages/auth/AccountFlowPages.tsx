@@ -92,7 +92,7 @@ export const ForgotPasswordPage = () => {
       setLoading(false);
     }
   };
-  const continueWithCode = () => navigate("/restablecer-password", { replace: true });
+  const returnToLogin = () => navigate("/login", { replace: true });
   return <>
     <Shell title="Olvidé mi contraseña" message={message}>
       <form onSubmit={submit}>
@@ -104,7 +104,7 @@ export const ForgotPasswordPage = () => {
       <Link to="/login">Volver</Link>
     </Shell>
     <ModalAlert isOpen={Boolean(successMessage)} message={successMessage}
-      type="success" onClose={continueWithCode} />
+      type="success" onClose={returnToLogin} />
   </>;
 };
 
@@ -112,7 +112,7 @@ export const ResetPasswordPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const [recoveryCode, setRecoveryCode] = useState(() => params.get("token") ?? "");
+  const token = params.get("token") ?? "";
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [passwordUpdated, setPasswordUpdated] = useState(false);
@@ -122,7 +122,6 @@ export const ResetPasswordPage = () => {
     event.preventDefault();
     if (submittingRef.current) return;
     setMessage("");
-    const token = recoveryCode.trim();
     if (!token) { setMessage("El enlace no es válido."); return; }
     if (!PASSWORD_PATTERN.test(password)) {
       setMessage("Usa 8 caracteres, mayúscula, minúscula, número y símbolo."); return;
@@ -142,9 +141,7 @@ export const ResetPasswordPage = () => {
   return <>
     <Shell title="Crear nueva contraseña" message={message}>
       <form onSubmit={submit}>
-        <label>Código de recuperación<input type="text" value={recoveryCode}
-          onChange={e => setRecoveryCode(e.target.value)} placeholder="Pega el código recibido por correo"
-          autoComplete="one-time-code" autoCapitalize="none" spellCheck={false} required /></label>
+        <input type="hidden" name="recoveryToken" value={token} />
         <label>Nueva contraseña<input type="password" value={password}
           onChange={e => setPassword(e.target.value)} placeholder="Ej: ClaveSegura1!"
           autoComplete="new-password" required /></label>

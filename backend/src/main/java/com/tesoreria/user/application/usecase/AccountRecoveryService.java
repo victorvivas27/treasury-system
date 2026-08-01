@@ -91,7 +91,7 @@ public class AccountRecoveryService {
         }
         String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true);
         requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
-                frontendUrl + "/restablecer-password?token=" + rawToken, rawToken));
+                frontendUrl + "/restablecer-password?token=" + rawToken));
         return user;
     }
 
@@ -124,7 +124,7 @@ public class AccountRecoveryService {
         users.findByCorreo(normalized).ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
             requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
-                    frontendUrl + "/restablecer-password?token=" + rawToken, rawToken));
+                    frontendUrl + "/restablecer-password?token=" + rawToken));
         });
         return GENERIC_RESET;
     }

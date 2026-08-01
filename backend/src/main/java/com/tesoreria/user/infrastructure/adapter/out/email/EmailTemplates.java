@@ -10,17 +10,12 @@ public final class EmailTemplates {
 
     public static String verification(String name, String link) {
         return action(name, "Verifica tu correo", "Bienvenido a Tesorería Escolar. Activa tu cuenta para comenzar.",
-                "Verificar mi correo", link, "", "Este enlace vence en 24 horas.");
+                "Verificar mi correo", link, "Este enlace vence en 24 horas.");
     }
 
-    public static String passwordReset(String name, String link, String recoveryCode) {
-        String code = "<p style=\"margin-top:24px\">Código de recuperación:</p>"
-                + "<p style=\"font-family:monospace;font-size:18px;font-weight:bold;word-break:break-all;"
-                + "background:#f1f5f9;padding:12px;border-radius:8px\">"
-                + escape(recoveryCode) + "</p>";
-        return action(name, "Restablece tu contraseña",
-                "Recibimos una solicitud para crear una nueva contraseña. Usa el botón o copia el código.",
-                "Crear nueva contraseña", link, code, "Este código vence en 60 minutos.");
+    public static String passwordReset(String name, String link) {
+        return action(name, "Restablece tu contraseña", "Recibimos una solicitud para crear una nueva contraseña.",
+                "Crear nueva contraseña", link, "Este enlace vence en 60 minutos.");
     }
 
     public static String passwordChanged(String name, LocalDateTime changedAt) {
@@ -32,13 +27,12 @@ public final class EmailTemplates {
     }
 
     private static String action(String name, String title, String message, String button,
-                                 String link, String extraContent, String expiry) {
+                                 String link, String expiry) {
         String safeLink = escape(link);
         String body = "<p>" + escape(message) + "</p><p style=\"text-align:center;margin:28px 0\">"
                 + "<a href=\"" + safeLink + "\" style=\"background:#1E3A5F;color:#fff;padding:13px 22px;"
                 + "border-radius:8px;text-decoration:none;font-weight:600\">" + escape(button) + "</a></p>"
-                + extraContent + "<p>" + escape(expiry)
-                + "</p><p>También puedes copiar este enlace:<br><a href=\""
+                + "<p>" + escape(expiry) + "</p><p>También puedes copiar este enlace:<br><a href=\""
                 + safeLink + "\">" + safeLink + "</a></p><p>Si no realizaste esta acción, ignora este correo.</p>";
         return base("Hola " + escape(name) + ",", title, body);
     }

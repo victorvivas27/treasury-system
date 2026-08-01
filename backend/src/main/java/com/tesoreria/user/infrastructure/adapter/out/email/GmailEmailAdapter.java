@@ -37,9 +37,8 @@ public class GmailEmailAdapter implements EmailOutPort {
   }
 
   @Override
-  public boolean sendPasswordResetEmail(String email, String name, String link, String recoveryCode) {
-    return send(email, name, "Restablece tu contraseña",
-        EmailTemplates.passwordReset(name, link, recoveryCode));
+  public boolean sendPasswordResetEmail(String email, String name, String link) {
+    return send(email, name, "Restablece tu contraseña", EmailTemplates.passwordReset(name, link));
   }
 
   @Override
