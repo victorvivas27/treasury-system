@@ -67,7 +67,7 @@ public class AccountRecoveryService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(false);
         User saved = users.save(user);
-        String rawToken = issue(saved.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60);
+        String rawToken = issue(saved.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
         requireDelivery(email.sendVerificationEmail(saved.getCorreo(), saved.getNombre(),
                 frontendUrl + "/verificar-correo?token=" + rawToken));
         return saved;
@@ -89,7 +89,7 @@ public class AccountRecoveryService {
         if (Boolean.TRUE.equals(user.getEnabled()) && user.getEmailVerifiedAt() != null) {
             return user;
         }
-        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60);
+        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true);
         requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
                 frontendUrl + "/restablecer-password?token=" + rawToken, rawToken));
         return user;
@@ -110,7 +110,7 @@ public class AccountRecoveryService {
         String normalized = normalize(address);
         rateLimiter.checkAndRecord("verification", normalized);
         users.findByCorreo(normalized).filter(user -> user.getEmailVerifiedAt() == null).ifPresent(user -> {
-            String rawToken = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60);
+            String rawToken = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
             requireDelivery(email.sendVerificationEmail(user.getCorreo(), user.getNombre(),
                     frontendUrl + "/verificar-correo?token=" + rawToken));
         });
@@ -122,7 +122,7 @@ public class AccountRecoveryService {
         String normalized = normalize(address);
         rateLimiter.checkAndRecord("password-reset", normalized);
         users.findByCorreo(normalized).ifPresent(user -> {
-            String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60);
+            String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
             requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
                     frontendUrl + "/restablecer-password?token=" + rawToken, rawToken));
         });
@@ -145,7 +145,7 @@ public class AccountRecoveryService {
             user.setAccountNonLocked(true);
         }
         users.save(user);
-        tokens.delete(token);
+        tokens.deleteByUserIdAndType(token.getUserId(), token.getType());
         revocationService.revokeAllForUser(user.getCorreo());
         requireDelivery(email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), LocalDateTime.now()));
     }
@@ -168,8 +168,10 @@ public class AccountRecoveryService {
         requireDelivery(email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), LocalDateTime.now()));
     }
 
-    private String issue(Long userId, UserTokenType type, long minutes) {
-        tokens.deleteByUserIdAndType(userId, type);
+    private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting) {
+        if (replaceExisting) {
+            tokens.deleteByUserIdAndType(userId, type);
+        }
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         String raw = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
