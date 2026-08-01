@@ -50,7 +50,7 @@ class AccountRecoveryServiceTest {
         when(user.getCorreo()).thenReturn("user@example.com");
         when(user.getNombre()).thenReturn("User");
         when(users.findByCorreo("user@example.com")).thenReturn(Optional.of(user));
-        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), anyString()))
+        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString()))
                 .thenReturn(true);
 
         service.forgotPassword("user@example.com");

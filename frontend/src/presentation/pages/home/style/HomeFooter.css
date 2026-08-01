@@ -1,0 +1,21 @@
+.public-home__footer { display:grid; min-height:164px; align-items:center; gap:1.5rem; grid-template-columns:minmax(150px,1fr) auto minmax(150px,1fr); border-top:1px solid rgba(156,163,175,.14); color:var(--text-muted); font-size:.8rem; }
+.public-home__footer-brand { display:grid; gap:.5rem; }
+.public-home__footer-brand p { margin:0; }
+.public-home__copyright { text-align:right; }
+.public-home__signature { position:relative; display:grid; overflow:hidden; align-items:center; gap:.25rem .8rem; grid-template-columns:auto auto; border:1px solid rgba(14,235,205,.22); border-radius:1rem; padding:.85rem 1rem; background:linear-gradient(135deg,rgba(14,235,205,.08),rgba(59,130,246,.06)); box-shadow:0 14px 40px rgba(0,0,0,.14); font-style:normal; isolation:isolate; transition:transform 300ms cubic-bezier(.2,.8,.2,1),border-color 300ms ease,box-shadow 300ms ease; }
+.public-home__signature:hover,.public-home__signature:focus-within { transform:translateY(-4px); border-color:rgba(14,235,205,.48); box-shadow:0 20px 48px rgba(14,235,205,.1); }
+.public-home__signature-glow { position:absolute; z-index:-1; top:-100%; left:-35%; width:28%; height:300%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent); content:""; transform:rotate(18deg); animation:home-signature-shine 5.5s 1.2s ease-in-out infinite; }
+.public-home__signature-icon { display:grid; width:40px; height:40px; align-self:start; grid-row:1/3; place-items:center; border:1px solid rgba(14,235,205,.22); border-radius:.75rem; background:rgba(14,235,205,.1); color:var(--color-accent); font-size:1.1rem; }
+.public-home__signature-copy { display:grid; gap:.1rem; }
+.public-home__signature-copy small { color:var(--text-muted); font-size:.66rem; font-weight:650; letter-spacing:.08em; text-transform:uppercase; }
+.public-home__signature-copy strong { color:var(--text-main); font-size:.93rem; letter-spacing:.025em; text-transform:uppercase; }
+.public-home__signature-links { display:flex; flex-wrap:wrap; gap:.35rem .9rem; grid-column:2; }
+.public-home__signature-links a { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-muted); font-size:.69rem; transition:color 180ms ease,transform 180ms ease; }
+.public-home__signature-links a:hover { color:var(--color-accent); transform:translateX(2px); }
+.public-home__footer[data-home-footer-reveal] .public-home__footer-brand,.public-home__footer[data-home-footer-reveal] .public-home__signature,.public-home__footer[data-home-footer-reveal] .public-home__copyright { opacity:0; }
+.public-home__footer.is-visible .public-home__footer-brand,.public-home__footer.is-visible .public-home__signature,.public-home__footer.is-visible .public-home__copyright { animation:home-footer-in 750ms cubic-bezier(.2,.8,.2,1) forwards; }
+.public-home__footer.is-visible .public-home__signature { animation-delay:180ms; }.public-home__footer.is-visible .public-home__copyright { animation-delay:360ms; }
+@keyframes home-signature-shine { 0%,68%{left:-35%;opacity:0}76%{opacity:1}92%,100%{left:120%;opacity:0} }
+@keyframes home-footer-in { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none} }
+@media(max-width:680px){.public-home__footer{justify-items:center;grid-template-columns:1fr;padding:1.75rem 0;text-align:center}.public-home__footer-brand{justify-items:center}.public-home__signature{width:min(100%,430px);text-align:left}.public-home__copyright{text-align:center}}
+@media(max-width:420px){.public-home__signature-links{align-items:flex-start;flex-direction:column}}

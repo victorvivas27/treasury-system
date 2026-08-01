@@ -1,0 +1,15 @@
+import { Link } from "react-router-dom";
+import "../style/HomeHeader.css";
+
+export const HomeHeader = () => (
+  <header className="public-home__header">
+    <Link className="public-home__brand" to="/" aria-label="Sistema de Tesorería, inicio">
+      <img src="/Tesoreria.png" alt="" />
+      <span>Sistema de Tesorería</span>
+    </Link>
+    <nav className="public-home__nav" aria-label="Acceso a la plataforma">
+      <Link className="public-home__login" to="/login">Iniciar sesión</Link>
+      <Link className="public-home__register" to="/register">Crear cuenta</Link>
+    </nav>
+  </header>
+);
