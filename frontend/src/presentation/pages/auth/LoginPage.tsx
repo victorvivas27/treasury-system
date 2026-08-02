@@ -6,10 +6,25 @@ import { Button } from "@/shared/ui/button/Button";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
+import axios from "axios";
 import "./PasswordVisibility.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+const loginErrorMessage = (error: unknown) => {
+  if (!axios.isAxiosError(error) || error.response?.status !== 429) {
+    return "Correo o contraseña inválidos";
+  }
+
+  const errors = error.response.data?.errors;
+  if (errors && typeof errors === "object") {
+    const message = Object.values(errors).find((value) => typeof value === "string");
+    if (typeof message === "string") return message;
+  }
+
+  return "Demasiados intentos fallidos. Espera un minuto antes de volver a intentarlo.";
+};
 
 export const LoginPage = () => {
   const [correo, setCorreo] = useState("");
@@ -41,8 +56,8 @@ export const LoginPage = () => {
         ? requestedDestination
         : "/tesoreria/resumen";
       navigate(destination, { replace: true });
-    } catch {
-      setError("Correo o contraseña inválidos");
+    } catch (loginError) {
+      setError(loginErrorMessage(loginError));
     }
   };
 

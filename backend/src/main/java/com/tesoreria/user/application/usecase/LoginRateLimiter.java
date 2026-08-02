@@ -25,10 +25,11 @@ public class LoginRateLimiter {
             return;
         }
         long minutes = Math.max(1, Duration.between(Instant.now(), attempt.blockedUntil()).toMinutes() + 1);
+        String unit = minutes == 1 ? "minuto" : "minutos";
         throw new DomainException(
                 UserErrorCode.LOGIN_BLOCKED.getField(),
                 UserErrorCode.LOGIN_BLOCKED.getStatus(),
-                "Demasiados intentos fallidos. Intente nuevamente en " + minutes + " minutos");
+                "Demasiados intentos fallidos. Intente nuevamente en " + minutes + " " + unit);
     }
 
     public void recordFailure(String correo) {
