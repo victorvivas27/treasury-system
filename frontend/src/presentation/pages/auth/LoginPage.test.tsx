@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { AxiosError } from "axios";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { LoginPage } from "./LoginPage";
 
@@ -84,5 +85,42 @@ describe("LoginPage", () => {
       "placeholder", "Ej.: ClaveSegura1!");
     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
     expect(screen.getByRole("heading", { name: "Página de inicio" })).toBeInTheDocument();
+  });
+
+  it("[LoginPage #05] informa el bloqueo temporal devuelto por el backend", async () => {
+    const login = vi.fn().mockRejectedValue(new AxiosError(
+      "Too Many Requests",
+      "429",
+      undefined,
+      undefined,
+      {
+        status: 429,
+        statusText: "Too Many Requests",
+        headers: {},
+        config: { headers: {} },
+        data: {
+          errors: {
+            correo: "Demasiados intentos fallidos. Intente nuevamente en 1 minuto",
+          },
+        },
+      },
+    ));
+    vi.mocked(useAuth).mockReturnValue({
+      login,
+      loading: false,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Correo"), {
+      target: { value: "user@mail.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Contraseña"), {
+      target: { value: "Password1!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Demasiados intentos fallidos. Intente nuevamente en 1 minuto",
+    );
   });
 });
