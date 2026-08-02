@@ -13,8 +13,8 @@ describe("TreasurySectionPage", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "Pagos" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Miga de pan" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tesorería" }))
-      .toHaveAttribute("href", "/tesoreria/resumen");
+    expect(screen.getByRole("link", { name: "Dashboard" }))
+      .toHaveAttribute("href", "/dashboard");
     expect(screen.getByRole("region", { name: "Contenido de Pagos" })).toBeInTheDocument();
   });
 });

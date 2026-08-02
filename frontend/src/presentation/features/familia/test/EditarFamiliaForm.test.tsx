@@ -11,6 +11,7 @@ describe("EditarFamiliaForm", () => {
   const handleApoderadoChange = vi.fn();
   const addApoderado = vi.fn();
   const removeApoderado = vi.fn();
+  const setParentesco = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,6 +58,7 @@ describe("EditarFamiliaForm", () => {
       modal: { isOpen: false, message: "", type: "success" },
       handleChange: vi.fn(),
       handleApoderadoChange,
+      setParentesco,
       addApoderado,
       removeApoderado,
       handleSubmit: vi.fn(),
@@ -75,7 +77,7 @@ describe("EditarFamiliaForm", () => {
 
     expect(screen.getByText("MARIA PEREZ (AP-12345678)")).toBeInTheDocument();
     expect(screen.getByText("PEDRO PEREZ (AP-87654321)")).toBeInTheDocument();
-    expect(screen.getAllByRole("combobox")).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /parentesco del apoderado/i })).toHaveLength(2);
     expect(screen.getAllByRole("radio")).toHaveLength(2);
   });
 
@@ -107,13 +109,13 @@ describe("EditarFamiliaForm", () => {
     expect(addApoderado).toHaveBeenCalledOnce();
   });
 
-  it("[EditarFamiliaForm #04] Debe mantener la etiqueta de observaciones dentro de su grupo", () => {
+  it("[EditarFamiliaForm #04] Debe mostrar las observaciones en una sección opcional", () => {
     render(<EditarFamiliaForm />);
 
-    const textarea = screen.getByLabelText("Observaciones (opcional)");
-    const label = screen.getByText("Observaciones (opcional)");
+    const textarea = screen.getByLabelText("Observaciones generales");
+    const summary = screen.getByText("Observaciones");
 
-    expect(label).not.toHaveClass("floating-label");
-    expect(label.nextElementSibling).toBe(textarea);
+    expect(summary.closest("summary")).toBeInTheDocument();
+    expect(textarea).toHaveAttribute("name", "observacionesGenerales");
   });
 });

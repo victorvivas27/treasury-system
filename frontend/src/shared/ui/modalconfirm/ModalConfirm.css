@@ -126,6 +126,70 @@
 }
 
 /* Animación */
+.modal-confirm-container--compact {
+  max-width: 320px;
+  border-radius: var(--radius-lg);
+}
+
+.modal-confirm-container--raised {
+  position: relative;
+  top: -4vh;
+}
+
+.modal-confirm-container--compact .modal-confirm-header {
+  gap: .55rem;
+  padding: .7rem .85rem;
+}
+
+.modal-confirm-container--compact .modal-confirm-icon {
+  width: 26px;
+  height: 26px;
+  font-size: .8rem;
+}
+
+.modal-confirm-container--compact .modal-confirm-title {
+  font-size: .9rem;
+}
+
+.modal-confirm-container--compact .modal-confirm-body {
+  padding: .8rem .85rem;
+}
+
+.modal-confirm-container--compact .modal-confirm-body p {
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.modal-confirm-container--compact .modal-confirm-footer {
+  gap: .5rem;
+  padding: .65rem .85rem;
+}
+
+.modal-confirm-container--compact .modal-confirm-footer .base-button {
+  min-height: 34px;
+  margin: 0;
+  font-size: .7rem;
+}
+
+@media (max-width: 420px) {
+  .modal-confirm-overlay--compact {
+    align-items: center;
+  }
+
+  .modal-confirm-container--compact {
+    width: min(320px, calc(100vw - 2rem));
+  }
+
+  .modal-confirm-container--compact .modal-confirm-footer {
+    flex-direction: row;
+  }
+
+  .modal-confirm-container--compact .modal-confirm-footer .base-button {
+    width: auto;
+    flex: 1;
+  }
+}
+
 @keyframes modal-confirm-enter {
   from {
     opacity: 0;

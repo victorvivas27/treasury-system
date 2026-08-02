@@ -18,7 +18,6 @@ public class UserRequestDTO {
     @Email(message = "El correo debe tener un formato válido")
     private String correo;
 
-    @NotBlank(message = "La contraseña no puede estar vacía")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
             message = "La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y especial")

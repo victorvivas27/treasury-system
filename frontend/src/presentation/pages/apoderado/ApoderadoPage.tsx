@@ -79,7 +79,7 @@ export const ApoderadoPage: FC = () => {
   };
 
   return (
-    <main className="page-container">
+    <main className="page-container apoderados-page">
       <header className="page-header">
         <div className="page-header__content">
           <h1 className="page-header__title">Gestión de Apoderados</h1>
@@ -104,6 +104,7 @@ export const ApoderadoPage: FC = () => {
             onClick={() => navigate("/parents/new")}
             variant="primary"
             size="medium"
+            className="apoderados-page__create-button"
             icon={<APODERADOS_ICONS.add  />}
             iconPosition="left"
             label="Crear Apoderado"
@@ -132,11 +133,13 @@ export const ApoderadoPage: FC = () => {
 
       <ModalConfirm
         isOpen={isConfirmOpen}
-        title="Eliminar apoderado"
-        message="¿Estás seguro de eliminar este apoderado? Esta acción no se puede deshacer."
+        title="¿Eliminar apoderado?"
+        message="Se eliminará este apoderado. Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         isLoading={isDeleting}
+        compact
+        confirmVariant="danger"
         onConfirm={confirmDelete}
         onCancel={closeDeleteConfirm}
       />
@@ -146,15 +149,20 @@ export const ApoderadoPage: FC = () => {
         message={alert.message}
         type={alert.type}
         onClose={closeAlert}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={alert.type === "success" ? "toast" : "modal"}
       />
       <ModalConfirm isOpen={Boolean(accessGuardian)} title="Habilitar acceso"
         message={`Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
         confirmLabel="Enviar invitación" isLoading={enablingAccess}
+        compact
         onCancel={() => setAccessGuardian(null)}
         onConfirm={() => void confirmEnableAccess()} />
       <ModalAlert isOpen={accessAlert.isOpen} message={accessAlert.message}
-        type={accessAlert.type} onClose={() => setAccessAlert(current => ({
+        type={accessAlert.type}
+        variant={accessAlert.type === "success" ? "toast" : "modal"}
+        autoCloseTime={accessAlert.type === "success" ? 2000 : 0}
+        onClose={() => setAccessAlert(current => ({
           ...current, isOpen: false,
         }))} />
     </main>

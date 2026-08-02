@@ -78,7 +78,8 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Actividad reciente")).toBeInTheDocument();
     expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
     expect(screen.queryByText("Trazas de Tesorería")).not.toBeInTheDocument();
-    expect(screen.getByText("Estado de obligaciones")).toBeInTheDocument();
+    expect(screen.getByText("Cuotas pagadas y pendientes")).toBeInTheDocument();
+    expect(screen.getByText("Cuenta cuotas individuales del año, no apoderados.")).toBeInTheDocument();
   });
 
   it("pagina la actividad reciente de cinco en cinco", async () => {

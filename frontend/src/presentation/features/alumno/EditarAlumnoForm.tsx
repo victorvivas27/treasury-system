@@ -33,9 +33,9 @@ export const EditarAlumnoForm = () => {
   return (
     <div className="form-view-container">
 
-      <form className="form-card">
+      <form className="form-card alumno-edit-form">
         {/* Campo Nombre */}
-        <div className="form-group floating-group">
+        <div className="form-group floating-group alumno-edit-form__group">
           <SkeletonWrapper
             isLoading={initialLoading}
             className="skeleton-name"
@@ -55,7 +55,7 @@ export const EditarAlumnoForm = () => {
         </div>
 
         {/* Campo Curso */}
-        <div className="form-group floating-group">
+        <div className="form-group floating-group alumno-edit-form__group">
           <SkeletonWrapper
             isLoading={initialLoading}
             className="skeleton-name"
@@ -74,7 +74,7 @@ export const EditarAlumnoForm = () => {
           {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
         </div>
 
-        <div className="form-actions">
+        <div className="form-actions alumno-edit-form__actions">
           <Button
             variant="primary"
             size="medium"
@@ -99,7 +99,8 @@ export const EditarAlumnoForm = () => {
         message={modal.message}
         type={modal.type}
         onClose={() => setModal({ ...modal, isOpen: false })}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={modal.type === "success" ? "toast" : "modal"}
       />
     </div>
   );

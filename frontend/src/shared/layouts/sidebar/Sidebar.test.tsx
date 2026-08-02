@@ -145,38 +145,31 @@ describe('Sidebar Component', () => {
       expect(screen.getByRole('link', { name: link.label })).toHaveAttribute('href', link.path);
     });
 
-    fireEvent.click(screen.getByRole('link', { name: 'Pagos' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Cuotas' }));
     expect(mockNavLinkClick).not.toHaveBeenCalled();
     expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
   });
 
-  it('[Sidebar #08.4] Muestra solo Resumen de Tesorería al usuario común', () => {
+  it('[Sidebar #08.4] Oculta Tesorería al usuario común sin secciones habilitadas', () => {
     renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /tesorería/i }));
-
-    expect(screen.getByRole('link', { name: 'Resumen' })).toHaveAttribute(
-      'href',
-      '/tesoreria/resumen',
-    );
-    TREASURY_LINKS
-      .filter((link) => link.path !== '/tesoreria/resumen')
-      .forEach((link) => {
-        expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
-      });
+    expect(screen.queryByRole('button', { name: /tesorería/i })).not.toBeInTheDocument();
+    TREASURY_LINKS.forEach((link) => {
+      expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
+    });
   });
 
   it('[Sidebar #08.3] Cierra automáticamente el submenú de Tesorería', () => {
     vi.useFakeTimers();
     try {
-      renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
+      renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />);
       const treasuryButton = screen.getByRole('button', { name: /tesorería/i });
       fireEvent.click(treasuryButton);
 
-      expect(screen.getByRole('link', { name: 'Resumen' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Cuotas' })).toBeInTheDocument();
       act(() => vi.advanceTimersByTime(6000));
 
-      expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Cuotas' })).not.toBeInTheDocument();
       expect(treasuryButton).toHaveAttribute('aria-expanded', 'false');
     } finally {
       vi.useRealTimers();

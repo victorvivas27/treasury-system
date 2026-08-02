@@ -195,6 +195,15 @@ textarea {
   color-scheme: inherit;
 }
 
+/* Evita que iOS amplíe toda la página al enfocar controles con texto menor a 16 px. */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 ::placeholder {
   color: var(--text-muted);
   opacity: 0.86;

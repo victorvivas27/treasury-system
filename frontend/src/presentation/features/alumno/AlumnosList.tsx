@@ -164,16 +164,20 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                       <Button
                         variant="danger"
                         size="small"
+                        className="alumnos-table__icon-button"
                         onClick={() => handleDelete?.(alumnoIdentifier as string)}
                         icon={<ALUMNOS_ICONS.delete />}
+                        label="Eliminar"
                         testId={`delete-btn-${alumnoIdentifier}`}
                       />
 
                       <Button
                         variant="secondary"
                         size="small"
+                        className="alumnos-table__icon-button"
                         onClick={() => handleEdit?.(alumnoIdentifier as string)}
                         icon={<ALUMNOS_ICONS.edit />}
+                        label="Editar"
                         testId={`edit-btn-${alumnoIdentifier}`}
                       />
                     </div>

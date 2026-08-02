@@ -199,31 +199,32 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                           && apoderado.accessStatus !== "BLOQUEADO" && <Button
                             variant="primary"
                             size="small"
-                            className="apoderados-table__access-button"
+                            className="apoderados-table__action-button apoderados-table__access-button"
                             onClick={() => handleEnableAccess?.(apoderado)}
                             icon={<APODERADOS_ICONS.add />}
                             ariaLabel={apoderado.accessStatus === "INVITACION_PENDIENTE"
                               ? "Reenviar invitación" : "Habilitar acceso"}
-                            label={apoderado.accessStatus === "INVITACION_PENDIENTE"
-                              ? "Reenviar invitación" : "Habilitar acceso"}
+                            label="Acceso"
                           />}
                       </span>
                       <Button
                         variant="secondary"
                         size="small"
-                        className="apoderados-table__icon-button"
+                        className="apoderados-table__action-button apoderados-table__icon-button"
                         onClick={() => handleEdit?.(
                           apoderado.codigo || String(apoderadoIdentifier))}
                         icon={<APODERADOS_ICONS.edit />}
+                        label="Editar"
                         testId={`edit-btn-${apoderadoIdentifier}`}
                       />
                       <Button
                         variant="danger"
                         size="small"
-                        className="apoderados-table__icon-button"
+                        className="apoderados-table__action-button apoderados-table__icon-button"
                         onClick={() => handleDelete?.(
                           apoderado.codigo || apoderadoIdentifier)}
                         icon={<APODERADOS_ICONS.delete />}
+                        label="Eliminar"
                         testId={`delete-btn-${apoderadoIdentifier}`}
                       />
                     </div>

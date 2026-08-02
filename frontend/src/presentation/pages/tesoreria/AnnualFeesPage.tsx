@@ -47,7 +47,7 @@ export const AnnualFeesPage = () => {
       firstDueDate, secondDueDate });
   };
 
-  return <main className="annual-fees-page">
+  return <main className="annual-fees-page annual-fees-config-page">
     <header className="treasury-page__header">
       <p className="treasury-page__eyebrow">Tesorería</p>
       <h1>Cuota anual</h1>
@@ -69,7 +69,7 @@ export const AnnualFeesPage = () => {
     </section>
 
     <div className="annual-fees-grid">
-      <form className="treasury-panel" onSubmit={saveConfig}>
+      <form className="treasury-panel treasury-config-form" onSubmit={saveConfig}>
         <h2>Configuración anual</h2>
         <label>Año<input type="number" min="2000" value={fees.year}
           onChange={event => fees.setYear(Number(event.target.value))} /></label>
@@ -90,13 +90,14 @@ export const AnnualFeesPage = () => {
           onClick={() => {}} size="medium" />
       </form>
 
-      <section className="treasury-panel">
+      <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
         <label>Familia<select value={familyId} disabled={fees.familiesLoading}
           onChange={event => setFamilyId(Number(event.target.value))}>
           <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
           {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
-            {family.codigoFamilia} · {family.alumno.nombre}
+            {family.apoderados.find(item => item.relacion.esPrincipal)?.nombre
+              ?? "Sin apoderado principal"} · {family.codigoFamilia} · {family.alumno.nombre}
           </option>)}
         </select></label>
         <label>Modalidad<select value={mode}
@@ -128,8 +129,8 @@ export const AnnualFeesPage = () => {
             ? <p>Aún no hay familias con modalidad configurada.</p>
             : visiblePlans.map(plan => <article key={plan.id}>
                 <div>
-                  <strong>{plan.familyCode}</strong>
-                  <span>{plan.studentName} · {plan.course}</span>
+                  <strong>{plan.primaryGuardian || "Sin apoderado principal"}</strong>
+                  <span>{plan.familyCode} · Alumno: {plan.studentName} · {plan.course}</span>
                 </div>
                 <div className="treasury-plan-actions">
                   <span className={`payment-mode payment-mode--${plan.mode.toLowerCase()}`}>
@@ -185,7 +186,7 @@ export const AnnualFeesPage = () => {
         </div>
       </header>
       {fees.error && <p className="treasury-error" role="alert">{fees.error}</p>}
-      <div className="treasury-table-wrap"><table><thead><tr><th>Familia</th><th>Curso</th>
+      <div className="treasury-table-wrap"><table><thead><tr><th>Responsable</th><th>Curso</th>
         <th>Concepto</th><th>Vence</th><th>Monto</th><th>Estado</th><th>Acción</th></tr></thead>
         <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
@@ -193,7 +194,8 @@ export const AnnualFeesPage = () => {
               <div className="skeleton-block treasury-cell-skeleton" />
             </td>)}
           </tr>) : fees.obligations.map(item => <tr key={item.id}>
-          <td>{item.familyCode}<small>{item.studentName}</small></td><td>{item.course}</td>
+          <td><strong>{item.primaryGuardian || "Sin apoderado principal"}</strong>
+            <small>{item.familyCode} · Alumno: {item.studentName}</small></td><td>{item.course}</td>
           <td>{item.concept}</td><td>{item.dueDate}</td><td>{money.format(item.amount)}</td>
           <td><span className={`fee-status fee-status--${item.status.toLowerCase()}`}>
             {item.status}</span></td>

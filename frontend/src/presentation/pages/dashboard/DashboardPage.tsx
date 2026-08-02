@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiTrash2 } from "react-icons/fi";
+import { FiArrowRight, FiTrash2 } from "react-icons/fi";
 import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import type { ContributionSummary,
@@ -34,6 +34,7 @@ export const DashboardPage = () => {
   const user = auth?.user;
   const isAdmin = user?.rol === "ADMIN";
   const [year, setYear] = useState(years.includes(currentYear) ? currentYear : 2026);
+  const [yearOpen, setYearOpen] = useState(false);
   const [data, setData] = useState<TreasuryDashboardOverview>();
   const [contributions, setContributions] = useState<ContributionSummary>();
   const [loading, setLoading] = useState(true);
@@ -75,6 +76,26 @@ export const DashboardPage = () => {
   const categories = useMemo(() => data?.expensesByCategory.slice(0, 6).map(item => ({
     ...item, name: expenseCategoryLabel(item.category),
   })) ?? [], [data]);
+  const categoryMax = useMemo(() => Math.max(
+    1,
+    ...categories.map(item => Number(item.amount)),
+  ), [categories]);
+  const categoryTicks = useMemo(() => Array.from(
+    { length: 5 },
+    (_, index) => Math.round((categoryMax * (index + 1)) / 5),
+  ), [categoryMax]);
+  const obligationMax = useMemo(() => Math.max(
+    1,
+    ...(data?.obligationStatus.map(item => item.count) ?? [0]),
+  ), [data]);
+  const obligationTicks = useMemo(() => Array.from(
+    { length: obligationMax },
+    (_, index) => index + 1,
+  ), [obligationMax]);
+  const obligationStatusData = useMemo(() => data?.obligationStatus.map(item => ({
+    ...item,
+    label: item.status === "PAGADA" ? "Cuotas pagadas" : "Cuotas pendientes",
+  })) ?? [], [data]);
   const activityPages = Math.max(1,
     Math.ceil((data?.recentMovements.length ?? 0) / ACTIVITY_PAGE_SIZE));
   const visibleMovements = useMemo(() => data?.recentMovements.slice(
@@ -113,20 +134,34 @@ export const DashboardPage = () => {
 
   return <main className="business-dashboard">
     <header className="business-dashboard__header">
-      <div><span>Vista general</span><h1>Dashboard</h1>
+      <div><h1>Dashboard</h1>
         <p>Estado financiero y actividad real del curso.</p></div>
-      <label>Año escolar<select value={year}
-        onChange={event => setYear(Number(event.target.value))}>
-        {years.map(item => <option key={item}>{item}</option>)}
-      </select></label>
+      <div className="dashboard-year-select">
+        <span>Año escolar</span>
+        <button type="button" aria-label="Año escolar" aria-haspopup="listbox"
+          aria-expanded={yearOpen} onClick={() => setYearOpen(current => !current)}>
+          {year}<span aria-hidden="true">⌄</span>
+        </button>
+        {yearOpen && <div className="dashboard-year-select__menu" role="listbox"
+          aria-label="Año escolar">
+          {years.map(item => <button key={item} type="button" role="option"
+            aria-selected={item === year} onClick={() => {
+              setYear(item);
+              setYearOpen(false);
+            }}>{item}</button>)}
+        </div>}
+      </div>
     </header>
 
     {loading ? <DashboardSkeleton /> : data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
-        <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)} positive />
-        <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)} negative />
+        <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)}
+          positive direction="in" />
+        <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)}
+          negative direction="out" />
         <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
-          negative={data.finances.availableBalance < 0} positive={data.finances.availableBalance >= 0} />
+          featured negative={data.finances.availableBalance < 0}
+          positive={data.finances.availableBalance >= 0} />
         <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)} />
         <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)} />
       </section>
@@ -136,7 +171,7 @@ export const DashboardPage = () => {
           <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
           <div className="dashboard-chart" aria-label="Evolución mensual">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly}>
+              <AreaChart data={monthly} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
                 <defs>
                   <linearGradient id="dashboardIncome" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.35} />
@@ -144,8 +179,11 @@ export const DashboardPage = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="var(--text-muted)" />
-                <YAxis stroke="var(--text-muted)" tickFormatter={value => compact.format(value)} />
+                <XAxis dataKey="name" stroke="var(--text-muted)"
+                  tick={{ fontSize: 10 }} tickMargin={4} />
+                <YAxis stroke="var(--text-muted)" width={48}
+                  tick={{ fontSize: 9 }} tickMargin={2}
+                  tickFormatter={value => compact.format(value)} />
                 <Tooltip formatter={(value) => money.format(Number(value))}
                   contentStyle={{ background: "var(--color-elevated)", borderColor: "var(--border-color)" }} />
                 <Legend />
@@ -158,22 +196,35 @@ export const DashboardPage = () => {
           </div>
         </article>
 
-        <article className="dashboard-panel">
-          <header><div><span>Cuota anual</span><h2>Estado de obligaciones</h2></div></header>
+        <article className="dashboard-panel dashboard-panel--annual">
+          <header><div><span>Cuota anual</span><h2>Cuotas pagadas y pendientes</h2>
+            <p className="dashboard-panel__explanation">
+              Cuenta cuotas individuales del año, no apoderados.
+            </p></div></header>
           {data.obligationStatus.every(item => item.count === 0)
             ? <p className="dashboard-empty">No hay obligaciones registradas.</p>
             : <div className="dashboard-chart">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.obligationStatus}>
+              <BarChart data={obligationStatusData}
+                margin={{ top: 12, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                <XAxis dataKey="status" stroke="var(--text-muted)" />
-                <YAxis allowDecimals={false} stroke="var(--text-muted)" />
+                <XAxis dataKey="label" stroke="var(--text-muted)"
+                  tick={{ fontSize: 9 }} tickMargin={4} />
+                <YAxis allowDecimals={false} stroke="var(--text-muted)" width={52}
+                  domain={[0, obligationMax]} ticks={obligationTicks}
+                  tick={{ fontSize: 9 }} tickMargin={2}
+                  label={{ value: "Número de cuotas", angle: -90,
+                    position: "insideLeft", style: { fontSize: 9, fill: "var(--text-muted)" } }} />
                 <Tooltip cursor={{ fill: "transparent" }}
                   contentStyle={{ background: "var(--color-elevated)",
                     borderColor: "var(--border-color)", color: "var(--text-main)" }}
                   labelStyle={{ color: "var(--text-main)" }}
                   itemStyle={{ color: "var(--text-main)" }} />
-                <Bar name="Obligaciones" dataKey="count" radius={[6, 6, 0, 0]}>
+                <Bar name="Cuotas" dataKey="count" barSize={28} radius={[6, 6, 0, 0]}>
+                  <LabelList dataKey="count" position="insideTop" offset={8}
+                    style={{ fontSize: 10, fontWeight: 700, fill: "#fff",
+                      stroke: "rgb(0 0 0 / 45%)", strokeWidth: 2,
+                      paintOrder: "stroke" }} />
                   {data.obligationStatus.map(item => <Cell key={item.status}
                     fill={item.status === "PAGADA"
                       ? "var(--color-success)" : "var(--color-warning)"} />)}
@@ -183,23 +234,27 @@ export const DashboardPage = () => {
           </div>}
         </article>
 
-        <article className="dashboard-panel">
+        <article className="dashboard-panel dashboard-panel--distribution">
           <header><div><span>Distribución</span><h2>Egresos por categoría</h2></div></header>
           {categories.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
             : <div className="dashboard-chart">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categories} layout="vertical">
+                <BarChart data={categories} layout="vertical"
+                  margin={{ top: 4, right: 4, bottom: 0, left: -14 }}>
                   <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
                   <XAxis type="number" stroke="var(--text-muted)"
-                    tickFormatter={value => compact.format(value)} />
-                  <YAxis type="category" dataKey="name" width={90} stroke="var(--text-muted)" />
+                    domain={[0, categoryMax]} ticks={categoryTicks}
+                    tick={{ fontSize: 9 }} tickMargin={3}
+                    tickFormatter={value => money.format(Number(value))} />
+                  <YAxis type="category" dataKey="name" width={62} stroke="var(--text-muted)"
+                    tick={{ fontSize: 9, angle: -18, textAnchor: "end" }} tickMargin={1} />
                   <Tooltip cursor={{ fill: "transparent" }}
                     formatter={(value) => money.format(Number(value))}
                     contentStyle={{ background: "var(--color-elevated)",
                       borderColor: "var(--border-color)", color: "var(--text-main)" }}
                     labelStyle={{ color: "var(--text-main)" }}
                     itemStyle={{ color: "var(--text-main)" }} />
-                  <Bar name="Monto" dataKey="amount" fill="var(--color-warning)"
+                  <Bar name="Monto" dataKey="amount" fill="var(--color-warning)" barSize={18}
                     radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -229,15 +284,17 @@ export const DashboardPage = () => {
           <table><thead><tr><th>Tipo</th><th>Descripción</th><th>Fecha</th>
             <th>Estado</th><th>Monto</th><th>Detalle</th></tr></thead>
             <tbody>{visibleMovements.map(item => <tr key={`${item.type}-${item.id}`}>
-              <td><span className={`movement-type movement-type--${item.type.toLowerCase()}`}>
+              <td className="activity-card__type"><span className={`movement-type movement-type--${item.type.toLowerCase()}`}>
                 {item.type === "INGRESO" ? "Ingreso" :
                   item.type === "CUOTA" ? "Cuota" : "Egreso"}</span></td>
-              <td>{item.description}</td><td>{new Date(`${item.date}T00:00:00`)
+              <td className="activity-card__description">{item.description}</td>
+              <td className="activity-card__date" data-label="Fecha">{new Date(`${item.date}T00:00:00`)
                 .toLocaleDateString("es-CL")}</td>
-              <td>{item.status === "ACTIVE" ? "Activo" : "Anulado"}</td>
-              <td className={item.type !== "EGRESO" ? "is-positive" : "is-negative"}>
+              <td className="activity-card__status" data-label="Estado">
+                {item.status === "ACTIVE" ? "Activo" : "Anulado"}</td>
+              <td className={`activity-card__amount ${item.type !== "EGRESO" ? "is-positive" : "is-negative"}`}>
                 {item.type !== "EGRESO" ? "+" : "-"}{money.format(item.amount)}</td>
-              <td><Link to={item.type === "CUOTA" ? "/tesoreria/cuotas"
+              <td className="activity-card__detail"><Link to={item.type === "CUOTA" ? "/tesoreria/cuotas"
                 : item.type === "INGRESO" ? "/tesoreria/ingresos"
                 : "/tesoreria/gastos"}>Abrir</Link></td>
             </tr>)}
@@ -281,12 +338,16 @@ export const DashboardPage = () => {
             </th>
             <th>Acción</th><th>Tipo</th><th>Detalle</th><th>Usuario</th><th>Fecha</th>
           </tr></thead><tbody>{visibleAudits.map(item => <tr key={item.id}>
-            <td className="audit-checkbox"><input type="checkbox"
+            <td className="audit-checkbox audit-card__select"><input type="checkbox"
               aria-label={`Seleccionar traza ${item.id}`} checked={selectedAudits.has(item.id)}
               onChange={() => toggleAudit(item.id)} /></td>
-            <td>{item.action.replaceAll("_", " ")}</td><td>{item.entityType}</td>
-            <td>{item.details || `Registro ${item.entityId}`}</td><td>{item.performedBy}</td>
-            <td>{new Date(item.createdAt).toLocaleString("es-CL")}</td>
+            <td className="audit-card__action">{item.action.replaceAll("_", " ")}</td>
+            <td className="audit-card__type" data-label="Tipo">{item.entityType}</td>
+            <td className="audit-card__detail" data-label="Detalle">
+              {item.details || `Registro ${item.entityId}`}</td>
+            <td className="audit-card__user" data-label="Usuario">{item.performedBy}</td>
+            <td className="audit-card__date" data-label="Fecha">
+              {new Date(item.createdAt).toLocaleString("es-CL")}</td>
           </tr>)}
           {Array.from({ length: AUDIT_PAGE_SIZE - visibleAudits.length },
             (_, index) => <tr className="dashboard-empty-row" aria-hidden="true"
@@ -313,10 +374,19 @@ export const DashboardPage = () => {
   </main>;
 };
 
-const Kpi = ({ label, value, positive = false, negative = false }: {
+const Kpi = ({ label, value, positive = false, negative = false, direction, featured }: {
   label: string; value: string; positive?: boolean; negative?: boolean;
-}) => <article><span>{label}</span><strong className={positive ? "is-positive"
-  : negative ? "is-negative" : ""}>{value}</strong></article>;
+  direction?: "in" | "out"; featured?: boolean;
+}) => <article className={`${featured ? "dashboard-kpi--featured" : ""} ${
+  direction ? `dashboard-kpi--${direction}` : ""}`}>
+  <span className="dashboard-kpi__label">{label}</span>
+  <div className="dashboard-kpi__value">
+    {direction === "in" && <FiArrowRight aria-hidden="true" />}
+    <strong className={positive ? "is-positive"
+      : negative ? "is-negative" : ""}>{value}</strong>
+    {direction === "out" && <FiArrowRight aria-hidden="true" />}
+  </div>
+</article>;
 
 const ContributionDonut = ({ title, paid, pending }: {
   title: string; paid: number; pending: number;
@@ -331,8 +401,8 @@ const ContributionDonut = ({ title, paid, pending }: {
     <h3>{title}</h3>
     <div className="contribution-donut__chart">
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart><Pie data={chartData} dataKey="value" nameKey="name" innerRadius={58}
-          outerRadius={88} paddingAngle={2}>
+        <PieChart><Pie data={chartData} dataKey="value" nameKey="name" innerRadius="52%"
+          outerRadius="78%" paddingAngle={2}>
           {chartData.map(item => <Cell key={item.name} fill={item.color} />)}
         </Pie>
         <Tooltip formatter={(value, name) => [`${value} familias`, name]}

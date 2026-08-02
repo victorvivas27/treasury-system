@@ -10,6 +10,9 @@ interface ModalConfirmProps {
   cancelLabel?: string;
   isLoading?: boolean;
   confirmDisabled?: boolean;
+  compact?: boolean;
+  raised?: boolean;
+  confirmVariant?: "primary" | "danger";
   onConfirm: () => void;
   onCancel: () => void;
   children?: ReactNode;
@@ -23,6 +26,9 @@ export const ModalConfirm = ({
   cancelLabel = "Cancelar",
   isLoading = false,
   confirmDisabled = false,
+  compact = false,
+  raised = false,
+  confirmVariant = "primary",
   onConfirm,
   onCancel,
   children,
@@ -31,7 +37,7 @@ export const ModalConfirm = ({
 
   return (
     <aside
-      className="modal-confirm-overlay"
+      className={`modal-confirm-overlay ${compact ? "modal-confirm-overlay--compact" : ""}`}
       onClick={() => {
         if (!isLoading) onCancel();
       }}
@@ -39,7 +45,7 @@ export const ModalConfirm = ({
       role="dialog"
     >
       <article
-        className="modal-confirm-container"
+        className={`modal-confirm-container ${compact ? "modal-confirm-container--compact" : ""} ${raised ? "modal-confirm-container--raised" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-confirm-header">
@@ -69,7 +75,7 @@ export const ModalConfirm = ({
             label={isLoading ? "Procesando..." : confirmLabel}
             onClick={onConfirm}
             size="medium"
-            variant="primary"
+            variant={confirmVariant}
             type="button"
             loading={isLoading}
           />

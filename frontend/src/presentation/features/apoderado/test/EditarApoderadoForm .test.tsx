@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useEditApoderado } from "@/presentation/hooks/apoderado/useEditApoderado";
 import { EditarApoderadoForm } from "../EditarApoderadoForm";
@@ -70,7 +70,8 @@ describe("EditarApoderadoForm", () => {
   });
 
 
-  it("[EditarApoderadoForm #03] Al hacer submit exitoso, debe cerrar modal y navegar a /parents", () => {
+  it("[EditarApoderadoForm #03] Al hacer submit exitoso, debe cerrar el aviso y navegar a /parents", () => {
+    vi.useFakeTimers();
     (useEditApoderado as any).mockReturnValue({
       ...defaultHookValue,
       modal: { isOpen: true, message: "Actualizado correctamente", type: "success" },
@@ -78,10 +79,10 @@ describe("EditarApoderadoForm", () => {
 
     render(<EditarApoderadoForm />);
 
-    const closeButton = screen.getByRole("button", { name: /entendido/i });
-    fireEvent.click(closeButton);
+    act(() => vi.advanceTimersByTime(2000));
 
     expect(mockNavigate).toHaveBeenCalledWith("/parents");
+    vi.useRealTimers();
   });
 
   it("[EditarApoderadoForm #04] El botón debe cambiar texto a 'Actualizando Apoderado' cuando loading = true", () => {
@@ -152,7 +153,8 @@ describe("EditarApoderadoForm", () => {
   });
 
 
-  it("[EditarApoderadoForm #09] Debe ejecutar setModal y navegar cuando modal.type es success", () => {
+  it("[EditarApoderadoForm #09] Debe ejecutar setModal y navegar al autocerrarse el aviso de success", () => {
+    vi.useFakeTimers();
     (useEditApoderado as any).mockReturnValue({
       ...defaultHookValue,
       modal: { isOpen: true, message: "Éxito", type: "success" },
@@ -160,8 +162,7 @@ describe("EditarApoderadoForm", () => {
 
     render(<EditarApoderadoForm />);
 
-    const closeButton = screen.getByRole("button", { name: /entendido/i });
-    fireEvent.click(closeButton);
+    act(() => vi.advanceTimersByTime(2000));
 
     expect(mockSetModal).toHaveBeenCalled();
 
@@ -171,5 +172,6 @@ describe("EditarApoderadoForm", () => {
     expect(newState).toEqual({ ...prevState, isOpen: false });
 
     expect(mockNavigate).toHaveBeenCalledWith("/parents");
+    vi.useRealTimers();
   });
 });

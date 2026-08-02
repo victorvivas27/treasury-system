@@ -142,6 +142,43 @@ export const useCreateFamilia = () => {
     }));
   };
 
+  const setAlumnoId = (alumnoId: number) => {
+    setFormData((prev) => ({ ...prev, alumnoId }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.alumnoId;
+      return next;
+    });
+  };
+
+  const setApoderadoId = (index: number, apoderadoId: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      apoderados: (prev.apoderados ?? []).map((relacion, currentIndex) =>
+        currentIndex === index ? { ...relacion, apoderadoId } : relacion,
+      ),
+    }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[`apoderados.${index}.apoderadoId`];
+      return next;
+    });
+  };
+
+  const setParentesco = (index: number, parentesco: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      apoderados: (prev.apoderados ?? []).map((relacion, currentIndex) =>
+        currentIndex === index ? { ...relacion, parentesco } : relacion,
+      ),
+    }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[`apoderados.${index}.parentesco`];
+      return next;
+    });
+  };
+
   const removeApoderado = (index: number) => {
     setFormData((prev) => {
       const apoderadosActualizados = (prev.apoderados ?? []).filter(
@@ -254,6 +291,9 @@ export const useCreateFamilia = () => {
     modal,
     handleHeaderChange,
     handleApoderadoChange,
+    setAlumnoId,
+    setApoderadoId,
+    setParentesco,
     addApoderado,
     removeApoderado,
     handleActionSubmit,

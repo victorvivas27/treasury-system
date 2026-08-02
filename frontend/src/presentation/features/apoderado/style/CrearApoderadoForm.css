@@ -45,6 +45,32 @@ textarea.form-input-apoderado {
   line-height: 1.5;
 }
 
+.apoderado-observaciones {
+  grid-column: 1 / -1;
+  margin: 0 var(--md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--sm);
+  background: var(--color-bg);
+}
+
+.apoderado-observaciones summary {
+  padding: .75rem 1rem;
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.apoderado-observaciones summary span {
+  color: var(--color-text-muted);
+  font-size: var(--xs);
+  font-weight: 400;
+}
+
+.apoderado-observaciones__content {
+  margin: 0;
+  padding: .25rem 1rem 1rem;
+}
+
 .floating-label-apoderado {
   position: absolute;
   left: 12px;
@@ -117,20 +143,78 @@ textarea.form-input-apoderado {
 }
 
 @media (max-width: 640px) {
+  .apoderado-create-page .form-page-header {
+    margin-bottom: .45rem;
+  }
+
+  .apoderado-create-page .form-page-header__title {
+    margin-bottom: .1rem;
+    font-size: 1.15rem;
+  }
+
+  .apoderado-create-page .form-page-header__subtitle {
+    margin-bottom: 0;
+    font-size: .75rem;
+    line-height: 1.35;
+  }
+
   .form-card-apoderado {
     grid-template-columns: 1fr;
+    gap: .25rem;
+    padding: .65rem;
+  }
+
+  .form-group-apoderado {
+    margin: .25rem .35rem;
+    padding-bottom: 18px;
+  }
+
+  .form-input-apoderado {
+    min-height: 44px;
+    padding: .7rem .8rem;
+  }
+
+  textarea.form-input-apoderado {
+    min-height: 82px;
+  }
+
+  .apoderado-observaciones {
+    margin: .25rem .35rem;
   }
 
   .form-actions-apoderado {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    margin: .15rem .35rem 0;
   }
 
   .form-actions-apoderado .base-button {
     width: 100%;
+    min-height: 40px;
     margin: 0;
   }
 
-  .error-message {
+  .form-actions-apoderado__create-button {
+    padding-inline: .35rem;
+    font-size: .68rem;
+  }
+
+  .form-actions-apoderado__create-button .button-content,
+  .form-actions-apoderado__create-button .button-label {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .form-actions-apoderado__create-button .button-content {
+    gap: .15rem;
+  }
+
+  .form-actions-apoderado__create-button .button-icon {
+    flex: 0 0 auto;
+  }
+
+  .error-message-apoderado {
     white-space: normal;
   }
 }

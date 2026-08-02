@@ -17,7 +17,7 @@ interface TreasurySectionPageProps {
 export const TreasurySectionPage = ({ section }: TreasurySectionPageProps) => (
   <main className="treasury-page">
     <nav className="treasury-breadcrumb" aria-label="Miga de pan">
-      <Link to="/tesoreria/resumen">Tesorería</Link>
+      <Link to="/dashboard">Dashboard</Link>
       <span aria-hidden="true">/</span>
       <span aria-current="page">{section}</span>
     </nav>

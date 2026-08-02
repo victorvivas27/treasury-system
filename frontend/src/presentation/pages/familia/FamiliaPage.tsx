@@ -93,11 +93,13 @@ export const FamiliaPage: FC = () => {
 
       <ModalConfirm
         isOpen={isConfirmOpen}
-        title="Eliminar familia"
-        message="¿Estás seguro de eliminar esta familia? Esta acción no se puede deshacer."
+        title="¿Eliminar familia?"
+        message="Se eliminará esta familia. Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         isLoading={isDeleting}
+        compact
+        confirmVariant="danger"
         onConfirm={confirmDelete}
         onCancel={closeDeleteConfirm}
       />
@@ -107,7 +109,8 @@ export const FamiliaPage: FC = () => {
         message={alert.message}
         type={alert.type}
         onClose={closeAlert}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={alert.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

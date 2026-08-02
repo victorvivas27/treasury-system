@@ -104,6 +104,7 @@ export const CrearApoderadoForm = () => {
           <Button
             variant="primary"
             size="medium"
+            className="form-actions-apoderado__create-button"
             onClick={handleActionSubmit}
             loading={loading}
             label={loading ? "Creando Apoderado" : "Crear Apoderado"}
@@ -131,6 +132,7 @@ export const CrearApoderadoForm = () => {
           }
         }}
         autoCloseTime={2000}
+        variant={modal.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

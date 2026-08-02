@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 "/api/v1/tesoreria/dashboard/overview",
                                 "/api/v1/tesoreria/eventos/curso-administrado",
                                 "/api/v1/tesoreria/configuracion-general/curso",
+                                "/api/v1/tesoreria/perfil",
                                 "/api/v1/tesoreria/aportes/resumen",
                                 "/api/v1/tesoreria/resumen-financiero")
                         .hasAnyRole("ADMIN", "USER")

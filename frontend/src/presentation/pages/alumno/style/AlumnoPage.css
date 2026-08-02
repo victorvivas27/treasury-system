@@ -57,6 +57,20 @@
     flex-direction: column;
   }
 
+  .alumnos-page .page-header {
+    gap: .45rem;
+  }
+
+  .alumnos-page .page-header__title {
+    margin-bottom: .1rem;
+    font-size: 1.15rem;
+  }
+
+  .alumnos-page .page-header__subtitle {
+    font-size: .75rem;
+    line-height: 1.35;
+  }
+
   .page-header__actions { width: 100%; flex-wrap: wrap; }
   .page-header__actions .base-button { flex: 1 1 9rem; margin: 0; }
 }

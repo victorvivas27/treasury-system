@@ -50,12 +50,12 @@ export const AlumnoPage: FC = () => {
   });
 
   return (
-    <main className="page-container">
+    <main className="page-container alumnos-page">
       <header className="page-header">
         <div className="page-header__content">
-          <h1 className="page-header__title">Gestión de Alumnos</h1>
+          <h1 className="page-header__title">Alumnos</h1>
           <p className="page-header__subtitle">
-            Visualiza y administra la información de los alumnos inscritos.
+            Administra sus datos escolares y vínculos familiares.
           </p>
         </div>
 
@@ -101,11 +101,13 @@ export const AlumnoPage: FC = () => {
 
       <ModalConfirm
         isOpen={isConfirmOpen}
-        title="Eliminar alumno"
-        message="¿Estás seguro de eliminar este alumno? Esta acción no se puede deshacer."
+        title="¿Eliminar alumno?"
+        message="Se eliminará este alumno. Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         isLoading={isDeleting}
+        compact
+        confirmVariant="danger"
         onConfirm={confirmDelete}
         onCancel={closeDeleteConfirm}
       />
@@ -115,7 +117,8 @@ export const AlumnoPage: FC = () => {
         message={alert.message}
         type={alert.type}
         onClose={closeAlert}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={alert.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

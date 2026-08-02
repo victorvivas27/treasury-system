@@ -153,6 +153,22 @@ export const useEditFamilia = () => {
     });
   };
 
+  const setParentesco = (index: number, parentesco: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      apoderados: (prev.apoderados ?? []).map((apoderado, currentIndex) =>
+        currentIndex === index ? { ...apoderado, parentesco } : apoderado,
+      ),
+    }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[`apoderados[${index}].parentesco`];
+      delete next[`apoderados.${index}.parentesco`];
+      delete next.parentesco;
+      return next;
+    });
+  };
+
   const removeApoderado = (index: number) => {
     setFormData((prev) => ({
       ...prev,
@@ -194,6 +210,7 @@ export const useEditFamilia = () => {
     modal,
     handleChange,
     handleApoderadoChange,
+    setParentesco,
     addApoderado,
     removeApoderado,
     handleSubmit,

@@ -70,6 +70,9 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async reports(year: number, type: TreasuryReportType) {
     return (await apiClient.get(`${this.baseUrl}/reportes`, { params: { year, type } })).data;
   }
+  async profile(year: number) {
+    return (await apiClient.get(`${this.baseUrl}/perfil`, { params: { year } })).data;
+  }
   async listContributionConfigs(year: number) {
     return (await apiClient.get(`${this.baseUrl}/aportes/configuraciones`,
       { params: { year } })).data;

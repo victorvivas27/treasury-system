@@ -3,6 +3,7 @@ import type { UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
+import { FiSave, FiX } from "react-icons/fi";
 import "@/presentation/pages/auth/PasswordVisibility.css";
 
 interface UserFormProps {
@@ -61,7 +62,7 @@ export const UserForm = ({
     if (!EMAIL_PATTERN.test(formData.correo)) {
       next.correo = "Ingrese un correo válido";
     }
-    if (!PASSWORD_PATTERN.test(formData.password)) {
+    if (!initialData && !PASSWORD_PATTERN.test(formData.password ?? "")) {
       next.password = "Use 8 caracteres, mayúscula, minúscula, número y especial";
     }
     setErrors(next);
@@ -70,11 +71,21 @@ export const UserForm = ({
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (validate()) await onSubmit(formData);
+    if (!validate()) return;
+    if (initialData) {
+      const { password: _password, ...updatePayload } = formData;
+      await onSubmit(updatePayload);
+      return;
+    }
+    await onSubmit(formData);
   };
 
   return (
-    <form className="form-card" onSubmit={handleSubmit} noValidate>
+    <form
+      className={`form-card user-form ${initialData ? "user-form--edit" : ""}`}
+      onSubmit={handleSubmit}
+      noValidate
+    >
       <div className="form-group">
         <span className="login-input-wrapper login-floating-field">
           <input id="user-form-nombre"
@@ -97,7 +108,7 @@ export const UserForm = ({
         {errors.correo && <span className="error-message">{errors.correo}</span>}
       </div>
 
-      <div className="form-group">
+      {!initialData && <div className="form-group">
         <span className="password-input-wrapper login-floating-field">
           <input
             id="user-form-password"
@@ -106,7 +117,7 @@ export const UserForm = ({
             type={showPassword ? "text" : "password"}
             placeholder="Ej.: ClaveSegura1!"
             autoComplete="new-password"
-            value={formData.password}
+            value={formData.password ?? ""}
             onChange={handleChange}
           />
           <label htmlFor="user-form-password" className="login-floating-label">Contraseña</label>
@@ -121,7 +132,7 @@ export const UserForm = ({
           </button>
         </span>
         {errors.password && <span className="error-message">{errors.password}</span>}
-      </div>
+      </div>}
 
       {showRole && (
         <label className="form-group">
@@ -140,7 +151,7 @@ export const UserForm = ({
       )}
 
       {showAccountStatus && (
-        <>
+        <div className="user-form__account-status">
           <label className="checkbox-label">
             <input
               name="enabled"
@@ -148,7 +159,7 @@ export const UserForm = ({
               checked={formData.enabled}
               onChange={handleChange}
             />
-            Usuario habilitado
+            Usuario activo
           </label>
 
           <label className="checkbox-label">
@@ -160,19 +171,28 @@ export const UserForm = ({
             />
             Cuenta desbloqueada
           </label>
-        </>
+        </div>
       )}
 
       <div className="form-actions">
         <Button
           type="submit"
+          className="user-form__submit-button"
           onClick={() => {}}
           loading={loading}
           label={loading ? "Guardando..." : submitLabel}
+          icon={<FiSave aria-hidden="true" />}
           size="medium"
         />
         {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel} label="Cancelar" size="medium" />
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onCancel}
+            label="Cancelar"
+            icon={<FiX aria-hidden="true" />}
+            size="medium"
+          />
         )}
       </div>
     </form>

@@ -19,11 +19,9 @@ import {
   BsArrowDownCircle,
   BsArrowUpCircle,
   BsCalendarEvent,
-  BsCreditCard,
   BsFileEarmarkBarGraph,
   BsHeart,
   BsReceipt,
-  BsSpeedometer2,
   BsShop,
 } from "react-icons/bs";
 
@@ -65,10 +63,8 @@ export const SIDEBAR_LINKS = [
 ];
 
 export const TREASURY_LINKS = [
-  { label: "Resumen", path: "/tesoreria/resumen", icon: BsSpeedometer2 },
   { label: "Cuotas", path: "/tesoreria/cuotas", icon: BsReceipt },
   { label: "CEPA y Solidaria", path: "/tesoreria/aportes", icon: BsHeart },
-  { label: "Pagos", path: "/tesoreria/pagos", icon: BsCreditCard },
   { label: "Ingresos", path: "/tesoreria/ingresos", icon: BsArrowDownCircle },
   { label: "Egresos", path: "/tesoreria/gastos", icon: BsArrowUpCircle },
   { label: "Eventos", path: "/tesoreria/eventos", icon: BsCalendarEvent },

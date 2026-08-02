@@ -65,7 +65,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
             </ul>
           </li>
         ))}
-        <li className="sidebar-nav-section sidebar-nav-section--treasury">
+        {currentRole === "ADMIN" && <li className="sidebar-nav-section sidebar-nav-section--treasury">
           <button
             type="button"
             className={`sidebar-nav-link-item sidebar-nav-parent ${
@@ -83,10 +83,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
           </button>
           {isTreasuryOpen && (
             <ul id="treasury-submenu" className="sidebar-submenu">
-              {TREASURY_LINKS
-                .filter((link) =>
-                  currentRole === "ADMIN" || link.path === "/tesoreria/resumen")
-                .map((link) => {
+              {TREASURY_LINKS.map((link) => {
                 const TreasuryIcon = link.icon;
                 return <li key={link.path}>
                   <NavLink
@@ -103,7 +100,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
               })}
             </ul>
           )}
-        </li>
+        </li>}
       </ul>
     </nav>
   );
