@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  FiAlertTriangle, FiBox, FiCheckCircle, FiDollarSign, FiPlus,
-  FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
+  FiAlertTriangle, FiBox, FiCheckCircle, FiCreditCard, FiDollarSign, FiPercent, FiPlus,
+  FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
+  FiTrendingUp,
 } from "react-icons/fi";
 import type { SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
@@ -335,8 +336,11 @@ const ProductsPanel = ({ stand, products, onSaved }: {
   return <div className="stand-panel">
     <div className="stand-panel__heading"><div><h3>Catálogo del stand</h3>
       <p>Los campos categoría, variante y stock son opcionales.</p></div>
-      {stand.status !== "CLOSED" && <button onClick={() => setShowForm(value => !value)}>
-        <FiPlus /> Producto</button>}</div>
+      {stand.status !== "CLOSED" && <button className="stand-add-product-button"
+        onClick={() => setShowForm(value => !value)}>
+        {showForm ? <FiX /> : <span className="stand-add-product-button__plus"
+          aria-hidden="true">+</span>}
+        {showForm ? "Cerrar" : "Producto"}</button>}</div>
     {showForm && <form className="stand-inline-form" onSubmit={submit}>
       <label>Producto<input required maxLength={120} value={form.name}
         onChange={e => setForm({ ...form, name: e.target.value })} /></label>
@@ -375,6 +379,8 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const [method, setMethod] = useState<StandPaymentMethod>(stand.paymentMethods[0] ?? "CASH");
   const [received, setReceived] = useState("");
   const [observation, setObservation] = useState("");
+  const [observationDraft, setObservationDraft] = useState("");
+  const [observationOpen, setObservationOpen] = useState(false);
   const [saleToCancel, setSaleToCancel] = useState<StandSale>();
   const [saleToEdit, setSaleToEdit] = useState<StandSale>();
   const [cancellationReason, setCancellationReason] = useState("");
@@ -518,8 +524,15 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         {method === "CASH" && <label>Monto recibido<input required type="number" min={total}
           value={received} onChange={e => setReceived(e.target.value)} />
           <small>Vuelto: {money.format(Math.max(0, Number(received || 0) - total))}</small></label>}
-        <label>Observación<textarea maxLength={500} value={observation}
-          onChange={e => setObservation(e.target.value)} /></label>
+        <div className="stand-observation-field">
+          <span>Observación</span>
+          <button type="button" className="stand-observation-trigger" onClick={() => {
+            setObservationDraft(observation);
+            setObservationOpen(true);
+          }}>
+            <FiMessageSquare /> {observation ? "Editar observación" : "Agregar observación"}
+          </button>
+        </div>
       </div>
       <footer><div><span>Total</span><strong>{money.format(total)}</strong></div>
         <button type="submit" disabled={stand.status !== "OPEN" || cart.length === 0}>
@@ -559,6 +572,30 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
           onClick={() => setHistoryPage(page => page + 1)}>Siguiente</button>
       </nav>}
     </section>
+    <ModalConfirm
+      isOpen={observationOpen}
+      compact
+      title="Observación de la venta"
+      message="Agrega una nota opcional para identificar esta compra."
+      confirmLabel="Guardar observación"
+      cancelLabel="Cancelar"
+      confirmIcon={<FiCheckCircle />}
+      cancelIcon={<FiX />}
+      onConfirm={() => {
+        setObservation(observationDraft.trim());
+        setObservationOpen(false);
+      }}
+      onCancel={() => {
+        setObservationDraft(observation);
+        setObservationOpen(false);
+      }}
+    >
+      <label>Observación
+        <textarea autoFocus maxLength={500} value={observationDraft}
+          placeholder="Ej.: pedido reservado o indicación especial"
+          onChange={event => setObservationDraft(event.target.value)} />
+      </label>
+    </ModalConfirm>
     <ModalConfirm
       isOpen={Boolean(saleToCancel)}
       compact
@@ -669,14 +706,19 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
 const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
   <div className="stand-summary">
     <div className="stand-summary__cards">
-      <article><span>Total vendido</span><strong>{money.format(summary.totalSold)}</strong></article>
-      <article><span>Efectivo esperado</span><strong>{money.format(summary.expectedCash)}</strong>
+      <article className="is-sales"><div><span>Total vendido</span><i><FiDollarSign /></i></div>
+        <strong>{money.format(summary.totalSold)}</strong></article>
+      <article className="is-cash"><div><span>Efectivo esperado</span><i><FiCreditCard /></i></div>
+        <strong>{money.format(summary.expectedCash)}</strong>
         <small>Incluye fondo de {money.format(summary.initialFund)}</small></article>
-      <article><span>Comisiones</span><strong>{money.format(summary.commissions)}</strong></article>
-      <article className="is-highlight"><span>Ganancia neta</span>
+      <article className="is-commissions"><div><span>Comisiones</span><i><FiPercent /></i></div>
+        <strong>{money.format(summary.commissions)}</strong></article>
+      <article className="is-highlight"><div><span>Ganancia neta</span><i><FiTrendingUp /></i></div>
         <strong>{money.format(summary.netProfit)}</strong></article>
-      <article><span>Ventas</span><strong>{summary.saleCount}</strong></article>
-      <article><span>Unidades vendidas</span><strong>{summary.unitsSold}</strong></article>
+      <article className="is-count"><div><span>Ventas</span><i><FiShoppingCart /></i></div>
+        <strong>{summary.saleCount}</strong></article>
+      <article className="is-units"><div><span>Unidades vendidas</span><i><FiBox /></i></div>
+        <strong>{summary.unitsSold}</strong></article>
     </div>
     <div className="stand-summary__columns">
       <section><h3>Ventas por medio de pago</h3>

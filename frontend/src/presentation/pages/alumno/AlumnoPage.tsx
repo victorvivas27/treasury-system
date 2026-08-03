@@ -59,11 +59,12 @@ export const AlumnoPage: FC = () => {
           </p>
         </div>
 
-        <div className="page-header__actions">
+        <div className="page-header__actions mobile-inline-header-actions">
           <Button
             onClick={refetch}
             variant="secondary"
             size="medium"
+            className="mobile-compact-header-action"
             icon={<ALUMNOS_ICONS.reload/>}
             iconPosition="left"
             loading={loading}
@@ -74,6 +75,7 @@ export const AlumnoPage: FC = () => {
             onClick={() => navigate("/students/new")}
             variant="primary"
             size="medium"
+            className="mobile-compact-header-action"
             icon={<ALUMNOS_ICONS.add/>}
             iconPosition="left"
             label="Crear Alumno"

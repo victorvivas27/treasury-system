@@ -102,6 +102,7 @@ export const UsersPage = () => {
             loading={loading}
             onClick={() => void load(currentPage)}
             size="medium"
+            className="mobile-compact-header-action"
           />
           {user?.rol === "ADMIN" && (
             <Button
@@ -112,6 +113,7 @@ export const UsersPage = () => {
                 setShowForm((visible) => !visible);
               }}
               size="medium"
+              className="mobile-compact-header-action"
             />
           )}
         </div>
