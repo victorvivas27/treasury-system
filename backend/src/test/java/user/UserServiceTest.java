@@ -120,17 +120,17 @@ class UserServiceTest {
     @Nested
     class UpdateTests {
         @Test
-        void update_deberiaPermitirMismoCorreoYActualizarPassword() {
+        void update_deberiaPermitirMismoCorreoYConservarPassword() {
             User changes = user(null, "admin@mail.com", RoleEnum.USER);
+            String currentPassword = user.getPassword();
             when(repository.findById(1L)).thenReturn(Optional.of(user));
             when(repository.findByCorreo(changes.getCorreo())).thenReturn(Optional.of(user));
-            when(encoder.matches(changes.getPassword(), user.getPassword())).thenReturn(false);
-            when(encoder.encode(changes.getPassword())).thenReturn("$2a$new");
             when(repository.save(user)).thenReturn(user);
 
             User result = service.update(1L, changes, user.getCorreo());
 
-            assertEquals("$2a$new", result.getPassword());
+            assertEquals(currentPassword, result.getPassword());
+            verifyNoInteractions(encoder);
             verify(repository).save(user);
         }
 

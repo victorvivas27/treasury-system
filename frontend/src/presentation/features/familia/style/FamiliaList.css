@@ -1,17 +1,21 @@
 .familia-list {
-  padding: var(--sm);
+  width: calc(100% - 1.5rem);
+  margin: .25rem .75rem 1rem;
+  padding: .65rem .8rem;
   border-radius: 16px;
   background-color: var(--color-surface);
+  box-shadow: 0 4px 18px rgb(0 0 0 / 5%);
 }
 
 .familia-header {
-  margin-bottom: var(--sm);
+  margin-bottom: .35rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .familia-header__title {
-  margin: 0 0 var(--xs);
+  margin: .1rem 0 .35rem;
   color: var(--color-accent);
+  font-size: .95rem;
 }
 
 .familia-table {
@@ -21,38 +25,84 @@
 }
 
 .familia-table__th {
+  padding: .4rem .25rem;
   border-bottom: 1px solid var(--divider);
   color: var(--color-text-secondary);
-  font-size: var(--sm);
+  font-size: .64rem;
   font-weight: 600;
   text-align: center;
   text-transform: uppercase;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .familia-table__row--data {
-  height: 44px;
+  height: 36px;
   border-bottom: 1px solid var(--divider);
 }
 
 .familia-table__td {
-  font-size: var(--sm);
+  overflow: hidden;
+  padding: .28rem .35rem;
+  font-size: .74rem;
   text-align: center;
+  text-overflow: ellipsis;
   vertical-align: middle;
+  white-space: nowrap;
+}
+
+@media (min-width: 769px) {
+  .familia-table__th:nth-child(1),
+  .familia-table__td:nth-child(1) { width: 12%; }
+  .familia-table__th:nth-child(2),
+  .familia-table__td:nth-child(2) { width: 11%; }
+  .familia-table__th:nth-child(3),
+  .familia-table__td:nth-child(3) { width: 16%; }
+  .familia-table__th:nth-child(4),
+  .familia-table__td:nth-child(4) { width: 11%; }
+  .familia-table__th:nth-child(5),
+  .familia-table__td:nth-child(5) { width: 15%; }
+  .familia-table__th:nth-child(6),
+  .familia-table__td:nth-child(6) { width: 24%; }
+  .familia-table__th:nth-child(7),
+  .familia-table__td:nth-child(7) { width: 11%; }
 }
 
 .familia-table__td--actions {
   display: flex;
   justify-content: center;
-  gap: var(--xs);
+  gap: .35rem;
+}
+
+.familia-table__td--actions .familia-table__action-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: .3rem;
+  margin: 0;
+}
+
+.familia-table__action-button .button-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .badge-success,
 .badge-secondary {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
+  max-width: 100%;
+  overflow: hidden;
+  padding: .18rem .4rem;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: .68rem;
   font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .badge-success {
@@ -102,7 +152,43 @@
 }
 
 .empty-row td {
-  height: 44px;
+  height: 36px;
+}
+
+@media (max-width: 768px) {
+  .main-content .familia-list.responsive-data-list {
+    width: calc(100% - .7rem);
+    margin: .25rem .35rem .75rem;
+    padding: .4rem;
+  }
+
+  .familia-list.responsive-data-list tbody {
+    padding-top: .4rem;
+  }
+
+  .familia-list.responsive-data-list tbody > tr {
+    margin-bottom: .55rem;
+    padding: .4rem .6rem;
+  }
+
+  .familia-list.responsive-data-list tbody > tr > td {
+    min-height: 23px;
+    padding: .14rem .1rem;
+    font-size: .73rem;
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  .familia-list.responsive-data-list tbody > tr > td::before {
+    font-size: .58rem;
+  }
+
+  .familia-list.responsive-data-list .familia-table__action-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
 }
 
 @keyframes skeletonShine {

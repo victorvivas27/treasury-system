@@ -11,6 +11,15 @@ Treasury System integra backend Spring Boot, frontend React/Vite, PostgreSQL, pr
 - Alumno y Apoderado usan `codigo` en rutas públicas; Familia usa IDs internos y `familiaId`.
 - No añadir dependencias, desplegar, publicar ni hacer push sin autorización.
 
+  Características de los modales :
+
+  - Ancho máximo de 320 px para editar.
+  - Ancho máximo de 280 px para confirmar.
+  - Nunca supera el ancho de la pantalla.
+  - Campos y botones compactos.
+  - Fondo bloqueado mientras está abierto.
+  - Posición automática según la card seleccionada.
+
 ## Orden de lectura
 
 1. [Visión general](tasks/01-project-overview.md)

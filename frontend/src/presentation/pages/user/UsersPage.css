@@ -22,8 +22,171 @@
 
 .users-page-header p { color: var(--text-muted); }
 
+.users-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sm);
+}
+
+.users-page .user-form {
+  column-gap: var(--sm);
+  row-gap: 0;
+}
+
+.users-page .user-form .form-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sm);
+  width: 100%;
+}
+
+.users-page .user-form .form-actions .base-button {
+  width: 100%;
+  margin: 0;
+}
+
+.users-page .user-form__account-status {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  padding-bottom: var(--sm);
+}
+
+.users-page .user-form__account-status .checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  min-width: 0;
+  margin: 0;
+  font-size: .68rem;
+  line-height: 1.1;
+  white-space: normal;
+}
+
+.users-page .user-form__account-status input[type="checkbox"] {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .users-page { width: 100%; padding: var(--sm); }
-  .users-page-header { align-items: stretch; flex-direction: column; }
-  .users-page-header .base-button { width: 100%; margin: 0; }
+  .users-page > section {
+    width: 100%;
+    min-width: 0;
+  }
+  .users-page .usuarios-container {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+  }
+  .users-page .usuarios-table tbody {
+    padding: .65rem .5rem .5rem;
+  }
+  .users-page .usuarios-table tbody > tr {
+    padding: .45rem .6rem;
+  }
+  .users-page .usuarios-table tbody > tr > td:not([data-label="Acciones"]) {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    min-height: 26px;
+    padding: .2rem .1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--divider) 65%, transparent);
+    line-height: 1.25;
+  }
+  .users-page .usuarios-table tbody > tr > td:not([data-label="Acciones"])::before {
+    color: var(--color-accent);
+    font-size: .62rem;
+  }
+  .users-page .usuarios-table tbody > tr > td:last-child:not([data-label="Acciones"]) {
+    border-bottom: 0;
+  }
+  .users-page .usuarios-table tbody > tr > td[data-label="Acciones"] {
+    margin-top: .2rem;
+    border-top: 0;
+    padding-top: .45rem;
+  }
+  .users-page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: .45rem;
+  }
+  .users-page-header h1 {
+    margin-bottom: .1rem;
+    font-size: 1.15rem;
+  }
+  .users-page-header p {
+    font-size: .75rem;
+    line-height: 1.35;
+  }
+  .users-page-header .base-button {
+    flex: 1 1 9rem;
+    min-width: 0;
+    min-height: 32px;
+    margin: 0;
+  }
+  .users-page-header__actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: .75rem;
+  }
+
+  .users-page .user-form .form-actions {
+    align-items: stretch;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .users-page .user-form__account-status {
+    gap: .25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .users-page .user-form--edit {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .25rem;
+    padding: .65rem;
+  }
+
+  .users-page .user-form--edit .form-group {
+    min-width: 0;
+    padding-bottom: 18px;
+  }
+
+  .users-page .user-form--edit .form-input {
+    min-height: 44px;
+    padding: .7rem .8rem;
+  }
+
+  .users-page .user-form--edit .user-form__account-status {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: .15rem 0 .45rem;
+  }
+
+  .users-page .user-form--edit .form-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+  }
+
+  .users-page .user-form--edit .form-actions .base-button {
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: .35rem;
+    font-size: .68rem;
+  }
+
+  .users-page .user-form--edit .form-actions .button-content,
+  .users-page .user-form--edit .form-actions .button-label {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .users-page .user-form--edit .form-actions .button-content {
+    gap: .15rem;
+  }
 }

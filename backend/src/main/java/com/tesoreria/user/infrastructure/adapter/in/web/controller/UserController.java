@@ -86,7 +86,7 @@ public class UserController {
             @Valid @RequestBody UserRequestDTO request,
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
-                service.update(id, mapper.toDomain(request), authentication.getName())));
+                service.update(id, mapper.toUpdateDomain(request), authentication.getName())));
     }
 
     @Operation(summary = "Eliminar usuario")

@@ -91,10 +91,6 @@ public class UserService implements UserUseCase {
 
     existing.setNombre(changes.getNombre());
     existing.setCorreo(changes.getCorreo());
-    if (!passwordEncoder.matches(changes.getPassword(), existing.getPassword())) {
-      User.validateRawPassword(changes.getPassword());
-      existing.setPassword(passwordEncoder.encode(changes.getPassword()));
-    }
     existing.setEnabled(changes.getEnabled());
     existing.setAccountNonLocked(changes.getAccountNonLocked());
     return repository.save(existing);

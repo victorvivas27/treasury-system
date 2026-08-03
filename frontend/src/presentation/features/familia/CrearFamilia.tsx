@@ -7,6 +7,7 @@ import "./style/CrearFamilia.css";
 import { Button } from "@/shared/ui/button/Button";
 
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { useState } from "react";
 
 const parentescos = [
   "Padre",
@@ -18,6 +19,64 @@ const parentescos = [
   "Hermana",
 ];
 
+interface CompactSelectProps {
+  label: string;
+  value: string;
+  placeholder: string;
+  options: Array<{ value: string; label: string }>;
+  disabled?: boolean;
+  error?: boolean;
+  onChange: (value: string) => void;
+}
+
+export const CompactSelect = ({
+  label,
+  value,
+  placeholder,
+  options,
+  disabled = false,
+  error = false,
+  onChange,
+}: CompactSelectProps) => {
+  const [open, setOpen] = useState(false);
+  const selectedLabel = options.find((option) => option.value === value)?.label;
+
+  return (
+    <div className="familia-parentesco">
+      <button
+        type="button"
+        className={`familia-parentesco__trigger ${error ? "input-error" : ""}`}
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => setOpen((current) => !current)}
+      >
+        {selectedLabel || placeholder}
+        <span aria-hidden="true">⌄</span>
+      </button>
+      {open && (
+        <div className="familia-parentesco__menu" role="listbox" aria-label={label}>
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={value === option.value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const CrearFamilia = () => {
   const {
     formData,
@@ -26,6 +85,9 @@ export const CrearFamilia = () => {
     modal,
     handleHeaderChange,
     handleApoderadoChange,
+    setAlumnoId,
+    setApoderadoId,
+    setParentesco,
     addApoderado,
     removeApoderado,
     handleActionSubmit,
@@ -53,25 +115,18 @@ export const CrearFamilia = () => {
         <label className="familia-field">
           <span>Alumno</span>
 
-          <select
-            name="alumnoId"
-            value={formData.alumnoId ?? ""}
-            onChange={handleHeaderChange}
+          <CompactSelect
+            label="Alumno"
+            value={String(formData.alumnoId || "")}
+            placeholder={loadingAlumnos ? "Cargando alumnos..." : "Seleccionar alumno"}
             disabled={loadingAlumnos || Boolean(alumnosError)}
-            className={fieldErrors.alumnoId ? "input-error" : ""}
-          >
-            <option value="">
-              {loadingAlumnos ? "Cargando alumnos..." : "Seleccionar alumno"}
-            </option>
-
-            {alumnos.map((alumno) => (
-              <option key={alumno.alumnoId} value={alumno.alumnoId}>
-                {[alumno.codigo, alumno.nombre, alumno.curso]
-                  .filter(Boolean)
-                  .join(" - ")}
-              </option>
-            ))}
-          </select>
+            error={Boolean(fieldErrors.alumnoId)}
+            options={alumnos.map((alumno) => ({
+              value: String(alumno.alumnoId),
+              label: [alumno.codigo, alumno.nombre, alumno.curso].filter(Boolean).join(" - "),
+            }))}
+            onChange={(value) => setAlumnoId(Number(value))}
+          />
 
           {(fieldErrors.alumnoId || alumnosError) && (
             <small>{fieldErrors.alumnoId || alumnosError}</small>
@@ -81,46 +136,36 @@ export const CrearFamilia = () => {
         {(formData.apoderados ?? []).map((relacion, index) => (
           <div className="familia-form__apoderado" key={index}>
             <div className="familia-form__apoderado-header">
+              <div>
+                <strong>Apoderado {index + 1}</strong>
+                <span>{relacion.esPrincipal ? "Principal" : "Adicional"}</span>
+              </div>
 
               {(formData.apoderados ?? []).length > 1 && (
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="danger"
                   size="small"
                   onClick={() => removeApoderado(index)}
                   label="Quitar"
+                  icon={<FAMILIA_ICONS.delete />}
                 />
               )}
             </div>
 
             <label className="familia-field">
-              <span>Apoderado</span>
-
-              <select
-                name="apoderadoId"
-                value={relacion.apoderadoId || ""}
-                onChange={(event) => handleApoderadoChange(index, event)}
+              <CompactSelect
+                label={`Seleccionar apoderado ${index + 1}`}
+                value={String(relacion.apoderadoId || "")}
+                placeholder={loadingApoderados ? "Cargando apoderados..." : "Seleccionar apoderado"}
                 disabled={loadingApoderados || Boolean(apoderadosError)}
-                className={
-                  fieldErrors[`apoderados.${index}.apoderadoId`]
-                    ? "input-error"
-                    : ""
-                }
-              >
-                <option value="">
-                  {loadingApoderados
-                    ? "Cargando apoderados..."
-                    : "Seleccionar apoderado"}
-                </option>
-
-                {apoderados.map((apoderado) => (
-                  <option key={apoderado.apoderadoId} value={apoderado.apoderadoId}>
-                    {[apoderado.codigo, apoderado.nombre]
-                      .filter(Boolean)
-                      .join(" - ")}
-                  </option>
-                ))}
-              </select>
+                error={Boolean(fieldErrors[`apoderados.${index}.apoderadoId`])}
+                options={apoderados.map((apoderado) => ({
+                  value: String(apoderado.apoderadoId),
+                  label: [apoderado.codigo, apoderado.nombre].filter(Boolean).join(" - "),
+                }))}
+                onChange={(value) => setApoderadoId(index, Number(value))}
+              />
 
               {(fieldErrors[`apoderados.${index}.apoderadoId`] ||
                 apoderadosError) && (
@@ -133,25 +178,14 @@ export const CrearFamilia = () => {
 
             <label className="familia-field">
               <span>Parentesco</span>
-
-              <select
-                name="parentesco"
+              <CompactSelect
+                label={`Parentesco del apoderado ${index + 1}`}
                 value={relacion.parentesco}
-                onChange={(event) => handleApoderadoChange(index, event)}
-                className={
-                  fieldErrors[`apoderados.${index}.parentesco`]
-                    ? "input-error"
-                    : ""
-                }
-              >
-                <option value="">Seleccionar parentesco</option>
-
-                {parentescos.map((parentesco) => (
-                  <option key={parentesco} value={parentesco}>
-                    {parentesco}
-                  </option>
-                ))}
-              </select>
+                placeholder="Seleccionar parentesco"
+                error={Boolean(fieldErrors[`apoderados.${index}.parentesco`])}
+                options={parentescos.map((parentesco) => ({ value: parentesco, label: parentesco }))}
+                onChange={(value) => setParentesco(index, value)}
+              />
 
               {fieldErrors[`apoderados.${index}.parentesco`] && (
                 <small>{fieldErrors[`apoderados.${index}.parentesco`]}</small>
@@ -179,27 +213,30 @@ export const CrearFamilia = () => {
         >
           {fieldErrors.apoderados || "\u00A0"}
         </p>
-<div className="familia-form__add-apoderado">
-        <Button
-          type="button"
-          variant="secondary"
-          size="small"
-          onClick={addApoderado}
-          label="Agregar apoderado"
-          icon={<FAMILIA_ICONS.crearFamilia />}
-        />
+        <div className="familia-form__add-apoderado">
+          <Button
+            type="button"
+            variant="secondary"
+            size="small"
+            onClick={addApoderado}
+            label="Agregar otro apoderado"
+            icon={<FAMILIA_ICONS.crearFamilia />}
+          />
         </div>
 
-        <label className="familia-field">
-          <span>Observaciones</span>
-
-          <textarea
-            name="observacionesGenerales"
-            value={formData.observacionesGenerales ?? ""}
-            onChange={handleHeaderChange}
-            rows={4}
-          />
-        </label>
+        <details className="familia-observaciones">
+          <summary>Observaciones <span>(opcional)</span></summary>
+          <label className="familia-field familia-observaciones__content">
+            <span>Observaciones generales</span>
+            <textarea
+              name="observacionesGenerales"
+              value={formData.observacionesGenerales ?? ""}
+              onChange={handleHeaderChange}
+              rows={3}
+              placeholder="Agrega información relevante sobre la familia"
+            />
+          </label>
+        </details>
 
         <div className="familia-actions">
           <Button
@@ -220,6 +257,7 @@ export const CrearFamilia = () => {
             size="medium"
             onClick={() => navigate("/family")}
             label="Cancelar"
+            icon={<FAMILIA_ICONS.cancel />}
           />
         </div>
       </form>
@@ -229,7 +267,8 @@ export const CrearFamilia = () => {
         message={modal.message}
         type={modal.type}
         onClose={closeModal}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={modal.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

@@ -10,9 +10,15 @@ interface ModalConfirmProps {
   cancelLabel?: string;
   isLoading?: boolean;
   confirmDisabled?: boolean;
+  compact?: boolean;
+  raised?: boolean;
+  confirmVariant?: "primary" | "danger";
   onConfirm: () => void;
   onCancel: () => void;
   children?: ReactNode;
+  confirmIcon?: ReactNode;
+  cancelIcon?: ReactNode;
+  anchor?: { top: number; left: number };
 }
 
 export const ModalConfirm = ({
@@ -23,15 +29,22 @@ export const ModalConfirm = ({
   cancelLabel = "Cancelar",
   isLoading = false,
   confirmDisabled = false,
+  compact = false,
+  raised = false,
+  confirmVariant = "primary",
   onConfirm,
   onCancel,
   children,
+  confirmIcon,
+  cancelIcon,
+  anchor,
 }: ModalConfirmProps) => {
   if (!isOpen) return null;
 
   return (
     <aside
-      className="modal-confirm-overlay"
+      className={`modal-confirm-overlay ${compact ? "modal-confirm-overlay--compact" : ""} ${
+        anchor ? "modal-confirm-overlay--anchored" : ""}`}
       onClick={() => {
         if (!isLoading) onCancel();
       }}
@@ -39,7 +52,8 @@ export const ModalConfirm = ({
       role="dialog"
     >
       <article
-        className="modal-confirm-container"
+        className={`modal-confirm-container ${compact ? "modal-confirm-container--compact" : ""} ${raised ? "modal-confirm-container--raised" : ""}`}
+        style={anchor ? { position: "fixed", top: anchor.top, left: anchor.left } : undefined}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-confirm-header">
@@ -63,15 +77,19 @@ export const ModalConfirm = ({
             variant="secondary"
             type="button"
             disabled={isLoading || confirmDisabled}
+            icon={cancelIcon}
+            iconPosition="left"
           />
 
           <Button
             label={isLoading ? "Procesando..." : confirmLabel}
             onClick={onConfirm}
             size="medium"
-            variant="primary"
+            variant={confirmVariant}
             type="button"
             loading={isLoading}
+            icon={confirmIcon}
+            iconPosition="left"
           />
         </footer>
       </article>

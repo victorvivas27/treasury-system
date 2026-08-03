@@ -59,4 +59,21 @@ describe("UserForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ocultar contraseña" }));
     expect(password).toHaveAttribute("type", "password");
   });
+  it("[UserForm #06] oculta y omite la contraseña al modificar un usuario", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <UserForm
+        initialData={{ nombre: "Victor Vivas", correo: "user@mail.com" }}
+        submitLabel="Actualizar usuario"
+        onSubmit={onSubmit}
+      />,
+    );
+
+    expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar usuario" }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.not.objectContaining({
+      password: expect.anything(),
+    })));
+  });
 });

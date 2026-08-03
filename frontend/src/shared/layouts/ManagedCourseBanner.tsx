@@ -28,7 +28,7 @@ export const ManagedCourseBanner = () => {
     <aside className="managed-course-banner" aria-label={`Curso administrado: ${course}`}>
       <FiBookOpen aria-hidden="true" />
       <div>
-        <span>Esta tesorería administra exclusivamente</span>
+        <span>Tesorería exclusiva para</span>
         <strong>Curso {course}</strong>
       </div>
     </aside>

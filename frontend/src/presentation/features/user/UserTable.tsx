@@ -55,7 +55,11 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
                 <td className="usuarios-table__td" data-label="Código">{user.code}</td>
                 <td className="usuarios-table__td" data-label="Nombre">{user.nombre}</td>
                 <td className="usuarios-table__td usuarios-table__email" data-label="Correo">{user.correo}</td>
-                <td className="usuarios-table__td" data-label="Rol"><span className="usuarios-role">{user.rol}</span></td>
+                <td className="usuarios-table__td" data-label="Rol">
+                  <span className={`usuarios-role ${user.rol === "ADMIN" ? "is-admin" : "is-user"}`}>
+                    {user.rol === "ADMIN" ? "ADMIN" : "USUARIO"}
+                  </span>
+                </td>
                 <td className="usuarios-table__td" data-label="Estado">
                   <span className={`usuarios-status ${isActive ? "is-active" : "is-inactive"}`}>
                     {isActive ? "Activo" : "Inactivo"}
@@ -67,15 +71,19 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
                       <Button
                         variant="danger"
                         size="small"
+                        className="usuarios-table__icon-button"
                         onClick={() => onDelete(user.id)}
                         icon={<ICONS.delete />}
+                        label="Eliminar"
                         testId={`delete-btn-${user.id}`}
                       />
                       <Button
                         variant="secondary"
                         size="small"
+                        className="usuarios-table__icon-button"
                         onClick={() => onEdit(user)}
                         icon={<ICONS.edit />}
+                        label="Editar"
                         testId={`edit-btn-${user.id}`}
                       />
                     </div>

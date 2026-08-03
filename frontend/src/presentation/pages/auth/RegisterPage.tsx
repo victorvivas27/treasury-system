@@ -28,8 +28,16 @@ export const RegisterPage = () => {
   };
 
   return (
-    <main className="form-page-container">
-      <h1>Registrar usuario</h1>
+    <main className="form-page-container register-page">
+      <header className="form-page-header">
+        <img
+          className="login-brand-logo"
+          src="/Tesoreria.png"
+          alt="Logo del Sistema de Tesorería"
+        />
+        <h1 className="form-page-header__title">Regístrate como usuario</h1>
+        <p className="form-page-header__subtitle">Accede al Sistema de Tesorería</p>
+      </header>
       <UserForm
         key={formKey}
         onSubmit={register}

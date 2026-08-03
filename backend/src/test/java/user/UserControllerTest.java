@@ -79,12 +79,12 @@ class UserControllerTest {
 
     @Test
     void update_deberiaRetornarUsuarioActualizado() throws Exception {
-        when(mapper.toDomain(any())).thenReturn(user);
+        when(mapper.toUpdateDomain(any())).thenReturn(user);
         when(service.update(1L, user, "admin@mail.com")).thenReturn(user);
         mockMvc.perform(put("/api/v1/users/1")
                         .principal(new UsernamePasswordAuthenticationToken("admin@mail.com", null))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(validRequest()))
+                        .content(updateRequest()))
                 .andExpect(status().isOk());
     }
 
@@ -120,6 +120,17 @@ class UserControllerTest {
                   "correo":"user@mail.com",
                   "password":"Password1!",
                   "rol":"USER",
+                  "enabled":true,
+                  "accountNonLocked":true
+                }
+                """;
+    }
+
+    private String updateRequest() {
+        return """
+                {
+                  "nombre":"Victor Vivas",
+                  "correo":"user@mail.com",
                   "enabled":true,
                   "accountNonLocked":true
                 }

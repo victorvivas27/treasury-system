@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiCalendar, FiDollarSign, FiEdit2, FiPlus, FiRefreshCw, FiTrash2,
-  FiUsers } from "react-icons/fi";
+import { FiCalendar, FiCheckCircle, FiDollarSign, FiEdit2, FiMinusCircle, FiPlus,
+  FiRefreshCw, FiTrash2,
+  FiTrendingUp, FiUsers, FiX } from "react-icons/fi";
 import type { EventSettlement, SchoolEvent,
   SchoolEventExpense } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./EventsPage.css";
 
@@ -11,6 +14,8 @@ const repository = new TreasuryRepositoryImpl();
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP",
   maximumFractionDigits: 0 });
 const today = new Date().toISOString().slice(0, 10);
+const schoolYears = Array.from({ length: 10 }, (_, index) => 2026 + index);
+const EVENTS_PAGE_SIZE = 2;
 const statusLabel: Record<string, string> = {
   BORRADOR: "Borrador", EN_PREPARACION: "En preparación", REALIZADO: "Realizado",
   EN_LIQUIDACION: "En liquidación", CERRADO: "Cerrado", CANCELADO: "Cancelado",
@@ -24,13 +29,22 @@ const apiErrorMessage = (error: unknown, fallback: string) => {
   return messages.length > 0 ? messages.join(" ") : fallback;
 };
 
+const anchorForCard = (card: DOMRect, width: number, height: number) => ({
+  top: Math.max(12, Math.min(card.top, window.innerHeight - height - 12) - 100),
+  left: Math.max(12, Math.min(card.left, window.innerWidth - width - 12)),
+});
+
 export const EventsPage = () => {
   const [year, setYear] = useState(new Date().getFullYear());
+  const [yearOpen, setYearOpen] = useState(false);
+  const [eventPage, setEventPage] = useState(1);
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [selected, setSelected] = useState<SchoolEvent>();
   const [settlement, setSettlement] = useState<EventSettlement>();
   const [dialog, setDialog] = useState<"event" | "edit" | "expense" | "revenue" | null>(null);
   const [expenseToEdit, setExpenseToEdit] = useState<SchoolEventExpense>();
+  const [expenseAnchor, setExpenseAnchor] = useState<{ top: number; left: number }>();
+  const [dialogAnchor, setDialogAnchor] = useState<{ top: number; left: number }>();
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
   const [managedCourse, setManagedCourse] = useState("");
@@ -50,6 +64,20 @@ export const EventsPage = () => {
   }, [year]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { setEventPage(1); }, [year]);
+
+  const eventPages = Math.max(1, Math.ceil(events.length / EVENTS_PAGE_SIZE));
+  const visibleEvents = events.slice((eventPage - 1) * EVENTS_PAGE_SIZE,
+    eventPage * EVENTS_PAGE_SIZE);
+  useEffect(() => {
+    if (eventPage > eventPages) setEventPage(eventPages);
+  }, [eventPage, eventPages]);
+  const changeEventPage = (page: number) => {
+    const nextPage = Math.max(1, Math.min(page, eventPages));
+    setEventPage(nextPage);
+    setSelected(events[(nextPage - 1) * EVENTS_PAGE_SIZE]);
+    setSettlement(undefined);
+  };
 
   useEffect(() => {
     repository.getManagedCourse()
@@ -105,15 +133,34 @@ export const EventsPage = () => {
   return (
     <main className="events-page">
       <header className="events-header">
-        <div><span>Tesorería / Eventos</span><h1>Eventos escolares</h1>
+        <div><h1>Eventos escolares</h1>
           <p>Administra la recaudación y distribución de la Fiesta de la Familia.</p></div>
-        <button onClick={() => setDialog("event")}><FiPlus /> Crear evento</button>
+        <div className="events-header__actions">
+          <button onClick={event => {
+            setDialogAnchor(anchorForCard(event.currentTarget.getBoundingClientRect(), 320, 430));
+            setDialog("event");
+          }}><FiPlus /> Crear evento</button>
+          <button aria-label="Actualizar eventos" title="Actualizar eventos"
+            onClick={() => void load()}><FiRefreshCw /> Recargar</button>
+        </div>
       </header>
 
       <div className="events-toolbar">
-        <label>Año escolar<input type="number" value={year}
-          onChange={event => setYear(Number(event.target.value))} /></label>
-        <button aria-label="Actualizar eventos" onClick={() => void load()}><FiRefreshCw /></button>
+        <div className="events-year-select">
+          <span>Año escolar</span>
+          <button type="button" aria-label="Año escolar" aria-haspopup="listbox"
+            aria-expanded={yearOpen} onClick={() => setYearOpen(current => !current)}>
+            {year}<span aria-hidden="true">⌄</span>
+          </button>
+          {yearOpen && <div className="events-year-select__menu" role="listbox"
+            aria-label="Año escolar">
+            {schoolYears.map(item => <button type="button" role="option" value={item}
+              aria-selected={item === year} key={item} onClick={() => {
+                setYear(item);
+                setYearOpen(false);
+              }}>{item}</button>)}
+          </div>}
+        </div>
       </div>
       {feedback && <p className="events-feedback" role="status">{feedback}</p>}
 
@@ -122,13 +169,19 @@ export const EventsPage = () => {
             <p>Crea la edición anual y configura sus cursos y stands.</p></section>
         : <div className="events-layout">
           <aside className="event-list" aria-label="Eventos">
-            {events.map(event => <button className={selected?.id === event.id ? "active" : ""}
+            {visibleEvents.map(event => <button className={selected?.id === event.id ? "active" : ""}
               key={event.id} onClick={() => { setSelected(event); setSettlement(undefined); }}>
-              <strong>{event.name}</strong><span>{event.schoolYear} · {statusLabel[event.status]}</span>
+              <strong>{event.name}</strong><span>{event.eventDate} · {
+                statusLabel[event.status]}</span>
             </button>)}
+            {eventPages > 1 && <Pagination currentPage={eventPage} totalPages={eventPages}
+              hasPrevious={eventPage > 1} hasNext={eventPage < eventPages}
+              onPrevious={() => changeEventPage(eventPage - 1)}
+              onNext={() => changeEventPage(eventPage + 1)} ariaLabel="Paginación de eventos" />}
           </aside>
           {selected && <EventDetail event={selected} settlement={settlement}
-            onExpense={() => setDialog("expense")} onRevenue={() => setDialog("revenue")}
+            onExpense={anchor => { setDialogAnchor(anchor); setDialog("expense"); }}
+            onRevenue={anchor => { setDialogAnchor(anchor); setDialog("revenue"); }}
             onDeleteRevenue={async () => {
               try {
                 refreshSelected(await repository.deleteEventRevenue(selected.id));
@@ -137,8 +190,9 @@ export const EventsPage = () => {
                 setFeedback(apiErrorMessage(error, "No fue posible eliminar la recaudación."));
               }
             }}
-            onEdit={() => setDialog("edit")}
-            onEditExpense={expense => { setExpenseToEdit(expense); setDialog("expense"); }}
+            onEdit={anchor => { setDialogAnchor(anchor); setDialog("edit"); }}
+            onEditExpense={(expense, anchor) => { setExpenseToEdit(expense); setExpenseAnchor(anchor);
+              setDialog("expense"); }}
             onDeleteExpense={async expense => {
               refreshSelected(await repository.deleteEventExpense(selected.id, expense.key));
               setFeedback("Gasto eliminado definitivamente.");
@@ -148,21 +202,26 @@ export const EventsPage = () => {
               setSelected(undefined);
             }}
             onCalculate={() => void calculate()} onConfirm={() => void confirm()}
+            onDismissSettlement={() => setSettlement(undefined)}
             onCancelSettlement={() => void cancelSettlement()} />}
         </div>}
 
       {dialog === "event" && <EventForm year={year} managedCourse={managedCourse}
-        onClose={() => setDialog(null)}
-        onSaved={event => { setEvents(current => [event, ...current]); setSelected(event);
+        anchor={dialogAnchor} onClose={() => { setDialog(null); setDialogAnchor(undefined); }}
+        onSaved={event => { setEvents(current => [event, ...current]); setEventPage(1); setSelected(event);
           setDialog(null); }} />}
       {dialog === "edit" && selected && <EventForm year={year} event={selected}
-        managedCourse={managedCourse} onClose={() => setDialog(null)}
+        managedCourse={managedCourse} anchor={dialogAnchor}
+        onClose={() => { setDialog(null); setDialogAnchor(undefined); }}
         onSaved={refreshSelected} />}
       {dialog === "expense" && selected && <ExpenseForm event={selected} expense={expenseToEdit}
-        onClose={() => { setDialog(null); setExpenseToEdit(undefined); }}
+        anchor={expenseToEdit ? expenseAnchor : dialogAnchor}
+        onClose={() => { setDialog(null); setExpenseToEdit(undefined); setExpenseAnchor(undefined);
+          setDialogAnchor(undefined); }}
         onSaved={event => { setExpenseToEdit(undefined); refreshSelected(event); }} />}
       {dialog === "revenue" && selected && <RevenueForm event={selected}
-        onClose={() => setDialog(null)} onSaved={refreshSelected} />}
+        anchor={dialogAnchor} onClose={() => { setDialog(null); setDialogAnchor(undefined); }}
+        onSaved={refreshSelected} />}
     </main>
   );
 };
@@ -191,17 +250,25 @@ const EventsSkeleton = () => <div className="events-skeleton" role="status" aria
 </div>;
 
 const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDeleted,
-  onCalculate, onConfirm, onCancelSettlement, onEditExpense, onDeleteExpense,
+  onCalculate, onConfirm, onDismissSettlement, onCancelSettlement, onEditExpense, onDeleteExpense,
   onDeleteRevenue }: {
-  event: SchoolEvent; settlement?: EventSettlement; onExpense: () => void; onRevenue: () => void;
+  event: SchoolEvent; settlement?: EventSettlement;
+  onExpense: (anchor: { top: number; left: number }) => void;
+  onRevenue: (anchor: { top: number; left: number }) => void;
   onDeleteRevenue: () => Promise<void>;
-  onEdit: () => void; onDeleted: () => void; onCalculate: () => void; onConfirm: () => void;
+  onEdit: (anchor: { top: number; left: number }) => void; onDeleted: () => void;
+  onCalculate: () => void; onConfirm: () => void;
+  onDismissSettlement: () => void;
   onCancelSettlement: () => void;
-  onEditExpense: (expense: SchoolEventExpense) => void;
+  onEditExpense: (expense: SchoolEventExpense, anchor: { top: number; left: number }) => void;
   onDeleteExpense: (expense: SchoolEventExpense) => Promise<void>;
 }) => {
-  const [deleteArmed, setDeleteArmed] = useState(false);
-  const [revenueDeleteArmed, setRevenueDeleteArmed] = useState(false);
+  const [confirmEventDelete, setConfirmEventDelete] = useState(false);
+  const [deletingEvent, setDeletingEvent] = useState(false);
+  const [eventDeleteAnchor, setEventDeleteAnchor] = useState<{ top: number; left: number }>();
+  const [confirmRevenueDelete, setConfirmRevenueDelete] = useState(false);
+  const [deletingRevenue, setDeletingRevenue] = useState(false);
+  const [revenueDeleteAnchor, setRevenueDeleteAnchor] = useState<{ top: number; left: number }>();
   const [cancelArmed, setCancelArmed] = useState(false);
   const closed = event.status === "CERRADO" || event.status === "CANCELADO";
   return <section className="event-detail">
@@ -209,43 +276,61 @@ const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDelete
       <header><div><span>{statusLabel[event.status]}</span><h2>{event.name} {event.schoolYear}</h2>
         <p><FiCalendar /> {event.eventDate} · <FiUsers /> {event.participants.length} cursos</p></div>
         <div className="event-actions">
-          {!closed && <><button onClick={onExpense}>Registrar gasto</button>
-          <button onClick={onRevenue}>{event.grossRevenue != null
-            ? "Editar recaudación" : "Registrar recaudación"}</button>
-          {event.grossRevenue != null && <button className={revenueDeleteArmed ? "danger" : ""}
-            onClick={async () => {
-              if (!revenueDeleteArmed) { setRevenueDeleteArmed(true); return; }
-              await onDeleteRevenue();
-              setRevenueDeleteArmed(false);
-            }}><FiTrash2 /> {revenueDeleteArmed
-              ? "Confirmar eliminación" : "Eliminar recaudación"}</button>}
-          {revenueDeleteArmed && <button type="button"
-            onClick={() => setRevenueDeleteArmed(false)}>Cancelar</button>}
-          <button onClick={onEdit}><FiEdit2 /> Editar</button></>}
+          {!closed && <button className="event-action--edit" onClick={click =>
+            onEdit(anchorForCard(click.currentTarget.getBoundingClientRect(), 320, 430))}>
+            <FiEdit2 /> Editar evento</button>}
           {closed && <button className={cancelArmed ? "danger" : ""} onClick={() => {
             if (!cancelArmed) { setCancelArmed(true); return; }
             onCancelSettlement();
           }}>{cancelArmed ? "Confirmar cancelación" : "Cancelar liquidación"}</button>}
           {!closed && <>
-          <button className={deleteArmed ? "danger" : ""} onClick={async () => {
-            if (!deleteArmed) { setDeleteArmed(true); return; }
-            await repository.deleteEvent(event.id);
-            onDeleted();
-          }}><FiTrash2 /> {deleteArmed ? "Confirmar eliminación" : "Eliminar evento"}</button>
-          {deleteArmed && <button type="button" onClick={() => setDeleteArmed(false)}>Cancelar</button>}</>}
+          <button className="event-action--delete danger" onClick={click => {
+            setEventDeleteAnchor(anchorForCard(
+              click.currentTarget.getBoundingClientRect(),
+              Math.min(280, window.innerWidth - 24), 190));
+            setConfirmEventDelete(true);
+          }}><FiTrash2 /> Eliminar evento</button></>}
           {cancelArmed && <button type="button" onClick={() => setCancelArmed(false)}>Volver</button>}
         </div></header>
       <div className="event-metrics">
-        <Metric label="Recaudación bruta" value={event.grossRevenue ?? 0} />
-        <Metric label="Gastos comunes" value={-event.commonExpenses} negative />
-        <Metric label="Gastos de cursos" value={-event.courseExpenses} negative />
-        <Metric label="Ganancia neta total" value={event.netProfit} />
-        <Metric label="Remanente" value={event.remainder ?? 0} />
+        <Metric label="Recaudación bruta" value={event.grossRevenue ?? 0} tone="income" />
+        <Metric label="Gastos comunes" value={-event.commonExpenses} negative tone="expense" />
+        <Metric label="Gastos de cursos" value={-event.courseExpenses} negative tone="courses" />
+        <Metric label="Ganancia neta total" value={event.netProfit} tone="profit" />
+        <Metric label="Remanente" value={event.remainder ?? 0} tone="remainder" />
       </div>
+      {!closed && <section className="event-finance-actions">
+        <div><strong>Recaudación y distribución</strong>
+          <small>Gestiona el ingreso total y luego calcula el reparto por curso.</small></div>
+        <div className="event-finance-buttons">
+          <button className="event-action--revenue" onClick={click =>
+            onRevenue(anchorForCard(click.currentTarget.getBoundingClientRect(), 320, 430))}>
+            <FiDollarSign /> {event.grossRevenue != null
+              ? "Editar recaudación" : "Registrar recaudación"}</button>
+          {event.grossRevenue != null && <button className="event-action--delete" onClick={click => {
+            setRevenueDeleteAnchor(anchorForCard(click.currentTarget.getBoundingClientRect(),
+              Math.min(280, window.innerWidth - 24), 190));
+            setConfirmRevenueDelete(true);
+          }}><FiTrash2 /> Eliminar recaudación</button>}
+          <button className="event-action--preview" disabled={event.grossRevenue == null}
+            onClick={onCalculate}><FiDollarSign /> Calcular distribución</button>
+        </div>
+        {settlement && <div className="settlement-review">
+          <div className="settlement-modal-content">
+            <p>Se descontaron los gastos y el resultado se dividió entre los cursos.</p>
+            <div><span>Total para distribuir</span>
+              <strong>{money.format(settlement.distributable)}</strong></div>
+            {settlement.remainder > 0 && <div className="settlement-warning"><span>Remanente</span>
+              <strong>{money.format(settlement.remainder)}</strong></div>}
+            <footer><button type="button" onClick={onDismissSettlement}><FiX /> Volver</button>
+              <button type="button" disabled={settlement.courses.some(item => item.netProfit < 0)}
+                onClick={onConfirm}><FiCheckCircle /> Confirmar distribución</button></footer>
+          </div>
+        </div>}
+      </section>}
       <p><strong>Stand:</strong> {event.participants[0]?.standName}</p>
     </article>
-    <div className="event-section-title"><h2>Distribución por curso</h2>
-      {!closed && <button onClick={onCalculate}>Calcular distribución</button>}</div>
+    <div className="event-section-title"><h2>Distribución por curso</h2></div>
     <div className="course-grid">{event.participants.map(participant => {
       const preview = settlement?.courses.find(item => item.course === participant.course);
       const net = preview?.netProfit ?? participant.netProfit;
@@ -254,33 +339,61 @@ const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDelete
           <span>{participant.transferStatus === "TRANSFERRED" ? "Transferida" :
             participant.transferStatus === "REQUIRES_RESOLUTION" ? "Requiere resolución" :
             "Pendiente"}</span></header>
-        <dl><div><dt>Monto a recibir sin descontar gastos</dt>
+        <dl><div><dt>Monto a recibir</dt>
           <dd>{money.format(preview?.grossShare ?? participant.grossShare ?? 0)}</dd></div>
-          <div><dt>Gasto registrado por el curso</dt>
+          <div><dt>Gasto registrado</dt>
           <dd className="negative">-{money.format(preview?.expenses ??
             participant.ownExpenses ?? 0)}</dd></div><div><dt>Neto por curso</dt>
           <dd>{money.format(net ?? 0)}</dd></div></dl></article>;
     })}</div>
-    {settlement && <article className="settlement-preview"><h2>Vista previa de liquidación</h2>
-      <p>Ganancia neta después de descontar todos los gastos: 
-        <strong>{money.format(settlement.distributable)}</strong></p>
-      {settlement.remainder > 0 && <p className="settlement-warning">Margen que queda en tesorería:
-        {money.format(settlement.remainder)}</p>}
-      <button disabled={settlement.courses.some(item => item.netProfit < 0)} onClick={onConfirm}>
-        Confirmar liquidación y transferir</button></article>}
-    <section><h2>Gastos registrados</h2><div className="expense-grid">
+    <section><div className="event-expenses-header"><h2>Gastos registrados</h2>
+      {!closed && <button onClick={click =>
+        onExpense(anchorForCard(click.currentTarget.getBoundingClientRect(), 320, 430))}>
+        <FiMinusCircle /> Registrar gasto</button>}</div><div className="expense-grid">
       {event.expenses.map(expense => <EventExpenseCard key={expense.key} expense={expense}
-        editable={!closed} onEdit={() => onEditExpense(expense)}
+        editable={!closed} onEdit={anchor => onEditExpense(expense, anchor)}
         onDelete={() => onDeleteExpense(expense)} />)}</div></section>
+    <ModalConfirm isOpen={confirmEventDelete} compact confirmVariant="danger"
+      anchor={eventDeleteAnchor} title="Eliminar evento"
+      message={`Se eliminará definitivamente el evento “${event.name}”.`}
+      confirmLabel="Eliminar evento" cancelLabel="Volver" isLoading={deletingEvent}
+      confirmIcon={<FiTrash2 />} cancelIcon={<FiX />}
+      onCancel={() => setConfirmEventDelete(false)} onConfirm={() => void (async () => {
+        setDeletingEvent(true);
+        try {
+          await repository.deleteEvent(event.id);
+          setConfirmEventDelete(false);
+          onDeleted();
+        } finally {
+          setDeletingEvent(false);
+        }
+      })()} />
+    <ModalConfirm isOpen={confirmRevenueDelete} compact confirmVariant="danger"
+      anchor={revenueDeleteAnchor} title="Eliminar recaudación"
+      message="La recaudación registrada será eliminada del evento."
+      confirmLabel="Eliminar" cancelLabel="Volver" isLoading={deletingRevenue}
+      confirmIcon={<FiTrash2 />} cancelIcon={<FiX />}
+      onCancel={() => setConfirmRevenueDelete(false)} onConfirm={() => void (async () => {
+        setDeletingRevenue(true);
+        try {
+          await onDeleteRevenue();
+          setConfirmRevenueDelete(false);
+        } finally {
+          setDeletingRevenue(false);
+        }
+      })()} />
   </section>;
 };
 
 const EventExpenseCard = ({ expense, editable, onEdit, onDelete }: {
-  expense: SchoolEventExpense; editable: boolean; onEdit: () => void;
+  expense: SchoolEventExpense; editable: boolean;
+  onEdit: (anchor: { top: number; left: number }) => void;
   onDelete: () => Promise<void>;
 }) => {
-  const [deleteArmed, setDeleteArmed] = useState(false);
-  return <article className="event-expense">
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
+  return <><article className="event-expense">
     <header><strong>{expense.description}</strong><span>{expense.status === "ACTIVE"
       ? "Activo" : "Anulado"}</span></header><b>-{money.format(expense.amount)}</b>
     <p>{expense.type === "COMMON" ? "Gasto común" : `Curso: ${expense.course}`}</p>
@@ -289,22 +402,56 @@ const EventExpenseCard = ({ expense, editable, onEdit, onDelete }: {
         ? "Se descuenta en la liquidación" : "Donado · no se descuenta"}</span>
     <small>{expense.date} · {expense.category || "Sin categoría"} · {expense.registeredBy}</small>
     {editable && expense.status === "ACTIVE" && <footer className="event-actions">
-      <button type="button" onClick={onEdit}><FiEdit2 /> Editar</button>
-      <button type="button" className={deleteArmed ? "danger" : ""} onClick={async () => {
-        if (!deleteArmed) { setDeleteArmed(true); return; }
-        await onDelete();
-      }}><FiTrash2 /> {deleteArmed ? "Confirmar eliminación" : "Eliminar"}</button>
-      {deleteArmed && <button type="button" onClick={() => setDeleteArmed(false)}>Cancelar</button>}
+      <button type="button" onClick={event => {
+        const card = event.currentTarget.closest(".event-expense")?.getBoundingClientRect();
+        if (card) onEdit(anchorForCard(card, Math.min(320, window.innerWidth - 24), 370));
+      }}><FiEdit2 /> Editar</button>
+      <button type="button" className="danger" onClick={event => {
+        const card = event.currentTarget.closest(".event-expense")?.getBoundingClientRect();
+        if (card) setDeleteAnchor(anchorForCard(card, Math.min(280, window.innerWidth - 24), 190));
+        setConfirmDelete(true);
+      }}>
+        <FiTrash2 /> Eliminar</button>
     </footer>}
-  </article>;
+  </article>
+  <ModalConfirm isOpen={confirmDelete} compact confirmVariant="danger"
+    anchor={deleteAnchor}
+    title="Eliminar gasto" message={`Se eliminará el gasto “${expense.description}”.`}
+    confirmLabel="Eliminar" cancelLabel="Volver" isLoading={deleting}
+    confirmIcon={<FiTrash2 />} cancelIcon={<FiX />} onCancel={() => setConfirmDelete(false)}
+    onConfirm={() => void (async () => {
+      setDeleting(true);
+      try {
+        await onDelete();
+        setConfirmDelete(false);
+      } finally {
+        setDeleting(false);
+      }
+    })()} />
+  </>;
 };
 
-const Metric = ({ label, value, negative = false }: { label: string; value: number;
-  negative?: boolean }) => <div><span>{label}</span><strong className={negative ? "negative" : ""}>
-    {money.format(value)}</strong></div>;
+const Metric = ({ label, value, negative = false, tone }: { label: string; value: number;
+  negative?: boolean; tone: "income" | "expense" | "courses" | "profit" | "remainder";
+}) => <div className={`event-metric event-metric--${tone}`}>
+  <div><span>{label}</span><i>{tone === "income" || tone === "remainder"
+    ? <FiDollarSign aria-hidden="true" /> : tone === "courses"
+      ? <FiUsers aria-hidden="true" /> : tone === "profit"
+        ? <FiTrendingUp aria-hidden="true" /> : <FiMinusCircle aria-hidden="true" />}</i></div>
+  <strong className={negative ? "negative" : ""}>{money.format(value)}</strong>
+</div>;
 
-const EventForm = ({ year, event, managedCourse, onClose, onSaved }: {
+const defaultParticipantCourses = (managedCourse: string) => {
+  const match = managedCourse.trim().toUpperCase().match(/^(.*?)([A-Z])$/);
+  if (!match) return [managedCourse, "", ""];
+  const [, level, section] = match;
+  const sectionCode = section.charCodeAt(0);
+  return [0, 1, 2].map(offset => `${level}${String.fromCharCode(sectionCode + offset)}`);
+};
+
+const EventForm = ({ year, event, managedCourse, anchor, onClose, onSaved }: {
   year: number; event?: SchoolEvent; managedCourse: string;
+  anchor?: { top: number; left: number };
   onClose: () => void; onSaved: (event: SchoolEvent) => void;
 }) => {
   const [error, setError] = useState("");
@@ -313,20 +460,18 @@ const EventForm = ({ year, event, managedCourse, onClose, onSaved }: {
     description: event?.description ?? "", standName: event?.participants[0]?.standName ?? "",
     courses: event?.participants.map(item => ({
       course: item.course, standType: item.standType ?? "",
-    })) ?? [
-      { course: managedCourse, standType: "" },
-      { course: "", standType: "" },
-      { course: "", standType: "" },
-    ] });
+    })) ?? defaultParticipantCourses(managedCourse)
+      .map(course => ({ course, standType: "" })) });
   useEffect(() => {
-    if (!event && managedCourse && !form.courses[0]?.course) {
+    if (!event && managedCourse) {
       setForm(current => {
-        const courses = [...current.courses];
-        courses[0] = { ...courses[0], course: managedCourse };
+        if (current.courses.some(item => item.course)) return current;
+        const courses = defaultParticipantCourses(managedCourse)
+          .map(course => ({ course, standType: "" }));
         return { ...current, courses };
       });
     }
-  }, [event, managedCourse, form.courses]);
+  }, [event, managedCourse]);
   const submit = async (submitEvent: React.FormEvent) => {
     submitEvent.preventDefault();
     const { courses, standName, ...eventFields } = form;
@@ -340,18 +485,19 @@ const EventForm = ({ year, event, managedCourse, onClose, onSaved }: {
       setError(apiErrorMessage(requestError, "No fue posible guardar el evento."));
     }
   };
-  return <Modal title={event ? "Editar evento" : "Crear evento"} onClose={onClose}>
-    <form onSubmit={submit}>
-    <label>Nombre<input required value={form.name}
+  return <Modal title={event ? "Editar evento" : "Crear evento"} onClose={onClose} compact
+    anchor={anchor}>
+    <form className="event-create-form" onSubmit={submit}>
+    <div className="form-row"><label>Nombre<input required value={form.name}
       onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+      <label>Nombre del stand<input required value={form.standName}
+        onChange={e => setForm({ ...form, standName: e.target.value })} /></label></div>
     <div className="form-row"><label>Año<input required type="number" value={form.schoolYear}
       onChange={e => setForm({ ...form, schoolYear: Number(e.target.value) })} /></label>
       <label>Fecha<input required type="date" value={form.eventDate}
         onChange={e => setForm({ ...form, eventDate: e.target.value })} /></label></div>
     <label>Descripción<textarea value={form.description}
       onChange={e => setForm({ ...form, description: e.target.value })} /></label>
-    <label>Nombre del stand<input required value={form.standName}
-      onChange={e => setForm({ ...form, standName: e.target.value })} /></label>
     <fieldset><legend>Cursos participantes</legend>{form.courses.map((course, index) =>
       <div key={index}>{!event && index === 0 ? <select aria-label="Curso administrado"
         required value={course.course} onChange={e => {
@@ -366,13 +512,14 @@ const EventForm = ({ year, event, managedCourse, onClose, onSaved }: {
             courses[index] = { ...course, course: e.target.value.toUpperCase() };
             setForm({ ...form, courses }); }} />}</div>)}</fieldset>
     {error && <p className="events-form-error" role="alert">{error}</p>}
-    <footer><button type="button" onClick={onClose}>Cancelar</button>
-      <button type="submit">{event ? "Guardar cambios" : "Crear evento"}</button>
+    <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
+      <button type="submit"><FiPlus /> {event ? "Guardar cambios" : "Crear evento"}</button>
     </footer></form></Modal>;
 };
 
-const ExpenseForm = ({ event, expense, onClose, onSaved }: { event: SchoolEvent;
-  expense?: SchoolEventExpense; onClose: () => void; onSaved: (event: SchoolEvent) => void }) => {
+const ExpenseForm = ({ event, expense, anchor, onClose, onSaved }: { event: SchoolEvent;
+  expense?: SchoolEventExpense; anchor?: { top: number; left: number };
+  onClose: () => void; onSaved: (event: SchoolEvent) => void }) => {
   const [error, setError] = useState("");
   const [form, setForm] = useState({ description: expense?.description ?? "",
     amount: expense?.amount ?? 0, date: expense?.date ?? today,
@@ -380,7 +527,8 @@ const ExpenseForm = ({ event, expense, onClose, onSaved }: { event: SchoolEvent;
     category: expense?.category ?? "", responsible: expense?.responsible ?? "",
     paymentMethod: expense?.paymentMethod ?? "CASH",
     deductFromSettlement: expense?.deductFromSettlement ?? true });
-  return <Modal title={expense ? "Editar gasto" : "Registrar gasto"} onClose={onClose}>
+  return <Modal title={expense ? "Editar gasto" : "Registrar gasto"} onClose={onClose} compact
+    centered={!anchor} anchor={anchor}>
     <form onSubmit={async e => {
     e.preventDefault();
     try {
@@ -414,12 +562,13 @@ const ExpenseForm = ({ event, expense, onClose, onSaved }: { event: SchoolEvent;
           el monto que se reparte entre los cursos.</small></span>
     </label>
     {error && <p className="events-form-error" role="alert">{error}</p>}
-    <footer><button type="button" onClick={onClose}>Cancelar</button>
-      <button type="submit">{expense ? "Guardar cambios" : "Registrar gasto"}</button>
+    <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
+      <button type="submit"><FiMinusCircle /> {expense ? "Guardar cambios" : "Registrar gasto"}</button>
     </footer></form></Modal>;
 };
 
-const RevenueForm = ({ event, onClose, onSaved }: { event: SchoolEvent; onClose: () => void;
+const RevenueForm = ({ event, anchor, onClose, onSaved }: { event: SchoolEvent;
+  anchor?: { top: number; left: number }; onClose: () => void;
   onSaved: (event: SchoolEvent) => void }) => {
   const [error, setError] = useState("");
   const [amount, setAmount] = useState(event.grossRevenue?.toString() ?? "");
@@ -434,7 +583,7 @@ const RevenueForm = ({ event, onClose, onSaved }: { event: SchoolEvent; onClose:
     [amount, date, description, paymentMethod, receiptNumber, observations]);
   const editing = event.grossRevenue != null;
   return <Modal title={editing ? "Editar recaudación" : "Registrar recaudación"}
-    onClose={onClose}><form onSubmit={async e => {
+    onClose={onClose} compact anchor={anchor}><form onSubmit={async e => {
     e.preventDefault();
     try { setError(""); onSaved(await repository.registerEventRevenue(event.id, payload)); }
     catch (requestError) {
@@ -462,14 +611,19 @@ const RevenueForm = ({ event, onClose, onSaved }: { event: SchoolEvent; onClose:
       onChange={e => setObservations(e.target.value)} /></label>
     <p>La recaudación se dividirá por la cantidad real de cursos participantes.</p>
     {error && <p className="events-form-error" role="alert">{error}</p>}
-    <footer><button type="button" onClick={onClose}>Cancelar</button>
+    <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
       <button type="submit"><FiDollarSign /> {editing
         ? "Guardar cambios" : "Guardar recaudación"}</button></footer></form></Modal>;
 };
 
-const Modal = ({ title, onClose, children }: { title: string; onClose: () => void;
-  children: React.ReactNode }) => <div className="event-modal" role="presentation"
+const Modal = ({ title, onClose, children, compact = false, centered = false, anchor }: { title: string;
+  onClose: () => void; children: React.ReactNode; compact?: boolean; centered?: boolean;
+  anchor?: { top: number; left: number } }) =>
+  <div className={`event-modal ${compact ? "event-modal--compact" : ""} ${
+    centered ? "event-modal--centered" : ""} ${anchor ? "event-modal--anchored" : ""}`}
+    role="presentation"
     onMouseDown={event => event.target === event.currentTarget && onClose()}>
-    <section role="dialog" aria-modal="true" aria-labelledby="event-dialog-title">
+    <section role="dialog" aria-modal="true" aria-labelledby="event-dialog-title"
+      style={anchor ? { position: "fixed", top: anchor.top, left: anchor.left } : undefined}>
       <header><h2 id="event-dialog-title">{title}</h2>
         <button aria-label="Cerrar" onClick={onClose}>×</button></header>{children}</section></div>;

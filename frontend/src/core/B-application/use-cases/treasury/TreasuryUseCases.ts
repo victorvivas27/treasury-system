@@ -31,4 +31,11 @@ export class TreasuryUseCases {
   reports(year: number, type: TreasuryReportType) {
     return this.repository.reports(year, type);
   }
+  profile(year: number) { return this.repository.profile(year); }
+  listContributionConfigs(year: number) {
+    return this.repository.listContributionConfigs(year);
+  }
+  listContributions(year: number) {
+    return this.repository.listContributions(year);
+  }
 }

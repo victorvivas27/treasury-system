@@ -1,149 +1,130 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { TreasuryProfile } from "@/core/A-domain/entities/treasury/Treasury";
+import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
+import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { useAuth } from "@/presentation/context/AuthContext";
 import "./ProfilePage.css";
 
-const TABS = ["Proyectos", "Guardados"] as const;
-type ProfileTab = (typeof TABS)[number];
-
-interface EditableProfile {
-  nombre: string;
-  username: string;
-  bio: string;
-}
-
-const CONTENT: Record<ProfileTab, string[]> = {
-  Proyectos: ["Control de cuotas", "Portal de familias", "Reporte anual", "Panel de tesorería", "Registro escolar", "Calendario de pagos"],
-  Guardados: ["Presupuesto 2026", "Resumen mensual", "Directorio de familias"],
-};
+const money = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
+const shortDate = new Intl.DateTimeFormat("es-CL", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
 
 export const ProfilePage = () => {
   const { user } = useAuth();
-  const initialProfile = useMemo<EditableProfile>(() => ({
-    nombre: user?.nombre ?? "Martina Rojas",
-    username: user?.correo.split("@")[0] ?? "martina.rojas",
-    bio: "Organizo proyectos y finanzas para fortalecer nuestra comunidad.",
-  }), [user]);
-  const [profile, setProfile] = useState(initialProfile);
-  const [draft, setDraft] = useState(initialProfile);
-  const [activeTab, setActiveTab] = useState<ProfileTab>("Proyectos");
-  const [isEditing, setIsEditing] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  const initials = profile.nombre.split(/\s+/).slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase()).join("");
+  const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
+  const [familyLoading, setFamilyLoading] = useState(true);
+  const treasury = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
 
   useEffect(() => {
-    if (isEditing) nameInputRef.current?.focus();
-  }, [isEditing]);
+    let active = true;
+    const loadFamilyProfile = async () => {
+      if (!user?.correo) {
+        setFamilyLoading(false);
+        return;
+      }
+      setFamilyLoading(true);
+      try {
+        const currentYear = new Date().getFullYear();
+        const profile = await treasury.profile(currentYear);
+        if (active) setFamilyProfile(profile.familyId ? profile : null);
+      } catch {
+        if (active) setFamilyProfile(null);
+      } finally {
+        if (active) setFamilyLoading(false);
+      }
+    };
+    void loadFamilyProfile();
+    return () => { active = false; };
+  }, [treasury, user?.correo]);
 
-  useEffect(() => {
-    if (!showToast) return;
-    const timer = window.setTimeout(() => setShowToast(false), 3000);
-    return () => window.clearTimeout(timer);
-  }, [showToast]);
+  const name = user?.nombre ?? "Usuario";
+  const initials = name.split(/\s+/).slice(0, 2)
+    .map(part => part.charAt(0).toUpperCase()).join("");
+  const pending = familyProfile?.obligations.filter(item => item.status === "PENDIENTE") ?? [];
+  const pendingAmount = pending.reduce((total, item) => total + item.amount, 0);
+  const paymentMode = familyProfile?.mode ?? familyProfile?.obligations[0]?.mode;
 
-  const openEditor = () => {
-    setDraft(profile);
-    setIsEditing(true);
-  };
-
-  const saveProfile = (event: FormEvent) => {
-    event.preventDefault();
-    setProfile({
-      nombre: draft.nombre.trim(),
-      username: draft.username.trim().replace(/^@/, ""),
-      bio: draft.bio.trim(),
-    });
-    setIsEditing(false);
-    setShowToast(true);
-  };
-
-  return (
-    <main className="profile-page">
-      <article className="profile-card" aria-labelledby="profile-name">
-        <section className="profile-identity" aria-label="Identidad">
-          <div className="profile-summary">
-            <div className="profile-avatar" aria-label={`Iniciales de ${profile.nombre}`}>{initials}</div>
-            <div className="profile-copy">
-              <h1 id="profile-name">{profile.nombre}</h1>
-              <p className="profile-username">@{profile.username}</p>
-              <p className="profile-bio">{profile.bio}</p>
-            </div>
+  return <main className="profile-page">
+    <article className="profile-card" aria-labelledby="profile-name">
+      <section className="profile-identity" aria-label="Identidad">
+        <div className="profile-summary">
+          <div className="profile-avatar" aria-label={`Iniciales de ${name}`}>{initials}</div>
+          <div className="profile-copy">
+            <h1 id="profile-name">{name}</h1>
+            {user?.correo && <p className="profile-username">{user.correo}</p>}
+            <span className="profile-role">{user?.rol === "ADMIN" ? "Administrador" : "Usuario"}</span>
           </div>
-          <button className="profile-edit-button" type="button" onClick={openEditor}>Editar Perfil</button>
-        </section>
-
-        <section className="profile-stats" aria-label="Métricas del perfil">
-          <div><strong>127</strong><span>Proyectos</span></div>
-          <div><strong>48</strong><span>Seguidores</span></div>
-          <div><strong>23</strong><span>Siguiendo</span></div>
-        </section>
-
-        <section className="profile-content" aria-label="Contenido del perfil">
-          <div className="profile-tabs" role="tablist" aria-label="Contenido">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                id={`tab-${tab.toLowerCase()}`}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab}
-                aria-controls="profile-panel"
-                tabIndex={activeTab === tab ? 0 : -1}
-                className={activeTab === tab ? "is-active" : ""}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <div id="profile-panel" className="profile-panel" role="tabpanel" aria-labelledby={`tab-${activeTab.toLowerCase()}`}>
-            {CONTENT[activeTab].map((title) => (
-              <article className="profile-project" key={title}>
-                <div className="profile-project-placeholder" aria-hidden="true" />
-                <h2>{title}</h2>
-                <p>{activeTab === "Proyectos" ? "Proyecto activo" : "Guardado para después"}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </article>
-
-      {isEditing && (
-        <div
-          className="profile-modal-overlay"
-          onMouseDown={() => setIsEditing(false)}
-          onKeyDown={(event) => event.key === "Escape" && setIsEditing(false)}
-        >
-          <section
-            className="profile-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="edit-profile-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <h2 id="edit-profile-title">Editar perfil</h2>
-            <form onSubmit={saveProfile}>
-              <label htmlFor="profile-edit-name">Nombre</label>
-              <input ref={nameInputRef} id="profile-edit-name" value={draft.nombre}
-                onChange={(event) => setDraft({ ...draft, nombre: event.target.value })} required maxLength={100} />
-              <label htmlFor="profile-edit-username">@usuario</label>
-              <input id="profile-edit-username" value={draft.username}
-                onChange={(event) => setDraft({ ...draft, username: event.target.value })} required maxLength={40} />
-              <label htmlFor="profile-edit-bio">Bio</label>
-              <textarea id="profile-edit-bio" value={draft.bio}
-                onChange={(event) => setDraft({ ...draft, bio: event.target.value })} rows={3} maxLength={160} />
-              <div className="profile-modal-actions">
-                <button type="button" className="profile-cancel-button" onClick={() => setIsEditing(false)}>Cancelar</button>
-                <button type="submit" className="profile-save-button">Guardar cambios</button>
-              </div>
-            </form>
-          </section>
         </div>
-      )}
+      </section>
 
-      {showToast && <div className="profile-toast" role="status" aria-live="polite">Perfil actualizado correctamente</div>}
-    </main>
-  );
+      <section className="profile-real-data" aria-label="Datos de la cuenta">
+        <h2>Estado de la cuenta</h2>
+        <strong className={`profile-account-status ${user?.enabled ? "is-active" : "is-inactive"}`}>
+          {user?.enabled ? "Activa" : "Inactiva"}
+        </strong>
+      </section>
+
+      {familyLoading && <p className="profile-loading">Consultando vinculación familiar…</p>}
+
+      {!familyLoading && familyProfile && <section className="profile-real-data profile-family-data"
+        aria-label="Vinculación familiar">
+        <header>
+          <div><span>Vinculación familiar</span><h2>{familyProfile.familyCode}</h2></div>
+          {familyProfile.primaryGuardian &&
+            <strong className="profile-principal-badge">Apoderado principal</strong>}
+        </header>
+        <dl className="profile-data-grid">
+          <div><dt>Alumno</dt><dd>{familyProfile.studentName}</dd></div>
+          <div><dt>Parentesco</dt><dd>{familyProfile.relationship}</dd></div>
+          <div><dt>Teléfono</dt><dd>{familyProfile.guardianPhone}</dd></div>
+        </dl>
+
+        <div className="profile-contribution-statuses">
+          {(["CEPA", "SOLIDARIA"] as const).map(type => {
+            const payment = type === "CEPA"
+              ? familyProfile.cepa
+              : familyProfile.solidarity;
+            const paid = payment?.status === "PAID";
+            return <div className={`profile-contribution-status ${paid ? "is-current" : "has-debt"}`}
+              key={type}>
+              <span>{type === "CEPA" ? "Aporte CEPA" : "Aporte solidario"}</span>
+              <strong>{paid ? "Pagado" : "Pendiente"}</strong>
+            </div>;
+          })}
+        </div>
+
+        {paymentMode && <div className={`profile-payment-status ${familyProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
+          <div>
+            <span>Cuota del curso · {paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
+            <strong>{familyProfile.obligations.length === 0
+              ? "Modalidad asignada"
+              : pending.length === 0 ? "Al día"
+              : `${pending.length} ${pending.length === 1 ? "cuota pendiente" : "cuotas pendientes"}`}</strong>
+            {familyProfile.obligations.length > 0 && <div className="profile-course-installments">
+              {familyProfile.obligations.map(item => <span key={item.id}>
+                <b>{item.concept}</b>
+                <small>{item.dueDate
+                  ? shortDate.format(new Date(`${item.dueDate}T00:00:00`))
+                  : "Sin fecha"}</small>
+                <small>{money.format(item.amount)}</small>
+                <em className={item.status === "PAGADA" ? "is-paid" : "is-pending"}>
+                  {item.status === "PAGADA" ? "Pagada" : "Pendiente"}
+                </em>
+              </span>)}
+            </div>}
+          </div>
+          {pending.length > 0 && <div className="profile-payment-total">
+            <span>Total cuota</span><b>{money.format(pendingAmount)}</b>
+          </div>}
+        </div>}
+      </section>}
+    </article>
+  </main>;
 };

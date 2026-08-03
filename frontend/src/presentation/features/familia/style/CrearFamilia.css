@@ -2,11 +2,13 @@
 
 .familia-create__form {
   background-color: var(--color-surface);
-  padding: var(--sm);
+  padding: var(--lg);
   border-radius: 12px;
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: var(--sm);
+  gap: .4rem;
+  max-width: 920px;
+  margin-inline: auto;
 }
 
 .familia-field input,
@@ -24,13 +26,80 @@
 .familia-field {
   position: relative;
   display: grid;
-  gap: 4px;
-  padding-bottom: 24px;
+  gap: 2px;
+  padding-bottom: 10px;
 }
 
 .familia-field textarea {
   padding: var(--sm);
 
+}
+
+.familia-parentesco {
+  position: relative;
+}
+
+.familia-parentesco__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.35rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--text-main);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.familia-parentesco__trigger.input-error {
+  border-color: var(--color-error);
+}
+
+.familia-parentesco__trigger:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+.familia-parentesco__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 3px);
+  right: 0;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 13rem;
+  padding: 3px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 14%);
+}
+
+.familia-parentesco__menu button {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: .16rem .5rem;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+  font-size: .76rem;
+  line-height: 1.05;
+  text-align: left;
+  cursor: pointer;
+}
+
+.familia-parentesco__menu button:hover,
+.familia-parentesco__menu button[aria-selected="true"] {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
 }
 
 .familia-field input:focus,
@@ -47,12 +116,12 @@
 .familia-field small {
   position: absolute;
   right: 0;
-  bottom: 2px;
+  bottom: 0;
   left: 0;
   overflow: hidden;
   color: var(--color-error);
   font-size: var(--xs);
-  line-height: 16px;
+  line-height: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -61,9 +130,9 @@
   border: 1px solid var(--divider);
   border-radius: 8px;
   display: grid;
-  gap: var(--sm);
+  gap: .25rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: var(--sm);
+  padding: .7rem;
 }
 
 .familia-form__apoderado-header {
@@ -71,6 +140,20 @@
   display: flex;
   grid-column: 1 / -1;
   justify-content: space-between;
+}
+
+.familia-form__apoderado-header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.familia-form__apoderado-header strong {
+  color: var(--text-main);
+}
+
+.familia-form__apoderado-header span {
+  color: var(--color-text-muted);
+  font-size: var(--xs);
 }
 
 .familia-check {
@@ -99,7 +182,7 @@
 }
 
 .familia-message--validation.is-empty {
-  visibility: hidden;
+  display: none;
 }
 
 .familia-message--error {
@@ -119,16 +202,148 @@
   justify-content: flex-end;
 }
 
+.familia-form__add-apoderado {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.familia-observaciones {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--color-bg);
+}
+
+.familia-observaciones summary {
+  padding: .75rem 1rem;
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.familia-observaciones summary span {
+  color: var(--color-text-muted);
+  font-size: var(--xs);
+  font-weight: 400;
+}
+
+.familia-observaciones__content {
+  margin: 0;
+  padding: .25rem 1rem 1rem;
+}
+
+.familia-observaciones__content textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.familia-edit__form {
+  gap: .5rem;
+}
+
+.familia-edit__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+  padding: .65rem .8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--color-bg);
+}
+
+.familia-edit__summary > div,
+.familia-edit__guardian-name {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.familia-edit__summary span,
+.familia-edit__guardian-name span {
+  color: var(--color-text-muted);
+  font-size: .68rem;
+  text-transform: uppercase;
+}
+
+.familia-edit__summary strong,
+.familia-edit__guardian-name strong {
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: .82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.familia-edit__apoderado .familia-check {
+  align-self: center;
+}
+
+.familia-edit__apoderado .familia-check label {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .78rem;
+}
+
+.familia-edit__apoderado .familia-check input {
+  margin: 0;
+}
+
 @media (max-width: 720px) {
   .familia-create__form {
-    padding: var(--sm);
+    gap: .3rem;
+    padding: .75rem;
   }
 
   .familia-form__apoderado {
     grid-template-columns: 1fr;
   }
 
+  .familia-edit__summary {
+    grid-template-columns: 1fr;
+  }
+
   .familia-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: stretch;
+  }
+
+  .familia-actions .base-button,
+  .familia-form__add-apoderado .base-button {
+    width: 100%;
+    margin: 0;
+  }
+
+  .familia-field {
+    padding-bottom: 9px;
+  }
+
+  .familia-message--validation {
+    min-height: 0;
+    padding-block: 0;
+  }
+
+  .familia-message--validation.is-empty {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .familia-create-page .form-page-header {
+    margin-bottom: .45rem;
+  }
+
+  .familia-create-page .familia-create__title {
+    margin-bottom: .1rem;
+    font-size: 1.15rem;
+  }
+
+  .familia-create-page .familia-create__subtitle {
+    margin-bottom: 0;
+    font-size: .75rem;
+  }
+
+  .familia-form__apoderado {
+    padding: .75rem;
   }
 }

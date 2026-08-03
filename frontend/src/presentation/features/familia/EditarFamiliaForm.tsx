@@ -3,6 +3,10 @@ import { FAMILIA_ICONS } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import "./style/CrearFamilia.css";
+import { CompactSelect } from "./CrearFamilia";
+
+const parentescos = ["Padre", "Madre", "Tutor", "Abuelo", "Abuela", "Hermano", "Hermana"];
 
 export const EditarFamiliaForm = () => {
   const {
@@ -14,6 +18,7 @@ export const EditarFamiliaForm = () => {
     modal,
     handleChange,
     handleApoderadoChange,
+    setParentesco,
     addApoderado,
     removeApoderado,
     handleSubmit,
@@ -48,19 +53,18 @@ export const EditarFamiliaForm = () => {
   }
 
   return (
-    <div className="form-view-container">
-      <form className="form-card">
-        <div className="info-section">
-          <h3>Informacion de la familia</h3>
-          <div className="info-row">
-            <span className="info-label">Familia:</span>
-            <span className="info-value">{familiaData?.codigoFamilia}</span>
+    <div className="form-view-container familia-edit">
+      <form className="familia-create__form familia-edit__form">
+        <div className="familia-edit__summary">
+          <div>
+            <span>Familia</span>
+            <strong>{familiaData?.codigoFamilia}</strong>
           </div>
-          <div className="info-row">
-            <span className="info-label">Alumno:</span>
-            <span className="info-value">
+          <div>
+            <span>Alumno</span>
+            <strong>
               {familiaData?.alumno.nombre} ({familiaData?.alumno.codigo})
-            </span>
+            </strong>
           </div>
         </div>
 
@@ -82,17 +86,33 @@ export const EditarFamiliaForm = () => {
             fieldErrors.parentesco;
 
           return (
-          <section className="info-section" key={relacion.apoderadoId}>
-            <h3>Apoderado {index + 1}</h3>
+          <section className="familia-form__apoderado familia-edit__apoderado" key={`${relacion.apoderadoId}-${index}`}>
+            <header className="familia-form__apoderado-header">
+              <div>
+                <strong>Apoderado {index + 1}</strong>
+                <span>{relacion.esPrincipal ? "Principal" : "Adicional"}</span>
+              </div>
+              {esNuevo && (
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="small"
+                  onClick={() => removeApoderado(index)}
+                  label="Quitar"
+                  icon={<FAMILIA_ICONS.delete />}
+                />
+              )}
+            </header>
             {esNuevo ? (
-              <div className="form-group floating-group">
+              <label className="familia-field">
+                <span>Seleccionar apoderado</span>
                 <select
                   id={`apoderado_input_${index}`}
                   name="apoderadoId"
                   value={relacion.apoderadoId || ""}
                   onChange={(event) => handleApoderadoChange(index, event)}
                   disabled={loadingApoderados || Boolean(apoderadosError)}
-                  className={`form-input ${apoderadoIdError ? "input-error" : ""}`}
+                  className={apoderadoIdError ? "input-error" : ""}
                 >
                   <option value="">
                     {loadingApoderados ? "Cargando apoderados..." : "Seleccionar apoderado"}
@@ -109,67 +129,45 @@ export const EditarFamiliaForm = () => {
                       </option>
                     ))}
                 </select>
-                <label htmlFor={`apoderado_input_${index}`} className="floating-label form-label">
-                  Apoderado
-                </label>
                 {(apoderadoIdError || apoderadosError) && (
-                  <span className="error-message">{apoderadoIdError || apoderadosError}</span>
+                  <small>{apoderadoIdError || apoderadosError}</small>
                 )}
-              </div>
+              </label>
             ) : (
-              <div className="info-row">
-                <span className="info-label">Nombre:</span>
-                <span className="info-value">
+              <div className="familia-edit__guardian-name">
+                <span>Nombre</span>
+                <strong>
                   {apoderado
                     ? `${apoderado.nombre} (${apoderado.codigo})`
                     : `ID ${relacion.apoderadoId}`}
-                </span>
+                </strong>
               </div>
             )}
 
-            <div className="form-group floating-group">
-              <select
-                id={`parentesco_input_${index}`}
-                name="parentesco"
+            <label className="familia-field">
+              <span>Parentesco</span>
+              <CompactSelect
+                label={`Parentesco del apoderado ${index + 1}`}
                 value={relacion.parentesco}
-                onChange={(event) => handleApoderadoChange(index, event)}
-                className={`form-input ${parentescoError ? "input-error" : ""}`}
-              >
-                <option value="">Seleccionar parentesco</option>
-                <option value="Padre">Padre</option>
-                <option value="Madre">Madre</option>
-                <option value="Tutor">Tutor</option>
-                <option value="Abuelo">Abuelo</option>
-                <option value="Abuela">Abuela</option>
-                <option value="Hermano">Hermano</option>
-                <option value="Hermana">Hermana</option>
-              </select>
-              <label htmlFor={`parentesco_input_${index}`} className="floating-label form-label">
-                Parentesco
-              </label>
-              {parentescoError && <span className="error-message">{parentescoError}</span>}
-            </div>
+                placeholder="Seleccionar parentesco"
+                error={Boolean(parentescoError)}
+                options={parentescos.map((parentesco) => ({ value: parentesco, label: parentesco }))}
+                onChange={(value) => setParentesco(index, value)}
+              />
+              {parentescoError && <small>{parentescoError}</small>}
+            </label>
 
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
+            <div className="familia-check">
+              <label>
                 <input
                   type="radio"
                   name="esPrincipal"
                   checked={relacion.esPrincipal}
                   onChange={(event) => handleApoderadoChange(index, event)}
                 />
-                <span>Seleccionar como apoderado principal</span>
+                <span>Apoderado principal</span>
               </label>
             </div>
-            {esNuevo && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="small"
-                onClick={() => removeApoderado(index)}
-                label="Quitar"
-              />
-            )}
           </section>
           );
         })}
@@ -187,25 +185,24 @@ export const EditarFamiliaForm = () => {
           </div>
         )}
 
-        <div className="form-group">
-          <label htmlFor="observaciones_input" className="form-label">
-            Observaciones (opcional)
+        <details className="familia-observaciones" open={Boolean(formData.observacionesGenerales)}>
+          <summary>Observaciones <span>(opcional)</span></summary>
+          <label className="familia-field familia-observaciones__content">
+            <span>Observaciones generales</span>
+            <textarea
+              id="observaciones_input"
+              name="observacionesGenerales"
+              value={formData.observacionesGenerales || ""}
+              onChange={handleChange}
+              placeholder="Observaciones adicionales..."
+              rows={3}
+              className={fieldErrors.observacionesGenerales ? "input-error" : ""}
+            />
+            {fieldErrors.observacionesGenerales && <small>{fieldErrors.observacionesGenerales}</small>}
           </label>
-          <textarea
-            id="observaciones_input"
-            name="observacionesGenerales"
-            value={formData.observacionesGenerales || ""}
-            onChange={handleChange}
-            placeholder="Observaciones adicionales..."
-            rows={3}
-            className={`form-input ${fieldErrors.observacionesGenerales ? "input-error" : ""}`}
-          />
-          {fieldErrors.observacionesGenerales && (
-            <span className="error-message">{fieldErrors.observacionesGenerales}</span>
-          )}
-        </div>
+        </details>
 
-        <div className="form-actions">
+        <div className="familia-actions">
           <Button
             variant="primary"
             size="medium"
@@ -220,6 +217,7 @@ export const EditarFamiliaForm = () => {
             size="medium"
             onClick={() => navigate("/family")}
             label="Cancelar"
+            icon={<FAMILIA_ICONS.cancel />}
           />
         </div>
       </form>
@@ -229,7 +227,8 @@ export const EditarFamiliaForm = () => {
         message={modal.message}
         type={modal.type}
         onClose={() => setModal({ ...modal, isOpen: false })}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={modal.type === "success" ? "toast" : "modal"}
       />
     </div>
   );

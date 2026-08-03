@@ -25,12 +25,14 @@ public final class TreasuryDtos {
       @Size(max = 500) String observations) { }
   public record AnnulmentRequest(@NotBlank @Size(max = 500) String reason) { }
   public record GenerationResponse(int generated) { }
-  public record PlanResponse(Long id, Long familyId, String familyCode, String studentName,
-      String course, PaymentMode mode) { }
-  public record ObligationResponse(Long id, Long familyId, String familyCode, String studentName,
-      String course, PaymentMode mode, InstallmentType installment, String concept,
+  public record PlanResponse(Long id, Long familyId, String familyCode, String primaryGuardian,
+      String studentName, String course, PaymentMode mode) { }
+  public record ObligationResponse(Long id, Long familyId, String familyCode,
+      String primaryGuardian, String studentName, String course, PaymentMode mode,
+      InstallmentType installment, String concept,
       BigDecimal amount, LocalDate dueDate, ObligationStatus status) { }
-  public record ReportResponse(Long familyId, String familyCode, String studentName,
+  public record ReportResponse(Long familyId, String familyCode, String primaryGuardian,
+      String studentName,
       String course, PaymentMode mode, List<ObligationResponse> obligations) { }
   public record ContributionConfigRequest(@NotBlank @Size(max = 80) String name,
       boolean active, @PositiveOrZero BigDecimal referenceAmount,
@@ -43,6 +45,10 @@ public final class TreasuryDtos {
       LocalDateTime cancelledAt) { }
   public record FamilyContributionResponse(Long familyId, String familyCode,
       String studentName, String course, String primaryGuardian, ContributionResponse cepa,
+      ContributionResponse solidarity) { }
+  public record ProfileResponse(Long familyId, String familyCode, String studentName,
+      String guardianPhone, String relationship, boolean primaryGuardian, PaymentMode mode,
+      List<ObligationResponse> obligations, ContributionResponse cepa,
       ContributionResponse solidarity) { }
   public record ContributionSummaryResponse(long totalFamilies, long cepaPaid,
       long cepaPending, long solidarityPaid, long solidarityPending,

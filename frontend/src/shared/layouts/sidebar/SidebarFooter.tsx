@@ -86,11 +86,14 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
 
       <ModalConfirm
         isOpen={isLogoutModalOpen}
+        compact
+        raised
         title="Cerrar sesión"
         message="¿Estás seguro de que deseas cerrar la sesión?"
         confirmLabel="Cerrar sesión"
         cancelLabel="Cancelar"
         isLoading={isLoggingOut}
+        confirmVariant="danger"
         onConfirm={handleLogout}
         onCancel={() => setIsLogoutModalOpen(false)}
       />

@@ -1,4 +1,4 @@
-.form-card {
+.alumno-edit-form.form-card {
   background-color: var(--color-surface);
   padding: var(--sm);
   border-radius: 12px;
@@ -94,17 +94,66 @@
 }
 
 @media (max-width: 640px) {
-  .form-card {
+  .alumno-edit-page .form-page-header {
+    margin-bottom: .45rem;
+  }
+
+  .alumno-edit-page .form-page-header__title {
+    margin-bottom: .1rem;
+    font-size: 1.15rem;
+  }
+
+  .alumno-edit-page .form-page-header__subtitle {
+    margin-bottom: 0;
+    font-size: .75rem;
+    line-height: 1.35;
+  }
+
+  .alumno-edit-form.form-card {
     grid-template-columns: 1fr;
+    gap: .25rem;
+    padding: .65rem;
   }
 
-  .form-actions {
-    align-items: stretch;
-    flex-direction: column;
+  .alumno-edit-form__group.form-group {
+    min-width: 0;
+    margin: .25rem .35rem;
+    padding-bottom: 18px;
   }
 
-  .form-actions .base-button {
+  .alumno-edit-form__group .form-input {
+    min-height: 44px;
+    padding: .7rem .8rem;
+  }
+
+  .alumno-edit-form__actions.form-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    margin: .15rem .35rem 0;
+  }
+
+  .alumno-edit-form__actions .base-button {
     width: 100%;
+    min-width: 0;
+    min-height: 40px;
     margin: 0;
+    padding-inline: .4rem;
+    font-size: .7rem;
+  }
+
+  .alumno-edit-form__actions .button-content,
+  .alumno-edit-form__actions .button-label {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .alumno-edit-form__actions .button-content {
+    gap: .2rem;
+  }
+
+  .alumno-edit-form__group .error-message {
+    white-space: normal;
   }
 }

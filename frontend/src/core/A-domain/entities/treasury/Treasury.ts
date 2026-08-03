@@ -19,6 +19,7 @@ export interface FamilyPlan {
   id: number;
   familyId: number;
   familyCode: string;
+  primaryGuardian: string;
   studentName: string;
   course: string;
   mode: PaymentMode;
@@ -28,6 +29,7 @@ export interface FeeObligation {
   id: number;
   familyId: number;
   familyCode: string;
+  primaryGuardian: string;
   studentName: string;
   course: string;
   mode: PaymentMode;
@@ -83,10 +85,24 @@ export interface TreasuryFilters {
 export interface TreasuryReport {
   familyId: number;
   familyCode: string;
+  primaryGuardian?: string;
   studentName: string;
   course: string;
   mode: PaymentMode;
   obligations: FeeObligation[];
+}
+
+export interface TreasuryProfile {
+  familyId?: number;
+  familyCode?: string;
+  studentName?: string;
+  guardianPhone?: string;
+  relationship?: string;
+  primaryGuardian: boolean;
+  mode?: PaymentMode;
+  obligations: FeeObligation[];
+  cepa?: ContributionPayment;
+  solidarity?: ContributionPayment;
 }
 
 export type TreasuryReportType =

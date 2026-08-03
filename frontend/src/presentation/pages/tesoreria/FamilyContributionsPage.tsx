@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiCheck, FiSearch, FiX } from "react-icons/fi";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FiAlertCircle, FiAward, FiCheck, FiCheckCircle, FiClock, FiHeart,
+  FiFilter, FiSearch, FiUsers, FiX } from "react-icons/fi";
 import type {
   ContributionStatus, ContributionSummary, ContributionType,
   FamilyContribution,
@@ -40,6 +41,9 @@ export const FamilyContributionsPage = () => {
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = [search.trim(), course, cepaStatus, solidarityStatus]
+    .filter(Boolean).length;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -121,7 +125,6 @@ export const FamilyContributionsPage = () => {
     <main className="contributions-page">
       <header className="contributions-page__header">
         <div>
-          <span className="contributions-page__eyebrow">Tesorería del curso</span>
           <h1>Cuota CEPA y Cuota Solidaria</h1>
           <p>
             Seguimiento anual por familia. Las familias existentes aparecen automáticamente
@@ -135,21 +138,41 @@ export const FamilyContributionsPage = () => {
           <article className="contribution-summary-skeleton" key={index} aria-hidden="true">
             <div className="skeleton-block" /><div className="skeleton-block" />
           </article>) : <>
-          <SummaryCard label="Total familias" value={summary.totalFamilies} />
-          <SummaryCard label="CEPA pagada" value={summary.cepaPaid} positive />
-          <SummaryCard label="CEPA pendiente" value={summary.cepaPending} />
-          <SummaryCard label="Solidaria pagada" value={summary.solidarityPaid} positive />
-          <SummaryCard label="Solidaria pendiente" value={summary.solidarityPending} />
-          <SummaryCard label="Completamente al día" value={summary.fullyPaid} positive />
+          <SummaryCard label="Total familias" value={summary.totalFamilies} tone="families"
+            icon={<FiUsers />} />
+          <SummaryCard label="CEPA pagada" value={summary.cepaPaid} tone="cepa-paid"
+            icon={<FiCheckCircle />} />
+          <SummaryCard label="CEPA pendiente" value={summary.cepaPending} tone="cepa-pending"
+            icon={<FiClock />} />
+          <SummaryCard label="Solidaria pagada" value={summary.solidarityPaid}
+            tone="solidarity-paid" icon={<FiHeart />} />
+          <SummaryCard label="Solidaria pendiente" value={summary.solidarityPending}
+            tone="solidarity-pending" icon={<FiAlertCircle />} />
+          <SummaryCard label="Completamente al día" value={summary.fullyPaid} tone="complete"
+            icon={<FiAward />} />
         </>}
       </section>
 
-      <section className="contributions-filters" aria-label="Filtros">
+      <div className="contributions-filter-toolbar">
+        <button type="button" className="contributions-filter-trigger"
+          onClick={() => setFiltersOpen(true)}>
+          <FiFilter aria-hidden="true" /> Filtros
+          {activeFilters > 0 && <span>{activeFilters}</span>}
+        </button>
+      </div>
+
+      {filtersOpen && <div className="contributions-filter-backdrop"
+        onClick={() => setFiltersOpen(false)}>
+      <aside className="contributions-filters" aria-label="Filtros" role="dialog"
+        aria-modal="true" onClick={event => event.stopPropagation()}>
+        <header><div><FiFilter aria-hidden="true" /><h2>Filtros</h2></div>
+          <button type="button" aria-label="Cerrar filtros"
+            onClick={() => setFiltersOpen(false)}><FiX /></button></header>
         <label className="contributions-search">
           <FiSearch aria-hidden="true" />
           <span className="sr-only">Buscar familia o alumno</span>
           <input value={search} onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar familia o alumno" />
+            placeholder="Buscar familia" />
         </label>
         <Filter label="Año" value={String(year)} onChange={(value) => setYear(Number(value))}
           options={schoolYears.map(String)} />
@@ -160,7 +183,17 @@ export const FamilyContributionsPage = () => {
         <Filter label="Estado Solidaria" value={solidarityStatus}
           onChange={setSolidarityStatus} options={["PAID", "PENDING"]}
           labels={["Pagada", "Pendiente"]} />
-      </section>
+        <footer className="contributions-filter-actions">
+          <button type="button" className="contributions-filter-clear" onClick={() => {
+            setSearch("");
+            setCourse("");
+            setCepaStatus("");
+            setSolidarityStatus("");
+          }}>Limpiar filtros</button>
+          <button type="button" className="contributions-filter-apply"
+            onClick={() => setFiltersOpen(false)}>Ver resultados</button>
+        </footer>
+      </aside></div>}
 
       {loading ? (
         <ContributionsSkeleton />
@@ -179,8 +212,10 @@ export const FamilyContributionsPage = () => {
                 </div>
                 <span>{item.course}</span>
               </div>
-              <ContributionBadge label="CEPA" status={item.cepa?.status} />
-              <ContributionBadge label="Solidaria" status={item.solidarity?.status} />
+              <div className="contribution-card__statuses">
+                <ContributionBadge label="CEPA" status={item.cepa?.status} />
+                <ContributionBadge label="Solidaria" status={item.solidarity?.status} />
+              </div>
               <button type="button" onClick={() => setSelected(item)}>
                 {canManage ? "Gestionar aportes" : "Ver detalle"}
               </button>
@@ -200,14 +235,16 @@ export const FamilyContributionsPage = () => {
             <h2 id="contribution-modal-title">Familia {selected.familyCode}</h2>
             <p>{selected.primaryGuardian && `Apoderado: ${selected.primaryGuardian} · `}
               Alumno: {selected.studentName}</p>
-            <ContributionAction label="Cuota CEPA" payment={selected.cepa}
-              canManage={canManage} disabled={saving}
-              onPay={() => setPendingAction({ kind: "pay", type: "CEPA" })}
-              onCancel={() => setPendingAction({ kind: "cancel", type: "CEPA" })} />
-            <ContributionAction label="Cuota Solidaria" payment={selected.solidarity}
-              canManage={canManage} disabled={saving}
-              onPay={() => setPendingAction({ kind: "pay", type: "SOLIDARIA" })}
-              onCancel={() => setPendingAction({ kind: "cancel", type: "SOLIDARIA" })} />
+            <div className="contribution-modal__actions">
+              <ContributionAction label="Cuota CEPA" payment={selected.cepa}
+                canManage={canManage} disabled={saving}
+                onPay={() => setPendingAction({ kind: "pay", type: "CEPA" })}
+                onCancel={() => setPendingAction({ kind: "cancel", type: "CEPA" })} />
+              <ContributionAction label="Cuota Solidaria" payment={selected.solidarity}
+                canManage={canManage} disabled={saving}
+                onPay={() => setPendingAction({ kind: "pay", type: "SOLIDARIA" })}
+                onCancel={() => setPendingAction({ kind: "cancel", type: "SOLIDARIA" })} />
+            </div>
           </section>
         </div>
       )}
@@ -223,6 +260,7 @@ export const FamilyContributionsPage = () => {
         confirmLabel={pendingAction?.kind === "cancel" ? "Anular pago" : "Registrar pago"}
         cancelLabel="Volver"
         isLoading={saving}
+        compact
         onCancel={() => {
           setPendingAction(null);
           setCancellationReason("");
@@ -267,9 +305,11 @@ export const FamilyContributionsPage = () => {
   );
 };
 
-const SummaryCard = ({ label, value, positive = false }: {
-  label: string; value: number; positive?: boolean;
-}) => <article className={positive ? "is-positive" : ""}><span>{label}</span><strong>{value}</strong></article>;
+const SummaryCard = ({ label, value, icon, tone }: {
+  label: string; value: number; icon: ReactNode; tone: string;
+}) => <article className={`contribution-summary-card contribution-summary-card--${tone}`}>
+  <div><span>{label}</span><i aria-hidden="true">{icon}</i></div><strong>{value}</strong>
+</article>;
 
 const ContributionsSkeleton = () => (
   <section className="contributions-grid" aria-label="Cargando familias" role="status">
@@ -314,7 +354,10 @@ const ContributionAction = ({ label, payment, canManage, disabled, onPay, onCanc
   const paid = isPaid(payment?.status);
   return <article className="contribution-modal__item">
     <ContributionBadge label={label} status={payment?.status} />
-    {payment?.paymentDate && <small>Fecha de pago: {payment.paymentDate}</small>}
+    <small className={!payment?.paymentDate ? "is-placeholder" : undefined}
+      aria-hidden={!payment?.paymentDate || undefined}>
+      {payment?.paymentDate ? `Fecha de pago: ${payment.paymentDate}` : "Fecha de pago pendiente"}
+    </small>
     {canManage && (paid
       ? <button type="button" className="is-danger" disabled={disabled}
           onClick={onCancel}>Anular registro de pago</button>

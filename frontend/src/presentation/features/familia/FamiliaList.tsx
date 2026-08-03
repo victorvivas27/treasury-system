@@ -89,10 +89,10 @@ export const FamiliaList: FC<FamiliaListProps> = ({
       <table className="familia-table">
         <thead>
           <tr>
-            <th className="familia-table__th">Codigo Familia</th>
-            <th className="familia-table__th">Alumno Codigo</th>
+            <th className="familia-table__th">Código familia</th>
+            <th className="familia-table__th">Código alumno</th>
             <th className="familia-table__th">Alumno</th>
-            <th className="familia-table__th">Cantidad Apoderados</th>
+            <th className="familia-table__th">Apoderados</th>
             <th className="familia-table__th">Principal</th>
             <th className="familia-table__th">Secundarios</th>
             <th className="familia-table__th">Acciones</th>
@@ -119,7 +119,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   isEmptyRow && !loading ? "empty-row" : ""
                 }`}
               >
-                <td className="familia-table__td" data-label="Codigo Familia">
+                <td className="familia-table__td" data-label="Código familia">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
@@ -129,7 +129,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   )}
                 </td>
 
-                <td className="familia-table__td" data-label="Alumno Codigo">
+                <td className="familia-table__td" data-label="Código alumno">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
@@ -149,7 +149,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   )}
                 </td>
 
-                <td className="familia-table__td" data-label="Cantidad Apoderados">
+                <td className="familia-table__td" data-label="Apoderados">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
@@ -193,16 +193,20 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                       <Button
                         variant="danger"
                         size="small"
+                        className="familia-table__action-button"
                         onClick={() => handleDelete?.(familia.familiaId)}
                         icon={<FAMILIA_ICONS.delete />}
+                        label="Eliminar"
                         testId={`delete-btn-${familia.familiaId}`}
                       />
 
                       <Button
                         variant="secondary"
                         size="small"
+                        className="familia-table__action-button"
                         onClick={() => handleEdit?.(familia.familiaId)}
                         icon={<FAMILIA_ICONS.edit />}
+                        label="Editar"
                         testId={`edit-btn-${familia.familiaId}`}
                       />
                     </div>

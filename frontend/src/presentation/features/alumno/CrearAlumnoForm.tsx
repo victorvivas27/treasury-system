@@ -54,7 +54,7 @@ export const CrearAlumnoForm = () => {
         )}
         </div>
 
-        <div className="form-actions">
+        <div className="form-actions-alumno">
           <Button
             variant="primary"
             size="medium"
@@ -78,7 +78,8 @@ export const CrearAlumnoForm = () => {
         message={modal.message}
         type={modal.type}
         onClose={closeModal}
-        autoCloseTime={2500}
+        autoCloseTime={2000}
+        variant={modal.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

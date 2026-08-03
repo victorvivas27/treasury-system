@@ -9,6 +9,7 @@ import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { FiRefreshCw, FiUserPlus, FiX } from "react-icons/fi";
 import "./UsersPage.css";
 
 export const UsersPage = () => {
@@ -19,7 +20,7 @@ export const UsersPage = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteAlert, setDeleteAlert] = useState<{
+  const [userAlert, setUserAlert] = useState<{
     isOpen: boolean;
     message: string;
     type: "success" | "error";
@@ -30,9 +31,22 @@ export const UsersPage = () => {
   }, [load]);
 
   const handleCreate = async (payload: UserPayload) => {
-    await create(payload, 0);
-    setCurrentPage(0);
-    setShowForm(false);
+    try {
+      await create(payload, 0);
+      setCurrentPage(0);
+      setShowForm(false);
+      setUserAlert({
+        isOpen: true,
+        message: "Usuario creado correctamente.",
+        type: "success",
+      });
+    } catch {
+      setUserAlert({
+        isOpen: true,
+        message: "No fue posible crear el usuario.",
+        type: "error",
+      });
+    }
   };
 
   const handleUpdate = async (payload: UserPayload) => {
@@ -55,13 +69,13 @@ export const UsersPage = () => {
       await remove(userToDelete.id, targetPage);
       setCurrentPage(targetPage);
       setUserToDelete(null);
-      setDeleteAlert({
+      setUserAlert({
         isOpen: true,
         message: "Usuario eliminado correctamente.",
         type: "success",
       });
     } catch {
-      setDeleteAlert({
+      setUserAlert({
         isOpen: true,
         message: "No fue posible eliminar el usuario.",
         type: "error",
@@ -77,19 +91,30 @@ export const UsersPage = () => {
     <main className="users-page">
       <header className="users-page-header">
         <div>
-          <h1>Gestión de Usuarios</h1>
-          <p>Visualiza y administra los usuarios registrados en el sistema.</p>
+          <h1>Usuarios</h1>
+          <p>Administra accesos, roles y estado de las cuentas.</p>
         </div>
-        {user?.rol === "ADMIN" && (
+        <div className="users-page-header__actions">
           <Button
-            label={showForm ? "Cerrar formulario" : "Crear usuario"}
+            label={loading ? "Cargando" : "Recargar"}
+            icon={<FiRefreshCw aria-hidden="true" />}
+            variant="secondary"
+            loading={loading}
+            onClick={() => void load(currentPage)}
+            size="medium"
+          />
+          {user?.rol === "ADMIN" && (
+            <Button
+              label={showForm ? "Cerrar formulario" : "Crear usuario"}
+              icon={showForm ? <FiX aria-hidden="true" /> : <FiUserPlus aria-hidden="true" />}
               onClick={() => {
                 setEditingUser(null);
                 setShowForm((visible) => !visible);
               }}
-            size="medium"
-          />
-        )}
+              size="medium"
+            />
+          )}
+        </div>
       </header>
 
       {showForm && (
@@ -142,21 +167,24 @@ export const UsersPage = () => {
 
       <ModalConfirm
         isOpen={Boolean(userToDelete)}
-        title="Eliminar usuario"
-        message={`¿Estás seguro de eliminar a ${userToDelete?.nombre ?? "este usuario"}? Esta acción no se puede deshacer.`}
+        title="¿Eliminar usuario?"
+        message={`Se eliminará a ${userToDelete?.nombre ?? "este usuario"}. Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         isLoading={isDeleting}
+        compact
+        confirmVariant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setUserToDelete(null)}
       />
 
       <ModalAlert
-        isOpen={deleteAlert.isOpen}
-        message={deleteAlert.message}
-        type={deleteAlert.type}
-        onClose={() => setDeleteAlert((current) => ({ ...current, isOpen: false }))}
-        autoCloseTime={2500}
+        isOpen={userAlert.isOpen}
+        message={userAlert.message}
+        type={userAlert.type}
+        onClose={() => setUserAlert((current) => ({ ...current, isOpen: false }))}
+        autoCloseTime={2000}
+        variant={userAlert.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

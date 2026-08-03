@@ -8,7 +8,6 @@ import { User } from "../pages/user/User";
 import { AlumnoPage } from "../pages/alumno/AlumnoPage";
 import { TreasurySectionPage } from "../pages/tesoreria/TreasurySectionPage";
 import { AnnualFeesPage } from "../pages/tesoreria/AnnualFeesPage";
-import { TreasuryOverviewPage } from "../pages/tesoreria/TreasuryOverviewPage";
 import { TreasuryReportsPage } from "../pages/tesoreria/TreasuryReportsPage";
 import { Notificacion } from "../pages/notificacion/Notificacion";
 import { Configuracion } from "../pages/configuracion/Configuracion";
@@ -47,9 +46,9 @@ export const AppRouter = () => {
       <Route element={<MainLayout />} >
         <Route element={<ProtectedRoute />}>
           <Route path="profile" element={<ProfilePage />} />
-          <Route path="tesoreria" element={<Navigate to="/tesoreria/resumen" replace />} />
-          <Route path="tesoreria/resumen" element={<TreasuryOverviewPage />} />
-          <Route path="treasury" element={<Navigate to="/tesoreria/resumen" replace />} />
+          <Route path="tesoreria" element={<Navigate to="/dashboard" replace />} />
+          <Route path="tesoreria/resumen" element={<Navigate to="/dashboard" replace />} />
+          <Route path="treasury" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
         </Route>
         <Route element={<AdminRoute />}>

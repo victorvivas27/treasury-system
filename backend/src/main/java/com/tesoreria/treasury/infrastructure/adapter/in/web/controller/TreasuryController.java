@@ -15,6 +15,7 @@ import com.tesoreria.apoderado.core.port.in.GetApoderadoUseCase;
 
 import com.tesoreria.alumno.application.usecase.AlumnoService;
 import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.familia.core.model.Familia;
 import com.tesoreria.familia.core.port.in.GetFamiliaUseCase;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
@@ -29,6 +30,8 @@ import jakarta.validation.Valid;
 @RequestMapping(ApiConstants.TREASURY)
 public class TreasuryController {
   private static final String ADMIN_ROLE = "hasRole('ADMIN')";
+  private static final String ASCENDING = "asc";
+  private static final String FAMILY_CODE_SORT = "codigo";
   private final TreasuryUseCase treasury;
   private final GetFamiliaUseCase families;
   private final AlumnoService students;
@@ -127,7 +130,7 @@ public class TreasuryController {
     if (overview.quotas().totalFamilies() == 0) return overview;
 
     Set<Long> existingFamilyIds = families.listarFamilia(
-        new PageRequest(0, 10_000, "codigo", "asc")).content().stream()
+        new PageRequest(0, 10_000, FAMILY_CODE_SORT, ASCENDING)).content().stream()
         .map(Familia::getFamiliaId).collect(java.util.stream.Collectors.toSet());
     List<FamilyFeePlan> validPlans = treasury.listPlans(year).stream()
         .filter(plan -> existingFamilyIds.contains(plan.familyId())).toList();
@@ -191,12 +194,10 @@ public class TreasuryController {
       @RequestParam(required = false) ContributionStatus solidarityStatus,
       @RequestParam(required = false) String search) {
     Map<String, FamilyContribution> payments = contributionMap(year);
-    Map<Long, String> guardianNames = guardians.findAll(
-        new PageRequest(0, 10_000, "nombre", "asc")).content().stream()
-        .collect(java.util.stream.Collectors.toMap(
-            item -> item.getApoderadoId(), item -> item.getNombre(), (first, ignored) -> first));
+    Map<Long, String> guardianNames = guardianNames();
     String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
-    return families.listarFamilia(new PageRequest(0, 10_000, "codigo", "asc")).content().stream()
+    return families.listarFamilia(
+        new PageRequest(0, 10_000, FAMILY_CODE_SORT, ASCENDING)).content().stream()
         .map(family -> contributionFamily(family, payments, guardianNames))
         .filter(item -> course == null || item.course().equalsIgnoreCase(course))
         .filter(item -> familyId == null || item.familyId().equals(familyId))
@@ -371,15 +372,60 @@ public class TreasuryController {
   @GetMapping("/reportes")
   public List<ReportResponse> reports(@RequestParam int year, @RequestParam String type) {
     Map<Long, List<ObligationResponse>> grouped = new LinkedHashMap<>();
+    Map<Long, Familia> reportFamilies = families.listarFamilia(
+        new PageRequest(0, 10_000, FAMILY_CODE_SORT, ASCENDING)).content().stream()
+        .collect(java.util.stream.Collectors.toMap(Familia::getFamiliaId, item -> item));
+    Map<Long, String> guardianNames = guardianNames();
     enriched(year).forEach(item ->
         grouped.computeIfAbsent(item.familyId(), ignored -> new ArrayList<>()).add(item));
     return grouped.values().stream()
         .filter(reportFilter(type))
         .map(items -> {
           ObligationResponse first = items.get(0);
-          return new ReportResponse(first.familyId(), first.familyCode(), first.studentName(),
-              first.course(), first.mode(), items);
+          Familia family = reportFamilies.get(first.familyId());
+          String primaryGuardian = family == null ? null : family.getApoderados().stream()
+              .filter(item -> Boolean.TRUE.equals(item.getEsPrincipal())).findFirst()
+              .map(item -> guardianNames.get(item.getApoderadoId())).orElse(null);
+          return new ReportResponse(first.familyId(), first.familyCode(), primaryGuardian,
+              first.studentName(), first.course(), first.mode(), items);
         }).toList();
+  }
+
+  @GetMapping("/perfil")
+  public ProfileResponse profile(@RequestParam int year, Principal principal) {
+    Apoderado guardian = guardians.findAll(
+        new PageRequest(0, 10_000, "nombre", ASCENDING)).content().stream()
+        .filter(item -> item.getEmail().equalsIgnoreCase(principal.getName()))
+        .findFirst().orElse(null);
+    if (guardian == null) return emptyProfile();
+
+    Familia family = families.listarFamilia(
+        new PageRequest(0, 10_000, FAMILY_CODE_SORT, ASCENDING)).content().stream()
+        .filter(item -> item.getApoderadosIds().contains(guardian.getApoderadoId()))
+        .findFirst().orElse(null);
+    if (family == null) return emptyProfile();
+
+    var relationship = family.getApoderados().stream()
+        .filter(item -> item.getApoderadoId().equals(guardian.getApoderadoId()))
+        .findFirst().orElseThrow();
+    FamilyFeePlan familyPlan = treasury.listPlans(year).stream()
+        .filter(item -> item.familyId().equals(family.getFamiliaId()))
+        .findFirst().orElse(null);
+    List<ObligationResponse> obligations = enriched(year).stream()
+        .filter(item -> item.familyId().equals(family.getFamiliaId())).toList();
+    Map<String, FamilyContribution> payments = contributionMap(year);
+    Alumno student = students.findById(family.getAlumnoId());
+    Long familyId = family.getFamiliaId();
+    return new ProfileResponse(familyId, family.getCodigo(), student.getNombre(),
+        guardian.getTelefono(), relationship.getParentesco(), relationship.getEsPrincipal(),
+        familyPlan == null ? null : familyPlan.mode(), obligations,
+        contribution(payments.get(familyId + ":" + ContributionType.CEPA)),
+        contribution(payments.get(familyId + ":" + ContributionType.SOLIDARIA)));
+  }
+
+  private ProfileResponse emptyProfile() {
+    return new ProfileResponse(null, null, null, null, null, false, null,
+        List.of(), null, null);
   }
 
   private Predicate<List<ObligationResponse>> reportFilter(String type) {
@@ -410,21 +456,26 @@ public class TreasuryController {
 
   private PlanResponse plan(FamilyFeePlan value) {
     FamilyData data = family(value.familyId());
-    return new PlanResponse(value.id(), value.familyId(), data.code(), data.studentName(),
-        data.course(), value.mode());
+    return new PlanResponse(value.id(), value.familyId(), data.code(), data.primaryGuardian(),
+        data.studentName(), data.course(), value.mode());
   }
 
   private ObligationResponse obligation(FeeObligation value, FamilyFeePlan plan) {
     FamilyData data = family(plan.familyId());
-    return new ObligationResponse(value.id(), plan.familyId(), data.code(), data.studentName(),
-        data.course(), plan.mode(), value.installment(), value.concept(), value.amount(),
-        value.dueDate(), value.status());
+    return new ObligationResponse(value.id(), plan.familyId(), data.code(),
+        data.primaryGuardian(), data.studentName(), data.course(), plan.mode(),
+        value.installment(), value.concept(), value.amount(), value.dueDate(), value.status());
   }
 
   private FamilyData family(Long id) {
     Familia family = families.obtenerFamiliaPorId(id);
     Alumno student = students.findById(family.getAlumnoId());
-    return new FamilyData(family.getCodigo(), student.getNombre(), student.getCurso());
+    Map<Long, String> names = guardianNames();
+    String primaryGuardian = family.getApoderados().stream()
+        .filter(item -> Boolean.TRUE.equals(item.getEsPrincipal())).findFirst()
+        .map(item -> names.get(item.getApoderadoId())).orElse("Sin apoderado principal");
+    return new FamilyData(family.getCodigo(), primaryGuardian, student.getNombre(),
+        student.getCurso());
   }
 
   private Map<String, FamilyContribution> contributionMap(int year) {
@@ -432,6 +483,12 @@ public class TreasuryController {
     treasury.listContributions(year).forEach(item ->
         result.put(item.familyId() + ":" + item.type(), item));
     return result;
+  }
+
+  private Map<Long, String> guardianNames() {
+    return guardians.findAll(new PageRequest(0, 10_000, "nombre", ASCENDING)).content().stream()
+        .collect(java.util.stream.Collectors.toMap(
+            item -> item.getApoderadoId(), item -> item.getNombre(), (first, ignored) -> first));
   }
 
   private FamilyContributionResponse contributionFamily(Familia family,
@@ -506,6 +563,7 @@ public class TreasuryController {
     };
   }
 
-  private record FamilyData(String code, String studentName, String course) { }
+  private record FamilyData(String code, String primaryGuardian, String studentName,
+      String course) { }
   public record AuditCleanupRequest(List<Long> ids, boolean all) { }
 }

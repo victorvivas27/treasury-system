@@ -1,10 +1,28 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ProfilePage } from "./ProfilePage";
 
+const profile = vi.hoisted(() => vi.fn());
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
+vi.mock("@/core/B-application/use-cases/treasury/TreasuryUseCases", () => ({
+  TreasuryUseCases: class { profile = profile; },
+}));
+
+const baseProfile = {
+  familyId: 8,
+  familyCode: "FAM-008",
+  studentName: "SOFÍA DÍAZ",
+  guardianPhone: "+56912345678",
+  relationship: "Padre",
+  primaryGuardian: true,
+  mode: "DOS_CUOTAS",
+  obligations: [
+    { id: 1, amount: 35000, dueDate: "2026-04-15", status: "PENDIENTE", mode: "DOS_CUOTAS", concept: "Primera cuota" },
+    { id: 2, amount: 35000, dueDate: "2026-07-15", status: "PENDIENTE", mode: "DOS_CUOTAS", concept: "Segunda cuota" },
+  ],
+};
 
 describe("ProfilePage", () => {
   beforeEach(() => {
@@ -16,41 +34,40 @@ describe("ProfilePage", () => {
       loading: false,
       isAuthenticated: true,
     } as ReturnType<typeof useAuth>);
+    profile.mockResolvedValue(baseProfile);
   });
 
   afterEach(() => vi.clearAllMocks());
 
   const renderProfile = () => render(<MemoryRouter><ProfilePage /></MemoryRouter>);
 
-  it("[ProfilePage #01] muestra la identidad y las métricas del perfil", () => {
+  it("muestra los datos reales de cuenta y familia", async () => {
     renderProfile();
     expect(screen.getByRole("heading", { name: "Juan Díaz" })).toBeInTheDocument();
-    expect(screen.getByText("@juandiaz")).toBeInTheDocument();
-    expect(screen.getByText("127")).toBeInTheDocument();
-    expect(screen.getByText("48")).toBeInTheDocument();
-    expect(screen.getByText("23")).toBeInTheDocument();
+    expect(screen.getByText("Activa")).toBeInTheDocument();
+    expect(await screen.findByText("Apoderado principal")).toBeInTheDocument();
+    expect(screen.getAllByText("FAM-008")).toHaveLength(1);
+    expect(screen.getByText("SOFÍA DÍAZ")).toBeInTheDocument();
   });
 
-  it("[ProfilePage #02] cambia entre proyectos y guardados", () => {
+  it("muestra aportes pendientes y modalidad de dos cuotas", async () => {
     renderProfile();
-    fireEvent.click(screen.getByRole("tab", { name: "Guardados" }));
-    expect(screen.getByRole("tab", { name: "Guardados" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("Presupuesto 2026")).toBeInTheDocument();
-    expect(screen.queryByText("Control de cuotas")).not.toBeInTheDocument();
+    expect(await screen.findByText("Aporte CEPA")).toBeInTheDocument();
+    expect(screen.getByText("Aporte solidario")).toBeInTheDocument();
+    expect(screen.getAllByText("Pendiente")).toHaveLength(4);
+    expect(screen.getByText("Cuota del curso · Dos cuotas")).toBeInTheDocument();
+    expect(screen.getByText("2 cuotas pendientes")).toBeInTheDocument();
+    expect(screen.getByText("$70.000")).toBeInTheDocument();
+    expect(screen.getByText("Total cuota")).toBeInTheDocument();
+    expect(screen.getByText("15-04-2026")).toBeInTheDocument();
+    expect(screen.getByText("15-07-2026")).toBeInTheDocument();
+    expect(screen.getAllByText("$35.000")).toHaveLength(2);
   });
 
-  it("[ProfilePage #03] permite editar el perfil y confirma el guardado", () => {
+  it("no muestra la cuota del curso si no existe modalidad", async () => {
+    profile.mockResolvedValue({ ...baseProfile, mode: undefined, obligations: [] });
     renderProfile();
-    fireEvent.click(screen.getByRole("button", { name: "Editar Perfil" }));
-    const dialog = screen.getByRole("dialog");
-    fireEvent.change(within(dialog).getByLabelText("Nombre"), { target: { value: "Ana Pérez" } });
-    fireEvent.change(within(dialog).getByLabelText("@usuario"), { target: { value: "@anaperez" } });
-    fireEvent.change(within(dialog).getByLabelText("Bio"), { target: { value: "Nueva biografía" } });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Guardar cambios" }));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByText("Ana Pérez")).toBeInTheDocument();
-    expect(screen.getByText("@anaperez")).toBeInTheDocument();
-    expect(screen.getByText("Nueva biografía")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Perfil actualizado correctamente");
+    expect(await screen.findByText("Aporte CEPA")).toBeInTheDocument();
+    expect(screen.queryByText(/Cuota del curso/)).not.toBeInTheDocument();
   });
 });

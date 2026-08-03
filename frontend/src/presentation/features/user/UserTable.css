@@ -5,7 +5,11 @@
 }
 
 .usuarios-header { border-bottom: 1px solid var(--border-color); }
-.usuarios-header__title { color: var(--color-accent); }
+.usuarios-header__title {
+  margin: .25rem 0 .4rem;
+  color: var(--color-accent);
+  font-size: .95rem;
+}
 .usuarios-table-wrapper { width: var(--wh-100); overflow-x: auto; }
 
 .usuarios-table {
@@ -65,9 +69,39 @@
 }
 
 .usuarios-table__td--actions {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--xs);
+  width: 100%;
+}
+
+.usuarios-table__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 32px;
+  min-width: 0;
+  min-height: 32px;
+  padding: .3rem .4rem;
+  margin: 0;
+  font-size: .62rem;
+}
+
+@media (max-width: 768px) {
+  .users-page .responsive-data-list .usuarios-table__td--actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .usuarios-table__icon-button {
+    width: 100%;
+    height: 28px;
+    min-width: 0;
+    min-height: 28px;
+    padding: .25rem;
+    font-size: .58rem;
+  }
 }
 
 .usuarios-table__skeleton {
@@ -82,6 +116,35 @@
   border-radius: var(--radius-sm);
 }
 
-.usuarios-role { background-color: var(--color-hover); color: var(--text-main); }
+.usuarios-role {
+  border: 1px solid transparent;
+  font-size: .72rem;
+  font-weight: 750;
+  letter-spacing: .055em;
+  line-height: 1;
+}
+
+.usuarios-role.is-admin {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 22%, transparent),
+    color-mix(in srgb, var(--color-accent) 10%, transparent)
+  );
+  color: var(--color-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.usuarios-role.is-user {
+  border-color: color-mix(in srgb, var(--color-info) 30%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-info) 13%, transparent),
+    color-mix(in srgb, var(--color-info) 6%, transparent)
+  );
+  color: var(--color-info);
+  font-weight: 650;
+  letter-spacing: .035em;
+}
 .usuarios-status.is-active { color: var(--color-success); }
 .usuarios-status.is-inactive { color: var(--color-error); }

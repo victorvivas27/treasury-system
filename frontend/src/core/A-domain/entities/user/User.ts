@@ -16,7 +16,7 @@ export interface User {
 export interface UserPayload {
   nombre: string;
   correo: string;
-  password: string;
+  password?: string;
   rol?: UserRole;
   enabled?: boolean;
   accountNonLocked?: boolean;

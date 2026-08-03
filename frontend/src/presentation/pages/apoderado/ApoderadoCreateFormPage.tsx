@@ -7,7 +7,7 @@ import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 export const ApoderadoCrearFormPage = () => {
   return (
 
-    <main className="form-page-container">
+    <main className="form-page-container apoderado-create-page">
 
       <header className="form-page-header">
 

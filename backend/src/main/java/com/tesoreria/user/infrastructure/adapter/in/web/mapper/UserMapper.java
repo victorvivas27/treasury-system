@@ -15,5 +15,13 @@ public interface UserMapper {
     @Mapping(target = "emailVerifiedAt", ignore = true)
     User toDomain(UserRequestDTO request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "code", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "emailVerifiedAt", ignore = true)
+    User toUpdateDomain(UserRequestDTO request);
+
     UserResponseDTO toResponse(User user);
 }

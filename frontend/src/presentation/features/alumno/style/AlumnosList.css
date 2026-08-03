@@ -10,6 +10,8 @@
 
 .alumnos-header__title {
   color: var(--color-accent);
+  margin: .25rem 0 .4rem;
+  font-size: .95rem;
 }
 
 .alumnos-table {
@@ -36,9 +38,23 @@
 }
 
 .alumnos-table__td--actions {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--xs);
+  width: 100%;
+}
+
+.alumnos-table__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 32px;
+  min-width: 0;
+  min-height: 32px;
+  padding: .3rem .4rem;
+  margin: 0;
+  font-size: .62rem;
 }
 
 .skeleton-row {
@@ -70,5 +86,65 @@
 
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .alumnos-page .responsive-data-list .alumnos-table__td--actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .alumnos-table__icon-button {
+    width: 100%;
+    height: 28px;
+    min-width: 0;
+    min-height: 28px;
+    padding: .25rem;
+    font-size: .58rem;
+  }
+
+  .alumnos-page .page-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .alumnos-page .alumnos-container {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .alumnos-page .alumnos-table tbody {
+    padding: .65rem .5rem .5rem;
+  }
+
+  .alumnos-page .alumnos-table tbody > tr {
+    padding: .45rem .6rem;
+  }
+
+  .alumnos-page .alumnos-table tbody > tr > td:not([data-label="Acciones"]) {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    min-height: 26px;
+    padding: .2rem .1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--divider) 65%, transparent);
+    font-size: .78rem;
+    line-height: 1.25;
+  }
+
+  .alumnos-page .alumnos-table tbody > tr > td:not([data-label="Acciones"])::before {
+    color: var(--color-accent);
+    font-size: .62rem;
+  }
+
+  .alumnos-page .alumnos-table tbody > tr > td:last-child:not([data-label="Acciones"]) {
+    border-bottom: 0;
+  }
+
+  .alumnos-page .alumnos-table tbody > tr > td[data-label="Acciones"] {
+    margin-top: .2rem;
+    border-top: 0;
+    padding-top: .45rem;
   }
 }

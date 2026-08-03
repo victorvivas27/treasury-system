@@ -7,6 +7,7 @@ import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
 import { useEditApoderado } from "@/presentation/hooks/apoderado/useEditApoderado";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { FcHighPriority } from "react-icons/fc";
+import { useEffect, useState } from "react";
 
 
 export const EditarApoderadoForm = () => {
@@ -22,6 +23,13 @@ export const EditarApoderadoForm = () => {
     initialLoading,
     loadError
   } = useEditApoderado();
+  const [observacionesOpen, setObservacionesOpen] = useState(false);
+
+  useEffect(() => {
+    if (!initialLoading && formData.observaciones.trim()) {
+      setObservacionesOpen(true);
+    }
+  }, [initialLoading, formData.observaciones]);
 
   if (loadError) {
     return (
@@ -120,8 +128,13 @@ export const EditarApoderadoForm = () => {
           )}
         </div>
 
-        {/* Campo Observaciones */}
-        <div className="form-group-apoderado">
+        <details
+          className="apoderado-observaciones"
+          open={observacionesOpen}
+          onToggle={(event) => setObservacionesOpen(event.currentTarget.open)}
+        >
+          <summary>Observaciones <span>(opcional)</span></summary>
+          <div className="form-group-apoderado apoderado-observaciones__content">
           <label htmlFor="observaciones_input" className="form-label-apoderado">
             Observaciones
             </label>
@@ -139,7 +152,8 @@ export const EditarApoderadoForm = () => {
               placeholder="Escribe aquí..."
             />
           </SkeletonWrapper>
-        </div>
+          </div>
+        </details>
         <div className="form-actions">
           <Button
             variant="primary"
@@ -173,6 +187,7 @@ export const EditarApoderadoForm = () => {
           }
         }}
         autoCloseTime={2000}
+        variant={modal.type === "success" ? "toast" : "modal"}
       />
     </main>
   );

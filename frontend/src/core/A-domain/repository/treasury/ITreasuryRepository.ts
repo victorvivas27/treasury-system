@@ -2,6 +2,7 @@ import type {
   AllowedPaymentMode, AnnualFeeConfig, AnnualFeeConfigPayload, FamilyPlan,
   FeeObligation, ObligationStatus, PaymentMode, TreasuryDashboard,
   TreasuryFilters, TreasuryReport, TreasuryReportType,
+  TreasuryProfile,
   ContributionConfig, ContributionFilters, ContributionSummary, ContributionType,
   FamilyContribution,
   ExpenseFilters, ExpensePayload, FinancialSummary, TreasuryExpense,
@@ -21,6 +22,7 @@ export interface ITreasuryRepository {
   annul(obligationId: number, reason: string): Promise<void>;
   dashboard(year: number): Promise<TreasuryDashboard>;
   reports(year: number, type: TreasuryReportType): Promise<TreasuryReport[]>;
+  profile(year: number): Promise<TreasuryProfile>;
   listContributionConfigs(year: number): Promise<ContributionConfig[]>;
   saveContributionConfig(year: number, type: ContributionType,
     payload: Omit<ContributionConfig, "id" | "schoolYear" | "type">): Promise<ContributionConfig>;

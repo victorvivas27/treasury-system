@@ -2,7 +2,7 @@ import { EditarFamiliaForm } from "@/presentation/features/familia/EditarFamilia
 
 export const FamiliaEditFormPage = () => {
   return (
-    <main className="form-page-container">
+    <main className="form-page-container familia-edit-page">
       <header className="form-page-header">
         <h1 className="form-page-header__title">
           Modificar datos de la familia

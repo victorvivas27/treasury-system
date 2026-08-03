@@ -54,7 +54,7 @@ export const LoginPage = () => {
       const requestedDestination = (location.state as { from?: string } | null)?.from;
       const destination = requestedDestination && requestedDestination !== "/login"
         ? requestedDestination
-        : "/tesoreria/resumen";
+        : "/dashboard";
       navigate(destination, { replace: true });
     } catch (loginError) {
       setError(loginErrorMessage(loginError));

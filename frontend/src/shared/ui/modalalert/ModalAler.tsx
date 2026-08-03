@@ -10,6 +10,7 @@ interface ModalProps {
   autoCloseTime?: number;
   title?: string;
   buttonLabel?: string;
+  variant?: "modal" | "toast";
 }
 
 const DEFAULT_AUTO_CLOSE_TIME = 4000;
@@ -22,6 +23,7 @@ export const ModalAlert = ({
   autoCloseTime = DEFAULT_AUTO_CLOSE_TIME,
   title,
   buttonLabel = "Entendido",
+  variant = "modal",
 }: ModalProps) => {
   useEffect(() => {
     if (isOpen && autoCloseTime > 0) {
@@ -35,9 +37,14 @@ export const ModalAlert = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="modal-overlay" onClick={onClose} aria-modal="true" role="dialog">
+    <aside
+      className={`modal-overlay ${variant === "toast" ? "modal-overlay--toast" : ""}`}
+      onClick={onClose}
+      aria-modal={variant === "modal" ? "true" : undefined}
+      role={variant === "modal" ? "dialog" : type === "error" ? "alert" : "status"}
+    >
       <article
-        className="modal-container animate-modal"
+        className={`modal-container animate-modal ${variant === "toast" ? "modal-container--toast" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* BARRA DE TIEMPO: Solo se muestra si hay autoCloseTime */}
