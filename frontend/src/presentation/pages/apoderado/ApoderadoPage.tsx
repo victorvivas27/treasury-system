@@ -88,11 +88,12 @@ export const ApoderadoPage: FC = () => {
           </p>
         </div>
 
-        <div className="page-header__actions">
+        <div className="page-header__actions mobile-inline-header-actions">
           <Button
             onClick={refetch}
             variant="secondary"
             size="medium"
+            className="mobile-compact-header-action"
             icon={<APODERADOS_ICONS.reload />}
             iconPosition="left"
             loading={loading}
@@ -104,7 +105,7 @@ export const ApoderadoPage: FC = () => {
             onClick={() => navigate("/parents/new")}
             variant="primary"
             size="medium"
-            className="apoderados-page__create-button"
+            className="apoderados-page__create-button mobile-compact-header-action"
             icon={<APODERADOS_ICONS.add  />}
             iconPosition="left"
             label="Crear Apoderado"

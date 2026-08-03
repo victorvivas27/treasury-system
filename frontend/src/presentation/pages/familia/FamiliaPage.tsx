@@ -50,12 +50,13 @@ export const FamiliaPage: FC = () => {
           </p>
         </div>
 
-        <div className="page-header__actions">
+        <div className="page-header__actions mobile-inline-header-actions">
           <Button
             onClick={refetch}
             variant="secondary"
             size="medium"
-            icon={<FAMILIA_ICONS.reload style={{ margin: "3px" }} />}
+            className="mobile-compact-header-action"
+            icon={<FAMILIA_ICONS.reload />}
             iconPosition="left"
             loading={loading}
             label={loading ? "Cargando" : "Recargar"}
@@ -66,7 +67,8 @@ export const FamiliaPage: FC = () => {
             onClick={() => navigate("/family/new")}
             variant="primary"
             size="medium"
-            icon={<FAMILIA_ICONS.crearFamilia style={{ margin: "3px" }} />}
+            className="mobile-compact-header-action"
+            icon={<FAMILIA_ICONS.crearFamilia />}
             iconPosition="left"
             label="Crear familia"
           />

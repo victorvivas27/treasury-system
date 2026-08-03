@@ -112,5 +112,3 @@
   .contribution-card__heading{align-items:flex-start;flex-direction:row}
   .contributions-page__empty{padding:2rem 1rem}
 }
-
-@media(max-width:380px){.contributions-summary{grid-template-columns:1fr}}

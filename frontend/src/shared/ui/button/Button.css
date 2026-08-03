@@ -90,6 +90,28 @@
 /* ============================================ */
 @media (max-width: 768px) {
 
+  .mobile-inline-header-actions {
+    flex-wrap: nowrap !important;
+  }
+
+  .mobile-inline-header-actions .base-button {
+    flex: 1 1 0 !important;
+    min-width: 0;
+    margin: 0;
+  }
+
+  /* Acciones principales compactas de los encabezados administrativos */
+  .base-button.mobile-compact-header-action {
+    min-height: 28px !important;
+    padding: 0.2rem 0.55rem !important;
+    font-size: 0.65rem !important;
+  }
+
+  .base-button.mobile-compact-header-action .button-icon svg {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
   /* Tamaño small en móvil */
   .size-small {
     padding: 0.2rem 0.6rem;
