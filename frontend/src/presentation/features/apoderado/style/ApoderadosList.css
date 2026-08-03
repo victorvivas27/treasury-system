@@ -120,6 +120,28 @@
   white-space: nowrap;
 }
 
+@media (min-width: 1024px) {
+  .apoderados-table__td--actions {
+    grid-template-columns: repeat(3, minmax(5.5rem, 1fr));
+    align-items: center;
+  }
+
+  .apoderados-table__td--actions .apoderados-table__icon-button,
+  .apoderados-table__td--actions .apoderados-table__access-button {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    min-height: 36px;
+    padding: .4rem .55rem;
+    font-size: .72rem;
+    white-space: nowrap;
+  }
+
+  .apoderados-table__td--actions .button-content {
+    justify-content: center;
+  }
+}
+
 
 
 /* --- Skeleton --- */
