@@ -4,11 +4,14 @@ on:
   push:
     branches: [main, dev]
     paths:
-      - 'frontend/**'
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
   pull_request:
     branches: [main, dev]
     paths:
-      - 'frontend/**'
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
 
 jobs:
   validate-frontend:
@@ -21,29 +24,29 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      # CORRECCIÓN 1: Primero se instala pnpm en el sistema (Actualizado a v4)
+      # pnpm debe instalarse antes de configurar el caché de setup-node.
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 11.5.0
+          run_install: false
 
-      # CORRECCIÓN 2: Segundo se levanta Node.js y se asocia al caché del pnpm ya instalado
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "22"
+          cache: "pnpm"
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Show versions
         run: |
-          node -v
-          pnpm -v
+          node --version
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
@@ -55,7 +58,10 @@ jobs:
         run: pnpm run build
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-coverage-report
           path: frontend/coverage
+          if-no-files-found: warn
+          retention-days: 14
