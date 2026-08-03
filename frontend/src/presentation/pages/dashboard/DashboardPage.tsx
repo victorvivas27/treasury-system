@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiTrash2 } from "react-icons/fi";
+import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2 } from "react-icons/fi";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -155,15 +155,18 @@ export const DashboardPage = () => {
 
     {loading ? <DashboardSkeleton /> : data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
+        <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
+          featured negative={data.finances.availableBalance < 0}
+          positive={data.finances.availableBalance >= 0}
+          description="Ingresos totales menos egresos" />
         <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)}
           positive direction="in" />
         <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)}
           negative direction="out" />
-        <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
-          featured negative={data.finances.availableBalance < 0}
-          positive={data.finances.availableBalance >= 0} />
-        <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)} />
-        <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)} />
+        <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)}
+          icon="paid" />
+        <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)}
+          icon="pending" />
       </section>
 
       <section className="dashboard-charts">
@@ -374,18 +377,26 @@ export const DashboardPage = () => {
   </main>;
 };
 
-const Kpi = ({ label, value, positive = false, negative = false, direction, featured }: {
+const Kpi = ({ label, value, positive = false, negative = false, direction, featured,
+  description, icon }: {
   label: string; value: string; positive?: boolean; negative?: boolean;
-  direction?: "in" | "out"; featured?: boolean;
+  direction?: "in" | "out"; featured?: boolean; description?: string;
+  icon?: "paid" | "pending";
 }) => <article className={`${featured ? "dashboard-kpi--featured" : ""} ${
-  direction ? `dashboard-kpi--${direction}` : ""}`}>
-  <span className="dashboard-kpi__label">{label}</span>
+  direction ? `dashboard-kpi--${direction}` : ""} ${icon ? `dashboard-kpi--${icon}` : ""}`}>
+  <div className="dashboard-kpi__header">
+    <span className="dashboard-kpi__label">{label}</span>
+    {featured && <i><FiDollarSign aria-hidden="true" /></i>}
+    {direction === "in" && <i><FiLogIn aria-hidden="true" /></i>}
+    {direction === "out" && <i><FiLogOut aria-hidden="true" /></i>}
+    {icon === "paid" && <i><FiCheckCircle aria-hidden="true" /></i>}
+    {icon === "pending" && <i><FiClock aria-hidden="true" /></i>}
+  </div>
   <div className="dashboard-kpi__value">
-    {direction === "in" && <FiArrowRight aria-hidden="true" />}
     <strong className={positive ? "is-positive"
       : negative ? "is-negative" : ""}>{value}</strong>
-    {direction === "out" && <FiArrowRight aria-hidden="true" />}
   </div>
+  {description && <small>{description}</small>}
 </article>;
 
 const ContributionDonut = ({ title, paid, pending }: {

@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { FiArrowDownCircle, FiCalendar, FiEye, FiPlus, FiX } from "react-icons/fi";
+import { FiAlertTriangle, FiArrowDownCircle, FiArrowLeft, FiBarChart2, FiBookOpen, FiCalendar,
+  FiCheck, FiClock, FiCreditCard, FiDollarSign, FiEdit3, FiEye, FiFileText, FiFilter,
+  FiLogIn, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw, FiSave, FiSlash, FiTag, FiUser,
+  FiUsers, FiX }
+  from "react-icons/fi";
 import type {
   FinancialSummary, IncomeCategory, IncomeFilters, IncomePayload,
-  TreasuryIncome,
+  TreasuryDashboardOverview, TreasuryIncome,
 } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   INCOME_CATEGORIES, INCOME_PAYMENT_METHODS, incomeCategoryLabel, incomePaymentLabel,
@@ -38,6 +43,7 @@ export const IncomesPage = () => {
   const [view, setView] = useState<IncomeView>("ALL");
   const [items, setItems] = useState<TreasuryIncome[]>([]);
   const [summary, setSummary] = useState(emptySummary);
+  const [feePayments, setFeePayments] = useState<TreasuryDashboardOverview["recentMovements"]>([]);
   const [filters, setFilters] = useState<IncomeFilters>({
     status: "ACTIVE",
     sort: "DATE_DESC",
@@ -53,15 +59,19 @@ export const IncomesPage = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [managedCourse, setManagedCourse] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = Object.entries(filters).filter(([key, value]) =>
+    !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [incomes, totals] = await Promise.all([
-        repository.listIncomes(year, filters), repository.financialSummary(year),
+      const [incomes, overview] = await Promise.all([
+        repository.listIncomes(year, filters), repository.dashboardOverview(year),
       ]);
       setItems(incomes);
-      setSummary(totals);
+      setSummary(overview.finances);
+      setFeePayments(overview.recentMovements.filter(item => item.type === "CUOTA"));
     } catch {
       setError("No fue posible cargar los ingresos. Intenta nuevamente.");
     } finally {
@@ -147,7 +157,7 @@ export const IncomesPage = () => {
   };
 
   return <main className="expenses-page incomes-page">
-    <header className="expenses-header"><div><span>Tesorería del curso</span>
+    <header className="expenses-header"><div>
       <h1>Ingresos</h1><p>Cuotas y otros ingresos de Tesorería.</p></div>
       {canManage && <button type="button" onClick={openCreate}>
         <FiPlus /> Registrar ingreso</button>}</header>
@@ -158,17 +168,26 @@ export const IncomesPage = () => {
           <div className="skeleton-block" /><div className="skeleton-block" />
           <div className="skeleton-block" />
         </article>) : <>
-      <article><span>Ingresos por cuotas</span><strong>{money.format(summary.feeIncome)}</strong>
-        <small>Cuota anual del curso</small></article>
-      <article><span>Otros ingresos</span><strong>{money.format(summary.otherIncome)}</strong>
-        <small>Ingresos extraordinarios activos</small></article>
-      <article><span>Ingresos totales</span><strong>{money.format(summary.totalIncome)}</strong>
-        <small>Cuotas más otros ingresos</small></article>
-      <article className="is-expense"><span>Total de egresos</span>
-        <strong>{money.format(summary.totalExpenses)}</strong><small>Egresos activos</small></article>
-      <article className={summary.availableBalance < 0 ? "is-negative" : ""}>
-        <span>Saldo disponible</span><strong>{money.format(summary.availableBalance)}</strong>
+      <article className={`income-summary-card income-summary-card--balance ${
+        summary.availableBalance < 0 ? "is-negative" : ""}`}>
+        <div><span>Saldo disponible</span><i><FiDollarSign aria-hidden="true" /></i></div>
+        <strong>{money.format(summary.availableBalance)}</strong>
         <small>Ingresos totales menos egresos</small></article>
+      <article className="income-summary-card income-summary-card--fees">
+        <div><span>Ingresos por cuotas</span><i><FiCreditCard aria-hidden="true" /></i></div>
+        <strong>{money.format(summary.feeIncome)}</strong>
+        <small>Cuota anual del curso</small></article>
+      <article className="income-summary-card income-summary-card--other">
+        <div><span>Otros ingresos</span><i><FiLogIn aria-hidden="true" /></i></div>
+        <strong>{money.format(summary.otherIncome)}</strong>
+        <small>Ingresos extraordinarios activos</small></article>
+      <article className="income-summary-card income-summary-card--total">
+        <div><span>Ingresos totales</span><i><FiBarChart2 aria-hidden="true" /></i></div>
+        <strong>{money.format(summary.totalIncome)}</strong>
+        <small>Cuotas más otros ingresos</small></article>
+      <article className="income-summary-card income-summary-card--expenses is-expense">
+        <div><span>Total de egresos</span><i><FiLogOut aria-hidden="true" /></i></div>
+        <strong>{money.format(summary.totalExpenses)}</strong><small>Egresos activos</small></article>
       </>}
     </section>
 
@@ -179,8 +198,22 @@ export const IncomesPage = () => {
       </button>)}
     </nav>
 
-    {view !== "FEES" && <section className="expenses-filters" aria-label="Filtros de ingresos">
-      <label><span>Buscar</span><input placeholder="Descripción, origen o comprobante"
+    {view !== "FEES" && <div className="income-filter-toolbar">
+      <button type="button" className="income-filter-trigger" onClick={() => setFiltersOpen(true)}>
+        <FiFilter aria-hidden="true" /> Filtros
+        {activeFilters > 0 && <span>{activeFilters}</span>}
+      </button>
+    </div>}
+
+    {view !== "FEES" && filtersOpen && <div className="income-filter-backdrop"
+      onClick={() => setFiltersOpen(false)}>
+    <aside className="expenses-filters" aria-label="Filtros de ingresos" role="dialog"
+      aria-modal="true" onClick={event => event.stopPropagation()}>
+      <header><div><FiFilter aria-hidden="true" /><h2>Filtros</h2></div>
+        <button type="button" aria-label="Cerrar filtros"
+          onClick={() => setFiltersOpen(false)}><FiX /></button></header>
+      <label className="income-filter-search"><span>Buscar</span>
+        <input placeholder="Descripción, origen o comprobante"
         value={filters.search ?? ""} onChange={(e) => setFilter("search", e.target.value)} /></label>
       <label><span>Año</span><select value={year} onChange={(e) => setYear(Number(e.target.value))}>
         {years.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -213,19 +246,31 @@ export const IncomesPage = () => {
         <option value="AMOUNT_DESC">Monto mayor</option><option value="AMOUNT_ASC">Monto menor</option>
         <option value="DESCRIPTION">Descripción</option><option value="CATEGORY">Categoría</option>
       </select></label>
-    </section>}
+      <footer className="income-filter-actions">
+        <button type="button" className="income-filter-clear" onClick={() =>
+          setFilters({ status: "ACTIVE", sort: "DATE_DESC" })}>
+          <FiRefreshCw aria-hidden="true" /> Limpiar filtros</button>
+        <button type="button" className="income-filter-apply"
+          onClick={() => setFiltersOpen(false)}>
+          <FiCheck aria-hidden="true" /> Ver resultados</button>
+      </footer>
+    </aside></div>}
 
-    {(view === "ALL" || view === "FEES") && <article className="fee-income-card">
-      {loading ? <div className="fee-income-skeleton" aria-hidden="true">
-        <div className="skeleton-block" /><div className="skeleton-block" />
-        <div className="skeleton-block" />
-      </div> : <>
-      <span><FiArrowDownCircle /> Ingresos por cuotas</span>
-      <strong>+{money.format(summary.feeIncome)}</strong>
-      <p>Este monto proviene automáticamente de la cuota anual del curso.
-        CEPA y Solidaria son solo datos de seguimiento institucional y no forman parte de la caja.</p>
-      </>}
-    </article>}
+    {view === "FEES" && (loading
+      ? <section className="fee-payment-grid" aria-label="Cargando pagos">
+          {Array.from({ length: 4 }, (_, index) => <article key={index} aria-hidden="true">
+            <div className="skeleton-block" /><div className="skeleton-block" />
+          </article>)}
+        </section>
+      : feePayments.length === 0
+        ? <p className="expenses-empty">Aún no hay pagos de cuotas registrados.</p>
+        : <section className="fee-payment-grid" aria-label="Historial de pagos de cuotas">
+            {feePayments.map(payment => <article className="fee-payment-card" key={payment.id}>
+              <div><span><FiCalendar aria-hidden="true" /> {payment.date}</span>
+                <strong>+{money.format(payment.amount)}</strong></div>
+              <p>{payment.description}</p>
+            </article>)}
+          </section>)}
 
     {view !== "FEES" && (loading ? <IncomeCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay ingresos extraordinarios para los filtros seleccionados.</p>
@@ -234,11 +279,11 @@ export const IncomesPage = () => {
           <header><span><FiArrowDownCircle /> Ingreso extraordinario</span>
             <b>{item.status === "ACTIVE" ? "Activo" : "Anulado"}</b></header>
           <h2>{item.description}</h2><strong>+{money.format(item.amount)}</strong>
-          <dl><div><dt>Categoría</dt><dd>{incomeCategoryLabel(item.category)}</dd></div>
-            <div><dt><FiCalendar /> Fecha</dt><dd>{item.incomeDate}</dd></div>
-            <div><dt>Origen</dt><dd>{item.source || "No informado"}</dd></div>
-            <div><dt>Registrado por</dt><dd>{item.registeredBy}</dd></div></dl>
-          <button type="button" onClick={() => setDetail(item)}><FiEye /> Ver detalle</button>
+          <footer className="income-card__footer">
+            <span><FiCalendar aria-hidden="true" /> {item.incomeDate}</span>
+            <button type="button" aria-label={`Ver detalle de ${item.description}`}
+              title="Ver detalle" onClick={() => setDetail(item)}><FiEye /></button>
+          </footer>
         </article>)}</section>)}
 
     {formOpen && <div className="expense-modal-overlay"><section className="expense-form-modal"
@@ -254,13 +299,14 @@ export const IncomesPage = () => {
           value={form.amount || ""} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} /></label>
         <label><span>Fecha del ingreso *</span><input type="date" required value={form.incomeDate}
           onChange={(e) => setForm({ ...form, incomeDate: e.target.value })} /></label>
-        <label><span>Categoría *</span><select value={form.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value as IncomeCategory })}>
-          {INCOME_CATEGORIES.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
-        <label><span>Medio de recepción</span><select value={form.paymentMethod ?? ""}
-          onChange={(e) => setForm({ ...form, paymentMethod: e.target.value as IncomePayload["paymentMethod"] || undefined })}>
-          <option value="">No informado</option>{INCOME_PAYMENT_METHODS.map((item) =>
-            <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
+        <label><span>Categoría *</span><CompactSelect value={form.category}
+          placeholder="Seleccionar categoría" options={INCOME_CATEGORIES}
+          onChange={(value) => value && setForm({ ...form,
+            category: value as IncomeCategory })} /></label>
+        <label><span>Medio de recepción</span><CompactSelect value={form.paymentMethod ?? ""}
+          placeholder="No informado" options={INCOME_PAYMENT_METHODS}
+          onChange={(value) => setForm({ ...form,
+            paymentMethod: value as IncomePayload["paymentMethod"] || undefined })} /></label>
         <label><span>Origen o responsable</span><input maxLength={150} value={form.source ?? ""}
           onChange={(e) => setForm({ ...form, source: e.target.value })} /></label>
         <label><span>Número de comprobante</span><input maxLength={100} value={form.receiptNumber ?? ""}
@@ -281,36 +327,41 @@ export const IncomesPage = () => {
         {editing && <label className="expense-field-wide"><span>Motivo de la corrección *</span>
           <textarea required maxLength={500} value={form.correctionReason ?? ""}
             onChange={(e) => setForm({ ...form, correctionReason: e.target.value })} /></label>}
-        <footer><button type="button" onClick={() => setFormOpen(false)}>Cancelar</button>
-          <button type="submit" disabled={saving}>{saving ? "Guardando…" : "Guardar ingreso"}</button></footer>
+        <footer><button type="button" onClick={() => setFormOpen(false)}><FiX /> Cancelar</button>
+          <button type="submit" disabled={saving}><FiSave />
+            {saving ? "Guardando…" : "Guardar ingreso"}</button></footer>
       </form></section></div>}
 
-    {detail && <div className="expense-modal-overlay"><section className="expense-detail-modal"
+    {detail && <div className="expense-modal-overlay"><section className="expense-detail-modal income-detail-modal"
       role="dialog" aria-modal="true" aria-labelledby="income-detail-title">
       <button type="button" aria-label="Cerrar" onClick={() => setDetail(null)}><FiX /></button>
       <span className={`expense-detail-status is-${detail.status.toLowerCase()}`}>
         {detail.status === "ACTIVE" ? "Activo" : "Anulado"}</span>
       <h2 id="income-detail-title">{detail.description}</h2><strong className="income-amount">+{money.format(detail.amount)}</strong>
-      <dl><div><dt>Tipo</dt><dd>Ingreso extraordinario</dd></div>
-        <div><dt>Fecha</dt><dd>{detail.incomeDate}</dd></div>
-        <div><dt>Categoría</dt><dd>{incomeCategoryLabel(detail.category)}</dd></div>
-        <div><dt>Origen</dt><dd>{detail.source || "No informado"}</dd></div>
-        <div><dt>Medio</dt><dd>{incomePaymentLabel(detail.paymentMethod)}</dd></div>
-        <div><dt>Comprobante</dt><dd>{detail.receiptNumber || "No informado"}</dd></div>
-        <div><dt>Curso</dt><dd>{detail.course || "No relacionado"}</dd></div>
-        <div><dt>Familia</dt><dd>{detail.familyId || "No relacionada"}</dd></div>
-        <div><dt>Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
-        <div><dt>Registrado por</dt><dd>{detail.registeredBy}</dd></div>
-        <div><dt>Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
-        {detail.cancellationReason && <div><dt>Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
+      <dl><div><dt><FiArrowDownCircle /> Tipo</dt><dd>Ingreso extraordinario</dd></div>
+        <div><dt><FiCalendar /> Fecha</dt><dd>{detail.incomeDate}</dd></div>
+        <div><dt><FiTag /> Categoría</dt><dd>{incomeCategoryLabel(detail.category)}</dd></div>
+        <div><dt><FiLogIn /> Origen</dt><dd>{detail.source || "No informado"}</dd></div>
+        <div><dt><FiCreditCard /> Medio</dt><dd>{incomePaymentLabel(detail.paymentMethod)}</dd></div>
+        <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber || "No informado"}</dd></div>
+        <div><dt><FiBookOpen /> Curso</dt><dd>{detail.course || "No relacionado"}</dd></div>
+        <div><dt><FiUsers /> Familia</dt><dd>{detail.familyId || "No relacionada"}</dd></div>
+        <div className="income-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
+        <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
+        <div className="income-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
+        {detail.cancellationReason && <div className="income-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
       {canManage && detail.status === "ACTIVE" && <footer>
-        <button type="button" onClick={() => openEdit(detail)}>Corregir ingreso</button>
-        <button className="is-danger" type="button" onClick={() => setConfirmCancel(true)}>Anular ingreso</button>
+        <button type="button" onClick={() => openEdit(detail)}>
+          <FiEdit3 aria-hidden="true" /> Corregir ingreso</button>
+        <button className="is-danger" type="button" onClick={() => setConfirmCancel(true)}>
+          <FiSlash aria-hidden="true" /> Anular ingreso</button>
       </footer>}</section></div>}
 
     <ModalConfirm isOpen={confirmCancel} title="Anular ingreso"
       message="El registro seguirá visible, pero dejará de sumarse a los ingresos y al saldo."
       confirmLabel="Anular ingreso" cancelLabel="Volver" isLoading={saving}
+      compact
+      cancelIcon={<FiArrowLeft />} confirmIcon={<FiSlash />}
       onCancel={() => { setConfirmCancel(false); setCancelReason(""); }}
       onConfirm={() => void cancel()}><label>Motivo de la anulación
         <textarea autoFocus maxLength={500} value={cancelReason}

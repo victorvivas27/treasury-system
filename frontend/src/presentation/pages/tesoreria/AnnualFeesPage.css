@@ -44,7 +44,9 @@
 .fee-status { padding: .25rem .5rem; border-radius: 999px; font-size: .75rem; font-weight: 700; }
 .fee-status--pendiente { background: color-mix(in srgb, var(--color-warning) 20%, transparent); color: var(--color-warning); }
 .fee-status--pagada { background: color-mix(in srgb, var(--color-success) 20%, transparent); color: var(--color-success); }
+.fee-status--vencida { background: color-mix(in srgb, var(--color-error) 18%, transparent); color: var(--color-error); }
 .treasury-error { color: var(--color-error); }
+.obligation-family-cards { display: none; }
 .treasury-report-results{margin-top:1rem}.treasury-report-results>header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding-bottom:.45rem;border-bottom:1px solid var(--divider)}.treasury-report-results h2{margin:0;font-size:.95rem}.treasury-report-results>header span{color:var(--text-muted);font-size:.72rem}.treasury-report-empty{margin:.75rem 0 0;padding:.75rem;border:1px dashed var(--border-color);border-radius:8px;text-align:center}
 .treasury-report-filter-actions{display:flex;gap:.45rem}.treasury-report-filter-actions .base-button{margin:0}
 .treasury-panel .treasury-reports-table { margin-top: .65rem; font-size: .76rem; }
@@ -55,12 +57,47 @@
 .treasury-report-fee { display: inline-flex; align-items: center; gap: .2rem; white-space: nowrap; }
 .treasury-report-fee .fee-status { padding: .12rem .32rem; font-size: .62rem; line-height: 1.1; }
 .annual-fees-config-page { padding: clamp(.65rem, 1.8vw, 1.2rem); }
-.annual-fees-config-page .treasury-page__header h1 { margin: .08rem 0; font-size: clamp(1.25rem, 2.2vw, 1.7rem); }
+.annual-fees-config-page .treasury-page__header h1 { margin: 0 0 .1rem; font-size: 1.5rem; }
 .annual-fees-config-page .treasury-page__header > p { margin-block: .12rem; font-size: .76rem; }
 .annual-fees-config-page .treasury-dashboard { gap: .42rem; margin: .65rem 0; }
 .annual-fees-config-page .treasury-dashboard article { min-height: 0; gap: .12rem; padding: .5rem .6rem; }
 .annual-fees-config-page .treasury-dashboard span { font-size: .68rem; }
 .annual-fees-config-page .treasury-dashboard strong { font-size: .95rem; line-height: 1.1; }
+.annual-fees-config-page .treasury-summary-card {
+  border-color: color-mix(in srgb, var(--summary-color) 28%, var(--border-color));
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--summary-color) 12%, var(--color-surface)),
+    var(--color-surface) 72%);
+}
+.annual-fees-config-page .treasury-summary-card > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .35rem;
+}
+.annual-fees-config-page .treasury-summary-card i {
+  flex: 0 0 auto;
+  display: grid;
+  width: 1.85rem;
+  height: 1.85rem;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--summary-color) 16%, transparent);
+  color: var(--summary-color);
+  font-style: normal;
+}
+.annual-fees-config-page .treasury-summary-card svg {
+  width: 1rem;
+  height: 1rem;
+  overflow: visible;
+}
+.annual-fees-config-page .treasury-summary-card strong { color: var(--summary-color); }
+.treasury-summary-card--families { --summary-color: var(--color-accent); }
+.treasury-summary-card--annual { --summary-color: var(--color-info); }
+.treasury-summary-card--installments { --summary-color: #7c5ce7; }
+.treasury-summary-card--pending { --summary-color: var(--color-warning); }
+.treasury-summary-card--collected { --summary-color: var(--color-success); }
+.treasury-summary-card--receivable { --summary-color: #d06b32; }
 .annual-fees-config-page .annual-fees-grid { gap: .6rem; }
 .annual-fees-config-page .treasury-panel { padding: .72rem; }
 .annual-fees-config-page .treasury-panel h2 { margin: 0 0 .55rem; font-size: .96rem; }
@@ -71,6 +108,22 @@
 .treasury-config-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; column-gap: .5rem; }
 .treasury-config-form h2,
 .treasury-config-form .base-button { grid-column: 1 / -1; }
+.treasury-config-launcher { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.treasury-config-launcher > div { display: flex; align-items: center; gap: .65rem; }
+.treasury-config-launcher h2 { margin: 0; }
+.treasury-config-launcher p { margin: .12rem 0 0; font-size: .72rem; }
+.treasury-config-launcher > div > span { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 50%; }
+.treasury-config-launcher > div > span svg { width: 1.15rem; height: 1.15rem; }
+.treasury-config-launcher .is-configured { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
+.treasury-config-launcher .is-unconfigured { background: color-mix(in srgb, var(--color-error) 15%, transparent); color: var(--color-error); }
+.config-button { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 34px; border: 1px solid currentColor; border-radius: var(--radius-md); padding: .4rem .65rem; font-size: .72rem; font-weight: 700; }
+.config-button.is-configured { background: var(--color-success); color: white; }
+.config-button.is-unconfigured { background: var(--color-error); color: white; }
+.annual-config-modal { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 1rem; background: var(--overlay); }
+.annual-config-modal .treasury-config-form { width: min(520px, 100%); max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 1rem; box-shadow: var(--shadow-elevated); transform: translateY(-6vh); }
+.annual-config-modal .treasury-config-form > header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: .65rem; }
+.annual-config-modal .treasury-config-form > header h2 { margin: 0; }
+.annual-config-modal .treasury-config-form > header button { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; background: var(--color-hover); color: var(--text-main); font-size: 1.25rem; }
 .treasury-family-mode-panel > p { margin: .4rem 0; font-size: .7rem; line-height: 1.3; }
 .annual-fees-config-page .treasury-mode-help { margin-top: .45rem; padding: .42rem .55rem; font-size: .68rem; line-height: 1.3; }
 .annual-fees-config-page .treasury-plan-list { gap: .32rem; margin-top: .5rem; }
@@ -84,6 +137,120 @@
 @media (max-width: 700px) { .annual-fees-grid { grid-template-columns: 1fr; } .treasury-obligations > header { flex-direction: column; } }
 
 @media (max-width: 700px) {
+  .annual-fees-config-page .treasury-page__header h1 { font-size: 1.15rem; }
+  .annual-fees-config-page .treasury-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .annual-fees-config-page .treasury-dashboard article { min-width: 0; }
+  .annual-fees-config-page .treasury-dashboard strong {
+    overflow-wrap: anywhere;
+  }
+  .treasury-config-launcher { align-items: stretch; flex-direction: column; }
+  .config-button { width: 100%; }
+  .annual-config-modal { align-items: center; padding: .65rem; }
+  .annual-config-modal .treasury-config-form { grid-template-columns: 1fr; border-radius: var(--radius-lg); transform: translateY(-4vh); }
+  .annual-config-modal .treasury-config-form > * { grid-column: 1; }
+  .annual-fees-config-page .treasury-plan-actions .change-mode-button {
+    padding-inline: .25rem;
+    font-size: .56rem;
+    white-space: nowrap;
+  }
+  .annual-fees-config-page .treasury-obligations .treasury-filters {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .4rem;
+  }
+  .annual-fees-config-page .treasury-obligations .treasury-filters select {
+    grid-column: 1 / -1;
+  }
+  .annual-fees-config-page .treasury-obligations .treasury-filters .base-button {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding-inline: .3rem;
+    white-space: nowrap;
+  }
+  .annual-fees-config-page .treasury-obligations .treasury-table-wrap { display: none; }
+  .obligation-family-cards { display: grid; gap: .65rem; margin-top: .7rem; }
+  .obligation-family-card { overflow: hidden; border: 1px solid var(--divider); border-radius: 12px; background: var(--color-input); box-shadow: 0 3px 10px rgb(0 0 0 / 5%); }
+  .obligation-family-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: .55rem; padding: .65rem .7rem; border-bottom: 1px solid var(--divider); }
+  .obligation-family-card > header > div { display: grid; min-width: 0; gap: .12rem; }
+  .obligation-family-card > header strong { overflow-wrap: anywhere; color: var(--text-main); font-size: .8rem; }
+  .obligation-family-card > header span:not(.payment-mode) { color: var(--text-muted); font-size: .64rem; }
+  .obligation-family-card > header .payment-mode { font-size: .58rem; white-space: nowrap; }
+  .obligation-installments { display: grid; }
+  .obligation-installments > section { display: grid; gap: .45rem; padding: .65rem .7rem; }
+  .obligation-installments > section + section { border-top: 1px solid var(--divider); }
+  .obligation-installments > section.is-overdue { background: color-mix(in srgb, var(--color-error) 5%, transparent); box-shadow: inset 3px 0 0 var(--color-error); }
+  .obligation-installment__title { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+  .obligation-installment__title strong { font-size: .74rem; }
+  .obligation-installment__title .fee-status { font-size: .58rem; }
+  .obligation-installments dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; margin: 0; }
+  .obligation-installments dl div { display: grid; gap: .08rem; }
+  .obligation-installments dt { color: var(--text-muted); font-size: .56rem; font-weight: 700; text-transform: uppercase; }
+  .obligation-installments dd { margin: 0; color: var(--text-main); font-size: .72rem; font-weight: 650; }
+  .obligation-installments .base-button {
+    width: auto;
+    min-height: 28px;
+    justify-self: end;
+    margin: 0;
+    padding: .28rem .55rem;
+    font-size: .62rem;
+  }
+  .obligation-family-cards > article[aria-hidden="true"] { display: grid; gap: .55rem; padding: .7rem; }
+  .annual-fees-config-page .treasury-obligations table,
+  .annual-fees-config-page .treasury-obligations tbody { display: block; width: 100%; }
+  .annual-fees-config-page .treasury-obligations thead { display: none; }
+  .annual-fees-config-page .treasury-obligations tbody {
+    display: grid;
+    gap: .55rem;
+    margin-top: .65rem;
+  }
+  .annual-fees-config-page .treasury-obligations tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "responsible responsible"
+      "course status"
+      "concept concept"
+      "due amount"
+      "action action";
+    gap: .38rem .65rem;
+    padding: .65rem .7rem;
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    background: var(--color-input);
+    box-shadow: 0 3px 10px rgb(0 0 0 / 5%);
+  }
+  .annual-fees-config-page .treasury-obligations tbody td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: .72rem;
+  }
+  .obligation-card__responsible { grid-area: responsible; padding-bottom: .35rem !important; border-bottom: 1px solid var(--divider) !important; }
+  .obligation-card__responsible strong { display: block; color: var(--text-main); font-size: .78rem; }
+  .obligation-card__responsible small { margin-top: .12rem; overflow-wrap: anywhere; }
+  .obligation-card__course { grid-area: course; }
+  .obligation-card__concept { grid-area: concept; overflow-wrap: anywhere; }
+  .obligation-card__due { grid-area: due; }
+  .obligation-card__amount { grid-area: amount; font-size: .8rem !important; font-weight: 750; text-align: right !important; }
+  .obligation-card__status { grid-area: status; text-align: right !important; }
+  .obligation-card__action { grid-area: action; padding-top: .35rem !important; border-top: 1px solid var(--divider) !important; }
+  .obligation-card__action .base-button { width: 100%; margin: 0; }
+  .obligation-card__course::before,
+  .obligation-card__concept::before,
+  .obligation-card__due::before,
+  .obligation-card__amount::before,
+  .obligation-card__status::before {
+    margin-right: .3rem;
+    color: var(--text-muted);
+    font-size: .56rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    content: attr(data-label) ":";
+  }
   .treasury-reports-page { padding: .65rem; }
   .treasury-reports-page .treasury-panel { padding: .7rem; }
   .treasury-reports-page .treasury-filters { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: .4rem; }

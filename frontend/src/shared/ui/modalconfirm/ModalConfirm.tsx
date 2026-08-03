@@ -16,6 +16,9 @@ interface ModalConfirmProps {
   onConfirm: () => void;
   onCancel: () => void;
   children?: ReactNode;
+  confirmIcon?: ReactNode;
+  cancelIcon?: ReactNode;
+  anchor?: { top: number; left: number };
 }
 
 export const ModalConfirm = ({
@@ -32,12 +35,16 @@ export const ModalConfirm = ({
   onConfirm,
   onCancel,
   children,
+  confirmIcon,
+  cancelIcon,
+  anchor,
 }: ModalConfirmProps) => {
   if (!isOpen) return null;
 
   return (
     <aside
-      className={`modal-confirm-overlay ${compact ? "modal-confirm-overlay--compact" : ""}`}
+      className={`modal-confirm-overlay ${compact ? "modal-confirm-overlay--compact" : ""} ${
+        anchor ? "modal-confirm-overlay--anchored" : ""}`}
       onClick={() => {
         if (!isLoading) onCancel();
       }}
@@ -46,6 +53,7 @@ export const ModalConfirm = ({
     >
       <article
         className={`modal-confirm-container ${compact ? "modal-confirm-container--compact" : ""} ${raised ? "modal-confirm-container--raised" : ""}`}
+        style={anchor ? { position: "fixed", top: anchor.top, left: anchor.left } : undefined}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-confirm-header">
@@ -69,6 +77,8 @@ export const ModalConfirm = ({
             variant="secondary"
             type="button"
             disabled={isLoading || confirmDisabled}
+            icon={cancelIcon}
+            iconPosition="left"
           />
 
           <Button
@@ -78,6 +88,8 @@ export const ModalConfirm = ({
             variant={confirmVariant}
             type="button"
             loading={isLoading}
+            icon={confirmIcon}
+            iconPosition="left"
           />
         </footer>
       </article>

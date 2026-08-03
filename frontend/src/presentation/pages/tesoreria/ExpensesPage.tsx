@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { FiCalendar, FiEye, FiMinusCircle, FiPlus, FiX } from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiBriefcase, FiCalendar, FiCheck, FiClock,
+  FiCreditCard, FiDollarSign, FiEdit3, FiEye, FiFileText, FiFilter, FiLogIn,
+  FiLogOut, FiMessageSquare, FiMinusCircle, FiPlus, FiRefreshCw, FiSave,
+  FiSlash, FiTag, FiUser, FiX }
+  from "react-icons/fi";
 import type {
   ExpenseCategory, ExpenseFilters, ExpensePayload,
   FinancialSummary, TreasuryExpense,
@@ -8,6 +12,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   EXPENSE_CATEGORIES, EXPENSE_PAYMENT_METHODS,
@@ -52,6 +57,9 @@ export const ExpensesPage = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = Object.entries(filters).filter(([key, value]) =>
+    !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -163,7 +171,6 @@ export const ExpensesPage = () => {
   return <main className="expenses-page">
     <header className="expenses-header">
       <div>
-        <span>Tesorería del curso</span>
         <h1>Egresos</h1>
         <p>Pagos realizados por Tesorería.</p>
       </div>
@@ -178,19 +185,31 @@ export const ExpensesPage = () => {
           <div className="skeleton-block" /><div className="skeleton-block" />
           <div className="skeleton-block" />
         </article>) : <>
-      <article><span>Total recaudado</span><strong>{money.format(summary.totalIncome)}</strong>
-        <small>Ingresos válidos del año</small></article>
-      <article className="is-expense"><span>Total de egresos</span>
-        <strong>-{money.format(summary.totalExpenses)}</strong><small>Solo egresos activos</small></article>
-      <article className={summary.availableBalance < 0 ? "is-negative" : "is-balance"}>
-        <span>Saldo disponible</span><strong>{money.format(summary.availableBalance)}</strong>
+      <article className={`expense-summary-card expense-summary-card--balance ${
+        summary.availableBalance < 0 ? "is-negative" : "is-balance"}`}>
+        <div><span>Saldo disponible</span><i><FiDollarSign /></i></div>
+        <strong>{money.format(summary.availableBalance)}</strong>
         <small>{summary.availableBalance < 0 ? "Saldo negativo" : "Ingresos menos egresos"}</small>
       </article>
+      <article className="expense-summary-card expense-summary-card--income">
+        <div><span>Total recaudado</span><i><FiLogIn /></i></div>
+        <strong>{money.format(summary.totalIncome)}</strong><small>Ingresos válidos del año</small></article>
+      <article className="expense-summary-card expense-summary-card--expense is-expense">
+        <div><span>Total de egresos</span><i><FiLogOut /></i></div>
+        <strong>-{money.format(summary.totalExpenses)}</strong><small>Solo egresos activos</small></article>
       </>}
     </section>
 
-    <section className="expenses-filters" aria-label="Filtros de egresos">
-      <label><span>Buscar</span><input placeholder="Descripción, proveedor o comprobante"
+    <div className="expense-filter-toolbar"><button type="button"
+      className="expense-filter-trigger" onClick={() => setFiltersOpen(true)}>
+      <FiFilter /> Filtros {activeFilters > 0 && <span>{activeFilters}</span>}</button></div>
+
+    {filtersOpen && <div className="expense-filter-backdrop" onClick={() => setFiltersOpen(false)}>
+    <aside className="expenses-filters" aria-label="Filtros de egresos" role="dialog"
+      aria-modal="true" onClick={event => event.stopPropagation()}>
+      <header><div><FiFilter /><h2>Filtros</h2></div><button type="button"
+        aria-label="Cerrar filtros" onClick={() => setFiltersOpen(false)}><FiX /></button></header>
+      <label className="expense-filter-search"><span>Buscar</span><input placeholder="Descripción, proveedor o comprobante"
         value={filters.search ?? ""} onChange={(e) => setFilter("search", e.target.value)} /></label>
       <label><span>Año</span><select value={year}
         onChange={(e) => { setYear(Number(e.target.value)); setForm(initialForm(Number(e.target.value))); }}>
@@ -223,7 +242,13 @@ export const ExpensesPage = () => {
         <option value="AMOUNT_DESC">Monto mayor</option><option value="AMOUNT_ASC">Monto menor</option>
         <option value="DESCRIPTION">Descripción</option><option value="CATEGORY">Categoría</option>
       </select></label>
-    </section>
+      <footer className="expense-filter-actions"><button type="button"
+        className="expense-filter-clear" onClick={() =>
+          setFilters({ status: "ACTIVE", sort: "DATE_DESC" })}>
+          <FiRefreshCw /> Limpiar filtros</button><button type="button"
+        className="expense-filter-apply" onClick={() => setFiltersOpen(false)}>
+          <FiCheck /> Ver resultados</button></footer>
+    </aside></div>}
 
     {loading ? <ExpenseCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
@@ -233,10 +258,9 @@ export const ExpensesPage = () => {
             <b>{item.status === "ACTIVE" ? "Activo" : "Anulado"}</b></header>
           <h2>{item.description}</h2>
           <strong>-{money.format(item.amount)}</strong>
-          <dl><div><dt>Categoría</dt><dd>{expenseCategoryLabel(item.category)}</dd></div>
-            <div><dt><FiCalendar aria-hidden="true" /> Fecha</dt><dd>{item.expenseDate}</dd></div>
-            <div><dt>Registrado por</dt><dd>{item.registeredBy}</dd></div></dl>
-          <button type="button" onClick={() => setDetail(item)}><FiEye /> Ver detalle</button>
+          <footer className="expense-card__footer"><span><FiCalendar /> {item.expenseDate}</span>
+            <button type="button" aria-label={`Ver detalle de ${item.description}`}
+              title="Ver detalle" onClick={() => setDetail(item)}><FiEye /></button></footer>
         </article>)}
       </section>}
 
@@ -253,14 +277,14 @@ export const ExpensesPage = () => {
             value={form.amount || ""} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} /></label>
           <label><span>Fecha del egreso *</span><input type="date" required value={form.expenseDate}
             onChange={(e) => setForm({ ...form, expenseDate: e.target.value })} /></label>
-          <label><span>Categoría *</span><select value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value as ExpenseCategory })}>
-            {EXPENSE_CATEGORIES.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}
-          </select></label>
-          <label><span>Medio de pago</span><select value={form.paymentMethod ?? ""}
-            onChange={(e) => setForm({ ...form, paymentMethod: e.target.value as ExpensePayload["paymentMethod"] || undefined })}>
-            <option value="">No informado</option>{EXPENSE_PAYMENT_METHODS.map((item) =>
-              <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
+          <label><span>Categoría *</span><CompactSelect value={form.category}
+            placeholder="Seleccionar categoría" options={EXPENSE_CATEGORIES}
+            onChange={(value) => value && setForm({ ...form,
+              category: value as ExpenseCategory })} /></label>
+          <label><span>Medio de pago</span><CompactSelect value={form.paymentMethod ?? ""}
+            placeholder="No informado" options={EXPENSE_PAYMENT_METHODS}
+            onChange={(value) => setForm({ ...form,
+              paymentMethod: value as ExpensePayload["paymentMethod"] || undefined })} /></label>
           <label><span>Responsable o proveedor</span><input maxLength={150} value={form.recipient ?? ""}
             onChange={(e) => setForm({ ...form, recipient: e.target.value })} /></label>
           <label><span>Número de comprobante</span><input maxLength={100} value={form.receiptNumber ?? ""}
@@ -270,8 +294,9 @@ export const ExpensesPage = () => {
           {editing && <label className="expense-field-wide"><span>Motivo de la corrección *</span>
             <textarea required maxLength={500} value={form.correctionReason ?? ""}
               onChange={(e) => setForm({ ...form, correctionReason: e.target.value })} /></label>}
-          <footer><button type="button" onClick={() => setFormOpen(false)}>Cancelar</button>
-            <button type="submit" disabled={saving}>{saving ? "Guardando…" : "Guardar egreso"}</button></footer>
+          <footer><button type="button" onClick={() => setFormOpen(false)}><FiX /> Cancelar</button>
+            <button type="submit" disabled={saving}><FiSave />
+              {saving ? "Guardando…" : "Guardar egreso"}</button></footer>
         </form>
       </section>
     </div>}
@@ -283,18 +308,19 @@ export const ExpensesPage = () => {
         <span className={`expense-detail-status is-${detail.status.toLowerCase()}`}>
           {detail.status === "ACTIVE" ? "Activo" : "Anulado"}</span>
         <h2 id="expense-detail-title">{detail.description}</h2><strong>-{money.format(detail.amount)}</strong>
-        <dl><div><dt>Fecha</dt><dd>{detail.expenseDate}</dd></div>
-          <div><dt>Categoría</dt><dd>{expenseCategoryLabel(detail.category)}</dd></div>
-          <div><dt>Medio de pago</dt><dd>{expensePaymentLabel(detail.paymentMethod)}</dd></div>
-          <div><dt>Responsable/proveedor</dt><dd>{detail.recipient || "No informado"}</dd></div>
-          <div><dt>Comprobante</dt><dd>{detail.receiptNumber || "No informado"}</dd></div>
-          <div><dt>Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
-          <div><dt>Registrado por</dt><dd>{detail.registeredBy}</dd></div>
-          <div><dt>Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
-          {detail.cancellationReason && <div><dt>Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
+        <dl><div><dt><FiCalendar /> Fecha</dt><dd>{detail.expenseDate}</dd></div>
+          <div><dt><FiTag /> Categoría</dt><dd>{expenseCategoryLabel(detail.category)}</dd></div>
+          <div><dt><FiCreditCard /> Medio de pago</dt><dd>{expensePaymentLabel(detail.paymentMethod)}</dd></div>
+          <div><dt><FiBriefcase /> Responsable/proveedor</dt><dd>{detail.recipient || "No informado"}</dd></div>
+          <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber || "No informado"}</dd></div>
+          <div className="expense-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
+          <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
+          <div className="expense-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
+          {detail.cancellationReason && <div className="expense-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
         {canManage && detail.status === "ACTIVE" && <footer>
-          <button type="button" onClick={() => openEdit(detail)}>Corregir egreso</button>
-          <button className="is-danger" type="button" onClick={() => setConfirmCancel(true)}>Anular egreso</button>
+          <button type="button" onClick={() => openEdit(detail)}><FiEdit3 /> Corregir egreso</button>
+          <button className="is-danger" type="button" onClick={() => setConfirmCancel(true)}>
+            <FiSlash /> Anular egreso</button>
         </footer>}
       </section>
     </div>}
@@ -306,6 +332,8 @@ export const ExpensesPage = () => {
     <ModalConfirm isOpen={confirmCancel} title="Anular egreso"
       message="El registro seguirá visible, pero dejará de descontarse del saldo disponible."
       confirmLabel="Anular egreso" cancelLabel="Volver" isLoading={saving}
+      compact
+      cancelIcon={<FiArrowLeft />} confirmIcon={<FiSlash />}
       onCancel={() => { setConfirmCancel(false); setCancelReason(""); }}
       onConfirm={() => void cancelExpense()}>
       <label>Motivo de la anulación<textarea autoFocus maxLength={500}

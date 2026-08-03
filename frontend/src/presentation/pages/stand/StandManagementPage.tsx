@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   FiAlertTriangle, FiBox, FiCheckCircle, FiDollarSign, FiPlus,
-  FiRefreshCw, FiShoppingCart, FiTrash2, FiX,
+  FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
 } from "react-icons/fi";
 import type { SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
@@ -28,6 +28,11 @@ const statusLabels = {
 } as const;
 type Tab = "products" | "sales" | "summary";
 
+const standModalAnchor = (rect: DOMRect, width: number, height: number) => ({
+  top: Math.max(12, Math.min(rect.top, window.innerHeight - height - 12) - 100),
+  left: Math.max(12, Math.min(rect.left, window.innerWidth - width - 12)),
+});
+
 const errorMessage = (error: unknown, fallback: string) => {
   if (typeof error !== "object" || error === null || !("response" in error)) return fallback;
   const errors = (error as { response?: { data?: { errors?: Record<string, string> } } })
@@ -53,6 +58,7 @@ export const StandManagementPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState("");
+  const [modalAnchor, setModalAnchor] = useState<{ top: number; left: number }>();
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
@@ -167,11 +173,18 @@ export const StandManagementPage = () => {
 
   return <main className="stand-page">
     <header className="stand-page__header">
-      <div><span>Tesorería / Gestión de Stand</span><h1>Ventas del stand</h1>
+      <div><h1>Ventas del stand</h1>
         <p>Configura productos, registra compras y controla la caja en tiempo real.</p></div>
-      <button onClick={() => setCreating(true)} disabled={!eventId}>
-        <FiPlus /> Crear stand
-      </button>
+      <div className="stand-page__header-actions">
+        <button onClick={click => {
+          setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+            Math.min(320, window.innerWidth - 24), 430));
+          setCreating(true);
+        }} disabled={!eventId}>
+          <FiPlus /> Crear stand</button>
+        <button className="is-reload" onClick={() => void loadStands()}>
+          <FiRefreshCw /> Recargar</button>
+      </div>
     </header>
 
     <section className="stand-page__filters" aria-label="Selección de evento">
@@ -184,7 +197,6 @@ export const StandManagementPage = () => {
           {item.name} · {item.eventDate}
         </option>)}
       </select></label>
-      <button aria-label="Actualizar" onClick={() => void loadStands()}><FiRefreshCw /></button>
     </section>
 
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
@@ -211,14 +223,26 @@ export const StandManagementPage = () => {
                 –{selected.endTime.slice(0, 5)}</p></div>
             <div className="stand-workspace__actions">
               {selected.status !== "CLOSED" &&
-                <button className="secondary" onClick={() => setEditing(true)}>
-                  Configurar</button>}
-              <button className="danger" onClick={() => setStandToDelete(selected)}>
+                <button className="secondary" onClick={click => {
+                  setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                    Math.min(320, window.innerWidth - 24), 430));
+                  setEditing(true);
+                }}>
+                  <FiSettings /> Configurar</button>}
+              <button className="danger" onClick={click => {
+                setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                  Math.min(280, window.innerWidth - 24), 190));
+                setStandToDelete(selected);
+              }}>
                 <FiTrash2 /> Eliminar stand</button>
               {selected.status === "PREPARATION" &&
                 <button onClick={() => void changeStatus("open")}><FiCheckCircle /> Abrir jornada</button>}
               {selected.status === "OPEN" &&
-                <button className="danger" onClick={() => void requestClose()}>
+                <button className="danger" onClick={click => {
+                  setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                    Math.min(280, window.innerWidth - 24), 260));
+                  void requestClose();
+                }}>
                   <FiX /> Cerrar jornada</button>}
               {selected.status === "CLOSED" &&
                 <button onClick={() => void changeStatus("reopen")}><FiRefreshCw /> Reabrir</button>}
@@ -241,21 +265,30 @@ export const StandManagementPage = () => {
       </>}
     <ModalConfirm
       isOpen={Boolean(standToDelete)}
+      compact
+      anchor={modalAnchor}
+      confirmVariant="danger"
       title={`Eliminar ${standToDelete?.name ?? "stand"}`}
       message="Se eliminarán definitivamente el stand, sus productos y las ventas anuladas. Si queda alguna venta activa, la operación será rechazada."
       confirmLabel="Eliminar stand"
       cancelLabel="Conservar stand"
       isLoading={deleting}
+      confirmIcon={<FiTrash2 />}
+      cancelIcon={<FiX />}
       onConfirm={() => void confirmDelete()}
       onCancel={() => setStandToDelete(undefined)}
     />
     <ModalConfirm
       isOpen={Boolean(closeSummary)}
+      compact
+      anchor={modalAnchor}
       title="Confirmar cierre de jornada"
       message="Revisa el cierre antes de enviar la recaudación al evento asociado."
       confirmLabel="Cerrar y enviar al evento"
       cancelLabel="Seguir vendiendo"
       isLoading={closing}
+      confirmIcon={<FiCheckCircle />}
+      cancelIcon={<FiX />}
       onConfirm={() => void confirmClose()}
       onCancel={() => setCloseSummary(undefined)}
     >
@@ -268,12 +301,14 @@ export const StandManagementPage = () => {
       </div>}
     </ModalConfirm>
     {creating && <StandForm eventId={eventId} event={events.find(item => item.id === eventId)}
-      onClose={() => setCreating(false)} onSaved={async value => {
+      anchor={modalAnchor} onClose={() => { setCreating(false); setModalAnchor(undefined); }}
+      onSaved={async value => {
         setCreating(false); await loadStands(); setSelected(value); setFeedback("Stand creado.");
       }} />}
     {editing && selected && <StandForm eventId={eventId}
       event={events.find(item => item.id === eventId)} stand={selected}
-      onClose={() => setEditing(false)} onSaved={async value => {
+      anchor={modalAnchor} onClose={() => { setEditing(false); setModalAnchor(undefined); }}
+      onSaved={async value => {
         setEditing(false); updateSelected(value, "Configuración actualizada.");
       }} />}
   </main>;
@@ -526,12 +561,16 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
     </section>
     <ModalConfirm
       isOpen={Boolean(saleToCancel)}
+      compact
+      confirmVariant="danger"
       title={`Anular venta #${saleToCancel?.id ?? ""}`}
       message="La venta se conservará en el historial y las unidades volverán al stock."
       confirmLabel="Anular venta"
       cancelLabel="Conservar venta"
       isLoading={cancelling}
       confirmDisabled={!cancellationReason.trim()}
+      confirmIcon={<FiTrash2 />}
+      cancelIcon={<FiX />}
       onConfirm={() => void cancelSale()}
       onCancel={() => {
         setSaleToCancel(undefined);
@@ -548,6 +587,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
     </ModalConfirm>
     <ModalConfirm
       isOpen={Boolean(saleToEdit)}
+      compact
       title={`Modificar venta #${saleToEdit?.id ?? ""}`}
       message="Los cambios ajustarán automáticamente el stock y los totales del stand."
       confirmLabel="Guardar modificación"
@@ -555,6 +595,8 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       isLoading={editingSale}
       confirmDisabled={editItems.length === 0 || editItems.some(item => Number(item.quantity) < 1)
         || (editMethod === "CASH" && Number(editReceived) < editTotal)}
+      confirmIcon={<FiCheckCircle />}
+      cancelIcon={<FiX />}
       onConfirm={() => void updateSale()}
       onCancel={() => setSaleToEdit(undefined)}
     >
@@ -664,8 +706,9 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
     </div>
   </div>;
 
-const StandForm = ({ eventId, event, stand, onClose, onSaved }: {
+const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
   eventId: number; event?: SchoolEvent; stand?: Stand; onClose: () => void;
+  anchor?: { top: number; left: number };
   onSaved: (value: Stand) => Promise<void>;
 }) => {
   const [form, setForm] = useState({
@@ -698,8 +741,10 @@ const StandForm = ({ eventId, event, stand, onClose, onSaved }: {
         : await stands.create(payload));
     } finally { setSaving(false); }
   };
-  return <div className="stand-modal" role="presentation" onMouseDown={onClose}>
+  return <div className={`stand-modal ${anchor ? "stand-modal--anchored" : ""}`}
+    role="presentation" onMouseDown={onClose}>
     <form role="dialog" aria-modal="true" aria-labelledby="stand-form-title"
+      style={anchor ? { position: "fixed", top: anchor.top, left: anchor.left } : undefined}
       onMouseDown={event => event.stopPropagation()} onSubmit={submit}>
       <header><div><span>{event?.name}</span><h2 id="stand-form-title">
         {stand ? "Editar configuración" : "Configurar nuevo stand"}</h2></div>
@@ -730,9 +775,10 @@ const StandForm = ({ eventId, event, stand, onClose, onSaved }: {
             checked={form.paymentMethods.includes(method)}
             onChange={() => toggleMethod(method)} />{paymentLabels[method]}</label>)}</div>
       </fieldset>
-      <footer><button type="button" onClick={onClose}>Cancelar</button>
+      <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
         <button type="submit" disabled={saving || form.paymentMethods.length === 0}>
-          {saving ? "Guardando…" : stand ? "Guardar cambios" : "Crear stand"}</button></footer>
+          {saving ? "Guardando…" : stand ? <><FiCheckCircle /> Guardar cambios</>
+            : <><FiPlus /> Crear stand</>}</button></footer>
     </form>
   </div>;
 };

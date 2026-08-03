@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AnnualFeeConfigPayload, FeeObligation, FamilyPlan, PaymentMode,
+import type { AnnualFeeConfig, AnnualFeeConfigPayload, FeeObligation, FamilyPlan, PaymentMode,
   TreasuryDashboard, TreasuryFilters } from "@/core/A-domain/entities/treasury/Treasury";
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
@@ -25,6 +25,7 @@ export const useAnnualFees = () => {
   const [plans, setPlans] = useState<FamilyPlan[]>([]);
   const [obligations, setObligations] = useState<FeeObligation[]>([]);
   const [dashboard, setDashboard] = useState<TreasuryDashboard | null>(null);
+  const [configs, setConfigs] = useState<AnnualFeeConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [familiesLoading, setFamiliesLoading] = useState(true);
@@ -33,6 +34,14 @@ export const useAnnualFees = () => {
   const [actionError, setActionError] = useState("");
   const useCases = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
   const familyRepository = useMemo(() => new FamiliaRepositoryImpl(), []);
+
+  const loadConfigs = useCallback(async () => {
+    try {
+      setConfigs(await useCases.listConfigs());
+    } catch {
+      setConfigs([]);
+    }
+  }, [useCases]);
 
   const loadFamilies = useCallback(async () => {
     try {
@@ -46,9 +55,9 @@ export const useAnnualFees = () => {
     }
   }, [familyRepository]);
 
-  const refresh = useCallback(async (filters: TreasuryFilters = {}) => {
+  const refresh = useCallback(async (filters: TreasuryFilters = {}, showSkeleton = false) => {
     setLoading(true);
-    setDataLoading(true);
+    if (showSkeleton) setDataLoading(true);
     setError("");
     try {
       const [currentPlans, currentObligations, currentDashboard] =
@@ -72,7 +81,8 @@ export const useAnnualFees = () => {
   }, [useCases, year]);
 
   useEffect(() => { void loadFamilies(); }, [loadFamilies]);
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { void loadConfigs(); }, [loadConfigs]);
+  useEffect(() => { void refresh({}, true); }, [refresh]);
 
   const execute = async (operation: () => Promise<unknown>, success: string) => {
     setLoading(true);
@@ -92,13 +102,17 @@ export const useAnnualFees = () => {
   };
 
   return {
-    year, setYear, families, plans, obligations, dashboard, loading, dataLoading,
+    year, setYear, families, plans, obligations, dashboard, configs, loading, dataLoading,
     familiesLoading, message, error, actionError,
     clearMessage: () => setMessage(""),
     clearActionError: () => setActionError(""),
     refresh,
-    saveConfig: (payload: AnnualFeeConfigPayload) =>
-      execute(() => useCases.saveConfig(year, payload), "Configuración anual guardada."),
+    saveConfig: async (payload: AnnualFeeConfigPayload) => {
+      const success = await execute(() => useCases.saveConfig(year, payload),
+        "Configuración anual guardada.");
+      if (success) await loadConfigs();
+      return success;
+    },
     assignMode: (familyId: number, mode: PaymentMode) =>
       execute(async () => {
         await useCases.assignMode(year, familyId, mode);
