@@ -3,8 +3,10 @@ import { useCallback, useRef, useState } from "react";
 const SIDEBAR_AUTO_CLOSE_MS = 1500;
 
 export const useSidebarBehavior = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
+  const startsExpanded = () => typeof window.matchMedia === "function"
+    && window.matchMedia("(min-width: 1024px)").matches;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(startsExpanded);
+  const [isLocked, setIsLocked] = useState(startsExpanded);
   const timeoutRef = useRef<number | null>(null);
 
   const onToggleSidebar = useCallback(() => {
