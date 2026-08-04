@@ -15,7 +15,12 @@ import "./FamilyContributionsPage.css";
 const repository = new TreasuryRepositoryImpl();
 const currentYear = new Date().getFullYear();
 const schoolYears = Array.from({ length: 10 }, (_, index) => 2026 + index);
-const today = new Date().toISOString().slice(0, 10);
+const localToday = () => {
+  const date = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+const today = localToday();
 const emptySummary: ContributionSummary = {
   totalFamilies: 0, cepaPaid: 0, cepaPending: 0, solidarityPaid: 0,
   solidarityPending: 0, fullyPaid: 0, withPending: 0,
@@ -40,6 +45,7 @@ export const FamilyContributionsPage = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [paymentDate, setPaymentDate] = useState(today);
   const [cancellationReason, setCancellationReason] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = [search.trim(), course, cepaStatus, solidarityStatus]
@@ -86,7 +92,7 @@ export const FamilyContributionsPage = () => {
     setSaving(true);
     setError("");
     try {
-      await repository.payContribution(selected.familyId, year, type, today);
+      await repository.payContribution(selected.familyId, year, type, paymentDate);
       setMessage(`La ${label} de la familia ${selected.familyCode} fue marcada como pagada.`);
       setPendingAction(null);
       setSelected(null);
@@ -238,11 +244,17 @@ export const FamilyContributionsPage = () => {
             <div className="contribution-modal__actions">
               <ContributionAction label="Cuota CEPA" payment={selected.cepa}
                 canManage={canManage} disabled={saving}
-                onPay={() => setPendingAction({ kind: "pay", type: "CEPA" })}
+                onPay={() => {
+                  setPaymentDate(localToday());
+                  setPendingAction({ kind: "pay", type: "CEPA" });
+                }}
                 onCancel={() => setPendingAction({ kind: "cancel", type: "CEPA" })} />
               <ContributionAction label="Cuota Solidaria" payment={selected.solidarity}
                 canManage={canManage} disabled={saving}
-                onPay={() => setPendingAction({ kind: "pay", type: "SOLIDARIA" })}
+                onPay={() => {
+                  setPaymentDate(localToday());
+                  setPendingAction({ kind: "pay", type: "SOLIDARIA" });
+                }}
                 onCancel={() => setPendingAction({ kind: "cancel", type: "SOLIDARIA" })} />
             </div>
           </section>
@@ -255,11 +267,12 @@ export const FamilyContributionsPage = () => {
         message={pendingAction && selected
           ? pendingAction.kind === "cancel"
             ? `Se anulará la ${pendingAction.type === "CEPA" ? "Cuota CEPA" : "Cuota Solidaria"} de la familia ${selected.familyCode}. Esta acción quedará auditada.`
-            : `Se marcará la ${pendingAction.type === "CEPA" ? "Cuota CEPA" : "Cuota Solidaria"} de la familia ${selected.familyCode} como pagada con fecha ${today}.`
+            : `Se registrará la ${pendingAction.type === "CEPA" ? "Cuota CEPA" : "Cuota Solidaria"} de la familia ${selected.familyCode}.`
           : ""}
         confirmLabel={pendingAction?.kind === "cancel" ? "Anular pago" : "Registrar pago"}
         cancelLabel="Volver"
         isLoading={saving}
+        confirmDisabled={pendingAction?.kind === "pay" && !paymentDate}
         compact
         onCancel={() => {
           setPendingAction(null);
@@ -271,6 +284,13 @@ export const FamilyContributionsPage = () => {
           else void cancel(pendingAction.type);
         }}
       >
+        {pendingAction?.kind === "pay" && (
+          <label>
+            Fecha de pago
+            <input type="date" value={paymentDate} max={today}
+              onChange={(event) => setPaymentDate(event.target.value)} autoFocus />
+          </label>
+        )}
         {pendingAction?.kind === "cancel" && (
           <label>
             Motivo de la anulación

@@ -33,6 +33,8 @@ export const AnnualFeesPage = () => {
   const [familyId, setFamilyId] = useState(0);
   const [mode, setMode] = useState<PaymentMode>("ANUAL");
   const [filters, setFilters] = useState<TreasuryFilters>({});
+  const [payment, setPayment] = useState<{ id: number; amount: number; concept: string } | null>(null);
+  const [paymentDate, setPaymentDate] = useState(today);
   const [annulmentId, setAnnulmentId] = useState<number | null>(null);
   const [annulmentReason, setAnnulmentReason] = useState("");
   const [removePlan, setRemovePlan] = useState<{ familyId: number; code: string } | null>(null);
@@ -271,7 +273,10 @@ export const AnnualFeesPage = () => {
           <td className="obligation-card__action">{item.status === "PENDIENTE"
             ? <Button label="Registrar pago" size="small" icon={<FiCreditCard />}
                 iconPosition="left"
-                onClick={() => void fees.pay(item.id, item.amount)} />
+                onClick={() => {
+                  setPaymentDate(today);
+                  setPayment({ id: item.id, amount: item.amount, concept: item.concept });
+                }} />
             : <Button label="Anular" size="small" variant="danger" icon={<FiSlash />}
                 iconPosition="left"
                 onClick={() => setAnnulmentId(item.id)} />}</td>
@@ -308,7 +313,10 @@ export const AnnualFeesPage = () => {
                   {item.status === "PENDIENTE"
                     ? <Button label="Registrar pago" size="small" icon={<FiCreditCard />}
                         iconPosition="left"
-                        onClick={() => void fees.pay(item.id, item.amount)} />
+                        onClick={() => {
+                          setPaymentDate(today);
+                          setPayment({ id: item.id, amount: item.amount, concept: item.concept });
+                        }} />
                     : <Button label="Anular" size="small" variant="danger" icon={<FiSlash />}
                         iconPosition="left"
                         onClick={() => setAnnulmentId(item.id)} />}
@@ -349,6 +357,29 @@ export const AnnualFeesPage = () => {
     <ModalAlert isOpen={Boolean(fees.actionError)} message={fees.actionError} type="error"
       title="No se pudo guardar la modalidad" buttonLabel="Entendido" autoCloseTime={0}
       onClose={fees.clearActionError} />
+    <ModalConfirm
+      isOpen={payment !== null}
+      title="Registrar pago de cuota"
+      message={payment ? `Selecciona la fecha real del pago de ${payment.concept}.` : ""}
+      confirmLabel="Registrar pago"
+      cancelLabel="Volver"
+      isLoading={fees.loading}
+      confirmDisabled={!paymentDate}
+      compact
+      onCancel={() => setPayment(null)}
+      onConfirm={() => {
+        if (!payment || !paymentDate) return;
+        void fees.pay(payment.id, paymentDate, payment.amount).then(success => {
+          if (success) setPayment(null);
+        });
+      }}
+    >
+      <label>
+        Fecha de pago
+        <input type="date" value={paymentDate} max={today}
+          onChange={event => setPaymentDate(event.target.value)} autoFocus />
+      </label>
+    </ModalConfirm>
     <ModalConfirm
       isOpen={annulmentId !== null}
       title="Anular pago de cuota"
