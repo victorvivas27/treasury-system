@@ -122,8 +122,8 @@ export const useAnnualFees = () => {
       execute(() => useCases.removeFamilyPlan(year, familyId, reason),
         "La familia fue quitada de la cuota anual."),
     generate: () => execute(() => useCases.generate(year), "Obligaciones generadas."),
-    pay: (id: number, amount: number, observations?: string) =>
-      execute(() => useCases.pay(id, new Date().toISOString().slice(0, 10), amount, observations),
+    pay: (id: number, paymentDate: string, amount: number, observations?: string) =>
+      execute(() => useCases.pay(id, paymentDate, amount, observations),
         "Pago registrado correctamente."),
     annul: (id: number, reason: string) =>
       execute(() => useCases.annul(id, reason), "Pago anulado; la cuota volvió a pendiente."),
