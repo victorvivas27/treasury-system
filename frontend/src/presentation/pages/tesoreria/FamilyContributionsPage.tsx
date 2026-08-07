@@ -9,6 +9,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./FamilyContributionsPage.css";
 
@@ -27,6 +28,7 @@ const emptySummary: ContributionSummary = {
 };
 
 const isPaid = (status?: ContributionStatus) => status === "PAID";
+const PAGE_SIZE = 3;
 type PendingAction = { kind: "pay" | "cancel"; type: ContributionType } | null;
 
 export const FamilyContributionsPage = () => {
@@ -48,6 +50,7 @@ export const FamilyContributionsPage = () => {
   const [paymentDate, setPaymentDate] = useState(today);
   const [cancellationReason, setCancellationReason] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const activeFilters = [search.trim(), course, cepaStatus, solidarityStatus]
     .filter(Boolean).length;
 
@@ -80,6 +83,16 @@ export const FamilyContributionsPage = () => {
     const timer = window.setTimeout(load, 250);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [year, search, course, cepaStatus, solidarityStatus]);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const visibleItems = useMemo(
+    () => items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [items, page],
+  );
 
   const courses = useMemo(
     () => [...new Set(items.map((item) => item.course).filter(Boolean))].sort(),
@@ -207,7 +220,7 @@ export const FamilyContributionsPage = () => {
         <p className="contributions-page__empty">No hay familias para los filtros seleccionados.</p>
       ) : (
         <section className="contributions-grid" aria-label="Familias">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <article className={`contribution-card ${
               isPaid(item.cepa?.status) && isPaid(item.solidarity?.status) ? "is-complete" : ""
             }`} key={item.familyId}>
@@ -228,6 +241,18 @@ export const FamilyContributionsPage = () => {
             </article>
           ))}
         </section>
+      )}
+
+      {!loading && items.length > PAGE_SIZE && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          hasPrevious={page > 1}
+          hasNext={page < totalPages}
+          onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+          onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+          ariaLabel="Paginación de aportes"
+        />
       )}
 
       {selected && (
@@ -333,7 +358,7 @@ const SummaryCard = ({ label, value, icon, tone }: {
 
 const ContributionsSkeleton = () => (
   <section className="contributions-grid" aria-label="Cargando familias" role="status">
-    {Array.from({ length: 6 }, (_, index) => (
+    {Array.from({ length: PAGE_SIZE }, (_, index) => (
       <article className="contribution-card contribution-card--skeleton" key={index}
         aria-hidden="true">
         <div className="contribution-card__heading">
