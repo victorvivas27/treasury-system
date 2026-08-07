@@ -88,7 +88,8 @@ describe("AlumnosList Component", () => {
     expect(screen.getByText("Lista de Alumnos")).toBeInTheDocument();
     expect(screen.getByText("Nombre")).toBeInTheDocument();
     expect(screen.getByText("Curso")).toBeInTheDocument();
-    expect(screen.getByText("Código")).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Código" })).not.toBeInTheDocument();
+    expect(screen.getAllByText("Ver código")).toHaveLength(mockAlumnos.length);
     expect(screen.getByText("Acciones")).toBeInTheDocument();
   });
 
@@ -145,9 +146,9 @@ describe("AlumnosList Component", () => {
 
     // Verificamos que las celdas tengan el atributo data-label correcto
     if (nonEmptyCells.length >= 3) {
-      expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Código");
-      expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Nombre");
-      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Curso");
+      expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Nombre");
+      expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Curso");
+      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Acciones");
     }
   });
 
@@ -188,8 +189,8 @@ describe("AlumnosList Component", () => {
     expect(rows.length).toBe(pageSize);
 
     const skeletons = container.querySelectorAll(".skeleton-block");
-    // Cada fila tiene 4 skeletons (nombre, email, teléfono, acciones)
-    expect(skeletons.length).toBe(pageSize * 4);
+    // Cada fila tiene 3 skeletons (nombre, curso y acciones)
+    expect(skeletons.length).toBe(pageSize * 3);
   });
 
   it("[AlumnosList #10] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {

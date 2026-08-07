@@ -7,6 +7,7 @@ import { FcHighPriority } from "react-icons/fc";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import { FAMILIA_ICONS } from "@/shared/constants/Icons";
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
+import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 
 interface FamiliaListProps {
   familias: FamiliaDetalle[];
@@ -89,8 +90,6 @@ export const FamiliaList: FC<FamiliaListProps> = ({
       <table className="familia-table">
         <thead>
           <tr>
-            <th className="familia-table__th">Código familia</th>
-            <th className="familia-table__th">Código alumno</th>
             <th className="familia-table__th">Alumno</th>
             <th className="familia-table__th">Apoderados</th>
             <th className="familia-table__th">Principal</th>
@@ -119,33 +118,22 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   isEmptyRow && !loading ? "empty-row" : ""
                 }`}
               >
-                <td className="familia-table__td" data-label="Código familia">
+                <td className="familia-table__td familia-table__person" data-label="Alumno">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    <strong>{familia.codigoFamilia}</strong>
-                  )}
-                </td>
-
-                <td className="familia-table__td" data-label="Código alumno">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    familia.alumno.codigo
-                  )}
-                </td>
-
-                <td className="familia-table__td" data-label="Alumno">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    familia.alumno.nombre
+                    <span className="familia-table__student">
+                      <span>{familia.alumno.nombre}</span>
+                      <CodeReveal
+                        label="Ver códigos"
+                        codes={[
+                          { label: "Familia", value: familia.codigoFamilia },
+                          { label: "Alumno", value: familia.alumno.codigo },
+                        ]}
+                      />
+                    </span>
                   )}
                 </td>
 
@@ -159,7 +147,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   )}
                 </td>
 
-                <td className="familia-table__td" data-label="Principal">
+                <td className="familia-table__td familia-table__person" data-label="Principal">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
@@ -171,7 +159,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   )}
                 </td>
 
-                <td className="familia-table__td" data-label="Secundarios">
+                <td className="familia-table__td familia-table__person" data-label="Secundarios">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
