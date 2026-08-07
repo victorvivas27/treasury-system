@@ -7,7 +7,10 @@ export class AuthRepositoryImpl implements IAuthRepository {
   private readonly baseUrl = "/auth";
 
   async login(payload: LoginPayload): Promise<LoginResponse> {
-    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/login`, payload)).data;
+    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/login`, payload, {
+      // Cloud Run y la base de datos pueden necesitar unos segundos extra en el primer acceso.
+      timeout: 30000,
+    })).data;
   }
 
   async register(payload: UserPayload): Promise<User> {
