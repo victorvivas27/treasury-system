@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import type { FC } from "react";
+import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 
 interface AlumnosListProps {
   alumnos: Alumno[];
@@ -108,7 +109,6 @@ export const AlumnosList: FC<AlumnosListProps> = ({
       <table className="alumnos-table">
         <thead>
           <tr>
-            <th className="alumnos-table__th">Código</th>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
             <th className="alumnos-table__th">Acciones</th>
@@ -126,23 +126,16 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 key={getRowKey(item)}
                 className={`alumnos-table__row--data ${empty && !loading ? "empty-row" : ""}`}
               >
-                <td className="alumnos-table__td" data-label="Código">
+                <td className="alumnos-table__td alumnos-table__text" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (
-                    alumnoIdentifier
-                  )}
-                </td>
-
-                <td className="alumnos-table__td" data-label="Nombre">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : empty ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    alumno.nombre
+                    <span className="alumnos-table__person">
+                      <span>{alumno.nombre}</span>
+                      <CodeReveal codes={[{ value: alumnoIdentifier }]} />
+                    </span>
                   )}
                 </td>
 

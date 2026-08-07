@@ -53,19 +53,28 @@
 
 @media (min-width: 769px) {
   .familia-table__th:nth-child(1),
-  .familia-table__td:nth-child(1) { width: 12%; }
+  .familia-table__td:nth-child(1) { width: 23%; }
   .familia-table__th:nth-child(2),
-  .familia-table__td:nth-child(2) { width: 11%; }
+  .familia-table__td:nth-child(2) { width: 12%; }
   .familia-table__th:nth-child(3),
-  .familia-table__td:nth-child(3) { width: 16%; }
+  .familia-table__td:nth-child(3) { width: 20%; }
   .familia-table__th:nth-child(4),
-  .familia-table__td:nth-child(4) { width: 11%; }
+  .familia-table__td:nth-child(4) { width: 32%; }
   .familia-table__th:nth-child(5),
-  .familia-table__td:nth-child(5) { width: 15%; }
-  .familia-table__th:nth-child(6),
-  .familia-table__td:nth-child(6) { width: 24%; }
-  .familia-table__th:nth-child(7),
-  .familia-table__td:nth-child(7) { width: 11%; }
+  .familia-table__td:nth-child(5) { width: 13%; }
+}
+
+.familia-table__person {
+  overflow: visible;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.familia-table__student {
+  display: grid;
+  gap: .2rem;
 }
 
 .familia-table__td--actions {
@@ -96,13 +105,14 @@
 .badge-secondary {
   display: inline-block;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
   padding: .18rem .4rem;
   border-radius: 4px;
   font-size: .68rem;
   font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .badge-success {

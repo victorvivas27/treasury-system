@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import type { FC } from "react";
+import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 
 
 interface ApoderadosListProps {
@@ -115,7 +116,6 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       <table className="apoderados-table">
         <thead>
           <tr>
-            <th className="apoderados-table__th">Código</th>
             <th className="apoderados-table__th">Nombre</th>
             <th className="apoderados-table__th">Correo</th>
             <th className="apoderados-table__th">Teléfono</th>
@@ -136,27 +136,22 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 className={`apoderados-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
                   }`}
               >
-                <td className="apoderados-table__td" data-label="Código">
+                <td className="apoderados-table__td apoderados-table__text" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    apoderado.codigo || apoderadoIdentifier
+                    <span className="apoderados-table__person">
+                      <span>{apoderado.nombre}</span>
+                      <CodeReveal codes={[{
+                        value: apoderado.codigo || apoderadoIdentifier,
+                      }]} />
+                    </span>
                   )}
                 </td>
 
-                <td className="apoderados-table__td" data-label="Nombre">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input" />
-                  ) : isEmptyRow ? (
-                    <span>&nbsp;</span>
-                  ) : (
-                    apoderado.nombre
-                  )}
-                </td>
-
-                <td className="apoderados-table__td" data-label="Email">
+                <td className="apoderados-table__td apoderados-table__text" data-label="Email">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
                   ) : isEmptyRow ? (

@@ -1,0 +1,36 @@
+.code-reveal summary {
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: .62rem;
+  font-weight: 650;
+  list-style-position: inside;
+}
+
+.code-reveal__values {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .25rem .55rem;
+  margin-top: .15rem;
+}
+
+.code-reveal__values > span {
+  display: grid;
+  gap: .05rem;
+}
+
+.code-reveal__values small {
+  color: var(--text-muted);
+  font-size: .55rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.code-reveal__values strong {
+  font-size: .68rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .code-reveal__values { justify-content: flex-start; }
+}

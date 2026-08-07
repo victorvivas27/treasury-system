@@ -1,5 +1,5 @@
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { FamiliaList } from "../FamiliaList";
 
@@ -68,5 +68,23 @@ describe("FamiliaList", () => {
     renderList([crearFamilia(false)]);
 
     expect(screen.getByText("-", { selector: ".badge-secondary" })).toBeInTheDocument();
+  });
+
+  it("[FamiliaList #03] permite revelar los códigos desde el alumno", () => {
+    renderList([crearFamilia()]);
+
+    expect(screen.queryByRole("columnheader", { name: "Código familia" }))
+      .not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Código alumno" }))
+      .not.toBeInTheDocument();
+    const trigger = screen.getByText("Ver códigos");
+    const details = trigger.closest("details");
+    expect(details).not.toHaveAttribute("open");
+
+    fireEvent.click(trigger);
+
+    expect(details).toHaveAttribute("open");
+    expect(screen.getByText("FAM-12345678")).toBeInTheDocument();
+    expect(screen.getByText("AL-12345678")).toBeInTheDocument();
   });
 });

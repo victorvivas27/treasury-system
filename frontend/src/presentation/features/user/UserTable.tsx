@@ -4,6 +4,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./UserTable.css";
+import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 
 interface UserTableProps {
   users: User[];
@@ -29,7 +30,6 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
       <table className="usuarios-table">
         <thead>
           <tr>
-            <th className="usuarios-table__th">Código</th>
             <th className="usuarios-table__th">Nombre</th>
             <th className="usuarios-table__th">Correo</th>
             <th className="usuarios-table__th">Rol</th>
@@ -41,7 +41,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
           {loading ? Array.from({ length: pageSize }, (_, row) => (
             <tr key={`loading-${row}`} className="usuarios-table__row--data"
               aria-hidden="true">
-              {Array.from({ length: isAdmin ? 6 : 5 }, (_, column) => (
+              {Array.from({ length: isAdmin ? 5 : 4 }, (_, column) => (
                 <td className="usuarios-table__td" key={column}>
                   <div className="skeleton-block usuarios-table__skeleton" />
                 </td>
@@ -52,8 +52,12 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
             const isActive = user.enabled && user.accountNonLocked;
             return (
               <tr key={user.id} className="usuarios-table__row--data">
-                <td className="usuarios-table__td" data-label="Código">{user.code}</td>
-                <td className="usuarios-table__td" data-label="Nombre">{user.nombre}</td>
+                <td className="usuarios-table__td usuarios-table__text" data-label="Nombre">
+                  <span className="usuarios-table__person">
+                    <span>{user.nombre}</span>
+                    <CodeReveal codes={[{ value: user.code }]} />
+                  </span>
+                </td>
                 <td className="usuarios-table__td usuarios-table__email" data-label="Correo">{user.correo}</td>
                 <td className="usuarios-table__td" data-label="Rol">
                   <span className={`usuarios-role ${user.rol === "ADMIN" ? "is-admin" : "is-user"}`}>
@@ -95,7 +99,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
           {Array.from({ length: Math.max(pageSize - users.length, 0) }, (_, row) =>
             <tr className="usuarios-table__row--data empty-row" aria-hidden="true"
               key={`empty-${row}`}>
-              <td colSpan={isAdmin ? 6 : 5}>&nbsp;</td>
+              <td colSpan={isAdmin ? 5 : 4}>&nbsp;</td>
             </tr>)}
           </>}
         </tbody>
