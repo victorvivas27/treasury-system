@@ -42,7 +42,11 @@ class AuthServiceTest {
 
     @Test
     void login_deberiaAutenticarLimpiarIntentosYGenerarToken() {
-        when(detailsService.loadUserByUsername("admin@mail.com")).thenReturn(details);
+        var authentication = new UsernamePasswordAuthenticationToken(
+                details, null, details.getAuthorities());
+        when(authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken("admin@mail.com", "Password1!")))
+                .thenReturn(authentication);
         when(jwtService.generateToken(details)).thenReturn("jwt");
 
         String token = service.login("admin@mail.com", "Password1!");

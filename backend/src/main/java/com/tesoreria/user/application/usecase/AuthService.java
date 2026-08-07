@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -31,10 +32,12 @@ public class AuthService {
     public String login(String correo, String password) {
         rateLimiter.checkAllowed(correo);
         try {
-            authenticationManager.authenticate(
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(correo, password));
             rateLimiter.recordSuccess(correo);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
+            UserDetails userDetails = authentication.getPrincipal() instanceof UserDetails authenticatedUser
+                    ? authenticatedUser
+                    : userDetailsService.loadUserByUsername(correo);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Login exitoso para {}", maskEmail(correo));
             }

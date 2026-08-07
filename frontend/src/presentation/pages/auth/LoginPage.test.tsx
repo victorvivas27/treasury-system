@@ -123,4 +123,28 @@ describe("LoginPage", () => {
       "Demasiados intentos fallidos. Intente nuevamente en 1 minuto",
     );
   });
+
+  it("[LoginPage #06] distingue un timeout de credenciales inválidas", async () => {
+    const login = vi.fn().mockRejectedValue(new AxiosError(
+      "timeout of 30000ms exceeded",
+      "ECONNABORTED",
+    ));
+    vi.mocked(useAuth).mockReturnValue({
+      login,
+      loading: false,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Correo"), {
+      target: { value: "user@mail.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Contraseña"), {
+      target: { value: "Password1!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "El servidor tardó demasiado en responder",
+    );
+  });
 });

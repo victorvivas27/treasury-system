@@ -13,9 +13,19 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 const loginErrorMessage = (error: unknown) => {
-  if (!axios.isAxiosError(error) || error.response?.status !== 429) {
+  if (!axios.isAxiosError(error)) {
     return "Correo o contraseña inválidos";
   }
+
+  if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+    return "El servidor tardó demasiado en responder. Espera unos segundos e intenta nuevamente.";
+  }
+
+  if (!error.response) {
+    return "No fue posible conectar con el servidor. Revisa tu conexión e intenta nuevamente.";
+  }
+
+  if (error.response.status !== 429) return "Correo o contraseña inválidos";
 
   const errors = error.response.data?.errors;
   if (errors && typeof errors === "object") {
