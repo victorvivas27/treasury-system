@@ -4,7 +4,30 @@ import "./style/CrearApoderadoForm.css";
 import { useCreateApoderado } from "@/presentation/hooks/apoderado/useCreateApoderado";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
+import { useState, type ChangeEvent } from "react";
 
+const LATAM_COUNTRIES = [
+  { code: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56" },
+  { code: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54" },
+  { code: "BO", flag: "🇧🇴", name: "Bolivia", dialCode: "+591" },
+  { code: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55" },
+  { code: "CO", flag: "🇨🇴", name: "Colombia", dialCode: "+57" },
+  { code: "CR", flag: "🇨🇷", name: "Costa Rica", dialCode: "+506" },
+  { code: "CU", flag: "🇨🇺", name: "Cuba", dialCode: "+53" },
+  { code: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593" },
+  { code: "SV", flag: "🇸🇻", name: "El Salvador", dialCode: "+503" },
+  { code: "GT", flag: "🇬🇹", name: "Guatemala", dialCode: "+502" },
+  { code: "HT", flag: "🇭🇹", name: "Haití", dialCode: "+509" },
+  { code: "HN", flag: "🇭🇳", name: "Honduras", dialCode: "+504" },
+  { code: "MX", flag: "🇲🇽", name: "México", dialCode: "+52" },
+  { code: "NI", flag: "🇳🇮", name: "Nicaragua", dialCode: "+505" },
+  { code: "PA", flag: "🇵🇦", name: "Panamá", dialCode: "+507" },
+  { code: "PY", flag: "🇵🇾", name: "Paraguay", dialCode: "+595" },
+  { code: "PE", flag: "🇵🇪", name: "Perú", dialCode: "+51" },
+  { code: "DO", flag: "🇩🇴", name: "República Dominicana", dialCode: "+1" },
+  { code: "UY", flag: "🇺🇾", name: "Uruguay", dialCode: "+598" },
+  { code: "VE", flag: "🇻🇪", name: "Venezuela", dialCode: "+58" },
+] as const;
 
 export const CrearApoderadoForm = () => {
   const {
@@ -17,6 +40,18 @@ export const CrearApoderadoForm = () => {
     navigate,
     setModal,
   } = useCreateApoderado();
+  const [countryCode, setCountryCode] = useState("CL");
+  const selectedCountry = LATAM_COUNTRIES.find((country) => country.code === countryCode) ?? LATAM_COUNTRIES[0];
+  const localPhone = formData.telefono.startsWith(selectedCountry.dialCode)
+    ? formData.telefono.slice(selectedCountry.dialCode.length)
+    : formData.telefono.replace(/^\+/, "");
+
+  const updatePhone = (dialCode: string, value: string) => {
+    const digits = value.replace(/\D/g, "");
+    handleChange({
+      target: { name: "telefono", value: digits ? `${dialCode}${digits}` : "" },
+    } as ChangeEvent<HTMLInputElement>);
+  };
 
   return (
     <main>
@@ -61,22 +96,42 @@ export const CrearApoderadoForm = () => {
 
         {/* Campo Teléfono */}
         <div className="form-group-apoderado">
-          <input
-            id="telefono_input"
-            name="telefono"
-            type="tel"
-            inputMode="tel"
-            aria-describedby={fieldErrors.telefono ? "telefono_error" : undefined}
-            aria-invalid={Boolean(fieldErrors.telefono)}
-            value={formData.telefono}
-            onChange={handleChange}
-            placeholder="+56 9 888 88 88"
-            className={`form-input-apoderado ${fieldErrors.telefono ?
-              'input-error-apoderado input-error' : ''}`}
-          />
-          <label htmlFor="telefono_input" className="floating-label-apoderado form-label-apoderado">
+          <label htmlFor="telefono_input" className="form-label-apoderado telefono-label-apoderado">
             Teléfono
           </label>
+          <div className={`telefono-control-apoderado ${fieldErrors.telefono ? "input-error-apoderado input-error" : ""}`}>
+            <select
+              className="telefono-country-apoderado"
+              value={countryCode}
+              aria-label="País y prefijo telefónico"
+              onChange={(event) => {
+                const nextCountry = LATAM_COUNTRIES.find((country) => country.code === event.target.value) ?? LATAM_COUNTRIES[0];
+                setCountryCode(nextCountry.code);
+                updatePhone(nextCountry.dialCode, localPhone);
+              }}
+            >
+              {LATAM_COUNTRIES.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.flag} {country.name} {country.dialCode}
+                </option>
+              ))}
+            </select>
+            <span className="telefono-prefix-apoderado" aria-hidden="true">{selectedCountry.dialCode}</span>
+            <input
+              id="telefono_input"
+              name="telefono"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              aria-describedby={fieldErrors.telefono ? "telefono_error" : undefined}
+              aria-invalid={Boolean(fieldErrors.telefono)}
+              aria-label="Número de teléfono"
+              value={localPhone}
+              onChange={(event) => updatePhone(selectedCountry.dialCode, event.target.value)}
+              placeholder="9 8634 8085"
+              className={`telefono-number-apoderado ${fieldErrors.telefono ? "input-error-apoderado input-error" : ""}`}
+            />
+          </div>
           {fieldErrors.telefono && (
             <span id="telefono_error" className="error-message-apoderado" role="alert">
               {fieldErrors.telefono}

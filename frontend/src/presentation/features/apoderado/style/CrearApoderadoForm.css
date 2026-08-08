@@ -103,6 +103,64 @@ textarea.form-input-apoderado {
   border-color: var(--color-error);
 }
 
+.telefono-label-apoderado {
+  margin-bottom: 2px;
+}
+
+.telefono-control-apoderado {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, auto) auto 1fr;
+  align-items: center;
+  min-height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: var(--sm);
+  background: var(--color-bg);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.telefono-control-apoderado:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.telefono-control-apoderado.input-error-apoderado {
+  border-color: var(--color-error);
+}
+
+.telefono-country-apoderado,
+.telefono-number-apoderado {
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  background: transparent;
+  color: var(--text-main);
+  outline: none;
+  font: inherit;
+}
+
+.telefono-country-apoderado {
+  max-width: 11rem;
+  padding: 0 .55rem;
+  border-right: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.telefono-prefix-apoderado {
+  padding-left: .7rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.telefono-number-apoderado {
+  width: 100%;
+  padding: 0 .7rem 0 .35rem;
+}
+
+.telefono-number-apoderado::placeholder {
+  color: var(--color-text-muted);
+}
+
 .input-error-apoderado:focus+.floating-label-apoderado,
 .input-error-apoderado:not(:placeholder-shown)+.floating-label-apoderado {
   color: var(--color-error);
@@ -172,6 +230,16 @@ textarea.form-input-apoderado {
   .form-input-apoderado {
     min-height: 44px;
     padding: .7rem .8rem;
+  }
+
+  .telefono-control-apoderado {
+    grid-template-columns: 5.25rem auto 1fr;
+    min-height: 44px;
+  }
+
+  .telefono-country-apoderado {
+    width: 5.25rem;
+    padding-inline: .35rem;
   }
 
   textarea.form-input-apoderado {
