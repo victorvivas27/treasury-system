@@ -154,6 +154,7 @@ export const CrearFamilia = () => {
             </div>
 
             <label className="familia-field">
+              <span>Apoderado {index + 1}</span>
               <CompactSelect
                 label={`Seleccionar apoderado ${index + 1}`}
                 value={String(relacion.apoderadoId || "")}

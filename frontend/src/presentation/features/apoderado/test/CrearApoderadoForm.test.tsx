@@ -32,7 +32,7 @@ describe("CrearApoderadoForm", () => {
   const getInputs = () => ({
     nombre: screen.getByPlaceholderText(/Juan Carlos Perez/i),
     email: screen.getByPlaceholderText(/ejemplo@email.com/i),
-    telefono: screen.getByPlaceholderText(/\+56 9/i),
+    telefono: screen.getByPlaceholderText(/9 8634/i),
   });
 
   const getButton = () => screen.getAllByRole("button")[0];
@@ -112,5 +112,20 @@ describe("CrearApoderadoForm", () => {
     const updater = mockSetModal.mock.calls[0][0];
     const stateSimulated = updater({ isOpen: true, message: "", type: "success" });
     expect(stateSimulated.isOpen).toBe(false);
+  });
+
+  it("[CrearApoderadoForm #10] debe combinar el prefijo del país con los dígitos del teléfono", () => {
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(/país y prefijo telefónico/i), {
+      target: { value: "AR" },
+    });
+    fireEvent.change(getInputs().telefono, { target: { value: "9 717-8283" } });
+
+    expect(mockHandleChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({ name: "telefono", value: "+5497178283" }),
+      }),
+    );
   });
 });
