@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2 } from "react-icons/fi";
+import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -155,6 +155,8 @@ export const DashboardPage = () => {
 
     {loading ? <DashboardSkeleton /> : data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
+        <Kpi label="Familias activas" value={String(data.quotas.totalFamilies)}
+          icon="families" description={`Registradas para ${year}`} />
         <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
           featured negative={data.finances.availableBalance < 0}
           positive={data.finances.availableBalance >= 0}
@@ -381,7 +383,7 @@ const Kpi = ({ label, value, positive = false, negative = false, direction, feat
   description, icon }: {
   label: string; value: string; positive?: boolean; negative?: boolean;
   direction?: "in" | "out"; featured?: boolean; description?: string;
-  icon?: "paid" | "pending";
+  icon?: "paid" | "pending" | "families";
 }) => <article className={`${featured ? "dashboard-kpi--featured" : ""} ${
   direction ? `dashboard-kpi--${direction}` : ""} ${icon ? `dashboard-kpi--${icon}` : ""}`}>
   <div className="dashboard-kpi__header">
@@ -391,6 +393,7 @@ const Kpi = ({ label, value, positive = false, negative = false, direction, feat
     {direction === "out" && <i><FiLogOut aria-hidden="true" /></i>}
     {icon === "paid" && <i><FiCheckCircle aria-hidden="true" /></i>}
     {icon === "pending" && <i><FiClock aria-hidden="true" /></i>}
+    {icon === "families" && <i><FiUsers aria-hidden="true" /></i>}
   </div>
   <div className="dashboard-kpi__value">
     <strong className={positive ? "is-positive"
@@ -430,7 +433,7 @@ const ContributionDonut = ({ title, paid, pending }: {
 
 const DashboardSkeleton = () => <div className="dashboard-loading" role="status"
   aria-label="Cargando dashboard">
-  <section className="dashboard-kpis">{Array.from({ length: 5 }, (_, index) =>
+  <section className="dashboard-kpis">{Array.from({ length: 6 }, (_, index) =>
     <article key={index}><div className="skeleton-block" />
       <div className="skeleton-block" /></article>)}</section>
   <section className="dashboard-charts">{Array.from({ length: 3 }, (_, index) =>

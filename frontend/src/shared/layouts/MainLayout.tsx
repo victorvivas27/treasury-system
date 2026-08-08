@@ -3,11 +3,14 @@ import { Sidebar } from "@/shared/layouts/sidebar/Sidebar";
 import "./MainLayout.css";
 import { useSidebarBehavior } from "@/presentation/hooks/sidebar/useSidebarBehavior";
 import { ManagedCourseBanner } from "./ManagedCourseBanner";
+import { useOptionalAuth } from "@/presentation/context/AuthContext";
+import { AppTour } from "@/shared/ui/apptour/AppTour";
 
 
 
 export const MainLayout = () => {
 const { isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick } = useSidebarBehavior();
+const auth = useOptionalAuth();
 
   return (
     <main className="main-layout">
@@ -21,6 +24,7 @@ const { isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick } = useSidebarB
         <ManagedCourseBanner />
         <Outlet />
       </section>
+      {auth?.user && <AppTour user={auth.user} />}
     </main>
   );
 };

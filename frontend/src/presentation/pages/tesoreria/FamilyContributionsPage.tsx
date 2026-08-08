@@ -333,10 +333,10 @@ export const FamilyContributionsPage = () => {
       <ModalAlert
         isOpen={Boolean(message)}
         type="success"
-        title="Operación realizada"
         message={message}
-        buttonLabel="Continuar"
         onClose={() => setMessage("")}
+        autoCloseTime={2000}
+        variant="toast"
       />
       <ModalAlert
         isOpen={Boolean(error)}

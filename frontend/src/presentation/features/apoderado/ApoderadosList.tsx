@@ -6,8 +6,9 @@ import { FcHighPriority } from "react-icons/fc";
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
-import type { FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
+import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 
 
 interface ApoderadosListProps {
@@ -53,12 +54,19 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   isLastPage,
   pageSize,
 }) => {
+  const [search, setSearch] = useState("");
+  const filteredApoderados = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("es");
+    return term
+      ? apoderados.filter((item) => item.nombre.toLocaleLowerCase("es").includes(term))
+      : apoderados;
+  }, [apoderados, search]);
 
   /**
    * Cálculo de filas vacías para mantener la altura de la tabla
    * consistente durante la carga y cuando hay pocos datos
    */
-  const emptyRows = Math.max(pageSize - apoderados.length, 0);
+  const emptyRows = Math.max(pageSize - filteredApoderados.length, 0);
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
@@ -66,7 +74,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       empty: true,
     }))
     : [
-      ...apoderados,
+      ...filteredApoderados,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
         apoderadoId: `empty-${index}`,
         empty: true as const,
@@ -110,7 +118,11 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
     <article className="apoderados-container responsive-data-list">
       <header className="apoderados-header">
         <h2 className="apoderados-header__title">Lista de Apoderados</h2>
+        <ExpandableSearch value={search} onChange={setSearch} />
       </header>
+      {search.trim() && filteredApoderados.length === 0 && (
+        <p className="list-search-empty">No se encontraron apoderados con ese nombre.</p>
+      )}
 
 
       <table className="apoderados-table">

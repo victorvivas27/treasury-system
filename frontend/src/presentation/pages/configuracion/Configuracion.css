@@ -44,6 +44,35 @@
   box-shadow: var(--shadow-card);
 }
 
+.guided-tour-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--md);
+  margin-top: var(--lg);
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.guided-tour-card > svg {
+  color: var(--color-accent);
+  font-size: 1.7rem;
+}
+
+.guided-tour-card h2 { margin: 0; font-size: 1rem; }
+.guided-tour-card p { margin: .2rem 0 0; color: var(--text-muted); font-size: var(--sm); }
+.guided-tour-card button {
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  padding: .5rem .8rem;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
 .managed-course-heading {
   display: flex;
   align-items: center;

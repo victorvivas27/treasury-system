@@ -84,20 +84,20 @@
 }
 
 .familia-table__td--actions .familia-table__action-button {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
+  width: auto;
+  height: 30px;
+  min-width: 72px;
   min-height: 28px;
-  padding: .3rem;
+  padding: .3rem .55rem;
   margin: 0;
 }
 
 .familia-table__action-button .button-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
   white-space: nowrap;
 }
 
@@ -194,9 +194,9 @@
   }
 
   .familia-list.responsive-data-list .familia-table__action-button {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
+    width: auto;
+    height: 30px;
+    min-width: 72px;
     min-height: 28px;
   }
 }

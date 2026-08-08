@@ -51,6 +51,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
                   <li key={link.path}>
                     <NavLink
                       to={link.path}
+                      data-tour-path={link.path}
                       className={({ isActive }) =>
                         `sidebar-nav-link-item ${isActive ? "active" : ""}`
                       }
@@ -71,6 +72,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
             className={`sidebar-nav-link-item sidebar-nav-parent ${
               location.pathname.startsWith("/tesoreria") ? "active" : ""
             } ${isTreasuryOpen ? "is-open" : ""}`}
+            data-tour="treasury"
             aria-expanded={isTreasuryOpen}
             aria-controls="treasury-submenu"
             onClick={() => setIsTreasuryOpen((open) => !open)}

@@ -44,6 +44,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
                 <li key={link.path} className="sidebar-footer-item">
                   <NavLink
                     to={link.path}
+                    data-tour-path={link.path}
                     onClick={onNavLinkClick}
                     className={({ isActive }) =>
                       `sidebar-footer-link ${isActive ? "active" : ""}`
@@ -60,6 +61,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
 
         <NavLink
           to="/profile"
+          data-tour-path="/profile"
           onClick={onNavLinkClick}
           className={({ isActive }) => `sidebar-user ${isActive ? "active" : ""}`}
           aria-label={`Ver perfil de ${name}`}
