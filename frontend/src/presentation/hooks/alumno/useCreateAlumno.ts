@@ -1,8 +1,9 @@
 import { CreateAlumnoUseCase } from "@/core/B-application/use-cases/alumno/create/CreateAlumnoUseCase";
 import type { CreateAlumnoDTO } from "@/core/A-domain/entities/alumno/Alumno";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
+import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import axios from "axios";
-import { useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const useCreateAlumno = () => {
@@ -19,12 +20,50 @@ export const useCreateAlumno = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [courses, setCourses] = useState<string[]>([]);
+  const [coursesError, setCoursesError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
     isOpen: false,
     message: "",
     type: "success" as "success" | "error",
   });
+
+  useEffect(() => {
+    let active = true;
+    const repository = new TreasuryRepositoryImpl();
+
+    const applyManagedCourse = (course: string) => {
+      const normalized = course.trim().toUpperCase();
+      if (!active || !normalized) return;
+      setCourses([normalized]);
+      setFormData((current) => ({
+        ...current,
+        curso: current.curso || normalized,
+      }));
+      setCoursesError("");
+    };
+
+    repository.getManagedCourse()
+      .then(applyManagedCourse)
+      .catch(() => {
+        if (active) setCoursesError("No fue posible cargar los cursos de Administración");
+      })
+      .finally(() => {
+        if (active) setLoadingCourses(false);
+      });
+
+    const handleManagedCourseChange = (event: Event) => {
+      applyManagedCourse((event as CustomEvent<string>).detail);
+    };
+    window.addEventListener("managed-course-changed", handleManagedCourseChange);
+
+    return () => {
+      active = false;
+      window.removeEventListener("managed-course-changed", handleManagedCourseChange);
+    };
+  }, []);
 
   const showAlert = (message: string, type: "success" | "error") => {
     setModal({ isOpen: true, message, type });
@@ -37,7 +76,7 @@ export const useCreateAlumno = () => {
   };
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -89,6 +128,9 @@ export const useCreateAlumno = () => {
   return {
     formData,
     loading,
+    loadingCourses,
+    courses,
+    coursesError,
     fieldErrors,
     modal,
     handleChange,

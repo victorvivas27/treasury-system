@@ -32,7 +32,7 @@ describe("CrearApoderadoForm", () => {
   const getInputs = () => ({
     nombre: screen.getByPlaceholderText(/Juan Carlos Perez/i),
     email: screen.getByPlaceholderText(/ejemplo@email.com/i),
-    telefono: screen.getByPlaceholderText(/9 8634/i),
+    telefono: screen.getByRole("textbox", { name: /número de teléfono/i }),
   });
 
   const getButton = () => screen.getAllByRole("button")[0];

@@ -7,26 +7,26 @@ import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { useState, type ChangeEvent } from "react";
 
 const LATAM_COUNTRIES = [
-  { code: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56" },
-  { code: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54" },
-  { code: "BO", flag: "🇧🇴", name: "Bolivia", dialCode: "+591" },
-  { code: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55" },
-  { code: "CO", flag: "🇨🇴", name: "Colombia", dialCode: "+57" },
-  { code: "CR", flag: "🇨🇷", name: "Costa Rica", dialCode: "+506" },
-  { code: "CU", flag: "🇨🇺", name: "Cuba", dialCode: "+53" },
-  { code: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593" },
-  { code: "SV", flag: "🇸🇻", name: "El Salvador", dialCode: "+503" },
-  { code: "GT", flag: "🇬🇹", name: "Guatemala", dialCode: "+502" },
-  { code: "HT", flag: "🇭🇹", name: "Haití", dialCode: "+509" },
-  { code: "HN", flag: "🇭🇳", name: "Honduras", dialCode: "+504" },
-  { code: "MX", flag: "🇲🇽", name: "México", dialCode: "+52" },
-  { code: "NI", flag: "🇳🇮", name: "Nicaragua", dialCode: "+505" },
-  { code: "PA", flag: "🇵🇦", name: "Panamá", dialCode: "+507" },
-  { code: "PY", flag: "🇵🇾", name: "Paraguay", dialCode: "+595" },
-  { code: "PE", flag: "🇵🇪", name: "Perú", dialCode: "+51" },
-  { code: "DO", flag: "🇩🇴", name: "República Dominicana", dialCode: "+1" },
-  { code: "UY", flag: "🇺🇾", name: "Uruguay", dialCode: "+598" },
-  { code: "VE", flag: "🇻🇪", name: "Venezuela", dialCode: "+58" },
+  { code: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56", phoneLength: 9 },
+  { code: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54", phoneLength: 10 },
+  { code: "BO", flag: "🇧🇴", name: "Bolivia", dialCode: "+591", phoneLength: 8 },
+  { code: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55", phoneLength: 11 },
+  { code: "CO", flag: "🇨🇴", name: "Colombia", dialCode: "+57", phoneLength: 10 },
+  { code: "CR", flag: "🇨🇷", name: "Costa Rica", dialCode: "+506", phoneLength: 8 },
+  { code: "CU", flag: "🇨🇺", name: "Cuba", dialCode: "+53", phoneLength: 8 },
+  { code: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593", phoneLength: 9 },
+  { code: "SV", flag: "🇸🇻", name: "El Salvador", dialCode: "+503", phoneLength: 8 },
+  { code: "GT", flag: "🇬🇹", name: "Guatemala", dialCode: "+502", phoneLength: 8 },
+  { code: "HT", flag: "🇭🇹", name: "Haití", dialCode: "+509", phoneLength: 8 },
+  { code: "HN", flag: "🇭🇳", name: "Honduras", dialCode: "+504", phoneLength: 8 },
+  { code: "MX", flag: "🇲🇽", name: "México", dialCode: "+52", phoneLength: 10 },
+  { code: "NI", flag: "🇳🇮", name: "Nicaragua", dialCode: "+505", phoneLength: 8 },
+  { code: "PA", flag: "🇵🇦", name: "Panamá", dialCode: "+507", phoneLength: 8 },
+  { code: "PY", flag: "🇵🇾", name: "Paraguay", dialCode: "+595", phoneLength: 9 },
+  { code: "PE", flag: "🇵🇪", name: "Perú", dialCode: "+51", phoneLength: 9 },
+  { code: "DO", flag: "🇩🇴", name: "República Dominicana", dialCode: "+1", phoneLength: 10 },
+  { code: "UY", flag: "🇺🇾", name: "Uruguay", dialCode: "+598", phoneLength: 8 },
+  { code: "VE", flag: "🇻🇪", name: "Venezuela", dialCode: "+58", phoneLength: 10 },
 ] as const;
 
 export const CrearApoderadoForm = () => {
@@ -117,20 +117,26 @@ export const CrearApoderadoForm = () => {
               ))}
             </select>
             <span className="telefono-prefix-apoderado" aria-hidden="true">{selectedCountry.dialCode}</span>
-            <input
-              id="telefono_input"
-              name="telefono"
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel-national"
-              aria-describedby={fieldErrors.telefono ? "telefono_error" : undefined}
-              aria-invalid={Boolean(fieldErrors.telefono)}
-              aria-label="Número de teléfono"
-              value={localPhone}
-              onChange={(event) => updatePhone(selectedCountry.dialCode, event.target.value)}
-              placeholder="9 8634 8085"
-              className={`telefono-number-apoderado ${fieldErrors.telefono ? "input-error-apoderado input-error" : ""}`}
-            />
+            <div className="telefono-number-wrap-apoderado">
+              <input
+                id="telefono_input"
+                name="telefono"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={selectedCountry.phoneLength}
+                aria-describedby={fieldErrors.telefono ? "telefono_error" : undefined}
+                aria-invalid={Boolean(fieldErrors.telefono)}
+                aria-label="Número de teléfono"
+                value={localPhone}
+                onChange={(event) => updatePhone(selectedCountry.dialCode, event.target.value)}
+                placeholder=" "
+                className={`telefono-number-apoderado ${fieldErrors.telefono ? "input-error-apoderado input-error" : ""}`}
+              />
+              <span className="telefono-mask-apoderado" aria-hidden="true">
+                <span>{localPhone}</span>{"_".repeat(Math.max(0, selectedCountry.phoneLength - localPhone.length))}
+              </span>
+            </div>
           </div>
           {fieldErrors.telefono && (
             <span id="telefono_error" className="error-message-apoderado" role="alert">

@@ -8,6 +8,9 @@ export const CrearAlumnoForm = () => {
   const {
     formData,
     fieldErrors,
+    courses = [],
+    loadingCourses = false,
+    coursesError = "",
     modal,
     handleChange,
     handleActionSubmit,
@@ -38,20 +41,27 @@ export const CrearAlumnoForm = () => {
 
         {/* Campo Curso */}
         <div className="form-group-alumno">
-          <input
+          <select
             id="curso_input"
             name="curso"
             value={formData.curso}
             onChange={handleChange}
-            placeholder="4A"
+            disabled={loadingCourses || Boolean(coursesError)}
             className={`form-input-alumno ${fieldErrors.curso ? 'input-error-alumno' : ''}`}
-          />
+          >
+            <option value="">
+              {loadingCourses ? "Cargando cursos..." : coursesError || "Seleccionar curso"}
+            </option>
+            {courses.map((course) => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
           <label htmlFor="curso_input" className="floating-label-alumno form-label-alumno">
             Curso
           </label>
-          {fieldErrors.curso &&(
-          <span className="error-message-alumno">{fieldErrors.curso}</span>
-        )}
+          {(fieldErrors.curso || coursesError) && (
+            <span className="error-message-alumno">{fieldErrors.curso || coursesError}</span>
+          )}
         </div>
 
         <div className="form-actions-alumno">
