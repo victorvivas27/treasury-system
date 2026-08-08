@@ -6,8 +6,9 @@ import { FcHighPriority } from "react-icons/fc";
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
-import type { FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
+import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 
 interface AlumnosListProps {
   alumnos: Alumno[];
@@ -64,7 +65,14 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   isLastPage,
   pageSize,
 }) => {
-  const emptyRows = Math.max(pageSize - alumnos.length, 0);
+  const [search, setSearch] = useState("");
+  const filteredAlumnos = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("es");
+    return term
+      ? alumnos.filter((item) => item.nombre.toLocaleLowerCase("es").includes(term))
+      : alumnos;
+  }, [alumnos, search]);
+  const emptyRows = Math.max(pageSize - filteredAlumnos.length, 0);
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
@@ -72,7 +80,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
       empty: true,
     }))
     : [
-      ...alumnos,
+      ...filteredAlumnos,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
         rowKey: `empty-${index}`,
         empty: true as const,
@@ -104,7 +112,11 @@ export const AlumnosList: FC<AlumnosListProps> = ({
     <article className="alumnos-container responsive-data-list">
       <header className="alumnos-header">
         <h2 className="alumnos-header__title">Lista de Alumnos</h2>
+        <ExpandableSearch value={search} onChange={setSearch} />
       </header>
+      {search.trim() && filteredAlumnos.length === 0 && (
+        <p className="list-search-empty">No se encontraron alumnos con ese nombre.</p>
+      )}
 
       <table className="alumnos-table">
         <thead>

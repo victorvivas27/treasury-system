@@ -5,6 +5,8 @@ import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./UserTable.css";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
+import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
+import { useMemo, useState } from "react";
 
 interface UserTableProps {
   users: User[];
@@ -20,11 +22,23 @@ interface UserTableProps {
 }
 
 export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
-  currentPage, totalPages, pageSize, onPrevious, onNext }: UserTableProps) => (
-  <article className="usuarios-container responsive-data-list">
+  currentPage, totalPages, pageSize, onPrevious, onNext }: UserTableProps) => {
+  const [search, setSearch] = useState("");
+  const filteredUsers = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("es");
+    return term
+      ? users.filter((user) => user.nombre.toLocaleLowerCase("es").includes(term))
+      : users;
+  }, [search, users]);
+
+  return <article className="usuarios-container responsive-data-list">
     <header className="usuarios-header">
       <h2 className="usuarios-header__title">Lista de Usuarios</h2>
+      <ExpandableSearch value={search} onChange={setSearch} />
     </header>
+    {search.trim() && filteredUsers.length === 0 && (
+      <p className="list-search-empty">No se encontraron usuarios con ese nombre.</p>
+    )}
 
     <div className="usuarios-table-wrapper">
       <table className="usuarios-table">
@@ -48,7 +62,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
               ))}
             </tr>
           )) : <>
-          {users.map((user) => {
+          {filteredUsers.map((user) => {
             const isActive = user.enabled && user.accountNonLocked;
             return (
               <tr key={user.id} className="usuarios-table__row--data">
@@ -96,7 +110,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
               </tr>
             );
           })}
-          {Array.from({ length: Math.max(pageSize - users.length, 0) }, (_, row) =>
+          {Array.from({ length: Math.max(pageSize - filteredUsers.length, 0) }, (_, row) =>
             <tr className="usuarios-table__row--data empty-row" aria-hidden="true"
               key={`empty-${row}`}>
               <td colSpan={isAdmin ? 5 : 4}>&nbsp;</td>
@@ -109,5 +123,5 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
       hasPrevious={currentPage > 0} hasNext={currentPage + 1 < totalPages}
       loading={loading} onPrevious={onPrevious} onNext={onNext}
       ariaLabel="Paginación de usuarios" />
-  </article>
-);
+  </article>;
+};

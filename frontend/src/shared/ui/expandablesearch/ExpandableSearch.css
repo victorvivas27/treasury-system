@@ -1,0 +1,70 @@
+.expandable-search {
+  display: flex;
+  min-width: 38px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .35rem;
+}
+
+.usuarios-header,
+.apoderados-header,
+.alumnos-header,
+.familia-header {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+}
+
+.list-search-empty {
+  margin: .7rem 0;
+  color: var(--text-muted);
+  font-size: .78rem;
+  text-align: center;
+}
+
+.expandable-search input {
+  width: min(230px, 52vw);
+  min-height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: .55rem;
+  padding: .4rem .65rem;
+  background: var(--color-bg);
+  color: var(--text-main);
+  font: inherit;
+  font-size: .75rem;
+  animation: expandable-search-in .2s ease-out;
+}
+
+.expandable-search input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+
+.expandable-search button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--text-main);
+}
+
+.expandable-search button:hover,
+.expandable-search.is-open button {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+@keyframes expandable-search-in {
+  from { width: 0; opacity: 0; transform: translateX(8px); }
+}
+
+@media (max-width: 480px) {
+  .expandable-search input { width: min(190px, 50vw); }
+}

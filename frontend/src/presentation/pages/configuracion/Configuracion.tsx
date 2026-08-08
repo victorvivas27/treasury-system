@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiBookOpen, FiCheck, FiMonitor, FiMoon, FiSave, FiSun } from "react-icons/fi";
+import { FiBookOpen, FiCheck, FiCompass, FiMonitor, FiMoon, FiSave, FiSun } from "react-icons/fi";
 import { useTheme } from "@/presentation/context/ThemeContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import type { ThemePreference } from "@/presentation/context/theme";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { OPEN_APP_TOUR_EVENT } from "@/shared/ui/apptour/AppTour";
 import "./Configuracion.css";
 
 const THEME_OPTIONS: Array<{
@@ -118,6 +119,17 @@ export const Configuracion = () => {
         </fieldset>
 
         <p className="theme-description">{selectedOption.description}</p>
+      </article>
+
+      <article className="guided-tour-card">
+        <FiCompass aria-hidden="true" />
+        <div>
+          <h2>Recorrido guiado</h2>
+          <p>Vuelve a revisar las funciones principales de la aplicación paso a paso.</p>
+        </div>
+        <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_APP_TOUR_EVENT))}>
+          Ver recorrido
+        </button>
       </article>
 
       {canEditCourse && <article className="managed-course-card">
