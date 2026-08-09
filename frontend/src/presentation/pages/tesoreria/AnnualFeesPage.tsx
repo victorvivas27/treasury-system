@@ -168,8 +168,10 @@ export const AnnualFeesPage = () => {
                 ? "Falta 1 familia por configurar"
                 : `Faltan ${unconfiguredFamilies.length} familias por configurar`}</strong>
               <p>{unconfiguredFamilies.slice(0, 5).map(family => {
-                const guardian = family.apoderados.find(item => item.relacion.esPrincipal)?.nombre;
-                return `${guardian || family.alumno.nombre} (${family.codigoFamilia})`;
+                const guardian = family.apoderados?.find(
+                  item => item.relacion?.esPrincipal)?.nombre;
+                const familyName = guardian || family.alumno?.nombre || "Familia sin responsable";
+                return `${familyName} (${family.codigoFamilia || `ID ${family.familiaId}`})`;
               }).join(" · ")}{unconfiguredFamilies.length > 5
                 ? ` · y ${unconfiguredFamilies.length - 5} más` : ""}</p>
             </div>
@@ -178,7 +180,7 @@ export const AnnualFeesPage = () => {
           onChange={event => setFamilyId(Number(event.target.value))}>
           <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
           {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
-            {family.apoderados.find(item => item.relacion.esPrincipal)?.nombre
+            {family.apoderados?.find(item => item.relacion?.esPrincipal)?.nombre
               ?? "Sin apoderado principal"}
           </option>)}
         </select></label>

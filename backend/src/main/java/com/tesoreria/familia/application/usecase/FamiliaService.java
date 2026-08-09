@@ -10,6 +10,8 @@ import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+import com.tesoreria.shared.infrastructure.cache.CacheNames;
+import org.springframework.cache.annotation.CacheEvict;
 
 public class FamiliaService implements
         CreateFamiliaUseCase,
@@ -24,6 +26,7 @@ public class FamiliaService implements
     }
 
     @Override
+    @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, allEntries = true)
     public Familia crearFamilia(Familia familia) {
         if (familiaRepository.existsByAlumnoId(familia.getAlumnoId())) {
             throw new DomainException(
@@ -47,6 +50,7 @@ public class FamiliaService implements
     }
 
     @Override
+    @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, allEntries = true)
     public Familia actualizarFamilia(Long id, Familia familia) {
         Familia familiaExistente = obtenerFamiliaPorId(id);
         familiaExistente.setAlumnoId(familia.getAlumnoId());
@@ -56,6 +60,7 @@ public class FamiliaService implements
     }
 
     @Override
+    @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, allEntries = true)
     public void eliminarFamilia(Long id) {
         if (!familiaRepository.existsById(id)) {
             throw familiaNoEncontrada("No se puede eliminar: la familia no existe");

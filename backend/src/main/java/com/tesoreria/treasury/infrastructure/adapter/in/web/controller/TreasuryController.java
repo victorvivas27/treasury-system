@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.cache.annotation.Cacheable;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.apoderado.core.port.in.GetApoderadoUseCase;
 
@@ -21,6 +22,7 @@ import com.tesoreria.familia.core.model.Familia;
 import com.tesoreria.familia.core.port.in.GetFamiliaUseCase;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.shared.infrastructure.cache.CacheNames;
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
@@ -215,6 +217,7 @@ public class TreasuryController {
   }
 
   @GetMapping("/aportes/resumen")
+  @Cacheable(value = CacheNames.CONTRIBUTION_SUMMARY, key = "#year", sync = true)
   public ContributionSummaryResponse contributionSummary(@RequestParam int year) {
     List<FamilyContributionResponse> items = contributions(
         year, null, null, null, null, null);
