@@ -106,8 +106,18 @@ export const AnnualFeesPage = () => {
 
   return <main className="annual-fees-page annual-fees-config-page">
     <header className="treasury-page__header">
-      <h1>Cuota anual</h1>
-      <p>Configura el año, asigna modalidades y administra las obligaciones.</p>
+      <div>
+        <h1>Cuota anual</h1>
+        <p>Configura el año, asigna modalidades y administra las obligaciones.</p>
+      </div>
+      <button type="button"
+        className={`annual-config-trigger ${currentConfig ? "is-configured" : "is-unconfigured"}`}
+        onClick={() => setConfigOpen(true)}>
+        <span>{currentConfig ? <FiCheckCircle /> : <FiXCircle />}</span>
+        <span><small>Configuración anual</small>
+          <strong>{currentConfig ? `${fees.year} configurado` : "Configurar año"}</strong></span>
+        <FiSettings aria-hidden="true" />
+      </button>
     </header>
 
     <section className="treasury-dashboard" aria-label="Resumen de cuotas">
@@ -143,22 +153,6 @@ export const AnnualFeesPage = () => {
     </section>
 
     <div className="annual-fees-grid">
-      <section className="treasury-panel treasury-config-launcher">
-        <div>
-          <span className={currentConfig ? "is-configured" : "is-unconfigured"}>
-            {currentConfig ? <FiCheckCircle /> : <FiXCircle />}
-          </span>
-          <div><h2>Configuración anual</h2>
-            <p>{currentConfig ? `${fees.year} configurado` : `${fees.year} sin configurar`}</p></div>
-        </div>
-        <button type="button"
-          className={currentConfig ? "config-button is-configured" : "config-button is-unconfigured"}
-          onClick={() => setConfigOpen(true)}>
-          <FiSettings aria-hidden="true" />
-          {currentConfig ? "Editar configuración" : "Configurar año"}
-        </button>
-      </section>
-
       <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
         <label>Familia<select value={familyId} disabled={fees.familiesLoading}
