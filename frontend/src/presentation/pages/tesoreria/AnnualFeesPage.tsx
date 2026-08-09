@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
+import { FiAlertTriangle, FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
   FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUsers,
   FiXCircle }
   from "react-icons/fi";
@@ -67,6 +67,10 @@ export const AnnualFeesPage = () => {
     obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
   const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
     [visibleObligationGroups]);
+  const unconfiguredFamilies = useMemo(() => {
+    const configuredIds = new Set(fees.plans.map(plan => plan.familyId));
+    return fees.families.filter(family => !configuredIds.has(family.familiaId));
+  }, [fees.families, fees.plans]);
 
   useEffect(() => {
     setPlanPage(current => Math.min(current, planPages));
@@ -155,6 +159,21 @@ export const AnnualFeesPage = () => {
     <div className="annual-fees-grid">
       <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
+        {!fees.familiesLoading && !fees.dataLoading && currentConfig
+          && unconfiguredFamilies.length > 0 &&
+          <div className="treasury-family-warning" role="alert">
+            <FiAlertTriangle aria-hidden="true" />
+            <div>
+              <strong>{unconfiguredFamilies.length === 1
+                ? "Falta 1 familia por configurar"
+                : `Faltan ${unconfiguredFamilies.length} familias por configurar`}</strong>
+              <p>{unconfiguredFamilies.slice(0, 5).map(family => {
+                const guardian = family.apoderados.find(item => item.relacion.esPrincipal)?.nombre;
+                return `${guardian || family.alumno.nombre} (${family.codigoFamilia})`;
+              }).join(" · ")}{unconfiguredFamilies.length > 5
+                ? ` · y ${unconfiguredFamilies.length - 5} más` : ""}</p>
+            </div>
+          </div>}
         <label>Familia<select value={familyId} disabled={fees.familiesLoading}
           onChange={event => setFamilyId(Number(event.target.value))}>
           <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
