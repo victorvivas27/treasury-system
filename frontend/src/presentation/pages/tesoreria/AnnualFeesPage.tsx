@@ -22,6 +22,7 @@ const today = (() => {
 })();
 const isOverdue = (status: string, dueDate: string) => status === "PENDIENTE" && dueDate < today;
 const PLAN_PAGE_SIZE = 2;
+const OBLIGATION_FAMILY_PAGE_SIZE = 5;
 
 export const AnnualFeesPage = () => {
   const fees = useAnnualFees();
@@ -40,6 +41,7 @@ export const AnnualFeesPage = () => {
   const [removePlan, setRemovePlan] = useState<{ familyId: number; code: string } | null>(null);
   const [removePlanReason, setRemovePlanReason] = useState("");
   const [planPage, setPlanPage] = useState(1);
+  const [obligationPage, setObligationPage] = useState(1);
   const [configOpen, setConfigOpen] = useState(false);
   const currentConfig = fees.configs.find(config => config.year === fees.year);
   const planPages = Math.max(1, Math.ceil(fees.plans.length / PLAN_PAGE_SIZE));
@@ -58,13 +60,25 @@ export const AnnualFeesPage = () => {
     groups.set(obligation.familyId, current);
     return groups;
   }, new Map<number, typeof fees.obligations>()).values()], [fees.obligations]);
+  const obligationPages = Math.max(1,
+    Math.ceil(obligationGroups.length / OBLIGATION_FAMILY_PAGE_SIZE));
+  const visibleObligationGroups = useMemo(() => obligationGroups.slice(
+    (obligationPage - 1) * OBLIGATION_FAMILY_PAGE_SIZE,
+    obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
+  const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
+    [visibleObligationGroups]);
 
   useEffect(() => {
     setPlanPage(current => Math.min(current, planPages));
   }, [planPages]);
 
   useEffect(() => {
+    setObligationPage(current => Math.min(current, obligationPages));
+  }, [obligationPages]);
+
+  useEffect(() => {
     setPlanPage(1);
+    setObligationPage(1);
   }, [fees.year]);
 
   useEffect(() => {
@@ -240,31 +254,38 @@ export const AnnualFeesPage = () => {
             <option value="">Todos los estados</option><option value="PENDIENTE">Pendiente</option>
             <option value="PAGADA">Pagada</option>
           </select>
-          <Button label="Filtrar" onClick={() => void fees.refresh(filters)} size="small"
+          <Button label="Filtrar" onClick={() => {
+            setObligationPage(1);
+            void fees.refresh(filters);
+          }} size="small"
             icon={<FiFilter />} iconPosition="left" />
           <Button label="Limpiar filtros" variant="secondary" size="small"
             icon={<FiRefreshCw />} iconPosition="left"
             onClick={() => {
               setFilters({});
+              setObligationPage(1);
               void fees.refresh({});
             }} />
         </div>
       </header>
       {fees.error && <p className="treasury-error" role="alert">{fees.error}</p>}
       <div className="treasury-table-wrap"><table><thead><tr><th>Responsable</th><th>Curso</th>
-        <th>Concepto</th><th>Vence</th><th>Monto</th><th>Estado</th><th>Acción</th></tr></thead>
+        <th>Concepto</th><th>Vence</th><th>Fecha de pago</th><th>Monto</th><th>Estado</th>
+        <th>Acción</th></tr></thead>
         <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
-            {Array.from({ length: 7 }, (_, column) => <td key={column}>
+            {Array.from({ length: 8 }, (_, column) => <td key={column}>
               <div className="skeleton-block treasury-cell-skeleton" />
             </td>)}
-          </tr>) : fees.obligations.map(item => <tr key={item.id}>
+          </tr>) : visibleObligations.map(item => <tr key={item.id}>
           <td className="obligation-card__responsible" data-label="Responsable">
             <strong>{item.primaryGuardian || "Sin apoderado principal"}</strong>
             <small>{item.familyCode} · Alumno: {item.studentName}</small></td>
           <td className="obligation-card__course" data-label="Curso">{item.course}</td>
           <td className="obligation-card__concept" data-label="Concepto">{item.concept}</td>
           <td className="obligation-card__due" data-label="Vence">{item.dueDate}</td>
+          <td className="obligation-card__payment-date" data-label="Pagada">
+            {item.paymentDate ?? "—"}</td>
           <td className="obligation-card__amount" data-label="Monto">{money.format(item.amount)}</td>
           <td className="obligation-card__status" data-label="Estado">
             <span className={`fee-status fee-status--${isOverdue(item.status, item.dueDate)
@@ -287,7 +308,7 @@ export const AnnualFeesPage = () => {
               <div className="skeleton-block dashboard-row-skeleton" />
               <div className="skeleton-block dashboard-row-skeleton" />
             </article>)
-          : obligationGroups.map(items => {
+          : visibleObligationGroups.map(items => {
             const family = items[0];
             return <article className="obligation-family-card" key={family.familyId}>
               <header>
@@ -308,6 +329,7 @@ export const AnnualFeesPage = () => {
                   </div>
                   <dl>
                     <div><dt>Vence</dt><dd>{item.dueDate}</dd></div>
+                    <div><dt>Fecha de pago</dt><dd>{item.paymentDate ?? "—"}</dd></div>
                     <div><dt>Monto</dt><dd>{money.format(item.amount)}</dd></div>
                   </dl>
                   {item.status === "PENDIENTE"
@@ -325,6 +347,14 @@ export const AnnualFeesPage = () => {
             </article>;
           })}
       </div>
+      {!fees.dataLoading && obligationPages > 1 && <Pagination
+        currentPage={obligationPage}
+        totalPages={obligationPages}
+        hasPrevious={obligationPage > 1}
+        hasNext={obligationPage < obligationPages}
+        onPrevious={() => setObligationPage(page => page - 1)}
+        onNext={() => setObligationPage(page => page + 1)}
+        ariaLabel="Paginación de obligaciones por familia" />}
     </section>
     {configOpen && <aside className="annual-config-modal" role="dialog" aria-modal="true"
       aria-labelledby="annual-config-title" onClick={() => !fees.loading && setConfigOpen(false)}>

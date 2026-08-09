@@ -37,6 +37,7 @@ export interface FeeObligation {
   concept: string;
   amount: number;
   dueDate: string;
+  paymentDate?: string;
   status: ObligationStatus;
 }
 

@@ -6,16 +6,29 @@
 .public-home__signature:hover,.public-home__signature:focus-within { transform:translateY(-4px); border-color:rgba(14,235,205,.48); box-shadow:0 20px 48px rgba(14,235,205,.1); }
 .public-home__signature-glow { position:absolute; z-index:-1; top:-100%; left:-35%; width:28%; height:300%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent); content:""; transform:rotate(18deg); animation:home-signature-shine 5.5s 1.2s ease-in-out infinite; }
 .public-home__signature-icon { display:grid; width:40px; height:40px; align-self:start; grid-row:1/3; place-items:center; border:1px solid rgba(14,235,205,.22); border-radius:.75rem; background:rgba(14,235,205,.1); color:var(--color-accent); font-size:1.1rem; }
+.public-home__signature-stage { position:relative; display:grid; min-width:310px; min-height:52px; align-items:center; }
+.public-home__signature-code,.public-home__signature-rendered { grid-area:1/1; }
+.public-home__signature-code { display:grid; overflow:hidden; color:var(--color-accent); font-family:"Cascadia Code","Fira Code",Consolas,monospace; font-size:.6rem; font-style:normal; line-height:1.35; opacity:0; animation:home-signature-code 10s ease-in-out infinite; }
+.public-home__signature-code span { overflow:hidden; width:max-content; max-width:100%; white-space:nowrap; clip-path:inset(0 100% 0 0); }
+.public-home__signature-code span:nth-child(1){animation:home-code-line-one 10s steps(11,end) infinite}.public-home__signature-code span:nth-child(2){animation:home-code-line-two 10s steps(38,end) infinite}.public-home__signature-code span:nth-child(3){animation:home-code-line-three 10s steps(32,end) infinite}.public-home__signature-code span:nth-child(4){animation:home-code-line-four 10s steps(23,end) infinite}.public-home__signature-code span:nth-child(5){animation:home-code-line-five 10s steps(12,end) infinite}
+.public-home__signature-rendered { display:grid; gap:.25rem; opacity:1; animation:home-signature-rendered 10s ease-in-out infinite; }
 .public-home__signature-copy { display:grid; gap:.1rem; }
 .public-home__signature-copy small { color:var(--text-muted); font-size:.66rem; font-weight:650; letter-spacing:.08em; text-transform:uppercase; }
 .public-home__signature-copy strong { color:var(--text-main); font-size:.93rem; letter-spacing:.025em; text-transform:uppercase; }
-.public-home__signature-links { display:flex; flex-wrap:wrap; gap:.35rem .9rem; grid-column:2; }
+.public-home__signature-links { display:flex; flex-wrap:wrap; gap:.35rem .9rem; }
 .public-home__signature-links a { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-muted); font-size:.69rem; transition:color 180ms ease,transform 180ms ease; }
 .public-home__signature-links a:hover { color:var(--color-accent); transform:translateX(2px); }
 .public-home__footer[data-home-footer-reveal] .public-home__footer-brand,.public-home__footer[data-home-footer-reveal] .public-home__signature,.public-home__footer[data-home-footer-reveal] .public-home__copyright { opacity:0; }
 .public-home__footer.is-visible .public-home__footer-brand,.public-home__footer.is-visible .public-home__signature,.public-home__footer.is-visible .public-home__copyright { animation:home-footer-in 750ms cubic-bezier(.2,.8,.2,1) forwards; }
 .public-home__footer.is-visible .public-home__signature { animation-delay:180ms; }.public-home__footer.is-visible .public-home__copyright { animation-delay:360ms; }
 @keyframes home-signature-shine { 0%,68%{left:-35%;opacity:0}76%{opacity:1}92%,100%{left:120%;opacity:0} }
+@keyframes home-signature-code { 0%,4%{opacity:0}7%,43%{opacity:1}48%,100%{opacity:0} }
+@keyframes home-signature-rendered { 0%,45%{opacity:0;transform:translateY(5px)}52%,91%{opacity:1;transform:none}97%,100%{opacity:0;transform:translateY(-5px)} }
+@keyframes home-code-line-one { 0%,5%{clip-path:inset(0 100% 0 0)}10%,43%{clip-path:inset(0)}44%,100%{clip-path:inset(0 100% 0 0)} }
+@keyframes home-code-line-two { 0%,11%{clip-path:inset(0 100% 0 0)}18%,43%{clip-path:inset(0)}44%,100%{clip-path:inset(0 100% 0 0)} }
+@keyframes home-code-line-three { 0%,19%{clip-path:inset(0 100% 0 0)}26%,43%{clip-path:inset(0)}44%,100%{clip-path:inset(0 100% 0 0)} }
+@keyframes home-code-line-four { 0%,27%{clip-path:inset(0 100% 0 0)}34%,43%{clip-path:inset(0)}44%,100%{clip-path:inset(0 100% 0 0)} }
+@keyframes home-code-line-five { 0%,35%{clip-path:inset(0 100% 0 0)}40%,43%{clip-path:inset(0)}44%,100%{clip-path:inset(0 100% 0 0)} }
 @keyframes home-footer-in { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none} }
 @media(max-width:680px){.public-home__footer{justify-items:center;grid-template-columns:1fr;padding:1.75rem 0;text-align:center}.public-home__footer-brand{justify-items:center}.public-home__signature{width:min(100%,430px);text-align:left}.public-home__copyright{text-align:center}}
-@media(max-width:420px){.public-home__signature-links{align-items:flex-start;flex-direction:column}}
+@media(max-width:420px){.public-home__signature-stage{min-width:0}.public-home__signature-code{font-size:.52rem}.public-home__signature-links{align-items:flex-start;flex-direction:column}}

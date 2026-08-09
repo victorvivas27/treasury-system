@@ -16,6 +16,7 @@ public interface TreasuryUseCase {
   List<FamilyFeePlan> listPlans(int year);
   int generateObligations(int year, String user);
   List<FeeObligation> listObligations(int year);
+  List<FeePayment> listActivePayments(int year);
   FeePayment registerPayment(Long obligationId, LocalDate date, BigDecimal amount,
       String user, String observations);
   FeePayment annulPayment(Long paymentObligationId, String user, String reason);

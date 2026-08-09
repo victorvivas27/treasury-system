@@ -116,10 +116,17 @@
   margin: 0;
   padding: 0.65rem;
   list-style: none;
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 38%, var(--border-color));
   border-radius: var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-elevated);
+  background: linear-gradient(
+    145deg,
+    rgb(10 18 30 / 92%),
+    rgb(6 12 22 / 86%)
+  );
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 32%),
+    inset 0 1px 0 rgb(255 255 255 / 18%);
   transform: translateY(-50%);
   transform-origin: left center;
   animation: treasurySubmenuIn 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -134,7 +141,7 @@
   height: 14px;
   border-bottom: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
-  background: var(--color-surface);
+  background: rgb(8 15 26 / 90%);
   transform: translateY(-50%) rotate(45deg);
 }
 
@@ -144,7 +151,7 @@
   gap: 0.55rem;
   padding: 0.35rem 0.5rem;
   border-left: 2px solid var(--border-color);
-  color: var(--text-muted);
+  color: rgb(226 232 240 / 86%);
   font-size: 0.92em;
   transition: color 0.2s ease, border-color 0.2s ease;
 }

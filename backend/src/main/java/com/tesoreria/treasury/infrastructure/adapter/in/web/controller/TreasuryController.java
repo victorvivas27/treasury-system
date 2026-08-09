@@ -4,6 +4,7 @@ import static com.tesoreria.treasury.infrastructure.adapter.in.web.dto.TreasuryD
 
 import java.security.Principal;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -449,8 +450,12 @@ public class TreasuryController {
   private List<ObligationResponse> enriched(int year) {
     Map<Long, FamilyFeePlan> plansById = new HashMap<>();
     treasury.listPlans(year).forEach(plan -> plansById.put(plan.id(), plan));
+    Map<Long, LocalDate> paymentDatesByObligation = treasury.listActivePayments(year).stream()
+        .collect(java.util.stream.Collectors.toMap(FeePayment::obligationId,
+            FeePayment::paymentDate));
     return treasury.listObligations(year).stream()
-        .map(item -> obligation(item, plansById.get(item.planId())))
+        .map(item -> obligation(item, plansById.get(item.planId()),
+            paymentDatesByObligation.get(item.id())))
         .toList();
   }
 
@@ -460,11 +465,13 @@ public class TreasuryController {
         data.studentName(), data.course(), value.mode());
   }
 
-  private ObligationResponse obligation(FeeObligation value, FamilyFeePlan plan) {
+  private ObligationResponse obligation(FeeObligation value, FamilyFeePlan plan,
+      LocalDate paymentDate) {
     FamilyData data = family(plan.familyId());
     return new ObligationResponse(value.id(), plan.familyId(), data.code(),
         data.primaryGuardian(), data.studentName(), data.course(), plan.mode(),
-        value.installment(), value.concept(), value.amount(), value.dueDate(), value.status());
+        value.installment(), value.concept(), value.amount(), value.dueDate(), paymentDate,
+        value.status());
   }
 
   private FamilyData family(Long id) {
