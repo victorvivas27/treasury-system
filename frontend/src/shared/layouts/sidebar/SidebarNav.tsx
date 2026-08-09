@@ -37,7 +37,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
   };
 
   return (
-    <nav className="sidebar-nav">
+    <nav className={`sidebar-nav ${isTreasuryOpen ? "sidebar-nav--treasury-open" : ""}`}>
       <ul className="sidebar-nav-ul">
         {SIDEBAR_LINKS.map((section) => (
           <li key={section.title} className="sidevar-nav-section">

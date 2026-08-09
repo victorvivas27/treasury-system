@@ -23,7 +23,6 @@ const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
 });
-const compact = new Intl.NumberFormat("es-CL", { notation: "compact" });
 const ACTIVITY_PAGE_SIZE = 5;
 const AUDIT_PAGE_SIZE = 5;
 const monthName = (month: number) => new Intl.DateTimeFormat("es-CL", { month: "short" })
@@ -176,7 +175,7 @@ export const DashboardPage = () => {
           <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
           <div className="dashboard-chart" aria-label="Evolución mensual">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
+              <AreaChart data={monthly} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
                 <defs>
                   <linearGradient id="dashboardIncome" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.35} />
@@ -186,9 +185,9 @@ export const DashboardPage = () => {
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
                 <XAxis dataKey="name" stroke="var(--text-muted)"
                   tick={{ fontSize: 10 }} tickMargin={4} />
-                <YAxis stroke="var(--text-muted)" width={48}
+                <YAxis stroke="var(--text-muted)" width={82}
                   tick={{ fontSize: 9 }} tickMargin={2}
-                  tickFormatter={value => compact.format(value)} />
+                  tickFormatter={value => money.format(Number(value))} />
                 <Tooltip formatter={(value) => money.format(Number(value))}
                   contentStyle={{ background: "var(--color-elevated)", borderColor: "var(--border-color)" }} />
                 <Legend />
@@ -245,14 +244,14 @@ export const DashboardPage = () => {
             : <div className="dashboard-chart">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categories} layout="vertical"
-                  margin={{ top: 4, right: 4, bottom: 0, left: -14 }}>
+                  margin={{ top: 4, right: 4, bottom: 0, left: 8 }}>
                   <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
                   <XAxis type="number" stroke="var(--text-muted)"
                     domain={[0, categoryMax]} ticks={categoryTicks}
                     tick={{ fontSize: 9 }} tickMargin={3}
                     tickFormatter={value => money.format(Number(value))} />
-                  <YAxis type="category" dataKey="name" width={62} stroke="var(--text-muted)"
-                    tick={{ fontSize: 9, angle: -18, textAnchor: "end" }} tickMargin={1} />
+                  <YAxis type="category" dataKey="name" width={96} stroke="var(--text-muted)"
+                    tick={{ fontSize: 9, textAnchor: "end" }} tickMargin={5} />
                   <Tooltip cursor={{ fill: "transparent" }}
                     formatter={(value) => money.format(Number(value))}
                     contentStyle={{ background: "var(--color-elevated)",

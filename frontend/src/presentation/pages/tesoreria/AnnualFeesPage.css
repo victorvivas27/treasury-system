@@ -11,7 +11,7 @@
 .treasury-year-selector select { min-height: 44px; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: .55rem .75rem; background: var(--color-surface); color: var(--text-main); font: inherit; cursor: pointer; }
 .treasury-year-selector select:hover { border-color: var(--color-active); }
 .treasury-year-selector select:focus-visible { border-color: var(--color-accent); outline: 2px solid color-mix(in srgb, var(--color-accent) 25%, transparent); outline-offset: 1px; }
-.annual-fees-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.annual-fees-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .treasury-panel { padding: 1.25rem; }
 .treasury-panel h2 { margin-bottom: 1rem; }
 .treasury-panel label { display: grid; gap: .35rem; margin-bottom: .8rem; color: var(--text-muted); }
@@ -59,6 +59,17 @@
 .annual-fees-config-page { padding: clamp(.65rem, 1.8vw, 1.2rem); }
 .annual-fees-config-page .treasury-page__header h1 { margin: 0 0 .1rem; font-size: 1.5rem; }
 .annual-fees-config-page .treasury-page__header > p { margin-block: .12rem; font-size: .76rem; }
+.annual-fees-config-page .treasury-page__header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.annual-fees-config-page .treasury-page__header > div > p { margin:.12rem 0; color:var(--text-muted); font-size:.76rem; }
+.annual-config-trigger { display:flex; min-width:190px; align-items:center; gap:.55rem; border:1px solid currentColor; border-radius:var(--radius-lg); padding:.45rem .6rem; background:var(--color-surface); box-shadow:var(--shadow-card); text-align:left; }
+.annual-config-trigger > span:first-child { display:grid; width:1.8rem; height:1.8rem; flex:0 0 auto; place-items:center; border-radius:50%; background:color-mix(in srgb,currentColor 14%,transparent); }
+.annual-config-trigger > span:nth-child(2) { display:grid; flex:1; gap:.05rem; }
+.annual-config-trigger small { color:var(--text-muted); font-size:.58rem; font-weight:650; text-transform:uppercase; }
+.annual-config-trigger strong { color:var(--text-main); font-size:.7rem; }
+.annual-config-trigger > svg { width:.9rem; height:.9rem; }
+.annual-config-trigger.is-configured { color:var(--color-success); }
+.annual-config-trigger.is-unconfigured { color:var(--color-error); }
+.annual-config-trigger:hover { background:color-mix(in srgb,currentColor 7%,var(--color-surface)); }
 .annual-fees-config-page .treasury-dashboard { gap: .42rem; margin: .65rem 0; }
 .annual-fees-config-page .treasury-dashboard article { min-height: 0; gap: .12rem; padding: .5rem .6rem; }
 .annual-fees-config-page .treasury-dashboard span { font-size: .68rem; }
@@ -137,6 +148,8 @@
 @media (max-width: 700px) { .annual-fees-grid { grid-template-columns: 1fr; } .treasury-obligations > header { flex-direction: column; } }
 
 @media (max-width: 700px) {
+  .annual-fees-config-page .treasury-page__header { align-items:stretch; flex-direction:column; }
+  .annual-config-trigger { width:100%; }
   .annual-fees-config-page .treasury-page__header h1 { font-size: 1.15rem; }
   .annual-fees-config-page .treasury-dashboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
