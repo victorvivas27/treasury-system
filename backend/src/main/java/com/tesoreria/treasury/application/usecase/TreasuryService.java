@@ -137,6 +137,13 @@ public class TreasuryService implements TreasuryUseCase {
   }
 
   @Override
+  public List<FeePayment> listActivePayments(int year) {
+    List<Long> obligationIds = listObligations(year).stream().map(FeeObligation::id).toList();
+    return obligationIds.isEmpty()
+        ? List.of() : repository.findActivePaymentsByObligationIds(obligationIds);
+  }
+
+  @Override
   @Transactional
   public FeePayment registerPayment(Long obligationId, LocalDate date, BigDecimal amount,
       String user, String observations) {

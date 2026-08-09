@@ -4,7 +4,7 @@ export const useHomeReveal = () => {
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>(
       "[data-home-reveal]:not([data-home-card]):not([data-home-scroll-repeat]), "
-        + "[data-home-footer-reveal], [data-home-preview-reveal]",
+        + "[data-home-footer-reveal]",
     );
     const revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -30,9 +30,16 @@ export const useHomeReveal = () => {
     }, { threshold: [0, 0.02, 0.25] });
     repeatableElements.forEach(element => repeatObserver.observe(element));
 
+    const preview = document.querySelector<HTMLElement>("[data-home-preview-reveal]");
+    const previewObserver = new IntersectionObserver(([entry]) => {
+      entry.target.classList.toggle("is-visible", entry.intersectionRatio >= 0.25);
+    }, { threshold: [0, 0.25] });
+    if (preview) previewObserver.observe(preview);
+
     return () => {
       revealObserver.disconnect();
       repeatObserver.disconnect();
+      previewObserver.disconnect();
     };
   }, []);
 };

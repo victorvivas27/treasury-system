@@ -30,7 +30,8 @@ public final class TreasuryDtos {
   public record ObligationResponse(Long id, Long familyId, String familyCode,
       String primaryGuardian, String studentName, String course, PaymentMode mode,
       InstallmentType installment, String concept,
-      BigDecimal amount, LocalDate dueDate, ObligationStatus status) { }
+      BigDecimal amount, LocalDate dueDate, LocalDate paymentDate,
+      ObligationStatus status) { }
   public record ReportResponse(Long familyId, String familyCode, String primaryGuardian,
       String studentName,
       String course, PaymentMode mode, List<ObligationResponse> obligations) { }
