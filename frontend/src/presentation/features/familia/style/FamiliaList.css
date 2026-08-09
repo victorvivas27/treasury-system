@@ -53,15 +53,15 @@
 
 @media (min-width: 769px) {
   .familia-table__th:nth-child(1),
-  .familia-table__td:nth-child(1) { width: 23%; }
+  .familia-table__td:nth-child(1) { width: 21%; }
   .familia-table__th:nth-child(2),
-  .familia-table__td:nth-child(2) { width: 12%; }
+  .familia-table__td:nth-child(2) { width: 11%; }
   .familia-table__th:nth-child(3),
-  .familia-table__td:nth-child(3) { width: 20%; }
+  .familia-table__td:nth-child(3) { width: 18%; }
   .familia-table__th:nth-child(4),
-  .familia-table__td:nth-child(4) { width: 32%; }
+  .familia-table__td:nth-child(4) { width: 30%; }
   .familia-table__th:nth-child(5),
-  .familia-table__td:nth-child(5) { width: 13%; }
+  .familia-table__td:nth-child(5) { width: 20%; }
 }
 
 .familia-table__person {
@@ -79,16 +79,17 @@
 
 .familia-table__td--actions {
   display: flex;
+  width: 100%;
   justify-content: center;
   gap: .35rem;
 }
 
 .familia-table__td--actions .familia-table__action-button {
-  width: auto;
+  width: min(82px, calc(50% - .175rem));
   height: 30px;
-  min-width: 72px;
+  min-width: 0;
   min-height: 28px;
-  padding: .3rem .55rem;
+  padding: .3rem .35rem;
   margin: 0;
 }
 
