@@ -55,11 +55,12 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
           {loading ? Array.from({ length: pageSize }, (_, row) => (
             <tr key={`loading-${row}`} className="usuarios-table__row--data"
               aria-hidden="true">
-              {Array.from({ length: isAdmin ? 5 : 4 }, (_, column) => (
+              {Array.from({ length: 4 }, (_, column) => (
                 <td className="usuarios-table__td" key={column}>
                   <div className="skeleton-block usuarios-table__skeleton" />
                 </td>
               ))}
+              {isAdmin && <td className="usuarios-table__td">&nbsp;</td>}
             </tr>
           )) : <>
           {filteredUsers.map((user) => {

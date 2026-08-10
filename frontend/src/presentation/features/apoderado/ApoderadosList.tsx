@@ -198,7 +198,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
 
                 <td className="apoderados-table__td" data-label="Acciones">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <span>&nbsp;</span>
                   ) : !isEmptyRow && apoderado ? (
                     <div className="apoderados-table__td--actions">
                       <span className="apoderados-table__access-slot">

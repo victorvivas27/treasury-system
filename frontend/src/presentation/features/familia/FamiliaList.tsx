@@ -188,7 +188,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
 
                 <td className="familia-table__td" data-label="Acciones">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <span>&nbsp;</span>
                   ) : !isEmptyRow && familia ? (
                     <div className="familia-table__td--actions">
                       <Button

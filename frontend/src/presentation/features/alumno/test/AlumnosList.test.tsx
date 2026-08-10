@@ -189,8 +189,8 @@ describe("AlumnosList Component", () => {
     expect(rows.length).toBe(pageSize);
 
     const skeletons = container.querySelectorAll(".skeleton-block");
-    // Cada fila tiene 3 skeletons (nombre, curso y acciones)
-    expect(skeletons.length).toBe(pageSize * 3);
+    // Solo los datos remotos tienen skeleton; la columna de acciones queda vacía.
+    expect(skeletons.length).toBe(pageSize * 2);
   });
 
   it("[AlumnosList #10] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {

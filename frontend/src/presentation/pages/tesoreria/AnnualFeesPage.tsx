@@ -3,8 +3,9 @@ import { FiAlertTriangle, FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDo
   FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUsers,
   FiXCircle }
   from "react-icons/fi";
-import type { AllowedPaymentMode, PaymentMode, TreasuryFilters }
+import type { AllowedPaymentMode, FamilyPlan, FeeObligation, PaymentMode, TreasuryFilters }
   from "@/core/A-domain/entities/treasury/Treasury";
+import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { useAnnualFees } from "@/presentation/hooks/treasury/useAnnualFees";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -23,6 +24,14 @@ const today = (() => {
 const isOverdue = (status: string, dueDate: string) => status === "PENDIENTE" && dueDate < today;
 const PLAN_PAGE_SIZE = 2;
 const OBLIGATION_FAMILY_PAGE_SIZE = 5;
+
+export const findUnconfiguredFamilies = (families: FamiliaDetalle[], plans: FamilyPlan[],
+  obligations: FeeObligation[]) => {
+  const configuredIds = new Set([...plans.map(plan => plan.familyId),
+    ...obligations.map(obligation => obligation.familyId)]
+    .map(id => Number(id)).filter(id => Number.isFinite(id) && id > 0));
+  return families.filter(family => !configuredIds.has(Number(family.familiaId)));
+};
 
 export const AnnualFeesPage = () => {
   const fees = useAnnualFees();
@@ -67,10 +76,9 @@ export const AnnualFeesPage = () => {
     obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
   const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
     [visibleObligationGroups]);
-  const unconfiguredFamilies = useMemo(() => {
-    const configuredIds = new Set(fees.plans.map(plan => plan.familyId));
-    return fees.families.filter(family => !configuredIds.has(family.familiaId));
-  }, [fees.families, fees.plans]);
+  const unconfiguredFamilies = useMemo(() => findUnconfiguredFamilies(
+    fees.families, fees.plans, fees.obligations),
+    [fees.families, fees.plans, fees.obligations]);
 
   useEffect(() => {
     setPlanPage(current => Math.min(current, planPages));
@@ -159,7 +167,7 @@ export const AnnualFeesPage = () => {
     <div className="annual-fees-grid">
       <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
-        {!fees.familiesLoading && !fees.dataLoading && currentConfig
+        {!fees.familiesLoading && !fees.dataLoading && !fees.error && currentConfig
           && unconfiguredFamilies.length > 0 &&
           <div className="treasury-family-warning" role="alert">
             <FiAlertTriangle aria-hidden="true" />

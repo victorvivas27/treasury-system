@@ -163,7 +163,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
 
                 <td className="alumnos-table__td" data-label="Acciones">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <span>&nbsp;</span>
                   ) : !empty && alumno ? (
                     <div className="alumnos-table__td--actions">
                       <Button

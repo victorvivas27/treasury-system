@@ -28,7 +28,7 @@ describe("UsersPage", () => {
     const { container } = render(<UsersPage />);
 
     expect(screen.getByRole("table")).toBeInTheDocument();
-    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(25);
+    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(20);
     expect(screen.queryByText("Sin usuarios")).not.toBeInTheDocument();
   });
 
