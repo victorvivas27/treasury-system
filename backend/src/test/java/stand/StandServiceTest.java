@@ -108,6 +108,7 @@ class StandServiceTest {
     product.setStand(stand);
     product.setName("Café");
     product.setPrice(new BigDecimal("1500"));
+    product.setUnitCost(new BigDecimal("200"));
     product.setCurrentStock(4);
     product.setAvailable(true);
     when(stands.findById(3L)).thenReturn(Optional.of(stand));
@@ -136,6 +137,34 @@ class StandServiceTest {
   }
 
   @Test
+  void deleteProduct_deberiaEliminarProductoSinVentas() {
+    StandProductEntity product = new StandProductEntity();
+    product.setId(10L); product.setStand(stand);
+    when(stands.findById(3L)).thenReturn(Optional.of(stand));
+    when(products.findById(10L)).thenReturn(Optional.of(product));
+
+    service.deleteProduct(3L, 10L);
+
+    verify(products).delete(product);
+  }
+
+  @Test
+  void deleteProduct_deberiaRechazarProductoConVentasActivas() {
+    StandProductEntity product = new StandProductEntity();
+    product.setId(10L); product.setStand(stand);
+    StandSaleEntity activeSale = sale(StandPaymentMethod.CASH, "1500",
+        item(10L, "Café", 1, "1500"));
+    activeSale.setStatus(StandSaleStatus.ACTIVE);
+    when(stands.findById(3L)).thenReturn(Optional.of(stand));
+    when(products.findById(10L)).thenReturn(Optional.of(product));
+    when(sales.findByStandIdOrderBySoldAtDesc(3L)).thenReturn(List.of(activeSale));
+
+    assertThrows(DomainException.class, () -> service.deleteProduct(3L, 10L));
+
+    verify(products, never()).delete(any());
+  }
+
+  @Test
   void close_deberiaConsolidarElNetoEnLaRecaudacionDelEvento() {
     StandSaleEntity cashSale = sale(StandPaymentMethod.CASH, "3000",
         item(10L, "Café", 2, "1500"));
@@ -148,7 +177,7 @@ class StandServiceTest {
     service.close(3L);
 
     assertEquals(StandStatus.CLOSED, stand.getStatus());
-    verify(schoolEvents).registerRevenue(eq(7L), eq(new BigDecimal("3000")),
+    verify(schoolEvents).registerRevenue(eq(7L), eq(new BigDecimal("2600")),
         any(), eq("Recaudación automática de stands"), eq("MIXED"),
         isNull(), contains("consolidado"));
   }
@@ -187,6 +216,7 @@ class StandServiceTest {
     product.setStand(stand);
     product.setName("Café");
     product.setPrice(new BigDecimal("1500"));
+    product.setUnitCost(new BigDecimal("200"));
     product.setCurrentStock(2);
     product.setAvailable(true);
     StandSaleEntity sale = sale(StandPaymentMethod.CASH, "3000",
@@ -216,10 +246,15 @@ class StandServiceTest {
   void summary_deberiaCalcularCajaComisionesYUnidades() {
     StandSaleItemEmbeddable cashItem = item(10L, "Café", 2, "1500");
     StandSaleItemEmbeddable debitItem = item(11L, "Pizza", 1, "5000");
+    cashItem.setPresentation("Entera"); cashItem.setUnitEquivalence(BigDecimal.ONE);
+    debitItem.setPresentation("Media");
+    debitItem.setUnitEquivalence(new BigDecimal("0.5"));
     StandSaleEntity cashSale = sale(StandPaymentMethod.CASH, "3000", cashItem);
     StandSaleEntity debitSale = sale(StandPaymentMethod.DEBIT, "5000", debitItem);
-    StandSaleEntity transferSale = sale(StandPaymentMethod.TRANSFER, "2000",
-        item(12L, "Jugo", 1, "2000"));
+    StandSaleItemEmbeddable transferItem = item(12L, "Jugo", 1, "2000");
+    transferItem.setPresentation("Porción");
+    transferItem.setUnitEquivalence(new BigDecimal("0.125"));
+    StandSaleEntity transferSale = sale(StandPaymentMethod.TRANSFER, "2000", transferItem);
     when(stands.findById(3L)).thenReturn(Optional.of(stand));
     when(sales.findByStandIdOrderBySoldAtDesc(3L))
         .thenReturn(List.of(cashSale, debitSale, transferSale));
@@ -229,7 +264,14 @@ class StandServiceTest {
 
     assertAll(() -> assertEquals(new BigDecimal("10000"), result.totalSold()),
         () -> assertEquals(new BigDecimal("23000"), result.expectedCash()),
+        () -> assertEquals(new BigDecimal("800"), result.totalCost()),
         () -> assertEquals(new BigDecimal("95.00"), result.commissions()),
+        () -> assertEquals(new BigDecimal("75.00"), result.debitCommission()),
+        () -> assertEquals(new BigDecimal("0.00"), result.creditCommission()),
+        () -> assertEquals(new BigDecimal("20.00"), result.transferCommission()),
+        () -> assertEquals(new BigDecimal("9105.00"), result.netProfit()),
+        () -> assertEquals(2, result.unitsByPresentation().get("Entera")),
+        () -> assertEquals(new BigDecimal("2.625"), result.equivalentUnits()),
         () -> assertEquals(3, result.saleCount()), () -> assertEquals(4, result.unitsSold()));
   }
 
@@ -237,7 +279,9 @@ class StandServiceTest {
     StandSaleItemEmbeddable item = new StandSaleItemEmbeddable();
     item.setProductId(id); item.setProductName(name); item.setQuantity(quantity);
     item.setUnitPrice(new BigDecimal(price));
+    item.setUnitCost(new BigDecimal("200"));
     item.setSubtotal(item.getUnitPrice().multiply(BigDecimal.valueOf(quantity)));
+    item.setCostSubtotal(item.getUnitCost().multiply(BigDecimal.valueOf(quantity)));
     return item;
   }
 

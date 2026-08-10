@@ -15,6 +15,10 @@
 .stand-page__selector button { min-width: 150px; align-items: flex-start; flex-direction: column; border: 1px solid var(--border-color); background: var(--color-surface); color: var(--text-main); }
 .stand-page__selector button.is-active { border-color: var(--color-accent); background: var(--color-accent-soft); }
 .stand-page__selector small { color: var(--text-muted); }
+.stand-selector-empty { display: grid; justify-items: center; width: 100%; border: 1px dashed var(--border-color); border-radius: 1rem; padding: 2.2rem 1rem; background: var(--color-surface); text-align: center; }
+.stand-selector-empty div { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--color-accent-soft); color: var(--color-accent); font-size: 1.5rem; }
+.stand-selector-empty h2 { margin: .75rem 0 .25rem; font-size: 1.1rem; }
+.stand-selector-empty p { max-width: 440px; margin: 0 0 1rem; color: var(--text-muted); font-size: .82rem; }
 .stand-workspace { overflow: hidden; border: 1px solid var(--border-color); border-radius: 1.1rem; background: var(--color-surface); box-shadow: var(--shadow-card); }
 .stand-workspace__header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem; }
 .stand-workspace__header h2 { margin: .45rem 0 .15rem; }
@@ -37,6 +41,9 @@
 .stand-product-grid article.is-sold-out { opacity: .55; }
 .stand-product-grid article span, .stand-product-grid article p, .stand-product-grid article small { color: var(--text-muted); font-size: .75rem; }
 .stand-product-grid article strong { color: var(--color-accent); font-size: 1.1rem; }
+.stand-product-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
+.stand-product-edit { justify-self: start; display: inline-flex; align-items: center; gap: .3rem; }
+.stand-product-delete { background: var(--color-error) !important; color: white !important; }
 .stand-sales-layout { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.6fr) minmax(260px, .7fr); padding: 1.25rem; }
 .stand-sale-form, .stand-recent-sales { border: 1px solid var(--border-color); border-radius: .9rem; padding: 1rem; background: var(--color-bg); }
 .stand-sale-form__picker { display: grid; align-items: end; gap: .65rem; grid-template-columns: 1fr 100px auto; }
@@ -106,6 +113,7 @@
 .stand-modal { position: fixed; z-index: 100; inset: 0; display: grid; overflow-y: auto; place-items: center; padding: 1rem; background: var(--overlay); }
 .stand-modal > form { width: min(760px, 100%); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.25rem; background: var(--color-surface); box-shadow: var(--shadow-elevated); }
 .stand-modal header, .stand-modal footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.stand-modal__draggable-header { cursor: move; touch-action: none; user-select: none; }
 .stand-modal header span { color: var(--color-accent); }
 .stand-modal header button, .stand-modal footer button:first-child { background: transparent; color: var(--text-muted); }
 .stand-modal__grid { display: grid; gap: .8rem; grid-template-columns: repeat(2, 1fr); margin: 1rem 0; }

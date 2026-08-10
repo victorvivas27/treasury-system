@@ -29,6 +29,9 @@ export class StandRepositoryImpl implements IStandRepository {
     return (await apiClient.put(
       `${this.baseUrl}/${standId}/productos/${productId}`, payload)).data;
   }
+  async deleteProduct(standId: number, productId: number) {
+    await apiClient.delete(`${this.baseUrl}/${standId}/productos/${productId}`);
+  }
   async open(standId: number) {
     return (await apiClient.post(`${this.baseUrl}/${standId}/abrir`)).data;
   }

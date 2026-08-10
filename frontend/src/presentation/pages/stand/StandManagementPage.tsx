@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
+  type PointerEvent as ReactPointerEvent } from "react";
 import {
-  FiAlertTriangle, FiBox, FiCheckCircle, FiCreditCard, FiDollarSign, FiPercent, FiPlus,
+  FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiCreditCard, FiDollarSign, FiEdit2, FiPercent, FiPlus,
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
   FiTrendingUp,
 } from "react-icons/fi";
@@ -227,7 +228,16 @@ export const StandManagementPage = () => {
             onClick={() => setSelected(item)}>
             <span>{item.name}</span><small>{statusLabels[item.status]}</small>
           </button>)}
-          {standList.length === 0 && <p>No hay stands configurados para este evento.</p>}
+          {standList.length === 0 && <section className="stand-selector-empty">
+            <div><FiBox /></div>
+            <h2>Aún no hay stands</h2>
+            <p>Configura el primer stand para agregar productos y comenzar a registrar ventas.</p>
+            <button type="button" onClick={click => {
+              setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                Math.min(320, window.innerWidth - 24), 430));
+              setCreating(true);
+            }}><FiPlus /> Crear primer stand</button>
+          </section>}
         </div>
 
         {selected && <section className="stand-workspace">
@@ -310,6 +320,7 @@ export const StandManagementPage = () => {
     >
       {closeSummary && <div className="stand-close-summary">
         <div><span>Total vendido</span><strong>{money.format(closeSummary.totalSold)}</strong></div>
+        <div><span>Costo de productos</span><strong>-{money.format(closeSummary.totalCost)}</strong></div>
         <div><span>Comisiones</span><strong>-{money.format(closeSummary.commissions)}</strong></div>
         <div className="is-total"><span>Neto para el evento</span>
           <strong>{money.format(closeSummary.netProfit)}</strong></div>
@@ -334,52 +345,180 @@ const ProductsPanel = ({ stand, products, onSaved }: {
   stand: Stand; products: StandProduct[]; onSaved: (message: string) => Promise<void>;
 }) => {
   const [showForm, setShowForm] = useState(false);
+  const [formAnchor, setFormAnchor] = useState<{ top: number; left: number }>();
+  const dragOffset = useRef<{ x: number; y: number } | null>(null);
+  const [editingProduct, setEditingProduct] = useState<StandProduct>();
+  const [productToDelete, setProductToDelete] = useState<StandProduct>();
+  const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
+  const [deletingProduct, setDeletingProduct] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [form, setForm] = useState({
-    name: "", category: "", variant: "", price: "", stock: "", available: true,
+    name: "", category: "", variant: "", presentation: "", unitEquivalence: "",
+    unitCost: "", price: "", stock: "", available: true,
   });
+  const closeForm = () => {
+    setForm({ name: "", category: "", variant: "", presentation: "", unitEquivalence: "",
+      unitCost: "", price: "", stock: "", available: true });
+    setEditingProduct(undefined);
+    setShowForm(false);
+    setFormAnchor(undefined);
+  };
+  const editProduct = (product: StandProduct, anchor: { top: number; left: number }) => {
+    setForm({
+      name: product.name, category: product.category ?? "", variant: product.variant ?? "",
+      presentation: product.presentation ?? "",
+      unitEquivalence: product.unitEquivalence == null ? "" : String(product.unitEquivalence),
+      unitCost: String(product.unitCost), price: String(product.price),
+      stock: product.initialStock == null ? "" : String(product.initialStock),
+      available: product.available,
+    });
+    setEditingProduct(product);
+    setFormAnchor(anchor);
+    setShowForm(true);
+  };
+  const duplicateProduct = (product: StandProduct, anchor: { top: number; left: number }) => {
+    setForm({
+      name: product.name, category: product.category ?? "", variant: "",
+      presentation: product.presentation ?? "",
+      unitEquivalence: product.unitEquivalence == null ? "" : String(product.unitEquivalence),
+      unitCost: String(product.unitCost), price: String(product.price),
+      stock: product.initialStock == null ? "" : String(product.initialStock),
+      available: product.available,
+    });
+    setEditingProduct(undefined);
+    setFormAnchor(anchor);
+    setShowForm(true);
+  };
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    await stands.addProduct(stand.id, {
+    const payload = {
       name: form.name, category: form.category || undefined, variant: form.variant || undefined,
-      price: Number(form.price), stock: form.stock === "" ? undefined : Number(form.stock),
+      presentation: form.presentation || undefined,
+      unitEquivalence: form.unitEquivalence === "" ? undefined : Number(form.unitEquivalence),
+      unitCost: Number(form.unitCost), price: Number(form.price),
+      stock: form.stock === "" ? undefined : Number(form.stock),
       available: form.available,
+    };
+    if (editingProduct) await stands.updateProduct(stand.id, editingProduct.id, payload);
+    else await stands.addProduct(stand.id, payload);
+    const message = editingProduct ? "Producto actualizado." : "Producto agregado.";
+    closeForm();
+    await onSaved(message);
+  };
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    setDeletingProduct(true);
+    setDeleteError("");
+    try {
+      await stands.deleteProduct(stand.id, productToDelete.id);
+      setProductToDelete(undefined);
+      setDeleteAnchor(undefined);
+      await onSaved("Producto eliminado.");
+    } catch (error) {
+      setDeleteError(errorMessage(error, "No fue posible eliminar el producto."));
+    } finally {
+      setDeletingProduct(false);
+    }
+  };
+  const startDragging = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!formAnchor || (event.target as HTMLElement).closest("button")) return;
+    dragOffset.current = { x: event.clientX - formAnchor.left, y: event.clientY - formAnchor.top };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const dragForm = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!dragOffset.current) return;
+    setFormAnchor({
+      left: Math.max(12, Math.min(event.clientX - dragOffset.current.x,
+        window.innerWidth - Math.min(320, window.innerWidth - 24) - 12)),
+      top: Math.max(12, Math.min(event.clientY - dragOffset.current.y,
+        window.innerHeight - 60)),
     });
-    setForm({ name: "", category: "", variant: "", price: "", stock: "", available: true });
-    setShowForm(false);
-    await onSaved("Producto agregado.");
   };
   return <div className="stand-panel">
     <div className="stand-panel__heading"><div><h3>Catálogo del stand</h3>
       <p>Los campos categoría, variante y stock son opcionales.</p></div>
       {stand.status !== "CLOSED" && <button className="stand-add-product-button"
-        onClick={() => setShowForm(value => !value)}>
-        {showForm ? <FiX /> : <span className="stand-add-product-button__plus"
-          aria-hidden="true">+</span>}
-        {showForm ? "Cerrar" : "Producto"}</button>}</div>
-    {showForm && <form className="stand-inline-form" onSubmit={submit}>
-      <label>Producto<input required maxLength={120} value={form.name}
-        onChange={e => setForm({ ...form, name: e.target.value })} /></label>
-      <label>Categoría<input maxLength={80} value={form.category}
-        onChange={e => setForm({ ...form, category: e.target.value })} /></label>
-      <label>Variante<input maxLength={100} value={form.variant}
-        onChange={e => setForm({ ...form, variant: e.target.value })} /></label>
-      <label>Precio<input required min="1" type="number" value={form.price}
-        onChange={e => setForm({ ...form, price: e.target.value })} /></label>
-      <label>Stock (opcional)<input min="0" type="number" value={form.stock}
-        onChange={e => setForm({ ...form, stock: e.target.value })} /></label>
-      <button type="submit">Guardar producto</button>
-    </form>}
+        onClick={click => {
+          setFormAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+            Math.min(320, window.innerWidth - 24), 500));
+          setShowForm(true);
+        }}>
+        <span className="stand-add-product-button__plus"
+          aria-hidden="true">+</span>
+        Producto</button>}</div>
+    {showForm && <div className="stand-modal stand-modal--anchored" role="presentation"
+      onMouseDown={closeForm}>
+      <form role="dialog" aria-modal="true" aria-labelledby="product-form-title"
+        style={formAnchor ? { position: "fixed", top: formAnchor.top, left: formAnchor.left } : undefined}
+        onMouseDown={event => event.stopPropagation()} onSubmit={submit}>
+        <header className="stand-modal__draggable-header" onPointerDown={startDragging}
+          onPointerMove={dragForm} onPointerUp={() => { dragOffset.current = null; }}
+          onPointerCancel={() => { dragOffset.current = null; }}><div>
+          <span>Catálogo del stand</span><h2 id="product-form-title">
+          {editingProduct ? "Editar producto" : "Crear producto"}</h2></div>
+          <button type="button" aria-label="Cerrar" onClick={closeForm}><FiX /></button></header>
+        <div className="stand-modal__grid">
+          <label>Producto<input required maxLength={120} value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+          <label>Categoría<input maxLength={80} value={form.category}
+            onChange={e => setForm({ ...form, category: e.target.value })} /></label>
+          <label>Variante<input maxLength={100} value={form.variant}
+            onChange={e => setForm({ ...form, variant: e.target.value })} /></label>
+          <label>Presentación<input maxLength={80} placeholder="Entera, Media, Porción"
+            value={form.presentation}
+            onChange={e => setForm({ ...form, presentation: e.target.value })} /></label>
+          <label>Equivalencia<input min="0.0001" step="0.0001" type="number"
+            placeholder="1, 0.5, 0.125" value={form.unitEquivalence}
+            onChange={e => setForm({ ...form, unitEquivalence: e.target.value })} /></label>
+          <label>Costo unitario<input required min="0" type="number" value={form.unitCost}
+            onChange={e => setForm({ ...form, unitCost: e.target.value })} /></label>
+          <label>Precio de venta<input required min="1" type="number" value={form.price}
+            onChange={e => setForm({ ...form, price: e.target.value })} /></label>
+          <label>Stock (opcional)<input min="0" type="number" value={form.stock}
+            onChange={e => setForm({ ...form, stock: e.target.value })} /></label>
+        </div>
+        <footer><button type="button" onClick={closeForm}><FiX /> Cancelar</button>
+          <button type="submit"><FiCheckCircle /> {editingProduct
+            ? "Guardar cambios" : "Crear producto"}</button></footer>
+      </form>
+    </div>}
     <div className="stand-product-grid">
       {products.map(product => <article key={product.id}
         className={!product.available ? "is-sold-out" : ""}>
         <div><span>{product.category || "Sin categoría"}</span>
-          <h4>{product.name}</h4><p>{product.variant || "Sin variante"}</p></div>
+          <h4>{product.name}</h4><p>{product.variant || "Sin variante"}</p>
+          {product.presentation && <p>{product.presentation}{product.unitEquivalence != null
+            ? ` · Equivale a ${product.unitEquivalence}` : ""}</p>}</div>
         <strong>{money.format(product.price)}</strong>
+        <small>Costo {money.format(product.unitCost)} · Margen unitario {money.format(
+          product.price - product.unitCost)}</small>
         <small>{product.currentStock == null ? "Stock libre"
           : product.currentStock === 0 ? "Agotado" : `${product.currentStock} disponibles`}</small>
+        {stand.status !== "CLOSED" && <div className="stand-product-actions">
+          <button type="button" className="stand-product-edit"
+            onClick={click => editProduct(product, standModalAnchor(
+              click.currentTarget.getBoundingClientRect(), 320, 500))}><FiEdit2 /> Editar</button>
+          <button type="button" className="stand-product-edit"
+            onClick={click => duplicateProduct(product, standModalAnchor(
+              click.currentTarget.getBoundingClientRect(), 320, 500))}><FiCopy /> Duplicar</button>
+          <button type="button" className="stand-product-delete" onClick={click => {
+            setDeleteAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+              Math.min(280, window.innerWidth - 24), 190));
+            setDeleteError("");
+            setProductToDelete(product);
+          }}><FiTrash2 /> Eliminar</button>
+        </div>}
       </article>)}
       {products.length === 0 && <p className="stand-page__empty">Agrega el primer producto.</p>}
     </div>
+    {deleteError && <p className="stand-page__feedback" role="alert">{deleteError}</p>}
+    <ModalConfirm isOpen={Boolean(productToDelete)} compact confirmVariant="danger"
+      anchor={deleteAnchor} title="Eliminar producto"
+      message={`Se eliminará definitivamente “${productToDelete?.name ?? ""}”.`}
+      confirmLabel="Eliminar" cancelLabel="Cancelar" isLoading={deletingProduct}
+      onConfirm={() => void confirmDelete()} onCancel={() => {
+        setProductToDelete(undefined); setDeleteAnchor(undefined); setDeleteError("");
+      }} />
   </div>;
 };
 
@@ -726,14 +865,22 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
       <article className="is-cash"><div><span>Efectivo esperado</span><i><FiCreditCard /></i></div>
         <strong>{money.format(summary.expectedCash)}</strong>
         <small>Incluye fondo de {money.format(summary.initialFund)}</small></article>
-      <article className="is-commissions"><div><span>Comisiones</span><i><FiPercent /></i></div>
-        <strong>{money.format(summary.commissions)}</strong></article>
+      <article className="is-commissions"><div><span>Comisión débito</span><i><FiPercent /></i></div>
+        <strong>{money.format(summary.debitCommission)}</strong></article>
+      <article className="is-commissions"><div><span>Comisión crédito</span><i><FiPercent /></i></div>
+        <strong>{money.format(summary.creditCommission)}</strong></article>
+      <article className="is-commissions"><div><span>Comisión transferencia</span><i><FiPercent /></i></div>
+        <strong>{money.format(summary.transferCommission)}</strong></article>
+      <article className="is-commissions"><div><span>Costo de productos</span><i><FiBox /></i></div>
+        <strong>{money.format(summary.totalCost)}</strong></article>
       <article className="is-highlight"><div><span>Ganancia neta</span><i><FiTrendingUp /></i></div>
         <strong>{money.format(summary.netProfit)}</strong></article>
       <article className="is-count"><div><span>Ventas</span><i><FiShoppingCart /></i></div>
         <strong>{summary.saleCount}</strong></article>
       <article className="is-units"><div><span>Unidades vendidas</span><i><FiBox /></i></div>
         <strong>{summary.unitsSold}</strong></article>
+      <article className="is-units"><div><span>Unidades equivalentes</span><i><FiBox /></i></div>
+        <strong>{summary.equivalentUnits}</strong></article>
     </div>
     <div className="stand-summary__columns">
       <section><h3>Ventas por medio de pago</h3>
@@ -745,7 +892,8 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
           key={`${item.product}-${item.category}-${item.variant}`}>
           <span>{item.product}{item.variant ? ` · ${item.variant}` : ""}
             <small>{item.units} unidades · {item.category || "Sin categoría"}</small></span>
-          <strong>{money.format(item.total)}</strong></div>)}</section>
+          <strong>{money.format(item.profit)}<small>Venta {money.format(item.total)} · Costo {
+            money.format(item.cost)}</small></strong></div>)}</section>
       <section><h3>Ventas por categoría</h3>
         {Object.entries(summary.salesByCategory).map(([category, total]) =>
           <div key={category}><span>{category}</span><strong>{money.format(total)}</strong></div>)}
@@ -753,6 +901,12 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
       <section><h3>Ventas por variante</h3>
         {Object.entries(summary.salesByVariant).map(([variant, total]) =>
           <div key={variant}><span>{variant}</span><strong>{money.format(total)}</strong></div>)}
+      </section>
+      <section><h3>Unidades por presentación</h3>
+        {Object.keys(summary.unitsByPresentation).length === 0
+          ? <p>Sin presentaciones configuradas.</p>
+          : Object.entries(summary.unitsByPresentation).map(([presentation, units]) =>
+            <div key={presentation}><span>{presentation}</span><strong>{units}</strong></div>)}
       </section>
       <section><h3>Alertas de stock</h3>
         {summary.stockAlerts.length === 0 ? <p>Sin alertas de stock.</p>
@@ -768,15 +922,18 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
   anchor?: { top: number; left: number };
   onSaved: (value: Stand) => Promise<void>;
 }) => {
+  const standNames = Array.from(new Set(event?.participants
+    .map(participant => participant.standName.trim()).filter(Boolean) ?? []));
+  if (stand && !standNames.includes(stand.name)) standNames.push(stand.name);
   const [form, setForm] = useState({
-    name: stand?.name ?? "",
+    name: stand?.name ?? standNames[0] ?? "",
     date: stand?.date ?? event?.eventDate ?? new Date().toISOString().slice(0, 10),
     startTime: stand?.startTime.slice(0, 5) ?? "09:00",
     endTime: stand?.endTime.slice(0, 5) ?? "18:00",
     responsible: stand?.responsible ?? "", initialFund: String(stand?.initialFund ?? 0),
-    debitCommission: String(stand?.debitCommission ?? 0),
-    creditCommission: String(stand?.creditCommission ?? 0),
-    transferCommission: String(stand?.transferCommission ?? 0),
+    debitCommission: stand ? String(stand.debitCommission) : "",
+    creditCommission: stand ? String(stand.creditCommission) : "",
+    transferCommission: stand ? String(stand.transferCommission) : "",
     paymentMethods: stand?.paymentMethods ?? ["CASH"] as StandPaymentMethod[],
   });
   const [saving, setSaving] = useState(false);
@@ -809,25 +966,37 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
         {stand ? "Editar configuración" : "Configurar nuevo stand"}</h2></div>
         <button type="button" aria-label="Cerrar" onClick={onClose}><FiX /></button></header>
       <div className="stand-modal__grid">
-        <label>Nombre del stand<input required maxLength={120} value={form.name}
-          onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+        <label>Nombre del stand{standNames.length > 0
+          ? <select required value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}>
+            {standNames.map(name => <option key={name} value={name}>{name}</option>)}
+          </select>
+          : <input required maxLength={120} value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })} />}</label>
         <label>Responsable<input required maxLength={150} value={form.responsible}
           onChange={e => setForm({ ...form, responsible: e.target.value })} /></label>
         <label>Fecha<input required type="date" value={form.date}
           onChange={e => setForm({ ...form, date: e.target.value })} /></label>
-        <label>Hora de inicio<input required type="time" value={form.startTime}
+        <label>Hora de inicio<input required type="text" inputMode="numeric" maxLength={5}
+          pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="Ej: 18:00"
+          title="Usa formato de 24 horas HH:mm" value={form.startTime}
           onChange={e => setForm({ ...form, startTime: e.target.value })} /></label>
-        <label>Hora de término<input required type="time" value={form.endTime}
+        <label>Hora de término<input required type="text" inputMode="numeric" maxLength={5}
+          pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="Ej: 22:00"
+          title="Usa formato de 24 horas HH:mm" value={form.endTime}
           onChange={e => setForm({ ...form, endTime: e.target.value })} /></label>
         <label>Fondo inicial<input required min="0" type="number" value={form.initialFund}
           onChange={e => setForm({ ...form, initialFund: e.target.value })} /></label>
         <label>Comisión débito (%)<input required min="0" step="0.01" type="number"
+          placeholder="Ej: 3.4 = 3,4%"
           value={form.debitCommission}
           onChange={e => setForm({ ...form, debitCommission: e.target.value })} /></label>
         <label>Comisión crédito (%)<input required min="0" step="0.01" type="number"
+          placeholder="Ej: 3.4 = 3,4%"
           value={form.creditCommission}
           onChange={e => setForm({ ...form, creditCommission: e.target.value })} /></label>
         <label>Comisión transferencia (%)<input required min="0" step="0.01" type="number"
+          placeholder="Ej: 3.4 = 3,4%"
           value={form.transferCommission}
           onChange={e => setForm({ ...form, transferCommission: e.target.value })} /></label>
       </div>
