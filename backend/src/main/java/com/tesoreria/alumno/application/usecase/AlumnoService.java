@@ -59,6 +59,7 @@ public class AlumnoService implements
                 .orElseThrow(() -> alumnoNoEncontrado(alumno.getCodigo()));
         existing.setNombre(alumno.getNombre());
         existing.setCurso(alumno.getCurso());
+        existing.setObservacion(alumno.getObservacion());
         return repository.save(existing);
     }
 

@@ -48,11 +48,39 @@
 
 @media (min-width: 769px) {
   .alumnos-table__th:nth-child(1),
-  .alumnos-table__td:nth-child(1) { width: 48%; }
+  .alumnos-table__td:nth-child(1) { width: 40%; }
   .alumnos-table__th:nth-child(2),
-  .alumnos-table__td:nth-child(2) { width: 18%; }
+  .alumnos-table__td:nth-child(2) { width: 14%; }
   .alumnos-table__th:nth-child(3),
-  .alumnos-table__td:nth-child(3) { width: 34%; }
+  .alumnos-table__td:nth-child(3) { width: 12%; }
+  .alumnos-table__th:nth-child(4),
+  .alumnos-table__td:nth-child(4) { width: 34%; }
+}
+
+.alumnos-table__observation-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.alumnos-table__observation-button:hover,
+.alumnos-table__observation-button:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+}
+
+.alumnos-table__no-observation {
+  color: var(--color-text-muted);
+  font-size: .7rem;
 }
 
 .alumnos-table__td--actions {

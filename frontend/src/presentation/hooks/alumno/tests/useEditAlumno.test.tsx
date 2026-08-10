@@ -32,7 +32,7 @@ vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
 
 describe("useEditAlumno Hook", () => {
   const mockNavigate = vi.fn();
-  const mockAlumno = { nombre: "Juan", curso: "4A", apoderadoId: 1 };
+  const mockAlumno = { nombre: "Juan", curso: "4A", observacion: "", apoderadoId: 1 };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -104,6 +104,7 @@ describe("useEditAlumno Hook", () => {
     expect(result.current.formData).toEqual({
       nombre: "Carlos",
       curso: "5B",
+      observacion: "",
       apoderadoId: 8,
     });
   });
@@ -203,6 +204,7 @@ describe("useEditAlumno Hook", () => {
     expect(mockUpdateUseCase.execute).toHaveBeenCalledWith(1, {
       nombre: "Maria",
       curso: "5B",
+      observacion: "",
       apoderadoId: 9,
     });
   });

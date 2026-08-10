@@ -25,6 +25,9 @@ public final class AlumnoEntity {
     @Column(nullable = false, length = 50)
     private String curso;
 
+    @Column(length = 300)
+    private String observacion;
+
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -39,10 +42,15 @@ public final class AlumnoEntity {
     }
 
     public AlumnoEntity(Long alumnoId, String codigo, String nombre, String curso) {
+        this(alumnoId, codigo, nombre, curso, null);
+    }
+
+    public AlumnoEntity(Long alumnoId, String codigo, String nombre, String curso, String observacion) {
         this.alumnoId = alumnoId;
         this.codigo = codigo;
         this.nombre = nombre;
         this.curso = curso;
+        this.observacion = observacion;
     }
 
     @PrePersist
@@ -89,6 +97,14 @@ public final class AlumnoEntity {
 
     public void setCurso(String curso) {
         this.curso = curso;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public void setObservacion(String observacion) {
+        this.observacion = observacion;
     }
 
     public LocalDateTime getCreatedAt() {

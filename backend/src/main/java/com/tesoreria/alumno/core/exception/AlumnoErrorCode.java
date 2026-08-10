@@ -6,6 +6,7 @@ public enum AlumnoErrorCode {
 
     NOMBRE_INVALIDO("nombre", HttpStatus.BAD_REQUEST),
     CURSO_INVALIDO("curso", HttpStatus.BAD_REQUEST),
+    OBSERVACION_INVALIDA("observacion", HttpStatus.BAD_REQUEST),
     NOT_FOUND("codigo", HttpStatus.NOT_FOUND),
     FAMILIA_ASIGNADA("familia", HttpStatus.CONFLICT),
     BAD_REQUEST("codigo", HttpStatus.BAD_REQUEST),
