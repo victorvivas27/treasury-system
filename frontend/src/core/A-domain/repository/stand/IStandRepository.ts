@@ -12,6 +12,7 @@ export interface IStandRepository {
   addProduct(standId: number, payload: StandProductPayload): Promise<StandProduct>;
   updateProduct(standId: number, productId: number,
     payload: StandProductPayload): Promise<StandProduct>;
+  deleteProduct(standId: number, productId: number): Promise<void>;
   open(standId: number): Promise<Stand>;
   close(standId: number): Promise<Stand>;
   reopen(standId: number): Promise<Stand>;

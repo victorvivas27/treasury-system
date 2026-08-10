@@ -68,6 +68,12 @@ public class StandController {
     return productResponse(service.updateProduct(id, productId, productInput(request)));
   }
 
+  @DeleteMapping("/{id}/productos/{productId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteProduct(@PathVariable Long id, @PathVariable Long productId) {
+    service.deleteProduct(id, productId);
+  }
+
   @PostMapping("/{id}/abrir")
   public StandResponse open(@PathVariable Long id) {
     return standResponse(service.open(id));
@@ -132,7 +138,8 @@ public class StandController {
 
   private StandService.ProductInput productInput(ProductRequest request) {
     return new StandService.ProductInput(request.name(), request.category(), request.variant(),
-        request.price(), request.stock(), request.available());
+        request.presentation(), request.unitEquivalence(), request.price(), request.unitCost(),
+        request.stock(), request.available());
   }
 
   private StandResponse standResponse(StandEntity value) {
@@ -145,7 +152,8 @@ public class StandController {
 
   private ProductResponse productResponse(StandProductEntity value) {
     return new ProductResponse(value.getId(), value.getStand().getId(), value.getName(),
-        value.getCategory(), value.getVariant(), value.getPrice(), value.getInitialStock(),
+        value.getCategory(), value.getVariant(), value.getPresentation(),
+        value.getUnitEquivalence(), value.getPrice(), value.getInitialStock(), value.getUnitCost(),
         value.getCurrentStock(), value.isAvailable());
   }
 
@@ -153,7 +161,8 @@ public class StandController {
     return new SaleResponse(value.getId(), value.getStand().getId(),
         value.getItems().stream().map(item -> new SaleItemResponse(item.getProductId(),
             item.getProductName(), item.getCategory(), item.getVariant(), item.getQuantity(),
-            item.getUnitPrice(), item.getSubtotal())).toList(),
+            item.getPresentation(), item.getUnitEquivalence(), item.getUnitPrice(),
+            item.getUnitCost(), item.getSubtotal(), item.getCostSubtotal())).toList(),
         value.getPaymentMethod(), value.getTotal(), value.getAmountReceived(),
         value.getChangeAmount(), value.getObservation(), value.getRegisteredBy(),
         value.getSoldAt(), value.getStatus() == null ? StandSaleStatus.ACTIVE : value.getStatus(),
@@ -172,7 +181,9 @@ public class StandController {
       @NotNull @PositiveOrZero BigDecimal transferCommission) { }
   public record ProductRequest(@NotBlank @Size(max = 120) String name,
       @Size(max = 80) String category, @Size(max = 100) String variant,
-      @NotNull @Positive BigDecimal price, @PositiveOrZero Integer stock,
+      @Size(max = 80) String presentation, @Positive BigDecimal unitEquivalence,
+      @NotNull @Positive BigDecimal price, @NotNull @PositiveOrZero BigDecimal unitCost,
+      @PositiveOrZero Integer stock,
       boolean available) { }
   public record SaleItemRequest(@NotNull Long productId, @Positive int quantity) { }
   public record SaleRequest(@NotEmpty List<@Valid SaleItemRequest> items,
@@ -189,10 +200,13 @@ public class StandController {
       BigDecimal creditCommission, BigDecimal transferCommission, LocalDateTime createdAt,
       LocalDateTime updatedAt) { }
   public record ProductResponse(Long id, Long standId, String name, String category,
-      String variant, BigDecimal price, Integer initialStock, Integer currentStock,
+      String variant, String presentation, BigDecimal unitEquivalence, BigDecimal price,
+      Integer initialStock, BigDecimal unitCost, Integer currentStock,
       boolean available) { }
   public record SaleItemResponse(Long productId, String productName, String category,
-      String variant, int quantity, BigDecimal unitPrice, BigDecimal subtotal) { }
+      String variant, int quantity, String presentation, BigDecimal unitEquivalence,
+      BigDecimal unitPrice, BigDecimal unitCost,
+      BigDecimal subtotal, BigDecimal costSubtotal) { }
   public record SaleResponse(Long id, Long standId, List<SaleItemResponse> items,
       StandPaymentMethod paymentMethod, BigDecimal total, BigDecimal amountReceived,
       BigDecimal changeAmount, String observation, String registeredBy,

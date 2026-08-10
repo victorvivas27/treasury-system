@@ -20,6 +20,9 @@ export class StandUseCases {
   updateProduct(standId: number, productId: number, payload: StandProductPayload) {
     return this.repository.updateProduct(standId, productId, payload);
   }
+  deleteProduct(standId: number, productId: number) {
+    return this.repository.deleteProduct(standId, productId);
+  }
   open(standId: number) { return this.repository.open(standId); }
   close(standId: number) { return this.repository.close(standId); }
   reopen(standId: number) { return this.repository.reopen(standId); }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "event_stand_products", uniqueConstraints = @UniqueConstraint(
@@ -16,7 +17,13 @@ public class StandProductEntity {
   @Column(nullable = false, length = 120) private String name;
   @Column(length = 80) private String category;
   @Column(length = 100) private String variant;
+  @Column(length = 80) private String presentation;
+  @Column(name = "unit_equivalence", precision = 10, scale = 4)
+  private BigDecimal unitEquivalence;
   @Column(nullable = false, precision = 14, scale = 2) private BigDecimal price;
+  @ColumnDefault("0")
+  @Column(name = "unit_cost", nullable = false, precision = 14, scale = 2)
+  private BigDecimal unitCost = BigDecimal.ZERO;
   @Column(name = "initial_stock") private Integer initialStock;
   @Column(name = "current_stock") private Integer currentStock;
   @Column(nullable = false) private boolean available = true;

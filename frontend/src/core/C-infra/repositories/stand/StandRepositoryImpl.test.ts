@@ -65,4 +65,9 @@ describe("StandRepositoryImpl", () => {
     await repository.delete(3);
     expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/stands/3");
   });
+  it("[Stand repository #07] elimina un producto por su identificador", async () => {
+    vi.mocked(apiClient.delete).mockResolvedValue({ data: undefined });
+    await repository.deleteProduct(3, 8);
+    expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/stands/3/productos/8");
+  });
 });

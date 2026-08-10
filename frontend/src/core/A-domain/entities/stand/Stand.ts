@@ -26,7 +26,10 @@ export interface StandProduct {
   name: string;
   category?: string;
   variant?: string;
+  presentation?: string;
+  unitEquivalence?: number;
   price: number;
+  unitCost: number;
   initialStock?: number;
   currentStock?: number;
   available: boolean;
@@ -36,7 +39,10 @@ export interface StandProductPayload {
   name: string;
   category?: string;
   variant?: string;
+  presentation?: string;
+  unitEquivalence?: number;
   price: number;
+  unitCost: number;
   stock?: number;
   available: boolean;
 }
@@ -46,9 +52,13 @@ export interface StandSaleItem {
   productName: string;
   category?: string;
   variant?: string;
+  presentation?: string;
+  unitEquivalence?: number;
   quantity: number;
   unitPrice: number;
+  unitCost: number;
   subtotal: number;
+  costSubtotal: number;
 }
 
 export interface StandSale {
@@ -87,16 +97,23 @@ export interface StandSummary {
   salesByPaymentMethod: Record<StandPaymentMethod, number>;
   expectedCash: number;
   initialFund: number;
+  totalCost: number;
   commissions: number;
+  debitCommission: number;
+  creditCommission: number;
+  transferCommission: number;
   netProfit: number;
   saleCount: number;
   unitsSold: number;
   salesByProduct: Array<{
     product: string; category?: string; variant?: string; units: number; total: number;
+    cost: number; profit: number;
   }>;
   salesByCategory: Record<string, number>;
   salesByVariant: Record<string, number>;
   stockAlerts: Array<{
     productId: number; product: string; variant?: string; stock: number; soldOut: boolean;
   }>;
+  unitsByPresentation: Record<string, number>;
+  equivalentUnits: number;
 }
