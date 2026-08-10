@@ -67,8 +67,10 @@ public class FamiliaController {
     @GetMapping
     public ResponseEntity<PageResponse<FamiliaDetalleResponse>> listarFamilias(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
-        PageResponse<Familia> result = getUseCase.listarFamilia(new PageRequest(page, size, null, null));
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "") String search) {
+        PageResponse<Familia> result = getUseCase.listarFamilia(
+                new PageRequest(page, size, null, null, search));
 
         PageResponse<FamiliaDetalleResponse> response = new PageResponse<>(
                 result.content().stream()

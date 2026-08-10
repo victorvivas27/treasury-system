@@ -21,6 +21,8 @@ export const AlumnoPage: FC = () => {
     hasPrevPage,
     pageSize,
     isLastPage,
+    search,
+    setSearch,
   } = useAlumnos();
 
   const navigate = useNavigate();
@@ -98,6 +100,8 @@ export const AlumnoPage: FC = () => {
           hasPrevPage={hasPrevPage}
           pageSize={pageSize}
           isLastPage={isLastPage}
+          search={search}
+          onSearchChange={setSearch}
         />
       </section>
 

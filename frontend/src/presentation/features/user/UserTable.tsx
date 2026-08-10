@@ -6,7 +6,6 @@ import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./UserTable.css";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
-import { useMemo, useState } from "react";
 
 interface UserTableProps {
   users: User[];
@@ -19,24 +18,20 @@ interface UserTableProps {
   pageSize: number;
   onPrevious: () => void;
   onNext: () => void;
+  search?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
-  currentPage, totalPages, pageSize, onPrevious, onNext }: UserTableProps) => {
-  const [search, setSearch] = useState("");
-  const filteredUsers = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("es");
-    return term
-      ? users.filter((user) => user.nombre.toLocaleLowerCase("es").includes(term))
-      : users;
-  }, [search, users]);
+  currentPage, totalPages, pageSize, onPrevious, onNext,
+  search = "", onSearchChange }: UserTableProps) => {
 
   return <article className="usuarios-container responsive-data-list">
     <header className="usuarios-header">
       <h2 className="usuarios-header__title">Lista de Usuarios</h2>
-      <ExpandableSearch value={search} onChange={setSearch} />
+      <ExpandableSearch value={search} onChange={(value) => onSearchChange?.(value)} />
     </header>
-    {search.trim() && filteredUsers.length === 0 && (
+    {search.trim() && users.length === 0 && (
       <p className="list-search-empty">No se encontraron usuarios con ese nombre.</p>
     )}
 
@@ -74,7 +69,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
               </td>}
             </tr>
           )) : <>
-          {filteredUsers.map((user) => {
+          {users.map((user) => {
             const isActive = user.enabled && user.accountNonLocked;
             return (
               <tr key={user.id} className="usuarios-table__row--data">
@@ -122,7 +117,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
               </tr>
             );
           })}
-          {Array.from({ length: Math.max(pageSize - filteredUsers.length, 0) }, (_, row) =>
+          {Array.from({ length: Math.max(pageSize - users.length, 0) }, (_, row) =>
             <tr className="usuarios-table__row--data empty-row" aria-hidden="true"
               key={`empty-${row}`}>
               <td colSpan={isAdmin ? 5 : 4}>&nbsp;</td>

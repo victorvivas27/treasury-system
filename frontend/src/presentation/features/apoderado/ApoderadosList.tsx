@@ -6,7 +6,7 @@ import { FcHighPriority } from "react-icons/fc";
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
-import { useMemo, useState, type FC } from "react";
+import type { FC } from "react";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 
@@ -25,6 +25,8 @@ interface ApoderadosListProps {
   hasPrevPage?: boolean;
   pageSize: number;
   isLastPage: boolean;
+  search?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 type EmptyRow = {
@@ -53,20 +55,15 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   hasPrevPage,
   isLastPage,
   pageSize,
+  search = "",
+  onSearchChange,
 }) => {
-  const [search, setSearch] = useState("");
-  const filteredApoderados = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("es");
-    return term
-      ? apoderados.filter((item) => item.nombre.toLocaleLowerCase("es").includes(term))
-      : apoderados;
-  }, [apoderados, search]);
 
   /**
    * Cálculo de filas vacías para mantener la altura de la tabla
    * consistente durante la carga y cuando hay pocos datos
    */
-  const emptyRows = Math.max(pageSize - filteredApoderados.length, 0);
+  const emptyRows = Math.max(pageSize - apoderados.length, 0);
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
@@ -74,7 +71,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       empty: true,
     }))
     : [
-      ...filteredApoderados,
+      ...apoderados,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
         apoderadoId: `empty-${index}`,
         empty: true as const,
@@ -103,7 +100,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   /**
    * Manejo de estados de vacío
    */
-  if (!loading && apoderados.length === 0) {
+  if (!loading && apoderados.length === 0 && !search.trim()) {
     return (
       <EmptyState
         title="No hay apoderados"
@@ -118,9 +115,9 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
     <article className="apoderados-container responsive-data-list">
       <header className="apoderados-header">
         <h2 className="apoderados-header__title">Lista de Apoderados</h2>
-        <ExpandableSearch value={search} onChange={setSearch} />
+        <ExpandableSearch value={search} onChange={(value) => onSearchChange?.(value)} />
       </header>
-      {search.trim() && filteredApoderados.length === 0 && (
+      {search.trim() && apoderados.length === 0 && (
         <p className="list-search-empty">No se encontraron apoderados con ese nombre.</p>
       )}
 

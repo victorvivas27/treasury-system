@@ -16,6 +16,7 @@ export const useUsers = () => {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(0);
+  const [search, setSearch] = useState("");
 
   const useCases = useMemo(() => {
     const repository = new UserRepositoryImpl();
@@ -32,7 +33,7 @@ export const useUsers = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await useCases.list.execute(page, pageSize);
+      const response = await useCases.list.execute(page, pageSize, search);
       setUsers(response.content);
       setTotalPages(response.totalPages);
     } catch {
@@ -41,7 +42,7 @@ export const useUsers = () => {
       setHasLoaded(true);
       setLoading(false);
     }
-  }, [useCases]);
+  }, [useCases, search]);
 
   const create = async (payload: UserPayload, page = 0) => {
     setLoading(true);
@@ -75,5 +76,5 @@ export const useUsers = () => {
 
   return { users, loading: loading && !hasLoaded, refreshing: loading && hasLoaded,
     error, totalPages, pageSize, load, create, update,
-    changeRole, remove };
+    changeRole, remove, search, setSearch };
 };

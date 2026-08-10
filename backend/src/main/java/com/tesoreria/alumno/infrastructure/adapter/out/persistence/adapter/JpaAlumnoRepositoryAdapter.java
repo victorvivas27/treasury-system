@@ -49,7 +49,10 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
                 pageRequest.page(),
                 pageRequest.size());
 
-        Page<AlumnoEntity> pageEntity = jpaRepository.findAll(pageable);
+        String search = pageRequest.search() == null ? "" : pageRequest.search().trim();
+        Page<AlumnoEntity> pageEntity = search.isEmpty()
+                ? jpaRepository.findAll(pageable)
+                : jpaRepository.findByNombreContainingIgnoreCase(search, pageable);
 
         return new PageResponse<>(
                 pageEntity.getContent().stream().map(persistenceMapper::toDomain).toList(),

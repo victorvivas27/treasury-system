@@ -8,7 +8,7 @@ export class ListAlumnoApoderadoUseCase {
     this.familiaRepository = familiaRepository;
   }
 
-  async execute(page: number, size: number): Promise<PageResponse<FamiliaDetalle>> {
-    return await this.familiaRepository.getAll(page, size);
+  async execute(page: number, size: number, search = ""): Promise<PageResponse<FamiliaDetalle>> {
+    return await this.familiaRepository.getAll(page, size, search);
   }
 }

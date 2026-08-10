@@ -54,7 +54,7 @@ describe("Alumno use cases", () => {
 
     const result = await new GetAlumnosUseCase(repository).execute(0, 5);
 
-    expect(repository.getAll).toHaveBeenCalledWith(0, 5);
+    expect(repository.getAll).toHaveBeenCalledWith(0, 5, "");
     expect(result).toEqual(pageResponse);
   });
 

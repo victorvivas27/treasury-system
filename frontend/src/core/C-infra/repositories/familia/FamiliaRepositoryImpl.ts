@@ -11,9 +11,9 @@ import type { IFamiliaRepository } from "@/core/A-domain/repository/familia/IFam
 export class FamiliaRepositoryImpl implements IFamiliaRepository {
   private readonly familiasBaseUrl = "/familias";
 
-  async getAll(page: number, size: number): Promise<PageResponse<FamiliaDetalle>> {
+  async getAll(page: number, size: number, search = ""): Promise<PageResponse<FamiliaDetalle>> {
     const response = await apiClient.get<PageResponse<FamiliaDetalle>>(this.familiasBaseUrl, {
-      params: { page, size },
+      params: { page, size, ...(search.trim() && { search: search.trim() }) },
     });
     return response.data;
   }

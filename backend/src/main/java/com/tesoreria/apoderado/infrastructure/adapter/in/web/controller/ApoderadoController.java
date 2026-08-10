@@ -46,9 +46,10 @@ public class ApoderadoController {
     @GetMapping
     public ResponseEntity<PageResponse<ApoderadoResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "") String search) {
 
-        PageRequest pageRequest = new PageRequest(page, size, null, null);
+        PageRequest pageRequest = new PageRequest(page, size, null, null, search);
 
         PageResponse<Apoderado> result = apoderadoService.findAll(pageRequest);
 

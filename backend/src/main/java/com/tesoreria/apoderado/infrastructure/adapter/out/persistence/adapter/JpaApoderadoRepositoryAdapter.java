@@ -61,7 +61,10 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
                 pageRequest.page(),
                 pageRequest.size());
 
-        Page<ApoderadoEntity> pageEntity = jpaRepository.findAll(pageable);
+        String search = pageRequest.search() == null ? "" : pageRequest.search().trim();
+        Page<ApoderadoEntity> pageEntity = search.isEmpty()
+                ? jpaRepository.findAll(pageable)
+                : jpaRepository.findByNombreContainingIgnoreCase(search, pageable);
 
         return new PageResponse<>(
                 pageEntity.getContent()

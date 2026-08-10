@@ -2,6 +2,8 @@ package com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository;
 
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity.AlumnoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
@@ -12,4 +14,6 @@ public interface AlumnoJpaRepository extends JpaRepository<AlumnoEntity, Long> {
     void deleteByCodigo(String codigo);
 
     boolean existsByCodigo(String codigo);
+
+    Page<AlumnoEntity> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
 }

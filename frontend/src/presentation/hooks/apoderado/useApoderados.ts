@@ -20,13 +20,14 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [search, setSearch] = useState("");
 
   const fetchApoderados = useCallback(async (page: number) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getApoderadosUseCase.execute(page, pageSize);
+      const data = await getApoderadosUseCase.execute(page, pageSize, search);
 
       setApoderados(data.content);
       setTotalPages(data.totalPages);
@@ -40,7 +41,7 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
       setHasLoaded(true);
       setLoading(false);
     }
-  }, [pageSize]);
+  }, [pageSize, search]);
 
   const nextPage = useCallback(async () => {
     if (currentPage + 1 < totalPages) {
@@ -81,5 +82,7 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
     pageSize,
     totalPages,
     totalElements,
+    search,
+    setSearch,
   };
 };

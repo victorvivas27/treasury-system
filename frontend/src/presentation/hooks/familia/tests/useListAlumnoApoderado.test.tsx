@@ -54,7 +54,7 @@ describe("useListAlumnoApoderado", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.vinculos).toEqual([vinculo]);
-    expect(mockListUseCase.execute).toHaveBeenCalledWith(0, 5);
+    expect(mockListUseCase.execute).toHaveBeenCalledWith(0, 5, "");
   });
 
   it("[useListAlumnoApoderado #02] Debe manejar error al listar vínculos", async () => {
@@ -82,6 +82,6 @@ describe("useListAlumnoApoderado", () => {
       await result.current.nextPage();
     });
 
-    expect(mockListUseCase.execute).toHaveBeenLastCalledWith(1, 5);
+    expect(mockListUseCase.execute).toHaveBeenLastCalledWith(1, 5, "");
   });
 });

@@ -2,6 +2,8 @@ package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repositor
 
 import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.ApoderadoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
@@ -16,5 +18,7 @@ public interface ApoderadoJpaRepository extends JpaRepository<ApoderadoEntity, L
     boolean existsByCodigo(String codigo);
 
     void deleteByCodigo(String codigo);
+
+    Page<ApoderadoEntity> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
 
 }
