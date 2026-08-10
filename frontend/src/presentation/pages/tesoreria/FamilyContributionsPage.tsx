@@ -10,6 +10,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
+import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./FamilyContributionsPage.css";
 
@@ -43,6 +44,7 @@ export const FamilyContributionsPage = () => {
   const [solidarityStatus, setSolidarityStatus] = useState("");
   const [selected, setSelected] = useState<FamilyContribution | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -53,6 +55,7 @@ export const FamilyContributionsPage = () => {
   const [page, setPage] = useState(1);
   const activeFilters = [search.trim(), course, cepaStatus, solidarityStatus]
     .filter(Boolean).length;
+  const initialLoading = loading && !hasLoaded;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,6 +78,7 @@ export const FamilyContributionsPage = () => {
     } catch {
       setError("No fue posible cargar los aportes. Intenta nuevamente.");
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [year, search, course, cepaStatus, solidarityStatus]);
@@ -153,9 +157,10 @@ export const FamilyContributionsPage = () => {
       </header>
 
       <section className="contributions-summary" aria-label="Resumen de aportes">
-        {loading ? Array.from({ length: 6 }, (_, index) =>
-          <article className="contribution-summary-skeleton" key={index} aria-hidden="true">
-            <div className="skeleton-block" /><div className="skeleton-block" />
+        {initialLoading ? ["Total familias", "CEPA pagada", "CEPA pendiente",
+          "Solidaria pagada", "Solidaria pendiente", "Completamente al día"].map(label =>
+          <article className="contribution-summary-skeleton" key={label}>
+            <div><span>{label}</span></div><CardValueSkeleton />
           </article>) : <>
           <SummaryCard label="Total familias" value={summary.totalFamilies} tone="families"
             icon={<FiUsers />} />
@@ -214,7 +219,7 @@ export const FamilyContributionsPage = () => {
         </footer>
       </aside></div>}
 
-      {loading ? (
+      {initialLoading ? (
         <ContributionsSkeleton />
       ) : items.length === 0 ? (
         <p className="contributions-page__empty">No hay familias para los filtros seleccionados.</p>
@@ -367,7 +372,9 @@ const ContributionsSkeleton = () => (
         </div>
         <div className="skeleton-block contribution-badge-skeleton" />
         <div className="skeleton-block contribution-badge-skeleton" />
-        <div className="skeleton-block contribution-button-skeleton" />
+        <button type="button" className="loading-action-placeholder" disabled>
+          Gestionar aportes
+        </button>
       </article>
     ))}
   </section>

@@ -15,15 +15,13 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
   const { initialPage = 0, pageSize = 3 } = options;
   const [apoderados, setApoderados] = useState<Apoderado[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
   const fetchApoderados = useCallback(async (page: number) => {
-    const MIN_LOADING_TIME = 300;
-    const startTime = Date.now();
-
     try {
       setLoading(true);
       setError(null);
@@ -39,13 +37,7 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
         err instanceof Error ? err.message : "Error al cargar apoderados",
       );
     } finally {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = MIN_LOADING_TIME - elapsedTime;
-
-      if (remainingTime > 0) {
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
-      }
-
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [pageSize]);
@@ -76,7 +68,8 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
 
   return {
     apoderados,
-    loading,
+    loading: loading && !hasLoaded,
+    refreshing: loading && hasLoaded,
     error,
     refetch,
     currentPage,

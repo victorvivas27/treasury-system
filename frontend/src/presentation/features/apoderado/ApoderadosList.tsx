@@ -198,7 +198,22 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
 
                 <td className="apoderados-table__td" data-label="Acciones">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="apoderados-table__td--actions loading-action-placeholder">
+                      <span className="apoderados-table__access-slot">
+                        <Button variant="primary" size="small"
+                          className="apoderados-table__action-button apoderados-table__access-button"
+                          disabled onClick={() => undefined}
+                          icon={<APODERADOS_ICONS.add />} label="Acceso" />
+                      </span>
+                      <Button variant="secondary" size="small"
+                        className="apoderados-table__action-button apoderados-table__icon-button"
+                        disabled onClick={() => undefined}
+                        icon={<APODERADOS_ICONS.edit />} label="Editar" />
+                      <Button variant="danger" size="small"
+                        className="apoderados-table__action-button apoderados-table__icon-button"
+                        disabled onClick={() => undefined}
+                        icon={<APODERADOS_ICONS.delete />} label="Eliminar" />
+                    </div>
                   ) : !isEmptyRow && apoderado ? (
                     <div className="apoderados-table__td--actions">
                       <span className="apoderados-table__access-slot">

@@ -3,8 +3,9 @@ import { FiAlertTriangle, FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDo
   FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUsers,
   FiXCircle }
   from "react-icons/fi";
-import type { AllowedPaymentMode, PaymentMode, TreasuryFilters }
+import type { AllowedPaymentMode, FamilyPlan, FeeObligation, PaymentMode, TreasuryFilters }
   from "@/core/A-domain/entities/treasury/Treasury";
+import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { useAnnualFees } from "@/presentation/hooks/treasury/useAnnualFees";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -23,6 +24,14 @@ const today = (() => {
 const isOverdue = (status: string, dueDate: string) => status === "PENDIENTE" && dueDate < today;
 const PLAN_PAGE_SIZE = 2;
 const OBLIGATION_FAMILY_PAGE_SIZE = 5;
+
+export const findUnconfiguredFamilies = (families: FamiliaDetalle[], plans: FamilyPlan[],
+  obligations: FeeObligation[]) => {
+  const configuredIds = new Set([...plans.map(plan => plan.familyId),
+    ...obligations.map(obligation => obligation.familyId)]
+    .map(id => Number(id)).filter(id => Number.isFinite(id) && id > 0));
+  return families.filter(family => !configuredIds.has(Number(family.familiaId)));
+};
 
 export const AnnualFeesPage = () => {
   const fees = useAnnualFees();
@@ -67,10 +76,9 @@ export const AnnualFeesPage = () => {
     obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
   const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
     [visibleObligationGroups]);
-  const unconfiguredFamilies = useMemo(() => {
-    const configuredIds = new Set(fees.plans.map(plan => plan.familyId));
-    return fees.families.filter(family => !configuredIds.has(family.familiaId));
-  }, [fees.families, fees.plans]);
+  const unconfiguredFamilies = useMemo(() => findUnconfiguredFamilies(
+    fees.families, fees.plans, fees.obligations),
+    [fees.families, fees.plans, fees.obligations]);
 
   useEffect(() => {
     setPlanPage(current => Math.min(current, planPages));
@@ -125,9 +133,10 @@ export const AnnualFeesPage = () => {
     </header>
 
     <section className="treasury-dashboard" aria-label="Resumen de cuotas">
-      {fees.dataLoading ? Array.from({ length: 6 }, (_, index) =>
-        <article className="treasury-dashboard-skeleton" key={index} aria-hidden="true">
-          <div className="skeleton-block" /><div className="skeleton-block" />
+      {fees.dataLoading ? ["Familias", "Cuota única", "Dos cuotas", "Pendientes",
+        "Recaudado", "Por recaudar"].map(label =>
+        <article className="treasury-summary-card" key={label}>
+          <div><span>{label}</span></div><div className="skeleton-block" />
         </article>) : <>
         <article className="treasury-summary-card treasury-summary-card--families">
           <div><span>Familias</span><i><FiUsers aria-hidden="true" /></i></div>
@@ -159,7 +168,7 @@ export const AnnualFeesPage = () => {
     <div className="annual-fees-grid">
       <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
-        {!fees.familiesLoading && !fees.dataLoading && currentConfig
+        {!fees.familiesLoading && !fees.dataLoading && !fees.error && currentConfig
           && unconfiguredFamilies.length > 0 &&
           <div className="treasury-family-warning" role="alert">
             <FiAlertTriangle aria-hidden="true" />
@@ -207,7 +216,10 @@ export const AnnualFeesPage = () => {
             ? Array.from({ length: 2 }, (_, index) =>
               <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
                 <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
-                <div className="skeleton-block" />
+                <div className="treasury-plan-actions loading-action-placeholder">
+                  <button type="button" disabled>Cambiar modalidad</button>
+                  <button type="button" disabled>Quitar familia</button>
+                </div>
               </article>)
             : fees.plans.length === 0
             ? <p>Aún no hay familias con modalidad configurada.</p>
@@ -289,9 +301,10 @@ export const AnnualFeesPage = () => {
         <th>Acción</th></tr></thead>
         <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
-            {Array.from({ length: 8 }, (_, column) => <td key={column}>
+            {Array.from({ length: 7 }, (_, column) => <td key={column}>
               <div className="skeleton-block treasury-cell-skeleton" />
-            </td>)}
+            </td>)}<td><Button label="Registrar pago" size="small" disabled
+              onClick={() => undefined} className="loading-action-placeholder" /></td>
           </tr>) : visibleObligations.map(item => <tr key={item.id}>
           <td className="obligation-card__responsible" data-label="Responsable">
             <strong>{item.primaryGuardian || "Sin apoderado principal"}</strong>

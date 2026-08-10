@@ -13,6 +13,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
+import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   INCOME_CATEGORIES, INCOME_PAYMENT_METHODS, incomeCategoryLabel, incomePaymentLabel,
@@ -55,6 +56,7 @@ export const IncomesPage = () => {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -62,6 +64,7 @@ export const IncomesPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = Object.entries(filters).filter(([key, value]) =>
     !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
+  const initialLoading = loading && !hasLoaded;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,6 +78,7 @@ export const IncomesPage = () => {
     } catch {
       setError("No fue posible cargar los ingresos. Intenta nuevamente.");
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [year, filters]);
@@ -163,10 +167,11 @@ export const IncomesPage = () => {
         <FiPlus /> Registrar ingreso</button>}</header>
 
     <section className="income-summary" aria-label="Resumen financiero">
-      {loading ? Array.from({ length: 5 }, (_, index) =>
-        <article className="income-summary-skeleton" key={index} aria-hidden="true">
-          <div className="skeleton-block" /><div className="skeleton-block" />
-          <div className="skeleton-block" />
+      {initialLoading ? ["Saldo disponible", "Ingresos por cuotas", "Otros ingresos",
+        "Ingresos totales", "Total de egresos"].map(label =>
+        <article className="income-summary-card" key={label}>
+          <div><span>{label}</span><i><FiDollarSign aria-hidden="true" /></i></div>
+          <CardValueSkeleton /><small>Actualizando información</small>
         </article>) : <>
       <article className={`income-summary-card income-summary-card--balance ${
         summary.availableBalance < 0 ? "is-negative" : ""}`}>
@@ -256,7 +261,7 @@ export const IncomesPage = () => {
       </footer>
     </aside></div>}
 
-    {view === "FEES" && (loading
+    {view === "FEES" && (initialLoading
       ? <section className="fee-payment-grid" aria-label="Cargando pagos">
           {Array.from({ length: 4 }, (_, index) => <article key={index} aria-hidden="true">
             <div className="skeleton-block" /><div className="skeleton-block" />
@@ -272,7 +277,7 @@ export const IncomesPage = () => {
             </article>)}
           </section>)}
 
-    {view !== "FEES" && (loading ? <IncomeCardsSkeleton />
+    {view !== "FEES" && (initialLoading ? <IncomeCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay ingresos extraordinarios para los filtros seleccionados.</p>
       : <section className="expenses-grid">{items.map((item) =>
         <article className={`expense-card income-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
@@ -379,12 +384,15 @@ const IncomeCardsSkeleton = () => (
     {Array.from({ length: 6 }, (_, index) => (
       <article className="expense-card income-card income-card--skeleton" key={index}
         aria-hidden="true">
-        <header><div className="skeleton-block" /><div className="skeleton-block" /></header>
+        <header><span><FiArrowDownCircle /> Ingreso extraordinario</span>
+          <div className="skeleton-block" /></header>
         <div className="skeleton-block" /><div className="skeleton-block" />
         <div className="income-details-skeleton">
           {Array.from({ length: 4 }, (_, row) => <div className="skeleton-block" key={row} />)}
         </div>
-        <div className="skeleton-block income-action-skeleton" />
+        <footer className="income-card__footer"><div className="skeleton-block" />
+          <button type="button" className="loading-action-placeholder" disabled
+            aria-label="Ver detalle"><FiEye /></button></footer>
       </article>
     ))}
   </section>

@@ -13,6 +13,7 @@ import { StandRepositoryImpl } from "@/core/C-infra/repositories/stand/StandRepo
 import { StandUseCases } from "@/core/B-application/use-cases/stand/StandUseCases";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import "./StandManagementPage.css";
 
 const eventsRepository = new TreasuryRepositoryImpl();
@@ -41,6 +42,18 @@ const errorMessage = (error: unknown, fallback: string) => {
   return errors ? Object.values(errors).join(" ") : fallback;
 };
 
+const StandWorkspaceSkeleton = () => <section className="stand-workspace" role="status"
+  aria-label="Cargando eventos y stands">
+  <header className="stand-workspace__header"><div><span>Estado del stand</span>
+    <Skeleton width="11rem" height="1.4rem" /><Skeleton width="16rem" height=".8rem" />
+  </div><div className="stand-workspace__actions loading-action-placeholder">
+    <button type="button" disabled>Configurar</button><button type="button" disabled>Eliminar</button>
+  </div></header>
+  <div className="stand-page__selector">{Array.from({ length: 3 }, (_, index) =>
+    <Skeleton key={index} height="2.8rem" />)}</div>
+  <Skeleton height="14rem" />
+</section>;
+
 export const StandManagementPage = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [events, setEvents] = useState<SchoolEvent[]>([]);
@@ -58,6 +71,7 @@ export const StandManagementPage = () => {
   const [standToDelete, setStandToDelete] = useState<Stand>();
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [modalAnchor, setModalAnchor] = useState<{ top: number; left: number }>();
 
@@ -70,6 +84,7 @@ export const StandManagementPage = () => {
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible cargar los eventos."));
     } finally {
+      setHasLoadedEvents(true);
       setLoading(false);
     }
   }, [year]);
@@ -201,7 +216,7 @@ export const StandManagementPage = () => {
     </section>
 
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
-    {loading ? <p className="stand-page__empty">Cargando eventos…</p>
+    {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton />
       : events.length === 0 ? <section className="stand-page__empty">
         <FiAlertTriangle /><h2>Primero crea un evento</h2>
         <p>Todo stand debe estar asociado a un evento existente.</p>

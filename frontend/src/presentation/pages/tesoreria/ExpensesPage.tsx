@@ -13,6 +13,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
+import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   EXPENSE_CATEGORIES, EXPENSE_PAYMENT_METHODS,
@@ -54,12 +55,14 @@ export const ExpensesPage = () => {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = Object.entries(filters).filter(([key, value]) =>
     !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
+  const initialLoading = loading && !hasLoaded;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,6 +76,7 @@ export const ExpensesPage = () => {
     } catch {
       setError("No fue posible cargar los egresos. Intenta nuevamente.");
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [year, filters]);
@@ -180,10 +184,14 @@ export const ExpensesPage = () => {
     </header>
 
     <section className="expenses-summary" aria-label="Resumen financiero">
-      {loading ? Array.from({ length: 3 }, (_, index) =>
-        <article className="expense-summary-skeleton" key={index} aria-hidden="true">
-          <div className="skeleton-block" /><div className="skeleton-block" />
-          <div className="skeleton-block" />
+      {initialLoading ? [
+        ["Saldo disponible", <FiDollarSign key="balance" />],
+        ["Total recaudado", <FiLogIn key="income" />],
+        ["Total de egresos", <FiLogOut key="expense" />],
+      ].map(([label, icon]) =>
+        <article className="expense-summary-card" key={String(label)}>
+          <div><span>{label}</span><i>{icon}</i></div><CardValueSkeleton />
+          <small>Actualizando información</small>
         </article>) : <>
       <article className={`expense-summary-card expense-summary-card--balance ${
         summary.availableBalance < 0 ? "is-negative" : "is-balance"}`}>
@@ -250,7 +258,7 @@ export const ExpensesPage = () => {
           <FiCheck /> Ver resultados</button></footer>
     </aside></div>}
 
-    {loading ? <ExpenseCardsSkeleton />
+    {initialLoading ? <ExpenseCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
       : <section className="expenses-grid" aria-label="Listado de egresos">
         {items.map((item) => <article className={`expense-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
@@ -351,12 +359,14 @@ const ExpenseCardsSkeleton = () => (
   <section className="expenses-grid" aria-label="Cargando egresos" role="status">
     {Array.from({ length: 6 }, (_, index) => (
       <article className="expense-card expense-card--skeleton" key={index} aria-hidden="true">
-        <header><div className="skeleton-block" /><div className="skeleton-block" /></header>
+        <header><span><FiMinusCircle /> Egreso</span><div className="skeleton-block" /></header>
         <div className="skeleton-block" /><div className="skeleton-block" />
         <div className="expense-details-skeleton">
           {Array.from({ length: 3 }, (_, row) => <div className="skeleton-block" key={row} />)}
         </div>
-        <div className="skeleton-block expense-action-skeleton" />
+        <footer className="expense-card__footer"><div className="skeleton-block" />
+          <button type="button" className="loading-action-placeholder" disabled
+            aria-label="Ver detalle"><FiEye /></button></footer>
       </article>
     ))}
   </section>

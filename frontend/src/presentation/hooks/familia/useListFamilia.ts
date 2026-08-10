@@ -13,6 +13,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   const { initialPage = 0, pageSize = 5 } = options;
   const [familia, setFamilia] = useState<FamiliaDetalle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
@@ -23,9 +24,6 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   );
 
   const fetchFamilia = useCallback(async (page: number) => {
-    const MIN_LOADING_TIME = 300;
-    const startTime = Date.now();
-
     try {
       setLoading(true);
       setError(null);
@@ -41,13 +39,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
         err instanceof Error ? err.message : "Error al cargar familias",
       );
     } finally {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = MIN_LOADING_TIME - elapsedTime;
-
-      if (remainingTime > 0) {
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
-      }
-
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [getFamiliaByAlumnoUseCase, pageSize]);
@@ -79,7 +71,8 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   return {
     familia,
     vinculos: familia,
-    loading,
+    loading: loading && !hasLoaded,
+    refreshing: loading && hasLoaded,
     error,
     refetch,
     currentPage,

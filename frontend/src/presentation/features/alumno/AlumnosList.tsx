@@ -163,7 +163,16 @@ export const AlumnosList: FC<AlumnosListProps> = ({
 
                 <td className="alumnos-table__td" data-label="Acciones">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="alumnos-table__td--actions loading-action-placeholder">
+                      <Button variant="danger" size="small"
+                        className="alumnos-table__icon-button" disabled
+                        onClick={() => undefined}
+                        icon={<ALUMNOS_ICONS.delete />} label="Eliminar" />
+                      <Button variant="secondary" size="small"
+                        className="alumnos-table__icon-button" disabled
+                        onClick={() => undefined}
+                        icon={<ALUMNOS_ICONS.edit />} label="Editar" />
+                    </div>
                   ) : !empty && alumno ? (
                     <div className="alumnos-table__td--actions">
                       <Button
