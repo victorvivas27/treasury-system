@@ -13,6 +13,7 @@ export const useUsers = () => {
   const pageSize = 5;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -37,6 +38,7 @@ export const useUsers = () => {
     } catch {
       setError("No se pudieron cargar los usuarios");
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [useCases]);
@@ -71,6 +73,7 @@ export const useUsers = () => {
     await load(page);
   };
 
-  return { users, loading, error, totalPages, pageSize, load, create, update,
+  return { users, loading: loading && !hasLoaded, refreshing: loading && hasLoaded,
+    error, totalPages, pageSize, load, create, update,
     changeRole, remove };
 };

@@ -60,7 +60,18 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
                   <div className="skeleton-block usuarios-table__skeleton" />
                 </td>
               ))}
-              {isAdmin && <td className="usuarios-table__td">&nbsp;</td>}
+              {isAdmin && <td className="usuarios-table__td">
+                <div className="usuarios-table__td--actions loading-action-placeholder">
+                  <Button variant="danger" size="small"
+                    className="usuarios-table__icon-button" disabled
+                    onClick={() => undefined}
+                    icon={<ICONS.delete />} label="Eliminar" />
+                  <Button variant="secondary" size="small"
+                    className="usuarios-table__icon-button" disabled
+                    onClick={() => undefined}
+                    icon={<ICONS.edit />} label="Editar" />
+                </div>
+              </td>}
             </tr>
           )) : <>
           {filteredUsers.map((user) => {

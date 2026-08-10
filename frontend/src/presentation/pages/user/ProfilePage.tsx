@@ -3,6 +3,7 @@ import type { TreasuryProfile } from "@/core/A-domain/entities/treasury/Treasury
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { useAuth } from "@/presentation/context/AuthContext";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import "./ProfilePage.css";
 
 const money = new Intl.NumberFormat("es-CL", {
@@ -71,7 +72,15 @@ export const ProfilePage = () => {
         </strong>
       </section>
 
-      {familyLoading && <p className="profile-loading">Consultando vinculación familiar…</p>}
+      {familyLoading && <section className="profile-real-data profile-family-data"
+        aria-label="Cargando vinculación familiar" role="status">
+        <header><div><span>Vinculación familiar</span>
+          <Skeleton width="8rem" height="1.2rem" /></div></header>
+        <dl className="profile-data-grid">
+          {["Alumno", "Parentesco", "Teléfono"].map(label => <div key={label}>
+            <dt>{label}</dt><dd><Skeleton width="7rem" height=".8rem" /></dd></div>)}
+        </dl>
+      </section>}
 
       {!familyLoading && familyProfile && <section className="profile-real-data profile-family-data"
         aria-label="Vinculación familiar">

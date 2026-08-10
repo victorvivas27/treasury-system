@@ -47,6 +47,7 @@ export const EventsPage = () => {
   const [dialogAnchor, setDialogAnchor] = useState<{ top: number; left: number }>();
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [managedCourse, setManagedCourse] = useState("");
 
   const load = useCallback(async () => {
@@ -59,6 +60,7 @@ export const EventsPage = () => {
     } catch {
       setFeedback("No fue posible cargar los eventos.");
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
   }, [year]);
@@ -164,7 +166,7 @@ export const EventsPage = () => {
       </div>
       {feedback && <p className="events-feedback" role="status">{feedback}</p>}
 
-      {loading ? <EventsSkeleton /> : events.length === 0
+      {loading && !hasLoaded ? <EventsSkeleton /> : events.length === 0
         ? <section className="events-empty"><FiCalendar /><h2>No hay eventos en {year}</h2>
             <p>Crea la edición anual y configura sus cursos y stands.</p></section>
         : <div className="events-layout">

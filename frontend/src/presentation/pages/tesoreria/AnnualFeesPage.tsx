@@ -133,9 +133,10 @@ export const AnnualFeesPage = () => {
     </header>
 
     <section className="treasury-dashboard" aria-label="Resumen de cuotas">
-      {fees.dataLoading ? Array.from({ length: 6 }, (_, index) =>
-        <article className="treasury-dashboard-skeleton" key={index} aria-hidden="true">
-          <div className="skeleton-block" /><div className="skeleton-block" />
+      {fees.dataLoading ? ["Familias", "Cuota única", "Dos cuotas", "Pendientes",
+        "Recaudado", "Por recaudar"].map(label =>
+        <article className="treasury-summary-card" key={label}>
+          <div><span>{label}</span></div><div className="skeleton-block" />
         </article>) : <>
         <article className="treasury-summary-card treasury-summary-card--families">
           <div><span>Familias</span><i><FiUsers aria-hidden="true" /></i></div>
@@ -215,7 +216,10 @@ export const AnnualFeesPage = () => {
             ? Array.from({ length: 2 }, (_, index) =>
               <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
                 <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
-                <div className="skeleton-block" />
+                <div className="treasury-plan-actions loading-action-placeholder">
+                  <button type="button" disabled>Cambiar modalidad</button>
+                  <button type="button" disabled>Quitar familia</button>
+                </div>
               </article>)
             : fees.plans.length === 0
             ? <p>Aún no hay familias con modalidad configurada.</p>
@@ -297,9 +301,10 @@ export const AnnualFeesPage = () => {
         <th>Acción</th></tr></thead>
         <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
-            {Array.from({ length: 8 }, (_, column) => <td key={column}>
+            {Array.from({ length: 7 }, (_, column) => <td key={column}>
               <div className="skeleton-block treasury-cell-skeleton" />
-            </td>)}
+            </td>)}<td><Button label="Registrar pago" size="small" disabled
+              onClick={() => undefined} className="loading-action-placeholder" /></td>
           </tr>) : visibleObligations.map(item => <tr key={item.id}>
           <td className="obligation-card__responsible" data-label="Responsable">
             <strong>{item.primaryGuardian || "Sin apoderado principal"}</strong>

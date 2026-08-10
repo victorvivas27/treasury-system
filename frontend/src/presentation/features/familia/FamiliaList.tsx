@@ -188,7 +188,16 @@ export const FamiliaList: FC<FamiliaListProps> = ({
 
                 <td className="familia-table__td" data-label="Acciones">
                   {loading ? (
-                    <span>&nbsp;</span>
+                    <div className="familia-table__td--actions loading-action-placeholder">
+                      <Button variant="danger" size="small"
+                        className="familia-table__action-button" disabled
+                        onClick={() => undefined}
+                        icon={<FAMILIA_ICONS.delete />} label="Eliminar" />
+                      <Button variant="secondary" size="small"
+                        className="familia-table__action-button" disabled
+                        onClick={() => undefined}
+                        icon={<FAMILIA_ICONS.edit />} label="Editar" />
+                    </div>
                   ) : !isEmptyRow && familia ? (
                     <div className="familia-table__td--actions">
                       <Button

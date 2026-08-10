@@ -127,10 +127,6 @@ export const DashboardPage = () => {
     return next;
   });
 
-  if (error && !loading) {
-    return <FeedbackState message={error} onRefresh={() => void load()} />;
-  }
-
   return <main className="business-dashboard">
     <header className="business-dashboard__header">
       <div><h1>Dashboard</h1>
@@ -152,7 +148,8 @@ export const DashboardPage = () => {
       </div>
     </header>
 
-    {loading ? <DashboardSkeleton /> : data && <>
+    {error && !loading && <FeedbackState message={error} onRefresh={() => void load()} />}
+    {!error && (loading && !data ? <DashboardSkeleton isAdmin={isAdmin} /> : data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <Kpi label="Familias activas" value={String(data.quotas.totalFamilies)}
           icon="families" description={`Registradas para ${year}`} />
@@ -364,7 +361,7 @@ export const DashboardPage = () => {
             ariaLabel="Paginación de trazas de Tesorería" />}
         </div>}
       </section>}
-    </>}
+    </>)}
     {isAdmin && <ModalConfirm isOpen={cleanup !== null} title="Limpiar trazas"
       message={cleanup === "all"
         ? `Se eliminará definitivamente todo el historial de Tesorería de ${year}.`
@@ -430,16 +427,40 @@ const ContributionDonut = ({ title, paid, pending }: {
   </article>;
 };
 
-const DashboardSkeleton = () => <div className="dashboard-loading" role="status"
+const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
+<div className="dashboard-loading" role="status"
   aria-label="Cargando dashboard">
-  <section className="dashboard-kpis">{Array.from({ length: 6 }, (_, index) =>
-    <article key={index}><div className="skeleton-block" />
-      <div className="skeleton-block" /></article>)}</section>
-  <section className="dashboard-charts">{Array.from({ length: 3 }, (_, index) =>
-    <article className={`dashboard-panel ${index === 0 ? "dashboard-panel--wide" : ""}`}
-      key={index}><div className="skeleton-block dashboard-title-skeleton" />
-      <div className="skeleton-block dashboard-chart-skeleton" /></article>)}</section>
-  <article className="dashboard-panel"><div className="skeleton-block dashboard-title-skeleton" />
-    {Array.from({ length: 5 }, (_, index) =>
-      <div className="skeleton-block dashboard-row-skeleton" key={index} />)}</article>
+  <section className="dashboard-kpis">{[
+    "Familias activas", "Saldo disponible", "Ingresos totales", "Egresos activos",
+    "Cuotas pagadas", "Cuotas pendientes",
+  ].map(label => <article key={label}><span>{label}</span>
+    <div className="skeleton-block dashboard-value-skeleton" /></article>)}</section>
+  <section className="dashboard-charts">
+    {[
+      ["Flujo mensual", "Ingresos extraordinarios y egresos", true],
+      ["Cuota anual", "Cuotas pagadas y pendientes", false],
+      ["Distribución", "Egresos por categoría", false],
+      ["Aportes del curso", "Cuota CEPA y Cuota Solidaria", true],
+    ].map(([eyebrow, title, wide]) => <article
+      className={`dashboard-panel ${wide ? "dashboard-panel--wide" : ""}`} key={String(title)}>
+      <header><div><span>{eyebrow}</span><h2>{title}</h2></div></header>
+      <div className="skeleton-block dashboard-chart-skeleton" /></article>)}
+  </section>
+  <article className="dashboard-panel dashboard-activity">
+    <header><div><span>Últimos registros</span><h2>Actividad reciente</h2></div></header>
+    <div className="dashboard-table-wrap"><table><thead><tr><th>Tipo</th><th>Descripción</th>
+      <th>Fecha</th><th>Estado</th><th>Monto</th><th>Detalle</th></tr></thead>
+      <tbody>{Array.from({ length: 5 }, (_, row) => <tr key={row} aria-hidden="true">
+        {Array.from({ length: 5 }, (_, column) => <td key={column}>
+          <div className="skeleton-block dashboard-row-skeleton" /></td>)}
+        <td>&nbsp;</td></tr>)}</tbody></table></div>
+  </article>
+  {isAdmin && <article className="dashboard-panel dashboard-audit">
+    <header><div><span>Historial del sistema</span><h2>Trazas de Tesorería</h2></div></header>
+    <div className="dashboard-table-wrap"><table><thead><tr><th></th><th>Acción</th>
+      <th>Tipo</th><th>Detalle</th><th>Usuario</th><th>Fecha</th></tr></thead>
+      <tbody>{Array.from({ length: 5 }, (_, row) => <tr key={row} aria-hidden="true">
+        <td>&nbsp;</td>{Array.from({ length: 5 }, (_, column) => <td key={column}>
+          <div className="skeleton-block dashboard-row-skeleton" /></td>)}</tr>)}</tbody></table></div>
+  </article>}
 </div>;

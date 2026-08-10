@@ -4,6 +4,7 @@ import type { TreasuryReport, TreasuryReportType }
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { Button } from "@/shared/ui/button/Button";
+import { TableSkeleton } from "@/shared/ui/skeleton/Skeleton";
 import "./AnnualFeesPage.css";
 
 export const TreasuryReportsPage = () => {
@@ -61,9 +62,10 @@ export const TreasuryReportsPage = () => {
         {error && <p className="treasury-error">{error}</p>}
         {!loading && !error && reports.length === 0 &&
           <p className="treasury-report-empty">No se encontraron resultados para los filtros seleccionados.</p>}
-      {reports.length > 0 && <div className="treasury-table-wrap"><table className="treasury-reports-table"><thead><tr><th>Apoderado principal</th>
+      {(loading || reports.length > 0) && <div className="treasury-table-wrap"><table className="treasury-reports-table"><thead><tr><th>Apoderado principal</th>
         <th>Alumno</th><th>Curso</th><th>Modalidad</th><th>Cuotas</th></tr></thead>
-        <tbody>{reports.map(report => <tr key={report.familyId}>
+        {loading && reports.length === 0 ? <TableSkeleton rows={5} columns={5} />
+          : <tbody>{reports.map(report => <tr key={report.familyId}>
           <td data-label="Apoderado principal">{report.primaryGuardian || "Sin apoderado principal"}</td>
           <td data-label="Alumno">{report.studentName}</td>
           <td data-label="Curso">{report.course}</td>
@@ -76,7 +78,7 @@ export const TreasuryReportsPage = () => {
               </strong>
             </span>)}
           </div></td>
-        </tr>)}</tbody></table></div>}
+        </tr>)}</tbody>}</table></div>}
       </section>}
     </section>
   </main>;
