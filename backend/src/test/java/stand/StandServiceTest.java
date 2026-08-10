@@ -43,6 +43,7 @@ class StandServiceTest {
     stand.setInitialFund(new BigDecimal("20000"));
     stand.setDebitCommission(new BigDecimal("1.5"));
     stand.setCreditCommission(new BigDecimal("2.5"));
+    stand.setTransferCommission(new BigDecimal("1.0"));
     stand.setPaymentMethods(new LinkedHashSet<>(
         List.of(StandPaymentMethod.CASH, StandPaymentMethod.DEBIT)));
   }
@@ -54,7 +55,7 @@ class StandServiceTest {
     StandEntity result = service.create(new StandService.StandInput(
         7L, " Café ", LocalDate.now(), LocalTime.of(9, 0), LocalTime.of(18, 0),
         "Victor", BigDecimal.ZERO, Set.of(StandPaymentMethod.CASH),
-        BigDecimal.ZERO, BigDecimal.ZERO));
+        BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
     assertAll(() -> assertEquals(event, result.getEvent()),
         () -> assertEquals("Café", result.getName()),
         () -> assertEquals(StandStatus.PREPARATION, result.getStatus()));
@@ -217,16 +218,19 @@ class StandServiceTest {
     StandSaleItemEmbeddable debitItem = item(11L, "Pizza", 1, "5000");
     StandSaleEntity cashSale = sale(StandPaymentMethod.CASH, "3000", cashItem);
     StandSaleEntity debitSale = sale(StandPaymentMethod.DEBIT, "5000", debitItem);
+    StandSaleEntity transferSale = sale(StandPaymentMethod.TRANSFER, "2000",
+        item(12L, "Jugo", 1, "2000"));
     when(stands.findById(3L)).thenReturn(Optional.of(stand));
-    when(sales.findByStandIdOrderBySoldAtDesc(3L)).thenReturn(List.of(cashSale, debitSale));
+    when(sales.findByStandIdOrderBySoldAtDesc(3L))
+        .thenReturn(List.of(cashSale, debitSale, transferSale));
     when(products.findByStandIdOrderByNameAscVariantAsc(3L)).thenReturn(List.of());
 
     StandService.StandSummary result = service.summary(3L);
 
-    assertAll(() -> assertEquals(new BigDecimal("8000"), result.totalSold()),
+    assertAll(() -> assertEquals(new BigDecimal("10000"), result.totalSold()),
         () -> assertEquals(new BigDecimal("23000"), result.expectedCash()),
-        () -> assertEquals(new BigDecimal("75.00"), result.commissions()),
-        () -> assertEquals(2, result.saleCount()), () -> assertEquals(3, result.unitsSold()));
+        () -> assertEquals(new BigDecimal("95.00"), result.commissions()),
+        () -> assertEquals(3, result.saleCount()), () -> assertEquals(4, result.unitsSold()));
   }
 
   private StandSaleItemEmbeddable item(Long id, String name, int quantity, String price) {

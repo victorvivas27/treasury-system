@@ -15,6 +15,7 @@ export interface Stand {
   paymentMethods: StandPaymentMethod[];
   debitCommission: number;
   creditCommission: number;
+  transferCommission: number;
 }
 
 export type StandPayload = Omit<Stand, "id" | "eventName" | "status">;

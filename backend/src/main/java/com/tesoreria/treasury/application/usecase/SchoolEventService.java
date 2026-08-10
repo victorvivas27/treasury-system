@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.tesoreria.shared.domain.exception.DomainException;
@@ -61,7 +62,8 @@ public class SchoolEventService {
     event.setDescription(normalize(description));
     event.setStatus(status == null ? EventStatus.BORRADOR : status);
     event.setObservations(normalize(observations));
-    event.setParticipants(participants.stream().map(this::participant).toList());
+    event.setParticipants(participants.stream().map(this::participant)
+        .collect(Collectors.toCollection(ArrayList::new)));
     event.setCreatedAt(now);
     event.setUpdatedAt(now);
     return events.save(event);
@@ -106,7 +108,7 @@ public class SchoolEventService {
         changed.setTransferIncomeId(previous.getTransferIncomeId());
       }
       return changed;
-    }).toList());
+    }).collect(Collectors.toCollection(ArrayList::new)));
     event.setUpdatedAt(LocalDateTime.now());
     return events.save(event);
   }

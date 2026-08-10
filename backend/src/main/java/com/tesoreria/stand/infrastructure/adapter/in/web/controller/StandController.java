@@ -126,7 +126,8 @@ public class StandController {
   private StandService.StandInput input(StandRequest request) {
     return new StandService.StandInput(request.eventId(), request.name(), request.date(),
         request.startTime(), request.endTime(), request.responsible(), request.initialFund(),
-        request.paymentMethods(), request.debitCommission(), request.creditCommission());
+        request.paymentMethods(), request.debitCommission(), request.creditCommission(),
+        request.transferCommission());
   }
 
   private StandService.ProductInput productInput(ProductRequest request) {
@@ -139,7 +140,7 @@ public class StandController {
         value.getName(), value.getDate(), value.getStartTime(), value.getEndTime(),
         value.getResponsible(), value.getInitialFund(), value.getStatus(),
         value.getPaymentMethods(), value.getDebitCommission(), value.getCreditCommission(),
-        value.getCreatedAt(), value.getUpdatedAt());
+        value.getTransferCommission(), value.getCreatedAt(), value.getUpdatedAt());
   }
 
   private ProductResponse productResponse(StandProductEntity value) {
@@ -167,7 +168,8 @@ public class StandController {
       @NotNull @PositiveOrZero BigDecimal initialFund,
       @NotEmpty Set<@NotNull StandPaymentMethod> paymentMethods,
       @NotNull @PositiveOrZero BigDecimal debitCommission,
-      @NotNull @PositiveOrZero BigDecimal creditCommission) { }
+      @NotNull @PositiveOrZero BigDecimal creditCommission,
+      @NotNull @PositiveOrZero BigDecimal transferCommission) { }
   public record ProductRequest(@NotBlank @Size(max = 120) String name,
       @Size(max = 80) String category, @Size(max = 100) String variant,
       @NotNull @Positive BigDecimal price, @PositiveOrZero Integer stock,
@@ -184,7 +186,8 @@ public class StandController {
   public record StandResponse(Long id, Long eventId, String eventName, String name, LocalDate date,
       LocalTime startTime, LocalTime endTime, String responsible, BigDecimal initialFund,
       StandStatus status, Set<StandPaymentMethod> paymentMethods, BigDecimal debitCommission,
-      BigDecimal creditCommission, LocalDateTime createdAt, LocalDateTime updatedAt) { }
+      BigDecimal creditCommission, BigDecimal transferCommission, LocalDateTime createdAt,
+      LocalDateTime updatedAt) { }
   public record ProductResponse(Long id, Long standId, String name, String category,
       String variant, BigDecimal price, Integer initialStock, Integer currentStock,
       boolean available) { }

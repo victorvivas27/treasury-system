@@ -55,7 +55,8 @@ class SchoolEventServiceTest {
     assertAll(() -> assertEquals("Fiesta", saved.getName()),
         () -> assertEquals(EventStatus.BORRADOR, saved.getStatus()),
         () -> assertEquals(2, saved.getParticipants().size()),
-        () -> assertEquals("1A", saved.getParticipants().get(0).getCourse()));
+        () -> assertEquals("1A", saved.getParticipants().get(0).getCourse()),
+        () -> assertDoesNotThrow(() -> saved.getParticipants().clear()));
     verify(events).save(saved);
   }
 
@@ -89,7 +90,8 @@ class SchoolEventServiceTest {
     assertAll(
         () -> assertEquals("Fiesta actualizada", updated.getName()),
         () -> assertEquals(2, updated.getParticipants().size()),
-        () -> assertEquals("Completos", updated.getParticipants().get(0).getStandName()));
+        () -> assertEquals("Completos", updated.getParticipants().get(0).getStandName()),
+        () -> assertDoesNotThrow(() -> updated.getParticipants().clear()));
     verify(events).deleteById(10L);
   }
 

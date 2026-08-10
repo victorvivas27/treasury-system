@@ -35,6 +35,8 @@ public class StandEntity {
   private BigDecimal debitCommission = BigDecimal.ZERO;
   @Column(name = "credit_commission", nullable = false, precision = 7, scale = 4)
   private BigDecimal creditCommission = BigDecimal.ZERO;
+  @Column(name = "transfer_commission", nullable = false, precision = 7, scale = 4)
+  private BigDecimal transferCommission = BigDecimal.ZERO;
   @Column(name = "created_at", nullable = false) private LocalDateTime createdAt;
   @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
   @Version private long version;

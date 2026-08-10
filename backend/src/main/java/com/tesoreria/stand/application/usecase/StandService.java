@@ -300,7 +300,8 @@ public class StandService {
         sale.getPaymentMethod(), sale.getTotal(), BigDecimal::add));
     BigDecimal commissions = commission(byMethod.get(StandPaymentMethod.DEBIT),
         stand.getDebitCommission()).add(commission(byMethod.get(StandPaymentMethod.CREDIT),
-            stand.getCreditCommission()));
+            stand.getCreditCommission())).add(commission(
+                byMethod.get(StandPaymentMethod.TRANSFER), stand.getTransferCommission()));
     int units = allSales.stream().flatMap(sale -> sale.getItems().stream())
         .mapToInt(StandSaleItemEmbeddable::getQuantity).sum();
     Map<String, ProductSummary> productTotals = new LinkedHashMap<>();
@@ -342,6 +343,7 @@ public class StandService {
     value.setPaymentMethods(new LinkedHashSet<>(input.paymentMethods()));
     value.setDebitCommission(input.debitCommission());
     value.setCreditCommission(input.creditCommission());
+    value.setTransferCommission(input.transferCommission());
   }
 
   private void apply(StandProductEntity value, ProductInput input, boolean creating) {
@@ -375,7 +377,8 @@ public class StandService {
     }
     if (input.initialFund() == null || input.initialFund().signum() < 0
         || input.debitCommission() == null || input.debitCommission().signum() < 0
-        || input.creditCommission() == null || input.creditCommission().signum() < 0) {
+        || input.creditCommission() == null || input.creditCommission().signum() < 0
+        || input.transferCommission() == null || input.transferCommission().signum() < 0) {
       throw invalid("montos", "Fondos y comisiones no pueden ser negativos");
     }
     if (input.paymentMethods() == null || input.paymentMethods().isEmpty()) {
@@ -510,7 +513,7 @@ public class StandService {
   public record StandInput(Long eventId, String name, LocalDate date, LocalTime startTime,
       LocalTime endTime, String responsible, BigDecimal initialFund,
       Set<StandPaymentMethod> paymentMethods, BigDecimal debitCommission,
-      BigDecimal creditCommission) { }
+      BigDecimal creditCommission, BigDecimal transferCommission) { }
   public record ProductInput(String name, String category, String variant, BigDecimal price,
       Integer stock, boolean available) { }
   public record SaleItemInput(Long productId, int quantity) { }
