@@ -3,6 +3,7 @@ export interface Alumno {
   codigo: string;
   nombre: string;
   curso: string;
+  observacion?: string | null;
 }
 
 export type CreateAlumnoDTO = Omit<Alumno, "alumnoId" | "codigo">;

@@ -38,6 +38,7 @@ describe("useCreateAlumno", () => {
     expect(result.current.formData).toEqual({
       nombre: "",
       curso: "",
+      observacion: "",
       apoderadoId: 0,
     });
     expect(result.current.loading).toBe(false);
@@ -61,6 +62,7 @@ describe("useCreateAlumno", () => {
     expect(result.current.formData).toEqual({
       nombre: "Juan",
       curso: "4A",
+      observacion: "",
       apoderadoId: 7,
     });
   });
@@ -84,6 +86,7 @@ describe("useCreateAlumno", () => {
     expect(result.current.formData).toEqual({
       nombre: "",
       curso: "",
+      observacion: "",
       apoderadoId: 0,
     });
   });
@@ -152,6 +155,7 @@ describe("useCreateAlumno", () => {
     expect(mockCreateUseCase.execute).toHaveBeenCalledWith({
       nombre: "Maria",
       curso: "5B",
+      observacion: "",
       apoderadoId: 9,
     });
   });

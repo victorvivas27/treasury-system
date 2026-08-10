@@ -19,13 +19,19 @@ public class AlumnoRequest {
     // @Size(min = 1, message = "El curso debe tener al menos 1 carácter")
     // @Size(max = 50, message = "El curso no puede tener más de 50 caracteres")
     private String curso;
+    private String observacion;
 
     public AlumnoRequest() {
     }
 
     public AlumnoRequest(String nombre, String curso) {
+        this(nombre, curso, null);
+    }
+
+    public AlumnoRequest(String nombre, String curso, String observacion) {
         this.nombre = nombre != null ? nombre.toUpperCase(Locale.ROOT) : null;
         this.curso = curso != null ? curso.toUpperCase(Locale.ROOT) : null;
+        this.observacion = observacion;
     }
 
     public String getNombre() {
@@ -42,5 +48,13 @@ public class AlumnoRequest {
 
     public void setCurso(String curso) {
         this.curso = curso;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public void setObservacion(String observacion) {
+        this.observacion = observacion;
     }
 }

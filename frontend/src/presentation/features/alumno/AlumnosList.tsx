@@ -7,8 +7,10 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import { useMemo, useState, type FC } from "react";
+import { FiMessageSquare } from "react-icons/fi";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
+import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 
 interface AlumnosListProps {
   alumnos: Alumno[];
@@ -66,6 +68,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   pageSize,
 }) => {
   const [search, setSearch] = useState("");
+  const [selectedObservation, setSelectedObservation] = useState("");
   const filteredAlumnos = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("es");
     return term
@@ -123,6 +126,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
           <tr>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
+            <th className="alumnos-table__th">Mensaje</th>
             <th className="alumnos-table__th">Acciones</th>
           </tr>
         </thead>
@@ -158,6 +162,26 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                     <span>&nbsp;</span>
                   ) : (
                     alumno.curso
+                  )}
+                </td>
+
+                <td className="alumnos-table__td" data-label="Mensaje">
+                  {!loading && !empty && alumno.observacion ? (
+                    <button
+                      type="button"
+                      className="alumnos-table__observation-button"
+                      aria-label={`Ver observación de ${alumno.nombre}`}
+                      title="Ver observación"
+                      onClick={() => setSelectedObservation(alumno.observacion ?? "")}
+                    >
+                      <FiMessageSquare aria-hidden="true" />
+                    </button>
+                  ) : (
+                    !loading && !empty ? (
+                      <span className="alumnos-table__no-observation">Sin mensaje</span>
+                    ) : (
+                      <span>&nbsp;</span>
+                    )
                   )}
                 </td>
 
@@ -208,6 +232,15 @@ export const AlumnosList: FC<AlumnosListProps> = ({
       <Pagination currentPage={currentPage + 1} hasPrevious={hasPrevPage}
         hasNext={!isLastPage} loading={loading} onPrevious={onPrevPage}
         onNext={onNextPage} ariaLabel="Paginación de alumnos" />
+      <ModalAlert
+        isOpen={Boolean(selectedObservation)}
+        message={selectedObservation}
+        type="success"
+        title="Observación del alumno"
+        buttonLabel="Cerrar"
+        autoCloseTime={0}
+        onClose={() => setSelectedObservation("")}
+      />
     </article>
   );
 };

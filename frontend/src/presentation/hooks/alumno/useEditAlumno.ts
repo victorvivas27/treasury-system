@@ -35,6 +35,7 @@ export const useEditAlumno = () => {
   const [formData, setFormData] = useState<CreateAlumnoDTO>({
     nombre: "",
     curso: "",
+    observacion: "",
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -74,6 +75,7 @@ export const useEditAlumno = () => {
       setFormData({
         nombre: alumno.nombre,
         curso: alumno.curso,
+        observacion: alumno.observacion ?? "",
         ...("apoderadoId" in alumno ? { apoderadoId: alumno.apoderadoId } : {}),
       });
     } catch {

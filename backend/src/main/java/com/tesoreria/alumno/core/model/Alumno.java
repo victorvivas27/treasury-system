@@ -13,6 +13,7 @@ public class Alumno {
     private String codigo;
     private String nombre;
     private String curso;
+    private String observacion;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -24,6 +25,7 @@ public class Alumno {
             String codigo,
             String nombre,
             String curso,
+            String observacion,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         this.alumnoId = alumnoId;
@@ -32,6 +34,12 @@ public class Alumno {
         this.updatedAt = updatedAt;
         setNombre(nombre);
         setCurso(curso);
+        setObservacion(observacion);
+    }
+
+    public Alumno(Long alumnoId, String codigo, String nombre, String curso,
+            LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this(alumnoId, codigo, nombre, curso, null, createdAt, updatedAt);
     }
 
     public Long getAlumnoId() {
@@ -136,6 +144,21 @@ public class Alumno {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public final void setObservacion(String observacion) {
+        String normalizada = observacion == null ? null : observacion.trim();
+        if (normalizada != null && normalizada.length() > 300) {
+            throw new DomainException(
+                    AlumnoErrorCode.OBSERVACION_INVALIDA.getField(),
+                    AlumnoErrorCode.OBSERVACION_INVALIDA.getStatus(),
+                    "La observación no puede tener más de 300 caracteres");
+        }
+        this.observacion = normalizada == null ? "" : normalizada;
     }
 
     public LocalDateTime getUpdatedAt() {

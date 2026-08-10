@@ -9,7 +9,7 @@ import { AlumnosList } from "../AlumnosList";
 // Mock de datos para las pruebas
 const mockAlumnos: Alumno[] = [
   { id: 1, nombre: "Juan Pérez", curso: "4A", apoderadoId: 1 },
-  { id: 2, nombre: "Maria Lopez", curso: "4B", apoderadoId: 2 },
+  { id: 2, nombre: "Maria Lopez", curso: "4B", observacion: "Alérgica al maní", apoderadoId: 2 },
 ];
 
 // Props base para los tests
@@ -88,6 +88,7 @@ describe("AlumnosList Component", () => {
     expect(screen.getByText("Lista de Alumnos")).toBeInTheDocument();
     expect(screen.getByText("Nombre")).toBeInTheDocument();
     expect(screen.getByText("Curso")).toBeInTheDocument();
+    expect(screen.getByText("Mensaje")).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Código" })).not.toBeInTheDocument();
     expect(screen.getAllByText("Ver código")).toHaveLength(mockAlumnos.length);
     expect(screen.getByText("Acciones")).toBeInTheDocument();
@@ -106,6 +107,16 @@ describe("AlumnosList Component", () => {
     // Buscamos SOLO las filas que NO son empty-row
     const dataRows = container.querySelectorAll(".alumnos-table__row--data:not(.empty-row)");
     expect(dataRows.length).toBe(mockAlumnos.length);
+  });
+
+  it("[AlumnosList #05.1] Muestra la observación al pulsar el icono de mensaje", () => {
+    render(<AlumnosList {...baseProps} alumnos={mockAlumnos} />);
+
+    expect(screen.getAllByRole("button", { name: /Ver observación/i })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: /Ver observación de Maria/i }));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Alérgica al maní")).toBeInTheDocument();
   });
 
   it("[AlumnosList #06] Debe mostrar la información correcta de cada alumno.", () => {
@@ -145,10 +156,11 @@ describe("AlumnosList Component", () => {
     );
 
     // Verificamos que las celdas tengan el atributo data-label correcto
-    if (nonEmptyCells.length >= 3) {
+    if (nonEmptyCells.length >= 4) {
       expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Nombre");
       expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Curso");
-      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Acciones");
+      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Mensaje");
+      expect(nonEmptyCells[3]).toHaveAttribute("data-label", "Acciones");
     }
   });
 

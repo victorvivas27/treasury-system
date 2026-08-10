@@ -12,6 +12,7 @@ export const useCreateAlumno = () => {
   const initialFormState: CreateAlumnoDTO & { apoderadoId?: number } = {
     nombre: "",
     curso: "",
+    observacion: "",
     apoderadoId: 0,
   };
 

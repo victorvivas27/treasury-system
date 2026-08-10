@@ -129,4 +129,22 @@ class AlumnoTest {
             assertEquals("AL-123456789", a.getCodigo());
         }
     }
+
+    @Nested
+    class ObservacionTest {
+        @Test
+        void deberiaNormalizarObservacionOpcional() {
+            a.setObservacion("  Mati es alérgico al maní  ");
+            assertEquals("Mati es alérgico al maní", a.getObservacion());
+            a.setObservacion("   ");
+            assertEquals("", a.getObservacion());
+        }
+
+        @Test
+        void deberiaRechazarObservacionMayorDe300Caracteres() {
+            DomainException ex = assertThrows(DomainException.class,
+                    () -> a.setObservacion("a".repeat(301)));
+            assertEquals("La observación no puede tener más de 300 caracteres", ex.getMessage());
+        }
+    }
 }

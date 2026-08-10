@@ -43,6 +43,7 @@ public class AlumnoServiceTest {
         mockAlumno.setNombre("JUAN PEREZ");
         mockAlumno.setCodigo("AL-3291DF6A");
         mockAlumno.setCurso("4A");
+        mockAlumno.setObservacion("Alérgico al maní");
     }
 
     private PageResponse<Alumno> mockPageResponse() {
@@ -122,6 +123,7 @@ public class AlumnoServiceTest {
             Alumno resultado = service.update(mockAlumno);
             assertNotNull(resultado);
             assertEquals(mockAlumno, resultado);
+            assertEquals("Alérgico al maní", resultado.getObservacion());
             verify(repository).save(mockAlumno);
         }
     }

@@ -77,6 +77,8 @@ textarea.form-input-alumno {
   border-color: var(--color-error);
 }
 
+.form-group-alumno--wide { grid-column: 1 / -1; }
+
 .input-error-alumno:focus+.floating-label-alumno,
 .input-error-alumno:not(:placeholder-shown)+.floating-label-alumno {
   color: var(--color-error);

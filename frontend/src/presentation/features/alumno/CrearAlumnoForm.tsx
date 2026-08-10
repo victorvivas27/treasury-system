@@ -64,6 +64,24 @@ export const CrearAlumnoForm = () => {
           )}
         </div>
 
+        <div className="form-group-alumno form-group-alumno--wide">
+          <textarea
+            id="observacion_input"
+            name="observacion"
+            value={formData.observacion ?? ""}
+            onChange={handleChange}
+            placeholder="Ej.: Mati es alérgico al maní"
+            maxLength={300}
+            className={`form-input-alumno ${fieldErrors.observacion ? 'input-error-alumno' : ''}`}
+          />
+          <label htmlFor="observacion_input" className="floating-label-alumno form-label-alumno">
+            Mensaje / descripción (opcional)
+          </label>
+          {fieldErrors.observacion && (
+            <span className="error-message-alumno">{fieldErrors.observacion}</span>
+          )}
+        </div>
+
         <div className="form-actions-alumno">
           <Button
             variant="primary"

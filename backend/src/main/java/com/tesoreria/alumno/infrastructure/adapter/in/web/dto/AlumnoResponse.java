@@ -9,6 +9,7 @@ public record AlumnoResponse(
         String codigo,
         String nombre,
         String curso,
+        String observacion,
         @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
         LocalDateTime createdAt,
 

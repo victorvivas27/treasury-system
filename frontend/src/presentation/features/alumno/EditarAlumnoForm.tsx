@@ -74,6 +74,28 @@ export const EditarAlumnoForm = () => {
           {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
         </div>
 
+        <div className="form-group floating-group alumno-edit-form__group alumno-edit-form__group--wide">
+          <SkeletonWrapper
+            isLoading={initialLoading}
+            className="skeleton-name"
+            height="72px"
+            width="100%">
+            <textarea
+              id="observacion_input"
+              name="observacion"
+              value={formData.observacion ?? ""}
+              onChange={handleChange}
+              placeholder="Ej.: Mati es alérgico al maní"
+              maxLength={300}
+              className={`form-input alumno-edit-form__textarea ${fieldErrors.observacion ? 'input-error' : ''}`}
+            />
+          </SkeletonWrapper>
+          <label htmlFor="observacion_input" className="floating-label form-label">
+            Mensaje / descripción (opcional)
+          </label>
+          {fieldErrors.observacion && <span className="error-message">{fieldErrors.observacion}</span>}
+        </div>
+
         <div className="form-actions alumno-edit-form__actions">
           <Button
             variant="primary"

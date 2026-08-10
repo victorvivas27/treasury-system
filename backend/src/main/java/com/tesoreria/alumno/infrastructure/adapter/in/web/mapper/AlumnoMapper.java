@@ -14,6 +14,7 @@ public class AlumnoMapper {
                 alumno.getCodigo(),
                 alumno.getNombre(),
                 alumno.getCurso(),
+                alumno.getObservacion(),
                 alumno.getCreatedAt(),
                 alumno.getUpdatedAt());
     }
@@ -24,6 +25,7 @@ public class AlumnoMapper {
                 null,
                 request.getNombre(),
                 request.getCurso(),
+                request.getObservacion(),
                 null,
                 null);
     }

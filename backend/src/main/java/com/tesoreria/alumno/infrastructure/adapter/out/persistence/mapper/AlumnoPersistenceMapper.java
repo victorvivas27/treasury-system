@@ -13,6 +13,7 @@ public class AlumnoPersistenceMapper {
                 entity.getCodigo(),
                 entity.getNombre(),
                 entity.getCurso(),
+                entity.getObservacion(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
@@ -24,7 +25,8 @@ public class AlumnoPersistenceMapper {
                 domain.getAlumnoId(),
                 domain.getCodigo(),
                 domain.getNombre(),
-                domain.getCurso());
+                domain.getCurso(),
+                domain.getObservacion());
 
         // ✅ PRESERVAR TIMESTAMPS (importante para UPDATE)
         if (domain.getCreatedAt() != null) {
