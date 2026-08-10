@@ -21,13 +21,14 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [search, setSearch] = useState("");
 
   const fetchAlumnos = useCallback(async (page: number) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getAlumnosUseCase.execute(page, pageSize);
+      const data = await getAlumnosUseCase.execute(page, pageSize, search);
 
       setAlumnos(data.content);
       setTotalPages(data.totalPages);
@@ -41,7 +42,7 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
       setHasLoaded(true);
       setLoading(false);
     }
-  }, [pageSize]);
+  }, [pageSize, search]);
 
   const nextPage = useCallback(async () => {
     if (currentPage + 1 < totalPages) {
@@ -82,5 +83,7 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
     pageSize,
     totalPages,
     totalElements,
+    search,
+    setSearch,
   };
 };

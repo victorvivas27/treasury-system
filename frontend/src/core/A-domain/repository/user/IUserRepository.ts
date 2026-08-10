@@ -1,7 +1,7 @@
 import type { PageResponse, User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 
 export interface IUserRepository {
-  getAll(page: number, size: number): Promise<PageResponse<User>>;
+  getAll(page: number, size: number, search?: string): Promise<PageResponse<User>>;
   getById(id: number): Promise<User>;
   getByCode(code: string): Promise<User>;
   getByEmail(email: string): Promise<User>;

@@ -23,6 +23,8 @@ export const FamiliaPage: FC = () => {
     hasPrevPage,
     pageSize,
     isLastPage,
+    search,
+    setSearch,
   } = useListFamilia();
 
   const handleEdit = (id: number) => {
@@ -90,6 +92,8 @@ export const FamiliaPage: FC = () => {
           hasPrevPage={hasPrevPage}
           pageSize={pageSize}
           isLastPage={isLastPage}
+          search={search}
+          onSearchChange={setSearch}
         />
       </section>
 

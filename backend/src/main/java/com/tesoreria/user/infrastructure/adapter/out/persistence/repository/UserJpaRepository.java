@@ -3,6 +3,8 @@ package com.tesoreria.user.infrastructure.adapter.out.persistence.repository;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
@@ -16,5 +18,7 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByCorreo(String correo);
 
     long countByRol(RoleEnum rol);
+
+    Page<UserEntity> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
 
 }

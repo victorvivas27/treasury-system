@@ -14,7 +14,8 @@ import "./UsersPage.css";
 
 export const UsersPage = () => {
   const { user } = useAuth();
-  const { users, loading, error, totalPages, pageSize, load, create, update, remove } = useUsers();
+  const { users, loading, error, totalPages, pageSize, load, create, update, remove,
+    search, setSearch } = useUsers();
   const [currentPage, setCurrentPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -135,7 +136,7 @@ export const UsersPage = () => {
       )}
 
       <section>
-        {!loading && users.length === 0 ? (
+        {!loading && users.length === 0 && !search.trim() ? (
           <EmptyState title="Sin usuarios" message="No hay usuarios registrados." />
         ) : (
           <UserTable
@@ -153,6 +154,11 @@ export const UsersPage = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}
+            search={search}
+            onSearchChange={(value) => {
+              setCurrentPage(0);
+              setSearch(value);
+            }}
             onPrevious={() => {
               const page = currentPage - 1;
               setCurrentPage(page);

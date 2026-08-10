@@ -37,9 +37,10 @@ public class AlumnoController {
     @GetMapping
     public ResponseEntity<PageResponse<AlumnoResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "") String search) {
 
-        PageResponse<Alumno> result = alumnoService.findAll(new PageRequest(page, size, null, null));
+        PageResponse<Alumno> result = alumnoService.findAll(new PageRequest(page, size, null, null, search));
 
         PageResponse<AlumnoResponse> response = new PageResponse<>(
                 result.content()

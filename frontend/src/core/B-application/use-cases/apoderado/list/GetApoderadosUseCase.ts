@@ -8,9 +8,9 @@ export class GetApoderadosUseCase {
     this.apoderadoRepository = apoderadoRepository;
   }
 
-  async execute(page: number, size: number): Promise<PageResponse<Apoderado>> {
+  async execute(page: number, size: number, search = ""): Promise<PageResponse<Apoderado>> {
     try {
-      const response = await this.apoderadoRepository.getAll(page, size);
+      const response = await this.apoderadoRepository.getAll(page, size, search);
       return response;
     } catch (error) {
       throw new Error("No se pudieron obtener los apoderados", { cause: error });

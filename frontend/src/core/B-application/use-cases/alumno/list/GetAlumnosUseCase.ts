@@ -8,9 +8,9 @@ export class GetAlumnosUseCase {
     this.alumnoRepository = alumnoRepository;
   }
 
-  async execute(page: number, size: number): Promise<PageResponse<Alumno>> {
+  async execute(page: number, size: number, search = ""): Promise<PageResponse<Alumno>> {
     try {
-      const response = await this.alumnoRepository.getAll(page, size);
+      const response = await this.alumnoRepository.getAll(page, size, search);
       return response;
     } catch (error) {
       throw new Error("No se pudieron obtener los alumnos", { cause: error });

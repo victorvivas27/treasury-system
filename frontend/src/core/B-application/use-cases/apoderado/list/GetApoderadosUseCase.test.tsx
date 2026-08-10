@@ -34,7 +34,7 @@ describe("GetApoderadosUseCase", () => {
 
     expect(result).toEqual(mockPageResponse);
     expect(mockRepository.getAll).toHaveBeenCalledTimes(1);
-    expect(mockRepository.getAll).toHaveBeenCalledWith(0, 5);
+    expect(mockRepository.getAll).toHaveBeenCalledWith(0, 5, "");
   });
 
   it("[GetApoderados #02] Debe lanzar un error personalizado si el repositorio falla.", async () => {

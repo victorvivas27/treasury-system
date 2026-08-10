@@ -1,7 +1,7 @@
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "./style/FamiliaList.css";
-import { useMemo, useState, type FC } from "react";
+import type { FC } from "react";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { FcHighPriority } from "react-icons/fc";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
@@ -23,6 +23,8 @@ interface FamiliaListProps {
   hasPrevPage?: boolean;
   pageSize: number;
   isLastPage: boolean;
+  search?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 type EmptyRow = {
@@ -45,16 +47,10 @@ export const FamiliaList: FC<FamiliaListProps> = ({
   hasPrevPage,
   isLastPage,
   pageSize,
+  search = "",
+  onSearchChange,
 }) => {
-  const [search, setSearch] = useState("");
-  const filteredFamilias = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("es");
-    return term
-      ? familias.filter((familia) => familia.alumno.nombre.toLocaleLowerCase("es").includes(term)
-        || familia.apoderados.some((item) => item.nombre.toLocaleLowerCase("es").includes(term)))
-      : familias;
-  }, [familias, search]);
-  const emptyRows = Math.max(pageSize - filteredFamilias.length, 0);
+  const emptyRows = Math.max(pageSize - familias.length, 0);
 
   const rows: RowItem[] = loading
     ? Array.from({ length: pageSize }).map((_, index) => ({
@@ -62,7 +58,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
         empty: true,
       }))
     : [
-        ...filteredFamilias,
+        ...familias,
         ...Array.from({ length: emptyRows }).map((_, index) => ({
           familiaId: `empty-${index}`,
           empty: true as const,
@@ -80,7 +76,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
     );
   }
 
-  if (!loading && familias.length === 0) {
+  if (!loading && familias.length === 0 && !search.trim()) {
     return (
       <EmptyState
         title="No hay familias"
@@ -94,9 +90,9 @@ export const FamiliaList: FC<FamiliaListProps> = ({
     <article className="familia-list responsive-data-list">
       <header className="familia-header">
         <h2 className="familia-header__title">Lista de Familias</h2>
-        <ExpandableSearch value={search} onChange={setSearch} />
+        <ExpandableSearch value={search} onChange={(value) => onSearchChange?.(value)} />
       </header>
-      {search.trim() && filteredFamilias.length === 0 && (
+      {search.trim() && familias.length === 0 && (
         <p className="list-search-empty">No se encontraron familias con ese nombre.</p>
       )}
 

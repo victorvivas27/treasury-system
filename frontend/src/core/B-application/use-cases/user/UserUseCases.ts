@@ -6,8 +6,8 @@ export class ListUsersUseCase {
   constructor(repository: IUserRepository) {
     this.repository = repository;
   }
-  execute(page: number, size: number) {
-    return this.repository.getAll(page, size);
+  execute(page: number, size: number, search = "") {
+    return this.repository.getAll(page, size, search);
   }
 }
 

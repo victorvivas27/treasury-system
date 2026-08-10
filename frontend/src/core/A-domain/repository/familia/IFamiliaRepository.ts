@@ -8,7 +8,7 @@ import type {
 
 export interface IFamiliaRepository {
   
-  getAll(page: number, size: number): Promise<PageResponse<FamiliaDetalle>>;
+  getAll(page: number, size: number, search?: string): Promise<PageResponse<FamiliaDetalle>>;
 
   getById(familiaId: number): Promise<FamiliaDetalle>;
 

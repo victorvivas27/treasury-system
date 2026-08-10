@@ -18,6 +18,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [search, setSearch] = useState("");
   const getFamiliaByAlumnoUseCase = useMemo(
     () => new ListAlumnoApoderadoUseCase(new FamiliaRepositoryImpl()),
     [],
@@ -28,7 +29,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
       setLoading(true);
       setError(null);
 
-      const data = await getFamiliaByAlumnoUseCase.execute(page, pageSize);
+      const data = await getFamiliaByAlumnoUseCase.execute(page, pageSize, search);
 
       setFamilia(data.content);
       setTotalPages(data.totalPages);
@@ -42,7 +43,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
       setHasLoaded(true);
       setLoading(false);
     }
-  }, [getFamiliaByAlumnoUseCase, pageSize]);
+  }, [getFamiliaByAlumnoUseCase, pageSize, search]);
 
   const nextPage = useCallback(async () => {
     if (currentPage + 1 < totalPages) {
@@ -84,6 +85,8 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
     pageSize,
     totalPages,
     totalElements,
+    search,
+    setSearch,
   };
 };
 

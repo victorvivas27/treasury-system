@@ -47,8 +47,11 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
 
     @Override
     public PageResponse<User> findAll(PageRequest request) {
-        var page = repository.findAll(
-                org.springframework.data.domain.PageRequest.of(request.page(), request.size()));
+        var pageable = org.springframework.data.domain.PageRequest.of(request.page(), request.size());
+        String search = request.search() == null ? "" : request.search().trim();
+        var page = search.isEmpty()
+                ? repository.findAll(pageable)
+                : repository.findByNombreContainingIgnoreCase(search, pageable);
         return new PageResponse<>(
                 page.getContent().stream().map(mapper::toDomain).toList(),
                 page.getNumber(),

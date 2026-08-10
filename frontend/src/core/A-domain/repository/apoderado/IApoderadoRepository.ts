@@ -1,7 +1,7 @@
 import type {Apoderado, CreateApoderadoDTO, PageResponse} from "@/core/A-domain/entities/apoderado/Apoderado";
 export interface IApoderadoRepository {
 
-  getAll(page: number, size: number): Promise<PageResponse<Apoderado>>;
+  getAll(page: number, size: number, search?: string): Promise<PageResponse<Apoderado>>;
 
   create(apoderado: CreateApoderadoDTO): Promise<Apoderado>;
 

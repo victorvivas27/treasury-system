@@ -108,7 +108,7 @@ describe("useAlumnos Hook", () => {
     expect(result.current.alumnos).toEqual(page1Response.content);
     expect(result.current.currentPage).toBe(1);
     expect(mockExecute).toHaveBeenCalledTimes(2);
-    expect(mockExecute).toHaveBeenLastCalledWith(1, 3);
+    expect(mockExecute).toHaveBeenLastCalledWith(1, 3, "");
   });
 
   it("[useAlumnos #06] Debe cambiar a página anterior correctamente.", async () => {
@@ -140,7 +140,7 @@ describe("useAlumnos Hook", () => {
     expect(result.current.alumnos).toEqual(page0Response.content);
     expect(result.current.currentPage).toBe(0);
     expect(mockExecute).toHaveBeenCalledTimes(2);
-    expect(mockExecute).toHaveBeenLastCalledWith(0, 3);
+    expect(mockExecute).toHaveBeenLastCalledWith(0, 3, "");
   });
 
   it("[useAlumnos #07] Debe deshabilitar nextPage cuando es la última página.", async () => {

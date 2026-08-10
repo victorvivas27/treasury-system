@@ -34,6 +34,8 @@ export const ApoderadoPage: FC = () => {
     hasPrevPage,
     pageSize,
     isLastPage,
+    search,
+    setSearch,
   } = useApoderados();
   const handleEdit = (codigo: string) => {
     navigate(`/parents/edit/${codigo}`);
@@ -129,6 +131,8 @@ export const ApoderadoPage: FC = () => {
           hasPrevPage={hasPrevPage}
           pageSize={pageSize}
           isLastPage={isLastPage}
+          search={search}
+          onSearchChange={setSearch}
         />
       </section>
 

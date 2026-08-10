@@ -5,9 +5,9 @@ import { apiClient } from "@/core/D-config/api";
 export class UserRepositoryImpl implements IUserRepository {
   private readonly baseUrl = "/users";
 
-  async getAll(page: number, size: number): Promise<PageResponse<User>> {
+  async getAll(page: number, size: number, search = ""): Promise<PageResponse<User>> {
     const response = await apiClient.get<PageResponse<User>>(this.baseUrl, {
-      params: { page, size },
+      params: { page, size, ...(search.trim() && { search: search.trim() }) },
     });
     return response.data;
   }

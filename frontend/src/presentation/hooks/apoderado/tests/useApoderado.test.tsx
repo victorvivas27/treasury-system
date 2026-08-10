@@ -98,7 +98,7 @@ describe("useApoderados Hook", () => {
     expect(result.current.apoderados).toEqual(page1Response.content);
     expect(result.current.currentPage).toBe(1);
     expect(mockExecute).toHaveBeenCalledTimes(2);
-    expect(mockExecute).toHaveBeenLastCalledWith(1, 3);
+    expect(mockExecute).toHaveBeenLastCalledWith(1, 3, "");
   });
 
   it("[useApoderados #05] Debe cambiar a página anterior correctamente.", async () => {
@@ -130,7 +130,7 @@ describe("useApoderados Hook", () => {
     expect(result.current.apoderados).toEqual(page0Response.content);
     expect(result.current.currentPage).toBe(0);
     expect(mockExecute).toHaveBeenCalledTimes(2);
-    expect(mockExecute).toHaveBeenLastCalledWith(0, 3);
+    expect(mockExecute).toHaveBeenLastCalledWith(0, 3, "");
   });
 
   it("[useApoderados #06] No debe llamar a fetchApoderados en nextPage cuando es la última página", async () => {

@@ -9,9 +9,9 @@ import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/
 export class ApoderadoRepositoryImpl implements IApoderadoRepository {
   private readonly baseUrl = "/apoderados";
 
-  async getAll(page: number , size: number): Promise<PageResponse<Apoderado>> {
+  async getAll(page: number , size: number, search = ""): Promise<PageResponse<Apoderado>> {
     const response = await apiClient.get<PageResponse<Apoderado>>(this.baseUrl, {
-      params: { page, size }
+      params: { page, size, ...(search.trim() && { search: search.trim() }) }
     });
     return response.data;
   }

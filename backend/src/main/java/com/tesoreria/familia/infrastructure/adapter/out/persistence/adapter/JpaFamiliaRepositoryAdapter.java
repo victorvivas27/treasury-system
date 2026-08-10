@@ -56,7 +56,10 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
                 pageRequest.page(),
                 pageRequest.size());
 
-        org.springframework.data.domain.Page<FamiliaEntity> pageEntity = jpaRepository.findAll(pageable);
+        String search = pageRequest.search() == null ? "" : pageRequest.search().trim();
+        org.springframework.data.domain.Page<FamiliaEntity> pageEntity = search.isEmpty()
+                ? jpaRepository.findAll(pageable)
+                : jpaRepository.searchByMemberName(search, pageable);
 
         return new PageResponse<>(
                 pageEntity.getContent().stream().map(mapper::toDomain).toList(),

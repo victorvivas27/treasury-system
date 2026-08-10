@@ -9,9 +9,9 @@ import type { IAlumnoRepository } from "@/core/A-domain/repository/alumno/IAlumn
 export class AlumnoRepositoryImpl implements IAlumnoRepository {
   private readonly baseUrl = "/alumnos";
 
-  async getAll(page: number, size: number): Promise<PageResponse<Alumno>> {
+  async getAll(page: number, size: number, search = ""): Promise<PageResponse<Alumno>> {
     const response = await apiClient.get<PageResponse<Alumno>>(this.baseUrl, {
-      params: { page, size }
+      params: { page, size, ...(search.trim() && { search: search.trim() }) }
     });
     return response.data;
   }

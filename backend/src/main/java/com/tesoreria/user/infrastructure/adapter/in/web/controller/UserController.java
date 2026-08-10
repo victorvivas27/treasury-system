@@ -47,8 +47,9 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<PageResponse<UserResponseDTO>> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        var result = service.findAll(new PageRequest(page, size, null, null));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String search) {
+        var result = service.findAll(new PageRequest(page, size, null, null, search));
         return ResponseEntity.ok(new PageResponse<>(
                 result.content().stream().map(mapper::toResponse).toList(),
                 result.page(),
