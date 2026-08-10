@@ -776,6 +776,7 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
     responsible: stand?.responsible ?? "", initialFund: String(stand?.initialFund ?? 0),
     debitCommission: String(stand?.debitCommission ?? 0),
     creditCommission: String(stand?.creditCommission ?? 0),
+    transferCommission: String(stand?.transferCommission ?? 0),
     paymentMethods: stand?.paymentMethods ?? ["CASH"] as StandPaymentMethod[],
   });
   const [saving, setSaving] = useState(false);
@@ -793,6 +794,7 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
         initialFund: Number(form.initialFund), paymentMethods: form.paymentMethods,
         debitCommission: Number(form.debitCommission),
         creditCommission: Number(form.creditCommission),
+        transferCommission: Number(form.transferCommission),
       };
       await onSaved(stand ? await stands.update(stand.id, payload)
         : await stands.create(payload));
@@ -825,6 +827,9 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
         <label>Comisión crédito (%)<input required min="0" step="0.01" type="number"
           value={form.creditCommission}
           onChange={e => setForm({ ...form, creditCommission: e.target.value })} /></label>
+        <label>Comisión transferencia (%)<input required min="0" step="0.01" type="number"
+          value={form.transferCommission}
+          onChange={e => setForm({ ...form, transferCommission: e.target.value })} /></label>
       </div>
       <fieldset><legend>Métodos de pago disponibles</legend>
         <div>{(Object.keys(paymentLabels) as StandPaymentMethod[]).map(method =>
