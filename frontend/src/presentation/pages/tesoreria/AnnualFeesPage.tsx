@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { FiAlertTriangle, FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
+import { FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
   FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUsers,
   FiXCircle }
   from "react-icons/fi";
-import type { AllowedPaymentMode, FamilyPlan, FeeObligation, PaymentMode, TreasuryFilters }
+import type { AllowedPaymentMode, PaymentMode, TreasuryFilters }
   from "@/core/A-domain/entities/treasury/Treasury";
-import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { useAnnualFees } from "@/presentation/hooks/treasury/useAnnualFees";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -24,14 +23,6 @@ const today = (() => {
 const isOverdue = (status: string, dueDate: string) => status === "PENDIENTE" && dueDate < today;
 const PLAN_PAGE_SIZE = 2;
 const OBLIGATION_FAMILY_PAGE_SIZE = 5;
-
-export const findUnconfiguredFamilies = (families: FamiliaDetalle[], plans: FamilyPlan[],
-  obligations: FeeObligation[]) => {
-  const configuredIds = new Set([...plans.map(plan => plan.familyId),
-    ...obligations.map(obligation => obligation.familyId)]
-    .map(id => Number(id)).filter(id => Number.isFinite(id) && id > 0));
-  return families.filter(family => !configuredIds.has(Number(family.familiaId)));
-};
 
 export const AnnualFeesPage = () => {
   const fees = useAnnualFees();
@@ -76,9 +67,6 @@ export const AnnualFeesPage = () => {
     obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
   const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
     [visibleObligationGroups]);
-  const unconfiguredFamilies = useMemo(() => findUnconfiguredFamilies(
-    fees.families, fees.plans, fees.obligations),
-    [fees.families, fees.plans, fees.obligations]);
 
   useEffect(() => {
     setPlanPage(current => Math.min(current, planPages));
@@ -168,23 +156,6 @@ export const AnnualFeesPage = () => {
     <div className="annual-fees-grid">
       <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
-        {!fees.familiesLoading && !fees.dataLoading && !fees.error && currentConfig
-          && unconfiguredFamilies.length > 0 &&
-          <div className="treasury-family-warning" role="alert">
-            <FiAlertTriangle aria-hidden="true" />
-            <div>
-              <strong>{unconfiguredFamilies.length === 1
-                ? "Falta 1 familia por configurar"
-                : `Faltan ${unconfiguredFamilies.length} familias por configurar`}</strong>
-              <p>{unconfiguredFamilies.slice(0, 5).map(family => {
-                const guardian = family.apoderados?.find(
-                  item => item.relacion?.esPrincipal)?.nombre;
-                const familyName = guardian || family.alumno?.nombre || "Familia sin responsable";
-                return `${familyName} (${family.codigoFamilia || `ID ${family.familiaId}`})`;
-              }).join(" · ")}{unconfiguredFamilies.length > 5
-                ? ` · y ${unconfiguredFamilies.length - 5} más` : ""}</p>
-            </div>
-          </div>}
         <label>Familia<select value={familyId} disabled={fees.familiesLoading}
           onChange={event => setFamilyId(Number(event.target.value))}>
           <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
