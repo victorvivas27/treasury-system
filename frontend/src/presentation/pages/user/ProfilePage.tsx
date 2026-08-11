@@ -86,14 +86,21 @@ export const ProfilePage = () => {
         aria-label="Vinculación familiar">
         <header>
           <div><span>Vinculación familiar</span><h2>{familyProfile.familyCode}</h2></div>
-          {familyProfile.primaryGuardian &&
-            <strong className="profile-principal-badge">Apoderado principal</strong>}
+          <strong className={`profile-principal-badge ${familyProfile.primaryGuardian
+            ? "is-primary" : "is-secondary"}`}>
+            {familyProfile.primaryGuardian ? "Apoderado principal" : "Apoderado secundario"}
+          </strong>
         </header>
         <dl className="profile-data-grid">
           <div><dt>Alumno</dt><dd>{familyProfile.studentName}</dd></div>
           <div><dt>Parentesco</dt><dd>{familyProfile.relationship}</dd></div>
           <div><dt>Teléfono</dt><dd>{familyProfile.guardianPhone}</dd></div>
         </dl>
+
+        {familyProfile.studentMessage?.trim() && <aside className="profile-student-message">
+          <span>Información importante del alumno</span>
+          <p>{familyProfile.studentMessage}</p>
+        </aside>}
 
         <div className="profile-contribution-statuses">
           {(["CEPA", "SOLIDARIA"] as const).map(type => {

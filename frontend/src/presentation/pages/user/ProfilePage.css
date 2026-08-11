@@ -23,6 +23,10 @@
 .profile-family-data > header span { color: var(--text-muted); font-size: .62rem; }
 .profile-family-data > header h2 { margin: .05rem 0 0; }
 .profile-principal-badge { flex-shrink: 0; background: color-mix(in srgb, var(--color-accent) 16%, transparent); color: var(--color-accent); }
+.profile-principal-badge.is-secondary { background: color-mix(in srgb, var(--color-info) 14%, transparent); color: var(--color-info); }
+.profile-student-message { margin-top: .6rem; border-left: 3px solid var(--color-info); border-radius: var(--radius-sm); padding: .5rem .65rem; background: color-mix(in srgb, var(--color-info) 9%, var(--color-bg)); }
+.profile-student-message span { color: var(--color-info); font-size: .6rem; font-weight: 750; text-transform: uppercase; }
+.profile-student-message p { margin: .2rem 0 0; color: var(--text-main); font-size: .72rem; line-height: 1.4; overflow-wrap: anywhere; }
 .profile-contribution-statuses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; margin-top: .6rem; }
 .profile-contribution-status { display: flex; align-items: center; justify-content: space-between; gap: .2rem; padding: .44rem .42rem; border-radius: var(--radius-md); }
 .profile-contribution-status span { font-size: .56rem; white-space: nowrap; }

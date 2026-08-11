@@ -421,14 +421,15 @@ public class TreasuryController {
     Alumno student = students.findById(family.getAlumnoId());
     Long familyId = family.getFamiliaId();
     return new ProfileResponse(familyId, family.getCodigo(), student.getNombre(),
-        guardian.getTelefono(), relationship.getParentesco(), relationship.getEsPrincipal(),
+        student.getObservacion(), guardian.getTelefono(), relationship.getParentesco(),
+        relationship.getEsPrincipal(),
         familyPlan == null ? null : familyPlan.mode(), obligations,
         contribution(payments.get(familyId + ":" + ContributionType.CEPA)),
         contribution(payments.get(familyId + ":" + ContributionType.SOLIDARIA)));
   }
 
   private ProfileResponse emptyProfile() {
-    return new ProfileResponse(null, null, null, null, null, false, null,
+    return new ProfileResponse(null, null, null, null, null, null, false, null,
         List.of(), null, null);
   }
 

@@ -97,6 +97,7 @@ export interface TreasuryProfile {
   familyId?: number;
   familyCode?: string;
   studentName?: string;
+  studentMessage?: string;
   guardianPhone?: string;
   relationship?: string;
   primaryGuardian: boolean;

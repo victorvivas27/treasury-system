@@ -14,6 +14,7 @@ const baseProfile = {
   familyId: 8,
   familyCode: "FAM-008",
   studentName: "SOFÍA DÍAZ",
+  studentMessage: "Retirar el viernes a las 13:00.",
   guardianPhone: "+56912345678",
   relationship: "Padre",
   primaryGuardian: true,
@@ -48,6 +49,8 @@ describe("ProfilePage", () => {
     expect(await screen.findByText("Apoderado principal")).toBeInTheDocument();
     expect(screen.getAllByText("FAM-008")).toHaveLength(1);
     expect(screen.getByText("SOFÍA DÍAZ")).toBeInTheDocument();
+    expect(screen.getByText("Información importante del alumno")).toBeInTheDocument();
+    expect(screen.getByText("Retirar el viernes a las 13:00.")).toBeInTheDocument();
   });
 
   it("muestra aportes pendientes y modalidad de dos cuotas", async () => {
@@ -62,6 +65,16 @@ describe("ProfilePage", () => {
     expect(screen.getByText("15-04-2026")).toBeInTheDocument();
     expect(screen.getByText("15-07-2026")).toBeInTheDocument();
     expect(screen.getAllByText("$35.000")).toHaveLength(2);
+  });
+
+  it("muestra al apoderado secundario la misma información financiera familiar", async () => {
+    profile.mockResolvedValue({ ...baseProfile, primaryGuardian: false });
+    renderProfile();
+    expect(await screen.findByText("Apoderado secundario")).toBeInTheDocument();
+    expect(screen.getByText("Aporte CEPA")).toBeInTheDocument();
+    expect(screen.getByText("2 cuotas pendientes")).toBeInTheDocument();
+    expect(screen.getByText("$70.000")).toBeInTheDocument();
+    expect(screen.getByText("Retirar el viernes a las 13:00.")).toBeInTheDocument();
   });
 
   it("no muestra la cuota del curso si no existe modalidad", async () => {
