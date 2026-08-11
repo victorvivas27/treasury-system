@@ -7,7 +7,7 @@ import {
 } from "react-icons/fi";
 import type { SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
-  Stand, StandPaymentMethod, StandProduct, StandSale, StandSummary,
+  Stand, StandPaymentMethod, StandProduct, StandSale, StandSalePayload, StandSummary,
 } from "@/core/A-domain/entities/stand/Stand";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { StandRepositoryImpl } from "@/core/C-infra/repositories/stand/StandRepositoryImpl";
@@ -30,6 +30,14 @@ const statusLabels = {
   PREPARATION: "Preparación", OPEN: "Abierto", CLOSED: "Cerrado",
 } as const;
 type Tab = "products" | "sales" | "summary";
+type QueuedSale = {
+  clientId: string;
+  payload: StandSalePayload;
+  total: number;
+  units: number;
+  status: "pending" | "registering" | "confirmed" | "error";
+  error?: string;
+};
 
 const standModalAnchor = (rect: DOMRect, width: number, height: number) => ({
   top: Math.max(12, Math.min(rect.top, window.innerHeight - height - 12) - 100),
@@ -587,7 +595,8 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const [editingSale, setEditingSale] = useState(false);
   const [showReasonAlert, setShowReasonAlert] = useState(false);
   const [historyPage, setHistoryPage] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
+  const [saleQueue, setSaleQueue] = useState<QueuedSale[]>([]);
+  const processingQueue = useRef(false);
   const salesPerPage = 3;
   const totalHistoryPages = Math.max(1, Math.ceil(sales.length / salesPerPage));
   const visibleSales = sales.slice(
@@ -608,21 +617,51 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         : [...current, { productId, quantity }];
     });
   };
-  const submit = async (event: FormEvent) => {
+  const submit = (event: FormEvent) => {
     event.preventDefault();
-    setSubmitting(true);
-    try {
-      const sale = await stands.registerSale(stand.id, {
+    const payload: StandSalePayload = {
         items: cart, paymentMethod: method,
         amountReceived: method === "CASH" ? Number(received) : undefined,
         observation: observation || undefined,
-      });
-      setCart([]); setProductId(0); setQuantity(1); setReceived(""); setObservation("");
-      await onSaved(`Venta registrada por ${money.format(sale.total)}.`);
-    } finally {
-      setSubmitting(false);
-    }
+    };
+    setSaleQueue(current => [...current, {
+      clientId: `${Date.now()}-${Math.random()}`,
+      payload,
+      total,
+      units: cart.reduce((sum, item) => sum + item.quantity, 0),
+      status: "pending",
+    }]);
+    setCart([]); setProductId(0); setQuantity(1); setReceived(""); setObservation("");
   };
+  useEffect(() => {
+    const next = saleQueue.find(item => item.status === "pending");
+    if (!next || processingQueue.current) return;
+    processingQueue.current = true;
+    setSaleQueue(current => current.map(item => item.clientId === next.clientId
+      ? { ...item, status: "registering", error: undefined } : item));
+    void stands.registerSale(stand.id, next.payload).then(async sale => {
+      setSaleQueue(current => current.map(item => item.clientId === next.clientId
+        ? { ...item, status: "confirmed" } : item));
+      await onSaved(`Venta registrada por ${money.format(sale.total)}.`);
+      window.setTimeout(() => setSaleQueue(current =>
+        current.filter(item => item.clientId !== next.clientId)), 1800);
+    }).catch(error => {
+      setSaleQueue(current => current.map(item => item.clientId === next.clientId
+        ? { ...item, status: "error", error: errorMessage(error,
+          "No fue posible registrar la venta.") } : item));
+    }).finally(() => {
+      processingQueue.current = false;
+      setSaleQueue(current => [...current]);
+    });
+  }, [saleQueue, stand.id, onSaved]);
+  useEffect(() => {
+    const hasUnfinishedSales = saleQueue.some(item =>
+      item.status === "pending" || item.status === "registering");
+    if (!hasUnfinishedSales) return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [saleQueue]);
   const cancelSale = async () => {
     if (!saleToCancel || !cancellationReason.trim()) return;
     setCancelling(true);
@@ -732,10 +771,8 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         </div>
       </div>
       <footer><div><span>Total</span><strong>{money.format(total)}</strong></div>
-        <button type="submit"
-          disabled={stand.status !== "OPEN" || cart.length === 0 || submitting}>
-          {submitting ? <><FiRefreshCw className="stand-button-spinner" /> Registrando…</>
-            : <><FiCheckCircle /> Confirmar venta</>}</button></footer>
+        <button type="submit" disabled={stand.status !== "OPEN" || cart.length === 0}>
+          <FiCheckCircle /> Enviar venta</button></footer>
     </form>
     <section className="stand-recent-sales"><header><div><h3>Historial de ventas</h3>
       <small>Más recientes primero · {sales.length} registros</small></div></header>
@@ -771,6 +808,26 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
           onClick={() => setHistoryPage(page => page + 1)}>Siguiente</button>
       </nav>}
     </section>
+    {saleQueue.length > 0 && <aside className="stand-sale-queue"
+      aria-label="Cola de ventas" aria-live="polite">
+      <header><strong>Ventas en proceso</strong><small>{saleQueue.length}</small></header>
+      {saleQueue.map((queued, index) => <article key={queued.clientId}
+        className={`is-${queued.status}`}>
+        <div><strong>Venta {index + 1}</strong><span>{money.format(queued.total)}</span></div>
+        <small>{queued.units} {queued.units === 1 ? "unidad" : "unidades"} · {
+          queued.status === "pending" ? "En espera"
+            : queued.status === "registering" ? "Registrando…"
+              : queued.status === "confirmed" ? "Confirmada" : queued.error}</small>
+        {queued.status === "error" && <footer>
+          <button type="button" onClick={() => setSaleQueue(current => current.map(item =>
+            item.clientId === queued.clientId ? { ...item, status: "pending" } : item))}>
+            <FiRefreshCw /> Reintentar</button>
+          <button type="button" onClick={() => setSaleQueue(current =>
+            current.filter(item => item.clientId !== queued.clientId))}>
+            <FiX /> Descartar</button>
+        </footer>}
+      </article>)}
+    </aside>}
     <ModalConfirm
       isOpen={observationOpen}
       compact

@@ -69,8 +69,16 @@
 .stand-sale-form > footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--border-color); margin-top: 1rem; padding-top: 1rem; }
 .stand-sale-form > footer div { display: grid; }
 .stand-sale-form > footer strong { font-size: 1.7rem; }
-.stand-button-spinner { animation: stand-button-spin .8s linear infinite; }
-@keyframes stand-button-spin { to { transform: rotate(360deg); } }
+.stand-sale-queue { position: fixed; z-index: 45; right: 1rem; bottom: 1rem; display: grid; width: min(280px, calc(100vw - 2rem)); max-height: min(360px, calc(100vh - 2rem)); gap: .4rem; overflow-y: auto; border: 1px solid var(--border-color); border-radius: .75rem; padding: .65rem; background: var(--color-surface); box-shadow: var(--shadow-elevated); }
+.stand-sale-queue > header, .stand-sale-queue article > div, .stand-sale-queue article footer { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.stand-sale-queue > header small { display: grid; min-width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 50%; background: var(--color-accent-soft); color: var(--color-accent); }
+.stand-sale-queue article { display: grid; gap: .2rem; border-left: 3px solid var(--color-warning); border-radius: .45rem; padding: .45rem .55rem; background: var(--color-bg); }
+.stand-sale-queue article.is-registering { border-left-color: var(--color-info); }
+.stand-sale-queue article.is-confirmed { border-left-color: var(--color-success); }
+.stand-sale-queue article.is-error { border-left-color: var(--color-error); }
+.stand-sale-queue article > small { overflow-wrap: anywhere; color: var(--text-muted); font-size: .65rem; }
+.stand-sale-queue article footer { justify-content: flex-end; }
+.stand-sale-queue article footer button { display: inline-flex; align-items: center; gap: .2rem; padding: .25rem .4rem; font-size: .6rem; }
 .stand-page__warning { border-radius: .5rem; margin-bottom: .7rem; padding: .65rem; background: var(--color-warning-soft); color: var(--color-warning); }
 .stand-recent-sales { display: grid; align-content: start; gap: .65rem; }
 .stand-recent-sales > header small { color: var(--text-muted); }
