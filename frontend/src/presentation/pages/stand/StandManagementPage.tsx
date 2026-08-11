@@ -959,8 +959,17 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   </div>;
 };
 
-const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
-  <div className="stand-summary">
+const SummaryBar = ({ value, max }: { value: number; max: number }) =>
+  <span className="stand-summary-bar" aria-hidden="true"><i style={{
+    width: `${Math.max(4, value / Math.max(max, 1) * 100)}%`,
+  }} /></span>;
+
+const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
+  const maxPayment = Math.max(1, ...Object.values(summary.salesByPaymentMethod));
+  const maxProduct = Math.max(1, ...summary.salesByProduct.map(item => item.total));
+  const maxVariant = Math.max(1, ...Object.values(summary.salesByVariant));
+  const maxPresentation = Math.max(1, ...Object.values(summary.unitsByPresentation));
+  return <div className="stand-summary">
     <div className="stand-summary__cards">
       <article className="is-sales"><div><span>Total vendido</span><i><FiDollarSign /></i></div>
         <strong>{money.format(summary.totalSold)}</strong></article>
@@ -981,43 +990,45 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) =>
         <strong>{summary.saleCount}</strong></article>
       <article className="is-units"><div><span>Unidades vendidas</span><i><FiBox /></i></div>
         <strong>{summary.unitsSold}</strong></article>
-      <article className="is-units"><div><span>Unidades equivalentes</span><i><FiBox /></i></div>
-        <strong>{summary.equivalentUnits}</strong></article>
     </div>
     <div className="stand-summary__columns">
-      <section><h3>Ventas por medio de pago</h3>
+      <section className="is-payment"><h3><i><FiCreditCard /></i> Ventas por medio de pago</h3>
         {Object.entries(summary.salesByPaymentMethod).map(([method, total]) =>
-          <div key={method}><span>{paymentLabels[method as StandPaymentMethod]}</span>
-            <strong>{money.format(total)}</strong></div>)}</section>
-      <section><h3>Ventas por producto</h3>
+          <div className="stand-summary-row" key={method}><div>
+            <span>{paymentLabels[method as StandPaymentMethod]}</span>
+            <strong>{money.format(total)}</strong></div>
+            <SummaryBar value={total} max={maxPayment} /></div>)}</section>
+      <section className="is-product"><h3><i><FiBox /></i> Ventas por producto</h3>
         {summary.salesByProduct.map(item => <div
-          key={`${item.product}-${item.category}-${item.variant}`}>
-          <span>{item.product}{item.variant ? ` · ${item.variant}` : ""}
+          className="stand-summary-row" key={`${item.product}-${item.category}-${item.variant}`}>
+          <div><span>{item.product}{item.variant ? ` · ${item.variant}` : ""}
             <small>{item.units} unidades · {item.category || "Sin categoría"}</small></span>
           <strong>{money.format(item.profit)}<small>Venta {money.format(item.total)} · Costo {
-            money.format(item.cost)}</small></strong></div>)}</section>
-      <section><h3>Ventas por categoría</h3>
-        {Object.entries(summary.salesByCategory).map(([category, total]) =>
-          <div key={category}><span>{category}</span><strong>{money.format(total)}</strong></div>)}
-      </section>
-      <section><h3>Ventas por variante</h3>
+            money.format(item.cost)}</small></strong></div>
+          <SummaryBar value={item.total} max={maxProduct} /></div>)}</section>
+      <section className="is-variant"><h3><i><FiTrendingUp /></i> Ventas por variante</h3>
         {Object.entries(summary.salesByVariant).map(([variant, total]) =>
-          <div key={variant}><span>{variant}</span><strong>{money.format(total)}</strong></div>)}
+          <div className="stand-summary-row" key={variant}><div><span>{variant}</span>
+            <strong>{money.format(total)}</strong></div>
+            <SummaryBar value={total} max={maxVariant} /></div>)}
       </section>
-      <section><h3>Unidades por presentación</h3>
+      <section className="is-presentation"><h3><i><FiCopy /></i> Unidades por presentación</h3>
         {Object.keys(summary.unitsByPresentation).length === 0
           ? <p>Sin presentaciones configuradas.</p>
           : Object.entries(summary.unitsByPresentation).map(([presentation, units]) =>
-            <div key={presentation}><span>{presentation}</span><strong>{units}</strong></div>)}
+            <div className="stand-summary-row" key={presentation}><div>
+              <span>{presentation}</span><strong>{units}</strong></div>
+              <SummaryBar value={units} max={maxPresentation} /></div>)}
       </section>
-      <section><h3>Alertas de stock</h3>
+      <section className="is-stock"><h3><i><FiAlertTriangle /></i> Alertas de stock</h3>
         {summary.stockAlerts.length === 0 ? <p>Sin alertas de stock.</p>
-          : summary.stockAlerts.map(item => <div key={item.productId}>
+          : summary.stockAlerts.map(item => <div className="stand-summary-stock" key={item.productId}>
             <span>{item.product}{item.variant ? ` · ${item.variant}` : ""}</span>
             <strong className="stock-alert">{item.soldOut ? "Agotado" : `${item.stock} restantes`}</strong>
           </div>)}</section>
     </div>
   </div>;
+};
 
 const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
   eventId: number; event?: SchoolEvent; stand?: Stand; onClose: () => void;

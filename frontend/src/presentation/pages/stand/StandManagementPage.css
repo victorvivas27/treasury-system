@@ -119,10 +119,23 @@
 .stand-summary__cards span, .stand-summary__cards small { color: var(--text-muted); }
 .stand-summary__cards strong { color:var(--summary-color); font-size: 1.35rem; }
 .stand-summary__columns { display: grid; gap: .8rem; grid-template-columns: repeat(3, 1fr); margin-top: 1rem; }
-.stand-summary__columns section { border: 1px solid var(--border-color); border-radius: .8rem; padding: 1rem; }
-.stand-summary__columns h3 { margin-bottom: .7rem; }
+.stand-summary__columns section { --breakdown-color: var(--color-accent); border: 1px solid color-mix(in srgb,var(--breakdown-color) 28%,var(--border-color)); border-radius: .8rem; padding: 1rem; background: linear-gradient(145deg,color-mix(in srgb,var(--breakdown-color) 7%,var(--color-surface)),var(--color-surface) 55%); box-shadow: var(--shadow-card); }
+.stand-summary__columns section.is-product { --breakdown-color: var(--color-success); }
+.stand-summary__columns section.is-variant { --breakdown-color: var(--color-warning); }
+.stand-summary__columns section.is-presentation { --breakdown-color: var(--color-info); }
+.stand-summary__columns section.is-stock { --breakdown-color: var(--color-error); }
+.stand-summary__columns h3 { display:flex; align-items:center; gap:.4rem; margin-bottom: .7rem; color:var(--text-main); }
+.stand-summary__columns h3 i { display:grid; width:1.7rem; height:1.7rem; flex:0 0 auto; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--breakdown-color) 16%,transparent); color:var(--breakdown-color); }
+.stand-summary__columns h3 svg { width:.9rem; height:.9rem; }
 .stand-summary__columns section > div { display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--border-color); padding: .6rem 0; }
 .stand-summary__columns small { display: block; color: var(--text-muted); }
+.stand-summary__columns .stand-summary-row { display:grid; gap:.35rem; }
+.stand-summary-row > div { display:flex; min-width:0; align-items:center; justify-content:space-between; gap:.5rem; }
+.stand-summary-row > div > span { min-width:0; }
+.stand-summary-row > div > strong { flex:0 0 auto; text-align:right; }
+.stand-summary-bar { display:block; width:100%; height:4px; overflow:hidden; border-radius:99px; background:color-mix(in srgb,var(--breakdown-color) 12%,var(--border-color)); }
+.stand-summary-bar i { display:block; height:100%; border-radius:inherit; background:var(--breakdown-color); transition:width .35s ease; }
+.stand-summary-stock .stock-alert { border-radius:99px; padding:.2rem .4rem; background:var(--color-error-soft); }
 .stock-alert { color: var(--color-warning); }
 .stand-close-summary { display: grid; gap: .65rem; }
 .stand-close-summary > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: .55rem; }
@@ -199,12 +212,16 @@
 .stand-inline-form label{gap:.15rem;font-size:.62rem}
 .stand-inline-form input{min-height:30px;padding:.25rem .42rem;font-size:.66rem}
 .stand-inline-form button{min-height:30px;padding:.3rem .5rem;font-size:.62rem}
-.stand-product-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}
-.stand-product-grid article{gap:.25rem;padding:.6rem}
-.stand-product-grid article h4{font-size:.78rem}
+.stand-product-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:.35rem}
+.stand-product-grid article{align-content:start;gap:.16rem;padding:.45rem;border-radius:.6rem}
+.stand-product-grid article h4{margin:.08rem 0;font-size:.72rem;line-height:1.15}
 .stand-product-grid article p{margin:.1rem 0}
-.stand-product-grid article span,.stand-product-grid article p,.stand-product-grid article small{font-size:.6rem}
-.stand-product-grid article strong{font-size:.9rem}
+.stand-product-grid article span,.stand-product-grid article p,.stand-product-grid article small{font-size:.55rem;line-height:1.2}
+.stand-product-grid article strong{font-size:.82rem}
+.stand-product-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.2rem;margin-top:.15rem}
+.stand-product-actions button{justify-content:center;width:100%;min-height:22px;padding:.14rem .25rem;font-size:.52rem;line-height:1;white-space:nowrap}
+.stand-product-actions .stand-product-delete{grid-column:1 / -1}
+.stand-product-actions button svg{width:.58rem;height:.58rem;flex:0 0 auto}
 .stand-sales-layout{gap:.55rem;grid-template-columns:minmax(0,1.5fr) minmax(235px,.65fr);padding:.75rem}
 .stand-sale-form,.stand-recent-sales{border-radius:.7rem;padding:.65rem}
 .stand-sale-form h3,.stand-recent-sales h3{font-size:.88rem}
