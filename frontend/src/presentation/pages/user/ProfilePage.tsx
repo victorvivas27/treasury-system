@@ -21,6 +21,8 @@ export const ProfilePage = () => {
   const { user } = useAuth();
   const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
   const [familyLoading, setFamilyLoading] = useState(true);
+  const [familyError, setFamilyError] = useState("");
+  const [reloadProfile, setReloadProfile] = useState(0);
   const treasury = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
 
   useEffect(() => {
@@ -31,19 +33,30 @@ export const ProfilePage = () => {
         return;
       }
       setFamilyLoading(true);
-      try {
-        const currentYear = new Date().getFullYear();
-        const profile = await treasury.profile(currentYear);
-        if (active) setFamilyProfile(profile.familyId ? profile : null);
-      } catch {
-        if (active) setFamilyProfile(null);
-      } finally {
-        if (active) setFamilyLoading(false);
+      setFamilyError("");
+      const currentYear = new Date().getFullYear();
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const profile = await treasury.profile(currentYear);
+          if (active) setFamilyProfile(profile.familyId ? profile : null);
+          if (active) setFamilyLoading(false);
+          return;
+        } catch {
+          if (attempt === 0) {
+            await new Promise(resolve => window.setTimeout(resolve, 600));
+            continue;
+          }
+          if (active) {
+            setFamilyProfile(null);
+            setFamilyError("No fue posible cargar los datos familiares. Intenta nuevamente.");
+          }
+        }
       }
+      if (active) setFamilyLoading(false);
     };
     void loadFamilyProfile();
     return () => { active = false; };
-  }, [treasury, user?.correo]);
+  }, [reloadProfile, treasury, user?.correo]);
 
   const name = user?.nombre ?? "Usuario";
   const initials = name.split(/\s+/).slice(0, 2)
@@ -80,6 +93,18 @@ export const ProfilePage = () => {
           {["Alumno", "Parentesco", "Teléfono"].map(label => <div key={label}>
             <dt>{label}</dt><dd><Skeleton width="7rem" height=".8rem" /></dd></div>)}
         </dl>
+      </section>}
+
+      {!familyLoading && familyError && <section className="profile-family-feedback" role="alert">
+        <p>{familyError}</p>
+        <button type="button" onClick={() => setReloadProfile(value => value + 1)}>
+          Reintentar
+        </button>
+      </section>}
+
+      {!familyLoading && !familyError && !familyProfile && <section
+        className="profile-family-feedback">
+        <p>Esta cuenta todavía no tiene una familia vinculada.</p>
       </section>}
 
       {!familyLoading && familyProfile && <section className="profile-real-data profile-family-data"
