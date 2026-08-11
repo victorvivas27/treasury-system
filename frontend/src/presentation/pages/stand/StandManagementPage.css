@@ -8,7 +8,8 @@
 .stand-page label { display: grid; gap: .35rem; color: var(--text-muted); font-size: .78rem; font-weight: 650; }
 .stand-page input, .stand-page select, .stand-page textarea { width: 100%; min-height: 44px; border: 1px solid var(--border-color); border-radius: .55rem; padding: .65rem .75rem; background: var(--color-input); color: var(--text-main); }
 .stand-page textarea { min-height: 74px; resize: vertical; }
-.stand-page__feedback { position: sticky; z-index: 5; top: .75rem; width: fit-content; margin: .8rem auto; border-radius: 999px; padding: .6rem 1rem; background: var(--color-accent); color: #071512; font-weight: 700; box-shadow: var(--shadow-elevated); }
+.stand-page__feedback { position: fixed; z-index: 50; top: 1rem; right: 1rem; width: fit-content; max-width: min(360px, calc(100vw - 2rem)); margin: 0; border-radius: 999px; padding: .6rem 1rem; background: var(--color-accent); color: #071512; font-weight: 700; box-shadow: var(--shadow-elevated); animation: stand-feedback-in .2s ease-out; }
+@keyframes stand-feedback-in { from { opacity: 0; transform: translateY(-.5rem); } to { opacity: 1; transform: translateY(0); } }
 .stand-page__empty { grid-column: 1 / -1; padding: 3rem 1rem; color: var(--text-muted); text-align: center; }
 .stand-page__empty svg { font-size: 2.5rem; color: var(--color-warning); }
 .stand-page__selector { display: flex; overflow-x: auto; gap: .65rem; margin: 1rem 0; padding-bottom: .3rem; }
@@ -41,25 +42,35 @@
 .stand-product-grid article.is-sold-out { opacity: .55; }
 .stand-product-grid article span, .stand-product-grid article p, .stand-product-grid article small { color: var(--text-muted); font-size: .75rem; }
 .stand-product-grid article strong { color: var(--color-accent); font-size: 1.1rem; }
+.stand-panel-skeleton { min-height: 12rem; }
+.stand-panel-skeleton .stand-product-grid article { align-content: start; min-height: 8.5rem; }
+.stand-panel-skeleton .stand-sales-layout > article { display: grid; align-content: start; gap: .75rem; min-height: 14rem; border: 1px solid var(--border-color); border-radius: .9rem; padding: 1rem; background: var(--color-bg); }
+.stand-panel-skeleton .stand-summary__cards article { display: grid; gap: .65rem; }
 .stand-product-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
 .stand-product-edit { justify-self: start; display: inline-flex; align-items: center; gap: .3rem; }
 .stand-product-delete { background: var(--color-error) !important; color: white !important; }
 .stand-sales-layout { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.6fr) minmax(260px, .7fr); padding: 1.25rem; }
 .stand-sale-form, .stand-recent-sales { border: 1px solid var(--border-color); border-radius: .9rem; padding: 1rem; background: var(--color-bg); }
 .stand-sale-form__picker { display: grid; align-items: end; gap: .65rem; grid-template-columns: 1fr 100px auto; }
-.stand-cart { display: grid; gap: .5rem; margin: 1rem 0; }
-.stand-cart > div { display: grid; align-items: center; gap: .5rem; grid-template-columns: 1fr auto auto auto; border-bottom: 1px solid var(--border-color); padding: .65rem 0; }
-.stand-cart p { color: var(--text-muted); text-align: center; }
-.stand-cart small { color: var(--text-muted); }
-.stand-cart button { padding: .4rem; background: transparent; color: var(--color-error); }
-.stand-sale-form__payment { display: grid; gap: .7rem; grid-template-columns: repeat(3, 1fr); }
-.stand-observation-field { display: grid; align-content: start; gap: .15rem; font-size: .62rem; }
+.stand-cart { display: grid; align-content: start; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: .4rem; height: 112px; margin: .8rem 0; overflow-y: auto; padding: .15rem; scrollbar-gutter: stable; }
+.stand-cart > div { display: grid; align-content: center; justify-items: center; gap: .1rem; min-width: 0; min-height: 88px; border: 1px solid var(--border-color); border-radius: .6rem; padding: .4rem; background: var(--color-surface); text-align: center; box-shadow: var(--shadow-card); }
+.stand-cart__item > span { width: 100%; overflow: hidden; font-weight: 700; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.stand-cart__item > strong { color: var(--color-accent); font-size: .82rem; }
+.stand-cart p { display: grid; grid-column: 1 / -1; height: 100%; min-height: 44px; margin: 0; place-items: center; color: var(--text-muted); text-align: center; }
+.stand-cart small { color: var(--text-muted); font-size: .65rem; }
+.stand-cart button { display: inline-flex; min-height: 0; align-items: center; gap: .1rem; margin-top: .08rem; padding: .1rem .25rem; border-radius: .3rem; background: var(--color-error-soft); color: var(--color-error); font-size: .5rem; line-height: 1; }
+.stand-cart button svg { width: .55rem; height: .55rem; }
+.stand-sale-form__payment { display: grid; min-height: 76px; align-items: start; gap: .7rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stand-sale-form__payment > label:first-child { grid-column: 1; }
+.stand-observation-field { display: grid; grid-column: 3; align-content: start; gap: .15rem; font-size: .62rem; }
 .stand-observation-field > span { font-size: inherit; }
 .stand-observation-trigger { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 42px; background: var(--color-hover); color: var(--text-main); white-space: nowrap; }
 .stand-sale-form label small { color: var(--color-accent); }
 .stand-sale-form > footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--border-color); margin-top: 1rem; padding-top: 1rem; }
 .stand-sale-form > footer div { display: grid; }
 .stand-sale-form > footer strong { font-size: 1.7rem; }
+.stand-button-spinner { animation: stand-button-spin .8s linear infinite; }
+@keyframes stand-button-spin { to { transform: rotate(360deg); } }
 .stand-page__warning { border-radius: .5rem; margin-bottom: .7rem; padding: .65rem; background: var(--color-warning-soft); color: var(--color-warning); }
 .stand-recent-sales { display: grid; align-content: start; gap: .65rem; }
 .stand-recent-sales > header small { color: var(--text-muted); }
@@ -154,7 +165,7 @@
 .stand-page__filters label:first-child{width:90px}
 .stand-page__filters label:nth-child(2){width:min(280px,55vw)}
 .stand-page__filters input,.stand-page__filters select{min-height:30px;padding:.25rem .42rem;font-size:.68rem}
-.stand-page__feedback{margin:.5rem auto;padding:.4rem .7rem;font-size:.68rem}
+.stand-page__feedback{margin:0;padding:.4rem .7rem;font-size:.68rem}
 .stand-page__empty{width:min(520px,100%);min-height:110px;margin-inline:auto;padding:.8rem 1rem;font-size:.68rem}
 .stand-page__empty svg{font-size:1.25rem}
 .stand-page__empty h2{margin:.15rem 0;font-size:.85rem}
