@@ -55,6 +55,34 @@ const StandWorkspaceSkeleton = () => <section className="stand-workspace" role="
   <Skeleton height="14rem" />
 </section>;
 
+const StandPanelSkeleton = ({ tab }: { tab: Tab }) => <section
+  className={`stand-panel-skeleton stand-panel-skeleton--${tab}`}
+  role="status" aria-label={tab === "products" ? "Cargando productos"
+    : tab === "sales" ? "Cargando ventas" : "Cargando resumen"}>
+  {tab === "products" && <div className="stand-product-grid">
+    {Array.from({ length: 6 }, (_, index) => <article key={index} aria-hidden="true">
+      <Skeleton width="68%" height="1rem" />
+      <Skeleton width="88%" height=".75rem" />
+      <Skeleton width="52%" height="1.15rem" />
+      <Skeleton width="76%" height=".7rem" />
+    </article>)}
+  </div>}
+  {tab === "sales" && <div className="stand-sales-layout">
+    {Array.from({ length: 2 }, (_, index) => <article key={index} aria-hidden="true">
+      <Skeleton width="46%" height="1rem" />
+      <Skeleton height="2.4rem" />
+      <Skeleton height="2.4rem" />
+      <Skeleton width="62%" height="2.1rem" />
+    </article>)}
+  </div>}
+  {tab === "summary" && <div className="stand-summary__cards">
+    {Array.from({ length: 4 }, (_, index) => <article key={index} aria-hidden="true">
+      <Skeleton width="65%" height=".75rem" />
+      <Skeleton width="82%" height="1.35rem" />
+    </article>)}
+  </div>}
+</section>;
+
 export const StandManagementPage = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [events, setEvents] = useState<SchoolEvent[]>([]);
@@ -72,6 +100,8 @@ export const StandManagementPage = () => {
   const [standToDelete, setStandToDelete] = useState<Stand>();
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [operationalLoading, setOperationalLoading] = useState(false);
+  const [loadedStandId, setLoadedStandId] = useState<number>();
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [modalAnchor, setModalAnchor] = useState<{ top: number; left: number }>();
@@ -107,6 +137,7 @@ export const StandManagementPage = () => {
 
   const loadOperationalData = useCallback(async () => {
     if (!selected) return;
+    setOperationalLoading(true);
     try {
       const [productData, saleData, summaryData] = await Promise.all([
         stands.listProducts(selected.id), stands.listSales(selected.id),
@@ -115,8 +146,11 @@ export const StandManagementPage = () => {
       setProducts(productData);
       setSales(saleData);
       setSummary(summaryData);
+      setLoadedStandId(selected.id);
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible actualizar el stand."));
+    } finally {
+      setOperationalLoading(false);
     }
   }, [selected?.id]);
 
@@ -240,7 +274,8 @@ export const StandManagementPage = () => {
           </section>}
         </div>
 
-        {selected && <section className="stand-workspace">
+        {selected && <section className={`stand-workspace ${operationalLoading
+          ? "is-refreshing" : ""}`} aria-busy={operationalLoading}>
           <header className="stand-workspace__header">
             <div><span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
               {statusLabels[selected.status]}</span>
@@ -282,11 +317,13 @@ export const StandManagementPage = () => {
             <button className={tab === "summary" ? "is-active" : ""}
               onClick={() => setTab("summary")}><FiDollarSign /> Resumen</button>
           </nav>
-          {tab === "products" && <ProductsPanel stand={selected} products={products}
-            onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
-          {tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
-            onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
-          {tab === "summary" && summary && <SummaryPanel summary={summary} />}
+          {loadedStandId !== selected.id ? <StandPanelSkeleton tab={tab} /> : <>
+            {tab === "products" && <ProductsPanel stand={selected} products={products}
+              onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
+            {tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
+              onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
+            {tab === "summary" && summary && <SummaryPanel summary={summary} />}
+          </>}
         </section>}
       </>}
     <ModalConfirm
@@ -550,6 +587,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const [editingSale, setEditingSale] = useState(false);
   const [showReasonAlert, setShowReasonAlert] = useState(false);
   const [historyPage, setHistoryPage] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   const salesPerPage = 3;
   const totalHistoryPages = Math.max(1, Math.ceil(sales.length / salesPerPage));
   const visibleSales = sales.slice(
@@ -572,13 +610,18 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   };
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    const sale = await stands.registerSale(stand.id, {
-      items: cart, paymentMethod: method,
-      amountReceived: method === "CASH" ? Number(received) : undefined,
-      observation: observation || undefined,
-    });
-    setCart([]); setProductId(0); setQuantity(1); setReceived(""); setObservation("");
-    await onSaved(`Venta registrada por ${money.format(sale.total)}.`);
+    setSubmitting(true);
+    try {
+      const sale = await stands.registerSale(stand.id, {
+        items: cart, paymentMethod: method,
+        amountReceived: method === "CASH" ? Number(received) : undefined,
+        observation: observation || undefined,
+      });
+      setCart([]); setProductId(0); setQuantity(1); setReceived(""); setObservation("");
+      await onSaved(`Venta registrada por ${money.format(sale.total)}.`);
+    } finally {
+      setSubmitting(false);
+    }
   };
   const cancelSale = async () => {
     if (!saleToCancel || !cancellationReason.trim()) return;
@@ -660,13 +703,13 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       <div className="stand-cart">
         {cart.map(item => {
           const product = products.find(value => value.id === item.productId);
-          return <div key={item.productId}><span>{product?.name}
+          return <div className="stand-cart__item" key={item.productId}><span>{product?.name}
             {product?.variant ? ` · ${product.variant}` : ""}</span>
             <small>{item.quantity} × {money.format(product?.price ?? 0)}</small>
             <strong>{money.format((product?.price ?? 0) * item.quantity)}</strong>
-            <button type="button" aria-label="Quitar producto"
+            <button type="button" aria-label="Quitar producto del carrito"
               onClick={() => setCart(current => current.filter(value =>
-                value.productId !== item.productId))}><FiX /></button></div>;
+                value.productId !== item.productId))}><FiX /> Cancelar</button></div>;
         })}
         {cart.length === 0 && <p>El carrito está vacío.</p>}
       </div>
@@ -689,8 +732,10 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         </div>
       </div>
       <footer><div><span>Total</span><strong>{money.format(total)}</strong></div>
-        <button type="submit" disabled={stand.status !== "OPEN" || cart.length === 0}>
-          <FiCheckCircle /> Confirmar venta</button></footer>
+        <button type="submit"
+          disabled={stand.status !== "OPEN" || cart.length === 0 || submitting}>
+          {submitting ? <><FiRefreshCw className="stand-button-spinner" /> Registrando…</>
+            : <><FiCheckCircle /> Confirmar venta</>}</button></footer>
     </form>
     <section className="stand-recent-sales"><header><div><h3>Historial de ventas</h3>
       <small>Más recientes primero · {sales.length} registros</small></div></header>
