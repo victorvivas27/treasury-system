@@ -48,7 +48,8 @@ public final class TreasuryDtos {
       String studentName, String course, String primaryGuardian, ContributionResponse cepa,
       ContributionResponse solidarity) { }
   public record ProfileResponse(Long familyId, String familyCode, String studentName,
-      String guardianPhone, String relationship, boolean primaryGuardian, PaymentMode mode,
+      String studentMessage, String guardianPhone, String relationship,
+      boolean primaryGuardian, PaymentMode mode,
       List<ObligationResponse> obligations, ContributionResponse cepa,
       ContributionResponse solidarity) { }
   public record ContributionSummaryResponse(long totalFamilies, long cepaPaid,
