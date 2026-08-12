@@ -9,6 +9,8 @@ public interface GetApoderadoUseCase {
 
     Apoderado findByCodigo(String codigo);
 
+    Apoderado findByEmail(String email);
+
     PageResponse<Apoderado> findAll(PageRequest pageRequest);
 
     //List<Apoderado> findByApoderadoIds(List<Long> apoderadoIds);

@@ -40,6 +40,11 @@ public class JpaApoderadoRepositoryAdapter implements ApoderadoRepositoryOutPort
     }
 
     @Override
+    public Optional<Apoderado> findByEmail(String email) {
+        return jpaRepository.findByEmail(email).map(persistenceMapper::toDomain);
+    }
+
+    @Override
     public Optional<Apoderado> findById(Long apoderadoId) {
         return jpaRepository.findById(apoderadoId).map(persistenceMapper::toDomain);
     }

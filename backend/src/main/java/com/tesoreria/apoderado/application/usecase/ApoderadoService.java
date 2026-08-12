@@ -46,6 +46,12 @@ public class ApoderadoService implements
     }
 
     @Override
+    public Apoderado findByEmail(String email) {
+        return repository.findByEmail(email.toLowerCase(java.util.Locale.ROOT))
+                .orElseThrow(() -> apoderadoNoEncontrado(email));
+    }
+
+    @Override
     public PageResponse<Apoderado> findAll(PageRequest pageRequest) {
         return repository.findAll(pageRequest);
     }

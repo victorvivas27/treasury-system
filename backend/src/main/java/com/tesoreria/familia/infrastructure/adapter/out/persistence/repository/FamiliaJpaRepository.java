@@ -8,12 +8,38 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long> {
 
     Optional<FamiliaEntity> findByAlumnoId(Long alumnoId);
 
     boolean existsByAlumnoId(Long alumnoId);
+
+    @Query("select distinct f from FamiliaEntity f join f.apoderados a where a.apoderadoId = :guardianId")
+    Optional<FamiliaEntity> findByGuardianId(@Param("guardianId") Long guardianId);
+
+    @Query(value = """
+            SELECT f.familia_id AS familyId, f.codigo AS familyCode,
+                   a.alumno_id AS studentId, a.nombre AS studentName, a.curso AS course,
+                   ap.nombre AS primaryGuardian
+            FROM familias f
+            JOIN alumnos a ON a.alumno_id = f.alumno_id
+            LEFT JOIN familia_apoderados fa
+                   ON fa.familia_id = f.familia_id AND fa.es_principal = TRUE
+            LEFT JOIN apoderados ap ON ap.apoderado_id = fa.apoderado_id
+            ORDER BY f.codigo
+            """, nativeQuery = true)
+    List<FamilyTreasuryView> findTreasuryData();
+
+    interface FamilyTreasuryView {
+        Long getFamilyId();
+        String getFamilyCode();
+        Long getStudentId();
+        String getStudentName();
+        String getCourse();
+        String getPrimaryGuardian();
+    }
 
     @Query(value = """
             SELECT DISTINCT f.* FROM familias f
