@@ -45,6 +45,18 @@ class JwtServiceTest {
     }
 
     @Test
+    void parseToken_deberiaPermitirValidarClaimsYaVerificados() {
+        String token = jwtService.generateToken(userDetails);
+
+        JwtService.ParsedToken parsedToken = jwtService.parseToken(token);
+
+        assertEquals("admin@mail.com", parsedToken.username());
+        assertNotNull(parsedToken.issuedAt());
+        assertNotNull(parsedToken.expiresAt());
+        assertTrue(jwtService.isTokenValid(parsedToken, userDetails));
+    }
+
+    @Test
     void constructor_deberiaRechazarSecretCorto() {
         assertThrows(IllegalArgumentException.class, () -> new JwtService("short", 60_000L));
     }
