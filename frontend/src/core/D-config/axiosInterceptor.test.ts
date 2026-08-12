@@ -91,4 +91,26 @@ describe("configureAxiosInterceptors", () => {
     expect(config.headers.Authorization).toBe("Bearer token-renovado");
     expect(request).toHaveBeenCalledWith(config);
   });
+
+  it("reintenta una sola vez una lectura que falla por red", async () => {
+    request.mockResolvedValue({ data: [] });
+    const config = { method: "get", url: "/tesoreria/eventos", headers: {} };
+
+    await rejectResponse({ code: "ERR_NETWORK", config });
+
+    expect(request).toHaveBeenCalledOnce();
+    expect(request).toHaveBeenCalledWith(config);
+    expect(config).toMatchObject({ _networkRetry: true });
+
+    await expect(rejectResponse({ code: "ERR_NETWORK", config })).rejects.toBeDefined();
+    expect(request).toHaveBeenCalledOnce();
+  });
+
+  it("no reintenta escrituras aunque fallen por timeout", async () => {
+    const config = { method: "post", url: "/tesoreria/stands", headers: {} };
+
+    await expect(rejectResponse({ code: "ECONNABORTED", config })).rejects.toBeDefined();
+
+    expect(request).not.toHaveBeenCalled();
+  });
 });

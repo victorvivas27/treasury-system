@@ -10,13 +10,13 @@ escalar horizontalmente; antes de habilitar múltiples instancias se debe reempl
 
 ## Inventario implementado
 
-| Caché | Método | Clave | TTL | Invalidación |
-| --- | --- | --- | ---: | --- |
-| `annualFeeConfigurations` | `listConfigs()` | `all` | 30 min | guardar configuración anual |
-| `annualFeeConfigurationByYear` | `getConfig(year)` | año | 30 min | guardar configuración anual |
-| `contributionConfigurations` | `listContributionConfigs(year)` | año | 30 min | guardar configuración de aporte |
-| `treasuryDashboardOverview` | `dashboardOverview(year)` | año | 1 min | cambios de cuotas, pagos, ingresos, egresos, aportes o auditoría |
-| `contributionSummary` | `contributionSummary(year)` | año | 1 min | cambios de aportes, su configuración o familias |
+| Caché                          | Método                          | Clave |    TTL | Invalidación                                                     |
+|--------------------------------|---------------------------------|-------|-------:|------------------------------------------------------------------|
+| `annualFeeConfigurations`      | `listConfigs()`                 | `all` | 30 min | guardar configuración anual                                      |
+| `annualFeeConfigurationByYear` | `getConfig(year)`               | año   | 30 min | guardar configuración anual                                      |
+| `contributionConfigurations`   | `listContributionConfigs(year)` | año   | 30 min | guardar configuración de aporte                                  |
+| `treasuryDashboardOverview`    | `dashboardOverview(year)`       | año   |  1 min | cambios de cuotas, pagos, ingresos, egresos, aportes o auditoría |
+| `contributionSummary`          | `contributionSummary(year)`     | año   |  1 min | cambios de aportes, su configuración o familias                  |
 
 Los límites de tamaño y TTL están centralizados en `CacheConfig`. `sync = true` evita que varias
 peticiones concurrentes calculen simultáneamente una clave ausente. Las estadísticas internas de

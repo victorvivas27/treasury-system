@@ -53,12 +53,24 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
   client.interceptors.response.use(
     (response) => response,
     async (error) => {
+      const requestConfig = error.config as
+        | (typeof error.config & { _authRetry?: boolean; _networkRetry?: boolean })
+        | undefined;
+      const isSafeRead = requestConfig?.method?.toLowerCase() === "get";
+      const isTransientNetworkFailure = !error.response
+        && ["ECONNABORTED", "ETIMEDOUT", "ERR_NETWORK"].includes(error.code);
+
+      // Una lectura puede coincidir con el arranque en frío de Cloud Run/Neon. Reintentar
+      // una sola vez evita dejar las vistas vacías sin duplicar operaciones de escritura.
+      if (requestConfig && isSafeRead && isTransientNetworkFailure
+          && !requestConfig._networkRetry) {
+        requestConfig._networkRetry = true;
+        return client.request(requestConfig);
+      }
+
       if (error.response?.status === 401) {
         const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);
         const failedToken = requestToken(error.config?.headers?.Authorization);
-        const requestConfig = error.config as
-          | (typeof error.config & { _authRetry?: boolean })
-          | undefined;
         const isAuthRequest = requestConfig?.url?.includes("/auth/") ?? false;
 
         // Un 401 anterior al login o perteneciente a otro token no debe

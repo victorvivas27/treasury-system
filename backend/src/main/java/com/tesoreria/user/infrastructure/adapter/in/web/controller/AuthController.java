@@ -21,9 +21,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.net.InetAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -31,6 +28,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 @RestController
 @RequestMapping(ApiConstants.AUTH)
@@ -222,7 +223,7 @@ public class AuthController {
     private boolean validBootstrapKey(String key) {
         return key != null && !bootstrapAdminKey.isBlank()
                 && MessageDigest.isEqual(key.getBytes(StandardCharsets.UTF_8),
-                    bootstrapAdminKey.getBytes(StandardCharsets.UTF_8));
+                bootstrapAdminKey.getBytes(StandardCharsets.UTF_8));
     }
 
     private boolean isLocalBootstrapRequest(HttpServletRequest request) {

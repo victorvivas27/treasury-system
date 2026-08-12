@@ -200,10 +200,10 @@ public class AccountRecoveryService {
         if (rawToken == null || rawToken.isBlank()) throw invalidToken();
         String tokenHash = hash(rawToken);
         UserTokenEntity token = tokens.findByTokenHashAndType(
-                tokenHash, UserTokenType.PASSWORD_RESET)
-            .or(() -> tokens.findByTokenHashAndType(
-                tokenHash, UserTokenType.ACCOUNT_INVITATION))
-            .orElseThrow(this::invalidToken);
+                        tokenHash, UserTokenType.PASSWORD_RESET)
+                .or(() -> tokens.findByTokenHashAndType(
+                        tokenHash, UserTokenType.ACCOUNT_INVITATION))
+                .orElseThrow(this::invalidToken);
         if (token.getUsedAt() != null) throw invalidToken();
         if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new DomainException(UserErrorCode.TOKEN_EXPIRED.getField(),

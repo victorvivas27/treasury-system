@@ -13,22 +13,22 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("dev")
 public class UserTokenSchemaMigration implements ApplicationRunner {
-  private final JdbcTemplate jdbc;
+    private final JdbcTemplate jdbc;
 
-  public UserTokenSchemaMigration(JdbcTemplate jdbc) {
-    this.jdbc = jdbc;
-  }
+    public UserTokenSchemaMigration(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
 
-  @Override
-  public void run(ApplicationArguments args) {
-    jdbc.execute("""
-        ALTER TABLE user_tokens
-        DROP CONSTRAINT IF EXISTS user_tokens_type_check
-        """);
-    jdbc.execute("""
-        ALTER TABLE user_tokens
-        ADD CONSTRAINT user_tokens_type_check
-        CHECK (type IN ('EMAIL_VERIFICATION', 'PASSWORD_RESET', 'ACCOUNT_INVITATION'))
-        """);
-  }
+    @Override
+    public void run(ApplicationArguments args) {
+        jdbc.execute("""
+                ALTER TABLE user_tokens
+                DROP CONSTRAINT IF EXISTS user_tokens_type_check
+                """);
+        jdbc.execute("""
+                ALTER TABLE user_tokens
+                ADD CONSTRAINT user_tokens_type_check
+                CHECK (type IN ('EMAIL_VERIFICATION', 'PASSWORD_RESET', 'ACCOUNT_INVITATION'))
+                """);
+    }
 }

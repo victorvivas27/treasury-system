@@ -23,18 +23,22 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountRecoveryServiceTest {
-    @Mock private UserRepositoryOutPort users;
-    @Mock private UserTokenJpaRepository tokens;
-    @Mock private EmailOutPort email;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private AuthFlowRateLimiter rateLimiter;
-    @Mock private TokenRevocationService revocationService;
+    @Mock
+    private UserRepositoryOutPort users;
+    @Mock
+    private UserTokenJpaRepository tokens;
+    @Mock
+    private EmailOutPort email;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private AuthFlowRateLimiter rateLimiter;
+    @Mock
+    private TokenRevocationService revocationService;
     private AccountRecoveryService service;
 
     @BeforeEach

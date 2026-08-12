@@ -5,13 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record AnnualFeeConfig(
-    Long id,
-    int year,
-    BigDecimal annualAmount,
-    AllowedPaymentMode allowedMode,
-    LocalDate annualDueDate,
-    LocalDate firstDueDate,
-    LocalDate secondDueDate,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt) {
+        Long id,
+        int year,
+        BigDecimal annualAmount,
+        AllowedPaymentMode allowedMode,
+        LocalDate annualDueDate,
+        LocalDate firstDueDate,
+        LocalDate secondDueDate,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 }

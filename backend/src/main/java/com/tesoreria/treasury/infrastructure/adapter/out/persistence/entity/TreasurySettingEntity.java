@@ -14,10 +14,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class TreasurySettingEntity {
-  @Id
-  @Column(name = "setting_key", length = 80)
-  private String key;
+    @Id
+    @Column(name = "setting_key", length = 80)
+    private String key;
 
-  @Column(name = "setting_value", nullable = false, length = 120)
-  private String value;
+    @Column(name = "setting_value", nullable = false, length = 120)
+    private String value;
 }
