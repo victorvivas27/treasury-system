@@ -16,40 +16,70 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+
     private final SecretKey key;
     private final long expirationMs;
 
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.expiration-ms:" + SecurityConstants.TOKEN_EXPIRATION_MS + "}") long expirationMs) {
+
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            throw new IllegalArgumentException("JWT_SECRET debe tener al menos 32 caracteres");
+            throw new IllegalArgumentException(
+                    "JWT_SECRET debe tener al menos 32 caracteres");
         }
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
+        this.key = Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8));
+
         this.expirationMs = expirationMs;
     }
 
     public String generateToken(UserDetails userDetails) {
+
         Date now = new Date();
+
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
-                .claim("authorities", userDetails.getAuthorities().stream()
-                        .map(Object::toString)
-                        .toList())
+                .claim(
+                        "authorities",
+                        userDetails.getAuthorities()
+                                .stream()
+                                .filter(authority -> authority != null)
+                                .map(authority -> authority.getAuthority())
+                                .filter(authority -> authority != null)
+                                .toList())
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + expirationMs))
+                .setExpiration(
+                        new Date(now.getTime() + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(
+                token,
+                claims -> claims.getSubject());
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        return userDetails.getUsername().equalsIgnoreCase(extractUsername(token))
-                && extractExpiration(token).after(new Date());
+    public ParsedToken parseToken(String token) {
+        Claims claims = parseClaims(token);
+        return new ParsedToken(claims.getSubject(), claims.getIssuedAt(), claims.getExpiration());
+    }
+
+    public boolean isTokenValid(
+            String token,
+            UserDetails userDetails) {
+        return isTokenValid(parseToken(token), userDetails);
+    }
+
+    public boolean isTokenValid(
+            ParsedToken token,
+            UserDetails userDetails) {
+        return token.username() != null
+                && userDetails.getUsername().equalsIgnoreCase(token.username())
+                && token.expiresAt().after(new Date());
     }
 
     public long getExpirationMs() {
@@ -57,19 +87,31 @@ public class JwtService {
     }
 
     public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        return extractClaim(
+                token,
+                claims -> claims.getExpiration());
     }
 
     public Date extractIssuedAt(String token) {
-        return extractClaim(token, Claims::getIssuedAt);
+        return extractClaim(
+                token,
+                claims -> claims.getIssuedAt());
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> resolver) {
-        Claims claims = Jwts.parserBuilder()
+    private <T> T extractClaim(
+            String token,
+            Function<Claims, T> resolver) {
+        return resolver.apply(parseClaims(token));
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return resolver.apply(claims);
+    }
+
+    public record ParsedToken(String username, Date issuedAt, Date expiresAt) {
     }
 }

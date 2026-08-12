@@ -51,15 +51,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
-            String username = jwtService.extractUsername(token);
-            if (revocationService.isUserRevokedAfter(username, jwtService.extractIssuedAt(token))) {
+            JwtService.ParsedToken parsedToken = jwtService.parseToken(token);
+            String username = parsedToken.username();
+            if (revocationService.isUserRevokedAfter(username, parsedToken.issuedAt())) {
                 SecurityContextHolder.clearContext();
                 filterChain.doFilter(request, response);
                 return;
             }
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtService.isTokenValid(token, userDetails)) {
+                if (jwtService.isTokenValid(parsedToken, userDetails)) {
                     var authentication = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
