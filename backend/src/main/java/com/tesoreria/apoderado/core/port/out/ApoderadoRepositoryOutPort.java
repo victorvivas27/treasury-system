@@ -13,6 +13,8 @@ public interface ApoderadoRepositoryOutPort {
 
     Optional<Apoderado> findByCodigo(String codigo);
 
+    Optional<Apoderado> findByEmail(String email);
+
     Optional<Apoderado> findById(Long apoderadoId);
 
     List<Apoderado> findAllByIds(List<Long> apoderadoIds);

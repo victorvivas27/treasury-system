@@ -192,8 +192,7 @@ class StandServiceTest {
                 item(10L, "Café", 2, "1500"));
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
         when(stands.save(stand)).thenReturn(stand);
-        when(stands.findByEventIdOrderByDateDesc(7L)).thenReturn(List.of(stand));
-        when(sales.findByStandIdOrderBySoldAtDesc(3L)).thenReturn(List.of(cashSale));
+        when(sales.calculateEventNetRevenue(7L)).thenReturn(new BigDecimal("2600"));
         when(schoolEvents.get(7L)).thenReturn(event);
 
         service.close(3L);
@@ -279,8 +278,14 @@ class StandServiceTest {
         transferItem.setUnitEquivalence(new BigDecimal("0.125"));
         StandSaleEntity transferSale = sale(StandPaymentMethod.TRANSFER, "2000", transferItem);
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
-        when(sales.findByStandIdOrderBySoldAtDesc(3L))
-                .thenReturn(List.of(cashSale, debitSale, transferSale));
+        var saleTotals = List.of(
+                saleAggregate(StandPaymentMethod.CASH, "3000", 1),
+                saleAggregate(StandPaymentMethod.DEBIT, "5000", 1),
+                saleAggregate(StandPaymentMethod.TRANSFER, "2000", 1));
+        var itemTotals = List.of(
+                itemAggregate(cashItem), itemAggregate(debitItem), itemAggregate(transferItem));
+        when(sales.aggregateSales(3L)).thenReturn(saleTotals);
+        when(sales.aggregateItems(3L)).thenReturn(itemTotals);
         when(products.findByStandIdOrderByNameAscVariantAsc(3L)).thenReturn(List.of());
 
         StandService.StandSummary result = service.summary(3L);
@@ -296,6 +301,23 @@ class StandServiceTest {
                 () -> assertEquals(2, result.unitsByPresentation().get("Entera")),
                 () -> assertEquals(new BigDecimal("2.625"), result.equivalentUnits()),
                 () -> assertEquals(3, result.saleCount()), () -> assertEquals(4, result.unitsSold()));
+    }
+
+    @Test
+    void summary_deberiaMantenerCerosCuandoNoExistenVentas() {
+        when(stands.findById(3L)).thenReturn(Optional.of(stand));
+        when(sales.aggregateSales(3L)).thenReturn(List.of());
+        when(sales.aggregateItems(3L)).thenReturn(List.of());
+        when(products.findByStandIdOrderByNameAscVariantAsc(3L)).thenReturn(List.of());
+
+        StandService.StandSummary result = service.summary(3L);
+
+        assertAll(() -> assertEquals(BigDecimal.ZERO, result.totalSold()),
+                () -> assertEquals(BigDecimal.ZERO, result.totalCost()),
+                () -> assertEquals(new BigDecimal("20000"), result.expectedCash()),
+                () -> assertEquals(0, result.saleCount()),
+                () -> assertEquals(0, result.unitsSold()),
+                () -> assertTrue(result.salesByProduct().isEmpty()));
     }
 
     private StandSaleItemEmbeddable item(Long id, String name, int quantity, String price) {
@@ -318,5 +340,29 @@ class StandServiceTest {
         sale.setTotal(new BigDecimal(total));
         sale.setItems(List.of(item));
         return sale;
+    }
+
+    private StandSaleJpaRepository.SaleAggregate saleAggregate(
+            StandPaymentMethod method, String total, long count) {
+        StandSaleJpaRepository.SaleAggregate aggregate = mock(StandSaleJpaRepository.SaleAggregate.class);
+        when(aggregate.getPaymentMethod()).thenReturn(method);
+        when(aggregate.getTotal()).thenReturn(new BigDecimal(total));
+        when(aggregate.getSaleCount()).thenReturn(count);
+        return aggregate;
+    }
+
+    private StandSaleJpaRepository.ItemAggregate itemAggregate(StandSaleItemEmbeddable item) {
+        StandSaleJpaRepository.ItemAggregate aggregate = mock(StandSaleJpaRepository.ItemAggregate.class);
+        when(aggregate.getProductName()).thenReturn(item.getProductName());
+        when(aggregate.getCategory()).thenReturn(item.getCategory());
+        when(aggregate.getVariant()).thenReturn(item.getVariant());
+        when(aggregate.getPresentation()).thenReturn(item.getPresentation());
+        when(aggregate.getUnits()).thenReturn((long) item.getQuantity());
+        when(aggregate.getTotal()).thenReturn(item.getSubtotal());
+        when(aggregate.getCost()).thenReturn(item.getCostSubtotal());
+        BigDecimal equivalent = item.getUnitEquivalence() == null ? BigDecimal.ZERO
+                : item.getUnitEquivalence().multiply(BigDecimal.valueOf(item.getQuantity()));
+        when(aggregate.getEquivalentUnits()).thenReturn(equivalent);
+        return aggregate;
     }
 }

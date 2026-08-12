@@ -320,66 +320,51 @@ public class StandService {
     @Transactional(readOnly = true)
     public StandSummary summary(Long standId) {
         StandEntity stand = get(standId);
-        List<StandSaleEntity> allSales = sales.findByStandIdOrderBySoldAtDesc(standId).stream()
-                .filter(sale -> sale.getStatus() != StandSaleStatus.CANCELLED).toList();
-        BigDecimal total = allSales.stream().map(StandSaleEntity::getTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
         Map<StandPaymentMethod, BigDecimal> byMethod = Arrays.stream(StandPaymentMethod.values())
                 .collect(Collectors.toMap(method -> method, method -> BigDecimal.ZERO,
                         (left, right) -> left, LinkedHashMap::new));
-        allSales.forEach(sale -> byMethod.merge(
-                sale.getPaymentMethod(), sale.getTotal(), BigDecimal::add));
-        BigDecimal debitCommission = commission(byMethod.get(StandPaymentMethod.DEBIT),
-                stand.getDebitCommission());
-        BigDecimal creditCommission = commission(byMethod.get(StandPaymentMethod.CREDIT),
-                stand.getCreditCommission());
-        BigDecimal transferCommission = commission(byMethod.get(StandPaymentMethod.TRANSFER),
-                stand.getTransferCommission());
+        List<StandSaleJpaRepository.SaleAggregate> saleTotals = sales.aggregateSales(standId);
+        saleTotals.forEach(value -> byMethod.put(value.getPaymentMethod(), value.getTotal()));
+        BigDecimal total = byMethod.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal debitCommission = commission(byMethod.get(StandPaymentMethod.DEBIT), stand.getDebitCommission());
+        BigDecimal creditCommission = commission(byMethod.get(StandPaymentMethod.CREDIT), stand.getCreditCommission());
+        BigDecimal transferCommission = commission(byMethod.get(StandPaymentMethod.TRANSFER), stand.getTransferCommission());
         BigDecimal commissions = debitCommission.add(creditCommission).add(transferCommission);
-        BigDecimal totalCost = allSales.stream().flatMap(sale -> sale.getItems().stream())
-                .map(StandSaleItemEmbeddable::getCostSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        int units = allSales.stream().flatMap(sale -> sale.getItems().stream())
-                .mapToInt(StandSaleItemEmbeddable::getQuantity).sum();
+        BigDecimal totalCost = BigDecimal.ZERO;
+        int units = 0;
         Map<String, ProductSummary> productTotals = new LinkedHashMap<>();
         Map<String, BigDecimal> categoryTotals = new LinkedHashMap<>();
         Map<String, BigDecimal> variantTotals = new LinkedHashMap<>();
         Map<String, Integer> unitsByPresentation = new LinkedHashMap<>();
         BigDecimal equivalentUnits = BigDecimal.ZERO;
-        for (StandSaleEntity sale : allSales) {
-            for (StandSaleItemEmbeddable item : sale.getItems()) {
-                String key = item.getProductName() + "|" + Objects.toString(item.getCategory(), "")
-                        + "|" + Objects.toString(item.getVariant(), "");
-                productTotals.compute(key, (ignored, current) -> current == null
-                        ? new ProductSummary(item.getProductName(), item.getCategory(), item.getVariant(),
-                        item.getQuantity(), item.getSubtotal(), item.getCostSubtotal(),
-                        item.getSubtotal().subtract(item.getCostSubtotal()))
-                        : new ProductSummary(current.product(), current.category(), current.variant(),
-                        current.units() + item.getQuantity(), current.total().add(item.getSubtotal()),
-                        current.cost().add(item.getCostSubtotal()),
-                        current.profit().add(item.getSubtotal().subtract(item.getCostSubtotal()))));
-                categoryTotals.merge(Objects.toString(item.getCategory(), "Sin categoría"),
-                        item.getSubtotal(), BigDecimal::add);
-                variantTotals.merge(Objects.toString(item.getVariant(), "Sin variante"),
-                        item.getSubtotal(), BigDecimal::add);
-                if (item.getPresentation() != null) {
-                    unitsByPresentation.merge(item.getPresentation(), item.getQuantity(), Integer::sum);
-                }
-                if (item.getUnitEquivalence() != null) {
-                    equivalentUnits = equivalentUnits.add(item.getUnitEquivalence()
-                            .multiply(BigDecimal.valueOf(item.getQuantity())));
-                }
+        for (StandSaleJpaRepository.ItemAggregate item : sales.aggregateItems(standId)) {
+            String key = item.getProductName() + "|" + Objects.toString(item.getCategory(), "")
+                    + "|" + Objects.toString(item.getVariant(), "");
+            productTotals.compute(key, (ignored, current) -> current == null
+                    ? new ProductSummary(item.getProductName(), item.getCategory(), item.getVariant(),
+                    Math.toIntExact(item.getUnits()), item.getTotal(), item.getCost(), item.getTotal().subtract(item.getCost()))
+                    : new ProductSummary(current.product(), current.category(), current.variant(),
+                    current.units() + Math.toIntExact(item.getUnits()), current.total().add(item.getTotal()),
+                    current.cost().add(item.getCost()), current.profit().add(item.getTotal().subtract(item.getCost()))));
+            categoryTotals.merge(Objects.toString(item.getCategory(), "Sin categoría"), item.getTotal(), BigDecimal::add);
+            variantTotals.merge(Objects.toString(item.getVariant(), "Sin variante"), item.getTotal(), BigDecimal::add);
+            if (item.getPresentation() != null) {
+                unitsByPresentation.merge(item.getPresentation(), Math.toIntExact(item.getUnits()), Integer::sum);
             }
+            equivalentUnits = equivalentUnits.add(item.getEquivalentUnits());
+            totalCost = totalCost.add(item.getCost());
+            units += Math.toIntExact(item.getUnits());
         }
         List<StockAlert> alerts = products.findByStandIdOrderByNameAscVariantAsc(standId).stream()
                 .filter(product -> product.getCurrentStock() != null && product.getCurrentStock() <= 5)
                 .map(product -> new StockAlert(product.getId(), product.getName(), product.getVariant(),
                         product.getCurrentStock(), product.getCurrentStock() == 0)).toList();
-        BigDecimal cashExpected = stand.getInitialFund()
-                .add(byMethod.get(StandPaymentMethod.CASH));
+        BigDecimal cashExpected = stand.getInitialFund().add(byMethod.get(StandPaymentMethod.CASH));
+        int saleCount = Math.toIntExact(saleTotals.stream()
+                .mapToLong(StandSaleJpaRepository.SaleAggregate::getSaleCount).sum());
         return new StandSummary(total, byMethod, cashExpected, stand.getInitialFund(), totalCost,
                 commissions, debitCommission, creditCommission, transferCommission,
-                total.subtract(totalCost).subtract(commissions), allSales.size(), units,
+                total.subtract(totalCost).subtract(commissions), saleCount, units,
                 new ArrayList<>(productTotals.values()), categoryTotals, variantTotals, alerts,
                 unitsByPresentation, equivalentUnits);
     }
@@ -535,10 +520,7 @@ public class StandService {
     }
 
     private void synchronizeEventRevenue(Long eventId, LocalDate revenueDate) {
-        BigDecimal total = stands.findByEventIdOrderByDateDesc(eventId).stream()
-                .filter(value -> value.getStatus() == StandStatus.CLOSED)
-                .map(this::netRevenue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
+        BigDecimal total = sales.calculateEventNetRevenue(eventId)
                 .setScale(0, RoundingMode.HALF_UP);
         var schoolEvent = schoolEvents.get(eventId);
         if (total.signum() > 0) {
@@ -548,25 +530,6 @@ public class StandService {
         } else if (schoolEvent.getGrossRevenue() != null) {
             schoolEvents.deleteRevenue(eventId);
         }
-    }
-
-    private BigDecimal netRevenue(StandEntity stand) {
-        List<StandSaleEntity> activeSales = sales.findByStandIdOrderBySoldAtDesc(stand.getId()).stream()
-                .filter(sale -> sale.getStatus() != StandSaleStatus.CANCELLED).toList();
-        Map<StandPaymentMethod, BigDecimal> totals = new EnumMap<>(StandPaymentMethod.class);
-        activeSales.forEach(sale ->
-                totals.merge(sale.getPaymentMethod(), sale.getTotal(), BigDecimal::add));
-        BigDecimal gross = totals.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal commissions = commission(totals.getOrDefault(
-                StandPaymentMethod.DEBIT, BigDecimal.ZERO), stand.getDebitCommission())
-                .add(commission(totals.getOrDefault(
-                        StandPaymentMethod.CREDIT, BigDecimal.ZERO), stand.getCreditCommission()))
-                .add(commission(totals.getOrDefault(
-                        StandPaymentMethod.TRANSFER, BigDecimal.ZERO), stand.getTransferCommission()));
-        BigDecimal costs = activeSales.stream().flatMap(sale -> sale.getItems().stream())
-                .map(StandSaleItemEmbeddable::getCostSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return gross.subtract(costs).subtract(commissions);
     }
 
     private String clean(String value) {

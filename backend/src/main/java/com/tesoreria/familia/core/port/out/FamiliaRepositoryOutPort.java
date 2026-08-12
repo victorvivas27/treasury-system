@@ -1,6 +1,7 @@
 package com.tesoreria.familia.core.port.out;
 
 import com.tesoreria.familia.core.model.Familia;
+import com.tesoreria.familia.core.model.FamilyTreasuryData;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
@@ -15,6 +16,10 @@ public interface FamiliaRepositoryOutPort {
     Optional<Familia> findDetalleById(Long familiaId);
 
     Optional<Familia> findByAlumnoId(Long alumnoId);
+
+    Optional<Familia> findByGuardianId(Long guardianId);
+
+    java.util.List<FamilyTreasuryData> findTreasuryData();
 
     PageResponse<Familia> findAll(PageRequest pageRequest);
 

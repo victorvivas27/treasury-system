@@ -2,6 +2,7 @@ package com.tesoreria.familia.application.usecase;
 
 import com.tesoreria.familia.core.exception.FamiliaErrorCode;
 import com.tesoreria.familia.core.model.Familia;
+import com.tesoreria.familia.core.model.FamilyTreasuryData;
 import com.tesoreria.familia.core.port.in.CreateFamiliaUseCase;
 import com.tesoreria.familia.core.port.in.DeleteFamiliaUseCase;
 import com.tesoreria.familia.core.port.in.GetFamiliaUseCase;
@@ -42,6 +43,17 @@ public class FamiliaService implements
     public Familia obtenerFamiliaPorId(Long id) {
         return familiaRepository.findById(id)
                 .orElseThrow(() -> familiaNoEncontrada("No se encontro la familia con el ID provisto"));
+    }
+
+    @Override
+    public Familia obtenerFamiliaPorApoderadoId(Long apoderadoId) {
+        return familiaRepository.findByGuardianId(apoderadoId)
+                .orElseThrow(() -> familiaNoEncontrada("No se encontro una familia para el apoderado"));
+    }
+
+    @Override
+    public java.util.List<FamilyTreasuryData> obtenerDatosTesoreria() {
+        return familiaRepository.findTreasuryData();
     }
 
     @Override

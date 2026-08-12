@@ -1,6 +1,7 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.adapter;
 
 import com.tesoreria.familia.core.model.Familia;
+import com.tesoreria.familia.core.model.FamilyTreasuryData;
 import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaEntity;
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.mapper.FamiliaPersistenceMapper;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 @Transactional
@@ -47,6 +49,22 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
     @Transactional(readOnly = true)
     public Optional<Familia> findByAlumnoId(Long alumnoId) {
         return jpaRepository.findByAlumnoId(alumnoId).map(mapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Familia> findByGuardianId(Long guardianId) {
+        return jpaRepository.findByGuardianId(guardianId).map(mapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FamilyTreasuryData> findTreasuryData() {
+        return jpaRepository.findTreasuryData().stream()
+                .map(value -> new FamilyTreasuryData(value.getFamilyId(), value.getFamilyCode(),
+                        value.getStudentId(), value.getStudentName(), value.getCourse(),
+                        value.getPrimaryGuardian()))
+                .toList();
     }
 
     @Override
