@@ -38,7 +38,7 @@ public class Alumno {
     }
 
     public Alumno(Long alumnoId, String codigo, String nombre, String curso,
-            LocalDateTime createdAt, LocalDateTime updatedAt) {
+                  LocalDateTime createdAt, LocalDateTime updatedAt) {
         this(alumnoId, codigo, nombre, curso, null, createdAt, updatedAt);
     }
 

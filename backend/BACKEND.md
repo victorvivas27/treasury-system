@@ -4,7 +4,9 @@ API Java 17 con Spring Boot 4.0.6, WebMVC, Security, JPA, Flyway y Gradle. Los c
 
 ## Arquitectura
 
-Los módulos separan dominio y puertos (`core`), casos de uso (`application`), composición Spring (`config`) y adaptadores web/persistencia (`infrastructure`). `shared` centraliza paginación, CORS, excepciones y respuestas de error.
+Los módulos separan dominio y puertos (`core`), casos de uso (`application`), composición Spring (`config`) y
+adaptadores web/persistencia (`infrastructure`). `shared` centraliza paginación, CORS, excepciones y respuestas de
+error.
 
 Módulos actuales: Alumno, Apoderado, Familia, Usuario/autenticación, Tesorería, Eventos escolares y Stands.
 
@@ -36,7 +38,8 @@ No es necesario construir previamente. Para limpiar artefactos antes de iniciar:
 ./gradlew test
 ```
 
-La suite utiliza JUnit 5 y Mockito. Incluye pruebas unitarias, controladores con MockMvc standalone y una prueba de seguridad con `@SpringBootTest`/`@AutoConfigureMockMvc`.
+La suite utiliza JUnit 5 y Mockito. Incluye pruebas unitarias, controladores con MockMvc standalone y una prueba de
+seguridad con `@SpringBootTest`/`@AutoConfigureMockMvc`.
 
 ## PMD y JaCoCo
 
@@ -66,21 +69,24 @@ build/reports/tests/test/index.html
 ./gradlew check
 ```
 
-`check` ejecuta los tests, PMD para código principal y la verificación JaCoCo. No deben reducirse reglas, cobertura o exclusiones únicamente para hacer pasar el gate.
+`check` ejecuta los tests, PMD para código principal y la verificación JaCoCo. No deben reducirse reglas, cobertura o
+exclusiones únicamente para hacer pasar el gate.
 
 ## Comandos resumidos
 
-| Acción | Comando |
-| --- | --- |
-| Iniciar | `./gradlew bootRun` |
-| Tests | `./gradlew test` |
-| PMD | `./gradlew pmdMain` |
-| Cobertura | `./gradlew jacocoTestReport` |
-| Build ejecutable | `./gradlew bootJar` |
-| Quality gate | `./gradlew check` |
+| Acción           | Comando                      |
+|------------------|------------------------------|
+| Iniciar          | `./gradlew bootRun`          |
+| Tests            | `./gradlew test`             |
+| PMD              | `./gradlew pmdMain`          |
+| Cobertura        | `./gradlew jacocoTestReport` |
+| Build ejecutable | `./gradlew bootJar`          |
+| Quality gate     | `./gradlew check`            |
 
 En Windows usar `gradlew.bat` cuando el shell no ejecute `./gradlew`.
 
 ## Base de datos
 
-Flyway aplica `src/main/resources/db/migration/V1__create_initial_schema.sql` en producción antes de Hibernate `validate`. No editar migraciones aplicadas; agregar una versión posterior para cualquier cambio de esquema. Consulta [NEON_DEPLOYMENT.md](NEON_DEPLOYMENT.md) para PostgreSQL/Neon, Secret Manager y Cloud Run.
+Flyway aplica `src/main/resources/db/migration/V1__create_initial_schema.sql` en producción antes de Hibernate
+`validate`. No editar migraciones aplicadas; agregar una versión posterior para cualquier cambio de esquema.
+Consulta [NEON_DEPLOYMENT.md](NEON_DEPLOYMENT.md) para PostgreSQL/Neon, Secret Manager y Cloud Run.

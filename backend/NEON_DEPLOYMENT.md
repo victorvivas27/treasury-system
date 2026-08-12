@@ -35,14 +35,14 @@ ORDER BY installed_rank;
 Crear secretos sin escribir sus valores en comandos guardados, historiales o
 archivos del repositorio:
 
-| Secreto | Variable Cloud Run |
-| --- | --- |
-| `treasury-dev-db-user` | `DB_USER` |
-| `treasury-dev-db-password` | `DB_PASSWORD` |
-| `treasury-dev-jwt-secret` | `JWT_SECRET` |
+| Secreto                            | Variable Cloud Run    |
+|------------------------------------|-----------------------|
+| `treasury-dev-db-user`             | `DB_USER`             |
+| `treasury-dev-db-password`         | `DB_PASSWORD`         |
+| `treasury-dev-jwt-secret`          | `JWT_SECRET`          |
 | `treasury-dev-admin-bootstrap-key` | `ADMIN_BOOTSTRAP_KEY` |
-| `treasury-dev-gmail-user` | `GMAIL_USER` |
-| `treasury-dev-gmail-app-password` | `GMAIL_APP_PASSWORD` |
+| `treasury-dev-gmail-user`          | `GMAIL_USER`          |
+| `treasury-dev-gmail-app-password`  | `GMAIL_APP_PASSWORD`  |
 
 Los nombres usan caracteres permitidos por Secret Manager. Crear cada secreto
 desde la consola y añadir su valor como una versión. La cuenta runtime debe
