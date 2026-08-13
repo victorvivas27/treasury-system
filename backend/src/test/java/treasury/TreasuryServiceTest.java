@@ -362,6 +362,10 @@ class TreasuryServiceTest {
                 () -> assertEquals(new BigDecimal("15000"),
                         result.monthlyCashFlow().get(6).expense()),
                 () -> assertEquals("MATERIALS", result.expensesByCategory().get(0).category()),
+                () -> assertEquals("Materiales",
+                        result.expensesByDescription().get(0).description()),
+                () -> assertEquals("MATERIALS",
+                        result.expensesByDescription().get(0).category()),
                 () -> assertEquals(2, result.recentMovements().size()));
     }
 

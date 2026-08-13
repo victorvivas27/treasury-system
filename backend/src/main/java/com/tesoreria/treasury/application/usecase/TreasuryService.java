@@ -294,6 +294,14 @@ public class TreasuryService implements TreasuryUseCase {
                         TreasuryDashboardOverview.CategoryMetric::amount).reversed())
                 .toList();
 
+        List<TreasuryDashboardOverview.ExpenseMetric> expenseDetails = expenses.stream()
+                .filter(item -> item.status() == ExpenseStatus.ACTIVE)
+                .map(item -> new TreasuryDashboardOverview.ExpenseMetric(item.id(),
+                        item.description(), item.category().name(), item.amount()))
+                .sorted(java.util.Comparator.comparing(
+                        TreasuryDashboardOverview.ExpenseMetric::amount).reversed())
+                .toList();
+
         var ordinaryMovements = java.util.stream.Stream.concat(
                 incomes.stream().filter(item -> item.status() == IncomeStatus.ACTIVE)
                         .map(item -> new TreasuryDashboardOverview.RecentMovement(
@@ -326,7 +334,7 @@ public class TreasuryService implements TreasuryUseCase {
                 .toList();
 
         return new TreasuryDashboardOverview(quotas, financialSummary(year), monthly, statuses,
-                categories, recent, auditTrail);
+                categories, expenseDetails, recent, auditTrail);
     }
 
     @Override

@@ -32,6 +32,10 @@ const overview = {
   })),
   obligationStatus: [{ status: "PAGADA", count: 4 }, { status: "PENDIENTE", count: 2 }],
   expensesByCategory: [{ category: "MATERIALS", amount: 30000 }],
+  expensesByDescription: [
+    { id: 1, description: "Colaciones reunión", category: "FOOD", amount: 20000 },
+    { id: 2, description: "Cartulinas", category: "MATERIALS", amount: 10000 },
+  ],
   recentMovements: [{
     id: 1, type: "INGRESO", description: "Rifa escolar", amount: 100000,
     date: "2026-07-20", status: "ACTIVE",
@@ -78,8 +82,17 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Actividad reciente")).toBeInTheDocument();
     expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
     expect(screen.queryByText("Trazas de Tesorería")).not.toBeInTheDocument();
-    expect(screen.getByText("Cuotas pagadas y pendientes")).toBeInTheDocument();
-    expect(screen.getByText("Cuenta cuotas individuales del año, no apoderados.")).toBeInTheDocument();
+    expect(screen.getByText("Modalidad y avance de recaudación")).toBeInTheDocument();
+    expect(screen.getByText("Cuota única")).toBeInTheDocument();
+    expect(screen.getByText("Dos cuotas")).toBeInTheDocument();
+    expect(screen.getByText("$140.000 de $210.000")).toBeInTheDocument();
+    expect(screen.getByText("67% recaudado")).toBeInTheDocument();
+    expect(screen.getByText("4 de 6 cuotas pagadas")).toBeInTheDocument();
+    expect(screen.getByText("¿En qué se gastó?")).toBeInTheDocument();
+    expect(screen.getByText("Colaciones reunión")).toBeInTheDocument();
+    expect(screen.getByText("Alimentación")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Avance de recaudación" }))
+      .toHaveAttribute("aria-valuenow", "67");
   });
 
   it("pagina la actividad reciente de cinco en cinco", async () => {
