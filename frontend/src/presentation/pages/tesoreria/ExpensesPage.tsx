@@ -14,6 +14,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
 import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
+import { chileDate } from "@/shared/date/chileDateTime";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   EXPENSE_CATEGORIES, EXPENSE_PAYMENT_METHODS,
@@ -31,7 +32,7 @@ const emptySummary: FinancialSummary = {
   schoolYear: 2026, feeIncome: 0, otherIncome: 0,
   totalIncome: 0, totalExpenses: 0, availableBalance: 0,
 };
-const today = new Date().toISOString().slice(0, 10);
+const today = chileDate();
 const initialForm = (year: number): ExpensePayload => ({
   schoolYear: year, description: "", amount: 0, expenseDate: today,
   category: "MATERIALS",

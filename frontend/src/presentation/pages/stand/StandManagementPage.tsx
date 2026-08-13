@@ -15,6 +15,7 @@ import { StandUseCases } from "@/core/B-application/use-cases/stand/StandUseCase
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import "./StandManagementPage.css";
 
 const eventsRepository = new TreasuryRepositoryImpl();
@@ -780,9 +781,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         {visibleSales.map(sale => <article key={sale.id}
           className={sale.status === "CANCELLED" ? "is-cancelled" : ""}>
           <div><strong>Venta #{sale.id}</strong><span>
-            {new Date(sale.soldAt).toLocaleTimeString("es-CL", {
-              hour: "2-digit", minute: "2-digit",
-            })}</span></div>
+            {chileTime(sale.soldAt)}</span></div>
           <p>{sale.items.map(item => `${item.quantity}× ${item.productName}`).join(", ")}</p>
           {sale.status === "CANCELLED" && <p className="stand-sale-cancelled">
             Anulada · {sale.cancellationReason}</p>}
@@ -1040,7 +1039,7 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
   if (stand && !standNames.includes(stand.name)) standNames.push(stand.name);
   const [form, setForm] = useState({
     name: stand?.name ?? standNames[0] ?? "",
-    date: stand?.date ?? event?.eventDate ?? new Date().toISOString().slice(0, 10),
+    date: stand?.date ?? event?.eventDate ?? chileDate(),
     startTime: stand?.startTime.slice(0, 5) ?? "09:00",
     endTime: stand?.endTime.slice(0, 5) ?? "18:00",
     responsible: stand?.responsible ?? "", initialFund: String(stand?.initialFund ?? 0),

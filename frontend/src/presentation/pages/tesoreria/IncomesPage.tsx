@@ -14,6 +14,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
 import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
+import { chileDate } from "@/shared/date/chileDateTime";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   INCOME_CATEGORIES, INCOME_PAYMENT_METHODS, incomeCategoryLabel, incomePaymentLabel,
@@ -24,7 +25,7 @@ import "./IncomesSkeleton.css";
 
 const repository = new TreasuryRepositoryImpl();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
-const today = new Date().toISOString().slice(0, 10);
+const today = chileDate();
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
 });

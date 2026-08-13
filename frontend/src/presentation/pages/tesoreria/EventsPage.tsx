@@ -7,13 +7,14 @@ import type { EventSettlement, SchoolEvent,
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
+import { chileDate } from "@/shared/date/chileDateTime";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./EventsPage.css";
 
 const repository = new TreasuryRepositoryImpl();
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP",
   maximumFractionDigits: 0 });
-const today = new Date().toISOString().slice(0, 10);
+const today = chileDate();
 const schoolYears = Array.from({ length: 10 }, (_, index) => 2026 + index);
 const EVENTS_PAGE_SIZE = 2;
 const statusLabel: Record<string, string> = {

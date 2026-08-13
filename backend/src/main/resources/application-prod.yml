@@ -33,6 +33,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          time_zone: ${APP_TIME_ZONE:America/Santiago}
 
   h2:
     console:
