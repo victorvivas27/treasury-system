@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
+import org.jspecify.annotations.NullMarked;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@NullMarked
 public class TreasuryService implements TreasuryUseCase {
     private static final int MIN_YEAR = 2000;
     private static final String INVALID_SCHOOL_YEAR_MESSAGE = "El año escolar es inválido";

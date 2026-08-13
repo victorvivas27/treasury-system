@@ -1,5 +1,7 @@
 package stand;
 
+import org.jspecify.annotations.NullMarked;
+
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.stand.application.usecase.StandService;
 import com.tesoreria.stand.core.model.StandPaymentMethod;
@@ -33,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
+@NullMarked
 class StandServiceTest {
     @Mock
     StandJpaRepository stands;

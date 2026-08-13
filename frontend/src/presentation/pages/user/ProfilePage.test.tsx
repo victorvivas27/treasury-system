@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "@/presentation/context/AuthContext";
-import { ProfilePage } from "./ProfilePage";
+import { clearProfileCache, ProfilePage } from "./ProfilePage";
 
 const profile = vi.hoisted(() => vi.fn());
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
@@ -27,6 +27,7 @@ const baseProfile = {
 
 describe("ProfilePage", () => {
   beforeEach(() => {
+    clearProfileCache();
     vi.mocked(useAuth).mockReturnValue({
       user: {
         id: 1, code: "USR-001", nombre: "Juan Díaz", correo: "juandiaz@mail.com",
@@ -41,6 +42,28 @@ describe("ProfilePage", () => {
   afterEach(() => vi.clearAllMocks());
 
   const renderProfile = () => render(<MemoryRouter><ProfilePage /></MemoryRouter>);
+
+  it("muestra un skeleton con la estructura del perfil familiar", () => {
+    profile.mockReturnValue(new Promise(() => undefined));
+    const { container } = renderProfile();
+
+    expect(container.querySelector(".profile-family-skeleton")).toBeInTheDocument();
+    expect(container.querySelector(".profile-badge-skeleton")).toBeInTheDocument();
+    expect(container.querySelector(".profile-student-message-skeleton")).toBeInTheDocument();
+    expect(container.querySelectorAll(".profile-contribution-skeleton")).toHaveLength(2);
+    expect(container.querySelectorAll(".profile-payment-skeleton .profile-course-installments > span"))
+      .toHaveLength(2);
+  });
+
+  it("reutiliza durante un minuto el perfil cargado para el mismo usuario y aÃ±o", async () => {
+    const first = renderProfile();
+    expect(await screen.findByText("Apoderado principal")).toBeInTheDocument();
+    first.unmount();
+
+    renderProfile();
+    expect(await screen.findByText("Apoderado principal")).toBeInTheDocument();
+    expect(profile).toHaveBeenCalledTimes(1);
+  });
 
   it("muestra los datos reales de cuenta y familia", async () => {
     renderProfile();

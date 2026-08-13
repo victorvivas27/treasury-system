@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.jspecify.annotations.NullMarked;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -31,6 +32,7 @@ import static com.tesoreria.treasury.infrastructure.adapter.in.web.dto.TreasuryD
 
 @RestController
 @RequestMapping(ApiConstants.TREASURY)
+@NullMarked
 public class TreasuryController {
     private static final String ADMIN_ROLE = "hasRole('ADMIN')";
     private final TreasuryUseCase treasury;
