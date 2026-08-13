@@ -29,6 +29,7 @@ server:
     context-path: /tesoreria
 
 app:
+  time-zone: ${APP_TIME_ZONE:America/Santiago}
   treasury:
     managed-course: ${TREASURY_MANAGED_COURSE:1A}
   bootstrap:
