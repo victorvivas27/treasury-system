@@ -10,6 +10,7 @@ import com.tesoreria.familia.core.port.in.GetFamiliaUseCase;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.cache.CacheNames;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
@@ -36,13 +37,16 @@ public class TreasuryController {
     private final GetFamiliaUseCase families;
     private final AlumnoService students;
     private final GetApoderadoUseCase guardians;
+    private final DashboardPerformanceProbe performanceProbe;
 
     public TreasuryController(TreasuryUseCase treasury, GetFamiliaUseCase families,
-                              AlumnoService students, GetApoderadoUseCase guardians) {
+                              AlumnoService students, GetApoderadoUseCase guardians,
+                              DashboardPerformanceProbe performanceProbe) {
         this.treasury = treasury;
         this.families = families;
         this.students = students;
         this.guardians = guardians;
+        this.performanceProbe = performanceProbe;
     }
 
     @GetMapping("/configuraciones")
@@ -128,16 +132,26 @@ public class TreasuryController {
 
     @GetMapping("/dashboard/overview")
     public TreasuryDashboardOverview dashboardOverview(@RequestParam int year) {
-        TreasuryDashboardOverview overview = treasury.dashboardOverview(year);
-        if (overview.quotas().totalFamilies() == 0) return overview;
+        DashboardPerformanceProbe.Measurement measurement = performanceProbe.start(year);
+        try {
+            long startedAt = DashboardPerformanceProbe.now();
+            TreasuryDashboardOverview overview = treasury.dashboardOverview(year);
+            performanceProbe.phase(measurement, "dashboardOverview", startedAt);
+            if (overview.quotas().totalFamilies() == 0) return overview;
 
-        Set<Long> existingFamilyIds = treasuryFamilies().keySet();
-        List<FamilyFeePlan> validPlans = treasury.listPlans(year).stream()
+            startedAt = DashboardPerformanceProbe.now();
+            Set<Long> existingFamilyIds = treasuryFamilies().keySet();
+            performanceProbe.phase(measurement, "listarFamilia", startedAt);
+            startedAt = DashboardPerformanceProbe.now();
+            List<FamilyFeePlan> validPlans = treasury.listPlans(year).stream()
                 .filter(plan -> existingFamilyIds.contains(plan.familyId())).toList();
-        Set<Long> validPlanIds = validPlans.stream().map(FamilyFeePlan::id)
+            performanceProbe.phase(measurement, "listPlans", startedAt);
+            Set<Long> validPlanIds = validPlans.stream().map(FamilyFeePlan::id)
                 .collect(java.util.stream.Collectors.toSet());
-        List<FeeObligation> validObligations = treasury.listObligations(year).stream()
+            startedAt = DashboardPerformanceProbe.now();
+            List<FeeObligation> validObligations = treasury.listObligations(year).stream()
                 .filter(item -> validPlanIds.contains(item.planId())).toList();
+            performanceProbe.phase(measurement, "listObligations", startedAt);
 
         long paid = validObligations.stream()
                 .filter(item -> item.status() == ObligationStatus.PAGADA).count();
@@ -160,8 +174,11 @@ public class TreasuryController {
         List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
                 new TreasuryDashboardOverview.StatusMetric("PAGADA", paid),
                 new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
-        return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
+            return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
                 overview.expensesByCategory(), overview.recentMovements(), overview.auditTrail());
+        } finally {
+            performanceProbe.finish(measurement);
+        }
     }
 
     @DeleteMapping("/auditoria")
