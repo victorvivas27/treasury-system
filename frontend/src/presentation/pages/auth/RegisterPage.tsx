@@ -5,6 +5,7 @@ import { UserForm } from "@/presentation/features/user/UserForm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { useNavigate } from "react-router-dom";
+import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 
 export const RegisterPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
@@ -30,11 +31,7 @@ export const RegisterPage = () => {
   return (
     <main className="form-page-container register-page">
       <header className="form-page-header">
-        <img
-          className="login-brand-logo"
-          src="/Tesoreria.png"
-          alt="Logo del Sistema de Tesorería"
-        />
+        <BrandLogo className="login-brand-logo" />
         <h1 className="form-page-header__title">Regístrate como usuario</h1>
         <p className="form-page-header__subtitle">Accede al Sistema de Tesorería</p>
       </header>

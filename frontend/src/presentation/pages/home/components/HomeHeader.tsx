@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
+import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "../style/HomeHeader.css";
 
 export const HomeHeader = () => (
   <header className="public-home__header">
     <Link className="public-home__brand" to="/" aria-label="Sistema de Tesorería, inicio">
-      <img src="/Tesoreria.png" alt="" />
+      <BrandLogo alt="" />
       <span>Sistema de Tesorería</span>
     </Link>
     <nav className="public-home__nav" aria-label="Acceso a la plataforma">

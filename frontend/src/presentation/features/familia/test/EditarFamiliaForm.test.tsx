@@ -75,10 +75,23 @@ describe("EditarFamiliaForm", () => {
   it("[EditarFamiliaForm #01] Debe mostrar todos los apoderados de la familia", () => {
     render(<EditarFamiliaForm />);
 
-    expect(screen.getByText("MARIA PEREZ (AP-12345678)")).toBeInTheDocument();
-    expect(screen.getByText("PEDRO PEREZ (AP-87654321)")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Seleccionar apoderado 1" }))
+      .toHaveValue("1");
+    expect(screen.getByRole("combobox", { name: "Seleccionar apoderado 2" }))
+      .toHaveValue("2");
     expect(screen.getAllByRole("button", { name: /parentesco del apoderado/i })).toHaveLength(2);
     expect(screen.getAllByRole("radio")).toHaveLength(2);
+  });
+
+  it("[EditarFamiliaForm #02.1] permite reemplazar y quitar apoderados existentes", () => {
+    render(<EditarFamiliaForm />);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Seleccionar apoderado 1" }),
+      { target: { name: "apoderadoId", value: "3" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Quitar" })[1]);
+
+    expect(handleApoderadoChange).toHaveBeenCalledWith(0, expect.any(Object));
+    expect(removeApoderado).toHaveBeenCalledWith(1);
   });
 
   it("[EditarFamiliaForm #02] Debe permitir seleccionar al secundario como principal", () => {
