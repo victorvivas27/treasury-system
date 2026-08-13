@@ -16,6 +16,7 @@ import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./DashboardPage.css";
+import { loginPerformance } from "@/shared/performance/loginPerformance";
 
 const repository = new TreasuryRepositoryImpl();
 const currentYear = new Date().getFullYear();
@@ -55,6 +56,7 @@ export const DashboardPage = () => {
       ]);
       setData(overview);
       setContributions(contributionSummary);
+      loginPerformance.mark("dashboard-api");
       setSelectedAudits(new Set());
       setActivityPage(1);
       setAuditPage(1);
@@ -68,6 +70,9 @@ export const DashboardPage = () => {
   }, [year]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    if (!loading && data) requestAnimationFrame(() => loginPerformance.finish());
+  }, [loading, data]);
 
   const monthly = useMemo(() => data?.monthlyCashFlow.map(item => ({
     ...item, name: monthName(item.month),
