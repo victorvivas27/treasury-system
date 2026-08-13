@@ -72,6 +72,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   onSearchChange,
 }) => {
   const [selectedObservation, setSelectedObservation] = useState("");
+  const [observationAnchor, setObservationAnchor] = useState<{ top: number; left: number }>();
   const emptyRows = Math.max(pageSize - alumnos.length, 0);
 
   const rows: RowItem[] = loading
@@ -169,7 +170,21 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                       className="alumnos-table__observation-button"
                       aria-label={`Ver observación de ${alumno.nombre}`}
                       title="Ver observación"
-                      onClick={() => setSelectedObservation(alumno.observacion ?? "")}
+                      onClick={(event) => {
+                        const rect = event.currentTarget.getBoundingClientRect();
+                        const viewportPadding = 12;
+                        const modalWidth = Math.min(280, window.innerWidth - viewportPadding * 2);
+                        const estimatedModalHeight = 210;
+                        const gap = 8;
+                        const left = Math.min(window.innerWidth - modalWidth - viewportPadding,
+                          Math.max(viewportPadding, rect.left + rect.width / 2 - modalWidth / 2));
+                        const opensBelow = rect.bottom + gap + estimatedModalHeight
+                          <= window.innerHeight - viewportPadding;
+                        const top = opensBelow ? rect.bottom + gap
+                          : Math.max(viewportPadding, rect.top - estimatedModalHeight - gap);
+                        setObservationAnchor({ top, left });
+                        setSelectedObservation(alumno.observacion ?? "");
+                      }}
                     >
                       <FiMessageSquare aria-hidden="true" />
                     </button>
@@ -236,7 +251,11 @@ export const AlumnosList: FC<AlumnosListProps> = ({
         title="Observación del alumno"
         buttonLabel="Cerrar"
         autoCloseTime={0}
-        onClose={() => setSelectedObservation("")}
+        anchor={observationAnchor}
+        onClose={() => {
+          setSelectedObservation("");
+          setObservationAnchor(undefined);
+        }}
       />
     </article>
   );
