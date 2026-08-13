@@ -84,4 +84,14 @@ describe("AuthContext", () => {
     expect(localStorage.getItem("treasury.auth.token")).toBeNull();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
+
+  it("[AuthContext #06] sincroniza un usuario actualizado en la sesión", async () => {
+    loginMock.mockResolvedValue({ token: "jwt", tokenType: "Bearer", expiresIn: 100, user });
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.login("admin@mail.com", "Password1!"));
+
+    act(() => result.current.syncUser({ ...user, nombre: "VÍCTOR ANDRÉS VIVAS" }));
+
+    expect(result.current.user?.nombre).toBe("VÍCTOR ANDRÉS VIVAS");
+  });
 });

@@ -4,6 +4,7 @@ import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthReposit
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
+import { FaRegSmileBeam } from "react-icons/fa";
 import axios from "axios";
 import "./AccountFlowPages.css";
 
@@ -56,14 +57,25 @@ export const VerifyEmailPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const [params] = useSearchParams();
   const [state, setState] = useState("Verificando tu correo...");
+  const [verified, setVerified] = useState(false);
+  const processedTokenRef = useRef<string | null>(null);
   useEffect(() => {
     const token = params.get("token");
     if (!token) { setState("El enlace no es válido."); return; }
+    if (processedTokenRef.current === token) return;
+    processedTokenRef.current = token;
+    setState("Verificando tu correo...");
     repository.verifyEmail(token)
-      .then(() => setState("Correo verificado. Ya puedes iniciar sesión."))
+      .then(() => {
+        setVerified(true);
+        setState("¡Todo listo! Ya puedes iniciar sesión con tu cuenta.");
+      })
       .catch(() => setState("El enlace es inválido, venció o ya fue utilizado."));
   }, [params, repository]);
-  return <Shell title="Verificar correo" message={state}>
+  return <Shell title={verified ? "Correo verificado" : "Verificar correo"} message={state}>
+    {verified && <div className="auth-flow__success-icon" aria-hidden="true">
+      <FaRegSmileBeam />
+    </div>}
     <Link to="/login">Ir al inicio de sesión</Link>
   </Shell>;
 };

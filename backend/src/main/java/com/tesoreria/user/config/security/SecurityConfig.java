@@ -66,6 +66,8 @@ public class SecurityConfig {
                                 "/api/v1/apoderados/**",
                                 "/api/v1/familias/**")
                         .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}")
+                        .hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout", "/api/v1/auth/change-password")
                         .hasAnyRole("ADMIN", "USER")

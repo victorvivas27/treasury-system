@@ -1,13 +1,18 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { clearProfileCache, ProfilePage } from "./ProfilePage";
 
 const profile = vi.hoisted(() => vi.fn());
+const updateUser = vi.hoisted(() => vi.fn());
+const syncUser = vi.hoisted(() => vi.fn());
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("@/core/B-application/use-cases/treasury/TreasuryUseCases", () => ({
   TreasuryUseCases: class { profile = profile; },
+}));
+vi.mock("@/core/C-infra/repositories/user/UserRepositoryImpl", () => ({
+  UserRepositoryImpl: class { update = updateUser; },
 }));
 
 const baseProfile = {
@@ -35,6 +40,7 @@ describe("ProfilePage", () => {
       },
       loading: false,
       isAuthenticated: true,
+      syncUser,
     } as ReturnType<typeof useAuth>);
     profile.mockResolvedValue(baseProfile);
   });
@@ -74,6 +80,28 @@ describe("ProfilePage", () => {
     expect(screen.getByText("SOFÍA DÍAZ")).toBeInTheDocument();
     expect(screen.getByText("Información importante del alumno")).toBeInTheDocument();
     expect(screen.getByText("Retirar el viernes a las 13:00.")).toBeInTheDocument();
+  });
+
+  it("permite modificar solamente el nombre y sincroniza la sesión", async () => {
+    const updated = {
+      id: 1, code: "USR-001", nombre: "Juan Andrés Díaz", correo: "juandiaz@mail.com",
+      rol: "USER", enabled: true, accountNonLocked: true, createdAt: "", updatedAt: "",
+    };
+    updateUser.mockResolvedValue(updated);
+    renderProfile();
+
+    fireEvent.click(screen.getByRole("button", { name: "Editar perfil" }));
+    expect(screen.getByRole("dialog", { name: "Editar perfil" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Nombre completo"), {
+      target: { value: "  Juan  Andrés Díaz  " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+    await waitFor(() => expect(updateUser).toHaveBeenCalledWith(1, {
+      nombre: "Juan Andrés Díaz", correo: "juandiaz@mail.com", rol: "USER",
+      enabled: true, accountNonLocked: true,
+    }));
+    expect(syncUser).toHaveBeenCalledWith(updated);
   });
 
   it("muestra aportes pendientes y modalidad de dos cuotas", async () => {

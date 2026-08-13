@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,6 +117,46 @@ class SecurityConfigTest {
             mockMvc.perform(get(path).header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk());
         }
+    }
+
+    @Test
+    void usuario_deberiaPoderActualizarSuPropioPerfil() throws Exception {
+        UserEntity currentUser = userRepository.findByCorreo("user@mail.com").orElseThrow();
+        String token = tokenFor(currentUser.getCorreo());
+
+        mockMvc.perform(put("/api/v1/users/{id}", currentUser.getId())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nombre":"Nuevo Nombre",
+                                  "correo":"user@mail.com",
+                                  "enabled":true,
+                                  "accountNonLocked":true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("NUEVO NOMBRE"));
+    }
+
+    @Test
+    void usuario_noDeberiaPoderActualizarUnPerfilAjeno() throws Exception {
+        UserEntity currentUser = userRepository.findByCorreo("user@mail.com").orElseThrow();
+        UserEntity admin = userRepository.findByCorreo("admin@mail.com").orElseThrow();
+        String token = tokenFor(currentUser.getCorreo());
+
+        mockMvc.perform(put("/api/v1/users/{id}", admin.getId())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nombre":"Nombre Alterado",
+                                  "correo":"admin@mail.com",
+                                  "enabled":true,
+                                  "accountNonLocked":true
+                                }
+                                """))
+                .andExpect(status().isForbidden());
     }
 
     @Test

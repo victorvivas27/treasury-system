@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { TreasuryProfile } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { FiEdit2, FiUser, FiX } from "react-icons/fi";
 import "./ProfilePage.css";
 
 const money = new Intl.NumberFormat("es-CL", {
@@ -20,6 +22,7 @@ const shortDate = new Intl.DateTimeFormat("es-CL", {
 const PROFILE_CACHE_TTL_MS = 60_000;
 type ProfileCacheEntry = { data: TreasuryProfile; expiresAt: number };
 const profileCache = new Map<string, ProfileCacheEntry>();
+const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
 
 export const clearProfileCache = () => profileCache.clear();
 
@@ -34,12 +37,55 @@ const loadCachedProfile = async (key: string, load: () => Promise<TreasuryProfil
 };
 
 export const ProfilePage = () => {
-  const { user } = useAuth();
+  const { user, syncUser } = useAuth();
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(user?.nombre ?? "");
+  const [nameError, setNameError] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
   const [familyLoading, setFamilyLoading] = useState(true);
   const [familyError, setFamilyError] = useState("");
   const [reloadProfile, setReloadProfile] = useState(0);
   const treasury = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
+  const users = useMemo(() => new UserRepositoryImpl(), []);
+
+  useEffect(() => {
+    if (!editingName) setNameInput(user?.nombre ?? "");
+  }, [editingName, user?.nombre]);
+
+  const cancelNameEdit = () => {
+    setNameInput(user?.nombre ?? "");
+    setNameError("");
+    setEditingName(false);
+  };
+
+  const saveName = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!user) return;
+    const normalizedName = nameInput.trim().replace(/\s+/g, " ");
+    if (!NAME_PATTERN.test(normalizedName)) {
+      setNameError("Ingresa entre 3 y 100 letras. Puedes usar espacios y tildes.");
+      return;
+    }
+    if (normalizedName === user.nombre) {
+      cancelNameEdit();
+      return;
+    }
+    setSavingName(true);
+    setNameError("");
+    try {
+      const updatedUser = await users.update(user.id, {
+        nombre: normalizedName, correo: user.correo, rol: user.rol,
+        enabled: user.enabled, accountNonLocked: user.accountNonLocked,
+      });
+      syncUser(updatedUser);
+      setEditingName(false);
+    } catch {
+      setNameError("No fue posible actualizar tu nombre. Intenta nuevamente.");
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -84,12 +130,18 @@ export const ProfilePage = () => {
   const paymentMode = familyProfile?.mode ?? familyProfile?.obligations[0]?.mode;
 
   return <main className="profile-page">
-    <article className="profile-card" aria-labelledby="profile-name">
+    <article className="profile-card" aria-label="Perfil de usuario">
       <section className="profile-identity" aria-label="Identidad">
         <div className="profile-summary">
           <div className="profile-avatar" aria-label={`Iniciales de ${name}`}>{initials}</div>
           <div className="profile-copy">
-            <h1 id="profile-name">{name}</h1>
+            <div className="profile-name-row">
+              <h1 id="profile-name">{name}</h1>
+              <button type="button" className="profile-edit-name"
+                onClick={() => setEditingName(true)} aria-label="Editar perfil">
+                <FiEdit2 aria-hidden="true" /> Editar perfil
+              </button>
+            </div>
             {user?.correo && <p className="profile-username">{user.correo}</p>}
             <span className="profile-role">{user?.rol === "ADMIN" ? "Administrador" : "Usuario"}</span>
           </div>
@@ -211,5 +263,50 @@ export const ProfilePage = () => {
         </div>}
       </section>}
     </article>
+
+    {editingName && <div className="profile-edit-backdrop" role="presentation"
+      onMouseDown={event => { if (event.target === event.currentTarget) cancelNameEdit(); }}>
+      <section className="profile-edit-modal" role="dialog" aria-modal="true"
+        aria-labelledby="profile-edit-title">
+        <header>
+          <div className="profile-edit-modal__heading">
+            <span><FiUser aria-hidden="true" /></span>
+            <div><h2 id="profile-edit-title">Editar perfil</h2>
+              <p>Actualiza tu información personal.</p></div>
+          </div>
+          <button type="button" className="profile-edit-modal__close" disabled={savingName}
+            onClick={cancelNameEdit} aria-label="Cerrar edición">
+            <FiX aria-hidden="true" />
+          </button>
+        </header>
+
+        <div className="profile-edit-modal__identity">
+          <div className="profile-avatar" aria-hidden="true">{initials}</div>
+          <div><strong>{name}</strong><small>{user?.correo}</small></div>
+        </div>
+
+        <form className="profile-edit-form" onSubmit={saveName}>
+          <div className="profile-edit-section-title">
+            <span>Información personal</span>
+            <small>Los cambios se verán en todo el sistema.</small>
+          </div>
+          <label htmlFor="profile-name-input">Nombre completo</label>
+          <input id="profile-name-input" value={nameInput} autoFocus maxLength={100}
+            autoComplete="name" aria-invalid={Boolean(nameError)} aria-describedby={nameError
+              ? "profile-name-error" : "profile-name-help"}
+            onChange={event => { setNameInput(event.target.value); setNameError(""); }} />
+          {nameError
+            ? <p id="profile-name-error" className="profile-edit-form__error" role="alert">{nameError}</p>
+            : <small id="profile-name-help">Usa entre 3 y 100 letras.</small>}
+          <footer>
+            <button type="button" className="profile-edit-cancel" disabled={savingName}
+              onClick={cancelNameEdit}>Cancelar</button>
+            <button type="submit" className="profile-edit-save" disabled={savingName}>
+              {savingName ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </footer>
+        </form>
+      </section>
+    </div>}
   </main>;
 };
