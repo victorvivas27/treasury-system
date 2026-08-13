@@ -96,11 +96,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    try {
-      if (token) await useCases.logout.execute();
-    } finally {
-      clearSession();
-    }
+    // Inicia la revocación con el token todavía disponible, pero no bloquea la interfaz.
+    const revocation = token ? useCases.logout.execute() : null;
+    clearSession();
+    void revocation?.catch(() => undefined);
   };
 
   const syncUser = useCallback((updatedUser: User) => setUser(updatedUser), []);

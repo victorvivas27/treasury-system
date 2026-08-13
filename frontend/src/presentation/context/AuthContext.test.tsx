@@ -53,6 +53,20 @@ describe("AuthContext", () => {
     expect(localStorage.getItem("treasury.auth.token")).toBeNull();
   });
 
+  it("[AuthContext #02b] no debe esperar al backend para cerrar la sesión local", async () => {
+    loginMock.mockResolvedValue({ token: "jwt", tokenType: "Bearer", expiresIn: 100, user });
+    logoutMock.mockReturnValue(new Promise(() => undefined));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.login("admin@mail.com", "Password1!"));
+
+    await act(() => result.current.logout());
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(logoutMock).toHaveBeenCalledTimes(1);
+  });
+
   it("[AuthContext #03] debe cerrar la sesión y avisar cuando expira", async () => {
     loginMock.mockResolvedValue({ token: "jwt", tokenType: "Bearer", expiresIn: 100, user });
     const { result } = renderHook(() => useAuth(), { wrapper });
