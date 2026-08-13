@@ -24,6 +24,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (correo: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  syncUser: (updatedUser: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -102,9 +103,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const syncUser = useCallback((updatedUser: User) => setUser(updatedUser), []);
+
   return <>
     <AuthContext.Provider
-      value={{ user, token, loading, isAuthenticated: Boolean(token && user), login, logout }}
+      value={{ user, token, loading, isAuthenticated: Boolean(token && user), login, logout,
+        syncUser }}
     >
       {children}
     </AuthContext.Provider>
