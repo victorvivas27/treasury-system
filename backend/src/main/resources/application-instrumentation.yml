@@ -1,6 +1,7 @@
 app:
   instrumentation:
     dashboard: true
+    login: true
 
 spring:
   jpa:

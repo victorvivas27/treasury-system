@@ -2,6 +2,7 @@ package com.tesoreria.user.infrastructure.adapter.in.web.controller;
 
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.shared.infrastructure.performance.LoginPerformanceProbe;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.AuthService;
 import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
@@ -45,6 +46,7 @@ public class AuthController {
     private final AccountRecoveryService accountRecoveryService;
     private final String bootstrapAdminKey;
     private final boolean allowLocalBootstrapWithoutKey;
+    private final LoginPerformanceProbe loginPerformance;
 
     @Autowired
     public AuthController(
@@ -56,7 +58,8 @@ public class AuthController {
             RegistrationRateLimiter registrationRateLimiter,
             AccountRecoveryService accountRecoveryService,
             @Value("${app.bootstrap.admin-key:}") String bootstrapAdminKey,
-            @Value("${app.bootstrap.allow-local-without-key:false}") boolean allowLocalBootstrapWithoutKey) {
+            @Value("${app.bootstrap.allow-local-without-key:false}") boolean allowLocalBootstrapWithoutKey,
+            LoginPerformanceProbe loginPerformance) {
         this.authService = authService;
         this.userService = userService;
         this.mapper = mapper;
@@ -66,6 +69,7 @@ public class AuthController {
         this.accountRecoveryService = accountRecoveryService;
         this.bootstrapAdminKey = bootstrapAdminKey;
         this.allowLocalBootstrapWithoutKey = allowLocalBootstrapWithoutKey;
+        this.loginPerformance = loginPerformance;
     }
 
     public AuthController(
@@ -76,7 +80,7 @@ public class AuthController {
             TokenRevocationService revocationService,
             RegistrationRateLimiter registrationRateLimiter) {
         this(authService, userService, mapper, jwtService, revocationService,
-                registrationRateLimiter, null, "", false);
+                registrationRateLimiter, null, "", false, null);
     }
 
     @Operation(summary = "Iniciar sesión")
@@ -87,13 +91,23 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
-        String token = authService.login(request.correo(), request.password());
-        UserResponseDTO user = mapper.toResponse(userService.findByCorreo(request.correo()));
-        return ResponseEntity.ok(new LoginResponseDTO(
-                token,
-                "Bearer",
-                jwtService.getExpirationMs() / 1000,
-                user));
+        LoginPerformanceProbe.Measurement measurement = loginPerformance == null
+                ? null : loginPerformance.start();
+        try {
+            long startedAt = LoginPerformanceProbe.now();
+            String token = authService.login(request.correo(), request.password());
+            if (measurement != null) loginPerformance.phase(measurement, "authenticateAndJwt", startedAt);
+            startedAt = LoginPerformanceProbe.now();
+            UserResponseDTO user = mapper.toResponse(userService.findByCorreo(request.correo()));
+            if (measurement != null) loginPerformance.phase(measurement, "findUserAndMap", startedAt);
+            return ResponseEntity.ok(new LoginResponseDTO(
+                    token,
+                    "Bearer",
+                    jwtService.getExpirationMs() / 1000,
+                    user));
+        } finally {
+            if (measurement != null) loginPerformance.finish(measurement);
+        }
     }
 
     @Operation(summary = "Registrar usuario")

@@ -24,7 +24,7 @@ public interface StandSaleJpaRepository extends JpaRepository<StandSaleEntity, L
     @Query("select i.productName as productName, i.category as category, i.variant as variant, "
             + "i.presentation as presentation, sum(i.quantity) as units, sum(i.subtotal) as total, "
             + "sum(i.costSubtotal) as cost, "
-            + "sum(case when i.unitEquivalence is null then 0 else i.unitEquivalence * i.quantity end) "
+            + "sum(coalesce(i.unitEquivalence, 0.0000) * i.quantity) "
             + "as equivalentUnits from StandSaleEntity s join s.items i "
             + "where s.stand.id = :standId "
             + "and (s.status is null or s.status <> com.tesoreria.stand.core.model.StandSaleStatus.CANCELLED) "
@@ -41,7 +41,13 @@ public interface StandSaleJpaRepository extends JpaRepository<StandSaleEntity, L
             ), 0)
             FROM event_stands s WHERE s.event_id = :eventId AND s.status = 'CLOSED'
             """, nativeQuery = true)
-    BigDecimal calculateEventNetRevenue(@Param("eventId") Long eventId);
+    BigDecimal calculateEventNetRevenueRaw(@Param("eventId") Long eventId);
+
+    default BigDecimal calculateEventNetRevenue(Long eventId) {
+        BigDecimal result = calculateEventNetRevenueRaw(eventId);
+        return result == null || result.signum() == 0
+                ? BigDecimal.ZERO : result.setScale(2, java.math.RoundingMode.UNNECESSARY);
+    }
 
     interface SaleAggregate {
         StandPaymentMethod getPaymentMethod();

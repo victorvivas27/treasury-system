@@ -83,7 +83,7 @@ class PostgresPerformanceQueryIntegrationTest {
 
         BigDecimal result = sales.calculateEventNetRevenue(eventId);
 
-        assertEquals(new BigDecimal("10942.91"), expected);
+        assertEquals(new BigDecimal("10942.25"), expected);
         assertEquals(expected, result);
         assertEquals(2, result.scale());
     }

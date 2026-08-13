@@ -7,6 +7,7 @@ import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
+import { loginPerformance } from "@/shared/performance/loginPerformance";
 import "./PasswordVisibility.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,12 +61,15 @@ export const LoginPage = () => {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
+      loginPerformance.start();
       await login(correo.trim(), password);
+      loginPerformance.mark("response");
       const requestedDestination = (location.state as { from?: string } | null)?.from;
       const destination = requestedDestination && requestedDestination !== "/login"
         ? requestedDestination
         : "/dashboard";
       navigate(destination, { replace: true });
+      loginPerformance.mark("navigation");
     } catch (loginError) {
       setError(loginErrorMessage(loginError));
     }
