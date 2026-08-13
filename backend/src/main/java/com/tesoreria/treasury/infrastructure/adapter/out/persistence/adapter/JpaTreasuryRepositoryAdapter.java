@@ -5,12 +5,14 @@ import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.*;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.*;
 import org.springframework.stereotype.Component;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Component
+@NullMarked
 public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     private final AnnualFeeConfigJpaRepository configs;
     private final FamilyFeePlanJpaRepository plans;

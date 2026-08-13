@@ -11,6 +11,7 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.Scho
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.SchoolEventJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.jspecify.annotations.NullMarked;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@NullMarked
 public class SchoolEventService {
     private static final int MIN_YEAR = 2000;
     private static final int EXPECTED_UNIQUE_STANDS = 1;
