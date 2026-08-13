@@ -52,6 +52,13 @@
 .profile-payment-total span { font-size: .62rem; font-weight: 700; }
 .profile-payment-status.is-current { background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success); }
 .profile-payment-status.has-debt { background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning); }
+.profile-family-skeleton .skeleton-block { display: block; }
+.profile-badge-skeleton { flex: 0 0 7.4rem; width: 7.4rem; height: 1.15rem; border-radius: 999px; }
+.profile-student-message-skeleton { display: grid; gap: .35rem; border-left-color: var(--border-color); }
+.profile-contribution-skeleton { min-height: 2rem; background: var(--color-bg); color: var(--text-muted); }
+.profile-payment-skeleton { display: block; background: var(--color-bg); color: var(--text-muted); }
+.profile-payment-skeleton > div { width: 100%; gap: .3rem; }
+.profile-payment-skeleton .profile-course-installments { margin-top: .2rem; }
 
 @media (max-width: 480px) {
   .profile-page { padding: .5rem; }
@@ -59,4 +66,6 @@
   .profile-data-grid { grid-template-columns: 1fr 1fr; gap: .35rem; }
   .profile-family-data > header { align-items: flex-start; }
   .profile-principal-badge { font-size: .56rem; }
+  .profile-badge-skeleton { flex-basis: 6.2rem; width: 6.2rem; }
+  .profile-payment-skeleton .profile-course-installments > span { grid-template-columns: 1fr 1fr; }
 }

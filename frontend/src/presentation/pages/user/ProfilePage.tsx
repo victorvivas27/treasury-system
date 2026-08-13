@@ -17,6 +17,22 @@ const shortDate = new Intl.DateTimeFormat("es-CL", {
   year: "numeric",
 });
 
+const PROFILE_CACHE_TTL_MS = 60_000;
+type ProfileCacheEntry = { data: TreasuryProfile; expiresAt: number };
+const profileCache = new Map<string, ProfileCacheEntry>();
+
+export const clearProfileCache = () => profileCache.clear();
+
+const loadCachedProfile = async (key: string, load: () => Promise<TreasuryProfile>,
+  forceRefresh: boolean) => {
+  const cached = profileCache.get(key);
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.data;
+
+  const data = await load();
+  profileCache.set(key, { data, expiresAt: Date.now() + PROFILE_CACHE_TTL_MS });
+  return data;
+};
+
 export const ProfilePage = () => {
   const { user } = useAuth();
   const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
@@ -35,9 +51,11 @@ export const ProfilePage = () => {
       setFamilyLoading(true);
       setFamilyError("");
       const currentYear = new Date().getFullYear();
+      const cacheKey = `${user.correo}:${currentYear}`;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const profile = await treasury.profile(currentYear);
+          const profile = await loadCachedProfile(cacheKey,
+            () => treasury.profile(currentYear), reloadProfile > 0);
           if (active) setFamilyProfile(profile.familyId ? profile : null);
           if (active) setFamilyLoading(false);
           return;
@@ -85,14 +103,40 @@ export const ProfilePage = () => {
         </strong>
       </section>
 
-      {familyLoading && <section className="profile-real-data profile-family-data"
+      {familyLoading && <section className="profile-real-data profile-family-data profile-family-skeleton"
         aria-label="Cargando vinculación familiar" role="status">
         <header><div><span>Vinculación familiar</span>
-          <Skeleton width="8rem" height="1.2rem" /></div></header>
+          <Skeleton width="6rem" height="1rem" /></div>
+          <Skeleton className="profile-badge-skeleton" /></header>
         <dl className="profile-data-grid">
           {["Alumno", "Parentesco", "Teléfono"].map(label => <div key={label}>
-            <dt>{label}</dt><dd><Skeleton width="7rem" height=".8rem" /></dd></div>)}
+            <dt>{label}</dt><dd><Skeleton width={label === "Alumno" ? "72%" : "58%"}
+              height=".74rem" /></dd></div>)}
         </dl>
+        <aside className="profile-student-message profile-student-message-skeleton">
+          <Skeleton width="11rem" height=".6rem" />
+          <Skeleton width="78%" height=".72rem" />
+        </aside>
+        <div className="profile-contribution-statuses">
+          {["cepa", "solidarity"].map(type =>
+            <div className="profile-contribution-status profile-contribution-skeleton" key={type}>
+              <Skeleton width="5.5rem" height=".56rem" />
+              <Skeleton width="3.2rem" height=".65rem" />
+            </div>)}
+        </div>
+        <div className="profile-payment-status profile-payment-skeleton">
+          <div><Skeleton width="8.5rem" height=".62rem" />
+            <Skeleton width="6rem" height=".8rem" />
+            <div className="profile-course-installments">
+              {[0, 1].map(item => <span key={item}>
+                <Skeleton width="4.5rem" height=".62rem" />
+                <Skeleton width="3.8rem" height=".58rem" />
+                <Skeleton width="3.5rem" height=".58rem" />
+                <Skeleton width="3rem" height=".56rem" />
+              </span>)}
+            </div>
+          </div>
+        </div>
       </section>}
 
       {!familyLoading && familyError && <section className="profile-family-feedback" role="alert">
