@@ -96,9 +96,6 @@ export const EditarFamiliaForm = () => {
           ) ?? familiaData?.apoderados.find(
             (item) => (item.apoderadoId ?? item.id) === relacion.apoderadoId,
           );
-          const esNuevo = !familiaData?.apoderados.some(
-            (item) => (item.apoderadoId ?? item.id) === relacion.apoderadoId,
-          );
           const apoderadoIdError =
             fieldErrors[`apoderados[${index}].apoderadoId`] ??
             fieldErrors[`apoderados.${index}.apoderadoId`];
@@ -114,7 +111,7 @@ export const EditarFamiliaForm = () => {
                 <strong>Apoderado {index + 1}</strong>
                 <span>{relacion.esPrincipal ? "Principal" : "Adicional"}</span>
               </div>
-              {esNuevo && (
+              {(formData.apoderados ?? []).length > 1 && (
                 <Button
                   type="button"
                   variant="danger"
@@ -125,46 +122,31 @@ export const EditarFamiliaForm = () => {
                 />
               )}
             </header>
-            {esNuevo ? (
-              <label className="familia-field">
-                <span>Seleccionar apoderado</span>
-                <select
-                  id={`apoderado_input_${index}`}
-                  name="apoderadoId"
-                  value={relacion.apoderadoId || ""}
-                  onChange={(event) => handleApoderadoChange(index, event)}
-                  disabled={loadingApoderados || Boolean(apoderadosError)}
-                  className={apoderadoIdError ? "input-error" : ""}
-                >
-                  <option value="">
-                    {loadingApoderados ? "Cargando apoderados..." : "Seleccionar apoderado"}
-                  </option>
-                  {apoderados
-                    .filter((item) => !(formData.apoderados ?? []).some(
-                      (seleccionado, currentIndex) =>
-                        currentIndex !== index &&
-                        seleccionado.apoderadoId === item.apoderadoId,
-                    ))
-                    .map((item) => (
-                      <option key={item.apoderadoId} value={item.apoderadoId}>
-                        {[item.codigo, item.nombre].filter(Boolean).join(" - ")}
-                      </option>
-                    ))}
-                </select>
-                {(apoderadoIdError || apoderadosError) && (
-                  <small>{apoderadoIdError || apoderadosError}</small>
-                )}
-              </label>
-            ) : (
-              <div className="familia-edit__guardian-name">
-                <span>Nombre</span>
-                <strong>
-                  {apoderado
-                    ? `${apoderado.nombre} (${apoderado.codigo})`
-                    : `ID ${relacion.apoderadoId}`}
-                </strong>
-              </div>
-            )}
+            <label className="familia-field">
+              <span>Seleccionar apoderado</span>
+              <select id={`apoderado_input_${index}`} name="apoderadoId"
+                aria-label={`Seleccionar apoderado ${index + 1}`}
+                value={relacion.apoderadoId || ""}
+                onChange={(event) => handleApoderadoChange(index, event)}
+                disabled={loadingApoderados || Boolean(apoderadosError)}
+                className={apoderadoIdError ? "input-error" : ""}>
+                <option value="">
+                  {loadingApoderados ? "Cargando apoderados..." : "Seleccionar apoderado"}
+                </option>
+                {apoderado && !apoderados.some(item => item.apoderadoId === relacion.apoderadoId) &&
+                  <option value={relacion.apoderadoId}>
+                    {[apoderado.codigo, apoderado.nombre].filter(Boolean).join(" - ")}
+                  </option>}
+                {apoderados.filter((item) => !(formData.apoderados ?? []).some(
+                  (seleccionado, currentIndex) => currentIndex !== index &&
+                    seleccionado.apoderadoId === item.apoderadoId,
+                )).map((item) => <option key={item.apoderadoId} value={item.apoderadoId}>
+                  {[item.codigo, item.nombre].filter(Boolean).join(" - ")}
+                </option>)}
+              </select>
+              {(apoderadoIdError || apoderadosError) &&
+                <small>{apoderadoIdError || apoderadosError}</small>}
+            </label>
 
             <label className="familia-field">
               <span>Parentesco</span>

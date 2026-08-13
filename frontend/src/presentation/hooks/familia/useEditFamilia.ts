@@ -170,12 +170,15 @@ export const useEditFamilia = () => {
   };
 
   const removeApoderado = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      apoderados: (prev.apoderados ?? []).filter(
-        (_, currentIndex) => currentIndex !== index,
-      ),
-    }));
+    setFormData((prev) => {
+      const current = prev.apoderados ?? [];
+      if (current.length <= 1) return prev;
+      const remaining = current.filter((_, currentIndex) => currentIndex !== index);
+      if (!remaining.some((item) => item.esPrincipal) && remaining[0]) {
+        remaining[0] = { ...remaining[0], esPrincipal: true };
+      }
+      return { ...prev, apoderados: remaining };
+    });
   };
 
   const handleSubmit = async () => {

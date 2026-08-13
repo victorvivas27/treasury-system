@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import axios from "axios";
 import "./AccountFlowPages.css";
 
@@ -23,11 +24,7 @@ const Shell = ({ title, message, children }: {
 }) => (
   <main className="auth-flow">
     <section className="auth-flow__card">
-      <img
-        src="/Tesoreria.png"
-        alt="Logo del Sistema de Tesorería"
-        className="auth-flow__logo"
-      />
+      <BrandLogo className="auth-flow__logo" />
       <h1>{title}</h1>
       {message && <p role="status">{message}</p>}
       {children}

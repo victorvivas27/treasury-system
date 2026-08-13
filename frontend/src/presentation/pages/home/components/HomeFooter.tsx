@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { FiCode, FiMail, FiPhone } from "react-icons/fi";
+import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "../style/HomeFooter.css";
 
 export const HomeFooter = () => (
   <footer className="public-home__footer" data-home-footer-reveal>
     <div className="public-home__footer-brand">
       <Link className="public-home__brand" to="/">
-        <img src="/Tesoreria.png" alt="" /><span>Sistema de Tesorería</span>
+        <BrandLogo alt="" /><span>Sistema de Tesorería</span>
       </Link>
       <p>Finanzas claras para cada curso.</p>
     </div>

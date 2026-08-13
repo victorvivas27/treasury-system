@@ -8,6 +8,7 @@ import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
+import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "./PasswordVisibility.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,11 +79,7 @@ export const LoginPage = () => {
   return (
     <main className="form-page-container">
       <header className="form-page-header">
-        <img
-          className="login-brand-logo"
-          src="/Tesoreria.png"
-          alt="Logo del Sistema de Tesorería"
-        />
+        <BrandLogo className="login-brand-logo" />
         <h1 className="form-page-header__title">Iniciar sesión</h1>
         <p className="form-page-header__subtitle">Accede al Sistema de Tesorería</p>
       </header>
