@@ -57,6 +57,12 @@ export interface TreasuryDashboardOverview {
   monthlyCashFlow: Array<{ month: number; income: number; expense: number }>;
   obligationStatus: Array<{ status: "PAGADA" | "PENDIENTE"; count: number }>;
   expensesByCategory: Array<{ category: ExpenseCategory; amount: number }>;
+  expensesByDescription: Array<{
+    id: number;
+    description: string;
+    category: ExpenseCategory;
+    amount: number;
+  }>;
   recentMovements: Array<{
     id: number;
     type: "INGRESO" | "EGRESO" | "CUOTA";

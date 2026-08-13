@@ -177,7 +177,8 @@ public class TreasuryController {
                 new TreasuryDashboardOverview.StatusMetric("PAGADA", paid),
                 new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
             return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
-                overview.expensesByCategory(), overview.recentMovements(), overview.auditTrail());
+                overview.expensesByCategory(), overview.expensesByDescription(),
+                overview.recentMovements(), overview.auditTrail());
         } finally {
             performanceProbe.finish(measurement);
         }

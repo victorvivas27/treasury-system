@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
 import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart,
+  Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import type { ContributionSummary,
@@ -77,29 +77,28 @@ export const DashboardPage = () => {
   const monthly = useMemo(() => data?.monthlyCashFlow.map(item => ({
     ...item, name: monthName(item.month),
   })) ?? [], [data]);
-  const categories = useMemo(() => data?.expensesByCategory.slice(0, 6).map(item => ({
-    ...item, name: expenseCategoryLabel(item.category),
+  const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6).map(item => ({
+    ...item, categoryName: expenseCategoryLabel(item.category),
   })) ?? [], [data]);
-  const categoryMax = useMemo(() => Math.max(
+  const expenseMax = useMemo(() => Math.max(
     1,
-    ...categories.map(item => Number(item.amount)),
-  ), [categories]);
-  const categoryTicks = useMemo(() => Array.from(
-    { length: 5 },
-    (_, index) => Math.round((categoryMax * (index + 1)) / 5),
-  ), [categoryMax]);
-  const obligationMax = useMemo(() => Math.max(
-    1,
-    ...(data?.obligationStatus.map(item => item.count) ?? [0]),
-  ), [data]);
-  const obligationTicks = useMemo(() => Array.from(
-    { length: obligationMax },
-    (_, index) => index + 1,
-  ), [obligationMax]);
-  const obligationStatusData = useMemo(() => data?.obligationStatus.map(item => ({
-    ...item,
-    label: item.status === "PAGADA" ? "Cuotas pagadas" : "Cuotas pendientes",
-  })) ?? [], [data]);
+    ...expenseDetails.map(item => Number(item.amount)),
+  ), [expenseDetails]);
+  const annualQuotaSummary = useMemo(() => {
+    const quotas = data?.quotas;
+    if (!quotas) return null;
+    const totalAmount = quotas.collectedAmount + quotas.pendingAmount;
+    return {
+      totalAmount,
+      percentage: totalAmount === 0 ? 0
+        : Math.round((quotas.collectedAmount * 100) / totalAmount),
+      totalObligations: quotas.paidObligations + quotas.pendingObligations,
+      modalities: [
+        { name: "Cuota única", value: quotas.annualFamilies, color: "var(--color-accent)" },
+        { name: "Dos cuotas", value: quotas.twoInstallmentFamilies, color: "#8b5cf6" },
+      ],
+    };
+  }, [data]);
   const activityPages = Math.max(1,
     Math.ceil((data?.recentMovements.length ?? 0) / ACTIVITY_PAGE_SIZE));
   const visibleMovements = useMemo(() => data?.recentMovements.slice(
@@ -173,11 +172,11 @@ export const DashboardPage = () => {
       </section>
 
       <section className="dashboard-charts">
-        <article className="dashboard-panel dashboard-panel--wide">
+        <article className="dashboard-panel dashboard-panel--wide dashboard-panel--cashflow">
           <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
           <div className="dashboard-chart" aria-label="Evolución mensual">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+              <AreaChart data={monthly} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
                 <defs>
                   <linearGradient id="dashboardIncome" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.35} />
@@ -187,8 +186,8 @@ export const DashboardPage = () => {
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
                 <XAxis dataKey="name" stroke="var(--text-muted)"
                   tick={{ fontSize: 10 }} tickMargin={4} />
-                <YAxis stroke="var(--text-muted)" width={82}
-                  tick={{ fontSize: 9 }} tickMargin={2}
+                <YAxis stroke="var(--text-muted)" width={55}
+                  tick={{ fontSize: 8 }} tickMargin={0}
                   tickFormatter={value => money.format(Number(value))} />
                 <Tooltip formatter={(value) => money.format(Number(value))}
                   contentStyle={{ background: "var(--color-elevated)", borderColor: "var(--border-color)" }} />
@@ -203,68 +202,68 @@ export const DashboardPage = () => {
         </article>
 
         <article className="dashboard-panel dashboard-panel--annual">
-          <header><div><span>Cuota anual</span><h2>Cuotas pagadas y pendientes</h2>
+          <header><div><span>Cuota anual</span><h2>Modalidad y avance de recaudación</h2>
             <p className="dashboard-panel__explanation">
-              Cuenta cuotas individuales del año, no apoderados.
+              Modalidades por familia y dinero recaudado durante {year}.
             </p></div></header>
-          {data.obligationStatus.every(item => item.count === 0)
+          {!annualQuotaSummary || annualQuotaSummary.totalObligations === 0
             ? <p className="dashboard-empty">No hay obligaciones registradas.</p>
-            : <div className="dashboard-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={obligationStatusData}
-                margin={{ top: 12, right: 4, bottom: 0, left: 0 }}>
-                <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                <XAxis dataKey="label" stroke="var(--text-muted)"
-                  tick={{ fontSize: 9 }} tickMargin={4} />
-                <YAxis allowDecimals={false} stroke="var(--text-muted)" width={52}
-                  domain={[0, obligationMax]} ticks={obligationTicks}
-                  tick={{ fontSize: 9 }} tickMargin={2}
-                  label={{ value: "Número de cuotas", angle: -90,
-                    position: "insideLeft", style: { fontSize: 9, fill: "var(--text-muted)" } }} />
-                <Tooltip cursor={{ fill: "transparent" }}
-                  contentStyle={{ background: "var(--color-elevated)",
-                    borderColor: "var(--border-color)", color: "var(--text-main)" }}
-                  labelStyle={{ color: "var(--text-main)" }}
-                  itemStyle={{ color: "var(--text-main)" }} />
-                <Bar name="Cuotas" dataKey="count" barSize={28} radius={[6, 6, 0, 0]}>
-                  <LabelList dataKey="count" position="insideTop" offset={8}
-                    style={{ fontSize: 10, fontWeight: 700, fill: "#fff",
-                      stroke: "rgb(0 0 0 / 45%)", strokeWidth: 2,
-                      paintOrder: "stroke" }} />
-                  {data.obligationStatus.map(item => <Cell key={item.status}
-                    fill={item.status === "PAGADA"
-                      ? "var(--color-success)" : "var(--color-warning)"} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>}
+            : <div className="annual-quota-overview">
+              <div className="annual-quota-modalities">
+                <div className="annual-quota-donut">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart><Pie data={annualQuotaSummary.modalities} dataKey="value"
+                      nameKey="name" innerRadius="62%" outerRadius="88%" paddingAngle={3}>
+                      {annualQuotaSummary.modalities.map(item =>
+                        <Cell key={item.name} fill={item.color} />)}
+                    </Pie><Tooltip formatter={(value) => [`${value} familias`, ""]}
+                      contentStyle={{ background: "var(--color-elevated)",
+                        borderColor: "var(--border-color)" }} /></PieChart>
+                  </ResponsiveContainer>
+                  <div><strong>{data.quotas.totalFamilies}</strong><span>familias</span></div>
+                </div>
+                <ul>{annualQuotaSummary.modalities.map(item => <li key={item.name}>
+                  <i style={{ background: item.color }} /><span>{item.name}</span>
+                  <strong>{item.value}</strong>
+                </li>)}</ul>
+              </div>
+              <div className="annual-quota-progress">
+                <div><span>Recaudación</span>
+                  <strong>{money.format(data.quotas.collectedAmount)} de {money.format(
+                    annualQuotaSummary.totalAmount)}</strong></div>
+                <div className="annual-quota-progress__track" role="progressbar"
+                  aria-label="Avance de recaudación" aria-valuenow={annualQuotaSummary.percentage}
+                  aria-valuemin={0} aria-valuemax={100}>
+                  <span style={{ width: `${annualQuotaSummary.percentage}%` }} />
+                </div>
+                <div className="annual-quota-progress__detail">
+                  <strong>{annualQuotaSummary.percentage}% recaudado</strong>
+                  <span>{data.quotas.paidObligations} de {annualQuotaSummary.totalObligations} cuotas pagadas</span>
+                  <span>{data.quotas.pendingObligations} pendientes · {money.format(
+                    data.quotas.pendingAmount)}</span>
+                </div>
+              </div>
+            </div>}
         </article>
 
         <article className="dashboard-panel dashboard-panel--distribution">
-          <header><div><span>Distribución</span><h2>Egresos por categoría</h2></div></header>
-          {categories.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
-            : <div className="dashboard-chart">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categories} layout="vertical"
-                  margin={{ top: 4, right: 4, bottom: 0, left: 8 }}>
-                  <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                  <XAxis type="number" stroke="var(--text-muted)"
-                    domain={[0, categoryMax]} ticks={categoryTicks}
-                    tick={{ fontSize: 9 }} tickMargin={3}
-                    tickFormatter={value => money.format(Number(value))} />
-                  <YAxis type="category" dataKey="name" width={96} stroke="var(--text-muted)"
-                    tick={{ fontSize: 9, textAnchor: "end" }} tickMargin={5} />
-                  <Tooltip cursor={{ fill: "transparent" }}
-                    formatter={(value) => money.format(Number(value))}
-                    contentStyle={{ background: "var(--color-elevated)",
-                      borderColor: "var(--border-color)", color: "var(--text-main)" }}
-                    labelStyle={{ color: "var(--text-main)" }}
-                    itemStyle={{ color: "var(--text-main)" }} />
-                  <Bar name="Monto" dataKey="amount" fill="var(--color-warning)" barSize={18}
-                    radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>}
+          <header><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
+            <p className="dashboard-panel__explanation">
+              Descripción del gasto; la categoría se muestra como contexto.
+            </p></div></header>
+          {expenseDetails.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
+            : <ol className="dashboard-expense-ranking">
+              {expenseDetails.map((item, index) => <li key={item.id}>
+                <span className="dashboard-expense-ranking__position">{index + 1}</span>
+                <div className="dashboard-expense-ranking__content">
+                  <div><strong title={item.description}>{item.description}</strong>
+                    <small>{item.categoryName}</small><b>{money.format(item.amount)}</b></div>
+                  <span className="dashboard-expense-ranking__track" aria-hidden="true">
+                    <i style={{ width: `${Math.max(5, (item.amount * 100) / expenseMax)}%` }} />
+                  </span>
+                </div>
+              </li>)}
+            </ol>}
         </article>
 
         <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
@@ -443,8 +442,8 @@ const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
   <section className="dashboard-charts">
     {[
       ["Flujo mensual", "Ingresos extraordinarios y egresos", true],
-      ["Cuota anual", "Cuotas pagadas y pendientes", false],
-      ["Distribución", "Egresos por categoría", false],
+      ["Cuota anual", "Modalidad y avance de recaudación", false],
+      ["Principales egresos", "¿En qué se gastó?", false],
       ["Aportes del curso", "Cuota CEPA y Cuota Solidaria", true],
     ].map(([eyebrow, title, wide]) => <article
       className={`dashboard-panel ${wide ? "dashboard-panel--wide" : ""}`} key={String(title)}>

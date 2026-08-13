@@ -27,6 +27,13 @@
 
 }
 
+.modal-overlay--anchored { display: block; padding: 0; }
+.modal-overlay--anchored .modal-container {
+  width: min(280px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  margin: 0;
+}
+
 @media (max-width: 420px) {
   .modal-overlay {
     align-items: flex-end;
@@ -37,6 +44,9 @@
     width: 100%;
     max-width: none;
   }
+
+  .modal-overlay--anchored { display: block; padding: 0; }
+  .modal-overlay--anchored .modal-container { width: min(280px, calc(100vw - 24px)); }
 
   .modal-header,
   .modal-body,

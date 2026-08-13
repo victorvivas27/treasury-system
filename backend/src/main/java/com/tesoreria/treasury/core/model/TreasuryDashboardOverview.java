@@ -11,6 +11,7 @@ public record TreasuryDashboardOverview(
         List<MonthlyCashFlow> monthlyCashFlow,
         List<StatusMetric> obligationStatus,
         List<CategoryMetric> expensesByCategory,
+        List<ExpenseMetric> expensesByDescription,
         List<RecentMovement> recentMovements,
         List<AuditEntry> auditTrail) {
 
@@ -21,6 +22,9 @@ public record TreasuryDashboardOverview(
     }
 
     public record CategoryMetric(String category, BigDecimal amount) {
+    }
+
+    public record ExpenseMetric(Long id, String description, String category, BigDecimal amount) {
     }
 
     public record RecentMovement(Long id, String type, String description, BigDecimal amount,

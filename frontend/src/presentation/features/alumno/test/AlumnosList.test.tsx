@@ -113,9 +113,17 @@ describe("AlumnosList Component", () => {
     render(<AlumnosList {...baseProps} alumnos={mockAlumnos} />);
 
     expect(screen.getAllByRole("button", { name: /Ver observación/i })).toHaveLength(1);
-    fireEvent.click(screen.getByRole("button", { name: /Ver observación de Maria/i }));
+    const observationButton = screen.getByRole("button", { name: /Ver observación de Maria/i });
+    vi.spyOn(observationButton, "getBoundingClientRect").mockReturnValue({
+      top: 180, bottom: 212, left: 40, right: 72, width: 32, height: 32,
+      x: 40, y: 180, toJSON: () => ({}),
+    });
+    fireEvent.click(observationButton);
 
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveClass("modal-overlay--anchored");
+    expect(dialog.querySelector(".modal-container")).toHaveStyle({ top: "220px" });
     expect(screen.getByText("Alérgica al maní")).toBeInTheDocument();
   });
 
