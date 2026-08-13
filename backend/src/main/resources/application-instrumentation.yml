@@ -1,0 +1,16 @@
+app:
+  instrumentation:
+    dashboard: true
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true
+        log_slow_query: 1
+
+logging:
+  level:
+    com.tesoreria.shared.infrastructure.performance: INFO
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: INFO
+    org.hibernate.SQL_SLOW: INFO
