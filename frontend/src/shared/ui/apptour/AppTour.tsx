@@ -83,12 +83,16 @@ export const AppTour = ({ user }: { user: User }) => {
     setOpen(false);
   };
   const cardWidth = Math.min(360, window.innerWidth - 32);
+  const isMobile = window.innerWidth <= 600;
+  const estimatedCardHeight = isMobile ? 290 : 240;
+  const cardGap = isMobile ? 12 : 16;
   const cardStyle: CSSProperties = targetRect ? {
     width: cardWidth,
     left: Math.max(16, Math.min(targetRect.left, window.innerWidth - cardWidth - 16)),
-    top: targetRect.bottom + 16 + 240 < window.innerHeight
-      ? targetRect.bottom + 16
-      : Math.max(16, targetRect.top - 256),
+    top: targetRect.bottom + cardGap + estimatedCardHeight < window.innerHeight
+      ? targetRect.bottom + cardGap
+      : Math.max(16, Math.min(targetRect.top - estimatedCardHeight - cardGap,
+        window.innerHeight - estimatedCardHeight - 16)),
   } : { width: cardWidth };
   const spotlightStyle: CSSProperties | undefined = targetRect ? {
     left: targetRect.left - 6,
