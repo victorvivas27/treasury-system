@@ -29,6 +29,15 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const tokenExpiration = (token: string) => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState(() => localStorage.getItem(AUTH_TOKEN_KEY));
   const [user, setUser] = useState<User | null>(null);
@@ -62,6 +71,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
   }, [clearSession]);
+
+  useEffect(() => {
+    if (!token || !user) return;
+    const checkExpiration = () => {
+      const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (!currentToken) return;
+      const expiration = tokenExpiration(currentToken);
+      if (expiration !== null && expiration <= Date.now()) {
+        window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      } else if (currentToken !== token) {
+        setToken(currentToken);
+      }
+    };
+    const expiration = tokenExpiration(token);
+    const delay = expiration === null
+      ? 60_000
+      : Math.max(0, Math.min(expiration - Date.now(), 2_147_483_647));
+    const timer = window.setTimeout(checkExpiration, delay);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") checkExpiration();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [token, user]);
 
   useEffect(() => {
     if (!token) {

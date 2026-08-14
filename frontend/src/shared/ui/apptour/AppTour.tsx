@@ -3,7 +3,7 @@ import { FiCheckCircle, FiChevronLeft, FiChevronRight, FiCompass, FiUsers } from
 import type { User } from "@/core/A-domain/entities/user/User";
 import "./AppTour.css";
 
-const TOUR_VERSION = "v1";
+const TOUR_VERSION = "v2";
 export const OPEN_APP_TOUR_EVENT = "open-app-tour";
 
 interface TourStep {
@@ -23,8 +23,11 @@ const commonFinalStep: TourStep = {
 const stepsFor = (user: User): TourStep[] => user.rol === "ADMIN" ? [
   { title: `¡Bienvenido, ${user.nombre}!`, description: "Te mostraremos las áreas principales para comenzar a administrar el sistema.", icon: FiCompass },
   { title: "Panel principal", description: "Aquí encuentras el resumen general y los indicadores más importantes.", selector: '[data-tour-path="/dashboard"]', icon: FiCompass },
-  { title: "Personas y familias", description: "Administra usuarios, alumnos, apoderados y sus vínculos familiares desde este menú.", selector: '[data-tour-path="/family"]', icon: FiUsers },
-  { title: "Tesorería", description: "Accede a cuotas, aportes, ingresos, egresos, eventos y reportes financieros.", selector: '[data-tour="treasury"]', icon: FiCompass },
+  { title: "Familias", description: "Administra los vínculos entre cada alumno y sus apoderados, indicando su parentesco y apoderado principal.", selector: '[data-tour-path="/family"]', icon: FiUsers },
+  { title: "Apoderados", description: "Crea y administra los datos de los apoderados y habilita su acceso a la aplicación.", selector: '[data-tour-path="/parents"]', icon: FiUsers },
+  { title: "Alumnos", description: "Administra los alumnos, su nombre, curso y observaciones importantes.", selector: '[data-tour-path="/students"]', icon: FiUsers },
+  { title: "Usuarios", description: "Administra las cuentas de usuario que pueden ingresar a la aplicación, sus roles y estado.", selector: '[data-tour-path="/users"]', icon: FiUsers },
+  { title: "Perfil", description: "Consulta el estado de pagos asociado a la cuenta y permite actualizar el nombre del usuario.", selector: '[data-tour-path="/profile"]', icon: FiUsers },
   commonFinalStep,
 ] : [
   { title: `¡Bienvenido, ${user.nombre}!`, description: "Este breve recorrido te ayudará a encontrar la información de tu familia y sus pagos.", icon: FiCompass },

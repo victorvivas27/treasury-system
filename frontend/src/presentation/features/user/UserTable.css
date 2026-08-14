@@ -77,12 +77,17 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 32px;
+  height: 28px;
   min-width: 0;
-  min-height: 32px;
-  padding: .3rem .4rem;
+  min-height: 28px;
+  padding: .2rem .25rem;
   margin: 0;
-  font-size: .62rem;
+  font-size: .58rem;
+}
+
+.usuarios-table__icon-button .button-icon svg {
+  width: .8rem;
+  height: .8rem;
 }
 
 @media (max-width: 768px) {
