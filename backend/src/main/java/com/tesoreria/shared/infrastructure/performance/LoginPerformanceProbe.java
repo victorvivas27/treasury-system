@@ -24,6 +24,14 @@ public class LoginPerformanceProbe {
         if (enabled) statistics.setStatisticsEnabled(true);
     }
 
+    public static long now() {
+        return System.nanoTime();
+    }
+
+    private static long elapsedMillis(long startedAt) {
+        return (System.nanoTime() - startedAt) / 1_000_000;
+    }
+
     public Measurement start() {
         return enabled ? new Measurement(System.nanoTime(), statistics.getPrepareStatementCount())
                 : new Measurement();
@@ -39,14 +47,6 @@ public class LoginPerformanceProbe {
                     elapsedMillis(measurement.startedAt), measurement.phases,
                     statistics.getPrepareStatementCount() - measurement.statementsBefore);
         }
-    }
-
-    public static long now() {
-        return System.nanoTime();
-    }
-
-    private static long elapsedMillis(long startedAt) {
-        return (System.nanoTime() - startedAt) / 1_000_000;
     }
 
     public static final class Measurement {

@@ -9,9 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-
-import java.util.stream.Collectors;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -60,10 +59,10 @@ public class FamiliaMapper {
         Map<Long, Apoderado> apoderadosPorId = apoderados == null
                 ? Map.of()
                 : apoderados.stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toMap(
-                                a -> a.getApoderadoId(),
-                                a -> a));
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        a -> a.getApoderadoId(),
+                        a -> a));
         List<ApoderadoDetalleResponse> apoderadosDetalle = familia.getApoderados().stream()
                 .map(relacion -> {
                     Apoderado apoderado = apoderadosPorId.get(relacion.getApoderadoId());

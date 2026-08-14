@@ -7,10 +7,10 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.Scho
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.SchoolEventExpenseEmbeddable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.jspecify.annotations.NullMarked;
 
 import java.math.BigDecimal;
 import java.security.Principal;

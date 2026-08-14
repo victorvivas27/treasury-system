@@ -30,6 +30,14 @@ public class DashboardPerformanceProbe {
         if (enabled) statistics.setStatisticsEnabled(true);
     }
 
+    public static long now() {
+        return System.nanoTime();
+    }
+
+    private static long elapsedMillis(long startedAt) {
+        return (System.nanoTime() - startedAt) / 1_000_000;
+    }
+
     public Measurement start(int year) {
         if (!enabled) return Measurement.disabled();
         return new Measurement(year, System.nanoTime(), statistics.getPrepareStatementCount(),
@@ -50,20 +58,12 @@ public class DashboardPerformanceProbe {
         }
     }
 
-    public static long now() {
-        return System.nanoTime();
-    }
-
     private boolean cacheContains(int year) {
         org.springframework.cache.Cache springCache = cacheManager.getCache(
                 CacheNames.TREASURY_DASHBOARD_OVERVIEW);
         if (springCache == null) return false;
         Object nativeCache = springCache.getNativeCache();
         return nativeCache instanceof Cache<?, ?> caffeine && caffeine.asMap().containsKey(year);
-    }
-
-    private static long elapsedMillis(long startedAt) {
-        return (System.nanoTime() - startedAt) / 1_000_000;
     }
 
     public static final class Measurement {

@@ -196,13 +196,13 @@ class PostgresPerformanceQueryIntegrationTest {
     private long insertStand(long eventId, String name, String status,
                              String debit, String credit, String transfer) {
         return jdbc.queryForObject("""
-                INSERT INTO event_stands(event_id, name, stand_date, start_time, end_time,
-                    responsible, initial_fund, status, debit_commission, credit_commission,
-                    transfer_commission, created_at, updated_at, version)
-                VALUES (?, ?, DATE '2026-08-01', TIME '09:00', TIME '18:00', 'Responsable',
-                    0, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                RETURNING id
-                """, Long.class, eventId, name, status, new BigDecimal(debit),
+                        INSERT INTO event_stands(event_id, name, stand_date, start_time, end_time,
+                            responsible, initial_fund, status, debit_commission, credit_commission,
+                            transfer_commission, created_at, updated_at, version)
+                        VALUES (?, ?, DATE '2026-08-01', TIME '09:00', TIME '18:00', 'Responsable',
+                            0, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                        RETURNING id
+                        """, Long.class, eventId, name, status, new BigDecimal(debit),
                 new BigDecimal(credit), new BigDecimal(transfer));
     }
 
@@ -218,10 +218,10 @@ class PostgresPerformanceQueryIntegrationTest {
                             String variant, String presentation, String equivalence, int quantity,
                             String price, String cost, String subtotal, String costSubtotal) {
         jdbc.update("""
-                INSERT INTO event_stand_sale_items(sale_id, product_id, product_name, category,
-                    variant, presentation, unit_equivalence, quantity, unit_price, unit_cost,
-                    subtotal, cost_subtotal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, saleId, productId, name, category, variant, presentation,
+                        INSERT INTO event_stand_sale_items(sale_id, product_id, product_name, category,
+                            variant, presentation, unit_equivalence, quantity, unit_price, unit_cost,
+                            subtotal, cost_subtotal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, saleId, productId, name, category, variant, presentation,
                 equivalence == null ? null : new BigDecimal(equivalence), quantity,
                 new BigDecimal(price), new BigDecimal(cost), new BigDecimal(subtotal),
                 new BigDecimal(costSubtotal));
