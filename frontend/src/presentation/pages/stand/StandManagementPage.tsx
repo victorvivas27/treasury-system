@@ -272,14 +272,32 @@ export const StandManagementPage = () => {
             <span>{item.name}</span><small>{statusLabels[item.status]}</small>
           </button>)}
           {standList.length === 0 && <section className="stand-selector-empty">
-            <div><FiBox /></div>
-            <h2>Aún no hay stands</h2>
-            <p>Configura el primer stand para agregar productos y comenzar a registrar ventas.</p>
-            <button type="button" onClick={click => {
-              setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
-                Math.min(320, window.innerWidth - 24), 430));
-              setCreating(true);
-            }}><FiPlus /> Crear primer stand</button>
+            <header className="stand-selector-empty__header">
+              <div className="stand-selector-empty__identity">
+                <span className="stand-selector-empty__icon"><FiBox /></span>
+                <div><span className="stand-status stand-status--preparation">Preparación</span>
+                  <h2>Tu stand aparecerá aquí</h2>
+                  <p>Aún no hay un stand creado para este evento.</p></div>
+              </div>
+              <button type="button" onClick={click => {
+                setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                  Math.min(320, window.innerWidth - 24), 430));
+                setCreating(true);
+              }}><FiPlus /> Crear primer stand</button>
+            </header>
+            <nav className="stand-selector-empty__tabs" aria-label="Vista previa del stand">
+              <span className="is-active"><FiBox /> Productos</span>
+              <span><FiShoppingCart /> Ventas</span>
+              <span><FiTrendingUp /> Resumen</span>
+            </nav>
+            <div className="stand-selector-empty__preview">
+              <article><FiBox /><div><strong>Productos</strong>
+                <small>Agrega precios, costos y stock</small></div><b>0</b></article>
+              <article><FiShoppingCart /><div><strong>Ventas</strong>
+                <small>Registra cada compra del evento</small></div><b>0</b></article>
+              <article><FiDollarSign /><div><strong>Recaudación</strong>
+                <small>Controla caja y medios de pago</small></div><b>{money.format(0)}</b></article>
+            </div>
           </section>}
         </div>
 
