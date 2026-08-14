@@ -147,4 +147,18 @@ describe("LoginPage", () => {
       "El servidor tardó demasiado en responder",
     );
   });
+
+  it("[LoginPage #07] diferencia la restauración de sesión del envío del formulario", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      login: vi.fn(),
+      token: "token-guardado",
+      loading: true,
+      isAuthenticated: false,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+
+    expect(screen.getByText("Recuperando tu sesión...")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ingresando..." })).not.toBeInTheDocument();
+  });
 });

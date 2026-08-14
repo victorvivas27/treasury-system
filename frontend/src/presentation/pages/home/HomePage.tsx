@@ -8,6 +8,10 @@ import "./style/HomePage.css";
 
 export const HomePage = () => {
   useHomeReveal();
+  const { token, loading, isAuthenticated } = useAuth();
+
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  if (loading && token) return <LoadingState mesage="Recuperando tu sesión..." />;
 
   return (
     <div className="public-home">
@@ -21,3 +25,6 @@ export const HomePage = () => {
     </div>
   );
 };
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/presentation/context/AuthContext";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";

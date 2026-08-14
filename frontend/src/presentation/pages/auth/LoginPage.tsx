@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Button } from "@/shared/ui/button/Button";
@@ -9,6 +9,7 @@ import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import "./PasswordVisibility.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,7 +45,8 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const { login, loading } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const { login, token, loading: sessionLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,6 +64,7 @@ export const LoginPage = () => {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
+      setSubmitting(true);
       loginPerformance.start();
       await login(correo.trim(), password);
       loginPerformance.mark("response");
@@ -73,8 +76,18 @@ export const LoginPage = () => {
       loginPerformance.mark("navigation");
     } catch (loginError) {
       setError(loginErrorMessage(loginError));
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const requestedDestination = (location.state as { from?: string } | null)?.from;
+  const authenticatedDestination = requestedDestination && requestedDestination !== "/login"
+    ? requestedDestination
+    : "/dashboard";
+
+  if (isAuthenticated) return <Navigate to={authenticatedDestination} replace />;
+  if (sessionLoading && token) return <LoadingState mesage="Recuperando tu sesión..." />;
 
   return (
     <main className="form-page-container">
@@ -150,8 +163,8 @@ export const LoginPage = () => {
           <Button
             type="submit"
             onClick={() => {}}
-            loading={loading}
-            label={loading ? "Ingresando..." : "Ingresar"}
+            loading={submitting}
+            label={submitting ? "Ingresando..." : "Ingresar"}
             size="medium"
           />
           <Button
