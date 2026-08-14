@@ -1,15 +1,10 @@
 package com.tesoreria.familia.core.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
 import com.tesoreria.familia.core.exception.FamiliaErrorCode;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
+
+import java.util.*;
 
 public class Familia {
     private static final int MAX_APODERADOS_PRINCIPALES = 1;

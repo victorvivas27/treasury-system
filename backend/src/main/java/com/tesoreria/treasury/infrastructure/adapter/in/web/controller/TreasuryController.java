@@ -15,12 +15,12 @@ import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
 import jakarta.validation.Valid;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.jspecify.annotations.NullMarked;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -146,39 +146,39 @@ public class TreasuryController {
             performanceProbe.phase(measurement, "listarFamilia", startedAt);
             startedAt = DashboardPerformanceProbe.now();
             List<FamilyFeePlan> validPlans = treasury.listPlans(year).stream()
-                .filter(plan -> existingFamilyIds.contains(plan.familyId())).toList();
+                    .filter(plan -> existingFamilyIds.contains(plan.familyId())).toList();
             performanceProbe.phase(measurement, "listPlans", startedAt);
             Set<Long> validPlanIds = validPlans.stream().map(FamilyFeePlan::id)
-                .collect(java.util.stream.Collectors.toSet());
+                    .collect(java.util.stream.Collectors.toSet());
             startedAt = DashboardPerformanceProbe.now();
             List<FeeObligation> validObligations = treasury.listObligations(year).stream()
-                .filter(item -> validPlanIds.contains(item.planId())).toList();
+                    .filter(item -> validPlanIds.contains(item.planId())).toList();
             performanceProbe.phase(measurement, "listObligations", startedAt);
 
-        long paid = validObligations.stream()
-                .filter(item -> item.status() == ObligationStatus.PAGADA).count();
-        long pending = validObligations.stream()
-                .filter(item -> item.status() == ObligationStatus.PENDIENTE).count();
-        BigDecimal collected = validObligations.stream()
-                .filter(item -> item.status() == ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal pendingAmount = validObligations.stream()
-                .filter(item -> item.status() == ObligationStatus.PENDIENTE)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        TreasuryDashboard quotas = new TreasuryDashboard(validPlans.size(),
-                validPlans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
-                validPlans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
-                pending, paid, collected, pendingAmount);
-        FinancialSummary current = overview.finances();
-        BigDecimal totalIncome = collected.add(current.otherIncome());
-        FinancialSummary finances = new FinancialSummary(year, collected, current.otherIncome(),
-                totalIncome, current.totalExpenses(), totalIncome.subtract(current.totalExpenses()));
-        List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
-                new TreasuryDashboardOverview.StatusMetric("PAGADA", paid),
-                new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
+            long paid = validObligations.stream()
+                    .filter(item -> item.status() == ObligationStatus.PAGADA).count();
+            long pending = validObligations.stream()
+                    .filter(item -> item.status() == ObligationStatus.PENDIENTE).count();
+            BigDecimal collected = validObligations.stream()
+                    .filter(item -> item.status() == ObligationStatus.PAGADA)
+                    .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal pendingAmount = validObligations.stream()
+                    .filter(item -> item.status() == ObligationStatus.PENDIENTE)
+                    .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            TreasuryDashboard quotas = new TreasuryDashboard(validPlans.size(),
+                    validPlans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
+                    validPlans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
+                    pending, paid, collected, pendingAmount);
+            FinancialSummary current = overview.finances();
+            BigDecimal totalIncome = collected.add(current.otherIncome());
+            FinancialSummary finances = new FinancialSummary(year, collected, current.otherIncome(),
+                    totalIncome, current.totalExpenses(), totalIncome.subtract(current.totalExpenses()));
+            List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
+                    new TreasuryDashboardOverview.StatusMetric("PAGADA", paid),
+                    new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
             return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
-                overview.expensesByCategory(), overview.expensesByDescription(),
-                overview.recentMovements(), overview.auditTrail());
+                    overview.expensesByCategory(), overview.expensesByDescription(),
+                    overview.recentMovements(), overview.auditTrail());
         } finally {
             performanceProbe.finish(measurement);
         }

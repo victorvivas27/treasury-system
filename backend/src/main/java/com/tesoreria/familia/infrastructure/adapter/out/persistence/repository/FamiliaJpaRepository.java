@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long> {
 
@@ -32,15 +32,6 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
             """, nativeQuery = true)
     List<FamilyTreasuryView> findTreasuryData();
 
-    interface FamilyTreasuryView {
-        Long getFamilyId();
-        String getFamilyCode();
-        Long getStudentId();
-        String getStudentName();
-        String getCourse();
-        String getPrimaryGuardian();
-    }
-
     @Query(value = """
             SELECT DISTINCT f.* FROM familias f
             JOIN alumnos a ON a.alumno_id = f.alumno_id
@@ -58,4 +49,18 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
                        OR LOWER(ap.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
                     """, nativeQuery = true)
     Page<FamiliaEntity> searchByMemberName(@Param("search") String search, Pageable pageable);
+
+    interface FamilyTreasuryView {
+        Long getFamilyId();
+
+        String getFamilyCode();
+
+        Long getStudentId();
+
+        String getStudentName();
+
+        String getCourse();
+
+        String getPrimaryGuardian();
+    }
 }

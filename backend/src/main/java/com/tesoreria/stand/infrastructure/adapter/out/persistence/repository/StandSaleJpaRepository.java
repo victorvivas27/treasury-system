@@ -1,13 +1,12 @@
 package com.tesoreria.stand.infrastructure.adapter.out.persistence.repository;
 
+import com.tesoreria.stand.core.model.StandPaymentMethod;
 import com.tesoreria.stand.infrastructure.adapter.out.persistence.entity.StandSaleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.tesoreria.stand.core.model.StandPaymentMethod;
 import java.math.BigDecimal;
-
 import java.util.List;
 
 public interface StandSaleJpaRepository extends JpaRepository<StandSaleEntity, Long> {
@@ -51,18 +50,27 @@ public interface StandSaleJpaRepository extends JpaRepository<StandSaleEntity, L
 
     interface SaleAggregate {
         StandPaymentMethod getPaymentMethod();
+
         BigDecimal getTotal();
+
         long getSaleCount();
     }
 
     interface ItemAggregate {
         String getProductName();
+
         String getCategory();
+
         String getVariant();
+
         String getPresentation();
+
         long getUnits();
+
         BigDecimal getTotal();
+
         BigDecimal getCost();
+
         BigDecimal getEquivalentUnits();
     }
 }

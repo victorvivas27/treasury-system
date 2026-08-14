@@ -9,9 +9,9 @@ import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.Scho
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.SchoolEventExpenseEmbeddable;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.SchoolEventParticipantEmbeddable;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.SchoolEventJpaRepository;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.jspecify.annotations.NullMarked;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

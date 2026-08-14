@@ -1,7 +1,5 @@
 package stand;
 
-import org.jspecify.annotations.NullMarked;
-
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.stand.application.usecase.StandService;
 import com.tesoreria.stand.core.model.StandPaymentMethod;
@@ -17,6 +15,7 @@ import com.tesoreria.stand.infrastructure.adapter.out.persistence.repository.Sta
 import com.tesoreria.treasury.application.usecase.SchoolEventService;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.SchoolEventEntity;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.SchoolEventJpaRepository;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

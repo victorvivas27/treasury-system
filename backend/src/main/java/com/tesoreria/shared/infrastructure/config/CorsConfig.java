@@ -1,11 +1,10 @@
 package com.tesoreria.shared.infrastructure.config;
 
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import lombok.NonNull;
 
 import java.util.Arrays;
 
