@@ -248,8 +248,10 @@ const AdminNotificationCenter = () => {
       <div className="notification-form">
         <label>Título<input maxLength={120} value={form.title}
           onChange={event => setForm(value => ({ ...value, title: event.target.value }))} /></label>
-        <label>Mensaje<textarea maxLength={2000} rows={5} value={form.message}
-          onChange={event => setForm(value => ({ ...value, message: event.target.value }))} /></label>
+        <label><span className="notification-form__field-heading"><span>Mensaje</span>
+          <small aria-live="polite">{form.message.length}/2000</small></span>
+          <textarea maxLength={2000} rows={5} value={form.message}
+            onChange={event => setForm(value => ({ ...value, message: event.target.value }))} /></label>
         <label>Prioridad<select value={form.type} onChange={event => setForm(value => ({ ...value,
           type: event.target.value as NotificationType }))}>
           <option value="INFO">Informativa</option><option value="IMPORTANT">Importante</option>
@@ -292,9 +294,11 @@ const GuardianInbox = () => {
       <p className="page-header__subtitle">Mensajes y avisos de tesorería.</p></div>
       <div className="page-header__actions"><Button label="Actualizar" variant="secondary"
         icon={<FiRefreshCw />} iconPosition="left"
+        className="notifications-header-action notifications-header-action--refresh"
         loading={loading} onClick={() => void refresh()} />
         <Button label="Marcar todas como leídas" disabled={!unreadCount}
           icon={<FiCheckCircle />} iconPosition="left"
+          className="notifications-header-action notifications-header-action--read"
           onClick={() => void markAllRead()} /></div></header>
     <section ref={listRef} className="notifications-list" aria-live="polite"
       onScroll={event => updateMessageVisibility(event.currentTarget)}>
