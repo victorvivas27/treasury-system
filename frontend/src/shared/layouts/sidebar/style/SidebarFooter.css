@@ -75,12 +75,16 @@
   display: grid;
   place-items: center;
 }
+.sidebar-footer-bell-motion { display: inline-grid; place-items: center; }
 
 .sidebar-footer-link.has-unread .sidebar-footer-icon {
   color: #d92d20;
-  transform-box: fill-box;
+}
+
+.sidebar-footer-link.has-unread .sidebar-footer-bell-motion {
   transform-origin: 50% 10%;
-  animation: sidebarBellAttention 1s cubic-bezier(.36,.07,.19,.97) 6;
+  animation: sidebarBellAttention 9s linear infinite;
+  will-change: transform;
 }
 
 .sidebar-footer-link.has-unread .sidebar-footer-text {
@@ -107,17 +111,27 @@
 }
 
 @keyframes sidebarBellAttention {
-  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-  10% { transform: translateY(-3px) rotate(-28deg) scale(1.18); }
-  25% { transform: translateY(-1px) rotate(26deg) scale(1.14); }
-  40% { transform: translateY(-3px) rotate(-24deg) scale(1.18); }
-  55% { transform: translateY(0) rotate(20deg) scale(1.1); }
-  70% { transform: translateY(-2px) rotate(-15deg) scale(1.12); }
-  85% { transform: translateY(0) rotate(9deg) scale(1.04); }
+  0%, 8% { transform: translateY(0) rotate(0deg) scale(1); }
+  18% { transform: translateY(0) rotate(-4deg) scale(1.01); }
+  30% { transform: translateY(0) rotate(5deg) scale(1.02); }
+  40% { transform: translateY(-1px) rotate(-8deg) scale(1.03); }
+  49% { transform: translateY(0) rotate(10deg) scale(1.04); }
+  57% { transform: translateY(-1px) rotate(-14deg) scale(1.06); }
+  64% { transform: translateY(0) rotate(17deg) scale(1.07); }
+  70% { transform: translateY(-2px) rotate(-21deg) scale(1.09); }
+  76% { transform: translateY(0) rotate(24deg) scale(1.1); }
+  81% { transform: translateY(-2px) rotate(-27deg) scale(1.12); }
+  86% { transform: translateY(0) rotate(29deg) scale(1.12); }
+  90% { transform: translate(-3px, -3px) rotate(-34deg) scale(1.16); }
+  92% { transform: translate(3px, 1px) rotate(36deg) scale(1.15); }
+  94% { transform: translate(-3px, -2px) rotate(-38deg) scale(1.17); }
+  96% { transform: translate(3px, 0) rotate(35deg) scale(1.14); }
+  98% { transform: translate(-2px, -1px) rotate(-24deg) scale(1.09); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar-footer-link.has-unread .sidebar-footer-icon { animation: none; }
+  .sidebar-footer-link.has-unread .sidebar-footer-bell-motion { animation: none; }
 }
 
 .sidebar-user:hover,

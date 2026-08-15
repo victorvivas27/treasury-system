@@ -19,6 +19,22 @@ import "./Notificacion.css";
 
 const labels = { INFO: "Informativa", IMPORTANT: "Importante", URGENT: "Urgente" };
 
+const updateMessageVisibility = (container: HTMLElement) => {
+  const bounds = container.getBoundingClientRect();
+  container.querySelectorAll<HTMLElement>(".sent-notification, .notification-card").forEach(message => {
+    const rect = message.getBoundingClientRect();
+    const visualBottom = rect.bottom + 16;
+    const visualHeight = rect.height + 16;
+    const visibleHeight = Math.max(0, Math.min(visualBottom, bounds.bottom)
+      - Math.max(rect.top, bounds.top));
+    const ratio = Math.min(1, visibleHeight / Math.max(1, visualHeight));
+    const visibility = ratio >= .96 ? 1 : Math.max(.16, ratio * .82);
+    message.style.setProperty("--message-visibility", String(visibility));
+    message.style.setProperty("--message-blur", `${(1 - ratio) * 3.5}px`);
+    message.style.setProperty("--message-scale", String(.975 + ratio * .025));
+  });
+};
+
 export const Notificacion = () => {
   const auth = useOptionalAuth();
   return auth?.user?.rol === "ADMIN" ? <AdminNotificationCenter /> : <GuardianInbox />;
@@ -147,14 +163,18 @@ const AdminNotificationCenter = () => {
             const groupElement = event.currentTarget;
             window.requestAnimationFrame(() => {
               const messages = groupElement.querySelector<HTMLElement>(".sent-user-group__messages");
-              if (messages) messages.scrollTop = messages.scrollHeight;
+              if (messages) {
+                messages.scrollTop = messages.scrollHeight;
+                updateMessageVisibility(messages);
+              }
             });
           }}>
           <summary><FiUsers aria-hidden="true" /><span><strong>{group.name}</strong>
             <small>{group.email}</small></span><em>{group.messages.length}
               {group.messages.length === 1 ? " mensaje" : " mensajes"}</em>
             <FiChevronDown aria-hidden="true" /></summary>
-          <div className="sent-user-group__messages">
+          <div className="sent-user-group__messages"
+            onScroll={event => updateMessageVisibility(event.currentTarget)}>
             {group.messages.map(({ notification: item, read }) => <article key={item.id}
               className={`sent-notification chat-bubble chat-bubble--outgoing sent-notification--${
                 item.type.toLowerCase()}`}>
@@ -212,7 +232,10 @@ const GuardianInbox = () => {
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
   useEffect(() => {
     const list = listRef.current;
-    if (list) list.scrollTop = list.scrollHeight;
+    if (list) {
+      list.scrollTop = list.scrollHeight;
+      updateMessageVisibility(list);
+    }
   }, [orderedNotifications.length]);
   return <main className="page-container notifications-page notifications-inbox">
     <header className="page-header"><div><h1 className="page-header__title">Notificaciones</h1>
@@ -223,7 +246,8 @@ const GuardianInbox = () => {
         <Button label="Marcar todas como leídas" disabled={!unreadCount}
           icon={<FiCheckCircle />} iconPosition="left"
           onClick={() => void markAllRead()} /></div></header>
-    <section ref={listRef} className="notifications-list" aria-live="polite">
+    <section ref={listRef} className="notifications-list" aria-live="polite"
+      onScroll={event => updateMessageVisibility(event.currentTarget)}>
       {!loading && notifications.length === 0 && <p className="notifications-empty">
         No tienes notificaciones.</p>}
       {orderedNotifications.map(item => <article key={item.id}
@@ -238,9 +262,11 @@ const GuardianInbox = () => {
               hour12: false,
             })}</time></header>
           <h2>{item.title}</h2><p>{item.message}</p>
-          {!item.read && <button type="button" onClick={() => void markRead(item.id)}>
-            <FiCheckCircle aria-hidden="true" /> Marcar como leída</button>}
         </div>
+        {!item.read && <button type="button" className="notification-card__read-action"
+          aria-label="Marcar como leída" onClick={event => {
+            event.stopPropagation(); void markRead(item.id);
+          }}><FiCheckCircle aria-hidden="true" /><span>Marcar como leída</span></button>}
       </article>)}
     </section>
   </main>;

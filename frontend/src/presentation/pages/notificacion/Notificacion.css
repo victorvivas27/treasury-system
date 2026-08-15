@@ -23,7 +23,8 @@
 .notifications-inbox .notifications-list { grid-template-columns: 1fr; gap: .55rem;
   padding: .65rem .65rem .65rem .85rem; border-radius: 10px; background: var(--color-surface);
   max-height: 480px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-accent) 50%, transparent) transparent; }
+  scrollbar-color: color-mix(in srgb, var(--color-accent) 50%, transparent) transparent;
+  scroll-snap-type: y proximity; scroll-padding-block: .5rem .9rem; }
 .notifications-inbox .notifications-list::-webkit-scrollbar { width: 6px; }
 .notifications-inbox .notifications-list::-webkit-scrollbar-thumb { border-radius: 1rem;
   background: color-mix(in srgb, var(--color-accent) 50%, transparent); }
@@ -33,6 +34,10 @@
   width: calc(100% - 1rem); justify-self: start; border-radius: 16px;
   padding: .55rem .65rem; margin-bottom: .7rem;
   box-shadow: 0 2px 8px color-mix(in srgb, #000 9%, transparent);
+  scroll-snap-align: start; opacity: var(--message-visibility, 1);
+  filter: blur(var(--message-blur, 0)); transform: scale(var(--message-scale, 1));
+  transform-origin: center; transition: opacity .24s ease, filter .24s ease,
+    transform .24s ease;
   cursor: pointer; }
 .notifications-inbox .notification-card.is-unread { background:
   color-mix(in srgb, #25d366 9%, var(--color-surface));
@@ -70,6 +75,13 @@
 .notifications-inbox .notification-card p { display: -webkit-box; overflow: hidden;
   -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .68rem; }
 .notifications-inbox .notification-card button { margin-top: .25rem; font-size: .62rem; }
+.notifications-inbox .notification-card .notification-card__read-action { position: absolute;
+  right: .55rem; bottom: -.55rem; z-index: 2; min-height: 20px; margin: 0; padding: .18rem .38rem;
+  border: 1px solid color-mix(in srgb, #16803a 35%, transparent); border-radius: 1rem;
+  background: var(--color-surface); color: #16803a;
+  box-shadow: 0 2px 5px color-mix(in srgb, #000 12%, transparent);
+  font-size: .55rem; white-space: nowrap; }
+.notification-card__read-action svg { flex: 0 0 auto; width: .7rem; height: .7rem; }
 .notification-recipient-panel { border-radius: 10px; padding: .6rem; background: var(--color-surface); }
 .notification-recipient-summary { display: grid; grid-template-columns: auto 1fr auto auto;
   align-items: center; gap: .4rem; padding: .25rem; cursor: pointer; list-style: none;
@@ -172,6 +184,7 @@
 .sent-user-group__messages { display: grid; gap: .35rem; padding: .45rem .65rem .8rem .4rem;
   max-height: 285px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--color-accent) 45%, transparent) transparent;
+  scroll-snap-type: y proximity; scroll-padding-block: .4rem .9rem;
   animation: recipientPanelOpen .18s ease-out; }
 .sent-user-group__messages::-webkit-scrollbar { width: 5px; }
 .sent-user-group__messages::-webkit-scrollbar-thumb { border-radius: 1rem;
@@ -181,7 +194,11 @@
 .sent-user-group__messages .sent-notification { --bubble-border: #6482a4;
   --bubble-bg: color-mix(in srgb, #6482a4 7%, var(--color-surface));
   border: 1px solid var(--bubble-border); border-radius: 12px; margin: 0 0 .85rem;
-  background: var(--bubble-bg); box-shadow: 0 2px 7px color-mix(in srgb, #000 8%, transparent); }
+  background: var(--bubble-bg); box-shadow: 0 2px 7px color-mix(in srgb, #000 8%, transparent);
+  scroll-snap-align: start; scroll-snap-stop: normal;
+  opacity: var(--message-visibility, 1); filter: blur(var(--message-blur, 0));
+  transform: scale(var(--message-scale, 1)); transform-origin: center;
+  transition: opacity .24s ease, filter .24s ease, transform .24s ease; }
 .sent-user-group__messages .sent-notification--important { --bubble-border: #d97706;
   --bubble-bg: color-mix(in srgb, #d97706 8%, var(--color-surface)); }
 .sent-user-group__messages .sent-notification--urgent { --bubble-border: #d92d20;
@@ -371,6 +388,11 @@
   .notifications-inbox .notification-card h2 { margin-top: .06rem; font-size: .62rem; }
   .notifications-inbox .notification-card p { font-size: .54rem; line-height: 1.2; }
   .notifications-inbox .notification-card button { margin-top: .12rem; font-size: .49rem; }
+  .notifications-inbox .notification-card .notification-card__read-action { right: .35rem;
+    bottom: -.45rem; min-height: 17px; padding: .1rem .22rem; font-size: .45rem; }
+  .notifications-inbox .notification-card .notification-card__read-action span { display: none; }
+  .notifications-inbox .notification-card .notification-card__read-action svg {
+    width: .62rem; height: .62rem; }
   .notifications-inbox .chat-bubble--incoming::before { bottom: -10px; left: 14px;
     border-width: 11px 12px 0 0; }
   .notifications-inbox .chat-bubble--incoming::after { bottom: -8px; left: 15px;
