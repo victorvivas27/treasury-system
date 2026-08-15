@@ -25,10 +25,20 @@ export interface SentNotification {
   type: NotificationType;
   createdAt: string;
   recipients: Array<{
+    deliveryId: number;
     userId: number;
     name: string;
     email: string;
     read: boolean;
     readAt: string | null;
   }>;
+}
+
+export interface NotificationReply {
+  id: number;
+  authorId: number;
+  authorName: string;
+  authorRole: "ADMIN" | "USER";
+  message: string;
+  createdAt: string;
 }

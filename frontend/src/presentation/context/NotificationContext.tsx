@@ -36,10 +36,17 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     if (!auth?.isAuthenticated) { setNotifications([]); setUnreadCount(0); return; }
     void refresh();
     const timer = window.setInterval(() => void repository.unreadCount()
-      .then(setUnreadCount).catch(() => undefined), 60_000);
+      .then(setUnreadCount).catch(() => undefined), 10_000);
     const visible = () => document.visibilityState === "visible" && void refresh();
+    const unreadChanged = () => void repository.unreadCount()
+      .then(setUnreadCount).catch(() => undefined);
     document.addEventListener("visibilitychange", visible);
-    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", visible); };
+    window.addEventListener("notification-unread-changed", unreadChanged);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visible);
+      window.removeEventListener("notification-unread-changed", unreadChanged);
+    };
   }, [auth?.isAuthenticated, refresh, repository]);
 
   const markRead = async (id: number) => {
