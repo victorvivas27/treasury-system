@@ -52,4 +52,15 @@ public class NotificationController {
     public void deleteSent(@PathVariable Long id, Authentication authentication) {
         service.deleteSent(id, authentication.getName());
     }
+    @GetMapping("/threads/{deliveryId}/messages")
+    public List<NotificationReplyResponse> replies(@PathVariable Long deliveryId,
+            Authentication authentication) {
+        return service.replies(deliveryId, authentication.getName());
+    }
+    @PostMapping("/threads/{deliveryId}/messages")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NotificationReplyResponse reply(@PathVariable Long deliveryId,
+            @Valid @RequestBody NotificationReplyRequest request, Authentication authentication) {
+        return service.reply(deliveryId, request, authentication.getName());
+    }
 }

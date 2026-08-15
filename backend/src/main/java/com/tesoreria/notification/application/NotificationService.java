@@ -17,16 +17,20 @@ import java.util.*;
 
 @Service
 public class NotificationService {
+    private static final String NOTIFICATION_FIELD = "notification";
     private final NotificationJpaRepository notifications;
     private final UserNotificationJpaRepository deliveries;
+    private final NotificationReplyJpaRepository replyRepository;
     private final UserJpaRepository users;
     private final ApoderadoJpaRepository guardians;
 
     public NotificationService(NotificationJpaRepository notifications,
-            UserNotificationJpaRepository deliveries, UserJpaRepository users,
+            UserNotificationJpaRepository deliveries, NotificationReplyJpaRepository replyRepository,
+            UserJpaRepository users,
             ApoderadoJpaRepository guardians) {
         this.notifications = notifications;
         this.deliveries = deliveries;
+        this.replyRepository = replyRepository;
         this.users = users;
         this.guardians = guardians;
     }
@@ -64,7 +68,9 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public long unreadCount(String email) {
-        return deliveries.countByUserIdAndReadFalseAndVisibleTrue(currentUser(email).getId());
+        UserEntity user = currentUser(email);
+        long notificationCount = deliveries.countByUserIdAndReadFalseAndVisibleTrue(user.getId());
+        return notificationCount + replyRepository.countUnreadReceived(user.getId());
     }
 
     @Transactional(readOnly = true)
@@ -75,7 +81,7 @@ public class NotificationService {
                         notification.getCreatedAt(), deliveries
                                 .findByNotificationIdOrderByUserNombreAsc(notification.getId()).stream()
                                 .map(row -> new SentNotificationResponse.RecipientStatus(
-                                        row.getUser().getId(), row.getUser().getNombre(),
+                                        row.getId(), row.getUser().getId(), row.getUser().getNombre(),
                                         row.getUser().getCorreo(), row.isRead(), row.getReadAt()))
                                 .toList()))
                 .toList();
@@ -85,7 +91,7 @@ public class NotificationService {
     public NotificationResponse markRead(Long id, String email) {
         UserNotificationEntity row = deliveries.findByIdAndUserIdAndVisibleTrue(
                 id, currentUser(email).getId())
-                .orElseThrow(() -> error("notification", HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación no encontrada"));
         if (!row.isRead()) { row.setRead(true); row.setReadAt(LocalDateTime.now()); }
         return response(deliveries.save(row));
@@ -93,18 +99,21 @@ public class NotificationService {
 
     @Transactional
     public void markAllRead(String email) {
-        List<UserNotificationEntity> rows = deliveries.findByUserIdAndReadFalseAndVisibleTrue(
-                currentUser(email).getId());
+        UserEntity user = currentUser(email);
+        List<UserNotificationEntity> rows = deliveries.findByUserIdAndReadFalseAndVisibleTrue(user.getId());
         LocalDateTime now = LocalDateTime.now();
         rows.forEach(row -> { row.setRead(true); row.setReadAt(now); });
         deliveries.saveAll(rows);
+        List<NotificationReplyEntity> unreadReplies = replyRepository.findUnreadReceived(user.getId());
+        unreadReplies.forEach(reply -> { reply.setRead(true); reply.setReadAt(now); });
+        replyRepository.saveAll(unreadReplies);
     }
 
     @Transactional
     public void deleteMine(Long id, String email) {
         UserNotificationEntity row = deliveries.findByIdAndUserIdAndVisibleTrue(
                 id, currentUser(email).getId())
-                .orElseThrow(() -> error("notification", HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación no encontrada"));
         row.setVisible(false);
         deliveries.save(row);
@@ -113,10 +122,54 @@ public class NotificationService {
     @Transactional
     public void deleteSent(Long id, String creatorEmail) {
         NotificationEntity notification = notifications.findByIdAndCreatedByCorreo(id, creatorEmail)
-                .orElseThrow(() -> error("notification", HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación enviada no encontrada"));
         deliveries.deleteAllByNotificationId(notification.getId());
         notifications.delete(notification);
+    }
+
+    @Transactional
+    public List<NotificationReplyResponse> replies(Long deliveryId, String email) {
+        UserEntity user = currentUser(email);
+        UserNotificationEntity delivery = accessibleDelivery(deliveryId, user);
+        List<NotificationReplyEntity> conversation = replyRepository.findConversation(
+                delivery.getUser().getId(),
+                delivery.getNotification().getCreatedBy().getId());
+        LocalDateTime now = LocalDateTime.now();
+        conversation.stream().filter(reply -> !reply.isRead()
+                && !reply.getAuthor().getId().equals(user.getId()))
+                .forEach(reply -> { reply.setRead(true); reply.setReadAt(now); });
+        replyRepository.saveAll(conversation.stream().filter(NotificationReplyEntity::isRead).toList());
+        return conversation.stream()
+                .map(this::replyResponse).toList();
+    }
+
+    @Transactional
+    public NotificationReplyResponse reply(Long deliveryId, NotificationReplyRequest request,
+            String email) {
+        UserEntity author = currentUser(email);
+        UserNotificationEntity delivery = accessibleDelivery(deliveryId, author);
+        NotificationReplyEntity reply = new NotificationReplyEntity();
+        reply.setDelivery(delivery);
+        reply.setAuthor(author);
+        reply.setMessage(request.message().trim());
+        reply.setRead(false);
+        reply.setCreatedAt(LocalDateTime.now());
+        return replyResponse(replyRepository.save(reply));
+    }
+
+    private UserNotificationEntity accessibleDelivery(Long deliveryId, UserEntity user) {
+        Optional<UserNotificationEntity> delivery = user.getRol() == RoleEnum.ADMIN
+                ? deliveries.findByIdAndNotificationCreatedById(deliveryId, user.getId())
+                : deliveries.findByIdAndUserIdAndVisibleTrue(deliveryId, user.getId());
+        return delivery.orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
+                "Conversación no encontrada"));
+    }
+
+    private NotificationReplyResponse replyResponse(NotificationReplyEntity reply) {
+        return new NotificationReplyResponse(reply.getId(), reply.getAuthor().getId(),
+                reply.getAuthor().getNombre(), reply.getAuthor().getRol().name(),
+                reply.getMessage(), reply.getCreatedAt());
     }
 
     private List<UserEntity> resolveRecipients(NotificationRequest request) {

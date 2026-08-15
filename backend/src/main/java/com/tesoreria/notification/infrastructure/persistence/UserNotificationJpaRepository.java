@@ -11,6 +11,7 @@ public interface UserNotificationJpaRepository extends JpaRepository<UserNotific
     List<UserNotificationEntity> findByUserIdAndVisibleTrueOrderByCreatedAtDesc(Long userId);
     long countByUserIdAndReadFalseAndVisibleTrue(Long userId);
     Optional<UserNotificationEntity> findByIdAndUserIdAndVisibleTrue(Long id, Long userId);
+    Optional<UserNotificationEntity> findByIdAndNotificationCreatedById(Long id, Long creatorId);
     List<UserNotificationEntity> findByUserIdAndReadFalseAndVisibleTrue(Long userId);
     List<UserNotificationEntity> findByNotificationIdOrderByUserNombreAsc(Long notificationId);
     @Modifying

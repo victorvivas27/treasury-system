@@ -3,7 +3,7 @@
 import { useNotifications } from "@/presentation/context/NotificationContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
-import type { NotificationType, SentNotification } from
+import type { NotificationReply, NotificationType, SentNotification } from
   "@/core/A-domain/entities/notification/Notification";
 import { NotificationRepositoryImpl } from
   "@/core/C-infra/repositories/notification/NotificationRepositoryImpl";
@@ -11,13 +11,81 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FiCheckCircle, FiChevronDown, FiRefreshCw, FiSend, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
 import "./Notificacion.css";
 
 const labels = { INFO: "Informativa", IMPORTANT: "Importante", URGENT: "Urgente" };
+
+const NotificationConversation = ({ deliveryId, repository, isAdmin, notificationItems }: {
+  deliveryId: number; repository: NotificationRepositoryImpl; isAdmin: boolean;
+  notificationItems: Array<{ id: string; createdAt: string; content: ReactNode }>;
+}) => {
+  const [messages, setMessages] = useState<NotificationReply[]>([]);
+  const [draft, setDraft] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const load = useCallback(async () => {
+    if (loading) return;
+    setLoading(true); setError("");
+    try { setMessages(await repository.listReplies(deliveryId)); setLoaded(true); }
+    catch { setError("No fue posible cargar la conversación."); }
+    finally { setLoading(false); }
+  }, [deliveryId, loading, repository]);
+  useEffect(() => { if (!loaded) void load(); }, [loaded, load]);
+  const submit = async () => {
+    const message = draft.trim();
+    if (!message || sending) return;
+    setSending(true); setError("");
+    try {
+      const saved = await repository.reply(deliveryId, message);
+      setMessages(current => [...current, saved]); setDraft(""); setLoaded(true);
+    } catch { setError("No fue posible enviar la respuesta."); }
+    finally { setSending(false); }
+  };
+  const timeline = [
+    ...notificationItems.map(item => ({ ...item, kind: "notification" as const })),
+    ...messages.map(message => ({ id: `reply-${message.id}`, createdAt: message.createdAt,
+      kind: "reply" as const, message })),
+  ].sort((first, second) => new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime());
+  const timelineRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = timelineRef.current;
+    if (container) container.scrollTop = container.scrollHeight;
+  }, [timeline.length]);
+  return <div className="notification-conversation">
+    <div className="notification-conversation__content">
+      {loading && <p className="notification-conversation__state">Cargando conversación…</p>}
+      <div ref={timelineRef}
+        className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}
+        onScroll={event => updateMessageVisibility(event.currentTarget)}>
+      {timeline.map(item => item.kind === "notification" ? <div key={item.id}
+        className="notification-timeline-item">{item.content}</div> : <article key={item.id}
+        className={`notification-reply ${item.message.authorRole === "ADMIN" ? "is-admin" : "is-guardian"}`}>
+        <header><strong>{item.message.authorRole === "ADMIN" ? "Tesorería" : item.message.authorName}</strong>
+          <time dateTime={item.message.createdAt}>{new Date(item.message.createdAt).toLocaleString("es-CL", {
+            day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+          })}</time></header><p>{item.message.message}</p>
+      </article>)}
+      </div>
+      {error && <p className="notification-conversation__error">{error}</p>}
+      <form className="notification-reply-form" onSubmit={event => {
+        event.preventDefault(); void submit();
+      }}>
+        <textarea aria-label={isAdmin ? "Responder al apoderado" : "Responder a administración"}
+          placeholder={isAdmin ? "Escribe una respuesta al apoderado…" : "Escribe una respuesta a administración…"}
+          maxLength={2000} rows={2} value={draft}
+          onChange={event => setDraft(event.target.value)} />
+        <button type="submit" disabled={!draft.trim() || sending}><FiSend />
+          {sending ? "Enviando…" : "Responder"}</button>
+      </form>
+    </div>
+  </div>;
+};
 
 const deleteTooltipAnchor = (rect: DOMRect) => {
   const width = Math.min(155, window.innerWidth - 16);
@@ -71,12 +139,12 @@ const AdminNotificationCenter = () => {
   const sentByRecipient = useMemo(() => {
     const groups = new Map<number, {
       userId: number; name: string; email: string;
-      messages: Array<{ notification: SentNotification; read: boolean }>;
+      messages: Array<{ notification: SentNotification; deliveryId: number; read: boolean }>;
     }>();
     sent.forEach(notification => notification.recipients.forEach(recipient => {
       const group = groups.get(recipient.userId) ?? { userId: recipient.userId,
         name: recipient.name, email: recipient.email, messages: [] };
-      group.messages.unshift({ notification, read: recipient.read });
+      group.messages.unshift({ notification, deliveryId: recipient.deliveryId, read: recipient.read });
       groups.set(recipient.userId, group);
     }));
     return [...groups.values()].sort((first, second) => first.name.localeCompare(second.name, "es"));
@@ -202,14 +270,20 @@ const AdminNotificationCenter = () => {
             <small>{group.email}</small></span><em>{group.messages.length}
               {group.messages.length === 1 ? " mensaje" : " mensajes"}</em>
             <FiChevronDown aria-hidden="true" /></summary>
-          <div className="sent-user-group__messages"
-            onScroll={event => updateMessageVisibility(event.currentTarget)}>
-            {group.messages.map(({ notification: item, read }) => <article key={item.id}
+          {group.messages.length > 0 && <NotificationConversation
+            deliveryId={group.messages[group.messages.length - 1].deliveryId}
+            repository={repository} isAdmin notificationItems={group.messages.map(({
+              notification: item, read }) => ({ id: `notification-${item.id}`,
+              createdAt: item.createdAt, content: <article
               className={`sent-notification chat-bubble chat-bubble--outgoing sent-notification--${
                 item.type.toLowerCase()}`}>
               <header className="sent-notification__message-header">
                 <IoNotificationsOutline aria-hidden="true" /><span>
-                <small className="sent-notification__recipients"><b>Para:</b> {group.name}</small>
+                <span className="sent-notification__meta-row">
+                  <small className="sent-notification__recipients"><b>Para:</b> {group.name}</small>
+                  <span className="sent-notification__message-label"><MdDoneAll aria-hidden="true" />
+                    <span>Mensaje enviado</span></span>
+                </span>
                 <strong>{item.title}</strong>
                 <small>{new Date(item.createdAt).toLocaleString("es-CL", {
                   day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit",
@@ -229,11 +303,9 @@ const AdminNotificationCenter = () => {
                 </button>
               </header>
               <div className="sent-notification__body">
-                <span className="sent-notification__message-label"><MdDoneAll aria-hidden="true" />
-                  <span>Mensaje enviado</span></span><p>{item.message}</p>
+                <p>{item.message}</p>
               </div>
-            </article>)}
-          </div>
+            </article> }))} />}
         </details>)}
       </div>
     </section>
@@ -280,15 +352,8 @@ const GuardianInbox = () => {
   const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
-  const listRef = useRef<HTMLElement>(null);
+  const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
-  useEffect(() => {
-    const list = listRef.current;
-    if (list) {
-      list.scrollTop = list.scrollHeight;
-      updateMessageVisibility(list);
-    }
-  }, [orderedNotifications.length]);
   return <main className="page-container notifications-page notifications-inbox">
     <header className="page-header"><div><h1 className="page-header__title">Notificaciones</h1>
       <p className="page-header__subtitle">Mensajes y avisos de tesorería.</p></div>
@@ -300,11 +365,14 @@ const GuardianInbox = () => {
           icon={<FiCheckCircle />} iconPosition="left"
           className="notifications-header-action notifications-header-action--read"
           onClick={() => void markAllRead()} /></div></header>
-    <section ref={listRef} className="notifications-list" aria-live="polite"
-      onScroll={event => updateMessageVisibility(event.currentTarget)}>
+    <section className="notifications-list" aria-live="polite">
       {!loading && notifications.length === 0 && <p className="notifications-empty">
         No tienes notificaciones.</p>}
-      {orderedNotifications.map(item => <article key={item.id}
+      {orderedNotifications.length > 0 && <NotificationConversation
+        deliveryId={orderedNotifications[orderedNotifications.length - 1].id}
+        repository={repository} isAdmin={false}
+        notificationItems={orderedNotifications.map(item => ({ id: `notification-${item.id}`,
+          createdAt: item.createdAt, content: <article
         className={`notification-card chat-bubble chat-bubble--incoming notification-card--${item.type.toLowerCase()} ${
           item.read ? "is-read" : "is-unread"}`}
         onClick={() => !item.read && void markRead(item.id)}>
@@ -333,7 +401,7 @@ const GuardianInbox = () => {
           }}>
           <FiTrash2 aria-hidden="true" />
         </button>
-      </article>)}
+      </article> }))} />}
     </section>
     <ModalConfirm isOpen={deleteTarget !== null} title="Eliminar notificación" compact
       anchor={deleteAnchor} containerClassName="notification-delete-confirm"
