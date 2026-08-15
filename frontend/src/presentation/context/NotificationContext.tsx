@@ -12,6 +12,7 @@ interface NotificationContextValue {
   refresh: () => Promise<void>;
   markRead: (id: number) => Promise<void>;
   markAllRead: () => Promise<void>;
+  deleteNotification: (id: number) => Promise<void>;
 }
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
@@ -51,8 +52,16 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(items => items.map(item => ({ ...item, read: true })));
     setUnreadCount(0);
   };
+  const deleteNotification = async (id: number) => {
+    await repository.deleteMine(id);
+    setNotifications(items => {
+      const deleted = items.find(item => item.id === id);
+      if (deleted && !deleted.read) setUnreadCount(count => Math.max(0, count - 1));
+      return items.filter(item => item.id !== id);
+    });
+  };
   return <NotificationContext.Provider value={{ notifications, unreadCount, loading, refresh,
-    markRead, markAllRead }}>{children}</NotificationContext.Provider>;
+    markRead, markAllRead, deleteNotification }}>{children}</NotificationContext.Provider>;
 };
 
 export const useNotifications = () => {

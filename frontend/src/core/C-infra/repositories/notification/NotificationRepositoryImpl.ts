@@ -13,6 +13,7 @@ export class NotificationRepositoryImpl {
     return (await apiClient.patch<AppNotification>(`/notifications/${id}/read`)).data;
   }
   async markAllRead(): Promise<void> { await apiClient.patch("/notifications/read-all"); }
+  async deleteMine(id: number): Promise<void> { await apiClient.delete(`/notifications/me/${id}`); }
   async send(payload: SendNotificationPayload): Promise<number> {
     return (await apiClient.post<{ recipientCount: number }>("/notifications", payload))
       .data.recipientCount;
@@ -20,4 +21,5 @@ export class NotificationRepositoryImpl {
   async listSent(): Promise<SentNotification[]> {
     return (await apiClient.get<SentNotification[]>("/notifications/sent")).data;
   }
+  async deleteSent(id: number): Promise<void> { await apiClient.delete(`/notifications/sent/${id}`); }
 }
