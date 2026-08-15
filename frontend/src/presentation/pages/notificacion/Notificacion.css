@@ -5,6 +5,15 @@
 .notifications-page .page-header__actions { gap: .4rem; }
 .notifications-page .page-header__actions .base-button { min-height: 30px; padding: .3rem .55rem;
   margin: 0; font-size: .68rem; }
+.notifications-inbox .notifications-header-action { border: 1px solid transparent;
+  color: #fff; font-weight: 750; box-shadow: 0 3px 10px rgb(0 0 0 / 18%); }
+.notifications-inbox .notifications-header-action--refresh { border-color: #60a5fa;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9); }
+.notifications-inbox .notifications-header-action--read { border-color: #4ade80;
+  background: linear-gradient(135deg, #15803d, #16a34a); }
+.notifications-inbox .notifications-header-action:hover:not(:disabled) { filter: brightness(1.12);
+  transform: translateY(-1px); }
+.notifications-inbox .notifications-header-action:disabled { opacity: .48; box-shadow: none; }
 .notifications-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; }
 .notification-card { border: 1px solid var(--border-color); border-left: 4px solid #6482a4;
   border-radius: 8px; padding: .6rem .7rem; background: var(--color-surface); }
@@ -107,8 +116,8 @@
 .notification-card__read-status svg { width: .8rem; height: .8rem; color: #16803a;
   animation: notificationReadIn .62s cubic-bezier(.22, 1, .36, 1) both; }
 .notifications-inbox .notification-card h2 { margin: .15rem 0 .08rem; font-size: .78rem; }
-.notifications-inbox .notification-card p { display: -webkit-box; overflow: hidden;
-  -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .68rem; }
+.notifications-inbox .notification-card p { font-size: .68rem; overflow-wrap: anywhere;
+  word-break: normal; }
 .notifications-inbox .notification-card button { margin-top: .25rem; font-size: .62rem; }
 .notifications-inbox .notification-card .notification-card__read-action { position: static;
   min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
@@ -175,6 +184,10 @@
 .notification-recipient-error { color: #d92d20; }
 .notification-form { display: grid; gap: .4rem; text-align: left; }
 .notification-form label { display: grid; gap: .25rem; font-size: .75rem; font-weight: 600; }
+.notification-form__field-heading { display: flex; align-items: center; justify-content: space-between;
+  gap: .5rem; }
+.notification-form__field-heading small { color: var(--color-text-muted); font-size: .55rem;
+  font-variant-numeric: tabular-nums; font-weight: 500; }
 .notification-form input, .notification-form textarea, .notification-form select { width: 100%;
   padding: .38rem; border: 1px solid var(--border-color); border-radius: 7px;
   background: var(--color-surface); color: var(--color-text-main); font: inherit; resize: vertical; }
