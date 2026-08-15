@@ -80,6 +80,7 @@ export const ApoderadoPage: FC = () => {
     }
   };
 
+
   return (
     <main className="page-container apoderados-page">
       <header className="page-header">
