@@ -4,6 +4,7 @@ import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { SIDEBAR_FOOTER_LINKS, SIDEBAR_USER_MOCK } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./style/SidebarFooter.css";
 
 interface SidebarProps {
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNavLinkClick }) => {
   const auth = useOptionalAuth();
+  const unreadCount = useOptionalNotifications()?.unreadCount ?? 0;
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -40,6 +42,8 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
           <ul className="sidebar-footer-list">
             {SIDEBAR_FOOTER_LINKS.map((link) => {
               const Icon = link.icon;
+              const isNotifications = link.path === "/notifications";
+              const hasUnread = isNotifications && unreadCount > 0;
               return (
                 <li key={link.path} className="sidebar-footer-item">
                   <NavLink
@@ -47,10 +51,17 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
                     data-tour-path={link.path}
                     onClick={onNavLinkClick}
                     className={({ isActive }) =>
-                      `sidebar-footer-link ${isActive ? "active" : ""}`
+                      `sidebar-footer-link ${isActive ? "active" : ""} ${hasUnread ? "has-unread" : ""}`
                     }
+                    aria-label={hasUnread ? `${link.label}: ${unreadCount} sin leer` : link.label}
                   >
-                    <Icon className="sidebar-footer-icon" />
+                    <span className="sidebar-footer-icon-wrap">
+                      <span className="sidebar-footer-bell-motion">
+                        <Icon className="sidebar-footer-icon" />
+                      </span>
+                      {hasUnread && <span className="sidebar-footer-badge">
+                        {unreadCount > 99 ? "99+" : unreadCount}</span>}
+                    </span>
                     <span className="sidebar-footer-text">{link.label}</span>
                   </NavLink>
                 </li>

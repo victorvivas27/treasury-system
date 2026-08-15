@@ -19,6 +19,7 @@ interface ModalConfirmProps {
   confirmIcon?: ReactNode;
   cancelIcon?: ReactNode;
   anchor?: { top: number; left: number };
+  containerClassName?: string;
 }
 
 export const ModalConfirm = ({
@@ -38,6 +39,7 @@ export const ModalConfirm = ({
   confirmIcon,
   cancelIcon,
   anchor,
+  containerClassName = "",
 }: ModalConfirmProps) => {
   if (!isOpen) return null;
 
@@ -52,7 +54,7 @@ export const ModalConfirm = ({
       role="dialog"
     >
       <article
-        className={`modal-confirm-container ${compact ? "modal-confirm-container--compact" : ""} ${raised ? "modal-confirm-container--raised" : ""}`}
+        className={`modal-confirm-container ${compact ? "modal-confirm-container--compact" : ""} ${raised ? "modal-confirm-container--raised" : ""} ${containerClassName}`}
         style={anchor ? { position: "fixed", top: anchor.top, left: anchor.left } : undefined}
         onClick={(e) => e.stopPropagation()}
       >
