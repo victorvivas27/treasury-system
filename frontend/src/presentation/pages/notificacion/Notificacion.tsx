@@ -12,12 +12,24 @@ import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiCheckCircle, FiChevronDown, FiRefreshCw, FiSend, FiUsers, FiXCircle } from "react-icons/fi";
+import { FiCheckCircle, FiChevronDown, FiRefreshCw, FiSend, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
 import "./Notificacion.css";
 
 const labels = { INFO: "Informativa", IMPORTANT: "Importante", URGENT: "Urgente" };
+
+const deleteTooltipAnchor = (rect: DOMRect) => {
+  const width = Math.min(155, window.innerWidth - 16);
+  const height = 90;
+  const top = rect.top >= height + 8 ? rect.top - height - 8
+    : Math.min(rect.bottom + 8, window.innerHeight - height - 8);
+  return {
+    top: Math.max(8, top),
+    left: Math.max(8, Math.min(rect.right - width + 8,
+      window.innerWidth - width - 8)),
+  };
+};
 
 const updateMessageVisibility = (container: HTMLElement) => {
   const bounds = container.getBoundingClientRect();
@@ -51,7 +63,10 @@ const AdminNotificationCenter = () => {
   const [alert, setAlert] = useState({ open: false, message: "", type: "success" as "success" | "error" });
   const [sent, setSent] = useState<SentNotification[]>([]);
   const [sentLoading, setSentLoading] = useState(true);
-  const [recipientsOpen, setRecipientsOpen] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<SentNotification | null>(null);
+  const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
+  const [recipientsOpen, setRecipientsOpen] = useState(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const sentByRecipient = useMemo(() => {
     const groups = new Map<number, {
@@ -96,6 +111,20 @@ const AdminNotificationCenter = () => {
       setAlert({ open: true, message: "No fue posible enviar. Verifica que los apoderados tengan acceso.",
         type: "error" });
     } finally { setSending(false); }
+  };
+
+  const deleteSent = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await repository.deleteSent(deleteTarget.id);
+      setSent(items => items.filter(item => item.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      setDeleteAnchor(undefined);
+      setAlert({ open: true, message: "Notificación eliminada correctamente.", type: "success" });
+    } catch {
+      setAlert({ open: true, message: "No fue posible eliminar la notificación.", type: "error" });
+    } finally { setDeleting(false); }
   };
 
   return <main className="page-container notifications-page notifications-admin">
@@ -190,6 +219,14 @@ const AdminNotificationCenter = () => {
                   {read ? <FiCheckCircle aria-hidden="true" /> : <FiXCircle aria-hidden="true" />}
                   {read ? "Leída" : "Pendiente"}
                 </em>
+                <button type="button" className="notification-delete-action"
+                  aria-label={`Eliminar notificación ${item.title}`}
+                  title="Eliminar notificación" onClick={event => {
+                    setDeleteAnchor(deleteTooltipAnchor(event.currentTarget.getBoundingClientRect()));
+                    setDeleteTarget(item);
+                  }}>
+                  <FiTrash2 aria-hidden="true" />
+                </button>
               </header>
               <div className="sent-notification__body">
                 <span className="sent-notification__message-label"><MdDoneAll aria-hidden="true" />
@@ -219,6 +256,14 @@ const AdminNotificationCenter = () => {
           <option value="URGENT">Urgente</option></select></label>
       </div>
     </ModalConfirm>
+    <ModalConfirm isOpen={deleteTarget !== null} title="Eliminar notificación" compact
+      anchor={deleteAnchor} containerClassName="notification-delete-confirm"
+      message={`¿Seguro que deseas eliminar “${deleteTarget?.title ?? ""}”? Se quitará para todos sus destinatarios.`}
+      confirmLabel="Sí, eliminar" confirmVariant="danger" isLoading={deleting}
+      confirmIcon={<FiTrash2 />} onCancel={() => { if (!deleting) {
+        setDeleteTarget(null); setDeleteAnchor(undefined);
+      } }}
+      onConfirm={() => void deleteSent()} />
     <ModalAlert isOpen={alert.open} message={alert.message} type={alert.type}
       variant={alert.type === "success" ? "toast" : "modal"}
       autoCloseTime={alert.type === "success" ? 2500 : 0}
@@ -227,7 +272,12 @@ const AdminNotificationCenter = () => {
 };
 
 const GuardianInbox = () => {
-  const { notifications, unreadCount, loading, markRead, markAllRead, refresh } = useNotifications();
+  const { notifications, unreadCount, loading, markRead, markAllRead, refresh,
+    deleteNotification } = useNotifications();
+  const [deleteTarget, setDeleteTarget] = useState<(typeof notifications)[number] | null>(null);
+  const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
   const listRef = useRef<HTMLElement>(null);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
   useEffect(() => {
@@ -256,18 +306,48 @@ const GuardianInbox = () => {
         onClick={() => !item.read && void markRead(item.id)}>
         <span className="notification-card__icon"><IoNotificationsOutline aria-hidden="true" /></span>
         <div className="notification-card__content">
-          <header><span>{labels[item.type]}</span><time dateTime={item.createdAt}>
+          <header><span className="notification-card__type">{labels[item.type]}
+            <span className={`notification-card__read-status ${item.read ? "is-read" : ""}`}>
+              {!item.read && <button type="button" className="notification-card__read-action"
+                aria-label="Marcar como leída" onClick={event => {
+                  event.stopPropagation(); void markRead(item.id);
+                }}>Marcar como leído</button>}
+              {item.read && <MdDoneAll aria-label="Leída" />}
+            </span>
+          </span><time dateTime={item.createdAt}>
             {new Date(item.createdAt).toLocaleString("es-CL", {
               day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
               hour12: false,
             })}</time></header>
           <h2>{item.title}</h2><p>{item.message}</p>
         </div>
-        {!item.read && <button type="button" className="notification-card__read-action"
-          aria-label="Marcar como leída" onClick={event => {
-            event.stopPropagation(); void markRead(item.id);
-          }}><FiCheckCircle aria-hidden="true" /><span>Marcar como leída</span></button>}
+        <button type="button" className="notification-delete-action"
+          aria-label={`Eliminar notificación ${item.title}`} title="Eliminar notificación"
+          onClick={event => { event.stopPropagation();
+            setDeleteAnchor(deleteTooltipAnchor(event.currentTarget.getBoundingClientRect()));
+            setDeleteTarget(item);
+          }}>
+          <FiTrash2 aria-hidden="true" />
+        </button>
       </article>)}
     </section>
+    <ModalConfirm isOpen={deleteTarget !== null} title="Eliminar notificación" compact
+      anchor={deleteAnchor} containerClassName="notification-delete-confirm"
+      message={`¿Seguro que deseas eliminar “${deleteTarget?.title ?? ""}”? Esta acción no se puede deshacer.`}
+      confirmLabel="Sí, eliminar" confirmVariant="danger" isLoading={deleting}
+      confirmIcon={<FiTrash2 />} onCancel={() => { if (!deleting) {
+        setDeleteTarget(null); setDeleteAnchor(undefined);
+      } }}
+      onConfirm={() => {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        void deleteNotification(deleteTarget.id).then(() => {
+          setDeleteTarget(null); setDeleteAnchor(undefined);
+        })
+          .catch(() => setDeleteError(true))
+          .finally(() => setDeleting(false));
+      }} />
+    <ModalAlert isOpen={deleteError} message="No fue posible eliminar la notificación."
+      type="error" onClose={() => setDeleteError(false)} />
   </main>;
 };

@@ -1,13 +1,19 @@
 package com.tesoreria.notification.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
 public interface UserNotificationJpaRepository extends JpaRepository<UserNotificationEntity, Long> {
-    List<UserNotificationEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
-    long countByUserIdAndReadFalse(Long userId);
-    Optional<UserNotificationEntity> findByIdAndUserId(Long id, Long userId);
-    List<UserNotificationEntity> findByUserIdAndReadFalse(Long userId);
+    List<UserNotificationEntity> findByUserIdAndVisibleTrueOrderByCreatedAtDesc(Long userId);
+    long countByUserIdAndReadFalseAndVisibleTrue(Long userId);
+    Optional<UserNotificationEntity> findByIdAndUserIdAndVisibleTrue(Long id, Long userId);
+    List<UserNotificationEntity> findByUserIdAndReadFalseAndVisibleTrue(Long userId);
     List<UserNotificationEntity> findByNotificationIdOrderByUserNombreAsc(Long notificationId);
+    @Modifying
+    @Query("delete from UserNotificationEntity row where row.notification.id = :notificationId")
+    void deleteAllByNotificationId(@Param("notificationId") Long notificationId);
 }

@@ -41,4 +41,15 @@ public class NotificationController {
     @PatchMapping("/read-all")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void readAll(Authentication authentication) { service.markAllRead(authentication.getName()); }
+    @DeleteMapping("/me/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMine(@PathVariable Long id, Authentication authentication) {
+        service.deleteMine(id, authentication.getName());
+    }
+    @DeleteMapping("/sent/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSent(@PathVariable Long id, Authentication authentication) {
+        service.deleteSent(id, authentication.getName());
+    }
 }

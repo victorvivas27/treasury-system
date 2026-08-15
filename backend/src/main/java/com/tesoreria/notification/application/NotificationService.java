@@ -48,6 +48,7 @@ public class NotificationService {
         List<UserNotificationEntity> rows = recipients.stream().map(user -> {
             UserNotificationEntity row = new UserNotificationEntity();
             row.setNotification(saved); row.setUser(user); row.setCreatedAt(now); row.setRead(false);
+            row.setVisible(true);
             return row;
         }).toList();
         deliveries.saveAll(rows);
@@ -57,12 +58,13 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponse> mine(String email) {
         Long id = currentUser(email).getId();
-        return deliveries.findByUserIdOrderByCreatedAtDesc(id).stream().map(this::response).toList();
+        return deliveries.findByUserIdAndVisibleTrueOrderByCreatedAtDesc(id).stream()
+                .map(this::response).toList();
     }
 
     @Transactional(readOnly = true)
     public long unreadCount(String email) {
-        return deliveries.countByUserIdAndReadFalse(currentUser(email).getId());
+        return deliveries.countByUserIdAndReadFalseAndVisibleTrue(currentUser(email).getId());
     }
 
     @Transactional(readOnly = true)
@@ -81,7 +83,8 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponse markRead(Long id, String email) {
-        UserNotificationEntity row = deliveries.findByIdAndUserId(id, currentUser(email).getId())
+        UserNotificationEntity row = deliveries.findByIdAndUserIdAndVisibleTrue(
+                id, currentUser(email).getId())
                 .orElseThrow(() -> error("notification", HttpStatus.NOT_FOUND,
                         "Notificación no encontrada"));
         if (!row.isRead()) { row.setRead(true); row.setReadAt(LocalDateTime.now()); }
@@ -90,10 +93,30 @@ public class NotificationService {
 
     @Transactional
     public void markAllRead(String email) {
-        List<UserNotificationEntity> rows = deliveries.findByUserIdAndReadFalse(currentUser(email).getId());
+        List<UserNotificationEntity> rows = deliveries.findByUserIdAndReadFalseAndVisibleTrue(
+                currentUser(email).getId());
         LocalDateTime now = LocalDateTime.now();
         rows.forEach(row -> { row.setRead(true); row.setReadAt(now); });
         deliveries.saveAll(rows);
+    }
+
+    @Transactional
+    public void deleteMine(Long id, String email) {
+        UserNotificationEntity row = deliveries.findByIdAndUserIdAndVisibleTrue(
+                id, currentUser(email).getId())
+                .orElseThrow(() -> error("notification", HttpStatus.NOT_FOUND,
+                        "Notificación no encontrada"));
+        row.setVisible(false);
+        deliveries.save(row);
+    }
+
+    @Transactional
+    public void deleteSent(Long id, String creatorEmail) {
+        NotificationEntity notification = notifications.findByIdAndCreatedByCorreo(id, creatorEmail)
+                .orElseThrow(() -> error("notification", HttpStatus.NOT_FOUND,
+                        "Notificación enviada no encontrada"));
+        deliveries.deleteAllByNotificationId(notification.getId());
+        notifications.delete(notification);
     }
 
     private List<UserEntity> resolveRecipients(NotificationRequest request) {

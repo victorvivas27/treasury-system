@@ -17,6 +17,8 @@ public class UserNotificationEntity {
     @Column(name = "is_read", nullable = false) private boolean read;
     @Column(name = "read_at") private LocalDateTime readAt;
     @Column(name = "created_at", nullable = false) private LocalDateTime createdAt;
+    @Column(name = "is_visible", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean visible = true;
 
     public Long getId() { return id; }
     public NotificationEntity getNotification() { return notification; }
@@ -29,4 +31,6 @@ public class UserNotificationEntity {
     public void setReadAt(LocalDateTime readAt) { this.readAt = readAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public boolean isVisible() { return visible; }
+    public void setVisible(boolean visible) { this.visible = visible; }
 }
