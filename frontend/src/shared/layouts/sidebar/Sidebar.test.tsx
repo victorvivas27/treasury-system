@@ -150,14 +150,20 @@ describe('Sidebar Component', () => {
     expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
   });
 
-  it('[Sidebar #08.4] Muestra al usuario común solo el resumen de stands en Tesorería', () => {
+  it('[Sidebar #08.4] Muestra ingresos, egresos y stands al usuario común', () => {
     renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
 
     const treasuryButton = screen.getByRole('button', { name: /tesorería/i });
     fireEvent.click(treasuryButton);
     expect(screen.getByRole('link', { name: 'Resumen de stands' }))
       .toHaveAttribute('href', '/tesoreria/stands');
-    TREASURY_LINKS.filter(link => link.path !== '/tesoreria/stands').forEach((link) => {
+    expect(screen.getByRole('link', { name: 'Ingresos' }))
+      .toHaveAttribute('href', '/tesoreria/ingresos');
+    expect(screen.getByRole('link', { name: 'Egresos' }))
+      .toHaveAttribute('href', '/tesoreria/gastos');
+    TREASURY_LINKS.filter(link => ![
+      '/tesoreria/ingresos', '/tesoreria/gastos', '/tesoreria/stands',
+    ].includes(link.path)).forEach((link) => {
       expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
     });
   });

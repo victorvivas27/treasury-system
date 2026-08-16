@@ -96,6 +96,38 @@ class SecurityConfigTest {
     }
 
     @Test
+    void usuario_deberiaPoderConsultarIngresosEgresosYAdjuntos() throws Exception {
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/tesoreria/ingresos").param("year", "2026")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/tesoreria/egresos").param("year", "2026")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/tesoreria/egresos/1/adjuntos")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void usuario_noDeberiaPoderModificarIngresosNiEgresos() throws Exception {
+        String token = tokenFor("user@mail.com");
+
+        for (String path : List.of(
+                "/api/v1/tesoreria/ingresos",
+                "/api/v1/tesoreria/egresos")) {
+            mockMvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content("{}")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isForbidden());
+            mockMvc.perform(patch(path + "/1").contentType(MediaType.APPLICATION_JSON).content("{}")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
     void swagger_deberiaRequerirAdministrador() throws Exception {
         mockMvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isUnauthorized());

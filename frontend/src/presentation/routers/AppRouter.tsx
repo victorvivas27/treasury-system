@@ -52,13 +52,13 @@ export const AppRouter = () => {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="notifications" element={<Notificacion />} />
           <Route path="tesoreria/stands" element={<StandManagementPage />} />
+          <Route path="tesoreria/ingresos" element={<IncomesPage />} />
+          <Route path="tesoreria/gastos" element={<ExpensesPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
           <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
-          <Route path="tesoreria/ingresos" element={<IncomesPage />} />
-          <Route path="tesoreria/gastos" element={<ExpensesPage />} />
           <Route path="tesoreria/eventos" element={<EventsPage />} />
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />
