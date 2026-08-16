@@ -1,0 +1,115 @@
+.public-home__install {
+  display: grid;
+  width: min(1180px, calc(100% - 3rem));
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  margin: 1rem auto 2rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--border-color);
+  border-radius: 1.25rem;
+  background: rgba(17, 24, 39, .72);
+  box-shadow: var(--shadow-card);
+}
+
+.public-home__install.is-visible {
+  animation: install-attention 1.1s ease-in-out 350ms 3 alternate;
+}
+
+.public-home__install-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.public-home__install-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: .85rem;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 1.4rem;
+}
+
+.public-home__install-icon img {
+  width: 2.55rem;
+  height: 2.55rem;
+  object-fit: contain;
+}
+
+.public-home__install-eyebrow {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+  margin-bottom: .45rem;
+  color: var(--color-accent);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.public-home__install h2 { margin-bottom: .45rem; font-size: clamp(1.55rem, 3vw, 2.25rem); }
+.public-home__typing-caret { display: inline-block; width: 2px; height: .9em; margin-left: .14em; background: var(--color-accent); animation: typing-caret 650ms steps(1) infinite; vertical-align: -.05em; }
+.public-home__install p { color: var(--text-muted); }
+.public-home__install-options { display: grid; gap: .8rem; }
+.public-home__install-options article { display: flex; gap: .85rem; padding: 1rem; border: 1px solid var(--divider); border-radius: .85rem; background: var(--color-bg); }
+.public-home__install-options article > svg { flex: 0 0 auto; margin-top: .2rem; color: var(--color-accent); font-size: 1.25rem; }
+.public-home__install-options h3 { margin-bottom: .2rem; font-size: 1rem; }
+.public-home__install-options p { font-size: .9rem; }
+.public-home__install-options strong { color: var(--text-main); }
+
+@keyframes install-attention {
+  from {
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-card);
+    transform: translateY(0);
+  }
+  to {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 4px var(--color-accent-soft), 0 18px 45px rgba(14, 235, 205, .14);
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes typing-caret {
+  50% { opacity: 0; }
+}
+
+@keyframes install-icon-vibrate {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-8deg) scale(1.06); }
+  40% { transform: rotate(8deg) scale(1.06); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}
+
+.public-home__install.is-visible .public-home__install-icon,
+.public-home__install.is-visible .public-home__install-options article > svg {
+  animation: install-icon-vibrate 520ms ease-in-out 900ms 3;
+}
+
+@media (max-width: 760px) {
+  .public-home__install { width: min(100% - 1rem, 1180px); grid-template-columns: 1fr; gap: .8rem; margin: .45rem auto 1rem; padding: .85rem; border-radius: .9rem; }
+  .public-home__install-heading { gap: .65rem; }
+  .public-home__install-icon { width: 2.3rem; height: 2.3rem; border-radius: .65rem; font-size: 1.1rem; }
+  .public-home__install-icon img { width: 2rem; height: 2rem; }
+  .public-home__install-eyebrow { margin-bottom: .2rem; font-size: .68rem; }
+  .public-home__install h2 { min-height: 2.4em; margin-bottom: .2rem; font-size: 1.25rem; line-height: 1.2; }
+  .public-home__install-heading p { font-size: .8rem; line-height: 1.35; }
+  .public-home__install-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; }
+  .public-home__install-options article { display: block; min-width: 0; padding: .5rem; }
+  .public-home__install-options article > svg { margin: 0 0 .15rem; font-size: .9rem; }
+  .public-home__install-options h3 { margin-bottom: .1rem; font-size: .68rem; line-height: 1.15; }
+  .public-home__install-options p { overflow-wrap: anywhere; font-size: .62rem; line-height: 1.22; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-home__install.is-visible { animation: none; }
+  .public-home__typing-caret,
+  .public-home__install.is-visible .public-home__install-icon,
+  .public-home__install.is-visible .public-home__install-options article > svg { animation: none; }
+}

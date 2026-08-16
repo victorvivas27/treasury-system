@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiCalendar, FiCheckCircle, FiDollarSign, FiFileText,
-  FiShield, FiUsers } from "react-icons/fi";
+import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn,
+  FiShield, FiUserPlus, FiUsers } from "react-icons/fi";
 import "../style/HomeHero.css";
 
-const modules = [
-  { icon: FiCalendar, label: "Cuotas del curso" },
-  { icon: FiDollarSign, label: "Ingresos y gastos" },
-  { icon: FiFileText, label: "Rendiciones" },
-  { icon: FiUsers, label: "Apoderados" },
-];
-
-const AnimatedNumber = ({ value, currency = false }: { value: number; currency?: boolean }) => {
+const AnimatedNumber = ({ value, currency = false, suffix = "" }: {
+  value: number;
+  currency?: boolean;
+  suffix?: string;
+}) => {
   const elementRef = useRef<HTMLElement>(null);
   const [displayed, setDisplayed] = useState(0);
 
@@ -46,7 +43,7 @@ const AnimatedNumber = ({ value, currency = false }: { value: number; currency?:
   }, [value]);
 
   const formatted = new Intl.NumberFormat("es-CL").format(displayed);
-  return <strong ref={elementRef}>{currency ? `$ ${formatted}` : formatted}</strong>;
+  return <strong ref={elementRef}>{currency ? `$ ${formatted}` : formatted}{suffix}</strong>;
 };
 
 export const HomeHero = () => (
@@ -60,9 +57,11 @@ export const HomeHero = () => (
       </p>
       <div className="public-home__actions">
         <Link className="public-home__primary-action" to="/register">
-          Crear cuenta <FiArrowRight aria-hidden="true" />
+          <FiUserPlus aria-hidden="true" /> Crear cuenta
         </Link>
-        <Link className="public-home__secondary-action" to="/login">Iniciar sesión</Link>
+        <Link className="public-home__secondary-action" to="/login">
+          <FiLogIn aria-hidden="true" /> Iniciar sesión
+        </Link>
       </div>
       <div className="public-home__trust">
         <span><FiCheckCircle aria-hidden="true" /> Fácil de usar</span>
@@ -71,29 +70,41 @@ export const HomeHero = () => (
     </div>
 
     <div className="public-home__preview public-home__preview-enter" data-home-preview-reveal
-      aria-label="Vista previa de la plataforma">
+      aria-label="Vista previa del dashboard con datos de muestra">
       <div className="public-home__preview-top">
-        <div><span>Curso de muestra</span><strong>Resumen de la tesorería</strong></div>
-        <span className="public-home__preview-status">Demo</span>
+        <div><strong>Dashboard</strong><span>Estado financiero del curso</span></div>
+        <div className="public-home__preview-year"><span>Año escolar</span><strong>2026⌄</strong></div>
       </div>
-      <div className="public-home__stats">
-        <article><span>Fondos del curso</span><AnimatedNumber value={1240000} currency />
-          <small>Saldo disponible</small></article>
-        <article><span>Cuotas registradas</span><AnimatedNumber value={32} />
-          <small>Apoderados al día</small></article>
+      <span className="public-home__sample-badge">Datos de muestra</span>
+      <div className="public-home__dashboard-kpis">
+        <article><span><FiUsers /> Familias activas</span><AnimatedNumber value={32} /></article>
+        <article className="is-featured"><span><FiDollarSign /> Saldo disponible</span>
+          <AnimatedNumber value={1240000} currency /></article>
+        <article className="is-positive"><span><FiDollarSign /> Ingresos totales</span>
+          <AnimatedNumber value={1680000} currency /></article>
+        <article className="is-pending"><span><FiClock /> Cuotas pendientes</span>
+          <AnimatedNumber value={7} /></article>
       </div>
-      <div className="public-home__chart" aria-hidden="true">
-        <div className="public-home__chart-header"><span>Recaudación mensual</span><span>Año escolar</span></div>
-        <div className="public-home__bars">
-          {[44, 62, 53, 78, 66, 88].map((height, index) => (
-            <span key={index} style={{ height: `${height}%` }} />
-          ))}
-        </div>
+      <div className="public-home__dashboard-panels">
+        <article className="public-home__cashflow">
+          <header><span>Flujo mensual</span><strong>Ingresos extraordinarios y egresos</strong></header>
+          <svg viewBox="0 0 300 105" role="img" aria-label="Gráfico de flujo mensual de muestra">
+            <path className="grid" d="M0 20H300M0 50H300M0 80H300" />
+            <path className="income-area" d="M0 88 C35 82 45 50 75 61 S120 28 150 43 S198 72 225 38 S270 18 300 25 V105 H0Z" />
+            <path className="income-line" d="M0 88 C35 82 45 50 75 61 S120 28 150 43 S198 72 225 38 S270 18 300 25" />
+            <path className="expense-line" d="M0 94 C45 90 55 76 90 83 S142 65 175 76 S225 59 260 69 S285 60 300 64" />
+          </svg>
+          <div className="public-home__chart-legend"><span className="income">Ingresos</span><span className="expense">Egresos</span></div>
+        </article>
+        <article className="public-home__quota-preview">
+          <header><span>Cuota anual</span><strong>Avance de recaudación</strong></header>
+          <div className="public-home__quota-value"><AnimatedNumber value={78} suffix="%" /><span>recaudado</span></div>
+          <div className="public-home__quota-track"><span /></div>
+          <small>25 de 32 cuotas pagadas</small>
+        </article>
       </div>
-      <div className="public-home__module-list">
-        {modules.map(({ icon: Icon, label }) => (
-          <span key={label}><Icon aria-hidden="true" />{label}</span>
-        ))}
+      <div className="public-home__preview-movement">
+        <span>Último registro</span><strong>Rifa escolar</strong><b>+$ 100.000</b>
       </div>
     </div>
   </section>

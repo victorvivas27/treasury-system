@@ -41,6 +41,7 @@ describe("AuthContext", () => {
     expect(result.current.user).toEqual(user);
     expect(result.current.isAuthenticated).toBe(true);
     expect(localStorage.getItem("treasury.auth.token")).toBe("jwt");
+    expect(JSON.parse(localStorage.getItem("treasury.auth.user") ?? "null")).toEqual(user);
   });
 
   it("[AuthContext #02] debe cerrar sesión y limpiar el estado", async () => {
@@ -51,6 +52,7 @@ describe("AuthContext", () => {
     await act(() => result.current.logout());
     await waitFor(() => expect(result.current.user).toBeNull());
     expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(localStorage.getItem("treasury.auth.user")).toBeNull();
   });
 
   it("[AuthContext #02b] no debe esperar al backend para cerrar la sesión local", async () => {
@@ -107,5 +109,20 @@ describe("AuthContext", () => {
     act(() => result.current.syncUser({ ...user, nombre: "VÍCTOR ANDRÉS VIVAS" }));
 
     expect(result.current.user?.nombre).toBe("VÍCTOR ANDRÉS VIVAS");
+    expect(JSON.parse(localStorage.getItem("treasury.auth.user") ?? "null").nombre)
+      .toBe("VÍCTOR ANDRÉS VIVAS");
+  });
+
+  it("[AuthContext #07] conserva la sesión restaurada ante un fallo temporal de red", async () => {
+    localStorage.setItem("treasury.auth.token", "token-vigente");
+    localStorage.setItem("treasury.auth.user", JSON.stringify(user));
+    meMock.mockRejectedValue({ code: "ERR_NETWORK" });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    await waitFor(() => expect(meMock).toHaveBeenCalledTimes(1));
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(localStorage.getItem("treasury.auth.token")).toBe("token-vigente");
   });
 });

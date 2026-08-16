@@ -22,7 +22,7 @@
 .public-home::after { top: 48rem; left: -15rem; background: #3b82f6; animation: home-orbit 15s ease-in-out 1.5s infinite alternate-reverse; }
 .public-home > * { position: relative; z-index: 1; }
 .public-home__header, .public-home__hero, .public-home__features,
-.public-home__cta, .public-home__footer { width: min(1180px, calc(100% - 3rem)); margin-inline: auto; }
+.public-home__footer { width: min(1180px, calc(100% - 3rem)); margin-inline: auto; }
 
 [data-home-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 550ms var(--reveal-delay,0ms) ease-out, transform 550ms var(--reveal-delay,0ms) cubic-bezier(.22,1,.36,1); }
 [data-home-reveal].is-visible { opacity: 1; transform: translateY(0); }
@@ -33,7 +33,7 @@
 
 @media (max-width: 680px) {
   .public-home__header, .public-home__hero, .public-home__features,
-  .public-home__cta, .public-home__footer { width: min(100% - 2rem, 1180px); }
+  .public-home__footer { width: min(100% - 2rem, 1180px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

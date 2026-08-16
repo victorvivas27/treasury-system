@@ -1,9 +1,0 @@
-.public-home__cta { display:flex; align-items:center; justify-content:space-between; gap:2rem; border:1px solid rgba(14,235,205,.22); border-radius:1.25rem; margin-block:3rem 7rem; padding:clamp(2rem,5vw,3.5rem); background:linear-gradient(135deg,rgba(14,235,205,.09),rgba(30,58,95,.22)); background-size:180% 180%; transition:border-color 280ms ease,box-shadow 280ms ease; }
-.public-home__cta.is-visible { animation:home-gradient-shift 7s ease infinite; }
-.public-home__cta:hover { border-color:rgba(14,235,205,.42); box-shadow:0 24px 70px rgba(14,235,205,.08); }
-.public-home__cta h2 { margin:0 0 .55rem; font-size:clamp(2rem,4vw,3rem); }
-.public-home__cta p { color:var(--text-muted); }
-.public-home__cta > a { display:inline-flex; min-height:44px; flex:0 0 auto; align-items:center; justify-content:center; gap:.55rem; border-radius:.7rem; padding:0 1.35rem; background:var(--text-main); color:var(--color-bg); font-weight:650; transition:transform 160ms ease; }
-.public-home__cta > a:hover { transform:translateY(-2px); }
-@keyframes home-gradient-shift { 0%,100%{background-position:0 50%}50%{background-position:100% 50%} }
-@media(max-width:680px){.public-home__cta{align-items:stretch;flex-direction:column;text-align:center}}

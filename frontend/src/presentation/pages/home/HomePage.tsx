@@ -1,8 +1,8 @@
-import { HomeCallToAction } from "./components/HomeCallToAction";
 import { HomeFeatures } from "./components/HomeFeatures";
 import { HomeFooter } from "./components/HomeFooter";
 import { HomeHeader } from "./components/HomeHeader";
 import { HomeHero } from "./components/HomeHero";
+import { HomeInstallGuide } from "./components/HomeInstallGuide";
 import { useHomeReveal } from "./hooks/useHomeReveal";
 import "./style/HomePage.css";
 
@@ -17,9 +17,9 @@ export const HomePage = () => {
     <div className="public-home">
       <HomeHeader />
       <main>
+        <HomeInstallGuide />
         <HomeHero />
         <HomeFeatures />
-        <HomeCallToAction />
       </main>
       <HomeFooter />
     </div>
