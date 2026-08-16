@@ -11,6 +11,9 @@ interface SidebarNavProps {
 }
 
 const ADMIN_PATHS = new Set(["/users", "/students", "/parents", "/family"]);
+const USER_TREASURY_PATHS = new Set([
+  "/tesoreria/ingresos", "/tesoreria/gastos", "/tesoreria/stands",
+]);
 const TREASURY_MENU_AUTO_CLOSE_MS = 6000;
 
 export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
@@ -20,7 +23,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
   const [isTreasuryOpen, setIsTreasuryOpen] = useState(false);
   const visibleTreasuryLinks = currentRole === "ADMIN"
     ? TREASURY_LINKS
-    : TREASURY_LINKS.filter(link => link.path === "/tesoreria/stands");
+    : TREASURY_LINKS.filter(link => USER_TREASURY_PATHS.has(link.path));
 
   const handleClick = () => {
     onNavLinkClick();
