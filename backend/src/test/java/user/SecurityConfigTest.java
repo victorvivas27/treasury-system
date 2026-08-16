@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.lang.reflect.Method;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TesoreriaAppApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@TestPropertySource(properties = "app.storage.gcs.enabled=false")
 class SecurityConfigTest {
     @Autowired
     private MockMvc mockMvc;
@@ -81,6 +83,16 @@ class SecurityConfigTest {
     void rutaNoDeclarada_deberiaPermanecerCerrada() throws Exception {
         mockMvc.perform(get("/api/v1/no-declarada"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adjuntosSinStorage_deberiaResponderListaVaciaAlAdministrador() throws Exception {
+        String token = tokenFor("admin@mail.com");
+
+        mockMvc.perform(get("/api/v1/tesoreria/egresos/1/adjuntos")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
     }
 
     @Test

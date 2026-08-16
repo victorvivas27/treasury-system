@@ -196,6 +196,16 @@ export interface TreasuryExpense {
   updatedAt: string;
 }
 
+export interface ExpenseDocument {
+  id: number;
+  originalName: string;
+  contentType: string;
+  extension: string;
+  sizeBytes: number;
+  uploadedBy: string;
+  createdAt: string;
+}
+
 export type ExpensePayload = Omit<TreasuryExpense,
   "id" | "status" | "registeredBy" | "cancelledAt" | "cancelledBy"
   | "cancellationReason" | "createdAt" | "updatedAt"> & { correctionReason?: string };

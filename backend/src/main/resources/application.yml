@@ -22,6 +22,10 @@ spring:
           connectiontimeout: 10000
           timeout: 10000
           writetimeout: 10000
+  servlet:
+    multipart:
+      max-file-size: ${GCS_MAX_FILE_SIZE_MB:10}MB
+      max-request-size: ${GCS_MAX_FILE_SIZE_MB:10}MB
 
 server:
   port: ${PORT:5055}
@@ -43,3 +47,8 @@ app:
   email:
     provider: ${EMAIL_PROVIDER:gmail}
     from: ${EMAIL_FROM:}
+  storage:
+    gcs:
+      enabled: ${GCS_ENABLED:false}
+      bucket-name: ${GCS_BUCKET_NAME:}
+      max-file-size-mb: ${GCS_MAX_FILE_SIZE_MB:10}

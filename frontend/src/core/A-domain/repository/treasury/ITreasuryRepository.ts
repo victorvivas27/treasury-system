@@ -5,7 +5,7 @@ import type {
   TreasuryProfile,
   ContributionConfig, ContributionFilters, ContributionSummary, ContributionType,
   FamilyContribution,
-  ExpenseFilters, ExpensePayload, FinancialSummary, TreasuryExpense,
+  ExpenseDocument, ExpenseFilters, ExpensePayload, FinancialSummary, TreasuryExpense,
   IncomeFilters, IncomePayload, TreasuryIncome,
 } from "@/core/A-domain/entities/treasury/Treasury";
 
@@ -36,6 +36,10 @@ export interface ITreasuryRepository {
   createExpense(payload: ExpensePayload): Promise<TreasuryExpense>;
   updateExpense(id: number, payload: ExpensePayload): Promise<TreasuryExpense>;
   cancelExpense(id: number, reason: string): Promise<TreasuryExpense>;
+  listExpenseDocuments(expenseId: number): Promise<ExpenseDocument[]>;
+  uploadExpenseDocuments(expenseId: number, files: File[]): Promise<ExpenseDocument[]>;
+  getExpenseDocument(expenseId: number, documentId: number): Promise<Blob>;
+  deleteExpenseDocument(expenseId: number, documentId: number): Promise<void>;
   financialSummary(year: number): Promise<FinancialSummary>;
   listIncomes(year: number, filters?: IncomeFilters): Promise<TreasuryIncome[]>;
   getIncome(id: number): Promise<TreasuryIncome>;

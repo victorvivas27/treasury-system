@@ -24,6 +24,9 @@ services:
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:?GMAIL_APP_PASSWORD is required}
       EMAIL_FROM: ${EMAIL_FROM:?EMAIL_FROM is required}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      GCS_ENABLED: ${GCS_ENABLED:-false}
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-}
+      GCS_MAX_FILE_SIZE_MB: ${GCS_MAX_FILE_SIZE_MB:-10}
     depends_on:
       - postgres
     networks:

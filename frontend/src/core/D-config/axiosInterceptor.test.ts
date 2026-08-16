@@ -8,7 +8,12 @@ import {
 } from "./axiosInterceptor";
 
 vi.mock("axios", () => ({
-  default: { post: vi.fn() },
+  default: {
+    post: vi.fn(),
+    isAxiosError: vi.fn((error: unknown) => Boolean(
+      error && typeof error === "object" && "isAxiosError" in error,
+    )),
+  },
 }));
 
 describe("configureAxiosInterceptors", () => {
@@ -61,9 +66,12 @@ describe("configureAxiosInterceptors", () => {
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-vigente");
   });
 
-  it("cierra la sesión cuando falla exactamente el token vigente", async () => {
+  it("cierra la sesión cuando el servidor rechaza la renovación", async () => {
     localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
-    vi.mocked(axios.post).mockRejectedValue(new Error("refresh rechazado"));
+    vi.mocked(axios.post).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 401 },
+    });
     const expired = vi.fn();
     window.addEventListener(SESSION_EXPIRED_EVENT, expired);
 
@@ -75,6 +83,37 @@ describe("configureAxiosInterceptors", () => {
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(expired).toHaveBeenCalledOnce();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
+  });
+
+  it("conserva la sesión si una ruta rechaza el token recién renovado", async () => {
+    localStorage.setItem(AUTH_TOKEN_KEY, "token-renovado");
+    const expired = vi.fn();
+    window.addEventListener(SESSION_EXPIRED_EVENT, expired);
+
+    await expect(rejectResponse({
+      response: { status: 401 },
+      config: {
+        url: "/tesoreria/egresos/1/adjuntos",
+        _authRetry: true,
+        headers: { Authorization: "Bearer token-renovado" },
+      },
+    })).rejects.toBeDefined();
+
+    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
+    expect(expired).not.toHaveBeenCalled();
+    window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
+  });
+
+  it("conserva la sesión si la renovación falla por red", async () => {
+    localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    vi.mocked(axios.post).mockRejectedValue(new Error("red no disponible"));
+
+    await expect(rejectResponse({
+      response: { status: 401 },
+      config: { headers: { Authorization: "Bearer token-vigente" } },
+    })).rejects.toBeDefined();
+
+    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-vigente");
   });
 
   it("renueva el token y repite una petición protegida antes de cerrar la sesión", async () => {
