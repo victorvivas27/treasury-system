@@ -51,6 +51,7 @@ export const AppRouter = () => {
           <Route path="treasury" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="notifications" element={<Notificacion />} />
+          <Route path="tesoreria/stands" element={<StandManagementPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
@@ -59,7 +60,6 @@ export const AppRouter = () => {
           <Route path="tesoreria/ingresos" element={<IncomesPage />} />
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
           <Route path="tesoreria/eventos" element={<EventsPage />} />
-          <Route path="tesoreria/stands" element={<StandManagementPage />} />
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />
           <Route path="students" element={<AlumnoPage />} />

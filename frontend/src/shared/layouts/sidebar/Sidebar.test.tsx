@@ -150,11 +150,14 @@ describe('Sidebar Component', () => {
     expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
   });
 
-  it('[Sidebar #08.4] Oculta Tesorería al usuario común sin secciones habilitadas', () => {
+  it('[Sidebar #08.4] Muestra al usuario común solo el resumen de stands en Tesorería', () => {
     renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
 
-    expect(screen.queryByRole('button', { name: /tesorería/i })).not.toBeInTheDocument();
-    TREASURY_LINKS.forEach((link) => {
+    const treasuryButton = screen.getByRole('button', { name: /tesorería/i });
+    fireEvent.click(treasuryButton);
+    expect(screen.getByRole('link', { name: 'Resumen de stands' }))
+      .toHaveAttribute('href', '/tesoreria/stands');
+    TREASURY_LINKS.filter(link => link.path !== '/tesoreria/stands').forEach((link) => {
       expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
     });
   });
