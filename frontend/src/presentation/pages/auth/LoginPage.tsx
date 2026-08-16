@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
+import { FiLock, FiLogIn, FiMail, FiUserPlus } from "react-icons/fi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
@@ -115,6 +116,7 @@ export const LoginPage = () => {
               required
             />
             <label htmlFor="login-correo" className="login-floating-label">Correo</label>
+            <FiMail className="login-field-icon" aria-hidden="true" />
           </span>
           {fieldErrors.correo && (
             <span id="login-correo-error" className="error-message">{fieldErrors.correo}</span>
@@ -138,6 +140,7 @@ export const LoginPage = () => {
               required
             />
             <label htmlFor="login-password" className="login-floating-label">Contraseña</label>
+            <FiLock className="login-field-icon" aria-hidden="true" />
             <button
               className="password-visibility-button"
               type="button"
@@ -165,6 +168,7 @@ export const LoginPage = () => {
             onClick={() => {}}
             loading={submitting}
             label={submitting ? "Ingresando..." : "Ingresar"}
+            icon={<FiLogIn aria-hidden="true" />}
             size="medium"
           />
           <Button
@@ -172,6 +176,7 @@ export const LoginPage = () => {
             variant="secondary"
             onClick={() => navigate("/register")}
             label="Registrarme"
+            icon={<FiUserPlus aria-hidden="true" />}
             size="medium"
           />
         </div>

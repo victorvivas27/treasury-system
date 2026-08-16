@@ -5,7 +5,7 @@ import {
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
   FiTrendingUp,
 } from "react-icons/fi";
-import type { SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
+import type { SchoolEvent, SchoolEventOption } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
   Stand, StandPaymentMethod, StandProduct, StandSale, StandSalePayload, StandSummary,
 } from "@/core/A-domain/entities/stand/Stand";
@@ -16,6 +16,7 @@ import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
+import { useAuth } from "@/presentation/context/AuthContext";
 import "./StandManagementPage.css";
 
 const eventsRepository = new TreasuryRepositoryImpl();
@@ -52,13 +53,13 @@ const errorMessage = (error: unknown, fallback: string) => {
   return errors ? Object.values(errors).join(" ") : fallback;
 };
 
-const StandWorkspaceSkeleton = () => <section className="stand-workspace" role="status"
+const StandWorkspaceSkeleton = ({ readOnly = false }: { readOnly?: boolean }) => <section className="stand-workspace" role="status"
   aria-label="Cargando eventos y stands">
   <header className="stand-workspace__header"><div><span>Estado del stand</span>
     <Skeleton width="11rem" height="1.4rem" /><Skeleton width="16rem" height=".8rem" />
-  </div><div className="stand-workspace__actions loading-action-placeholder">
+  </div>{!readOnly && <div className="stand-workspace__actions loading-action-placeholder">
     <button type="button" disabled>Configurar</button><button type="button" disabled>Eliminar</button>
-  </div></header>
+  </div>}</header>
   <div className="stand-page__selector">{Array.from({ length: 3 }, (_, index) =>
     <Skeleton key={index} height="2.8rem" />)}</div>
   <Skeleton height="14rem" />
@@ -93,15 +94,17 @@ const StandPanelSkeleton = ({ tab }: { tab: Tab }) => <section
 </section>;
 
 export const StandManagementPage = () => {
+  const { user } = useAuth();
+  const readOnly = user?.rol === "USER";
   const [year, setYear] = useState(new Date().getFullYear());
-  const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [events, setEvents] = useState<Array<SchoolEvent | SchoolEventOption>>([]);
   const [eventId, setEventId] = useState(0);
   const [standList, setStandList] = useState<Stand[]>([]);
   const [selected, setSelected] = useState<Stand>();
   const [products, setProducts] = useState<StandProduct[]>([]);
   const [sales, setSales] = useState<StandSale[]>([]);
   const [summary, setSummary] = useState<StandSummary>();
-  const [tab, setTab] = useState<Tab>("products");
+  const [tab, setTab] = useState<Tab>(readOnly ? "summary" : "products");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [closeSummary, setCloseSummary] = useState<StandSummary>();
@@ -118,7 +121,9 @@ export const StandManagementPage = () => {
   const loadEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await eventsRepository.listEvents(year);
+      const data = readOnly
+        ? await eventsRepository.listEventOptions(year)
+        : await eventsRepository.listEvents(year);
       setEvents(data);
       setEventId(current => data.some(item => item.id === current) ? current : (data[0]?.id ?? 0));
     } catch (error) {
@@ -127,7 +132,7 @@ export const StandManagementPage = () => {
       setHasLoadedEvents(true);
       setLoading(false);
     }
-  }, [year]);
+  }, [year, readOnly]);
 
   const loadStands = useCallback(async () => {
     if (!eventId) {
@@ -148,20 +153,24 @@ export const StandManagementPage = () => {
     if (!selected) return;
     setOperationalLoading(true);
     try {
-      const [productData, saleData, summaryData] = await Promise.all([
-        stands.listProducts(selected.id), stands.listSales(selected.id),
-        stands.summary(selected.id),
-      ]);
-      setProducts(productData);
-      setSales(saleData);
-      setSummary(summaryData);
+      if (readOnly) {
+        setSummary(await stands.summary(selected.id));
+      } else {
+        const [productData, saleData, summaryData] = await Promise.all([
+          stands.listProducts(selected.id), stands.listSales(selected.id),
+          stands.summary(selected.id),
+        ]);
+        setProducts(productData);
+        setSales(saleData);
+        setSummary(summaryData);
+      }
       setLoadedStandId(selected.id);
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible actualizar el stand."));
     } finally {
       setOperationalLoading(false);
     }
-  }, [selected?.id]);
+  }, [selected?.id, readOnly]);
 
   useEffect(() => { void loadEvents(); }, [loadEvents]);
   useEffect(() => { void loadStands(); }, [loadStands]);
@@ -234,8 +243,9 @@ export const StandManagementPage = () => {
   return <main className="stand-page">
     <header className="stand-page__header">
       <div><h1>Ventas del stand</h1>
-        <p>Configura productos, registra compras y controla la caja en tiempo real.</p></div>
-      <div className="stand-page__header-actions">
+        <p>{readOnly ? "Consulta el resumen de ventas y recaudación de cada stand."
+          : "Configura productos, registra compras y controla la caja en tiempo real."}</p></div>
+      {!readOnly && <div className="stand-page__header-actions">
         <button onClick={click => {
           setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
             Math.min(320, window.innerWidth - 24), 430));
@@ -244,7 +254,7 @@ export const StandManagementPage = () => {
           <FiPlus /> Crear stand</button>
         <button className="is-reload" onClick={() => void loadStands()}>
           <FiRefreshCw /> Recargar</button>
-      </div>
+      </div>}
     </header>
 
     <section className="stand-page__filters" aria-label="Selección de evento">
@@ -260,10 +270,11 @@ export const StandManagementPage = () => {
     </section>
 
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
-    {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton />
+    {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton readOnly={readOnly} />
       : events.length === 0 ? <section className="stand-page__empty">
-        <FiAlertTriangle /><h2>Primero crea un evento</h2>
-        <p>Todo stand debe estar asociado a un evento existente.</p>
+        <FiAlertTriangle /><h2>{readOnly ? "No hay eventos para consultar" : "Primero crea un evento"}</h2>
+        <p>{readOnly ? "Cuando exista un evento con stands, su resumen aparecerá aquí."
+          : "Todo stand debe estar asociado a un evento existente."}</p>
       </section> : <>
         <div className="stand-page__selector">
           {standList.map(item => <button key={item.id}
@@ -271,7 +282,10 @@ export const StandManagementPage = () => {
             onClick={() => setSelected(item)}>
             <span>{item.name}</span><small>{statusLabels[item.status]}</small>
           </button>)}
-          {standList.length === 0 && <section className="stand-selector-empty">
+          {standList.length === 0 && (readOnly ? <section className="stand-page__empty">
+            <FiBox /><h2>No hay stands en este evento</h2>
+            <p>Selecciona otro evento o vuelve más tarde.</p>
+          </section> : <section className="stand-selector-empty">
             <header className="stand-selector-empty__header">
               <div className="stand-selector-empty__identity">
                 <span className="stand-selector-empty__icon"><FiBox /></span>
@@ -298,7 +312,7 @@ export const StandManagementPage = () => {
               <article><FiDollarSign /><div><strong>Recaudación</strong>
                 <small>Controla caja y medios de pago</small></div><b>{money.format(0)}</b></article>
             </div>
-          </section>}
+          </section>)}
         </div>
 
         {selected && <section className={`stand-workspace ${operationalLoading
@@ -309,7 +323,7 @@ export const StandManagementPage = () => {
               <h2>{selected.name}</h2>
               <p>{selected.responsible} · {selected.date} · {selected.startTime.slice(0, 5)}
                 –{selected.endTime.slice(0, 5)}</p></div>
-            <div className="stand-workspace__actions">
+            {!readOnly && <div className="stand-workspace__actions">
               {selected.status !== "CLOSED" &&
                 <button className="secondary" onClick={click => {
                   setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
@@ -334,22 +348,22 @@ export const StandManagementPage = () => {
                   <FiX /> Cerrar jornada</button>}
               {selected.status === "CLOSED" &&
                 <button onClick={() => void changeStatus("reopen")}><FiRefreshCw /> Reabrir</button>}
-            </div>
+            </div>}
           </header>
-          <nav className="stand-tabs" aria-label="Secciones del stand">
+          {!readOnly && <nav className="stand-tabs" aria-label="Secciones del stand">
             <button className={tab === "products" ? "is-active" : ""}
               onClick={() => setTab("products")}><FiBox /> Productos</button>
             <button className={tab === "sales" ? "is-active" : ""}
               onClick={() => setTab("sales")}><FiShoppingCart /> Venta rápida</button>
             <button className={tab === "summary" ? "is-active" : ""}
               onClick={() => setTab("summary")}><FiDollarSign /> Resumen</button>
-          </nav>
-          {loadedStandId !== selected.id ? <StandPanelSkeleton tab={tab} /> : <>
-            {tab === "products" && <ProductsPanel stand={selected} products={products}
+          </nav>}
+          {loadedStandId !== selected.id ? <StandPanelSkeleton tab={readOnly ? "summary" : tab} /> : <>
+            {!readOnly && tab === "products" && <ProductsPanel stand={selected} products={products}
               onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
-            {tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
+            {!readOnly && tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
               onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
-            {tab === "summary" && summary && <SummaryPanel summary={summary} />}
+            {(readOnly || tab === "summary") && summary && <SummaryPanel summary={summary} />}
           </>}
         </section>}
       </>}
@@ -391,13 +405,14 @@ export const StandManagementPage = () => {
         <small>El fondo inicial de {money.format(closeSummary.initialFund)} no forma parte de la recaudación.</small>
       </div>}
     </ModalConfirm>
-    {creating && <StandForm eventId={eventId} event={events.find(item => item.id === eventId)}
+    {!readOnly && creating && <StandForm eventId={eventId}
+      event={events.find(item => item.id === eventId) as SchoolEvent | undefined}
       anchor={modalAnchor} onClose={() => { setCreating(false); setModalAnchor(undefined); }}
       onSaved={async value => {
         setCreating(false); await loadStands(); setSelected(value); setFeedback("Stand creado.");
       }} />}
-    {editing && selected && <StandForm eventId={eventId}
-      event={events.find(item => item.id === eventId)} stand={selected}
+    {!readOnly && editing && selected && <StandForm eventId={eventId}
+      event={events.find(item => item.id === eventId) as SchoolEvent | undefined} stand={selected}
       anchor={modalAnchor} onClose={() => { setEditing(false); setModalAnchor(undefined); }}
       onSaved={async value => {
         setEditing(false); updateSelected(value, "Configuración actualizada.");

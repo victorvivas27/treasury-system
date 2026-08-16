@@ -18,6 +18,9 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
   const currentRole = role ?? auth?.user?.rol;
   const location = useLocation();
   const [isTreasuryOpen, setIsTreasuryOpen] = useState(false);
+  const visibleTreasuryLinks = currentRole === "ADMIN"
+    ? TREASURY_LINKS
+    : TREASURY_LINKS.filter(link => link.path === "/tesoreria/stands");
 
   const handleClick = () => {
     onNavLinkClick();
@@ -66,7 +69,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
             </ul>
           </li>
         ))}
-        {currentRole === "ADMIN" && <li className="sidebar-nav-section sidebar-nav-section--treasury">
+        {currentRole && <li className="sidebar-nav-section sidebar-nav-section--treasury">
           <button
             type="button"
             className={`sidebar-nav-link-item sidebar-nav-parent ${
@@ -85,7 +88,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
           </button>
           {isTreasuryOpen && (
             <ul id="treasury-submenu" className="sidebar-submenu">
-              {TREASURY_LINKS.map((link) => {
+              {visibleTreasuryLinks.map((link) => {
                 const TreasuryIcon = link.icon;
                 return <li key={link.path}>
                   <NavLink
@@ -96,7 +99,8 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
                     onClick={handleTreasuryLinkClick}
                   >
                     <TreasuryIcon className="sidebar-submenu-icon" aria-hidden="true" />
-                    {link.label}
+                    {currentRole === "USER" && link.path === "/tesoreria/stands"
+                      ? "Resumen de stands" : link.label}
                   </NavLink>
                 </li>
               })}

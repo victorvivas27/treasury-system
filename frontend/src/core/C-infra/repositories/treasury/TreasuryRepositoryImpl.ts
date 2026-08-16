@@ -4,7 +4,7 @@ import type { ContributionConfig, ContributionFilters,
   ContributionType } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ExpenseFilters, ExpensePayload } from "@/core/A-domain/entities/treasury/Treasury";
 import type { IncomeFilters, IncomePayload } from "@/core/A-domain/entities/treasury/Treasury";
-  import type { EventSettlement, SchoolEvent,
+  import type { EventSettlement, SchoolEvent, SchoolEventOption,
     TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ITreasuryRepository } from "@/core/A-domain/repository/treasury/ITreasuryRepository";
 import { apiClient } from "@/core/D-config/api";
@@ -138,6 +138,9 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   }
   async listEvents(year: number): Promise<SchoolEvent[]> {
     return (await apiClient.get(`${this.baseUrl}/eventos`, { params: { year } })).data;
+  }
+  async listEventOptions(year: number): Promise<SchoolEventOption[]> {
+    return (await apiClient.get(`${this.baseUrl}/eventos/consulta`, { params: { year } })).data;
   }
   async createEvent(payload: {
     name: string; schoolYear: number; eventDate: string; description?: string;

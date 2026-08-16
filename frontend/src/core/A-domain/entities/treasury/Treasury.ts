@@ -330,6 +330,12 @@ export interface SchoolEvent {
   settlementConfirmed: boolean;
 }
 
+export interface SchoolEventOption {
+  id: number;
+  name: string;
+  eventDate: string;
+}
+
 export interface EventSettlement {
   grossRevenue: number;
   commonExpenses: number;

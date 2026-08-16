@@ -3,15 +3,24 @@
 .public-home__brand img { width:48px; height:48px; object-fit:contain; transition:transform 300ms ease,filter 300ms ease; }
 .public-home__brand:hover img { transform:rotate(-7deg) scale(1.08); filter:drop-shadow(0 0 10px rgba(14,235,205,.35)); }
 .public-home__nav { display:flex; align-items:center; gap:.75rem; }
-.public-home__login,.public-home__register { display:inline-flex; min-height:44px; align-items:center; justify-content:center; border-radius:.7rem; font-weight:650; transition:transform 160ms ease,background-color 160ms ease; }
-.public-home__login { padding:0 1rem; color:var(--text-main); }
+.public-home__login,.public-home__register { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:.45rem; border-radius:.7rem; font-weight:650; transition:transform 160ms ease,background-color 160ms ease; }
+.public-home__login { border:1px solid var(--border-color); padding:0 1rem; background:var(--color-surface); color:var(--text-main); }
 .public-home__register { padding:0 1.25rem; background:var(--color-accent); color:#071512; }
+.public-home__login:hover { border-color:var(--color-accent); background:var(--color-accent-soft); transform:translateY(-2px); }
 .public-home__register:hover { transform:translateY(-2px); }
 @keyframes home-header-in { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:none; } }
 @media (max-width:680px) {
   .public-home__header { min-height:72px; }
-  .public-home__brand { gap:.5rem; font-size:.9rem; }
-  .public-home__brand img { width:42px; height:42px; }
-  .public-home__login { display:none; }
-  .public-home__register { min-height:40px; padding-inline:.9rem; font-size:.85rem; }
+  .public-home__brand { min-width:0; gap:.25rem; font-size:.62rem; white-space:nowrap; }
+  .public-home__brand img { width:34px; height:34px; }
+  .public-home__brand > span { display:inline; }
+  .public-home__nav { flex:0 0 auto; gap:.2rem; }
+  .public-home__login,.public-home__register { min-height:34px; gap:.2rem; padding-inline:.35rem; font-size:.58rem; white-space:nowrap; }
+  .public-home__login svg,.public-home__register svg { flex:0 0 auto; font-size:.75rem; }
+}
+
+@media (max-width:360px) {
+  .public-home__brand { font-size:.55rem; }
+  .public-home__brand img { width:30px; height:30px; }
+  .public-home__login,.public-home__register { padding-inline:.25rem; font-size:.52rem; }
 }

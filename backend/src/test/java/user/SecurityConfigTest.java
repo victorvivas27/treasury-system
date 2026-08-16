@@ -191,6 +191,23 @@ class SecurityConfigTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void resumenStand_deberiaPermitirLecturaPeroNoEscrituraAUsuarioComun() throws Exception {
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/tesoreria/stands?eventId=999999")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/tesoreria/stands/999999/resumen")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/v1/tesoreria/stands")
+                        .contentType("application/json")
+                        .content("{}")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
     private void createUser(String code, String correo, RoleEnum role) {
         UserEntity user = new UserEntity();
         user.setCode(code);

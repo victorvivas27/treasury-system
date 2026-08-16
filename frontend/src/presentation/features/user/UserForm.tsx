@@ -108,7 +108,7 @@ export const UserForm = ({
         {errors.correo && <span className="error-message">{errors.correo}</span>}
       </div>
 
-      {!initialData && <div className="form-group">
+      {!initialData && <div className="form-group user-form__password-group">
         <span className="password-input-wrapper login-floating-field">
           <input
             id="user-form-password"

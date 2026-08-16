@@ -33,6 +33,13 @@ public class SchoolEventController {
         return new ManagedCourseResponse(service.managedCourse());
     }
 
+    @GetMapping("/consulta")
+    public List<EventOptionResponse> options(@RequestParam int year) {
+        return service.list(year).stream()
+                .map(event -> new EventOptionResponse(event.getId(), event.getName(), event.getEventDate()))
+                .toList();
+    }
+
     @GetMapping
     public List<EventResponse> list(@RequestParam int year) {
         return service.list(year).stream().map(this::response).toList();
@@ -217,5 +224,8 @@ public class SchoolEventController {
     }
 
     public record ManagedCourseResponse(String course) {
+    }
+
+    public record EventOptionResponse(Long id, String name, LocalDate eventDate) {
     }
 }

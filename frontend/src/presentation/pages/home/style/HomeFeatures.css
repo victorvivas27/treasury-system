@@ -11,4 +11,4 @@
 .public-home__feature-grid h3 { margin:1.1rem 0 .55rem; font-size:1.1rem; }
 .public-home__feature-grid p { line-height:1.65; }
 :root[data-theme="light"] .public-home__feature-grid article { border-color:var(--border-color); background:var(--color-surface); box-shadow:var(--shadow-card); }
-@media(max-width:680px){.public-home__feature-grid{grid-template-columns:1fr}}
+@media(max-width:680px){.public-home__features{padding:1rem 0 3rem}.public-home__section-heading{margin-bottom:1.5rem}.public-home__section-heading>span{font-size:.65rem;letter-spacing:.055em}.public-home__section-heading h2{margin:.4rem 0;font-size:1.45rem;line-height:1.15}.public-home__section-heading p{font-size:.82rem}.public-home__feature-grid{grid-template-columns:1fr}}

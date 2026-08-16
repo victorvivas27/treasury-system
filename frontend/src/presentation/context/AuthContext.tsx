@@ -28,6 +28,24 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AUTH_USER_KEY = "treasury.auth.user";
+
+const storedUser = () => {
+  if (!localStorage.getItem(AUTH_TOKEN_KEY)) return null;
+  try {
+    const value = JSON.parse(localStorage.getItem(AUTH_USER_KEY) ?? "null") as User | null;
+    return value && typeof value.correo === "string" && typeof value.rol === "string" ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const isAuthenticationRejection = (error: unknown) => {
+  if (!error || typeof error !== "object" || !("response" in error)) return false;
+  const response = error.response;
+  if (!response || typeof response !== "object" || !("status" in response)) return false;
+  return response.status === 401 || response.status === 403;
+};
 
 const tokenExpiration = (token: string) => {
   try {
@@ -40,10 +58,11 @@ const tokenExpiration = (token: string) => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState(() => localStorage.getItem(AUTH_TOKEN_KEY));
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(Boolean(token));
+  const [user, setUser] = useState<User | null>(storedUser);
+  const [loading, setLoading] = useState(Boolean(token && !user));
   const [sessionExpired, setSessionExpired] = useState(false);
-  const hadActiveSession = useRef(false);
+  const hadActiveSession = useRef(Boolean(token && user));
+  const validatedToken = useRef<string | null>(null);
 
   const useCases = useMemo(() => {
     const repository = new AuthRepositoryImpl();
@@ -57,6 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearSession = useCallback(() => {
     hadActiveSession.current = false;
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    validatedToken.current = null;
     setToken(null);
     setUser(null);
   }, []);
@@ -104,24 +125,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       return;
     }
-    if (user) {
+    if (validatedToken.current === token) {
       setLoading(false);
       return;
     }
+    validatedToken.current = token;
     useCases.current.execute()
       .then((currentUser) => {
         hadActiveSession.current = true;
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
         setUser(currentUser);
       })
-      .catch(clearSession)
+      .catch((error: unknown) => {
+        if (isAuthenticationRejection(error)) clearSession();
+        else validatedToken.current = null;
+      })
       .finally(() => setLoading(false));
-  }, [token, user, useCases, clearSession]);
+  }, [token, useCases, clearSession]);
 
   const login = async (correo: string, password: string) => {
     setLoading(true);
     try {
       const response = await useCases.login.execute({ correo, password });
       localStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      validatedToken.current = response.token;
       hadActiveSession.current = true;
       setSessionExpired(false);
       setToken(response.token);
@@ -138,7 +166,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     void revocation?.catch(() => undefined);
   };
 
-  const syncUser = useCallback((updatedUser: User) => setUser(updatedUser), []);
+  const syncUser = useCallback((updatedUser: User) => {
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }, []);
 
   return <>
     <AuthContext.Provider
