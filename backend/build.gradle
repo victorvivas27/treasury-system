@@ -35,6 +35,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation platform('com.google.cloud:libraries-bom:26.72.0')
+    implementation 'com.google.cloud:google-cloud-storage'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'

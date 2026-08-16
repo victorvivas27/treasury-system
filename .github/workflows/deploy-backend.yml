@@ -102,6 +102,9 @@ jobs:
             GMAIL_APP_PASSWORD=${{ secrets.GMAIL_APP_PASSWORD }}
             EMAIL_FROM=${{ secrets.EMAIL_FROM }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            GCS_ENABLED=true
+            GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}
+            GCS_MAX_FILE_SIZE_MB=10
 
       - name: Show deployed backend URL
         run: |

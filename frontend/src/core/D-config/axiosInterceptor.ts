@@ -105,12 +105,19 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
               const renewedToken = await refreshToken(currentToken);
               requestConfig.headers.Authorization = `Bearer ${renewedToken}`;
               return client.request(requestConfig);
-            } catch {
-              // Solo se cierra la sesión cuando también falla la renovación.
+            } catch (refreshError) {
+              const refreshStatus = axios.isAxiosError(refreshError)
+                ? refreshError.response?.status
+                : undefined;
+              if (refreshStatus === 401 || refreshStatus === 403) {
+                expireSession(currentToken);
+              }
+              return Promise.reject(error);
             }
           }
-          localStorage.removeItem(AUTH_TOKEN_KEY);
-          window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+
+          // Si un token recién renovado también recibe 401 en una ruta concreta,
+          // el problema pertenece a esa ruta y no demuestra que la sesión sea inválida.
         }
       }
       return Promise.reject(error);

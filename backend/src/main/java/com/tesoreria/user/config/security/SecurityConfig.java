@@ -18,6 +18,8 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import static jakarta.servlet.DispatcherType.ERROR;
+
 @Configuration
 @EnableMethodSecurity
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
@@ -38,6 +40,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(ERROR).permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",

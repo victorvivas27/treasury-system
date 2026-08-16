@@ -3,11 +3,13 @@ import type { AnnualFeeConfigPayload, PaymentMode, TreasuryFilters,
 import type { ContributionConfig, ContributionFilters,
   ContributionType } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ExpenseFilters, ExpensePayload } from "@/core/A-domain/entities/treasury/Treasury";
+import type { ExpenseDocument } from "@/core/A-domain/entities/treasury/Treasury";
 import type { IncomeFilters, IncomePayload } from "@/core/A-domain/entities/treasury/Treasury";
   import type { EventSettlement, SchoolEvent, SchoolEventOption,
     TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ITreasuryRepository } from "@/core/A-domain/repository/treasury/ITreasuryRepository";
 import { apiClient } from "@/core/D-config/api";
+import axios from "axios";
 
 export class TreasuryRepositoryImpl implements ITreasuryRepository {
   private readonly baseUrl = "/tesoreria";
@@ -114,6 +116,30 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async cancelExpense(id: number, reason: string) {
     return (await apiClient.patch(`${this.baseUrl}/egresos/${id}/anulacion`,
       { reason })).data;
+  }
+  async listExpenseDocuments(expenseId: number): Promise<ExpenseDocument[]> {
+    try {
+      return (await apiClient.get(`${this.baseUrl}/egresos/${expenseId}/adjuntos`)).data;
+    } catch (error) {
+      // Compatibilidad mientras el backend sin almacenamiento no expone esta ruta.
+      if (axios.isAxiosError(error) && error.response?.status === 404) return [];
+      throw error;
+    }
+  }
+  async uploadExpenseDocuments(expenseId: number, files: File[]): Promise<ExpenseDocument[]> {
+    const data = new FormData();
+    files.forEach((file) => data.append("files", file));
+    return (await apiClient.post(`${this.baseUrl}/egresos/${expenseId}/adjuntos`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })).data;
+  }
+  async getExpenseDocument(expenseId: number, documentId: number): Promise<Blob> {
+    return (await apiClient.get(
+      `${this.baseUrl}/egresos/${expenseId}/adjuntos/${documentId}/contenido`,
+      { responseType: "blob" })).data;
+  }
+  async deleteExpenseDocument(expenseId: number, documentId: number): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/egresos/${expenseId}/adjuntos/${documentId}`);
   }
   async financialSummary(year: number) {
     return (await apiClient.get(`${this.baseUrl}/resumen-financiero`,

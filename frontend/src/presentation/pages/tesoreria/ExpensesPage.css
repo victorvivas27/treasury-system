@@ -56,3 +56,23 @@
 .expense-form-modal select{line-height:1.1}
 .expense-form-modal select option{min-height:0;padding:.12rem .35rem;font-size:.66rem;line-height:1.1}
 @media(max-width:480px){.expense-modal-overlay{align-items:center;padding:.65rem}.expense-form-modal{padding:.75rem}.expense-form-modal form{grid-template-columns:repeat(2,minmax(0,1fr))}.expense-form-modal .expense-field-wide,.expense-form-modal footer{grid-column:1/-1}.expense-form-modal footer{flex-direction:row}.expense-form-modal footer button{width:auto}}
+.expense-documents { margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: .8rem; }
+.expense-documents h3 { display: flex; align-items: center; gap: .4rem; margin: 0 0 .6rem; font-size: 1rem; }
+.expense-document-upload { display: inline-flex; min-height: 30px; align-items: center; gap: .28rem; padding: .28rem .5rem; border: 1px solid color-mix(in srgb,var(--color-accent) 72%,transparent); border-radius: .45rem; background: var(--color-accent); color: #061512; cursor: pointer; font-size: .64rem; font-weight: 700; line-height: 1; transition: filter .18s ease,transform .18s ease; }
+.expense-document-upload svg { width: .78rem; height: .78rem; flex: 0 0 auto; }
+.expense-document-upload:hover { filter: brightness(1.08); }
+.expense-document-upload:active { transform: translateY(1px); }
+.expense-document-upload:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.expense-document-upload.is-loading { cursor: wait; opacity: .78; }
+.expense-document-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.expense-document-progress { display: flex; align-items: center; gap: .4rem; color: var(--text-muted); font-size: .75rem; }
+.expense-document-spinner { animation: expense-document-spin .8s linear infinite; }
+@keyframes expense-document-spin { to { transform: rotate(360deg); } }
+.expense-documents > small { display: block; margin: .35rem 0 .6rem; color: #64748b; }
+.expense-documents ul { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
+.expense-documents li { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem; border: 1px solid #e2e8f0; border-radius: .5rem; }
+.expense-documents li span { min-width: 0; display: grid; }
+.expense-documents li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+.expense-documents li div { display: flex; gap: .25rem; }
+.expense-documents li button { display: grid; place-items: center; min-width: 2rem; min-height: 2rem; }
+.expense-documents li button:disabled { cursor: wait; opacity: .5; }
