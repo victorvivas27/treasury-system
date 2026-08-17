@@ -45,6 +45,14 @@ export const DashboardPage = () => {
   const [cleanupError, setCleanupError] = useState("");
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth <= 700);
+
+  useEffect(() => {
+    const updateViewport = () => setIsMobile(window.innerWidth <= 700);
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -176,7 +184,8 @@ export const DashboardPage = () => {
           <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
           <div className="dashboard-chart" aria-label="Evolución mensual">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+              <AreaChart data={monthly} margin={{ top: 38, right: isMobile ? 8 : 0,
+                bottom: 0, left: isMobile ? 8 : 0 }}>
                 <defs>
                   <linearGradient id="dashboardIncome" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.35} />
@@ -184,13 +193,22 @@ export const DashboardPage = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="var(--text-muted)"
-                  tick={{ fontSize: 10 }} tickMargin={4} />
-                <YAxis stroke="var(--text-muted)" width={55}
+                <XAxis dataKey="name" stroke="var(--text-muted)" interval={0}
+                  minTickGap={0} tick={{ fontSize: 9 }} tickMargin={4} />
+                <YAxis stroke="var(--text-muted)" width={isMobile ? 0 : 55} hide={isMobile}
                   tick={{ fontSize: 8 }} tickMargin={0}
                   tickFormatter={value => money.format(Number(value))} />
-                <Tooltip formatter={(value) => money.format(Number(value))}
-                  contentStyle={{ background: "var(--color-elevated)", borderColor: "var(--border-color)" }} />
+                <Tooltip cursor={{ stroke: "var(--color-accent)", strokeDasharray: "3 3" }}
+                  position={{ x: isMobile ? 4 : 58, y: 2 }}
+                  wrapperStyle={{ pointerEvents: "none" }}
+                  content={({ active, payload, label }) => active && payload?.length ?
+                    <div className="cashflow-tooltip" role="status">
+                      <strong>{label}</strong>
+                      {payload.map(item => <span key={String(item.dataKey)}
+                        className={`cashflow-tooltip__${String(item.dataKey)}`}>
+                        {item.name}: <b>{money.format(Number(item.value))}</b>
+                      </span>)}
+                    </div> : null} />
                 <Legend />
                 <Area name="Ingresos" dataKey="income" stroke="var(--color-success)"
                   fill="url(#dashboardIncome)" />
@@ -222,9 +240,10 @@ export const DashboardPage = () => {
                   </ResponsiveContainer>
                   <div><strong>{data.quotas.totalFamilies}</strong><span>familias</span></div>
                 </div>
-                <ul>{annualQuotaSummary.modalities.map(item => <li key={item.name}>
+                <ul aria-label="Familias por modalidad">{annualQuotaSummary.modalities.map(item => <li
+                  key={item.name} aria-label={`${item.name}: ${item.value} familias`}>
                   <i style={{ background: item.color }} /><span>{item.name}</span>
-                  <strong>{item.value}</strong>
+                  <strong>{item.value}<small> familias</small></strong>
                 </li>)}</ul>
               </div>
               <div className="annual-quota-progress">
