@@ -21,6 +21,8 @@
 .movement-type--cuota{background:color-mix(in srgb,var(--color-info) 15%,transparent);color:var(--color-info)}
 .dashboard-empty-row{visibility:hidden}
 .dashboard-panel--wide{padding:.7rem}.dashboard-panel--wide .dashboard-chart{margin-inline:-.2rem}.dashboard-panel--wide .recharts-legend-item-text{font-size:.7rem}.dashboard-panel--wide .recharts-default-tooltip{font-size:.72rem}
+.cashflow-tooltip{display:flex;align-items:center;gap:.5rem;max-width:calc(100vw - 5.5rem);padding:.35rem .5rem;border:1px solid var(--border-color);border-radius:8px;background:var(--color-elevated);box-shadow:var(--shadow-card);color:var(--text-main);font-size:.68rem;white-space:nowrap}
+.cashflow-tooltip>strong{padding-right:.45rem;border-right:1px solid var(--divider);text-transform:capitalize}.cashflow-tooltip span{color:var(--text-muted)}.cashflow-tooltip span b{color:var(--text-main)}.cashflow-tooltip__income::before,.cashflow-tooltip__expense::before{display:inline-block;width:.45rem;height:.45rem;margin-right:.25rem;border-radius:50%;background:var(--color-success);content:""}.cashflow-tooltip__expense::before{background:var(--color-error)}
 .dashboard-panel--annual{padding:.7rem}.dashboard-panel--annual .recharts-default-tooltip{font-size:.72rem}
 .dashboard-panel--annual>header{justify-content:center;text-align:center}
 .annual-quota-overview{display:grid;justify-items:center;gap:.8rem;min-height:240px}
@@ -29,8 +31,9 @@
 .annual-quota-donut>div:last-child{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
 .annual-quota-donut strong{font-size:1.35rem;line-height:1}.annual-quota-donut span{color:var(--text-muted);font-size:.62rem}
 .annual-quota-modalities ul{display:grid;gap:.45rem;min-width:8rem;margin:0;padding:0;list-style:none}
-.annual-quota-modalities li{display:grid;grid-template-columns:.55rem 1fr auto;align-items:center;gap:.35rem;font-size:.7rem}
+.annual-quota-modalities li{display:grid;grid-template-columns:.55rem minmax(0,1fr);align-items:center;gap:.15rem .4rem;padding:.45rem .55rem;border:1px solid var(--divider);border-radius:9px;background:var(--color-bg);font-size:.7rem}
 .annual-quota-modalities li i{width:.55rem;height:.55rem;border-radius:50%}.annual-quota-modalities li span{color:var(--text-muted)}
+.annual-quota-modalities li strong{grid-column:2;font-size:.82rem;line-height:1}.annual-quota-modalities li strong small{color:var(--text-muted);font-size:.55rem;font-weight:500}
 .annual-quota-progress{display:grid;gap:.55rem;width:min(100%,30rem);padding:.8rem;border:1px solid var(--divider);border-radius:var(--radius-md);background:var(--color-bg)}
 .annual-quota-progress>div:first-child{display:grid;justify-items:center;gap:.15rem;text-align:center}.annual-quota-progress>div:first-child span{color:var(--text-muted);font-size:.65rem}.annual-quota-progress>div:first-child strong{font-size:.9rem}
 .annual-quota-progress__track{overflow:hidden;height:.65rem;border-radius:99px;background:color-mix(in srgb,var(--color-warning) 20%,var(--color-surface))}
@@ -64,12 +67,14 @@
   .dashboard-charts{gap:.5rem}.dashboard-panel{padding:.52rem!important;border-radius:10px}.dashboard-panel header{margin-bottom:.38rem}.dashboard-panel header span{font-size:.56rem}.dashboard-panel h2{margin:.05rem 0;font-size:.78rem;line-height:1.15}.dashboard-panel__explanation{font-size:.54rem}
   .dashboard-chart,.dashboard-panel--distribution .dashboard-chart{height:150px}.dashboard-chart-skeleton{height:150px}.dashboard-empty{min-height:110px;font-size:.65rem}
   .dashboard-panel--wide .recharts-legend-wrapper{font-size:.56rem!important}.dashboard-panel--wide .recharts-legend-item{margin-right:5px!important}.dashboard-panel--wide .recharts-cartesian-axis-tick-value{font-size:8px}
-  .dashboard-panel--cashflow .dashboard-chart{height:132px;margin-right:-.4rem;margin-left:-.5rem}
+  .dashboard-panel--cashflow .dashboard-chart{height:170px;margin-inline:0;touch-action:pan-y}
   .dashboard-panel--cashflow .recharts-legend-wrapper{bottom:-2px!important;line-height:1}
   .dashboard-panel--cashflow .recharts-legend-item-text{font-size:.52rem!important}
   .dashboard-panel--cashflow .recharts-legend-icon{width:8px!important;height:8px!important}
-  .dashboard-panel--cashflow .recharts-cartesian-axis-tick-value{font-size:7px}
-  .annual-quota-overview{gap:.42rem;min-height:0}.annual-quota-modalities{grid-template-columns:92px minmax(7rem,9rem);gap:.5rem}.annual-quota-donut{width:92px;height:92px}.annual-quota-donut strong{font-size:.95rem}.annual-quota-donut span{font-size:.5rem}.annual-quota-modalities ul{gap:.25rem;min-width:0}.annual-quota-modalities li{grid-template-columns:.4rem 1fr auto;gap:.25rem;font-size:.57rem}.annual-quota-modalities li i{width:.4rem;height:.4rem}
+  .dashboard-panel--cashflow .recharts-cartesian-axis-tick-value{font-size:6px}
+  .dashboard-panel--cashflow .recharts-xAxis .recharts-cartesian-axis-tick-value{letter-spacing:-.04em}
+  .cashflow-tooltip{gap:.3rem;max-width:calc(100vw - 2.5rem);box-sizing:border-box;padding:.28rem .38rem;font-size:.56rem}.cashflow-tooltip>strong{padding-right:.3rem}.cashflow-tooltip span b{display:block;margin-top:.08rem}.cashflow-tooltip__income::before,.cashflow-tooltip__expense::before{width:.35rem;height:.35rem;margin-right:.15rem}
+  .annual-quota-overview{gap:.42rem;min-height:0}.annual-quota-modalities{grid-template-columns:92px minmax(7rem,9rem);gap:.5rem}.annual-quota-donut{width:92px;height:92px}.annual-quota-donut strong{font-size:.95rem}.annual-quota-donut span{font-size:.5rem}.annual-quota-modalities ul{gap:.3rem;min-width:0}.annual-quota-modalities li{grid-template-columns:.4rem minmax(0,1fr);gap:.12rem .3rem;padding:.38rem .45rem;font-size:.57rem}.annual-quota-modalities li i{width:.4rem;height:.4rem}.annual-quota-modalities li strong{font-size:.7rem}.annual-quota-modalities li strong small{font-size:.46rem}
   .annual-quota-progress{gap:.3rem;width:100%;padding:.45rem}.annual-quota-progress>div:first-child strong{font-size:.7rem}.annual-quota-progress>div:first-child span,.annual-quota-progress__detail span{font-size:.5rem}.annual-quota-progress__track{height:.42rem}.annual-quota-progress__detail{gap:.1rem .4rem}.annual-quota-progress__detail strong{font-size:.58rem}
   .dashboard-expense-ranking{gap:.28rem;min-height:0;padding:.1rem 0}.dashboard-expense-ranking li{grid-template-columns:1.15rem minmax(0,1fr);gap:.3rem}.dashboard-expense-ranking__position{width:1.05rem;height:1.05rem;font-size:.5rem}.dashboard-expense-ranking__content{gap:.15rem}.dashboard-expense-ranking__content strong{font-size:.59rem}.dashboard-expense-ranking__content small{font-size:.48rem}.dashboard-expense-ranking__content b{font-size:.56rem}.dashboard-expense-ranking__track{height:.25rem}
   .dashboard-contributions{padding:.45rem!important}.contribution-donuts{gap:.3rem}.contribution-donut{padding:.35rem;border-radius:8px}.contribution-donut h3{margin:.1rem 0;font-size:.62rem}.contribution-donut>p{margin:.1rem 0;font-size:.5rem}.contribution-donut__chart{height:105px}.contribution-donut__chart>strong{font-size:.78rem}.contribution-donut__chart>strong small{font-size:.45rem}
