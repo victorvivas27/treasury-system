@@ -162,6 +162,29 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
     return (await apiClient.patch(`${this.baseUrl}/ingresos/${id}/anulacion`,
       { reason })).data;
   }
+  async listIncomeDocuments(incomeId: number): Promise<ExpenseDocument[]> {
+    try {
+      return (await apiClient.get(`${this.baseUrl}/ingresos/${incomeId}/adjuntos`)).data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) return [];
+      throw error;
+    }
+  }
+  async uploadIncomeDocuments(incomeId: number, files: File[]): Promise<ExpenseDocument[]> {
+    const data = new FormData();
+    files.forEach((file) => data.append("files", file));
+    return (await apiClient.post(`${this.baseUrl}/ingresos/${incomeId}/adjuntos`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })).data;
+  }
+  async getIncomeDocument(incomeId: number, documentId: number): Promise<Blob> {
+    return (await apiClient.get(
+      `${this.baseUrl}/ingresos/${incomeId}/adjuntos/${documentId}/contenido`,
+      { responseType: "blob" })).data;
+  }
+  async deleteIncomeDocument(incomeId: number, documentId: number): Promise<void> {
+    await apiClient.delete(`${this.baseUrl}/ingresos/${incomeId}/adjuntos/${documentId}`);
+  }
   async listEvents(year: number): Promise<SchoolEvent[]> {
     return (await apiClient.get(`${this.baseUrl}/eventos`, { params: { year } })).data;
   }

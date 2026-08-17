@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiAlertTriangle, FiArrowDownCircle, FiArrowLeft, FiBarChart2, FiBookOpen, FiCalendar,
-  FiCheck, FiClock, FiCreditCard, FiDollarSign, FiEdit3, FiEye, FiFileText, FiFilter,
-  FiLogIn, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw, FiSave, FiSlash, FiTag, FiUser,
-  FiUsers, FiX }
+  FiCheck, FiClock, FiCreditCard, FiDollarSign, FiDownload, FiEdit3, FiEye, FiFilePlus,
+  FiFileText, FiFilter, FiLoader, FiLogIn, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw,
+  FiSave, FiSlash, FiTag, FiTrash2, FiUser, FiUsers, FiX }
   from "react-icons/fi";
 import type {
-  FinancialSummary, IncomeCategory, IncomeFilters, IncomePayload,
+  ExpenseDocument, FinancialSummary, IncomeCategory, IncomeFilters, IncomePayload,
   TreasuryDashboardOverview, TreasuryIncome,
 } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
@@ -53,6 +53,12 @@ export const IncomesPage = () => {
   const [form, setForm] = useState<IncomePayload>(initialForm(year));
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<TreasuryIncome | null>(null);
+  const [documents, setDocuments] = useState<ExpenseDocument[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [documentsUploading, setDocumentsUploading] = useState(false);
+  const [documentAction, setDocumentAction] = useState<{
+    id: number; type: "view" | "download" | "delete";
+  } | null>(null);
   const [editing, setEditing] = useState<TreasuryIncome | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -94,6 +100,61 @@ export const IncomesPage = () => {
       .then(setManagedCourse)
       .catch(() => setError("No fue posible cargar el curso administrado."));
   }, []);
+
+  useEffect(() => {
+    if (!detail) { setDocuments([]); return; }
+    setDocumentsLoading(true);
+    repository.listIncomeDocuments(detail.id).then(setDocuments)
+      .catch(() => setError("No fue posible cargar los documentos adjuntos."))
+      .finally(() => setDocumentsLoading(false));
+  }, [detail]);
+
+  const uploadDocuments = async (files: FileList | null) => {
+    if (!detail || !files?.length) return;
+    setDocumentsUploading(true);
+    try {
+      await repository.uploadIncomeDocuments(detail.id, Array.from(files));
+      setDocuments(await repository.listIncomeDocuments(detail.id));
+      setMessage("Los documentos fueron cargados correctamente.");
+    } catch { setError("No fue posible cargar los documentos. Revisa formato y tamaño."); }
+    finally { setDocumentsUploading(false); }
+  };
+
+  const openDocument = async (document: ExpenseDocument, download: boolean) => {
+    if (!detail) return;
+    const previewWindow = download ? null : window.open("", "_blank");
+    if (previewWindow) {
+      previewWindow.opener = null;
+      previewWindow.document.title = `Abriendo ${document.originalName}…`;
+      previewWindow.document.body.textContent = "Cargando comprobante…";
+    }
+    setDocumentAction({ id: document.id, type: download ? "download" : "view" });
+    try {
+      const blob = await repository.getIncomeDocument(detail.id, document.id);
+      const url = URL.createObjectURL(blob);
+      if (download) {
+        const link = window.document.createElement("a");
+        link.href = url; link.download = document.originalName; link.click();
+      } else if (previewWindow) previewWindow.location.href = url;
+      else throw new Error("El navegador bloqueó la vista previa");
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      previewWindow?.close();
+      setError("No fue posible abrir el documento. Revisa que el navegador permita ventanas emergentes.");
+    }
+    finally { setDocumentAction(null); }
+  };
+
+  const deleteDocument = async (documentId: number) => {
+    if (!detail) return;
+    setDocumentAction({ id: documentId, type: "delete" });
+    try {
+      await repository.deleteIncomeDocument(detail.id, documentId);
+      setDocuments((current) => current.filter((item) => item.id !== documentId));
+      setMessage("El documento fue eliminado.");
+    } catch { setError("No fue posible eliminar el documento."); }
+    finally { setDocumentAction(null); }
+  };
 
   useEffect(() => {
     if (managedCourse && formOpen && !editing && !form.course) {
@@ -349,13 +410,54 @@ export const IncomesPage = () => {
         <div><dt><FiTag /> Categoría</dt><dd>{incomeCategoryLabel(detail.category)}</dd></div>
         <div><dt><FiLogIn /> Origen</dt><dd>{detail.source || "No informado"}</dd></div>
         <div><dt><FiCreditCard /> Medio</dt><dd>{incomePaymentLabel(detail.paymentMethod)}</dd></div>
-        <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber || "No informado"}</dd></div>
+        <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber ||
+          (documentsLoading ? "Cargando…" : documents.length === 1
+            ? documents[0].originalName
+            : documents.length > 1 ? `${documents.length} archivos adjuntos` : "No informado")}</dd></div>
         <div><dt><FiBookOpen /> Curso</dt><dd>{detail.course || "No relacionado"}</dd></div>
         <div><dt><FiUsers /> Familia</dt><dd>{detail.familyId || "No relacionada"}</dd></div>
         <div className="income-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
         <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
         <div className="income-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
         {detail.cancellationReason && <div className="income-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
+      <section className="expense-documents" aria-label="Documentos adjuntos">
+        <h3><FiFileText /> Documentos adjuntos</h3>
+        {canManage && <label className={`expense-document-upload ${
+          documentsUploading ? "is-loading" : ""}`}>
+          {documentsUploading ? <FiLoader className="expense-document-spinner" /> : <FiFilePlus />}
+          {documentsUploading ? "Subiendo archivos…" : "Seleccionar archivos"}
+          <input type="file" multiple disabled={documentsUploading}
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
+            onChange={(event) => { void uploadDocuments(event.target.files); event.target.value = ""; }} />
+        </label>}
+        <small>PDF, Word, Excel o imágenes · Máximo 10 MB por archivo</small>
+        {documentsUploading && <p className="expense-document-progress" role="status" aria-live="polite">
+          <FiLoader className="expense-document-spinner" /> Guardando en almacenamiento seguro…
+        </p>}
+        {documentsLoading ? <p className="expense-document-progress" role="status">
+          <FiLoader className="expense-document-spinner" /> Cargando documentos…</p>
+          : documents.length === 0
+          ? <p>Este ingreso no tiene documentos.</p>
+          : <ul>{documents.map((document) => <li key={document.id}>
+            <span><b>{document.originalName}</b><small>{(document.sizeBytes / 1024).toFixed(0)} KB</small></span>
+            <div>{["pdf", "jpg", "jpeg", "png", "webp"].includes(document.extension) &&
+              <button type="button" title="Ver" aria-label={`Ver ${document.originalName}`}
+                disabled={documentAction !== null}
+                onClick={() => void openDocument(document, false)}>
+                {documentAction?.id === document.id && documentAction.type === "view"
+                  ? <FiLoader className="expense-document-spinner" /> : <FiEye />}</button>}
+              <button type="button" title="Descargar" aria-label={`Descargar ${document.originalName}`}
+                disabled={documentAction !== null}
+                onClick={() => void openDocument(document, true)}>
+                {documentAction?.id === document.id && documentAction.type === "download"
+                  ? <FiLoader className="expense-document-spinner" /> : <FiDownload />}</button>
+              {canManage && <button type="button" title="Eliminar" aria-label={`Eliminar ${document.originalName}`}
+                disabled={documentAction !== null}
+                onClick={() => void deleteDocument(document.id)}>
+                {documentAction?.id === document.id && documentAction.type === "delete"
+                  ? <FiLoader className="expense-document-spinner" /> : <FiTrash2 />}</button>}</div>
+          </li>)}</ul>}
+      </section>
       {canManage && detail.status === "ACTIVE" && <footer>
         <button type="button" onClick={() => openEdit(detail)}>
           <FiEdit3 aria-hidden="true" /> Corregir ingreso</button>
@@ -374,7 +476,7 @@ export const IncomesPage = () => {
           onChange={(e) => setCancelReason(e.target.value)}
           placeholder="Ej.: el ingreso fue registrado dos veces" /></label></ModalConfirm>
     <ModalAlert isOpen={Boolean(message)} type="success" title="Operación realizada"
-      message={message} onClose={() => setMessage("")} />
+      message={message} compact onClose={() => setMessage("")} />
     <ModalAlert isOpen={Boolean(error)} type="error" title="No fue posible completar la acción"
       message={error} onClose={() => setError("")} />
   </main>;

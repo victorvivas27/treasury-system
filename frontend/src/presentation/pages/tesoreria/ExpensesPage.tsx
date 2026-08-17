@@ -114,6 +114,12 @@ export const ExpensesPage = () => {
 
   const openDocument = async (document: ExpenseDocument, download: boolean) => {
     if (!detail) return;
+    const previewWindow = download ? null : window.open("", "_blank");
+    if (previewWindow) {
+      previewWindow.opener = null;
+      previewWindow.document.title = `Abriendo ${document.originalName}…`;
+      previewWindow.document.body.textContent = "Cargando comprobante…";
+    }
     setDocumentAction({ id: document.id, type: download ? "download" : "view" });
     try {
       const blob = await repository.getExpenseDocument(detail.id, document.id);
@@ -121,9 +127,13 @@ export const ExpensesPage = () => {
       if (download) {
         const link = window.document.createElement("a");
         link.href = url; link.download = document.originalName; link.click();
-      } else window.open(url, "_blank", "noopener,noreferrer");
+      } else if (previewWindow) previewWindow.location.href = url;
+      else throw new Error("El navegador bloqueó la vista previa");
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch { setError("No fue posible abrir el documento."); }
+    } catch {
+      previewWindow?.close();
+      setError("No fue posible abrir el documento. Revisa que el navegador permita ventanas emergentes.");
+    }
     finally { setDocumentAction(null); }
   };
 

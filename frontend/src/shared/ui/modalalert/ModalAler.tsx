@@ -12,6 +12,7 @@ interface ModalProps {
   buttonLabel?: string;
   variant?: "modal" | "toast";
   anchor?: { top: number; left: number };
+  compact?: boolean;
 }
 
 const DEFAULT_AUTO_CLOSE_TIME = 4000;
@@ -26,6 +27,7 @@ export const ModalAlert = ({
   buttonLabel = "Entendido",
   variant = "modal",
   anchor,
+  compact = false,
 }: ModalProps) => {
   useEffect(() => {
     if (isOpen && autoCloseTime > 0) {
@@ -47,7 +49,8 @@ export const ModalAlert = ({
       role={variant === "modal" ? "dialog" : type === "error" ? "alert" : "status"}
     >
       <article
-        className={`modal-container animate-modal ${variant === "toast" ? "modal-container--toast" : ""}`}
+        className={`modal-container animate-modal ${variant === "toast" ? "modal-container--toast" : ""} ${
+          compact ? "modal-container--compact" : ""}`}
         style={anchor ? { position: "fixed", top: anchor.top, left: anchor.left } : undefined}
         onClick={(e) => e.stopPropagation()}
       >

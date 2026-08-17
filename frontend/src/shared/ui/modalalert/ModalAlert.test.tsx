@@ -96,4 +96,10 @@ describe("ModalAlert Component", () => {
     const modal = screen.getByRole("dialog");
     expect(modal).toHaveAttribute("aria-modal", "true");
   });
+
+  it("[ModalAlert #10] Debe aplicar la variante compacta cuando se solicita.", () => {
+    render(<ModalAlert {...defaultProps} compact />);
+    expect(screen.getByText("¡Logrado!").closest("article"))
+      .toHaveClass("modal-container--compact");
+  });
 });

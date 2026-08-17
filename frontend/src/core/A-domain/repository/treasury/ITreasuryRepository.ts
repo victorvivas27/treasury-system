@@ -46,6 +46,10 @@ export interface ITreasuryRepository {
   createIncome(payload: IncomePayload): Promise<TreasuryIncome>;
   updateIncome(id: number, payload: IncomePayload): Promise<TreasuryIncome>;
   cancelIncome(id: number, reason: string): Promise<TreasuryIncome>;
+  listIncomeDocuments(incomeId: number): Promise<ExpenseDocument[]>;
+  uploadIncomeDocuments(incomeId: number, files: File[]): Promise<ExpenseDocument[]>;
+  getIncomeDocument(incomeId: number, documentId: number): Promise<Blob>;
+  deleteIncomeDocument(incomeId: number, documentId: number): Promise<void>;
 }
 
 export type { AllowedPaymentMode, ObligationStatus };
