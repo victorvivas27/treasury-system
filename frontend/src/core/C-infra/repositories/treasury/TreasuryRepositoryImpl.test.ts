@@ -141,6 +141,25 @@ describe("TreasuryRepositoryImpl", () => {
       { reason: "Duplicado" });
   });
 
+  it("[Tesoreria repository #10.1] gestiona adjuntos de ingresos", async () => {
+    const file = new File(["%PDF"], "comprobante.pdf", { type: "application/pdf" });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
+    vi.mocked(apiClient.post).mockResolvedValue({ data: [] });
+    vi.mocked(apiClient.delete).mockResolvedValue({ data: undefined });
+
+    await repository.listIncomeDocuments(4);
+    await repository.uploadIncomeDocuments(4, [file]);
+    await repository.getIncomeDocument(4, 9);
+    await repository.deleteIncomeDocument(4, 9);
+
+    expect(apiClient.get).toHaveBeenNthCalledWith(1, "/tesoreria/ingresos/4/adjuntos");
+    expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/ingresos/4/adjuntos",
+      expect.any(FormData), { headers: { "Content-Type": "multipart/form-data" } });
+    expect(apiClient.get).toHaveBeenNthCalledWith(2,
+      "/tesoreria/ingresos/4/adjuntos/9/contenido", { responseType: "blob" });
+    expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/ingresos/4/adjuntos/9");
+  });
+
   it("[Tesorería repository #11] gestiona el flujo de eventos y liquidación", async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
     vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 7 } });

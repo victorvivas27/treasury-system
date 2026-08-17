@@ -27,6 +27,27 @@
 
 }
 
+.modal-container--compact {
+  width: min(280px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+}
+
+.modal-container--compact .modal-header {
+  gap: .5rem;
+  padding: .7rem .8rem;
+}
+
+.modal-container--compact .modal-icon {
+  width: 26px;
+  height: 26px;
+  font-size: .85rem;
+}
+
+.modal-container--compact .modal-title { font-size: .9rem; }
+.modal-container--compact .modal-body { padding: .75rem .8rem; font-size: .78rem; }
+.modal-container--compact .modal-footer { padding: 0 .8rem .75rem; }
+.modal-container--compact .modal-footer button { min-height: 32px; padding: .35rem .75rem; font-size: .72rem; }
+
 .modal-overlay--anchored { display: block; padding: 0; }
 .modal-overlay--anchored .modal-container {
   width: min(280px, calc(100vw - 24px));
@@ -44,6 +65,8 @@
     width: 100%;
     max-width: none;
   }
+
+  .modal-container--compact { width: min(280px, calc(100vw - 24px)); }
 
   .modal-overlay--anchored { display: block; padding: 0; }
   .modal-overlay--anchored .modal-container { width: min(280px, calc(100vw - 24px)); }
