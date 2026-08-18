@@ -59,6 +59,8 @@ export const ProfilePage = () => {
   const [savingName, setSavingName] = useState(false);
   const [savingPhoto, setSavingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const [photoSuccess, setPhotoSuccess] = useState("");
+  const [photoProgress, setPhotoProgress] = useState(0);
   const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
   const [familyLoading, setFamilyLoading] = useState(true);
   const [familyError, setFamilyError] = useState("");
@@ -105,8 +107,12 @@ export const ProfilePage = () => {
   };
 
   const applyPhoto = async (action: () => Promise<NonNullable<typeof user>>) => {
-    setSavingPhoto(true); setPhotoError("");
-    try { syncUser(await action()); }
+    setSavingPhoto(true); setPhotoProgress(0); setPhotoError(""); setPhotoSuccess("");
+    try {
+      syncUser(await action());
+      setPhotoProgress(100);
+      setPhotoSuccess("Foto de perfil actualizada correctamente.");
+    }
     catch { setPhotoError("No fue posible actualizar la foto. Revisa el archivo e intenta nuevamente."); }
     finally { setSavingPhoto(false); }
   };
@@ -114,9 +120,10 @@ export const ProfilePage = () => {
   const uploadPhoto = (file?: File) => {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setPhotoSuccess("");
       setPhotoError("Usa una imagen JPG, PNG o WEBP de hasta 5 MB."); return;
     }
-    void applyPhoto(() => users.uploadProfileImage(file));
+    void applyPhoto(() => users.uploadProfileImage(file, setPhotoProgress));
   };
 
   useEffect(() => {
@@ -168,7 +175,8 @@ export const ProfilePage = () => {
             <div className="profile-name-row">
               <h1 id="profile-name">{name}</h1>
               <button type="button" className="profile-edit-name"
-                onClick={() => setEditingName(true)} aria-label="Editar perfil">
+                onClick={() => { setPhotoError(""); setPhotoSuccess(""); setEditingName(true); }}
+                aria-label="Editar perfil">
                 <FiEdit2 aria-hidden="true" /> Editar perfil
               </button>
             </div>
@@ -335,6 +343,20 @@ export const ProfilePage = () => {
           <small>JPG, PNG o WEBP \u00b7 m\u00e1ximo 5 MB</small>
           <button type="button" className="profile-initials-button" disabled={savingPhoto}
             onClick={() => void applyPhoto(() => users.resetProfileImage())}>Usar mis iniciales</button>
+          {(savingPhoto || photoSuccess) && <div className="profile-photo-progress"
+            role="progressbar" aria-label="Progreso de actualización de foto" aria-valuemin={0}
+            aria-valuemax={100} aria-valuenow={photoProgress}>
+            <div className="profile-photo-progress__track">
+              <span style={{ width: `${photoProgress}%` }} />
+            </div>
+            <strong>{photoProgress}%</strong>
+          </div>}
+          {savingPhoto && <p className="profile-photo-feedback is-loading" role="status">
+            <span className="profile-photo-spinner" aria-hidden="true" />
+            Actualizando foto...
+          </p>}
+          {!savingPhoto && photoSuccess && <p className="profile-photo-feedback is-success"
+            role="status">{photoSuccess}</p>}
           {photoError && <p className="profile-edit-form__error" role="alert">{photoError}</p>}
         </section>
 

@@ -44,11 +44,15 @@ export class UserRepositoryImpl implements IUserRepository {
     return (await apiClient.patch<User>(`${this.baseUrl}/me/avatar`, { avatar })).data;
   }
 
-  async uploadProfileImage(file: File): Promise<User> {
+  async uploadProfileImage(file: File, onProgress?: (percentage: number) => void): Promise<User> {
     const data = new FormData();
     data.append("file", file);
     return (await apiClient.post<User>(`${this.baseUrl}/me/profile-image`, data, {
       headers: { "Content-Type": "multipart/form-data" },
+      ...(onProgress && { onUploadProgress: (event: { loaded: number; total?: number }) => {
+        if (!event.total) return;
+        onProgress(Math.min(95, Math.round((event.loaded * 100) / event.total)));
+      } }),
     })).data;
   }
 

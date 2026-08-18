@@ -107,6 +107,16 @@
 .profile-upload-button input { position:absolute; width:1px; height:1px; opacity:0; }
 .profile-initials-button { background:var(--color-bg); color:var(--text-main); }
 .profile-photo-content > small { text-align:center; color:var(--text-muted); font-size:.6rem; }
+.profile-photo-progress { display:grid; grid-template-columns:1fr 2rem; align-items:center; gap:.5rem; color:var(--color-accent); }
+.profile-photo-progress__track { height:7px; overflow:hidden; border-radius:999px; background:color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)); }
+.profile-photo-progress__track span { display:block; width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 72%, var(--color-surface)), var(--color-accent)); box-shadow:0 0 9px color-mix(in srgb, var(--color-accent) 42%, transparent); transition:width .2s ease; }
+.profile-photo-progress > strong { font-size:.62rem; text-align:right; }
+.profile-photo-feedback { display:flex; align-items:center; justify-content:center; gap:.4rem; min-height:30px; margin:0; border-radius:.55rem; padding:.35rem .5rem; font-size:.64rem; font-weight:700; }
+.profile-photo-feedback.is-loading { background:color-mix(in srgb, var(--color-accent) 12%, transparent); color:var(--color-accent); }
+.profile-photo-feedback.is-success { background:color-mix(in srgb, var(--color-success) 14%, transparent); color:var(--color-success); }
+.profile-photo-spinner { width:14px; height:14px; flex:0 0 auto; border:2px solid color-mix(in srgb, var(--color-accent) 28%, transparent); border-top-color:var(--color-accent); border-radius:50%; animation:profile-photo-spin .7s linear infinite; }
+@keyframes profile-photo-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .profile-photo-spinner { animation-duration:1.4s; } }
 
 @media (max-width: 480px) {
   .profile-page { padding: .5rem; }
