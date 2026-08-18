@@ -512,3 +512,5 @@
 @media (prefers-reduced-motion: reduce) {
   .sent-notification__detail { animation: none; }
 }
+.notification-tour-target { display: inline-flex; }
+.notification-tour-target > .base-button { width: 100%; }

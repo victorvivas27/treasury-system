@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./style/SidebarFooter.css";
+import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -19,7 +20,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { avatar, actions } = SIDEBAR_USER_MOCK;
+  const { actions } = SIDEBAR_USER_MOCK;
   const name = auth?.user?.nombre ?? SIDEBAR_USER_MOCK.name;
   const email = auth?.user?.correo ?? SIDEBAR_USER_MOCK.email;
   const LogoutIcon = actions.logoutIcon;
@@ -77,9 +78,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
           className={({ isActive }) => `sidebar-user ${isActive ? "active" : ""}`}
           aria-label={`Ver perfil de ${name}`}
         >
-          <div className="sidebar-user-avatar">
-            <img src={avatar} alt="" />
-          </div>
+          <UserAvatar user={auth?.user ?? null} fallbackName={name} className="sidebar-user-avatar" />
           <div className="sidebar-user-info">
             <span className="sidebar-user-name">{name}</span>
             <span className="sidebar-user-email">{email}</span>

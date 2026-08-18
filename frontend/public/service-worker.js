@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'treasury-static-v1'
+const CACHE_VERSION = 'treasury-static-v2'
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
@@ -9,7 +9,11 @@ const APP_SHELL = [
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image'])
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_VERSION).then((cache) => cache.addAll(APP_SHELL)))
+  event.waitUntil(
+    caches.open(CACHE_VERSION)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting()),
+  )
 })
 
 self.addEventListener('activate', (event) => {

@@ -1,6 +1,7 @@
 package com.tesoreria.user.infrastructure.adapter.in.web.dto;
 
 import com.tesoreria.user.core.constant.RoleEnum;
+import com.tesoreria.user.core.constant.ProfileImageType;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +15,9 @@ public record UserResponseDTO(
         Boolean accountNonLocked,
         LocalDateTime emailVerifiedAt,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt,
+        ProfileImageType profileImageType,
+        String profileImageUrl) {
     public UserResponseDTO(
             Long id,
             String code,
@@ -25,6 +28,7 @@ public record UserResponseDTO(
             Boolean accountNonLocked,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
-        this(id, code, nombre, correo, rol, enabled, accountNonLocked, null, createdAt, updatedAt);
+        this(id, code, nombre, correo, rol, enabled, accountNonLocked, null, createdAt, updatedAt,
+                ProfileImageType.INITIALS, null);
     }
 }

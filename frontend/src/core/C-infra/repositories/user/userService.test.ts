@@ -49,4 +49,15 @@ describe("UserRepositoryImpl", () => {
     await repository.changeRole(1, "ADMIN");
     expect(apiClient.patch).toHaveBeenCalledWith("/users/1/rol", { rol: "ADMIN" });
   });
+
+  it("[UserService #05] debe subir la foto como multipart", async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 1 } });
+    const file = new File(["image"], "perfil.png", { type: "image/png" });
+    await repository.uploadProfileImage(file);
+    expect(apiClient.post).toHaveBeenCalledWith(
+      "/users/me/profile-image",
+      expect.any(FormData),
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+  });
 });

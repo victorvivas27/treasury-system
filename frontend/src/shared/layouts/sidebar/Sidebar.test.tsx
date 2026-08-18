@@ -98,7 +98,7 @@ describe('Sidebar Component', () => {
     expect(screen.getByText(SIDEBAR_USER_MOCK.email)).toBeInTheDocument();
     const profileLink = screen.getByRole('link', { name: `Ver perfil de ${SIDEBAR_USER_MOCK.name}` });
     expect(profileLink).toHaveAttribute('href', '/profile');
-    expect(profileLink.querySelector('img')).toHaveAttribute('src', SIDEBAR_USER_MOCK.avatar);
+    expect(profileLink.querySelector('.user-avatar')).toHaveTextContent('JD');
     expect(screen.queryByRole('link', { name: /mi perfil/i })).not.toBeInTheDocument();
   });
 
