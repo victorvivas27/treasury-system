@@ -8,6 +8,10 @@ export interface AppNotification {
   read: boolean;
   readAt: string | null;
   createdAt: string;
+  senderId: number;
+  senderName: string;
+  senderProfileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
+  senderProfileImageUrl: string | null;
 }
 
 export interface SendNotificationPayload {
@@ -41,6 +45,8 @@ export interface NotificationReply {
   authorId: number;
   authorName: string;
   authorRole: "ADMIN" | "USER";
+  authorProfileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
+  authorProfileImageUrl: string | null;
   message: string;
   createdAt: string;
 }

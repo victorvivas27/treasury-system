@@ -28,8 +28,8 @@ const isExpired = (token: string) => {
 };
 
 const expireSession = (token: string) => {
-  if (localStorage.getItem(AUTH_TOKEN_KEY) !== token) return;
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  if (sessionStorage.getItem(AUTH_TOKEN_KEY) !== token) return;
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
   window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 };
 
@@ -45,7 +45,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
         timeout: client.defaults.timeout ?? 30000,
       },
     ).then(({ data }) => {
-      localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+      sessionStorage.setItem(AUTH_TOKEN_KEY, data.token);
       return data.token;
     }).finally(() => {
       refreshPromise = null;
@@ -54,7 +54,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
   };
 
   client.interceptors.request.use(async (config) => {
-    let token = localStorage.getItem(AUTH_TOKEN_KEY);
+    let token = sessionStorage.getItem(AUTH_TOKEN_KEY);
     const isAuthRequest = config.url?.includes("/auth/") ?? false;
     if (token && !isAuthRequest && isExpired(token)) {
       expireSession(token);
@@ -92,7 +92,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
       }
 
       if (error.response?.status === 401) {
-        const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);
+        const currentToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
         const failedToken = requestToken(error.config?.headers?.Authorization);
         const isAuthRequest = requestConfig?.url?.includes("/auth/") ?? false;
 

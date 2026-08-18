@@ -66,4 +66,11 @@ export class UserRepositoryImpl implements IUserRepository {
       params: version ? { v: version } : undefined,
     })).data;
   }
+
+  async getProfileImageByUserId(userId: number, version?: string): Promise<Blob> {
+    return (await apiClient.get(`${this.baseUrl}/${userId}/profile-image/content`, {
+      responseType: "blob",
+      params: version ? { v: version } : undefined,
+    })).data;
+  }
 }

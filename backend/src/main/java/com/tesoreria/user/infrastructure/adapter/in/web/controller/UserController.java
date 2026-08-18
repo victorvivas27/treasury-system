@@ -150,4 +150,12 @@ public class UserController {
         return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
                 .contentType(MediaType.parseMediaType(content.contentType())).body(content.bytes());
     }
+
+    @GetMapping("/{id}/profile-image/content")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> profileImage(@PathVariable Long id) {
+        var content = profileImages.read(id);
+        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
+                .contentType(MediaType.parseMediaType(content.contentType())).body(content.bytes());
+    }
 }

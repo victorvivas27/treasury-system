@@ -35,6 +35,14 @@
   width: 1.75rem; height: 1.75rem; transition: color .18s ease, background .18s ease; }
 .notification-delete-action:hover, .notification-delete-action:focus-visible { color: #d92d20;
   background: color-mix(in srgb, #d92d20 12%, transparent); outline: none; }
+.notification-delete-action.is-deleting, .notification-delete-action.is-deleting:disabled {
+  color: #fff; background: #d92d20; opacity: 1; cursor: default;
+  animation: notificationDelete .32s ease-in both; }
+@keyframes notificationDelete {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18) rotate(-8deg); }
+  100% { transform: scale(.72) rotate(8deg); opacity: .25; }
+}
 .modal-confirm-overlay--anchored .modal-confirm-container--compact.notification-delete-confirm {
   width: min(155px, calc(100vw - 16px)); max-width: min(155px, calc(100vw - 16px));
   padding: .12rem; border-radius: 13px; overflow: visible;
@@ -115,6 +123,11 @@
 .notification-card__content { min-width: 0; }
 .notifications-inbox .notification-card header { font-size: .62rem; }
 .notifications-inbox .notification-card header time { white-space: nowrap; }
+.notification-card__sender { display: flex; align-items: center; gap: .3rem; margin-top: .18rem;
+  color: var(--color-text-muted); font-size: .58rem; line-height: 1; }
+.notification-card__sender-avatar { flex: 0 0 auto; width: 1rem; height: 1rem;
+  font-size: .36rem; }
+.notification-card__sender b { color: var(--color-text); font-weight: 700; }
 .notification-card__type { display: inline-flex; align-items: center; gap: .3rem; min-width: 0; }
 .notification-card__read-status { display: inline-flex; align-items: center; justify-content: flex-start;
   width: 6.2rem; height: 1rem; overflow: hidden; }
@@ -240,6 +253,8 @@
 .notification-reply.is-guardian { justify-self: start; }
 .notification-reply header { display: flex; justify-content: space-between; gap: .5rem;
   color: var(--color-text-muted); font-size: .5rem; }
+.notification-reply__author { display: inline-flex; align-items: center; gap: .22rem; min-width: 0; }
+.notification-reply__avatar { flex: 0 0 auto; width: .85rem; height: .85rem; font-size: .3rem; }
 .notification-reply header strong { color: var(--color-text-main); font-size: .54rem; }
 .notification-reply p { margin: .15rem 0 0; color: var(--color-text-main);
   white-space: pre-wrap; overflow-wrap: anywhere; font-size: .61rem; }
@@ -506,6 +521,10 @@
   .notifications-inbox .notification-card__icon { width: 1.2rem; height: 1.2rem; }
   .notifications-inbox .notification-card__icon svg { width: .68rem; height: .68rem; }
   .notifications-inbox .notification-card header { font-size: .47rem; }
+  .notifications-inbox .notification-card__sender { gap: .2rem; margin-top: .1rem;
+    font-size: .48rem; }
+  .notifications-inbox .notification-card__sender-avatar { width: .8rem; height: .8rem;
+    font-size: .3rem; }
   .notifications-inbox .notification-card h2 { margin-top: .06rem; font-size: .62rem; }
   .notifications-inbox .notification-card p { font-size: .54rem; line-height: 1.2; }
   .notifications-inbox .notification-card button { margin-top: .12rem; font-size: .49rem; }

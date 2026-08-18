@@ -27,7 +27,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
   }
 
   async logout(): Promise<void> {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
     await apiClient.post(`${this.baseUrl}/logout`, undefined, {
       // El cierre local no debe depender de la disponibilidad del servidor.
       timeout: 2500,

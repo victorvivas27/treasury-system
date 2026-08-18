@@ -76,7 +76,9 @@ class SecurityConfigTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string("Content-Security-Policy",
-                        org.hamcrest.Matchers.containsString("default-src 'self'")));
+                        org.hamcrest.Matchers.allOf(
+                                org.hamcrest.Matchers.containsString("default-src 'self'"),
+                                org.hamcrest.Matchers.containsString("img-src 'self' blob: data:"))));
     }
 
     @Test
@@ -197,6 +199,16 @@ class SecurityConfigTest {
                                 }
                                 """))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void usuario_deberiaPoderConsultarAvatarDeQuienEnviaUnaNotificacion() throws Exception {
+        UserEntity admin = userRepository.findByCorreo("admin@mail.com").orElseThrow();
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/users/{id}/profile-image/content", admin.getId())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -31,9 +31,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const AUTH_USER_KEY = "treasury.auth.user";
 
 const storedUser = () => {
-  if (!localStorage.getItem(AUTH_TOKEN_KEY)) return null;
+  if (!sessionStorage.getItem(AUTH_TOKEN_KEY)) return null;
   try {
-    const value = JSON.parse(localStorage.getItem(AUTH_USER_KEY) ?? "null") as User | null;
+    const value = JSON.parse(sessionStorage.getItem(AUTH_USER_KEY) ?? "null") as User | null;
     return value && typeof value.correo === "string" && typeof value.rol === "string" ? value : null;
   } catch {
     return null;
@@ -57,7 +57,7 @@ const tokenExpiration = (token: string) => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState(() => localStorage.getItem(AUTH_TOKEN_KEY));
+  const [token, setToken] = useState(() => sessionStorage.getItem(AUTH_TOKEN_KEY));
   const [user, setUser] = useState<User | null>(storedUser);
   const [loading, setLoading] = useState(Boolean(token && !user));
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -75,8 +75,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearSession = useCallback(() => {
     hadActiveSession.current = false;
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_USER_KEY);
     validatedToken.current = null;
     setToken(null);
     setUser(null);
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!token || !user) return;
     const checkExpiration = () => {
-      const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);
+      const currentToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
       if (!currentToken) return;
       const expiration = tokenExpiration(currentToken);
       if (expiration !== null && expiration <= Date.now()) {
@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useCases.current.execute()
       .then((currentUser) => {
         hadActiveSession.current = true;
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+        sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
         setUser(currentUser);
       })
       .catch((error: unknown) => {
@@ -147,8 +147,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const response = await useCases.login.execute({ correo, password });
-      localStorage.setItem(AUTH_TOKEN_KEY, response.token);
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
       validatedToken.current = response.token;
       hadActiveSession.current = true;
       setSessionExpired(false);
@@ -167,7 +167,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const syncUser = useCallback((updatedUser: User) => {
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser));
+    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser));
     setUser(updatedUser);
   }, []);
 

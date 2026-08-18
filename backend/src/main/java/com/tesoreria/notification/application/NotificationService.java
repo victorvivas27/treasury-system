@@ -126,8 +126,10 @@ public class NotificationService {
         NotificationEntity notification = notifications.findByIdAndCreatedByCorreo(id, creatorEmail)
                 .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación enviada no encontrada"));
+        replyRepository.deleteAllByNotificationId(notification.getId());
         deliveries.deleteAllByNotificationId(notification.getId());
-        notifications.delete(notification);
+        notifications.deleteById(notification.getId());
+        notifications.flush();
     }
 
     @Transactional
@@ -169,8 +171,10 @@ public class NotificationService {
     }
 
     private NotificationReplyResponse replyResponse(NotificationReplyEntity reply) {
-        return new NotificationReplyResponse(reply.getId(), reply.getAuthor().getId(),
-                reply.getAuthor().getNombre(), reply.getAuthor().getRol().name(),
+        UserEntity author = reply.getAuthor();
+        return new NotificationReplyResponse(reply.getId(), author.getId(),
+                author.getNombre(), author.getRol().name(), author.getProfileImageType().name(),
+                author.getProfileImageUrl(),
                 reply.getMessage(), reply.getCreatedAt());
     }
 
@@ -199,8 +203,10 @@ public class NotificationService {
 
     private NotificationResponse response(UserNotificationEntity row) {
         NotificationEntity value = row.getNotification();
+        UserEntity sender = value.getCreatedBy();
         return new NotificationResponse(row.getId(), value.getTitle(), value.getMessage(),
-                value.getType(), row.isRead(), row.getReadAt(), row.getCreatedAt());
+                value.getType(), row.isRead(), row.getReadAt(), row.getCreatedAt(), sender.getId(),
+                sender.getNombre(), sender.getProfileImageType().name(), sender.getProfileImageUrl());
     }
 
     private DomainException error(String field, HttpStatus status, String message) {

@@ -79,6 +79,22 @@ class NotificationServiceTest {
         verify(replies, never()).save(any());
     }
 
+    @Test
+    void deleteSent_deberiaEliminarRespuestasEntregasYNotificacionEnOrden() {
+        NotificationEntity notification = mock(NotificationEntity.class);
+        when(notification.getId()).thenReturn(15L);
+        when(notifications.findByIdAndCreatedByCorreo(15L, "admin@mail.com"))
+                .thenReturn(Optional.of(notification));
+
+        service.deleteSent(15L, "admin@mail.com");
+
+        var ordered = inOrder(replies, deliveries, notifications);
+        ordered.verify(replies).deleteAllByNotificationId(15L);
+        ordered.verify(deliveries).deleteAllByNotificationId(15L);
+        ordered.verify(notifications).deleteById(15L);
+        ordered.verify(notifications).flush();
+    }
+
     private UserEntity user(Long id, String name, String email, RoleEnum role) {
         UserEntity user = new UserEntity();
         user.setId(id);
