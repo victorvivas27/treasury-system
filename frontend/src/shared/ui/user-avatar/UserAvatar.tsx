@@ -7,7 +7,8 @@ const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 
   .map(part => part.charAt(0).toUpperCase()).join("");
 
 export const UserAvatar = ({ user, className = "", fallbackName = "Usuario" }:
-  { user: User | null; className?: string; fallbackName?: string }) => {
+  { user: Pick<User, "nombre" | "profileImageType" | "profileImageUrl"> | null;
+    className?: string; fallbackName?: string }) => {
   const [source, setSource] = useState<string | null>(
     user?.profileImageType === "PREDEFINED_AVATAR" ? user.profileImageUrl : null);
   const [failed, setFailed] = useState(false);

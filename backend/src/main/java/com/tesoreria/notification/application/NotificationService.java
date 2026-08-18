@@ -82,7 +82,9 @@ public class NotificationService {
                                 .findByNotificationIdOrderByUserNombreAsc(notification.getId()).stream()
                                 .map(row -> new SentNotificationResponse.RecipientStatus(
                                         row.getId(), row.getUser().getId(), row.getUser().getNombre(),
-                                        row.getUser().getCorreo(), row.isRead(), row.getReadAt()))
+                                        row.getUser().getCorreo(), row.isRead(), row.getReadAt(),
+                                        row.getUser().getProfileImageType().name(),
+                                        row.getUser().getProfileImageUrl()))
                                 .toList()))
                 .toList();
     }

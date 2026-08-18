@@ -13,6 +13,7 @@ import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FiCheckCircle, FiChevronDown, FiHelpCircle, FiRefreshCw, FiSend, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
+import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
 import "./Notificacion.css";
@@ -142,11 +143,15 @@ const AdminNotificationCenter = () => {
   const sentByRecipient = useMemo(() => {
     const groups = new Map<number, {
       userId: number; name: string; email: string;
+      profileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
+      profileImageUrl: string | null;
       messages: Array<{ notification: SentNotification; deliveryId: number; read: boolean }>;
     }>();
     sent.forEach(notification => notification.recipients.forEach(recipient => {
       const group = groups.get(recipient.userId) ?? { userId: recipient.userId,
-        name: recipient.name, email: recipient.email, messages: [] };
+        name: recipient.name, email: recipient.email,
+        profileImageType: recipient.profileImageType,
+        profileImageUrl: recipient.profileImageUrl, messages: [] };
       group.messages.unshift({ notification, deliveryId: recipient.deliveryId, read: recipient.read });
       groups.set(recipient.userId, group);
     }));
@@ -269,7 +274,11 @@ const AdminNotificationCenter = () => {
               }
             });
           }}>
-          <summary><FiUsers aria-hidden="true" /><span><strong>{group.name}</strong>
+          <summary><UserAvatar className="sent-user-group__avatar" fallbackName={group.name}
+            user={{ nombre: group.name,
+              profileImageType: group.profileImageType === "PREDEFINED_AVATAR"
+                ? "PREDEFINED_AVATAR" : "INITIALS",
+              profileImageUrl: group.profileImageUrl }} /><span><strong>{group.name}</strong>
             <small>{group.email}</small></span><em>{group.messages.length}
               {group.messages.length === 1 ? " mensaje" : " mensajes"}</em>
             <FiChevronDown aria-hidden="true" /></summary>
@@ -355,8 +364,15 @@ const GuardianInbox = () => {
   const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  const autoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
+  useEffect(() => {
+    if (!loading && unreadCount > 0 && !autoReadRequested.current) {
+      autoReadRequested.current = true;
+      void markAllRead();
+    }
+  }, [loading, markAllRead, unreadCount]);
   return <main className="page-container notifications-page notifications-inbox">
     <header className="page-header"><div><h1 className="page-header__title">Notificaciones</h1>
       <p className="page-header__subtitle">Mensajes y avisos de tesorería.</p></div>

@@ -564,11 +564,20 @@ const ProductsPanel = ({ stand, products, onSaved }: {
     <div className="stand-product-grid">
       {products.map(product => <article key={product.id}
         className={!product.available ? "is-sold-out" : ""}>
-        <div><span>{product.category || "Sin categoría"}</span>
-          <h4>{product.name}</h4><p>{product.variant || "Sin variante"}</p>
-          {product.presentation && <p>{product.presentation}{product.unitEquivalence != null
-            ? ` · Equivale a ${product.unitEquivalence}` : ""}</p>}</div>
-        <strong>{money.format(product.price)}</strong>
+        <div className="stand-product-card__main">
+          <div className="stand-product-card__heading">
+            <h4>{product.name}{product.variant ? ` · ${product.variant}` : ""}</h4>
+            <strong>{money.format(product.price)}</strong>
+          </div>
+          <span className="stand-product-card__category">
+            {product.category || "Sin categoría"}
+          </span>
+          {(product.presentation || product.unitEquivalence != null) &&
+            <p className="stand-product-card__presentation">
+              {product.presentation || "Presentación sin especificar"}
+              {product.unitEquivalence != null ? ` · Equivale a ${product.unitEquivalence}` : ""}
+            </p>}
+        </div>
         <small>Costo {money.format(product.unitCost)} · Margen unitario {money.format(
           product.price - product.unitCost)}</small>
         <small>{product.currentStock == null ? "Stock libre"
@@ -1003,6 +1012,8 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
   const maxPresentation = Math.max(1, ...Object.values(summary.unitsByPresentation));
   return <div className="stand-summary">
     <div className="stand-summary__cards">
+      <article className="is-highlight"><div><span>Ganancia neta</span><i><FiTrendingUp /></i></div>
+        <strong>{money.format(summary.netProfit)}</strong></article>
       <article className="is-sales"><div><span>Total vendido</span><i><FiDollarSign /></i></div>
         <strong>{money.format(summary.totalSold)}</strong></article>
       <article className="is-cash"><div><span>Efectivo esperado</span><i><FiCreditCard /></i></div>
@@ -1016,8 +1027,6 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
         <strong>{money.format(summary.transferCommission)}</strong></article>
       <article className="is-commissions"><div><span>Costo de productos</span><i><FiBox /></i></div>
         <strong>{money.format(summary.totalCost)}</strong></article>
-      <article className="is-highlight"><div><span>Ganancia neta</span><i><FiTrendingUp /></i></div>
-        <strong>{money.format(summary.netProfit)}</strong></article>
       <article className="is-count"><div><span>Ventas</span><i><FiShoppingCart /></i></div>
         <strong>{summary.saleCount}</strong></article>
       <article className="is-units"><div><span>Unidades vendidas</span><i><FiBox /></i></div>
