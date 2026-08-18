@@ -84,13 +84,16 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/me/**")
                         .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}/profile-image/content")
+                        .hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout", "/api/v1/auth/change-password")
                         .hasAnyRole("ADMIN", "USER")
                         .anyRequest().denyAll())
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "default-src 'self'; object-src 'none'; frame-ancestors 'none'; "
+                                "default-src 'self'; img-src 'self' blob: data:; "
+                                        + "object-src 'none'; frame-ancestors 'none'; "
                                         + "base-uri 'self'; form-action 'self'"))
                         .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.NO_REFERRER))
                         .permissionsPolicyHeader(permissions -> permissions.policy(

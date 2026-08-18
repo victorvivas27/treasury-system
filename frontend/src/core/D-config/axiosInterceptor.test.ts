@@ -22,7 +22,7 @@ describe("configureAxiosInterceptors", () => {
   let request: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
     request = vi.fn();
     const client = {
@@ -41,7 +41,7 @@ describe("configureAxiosInterceptors", () => {
   });
 
   it("no elimina una sesión nueva por un 401 de una petición anterior", async () => {
-    localStorage.setItem(AUTH_TOKEN_KEY, "token-nuevo");
+    sessionStorage.setItem(AUTH_TOKEN_KEY, "token-nuevo");
     const expired = vi.fn();
     window.addEventListener(SESSION_EXPIRED_EVENT, expired);
 
@@ -50,24 +50,24 @@ describe("configureAxiosInterceptors", () => {
       config: { headers: { Authorization: "Bearer token-anterior" } },
     })).rejects.toBeDefined();
 
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-nuevo");
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-nuevo");
     expect(expired).not.toHaveBeenCalled();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
   });
 
   it("no interpreta un 401 público como expiración de sesión", async () => {
-    localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    sessionStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
 
     await expect(rejectResponse({
       response: { status: 401 },
       config: { headers: {} },
     })).rejects.toBeDefined();
 
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-vigente");
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-vigente");
   });
 
   it("cierra la sesión cuando el servidor rechaza la renovación", async () => {
-    localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    sessionStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
     vi.mocked(axios.post).mockRejectedValue({
       isAxiosError: true,
       response: { status: 401 },
@@ -80,13 +80,13 @@ describe("configureAxiosInterceptors", () => {
       config: { headers: { Authorization: "Bearer token-vigente" } },
     })).rejects.toBeDefined();
 
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(expired).toHaveBeenCalledOnce();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
   });
 
   it("conserva la sesión si una ruta rechaza el token recién renovado", async () => {
-    localStorage.setItem(AUTH_TOKEN_KEY, "token-renovado");
+    sessionStorage.setItem(AUTH_TOKEN_KEY, "token-renovado");
     const expired = vi.fn();
     window.addEventListener(SESSION_EXPIRED_EVENT, expired);
 
@@ -99,13 +99,13 @@ describe("configureAxiosInterceptors", () => {
       },
     })).rejects.toBeDefined();
 
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
     expect(expired).not.toHaveBeenCalled();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
   });
 
   it("conserva la sesión si la renovación falla por red", async () => {
-    localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    sessionStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
     vi.mocked(axios.post).mockRejectedValue(new Error("red no disponible"));
 
     await expect(rejectResponse({
@@ -113,11 +113,11 @@ describe("configureAxiosInterceptors", () => {
       config: { headers: { Authorization: "Bearer token-vigente" } },
     })).rejects.toBeDefined();
 
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-vigente");
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-vigente");
   });
 
   it("renueva el token y repite una petición protegida antes de cerrar la sesión", async () => {
-    localStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
+    sessionStorage.setItem(AUTH_TOKEN_KEY, "token-vigente");
     vi.mocked(axios.post).mockResolvedValue({ data: { token: "token-renovado" } });
     request.mockResolvedValue({ data: [] });
     const config = {
@@ -127,7 +127,7 @@ describe("configureAxiosInterceptors", () => {
 
     await rejectResponse({ response: { status: 401 }, config });
 
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
     expect(config.headers.Authorization).toBe("Bearer token-renovado");
     expect(request).toHaveBeenCalledWith(config);
   });
@@ -157,7 +157,7 @@ describe("configureAxiosInterceptors", () => {
   it("finaliza inmediatamente una sesión cuyo JWT ya venció", async () => {
     const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }));
     const expiredToken = `header.${payload}.signature`;
-    localStorage.setItem(AUTH_TOKEN_KEY, expiredToken);
+    sessionStorage.setItem(AUTH_TOKEN_KEY, expiredToken);
     const expired = vi.fn();
     window.addEventListener(SESSION_EXPIRED_EVENT, expired);
 
@@ -165,7 +165,7 @@ describe("configureAxiosInterceptors", () => {
       .rejects.toThrow("La sesión expiró");
 
     expect(axios.post).not.toHaveBeenCalled();
-    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(expired).toHaveBeenCalledOnce();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
   });
@@ -173,7 +173,7 @@ describe("configureAxiosInterceptors", () => {
   it("aplica timeout al intento de renovación", async () => {
     const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 120 }));
     const token = `header.${payload}.signature`;
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
     vi.mocked(axios.post).mockResolvedValue({ data: { token: "token-renovado" } });
 
     await prepareRequest({ url: "/tesoreria/eventos", headers: {} });

@@ -6,9 +6,9 @@ import "./UserAvatar.css";
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
   .map(part => part.charAt(0).toUpperCase()).join("");
 
-export const UserAvatar = ({ user, className = "", fallbackName = "Usuario" }:
+export const UserAvatar = ({ user, className = "", fallbackName = "Usuario", customImageUserId }:
   { user: Pick<User, "nombre" | "profileImageType" | "profileImageUrl"> | null;
-    className?: string; fallbackName?: string }) => {
+    className?: string; fallbackName?: string; customImageUserId?: number }) => {
   const [source, setSource] = useState<string | null>(
     user?.profileImageType === "PREDEFINED_AVATAR" ? user.profileImageUrl : null);
   const [failed, setFailed] = useState(false);
@@ -24,13 +24,17 @@ export const UserAvatar = ({ user, className = "", fallbackName = "Usuario" }:
       setSource(user.profileImageUrl);
     } else if (user?.profileImageType === "CUSTOM_IMAGE") {
       setSource(null);
-      new UserRepositoryImpl().getProfileImage(user.profileImageUrl ?? undefined).then(blob => {
+      const repository = new UserRepositoryImpl();
+      const request = customImageUserId === undefined
+        ? repository.getProfileImage(user.profileImageUrl ?? undefined)
+        : repository.getProfileImageByUserId(customImageUserId, user.profileImageUrl ?? undefined);
+      request.then(blob => {
         objectUrl = URL.createObjectURL(blob);
         if (active) setSource(objectUrl);
       }).catch(() => { if (active) setFailed(true); });
     } else setSource(null);
     return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [user?.profileImageType, user?.profileImageUrl]);
+  }, [customImageUserId, user?.profileImageType, user?.profileImageUrl]);
 
   const isLoading = Boolean(source && !failed && !imageLoaded);
 

@@ -14,7 +14,7 @@ public interface UserNotificationJpaRepository extends JpaRepository<UserNotific
     Optional<UserNotificationEntity> findByIdAndNotificationCreatedById(Long id, Long creatorId);
     List<UserNotificationEntity> findByUserIdAndReadFalseAndVisibleTrue(Long userId);
     List<UserNotificationEntity> findByNotificationIdOrderByUserNombreAsc(Long notificationId);
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from UserNotificationEntity row where row.notification.id = :notificationId")
     void deleteAllByNotificationId(@Param("notificationId") Long notificationId);
 }

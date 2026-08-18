@@ -30,7 +30,7 @@ describe("AuthContext", () => {
   const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>;
 
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -40,8 +40,8 @@ describe("AuthContext", () => {
     await act(() => result.current.login("admin@mail.com", "Password1!"));
     expect(result.current.user).toEqual(user);
     expect(result.current.isAuthenticated).toBe(true);
-    expect(localStorage.getItem("treasury.auth.token")).toBe("jwt");
-    expect(JSON.parse(localStorage.getItem("treasury.auth.user") ?? "null")).toEqual(user);
+    expect(sessionStorage.getItem("treasury.auth.token")).toBe("jwt");
+    expect(JSON.parse(sessionStorage.getItem("treasury.auth.user") ?? "null")).toEqual(user);
   });
 
   it("[AuthContext #02] debe cerrar sesión y limpiar el estado", async () => {
@@ -51,8 +51,8 @@ describe("AuthContext", () => {
     await act(() => result.current.login("admin@mail.com", "Password1!"));
     await act(() => result.current.logout());
     await waitFor(() => expect(result.current.user).toBeNull());
-    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
-    expect(localStorage.getItem("treasury.auth.user")).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.user")).toBeNull();
   });
 
   it("[AuthContext #02b] no debe esperar al backend para cerrar la sesión local", async () => {
@@ -65,7 +65,7 @@ describe("AuthContext", () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
-    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(logoutMock).toHaveBeenCalledTimes(1);
   });
 
@@ -77,7 +77,7 @@ describe("AuthContext", () => {
     act(() => window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)));
 
     expect(result.current.isAuthenticated).toBe(false);
-    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(screen.getByRole("status")).toHaveTextContent("Tu sesión terminó");
     expect(screen.getByRole("button", { name: "Cerrar aviso" })).toBeInTheDocument();
   });
@@ -90,14 +90,14 @@ describe("AuthContext", () => {
   });
 
   it("[AuthContext #05] limpia silenciosamente un token inválido al iniciar", async () => {
-    localStorage.setItem("treasury.auth.token", "token-viejo");
+    sessionStorage.setItem("treasury.auth.token", "token-viejo");
     meMock.mockRejectedValue({ response: { status: 401 } });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.isAuthenticated).toBe(false);
-    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
@@ -109,13 +109,13 @@ describe("AuthContext", () => {
     act(() => result.current.syncUser({ ...user, nombre: "VÍCTOR ANDRÉS VIVAS" }));
 
     expect(result.current.user?.nombre).toBe("VÍCTOR ANDRÉS VIVAS");
-    expect(JSON.parse(localStorage.getItem("treasury.auth.user") ?? "null").nombre)
+    expect(JSON.parse(sessionStorage.getItem("treasury.auth.user") ?? "null").nombre)
       .toBe("VÍCTOR ANDRÉS VIVAS");
   });
 
   it("[AuthContext #07] conserva la sesión restaurada ante un fallo temporal de red", async () => {
-    localStorage.setItem("treasury.auth.token", "token-vigente");
-    localStorage.setItem("treasury.auth.user", JSON.stringify(user));
+    sessionStorage.setItem("treasury.auth.token", "token-vigente");
+    sessionStorage.setItem("treasury.auth.user", JSON.stringify(user));
     meMock.mockRejectedValue({ code: "ERR_NETWORK" });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -123,6 +123,6 @@ describe("AuthContext", () => {
     expect(result.current.isAuthenticated).toBe(true);
     await waitFor(() => expect(meMock).toHaveBeenCalledTimes(1));
     expect(result.current.isAuthenticated).toBe(true);
-    expect(localStorage.getItem("treasury.auth.token")).toBe("token-vigente");
+    expect(sessionStorage.getItem("treasury.auth.token")).toBe("token-vigente");
   });
 });

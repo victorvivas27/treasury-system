@@ -68,7 +68,14 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
       {timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         className={`notification-reply ${item.message.authorRole === "ADMIN" ? "is-admin" : "is-guardian"}`}>
-        <header><strong>{item.message.authorRole === "ADMIN" ? "Tesorería" : item.message.authorName}</strong>
+        <header><span className="notification-reply__author">
+          <UserAvatar className="notification-reply__avatar" fallbackName={item.message.authorName}
+            user={{ nombre: item.message.authorName,
+              profileImageType: item.message.authorProfileImageType,
+              profileImageUrl: item.message.authorProfileImageUrl }}
+            customImageUserId={item.message.authorId} />
+          <strong>{item.message.authorRole === "ADMIN" ? "Tesorería" : item.message.authorName}</strong>
+        </span>
           <time dateTime={item.message.createdAt}>{new Date(item.message.createdAt).toLocaleString("es-CL", {
             day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
           })}</time></header><p>{item.message.message}</p>
@@ -87,18 +94,6 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
       </form>
     </div>
   </div>;
-};
-
-const deleteTooltipAnchor = (rect: DOMRect) => {
-  const width = Math.min(155, window.innerWidth - 16);
-  const height = 90;
-  const top = rect.top >= height + 8 ? rect.top - height - 8
-    : Math.min(rect.bottom + 8, window.innerHeight - height - 8);
-  return {
-    top: Math.max(8, top),
-    left: Math.max(8, Math.min(rect.right - width + 8,
-      window.innerWidth - width - 8)),
-  };
 };
 
 const updateMessageVisibility = (container: HTMLElement) => {
@@ -135,9 +130,7 @@ const AdminNotificationCenter = () => {
   const [alert, setAlert] = useState({ open: false, message: "", type: "success" as "success" | "error" });
   const [sent, setSent] = useState<SentNotification[]>([]);
   const [sentLoading, setSentLoading] = useState(true);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<SentNotification | null>(null);
-  const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [recipientsOpen, setRecipientsOpen] = useState(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const sentByRecipient = useMemo(() => {
@@ -189,18 +182,16 @@ const AdminNotificationCenter = () => {
     } finally { setSending(false); }
   };
 
-  const deleteSent = async () => {
-    if (!deleteTarget) return;
-    setDeleting(true);
+  const deleteSent = async (notification: SentNotification) => {
+    if (deletingId !== null) return;
+    setDeletingId(notification.id);
     try {
-      await repository.deleteSent(deleteTarget.id);
-      setSent(items => items.filter(item => item.id !== deleteTarget.id));
-      setDeleteTarget(null);
-      setDeleteAnchor(undefined);
-      setAlert({ open: true, message: "Notificación eliminada correctamente.", type: "success" });
+      await new Promise(resolve => window.setTimeout(resolve, 320));
+      await repository.deleteSent(notification.id);
+      setSent(items => items.filter(item => item.id !== notification.id));
     } catch {
       setAlert({ open: true, message: "No fue posible eliminar la notificación.", type: "error" });
-    } finally { setDeleting(false); }
+    } finally { setDeletingId(null); }
   };
 
   return <main className="page-container notifications-page notifications-admin">
@@ -305,12 +296,11 @@ const AdminNotificationCenter = () => {
                   {read ? <FiCheckCircle aria-hidden="true" /> : <FiXCircle aria-hidden="true" />}
                   {read ? "Leída" : "Pendiente"}
                 </em>
-                <button type="button" className="notification-delete-action"
+                <button type="button" className={`notification-delete-action ${
+                  deletingId === item.id ? "is-deleting" : ""}`}
+                  disabled={deletingId !== null}
                   aria-label={`Eliminar notificación ${item.title}`}
-                  title="Eliminar notificación" onClick={event => {
-                    setDeleteAnchor(deleteTooltipAnchor(event.currentTarget.getBoundingClientRect()));
-                    setDeleteTarget(item);
-                  }}>
+                  title="Eliminar notificación" onClick={() => void deleteSent(item)}>
                   <FiTrash2 aria-hidden="true" />
                 </button>
               </header>
@@ -342,14 +332,6 @@ const AdminNotificationCenter = () => {
           <option value="URGENT">Urgente</option></select></label>
       </div>
     </ModalConfirm>
-    <ModalConfirm isOpen={deleteTarget !== null} title="Eliminar notificación" compact
-      anchor={deleteAnchor} containerClassName="notification-delete-confirm"
-      message={`¿Seguro que deseas eliminar “${deleteTarget?.title ?? ""}”? Se quitará para todos sus destinatarios.`}
-      confirmLabel="Sí, eliminar" confirmVariant="danger" isLoading={deleting}
-      confirmIcon={<FiTrash2 />} onCancel={() => { if (!deleting) {
-        setDeleteTarget(null); setDeleteAnchor(undefined);
-      } }}
-      onConfirm={() => void deleteSent()} />
     <ModalAlert isOpen={alert.open} message={alert.message} type={alert.type}
       variant={alert.type === "success" ? "toast" : "modal"}
       autoCloseTime={alert.type === "success" ? 2500 : 0}
@@ -360,9 +342,7 @@ const AdminNotificationCenter = () => {
 const GuardianInbox = () => {
   const { notifications, unreadCount, loading, markRead, markAllRead, refresh,
     deleteNotification } = useNotifications();
-  const [deleteTarget, setDeleteTarget] = useState<(typeof notifications)[number] | null>(null);
-  const [deleteAnchor, setDeleteAnchor] = useState<{ top: number; left: number }>();
-  const [deleting, setDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState(false);
   const autoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
@@ -416,34 +396,32 @@ const GuardianInbox = () => {
               day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
               hour12: false,
             })}</time></header>
+          <div className="notification-card__sender">
+            <UserAvatar className="notification-card__sender-avatar" fallbackName={item.senderName}
+              user={{ nombre: item.senderName, profileImageType: item.senderProfileImageType,
+                profileImageUrl: item.senderProfileImageUrl }}
+              customImageUserId={item.senderId} />
+            <span><b>De:</b> {item.senderName}</span>
+          </div>
           <h2>{item.title}</h2><p>{item.message}</p>
         </div>
-        <button type="button" className="notification-delete-action"
+        <button type="button" className={`notification-delete-action ${
+          deletingId === item.id ? "is-deleting" : ""}`}
+          disabled={deletingId !== null}
           aria-label={`Eliminar notificación ${item.title}`} title="Eliminar notificación"
           onClick={event => { event.stopPropagation();
-            setDeleteAnchor(deleteTooltipAnchor(event.currentTarget.getBoundingClientRect()));
-            setDeleteTarget(item);
+            if (deletingId !== null) return;
+            setDeletingId(item.id);
+            window.setTimeout(() => {
+              void deleteNotification(item.id)
+                .catch(() => setDeleteError(true))
+                .finally(() => setDeletingId(null));
+            }, 320);
           }}>
           <FiTrash2 aria-hidden="true" />
         </button>
       </article> }))} />}
     </section>
-    <ModalConfirm isOpen={deleteTarget !== null} title="Eliminar notificación" compact
-      anchor={deleteAnchor} containerClassName="notification-delete-confirm"
-      message={`¿Seguro que deseas eliminar “${deleteTarget?.title ?? ""}”? Esta acción no se puede deshacer.`}
-      confirmLabel="Sí, eliminar" confirmVariant="danger" isLoading={deleting}
-      confirmIcon={<FiTrash2 />} onCancel={() => { if (!deleting) {
-        setDeleteTarget(null); setDeleteAnchor(undefined);
-      } }}
-      onConfirm={() => {
-        if (!deleteTarget) return;
-        setDeleting(true);
-        void deleteNotification(deleteTarget.id).then(() => {
-          setDeleteTarget(null); setDeleteAnchor(undefined);
-        })
-          .catch(() => setDeleteError(true))
-          .finally(() => setDeleting(false));
-      }} />
     <ModalAlert isOpen={deleteError} message="No fue posible eliminar la notificación."
       type="error" onClose={() => setDeleteError(false)} />
   </main>;

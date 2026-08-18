@@ -76,6 +76,16 @@ public class ProfileImageService {
 
     public FileStorageService.StoredContent read(String email) {
         User user = find(email);
+        return readCustomImage(user);
+    }
+
+    public FileStorageService.StoredContent read(Long userId) {
+        User user = users.findById(userId).orElseThrow(() ->
+                new DomainException("user", HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        return readCustomImage(user);
+    }
+
+    private FileStorageService.StoredContent readCustomImage(User user) {
         String key = customKey(user);
         if (key == null || storage == null) throw new DomainException("profileImage", HttpStatus.NOT_FOUND,
                 "El usuario no tiene una imagen personalizada");
