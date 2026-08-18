@@ -10,7 +10,7 @@ export const BrandLogo = ({
   const [loaded, setLoaded] = useState(false);
   return <span className={`brand-logo-frame ${loaded ? "is-loaded" : ""}`}>
     {!loaded && <span className="skeleton-block brand-logo-skeleton" aria-hidden="true" />}
-    <img className={className} src="/Tesoreria.png" alt={alt}
+    <img className={className} src="/icono-tesoreria.png" alt={alt}
       onLoad={() => setLoaded(true)} />
   </span>;
 };

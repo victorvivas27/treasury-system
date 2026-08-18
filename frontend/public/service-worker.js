@@ -1,10 +1,8 @@
-const CACHE_VERSION = 'treasury-static-v2'
+const CACHE_VERSION = 'treasury-static-v3'
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-512-maskable.png',
+  '/icono-tesoreria.png',
 ]
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image'])
 

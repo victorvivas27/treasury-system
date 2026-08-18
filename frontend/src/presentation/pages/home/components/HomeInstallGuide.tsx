@@ -41,7 +41,7 @@ export const HomeInstallGuide = () => {
     <section className="public-home__install" data-home-reveal aria-labelledby="install-app-title">
     <div className="public-home__install-heading">
       <span className="public-home__install-icon">
-        <img src="/icons/icon-192.png" alt="Icono de la aplicación Tesorería" />
+        <img src="/icono-tesoreria.png" alt="Icono de la aplicación Tesorería" />
       </span>
       <div>
         <span className="public-home__install-eyebrow"><FiDownload aria-hidden="true" /> Aplicación instalable</span>
