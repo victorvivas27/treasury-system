@@ -8,7 +8,14 @@ import '@/shared/ui/skeleton/Skeleton.css'
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     let reloading = false
+    let hasController = Boolean(navigator.serviceWorker.controller)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // La primera instalación toma control de la pestaña actual. No necesita
+      // recargar porque ya se está ejecutando el bundle recién descargado.
+      if (!hasController) {
+        hasController = true
+        return
+      }
       if (reloading) return
       reloading = true
       window.location.reload()
