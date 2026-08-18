@@ -43,7 +43,7 @@ describe("RegisterPage", () => {
     );
 
     expect(screen.getByRole("img", { name: "Logo del Sistema de Tesorería" }))
-      .toHaveAttribute("src", "/Tesoreria.png");
+      .toHaveAttribute("src", "/icono-tesoreria.png");
     expect(screen.getByRole("heading", { name: "Regístrate como usuario" }))
       .toBeInTheDocument();
     expect(screen.getByText("Accede al Sistema de Tesorería")).toBeInTheDocument();
