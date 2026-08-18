@@ -7,7 +7,33 @@ import '@/shared/ui/skeleton/Skeleton.css'
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/service-worker.js').catch((error: unknown) => {
+    let reloading = false
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return
+      reloading = true
+      window.location.reload()
+    })
+
+    void navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+      const currentBundle = new URL(import.meta.url).pathname
+      const checkForUpdate = async () => {
+        await registration.update()
+        const response = await fetch('/', { cache: 'no-store' })
+        if (!response.ok) return
+        const html = await response.text()
+        const publishedBundle = new DOMParser().parseFromString(html, 'text/html')
+          .querySelector<HTMLScriptElement>('script[type="module"][src]')?.src
+        if (publishedBundle && new URL(publishedBundle, window.location.origin).pathname
+          !== currentBundle) {
+          window.location.reload()
+        }
+      }
+
+      void checkForUpdate()
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') void checkForUpdate()
+      })
+    }).catch((error: unknown) => {
       console.error('No se pudo registrar el Service Worker:', error)
     })
   })

@@ -1,9 +1,11 @@
 package com.tesoreria.user.infrastructure.adapter.out.persistence.entity;
 
 import com.tesoreria.user.core.constant.RoleEnum;
+import com.tesoreria.user.core.constant.ProfileImageType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -46,6 +48,14 @@ public class UserEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'INITIALS'")
+    @Column(name = "profile_image_type", nullable = false, length = 24)
+    private ProfileImageType profileImageType = ProfileImageType.INITIALS;
 
     public Long getId() {
         return id;
@@ -134,4 +144,9 @@ public class UserEntity {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String value) { profileImageUrl = value; }
+    public ProfileImageType getProfileImageType() { return profileImageType; }
+    public void setProfileImageType(ProfileImageType value) { profileImageType = value; }
 }

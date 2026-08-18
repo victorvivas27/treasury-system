@@ -12,10 +12,11 @@ import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FiCheckCircle, FiChevronDown, FiRefreshCw, FiSend, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
+import { FiCheckCircle, FiChevronDown, FiHelpCircle, FiRefreshCw, FiSend, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
 import "./Notificacion.css";
+import { NotificationTour, OPEN_NOTIFICATION_TOUR_EVENT } from "./NotificationTour";
 
 const labels = { INFO: "Informativa", IMPORTANT: "Importante", URGENT: "Urgente" };
 
@@ -117,7 +118,9 @@ const updateMessageVisibility = (container: HTMLElement) => {
 
 export const Notificacion = () => {
   const auth = useOptionalAuth();
-  return auth?.user?.rol === "ADMIN" ? <AdminNotificationCenter /> : <GuardianInbox />;
+  if (!auth?.user) return null;
+  if (auth.user.rol === "ADMIN") return <AdminNotificationCenter />;
+  return <><GuardianInbox /><NotificationTour user={auth.user} /></>;
 };
 
 const AdminNotificationCenter = () => {
@@ -357,7 +360,13 @@ const GuardianInbox = () => {
   return <main className="page-container notifications-page notifications-inbox">
     <header className="page-header"><div><h1 className="page-header__title">Notificaciones</h1>
       <p className="page-header__subtitle">Mensajes y avisos de tesorería.</p></div>
-      <div className="page-header__actions"><Button label="Actualizar" variant="secondary"
+      <div className="page-header__actions" data-notification-tour="actions">
+        <span className="notification-tour-target" data-notification-tour="help">
+          <Button label="Cómo usar" variant="secondary" icon={<FiHelpCircle />} iconPosition="left"
+            className="notifications-help-action"
+            onClick={() => window.dispatchEvent(new Event(OPEN_NOTIFICATION_TOUR_EVENT))} />
+        </span>
+        <Button label="Actualizar" variant="secondary"
         icon={<FiRefreshCw />} iconPosition="left"
         className="notifications-header-action notifications-header-action--refresh"
         loading={loading} onClick={() => void refresh()} />
@@ -365,7 +374,7 @@ const GuardianInbox = () => {
           icon={<FiCheckCircle />} iconPosition="left"
           className="notifications-header-action notifications-header-action--read"
           onClick={() => void markAllRead()} /></div></header>
-    <section className="notifications-list" aria-live="polite">
+    <section className="notifications-list" data-notification-tour="messages" aria-live="polite">
       {!loading && notifications.length === 0 && <p className="notifications-empty">
         No tienes notificaciones.</p>}
       {orderedNotifications.length > 0 && <NotificationConversation

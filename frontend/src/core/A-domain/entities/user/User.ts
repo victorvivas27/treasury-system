@@ -1,4 +1,5 @@
 export type UserRole = "ADMIN" | "USER";
+export type ProfileImageType = "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
 
 export interface User {
   id: number;
@@ -11,6 +12,8 @@ export interface User {
   emailVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  profileImageType: ProfileImageType;
+  profileImageUrl: string | null;
 }
 
 export interface UserPayload {

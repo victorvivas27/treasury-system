@@ -5,7 +5,8 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
-import { FiEdit2, FiUser, FiX } from "react-icons/fi";
+import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
+import { FiEdit2, FiUpload, FiUser, FiX } from "react-icons/fi";
 import "./ProfilePage.css";
 
 const money = new Intl.NumberFormat("es-CL", {
@@ -22,9 +23,23 @@ const shortDate = new Intl.DateTimeFormat("es-CL", {
 const PROFILE_CACHE_TTL_MS = 60_000;
 type ProfileCacheEntry = { data: TreasuryProfile; expiresAt: number };
 const profileCache = new Map<string, ProfileCacheEntry>();
+const PROFILE_AVATARS = Array.from({ length: 6 }, (_, index) =>
+  `/avatars/avatar-${String(index + 1).padStart(2, "0")}.png`);
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
 
 export const clearProfileCache = () => profileCache.clear();
+
+const ProfileAvatarOption = ({ avatar, index, disabled, onSelect }: {
+  avatar: string; index: number; disabled: boolean; onSelect: () => void;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  return <button type="button" disabled={disabled} aria-label={`Seleccionar avatar ${index + 1}`}
+    className={loaded ? "is-loaded" : "is-loading"} onClick={onSelect}>
+    {!loaded && <span className="profile-avatar-option-skeleton" aria-hidden="true" />}
+    <img className={loaded ? "is-loaded" : ""} src={avatar} alt=""
+      onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} />
+  </button>;
+};
 
 const loadCachedProfile = async (key: string, load: () => Promise<TreasuryProfile>,
   forceRefresh: boolean) => {
@@ -42,6 +57,10 @@ export const ProfilePage = () => {
   const [nameInput, setNameInput] = useState(user?.nombre ?? "");
   const [nameError, setNameError] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [savingPhoto, setSavingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [photoSuccess, setPhotoSuccess] = useState("");
+  const [photoProgress, setPhotoProgress] = useState(0);
   const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
   const [familyLoading, setFamilyLoading] = useState(true);
   const [familyError, setFamilyError] = useState("");
@@ -87,6 +106,26 @@ export const ProfilePage = () => {
     }
   };
 
+  const applyPhoto = async (action: () => Promise<NonNullable<typeof user>>) => {
+    setSavingPhoto(true); setPhotoProgress(0); setPhotoError(""); setPhotoSuccess("");
+    try {
+      syncUser(await action());
+      setPhotoProgress(100);
+      setPhotoSuccess("Foto de perfil actualizada correctamente.");
+    }
+    catch { setPhotoError("No fue posible actualizar la foto. Revisa el archivo e intenta nuevamente."); }
+    finally { setSavingPhoto(false); }
+  };
+
+  const uploadPhoto = (file?: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setPhotoSuccess("");
+      setPhotoError("Usa una imagen JPG, PNG o WEBP de hasta 5 MB."); return;
+    }
+    void applyPhoto(() => users.uploadProfileImage(file, setPhotoProgress));
+  };
+
   useEffect(() => {
     let active = true;
     const loadFamilyProfile = async () => {
@@ -123,8 +162,6 @@ export const ProfilePage = () => {
   }, [reloadProfile, treasury, user?.correo]);
 
   const name = user?.nombre ?? "Usuario";
-  const initials = name.split(/\s+/).slice(0, 2)
-    .map(part => part.charAt(0).toUpperCase()).join("");
   const pending = familyProfile?.obligations.filter(item => item.status === "PENDIENTE") ?? [];
   const pendingAmount = pending.reduce((total, item) => total + item.amount, 0);
   const paymentMode = familyProfile?.mode ?? familyProfile?.obligations[0]?.mode;
@@ -133,12 +170,13 @@ export const ProfilePage = () => {
     <article className="profile-card" aria-label="Perfil de usuario">
       <section className="profile-identity" aria-label="Identidad">
         <div className="profile-summary">
-          <div className="profile-avatar" aria-label={`Iniciales de ${name}`}>{initials}</div>
+          <UserAvatar user={user} className="profile-avatar" />
           <div className="profile-copy">
             <div className="profile-name-row">
               <h1 id="profile-name">{name}</h1>
               <button type="button" className="profile-edit-name"
-                onClick={() => setEditingName(true)} aria-label="Editar perfil">
+                onClick={() => { setPhotoError(""); setPhotoSuccess(""); setEditingName(true); }}
+                aria-label="Editar perfil">
                 <FiEdit2 aria-hidden="true" /> Editar perfil
               </button>
             </div>
@@ -281,9 +319,46 @@ export const ProfilePage = () => {
         </header>
 
         <div className="profile-edit-modal__identity">
-          <div className="profile-avatar" aria-hidden="true">{initials}</div>
+          <UserAvatar user={user} className="profile-avatar" />
           <div><strong>{name}</strong><small>{user?.correo}</small></div>
         </div>
+
+        <section className="profile-photo-content" aria-label="Cambiar foto de perfil">
+          <div className="profile-edit-section-title">
+            <span>Cambiar foto de perfil</span>
+            <small>Selecciona un avatar, sube una imagen o usa tus iniciales.</small>
+          </div>
+          <div><strong>Avatares</strong><div className="profile-avatar-gallery">
+            {PROFILE_AVATARS.map((avatar, index) => <ProfileAvatarOption key={avatar}
+              avatar={avatar} index={index} disabled={savingPhoto}
+              onSelect={() => void applyPhoto(() => users.selectAvatar(avatar))} />)}
+          </div></div>
+          <label className="profile-upload-button"><FiUpload /> Subir una foto
+            <input type="file" accept="image/jpeg,image/png,image/webp" disabled={savingPhoto}
+              onChange={event => {
+                const file = event.currentTarget.files?.[0];
+                event.currentTarget.value = "";
+                uploadPhoto(file);
+              }} /></label>
+          <small>JPG, PNG o WEBP \u00b7 m\u00e1ximo 5 MB</small>
+          <button type="button" className="profile-initials-button" disabled={savingPhoto}
+            onClick={() => void applyPhoto(() => users.resetProfileImage())}>Usar mis iniciales</button>
+          {(savingPhoto || photoSuccess) && <div className="profile-photo-progress"
+            role="progressbar" aria-label="Progreso de actualización de foto" aria-valuemin={0}
+            aria-valuemax={100} aria-valuenow={photoProgress}>
+            <div className="profile-photo-progress__track">
+              <span style={{ width: `${photoProgress}%` }} />
+            </div>
+            <strong>{photoProgress}%</strong>
+          </div>}
+          {savingPhoto && <p className="profile-photo-feedback is-loading" role="status">
+            <span className="profile-photo-spinner" aria-hidden="true" />
+            Actualizando foto...
+          </p>}
+          {!savingPhoto && photoSuccess && <p className="profile-photo-feedback is-success"
+            role="status">{photoSuccess}</p>}
+          {photoError && <p className="profile-edit-form__error" role="alert">{photoError}</p>}
+        </section>
 
         <form className="profile-edit-form" onSubmit={saveName}>
           <div className="profile-edit-section-title">
@@ -308,5 +383,6 @@ export const ProfilePage = () => {
         </form>
       </section>
     </div>}
+
   </main>;
 };

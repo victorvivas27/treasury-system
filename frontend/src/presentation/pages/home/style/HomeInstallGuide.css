@@ -52,7 +52,7 @@
   text-transform: uppercase;
 }
 
-.public-home__install h2 { margin-bottom: .45rem; font-size: clamp(1.55rem, 3vw, 2.25rem); }
+.public-home__install h2 { margin-bottom: .45rem; font-size: clamp(1.15rem, 1.8vw, 1.4rem); line-height: 1.2; white-space: nowrap; }
 .public-home__typing-caret { display: inline-block; width: 2px; height: .9em; margin-left: .14em; background: var(--color-accent); animation: typing-caret 650ms steps(1) infinite; vertical-align: -.05em; }
 .public-home__install p { color: var(--text-muted); }
 .public-home__install-options { display: grid; gap: .8rem; }
@@ -98,7 +98,7 @@
   .public-home__install-icon { width: 2.3rem; height: 2.3rem; border-radius: .65rem; font-size: 1.1rem; }
   .public-home__install-icon img { width: 2rem; height: 2rem; }
   .public-home__install-eyebrow { margin-bottom: .2rem; font-size: .68rem; }
-  .public-home__install h2 { min-height: 2.4em; margin-bottom: .2rem; font-size: 1.25rem; line-height: 1.2; }
+  .public-home__install h2 { min-height: 2.4em; margin-bottom: .2rem; font-size: 1.25rem; line-height: 1.2; white-space: normal; }
   .public-home__install-heading p { font-size: .8rem; line-height: 1.35; }
   .public-home__install-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; }
   .public-home__install-options article { display: block; min-width: 0; padding: .5rem; }

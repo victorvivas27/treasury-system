@@ -4,6 +4,8 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.user.application.usecase.UserService;
+import com.tesoreria.user.application.usecase.ProfileImageService;
+import com.tesoreria.user.infrastructure.adapter.in.web.dto.AvatarRequestDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.RoleRequestDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.UserRequestDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.UserResponseDTO;
@@ -14,6 +16,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +30,17 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService service;
     private final UserMapper mapper;
+    private final ProfileImageService profileImages;
 
-    public UserController(UserService service, UserMapper mapper) {
+    @Autowired
+    public UserController(UserService service, UserMapper mapper, ProfileImageService profileImages) {
         this.service = service;
         this.mapper = mapper;
+        this.profileImages = profileImages;
+    }
+
+    public UserController(UserService service, UserMapper mapper) {
+        this(service, mapper, null);
     }
 
     @Operation(summary = "Crear usuario")
@@ -107,5 +120,34 @@ public class UserController {
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
                 service.changeRole(id, request.rol(), authentication.getName())));
+    }
+
+    @PatchMapping("/me/avatar")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserResponseDTO> selectAvatar(@Valid @RequestBody AvatarRequestDTO request,
+            Authentication authentication) {
+        return ResponseEntity.ok(mapper.toResponse(
+                profileImages.selectAvatar(authentication.getName(), request.avatar())));
+    }
+
+    @PostMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserResponseDTO> uploadProfileImage(@RequestPart("file") MultipartFile file,
+            Authentication authentication) {
+        return ResponseEntity.ok(mapper.toResponse(profileImages.upload(authentication.getName(), file)));
+    }
+
+    @DeleteMapping("/me/profile-image")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserResponseDTO> resetProfileImage(Authentication authentication) {
+        return ResponseEntity.ok(mapper.toResponse(profileImages.reset(authentication.getName())));
+    }
+
+    @GetMapping("/me/profile-image/content")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> profileImage(Authentication authentication) {
+        var content = profileImages.read(authentication.getName());
+        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
+                .contentType(MediaType.parseMediaType(content.contentType())).body(content.bytes());
     }
 }

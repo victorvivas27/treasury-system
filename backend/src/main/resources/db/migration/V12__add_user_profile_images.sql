@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN profile_image_url VARCHAR(500);
+ALTER TABLE users ADD COLUMN profile_image_type VARCHAR(24) NOT NULL DEFAULT 'INITIALS';

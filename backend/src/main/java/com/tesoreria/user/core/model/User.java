@@ -2,6 +2,7 @@ package com.tesoreria.user.core.model;
 
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.user.core.constant.RoleEnum;
+import com.tesoreria.user.core.constant.ProfileImageType;
 import com.tesoreria.user.core.exception.UserErrorCode;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,8 @@ public class User {
     private LocalDateTime emailVerifiedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String profileImageUrl;
+    private ProfileImageType profileImageType = ProfileImageType.INITIALS;
 
     public User() {
     }
@@ -183,5 +186,14 @@ public class User {
 
     public void setEmailVerifiedAt(LocalDateTime emailVerifiedAt) {
         this.emailVerifiedAt = emailVerifiedAt;
+    }
+
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String value) { profileImageUrl = value; }
+    public ProfileImageType getProfileImageType() {
+        return profileImageType == null ? ProfileImageType.INITIALS : profileImageType;
+    }
+    public void setProfileImageType(ProfileImageType value) {
+        profileImageType = value == null ? ProfileImageType.INITIALS : value;
     }
 }

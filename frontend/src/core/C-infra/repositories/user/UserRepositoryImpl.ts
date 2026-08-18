@@ -39,4 +39,31 @@ export class UserRepositoryImpl implements IUserRepository {
   async delete(id: number): Promise<void> {
     await apiClient.delete(`${this.baseUrl}/${id}`);
   }
+
+  async selectAvatar(avatar: string): Promise<User> {
+    return (await apiClient.patch<User>(`${this.baseUrl}/me/avatar`, { avatar })).data;
+  }
+
+  async uploadProfileImage(file: File, onProgress?: (percentage: number) => void): Promise<User> {
+    const data = new FormData();
+    data.append("file", file);
+    return (await apiClient.post<User>(`${this.baseUrl}/me/profile-image`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+      ...(onProgress && { onUploadProgress: (event: { loaded: number; total?: number }) => {
+        if (!event.total) return;
+        onProgress(Math.min(95, Math.round((event.loaded * 100) / event.total)));
+      } }),
+    })).data;
+  }
+
+  async resetProfileImage(): Promise<User> {
+    return (await apiClient.delete<User>(`${this.baseUrl}/me/profile-image`)).data;
+  }
+
+  async getProfileImage(version?: string): Promise<Blob> {
+    return (await apiClient.get(`${this.baseUrl}/me/profile-image/content`, {
+      responseType: "blob",
+      params: version ? { v: version } : undefined,
+    })).data;
+  }
 }
