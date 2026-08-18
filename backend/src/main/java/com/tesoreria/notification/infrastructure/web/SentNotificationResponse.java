@@ -6,6 +6,6 @@ import java.util.List;
 public record SentNotificationResponse(Long id, String title, String message, String type,
         LocalDateTime createdAt, List<RecipientStatus> recipients) {
     public record RecipientStatus(Long deliveryId, Long userId, String name, String email, boolean read,
-            LocalDateTime readAt) {
+            LocalDateTime readAt, String profileImageType, String profileImageUrl) {
     }
 }

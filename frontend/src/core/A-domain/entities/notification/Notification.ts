@@ -31,6 +31,8 @@ export interface SentNotification {
     email: string;
     read: boolean;
     readAt: string | null;
+    profileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
+    profileImageUrl: string | null;
   }>;
 }
 
