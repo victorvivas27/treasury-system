@@ -22,6 +22,9 @@
 .dashboard-empty-row{visibility:hidden}
 .dashboard-panel--wide{padding:.7rem}.dashboard-panel--wide .dashboard-chart{margin-inline:-.2rem}.dashboard-panel--wide .recharts-legend-item-text{font-size:.7rem}.dashboard-panel--wide .recharts-default-tooltip{font-size:.72rem}
 .cashflow-tooltip{display:flex;align-items:center;gap:.5rem;max-width:calc(100vw - 5.5rem);padding:.35rem .5rem;border:1px solid var(--border-color);border-radius:8px;background:var(--color-elevated);box-shadow:var(--shadow-card);color:var(--text-main);font-size:.68rem;white-space:nowrap}
+.dashboard-chart--axisless{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:.15rem}
+.dashboard-chart__plot{min-width:0;min-height:0}
+.dashboard-chart__months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));padding:0 .35rem;color:var(--text-muted);font-size:.56rem;text-align:center;text-transform:capitalize}
 .cashflow-tooltip>strong{padding-right:.45rem;border-right:1px solid var(--divider);text-transform:capitalize}.cashflow-tooltip span{color:var(--text-muted)}.cashflow-tooltip span b{color:var(--text-main)}.cashflow-tooltip__income::before,.cashflow-tooltip__expense::before{display:inline-block;width:.45rem;height:.45rem;margin-right:.25rem;border-radius:50%;background:var(--color-success);content:""}.cashflow-tooltip__expense::before{background:var(--color-error)}
 .dashboard-panel--annual{padding:.7rem}.dashboard-panel--annual .recharts-default-tooltip{font-size:.72rem}
 .dashboard-panel--annual>header{justify-content:center;text-align:center}
@@ -71,8 +74,7 @@
   .dashboard-panel--cashflow .recharts-legend-wrapper{bottom:-2px!important;line-height:1}
   .dashboard-panel--cashflow .recharts-legend-item-text{font-size:.52rem!important}
   .dashboard-panel--cashflow .recharts-legend-icon{width:8px!important;height:8px!important}
-  .dashboard-panel--cashflow .recharts-cartesian-axis-tick-value{font-size:6px}
-  .dashboard-panel--cashflow .recharts-xAxis .recharts-cartesian-axis-tick-value{letter-spacing:-.04em}
+  .dashboard-chart__months{padding:0 .1rem;font-size:.42rem}
   .cashflow-tooltip{gap:.3rem;max-width:calc(100vw - 2.5rem);box-sizing:border-box;padding:.28rem .38rem;font-size:.56rem}.cashflow-tooltip>strong{padding-right:.3rem}.cashflow-tooltip span b{display:block;margin-top:.08rem}.cashflow-tooltip__income::before,.cashflow-tooltip__expense::before{width:.35rem;height:.35rem;margin-right:.15rem}
   .annual-quota-overview{gap:.42rem;min-height:0}.annual-quota-modalities{grid-template-columns:92px minmax(7rem,9rem);gap:.5rem}.annual-quota-donut{width:92px;height:92px}.annual-quota-donut strong{font-size:.95rem}.annual-quota-donut span{font-size:.5rem}.annual-quota-modalities ul{gap:.3rem;min-width:0}.annual-quota-modalities li{grid-template-columns:.4rem minmax(0,1fr);gap:.12rem .3rem;padding:.38rem .45rem;font-size:.57rem}.annual-quota-modalities li i{width:.4rem;height:.4rem}.annual-quota-modalities li strong{font-size:.7rem}.annual-quota-modalities li strong small{font-size:.46rem}
   .annual-quota-progress{gap:.3rem;width:100%;padding:.45rem}.annual-quota-progress>div:first-child strong{font-size:.7rem}.annual-quota-progress>div:first-child span,.annual-quota-progress__detail span{font-size:.5rem}.annual-quota-progress__track{height:.42rem}.annual-quota-progress__detail{gap:.1rem .4rem}.annual-quota-progress__detail strong{font-size:.58rem}

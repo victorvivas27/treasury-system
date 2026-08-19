@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
 import {
   Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  ResponsiveContainer, Tooltip,
 } from "recharts";
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
@@ -182,7 +182,8 @@ export const DashboardPage = () => {
       <section className="dashboard-charts">
         <article className="dashboard-panel dashboard-panel--wide dashboard-panel--cashflow">
           <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
-          <div className="dashboard-chart" aria-label="Evolución mensual">
+          <div className="dashboard-chart dashboard-chart--axisless" aria-label="Evolución mensual">
+            <div className="dashboard-chart__plot">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthly} margin={{ top: 38, right: isMobile ? 8 : 0,
                 bottom: 0, left: isMobile ? 8 : 0 }}>
@@ -193,11 +194,6 @@ export const DashboardPage = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="var(--text-muted)" interval={0}
-                  minTickGap={0} tick={{ fontSize: 9 }} tickMargin={4} />
-                <YAxis stroke="var(--text-muted)" width={isMobile ? 0 : 55} hide={isMobile}
-                  tick={{ fontSize: 8 }} tickMargin={0}
-                  tickFormatter={value => money.format(Number(value))} />
                 <Tooltip cursor={{ stroke: "var(--color-accent)", strokeDasharray: "3 3" }}
                   position={{ x: isMobile ? 4 : 58, y: 2 }}
                   wrapperStyle={{ pointerEvents: "none" }}
@@ -216,6 +212,10 @@ export const DashboardPage = () => {
                   fill="transparent" />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
+            <div className="dashboard-chart__months" aria-hidden="true">
+              {monthly.map(item => <span key={item.name}>{item.name}</span>)}
+            </div>
           </div>
         </article>
 
