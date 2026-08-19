@@ -1,4 +1,5 @@
-const CACHE_VERSION = 'treasury-static-v3'
+const BUILD_VERSION = new URL(self.location.href).searchParams.get('v') || 'legacy'
+const CACHE_VERSION = `treasury-static-${BUILD_VERSION}`
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
@@ -9,7 +10,13 @@ const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image'])
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then(async (cache) => {
+        await Promise.all(APP_SHELL.map(async (url) => {
+          const response = await fetch(url, { cache: 'reload' })
+          if (!response.ok) throw new Error(`No se pudo precachear ${url}`)
+          await cache.put(url, response)
+        }))
+      })
       .then(() => self.skipWaiting()),
   )
 })
