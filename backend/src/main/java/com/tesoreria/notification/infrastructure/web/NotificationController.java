@@ -63,6 +63,17 @@ public class NotificationController {
             @Valid @RequestBody NotificationReplyRequest request, Authentication authentication) {
         return service.reply(deliveryId, request, authentication.getName());
     }
+    @PostMapping("/treasury/messages")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TreasuryConversationResponse startTreasuryConversation(
+            @Valid @RequestBody NotificationReplyRequest request, Authentication authentication) {
+        var result = service.startTreasuryConversation(request, authentication.getName());
+        return new TreasuryConversationResponse(result.deliveryId(), result.reply());
+    }
+    @GetMapping("/treasury/contact")
+    public TreasuryContactResponse treasuryContact(Authentication authentication) {
+        return service.treasuryContact(authentication.getName());
+    }
     @PatchMapping("/messages/{id}")
     public NotificationReplyResponse editReply(@PathVariable Long id,
             @Valid @RequestBody NotificationReplyRequest request, Authentication authentication) {
@@ -73,4 +84,6 @@ public class NotificationController {
     public void deleteReply(@PathVariable Long id, Authentication authentication) {
         service.deleteReply(id, authentication.getName());
     }
+
+    public record TreasuryConversationResponse(Long deliveryId, NotificationReplyResponse reply) { }
 }

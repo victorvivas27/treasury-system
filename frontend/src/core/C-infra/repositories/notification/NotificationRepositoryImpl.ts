@@ -32,6 +32,18 @@ export class NotificationRepositoryImpl {
     return (await apiClient.post<NotificationReply>(
       `/notifications/threads/${deliveryId}/messages`, { message })).data;
   }
+  async startTreasuryConversation(message: string): Promise<{
+    deliveryId: number; reply: NotificationReply;
+  }> {
+    return (await apiClient.post<{ deliveryId: number; reply: NotificationReply }>(
+      "/notifications/treasury/messages", { message })).data;
+  }
+  async treasuryContact(): Promise<{ id: number; name: string; email: string;
+    profileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
+    profileImageUrl: string | null;
+  }> {
+    return (await apiClient.get("/notifications/treasury/contact")).data;
+  }
   async editReply(id: number, message: string): Promise<NotificationReply> {
     return (await apiClient.patch<NotificationReply>(`/notifications/messages/${id}`, { message })).data;
   }

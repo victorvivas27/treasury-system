@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByCode(String code);
@@ -18,6 +19,8 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByCorreo(String correo);
 
     long countByRol(RoleEnum rol);
+
+    List<UserEntity> findByRolOrderByIdAsc(RoleEnum rol);
 
     Page<UserEntity> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
 

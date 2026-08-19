@@ -188,6 +188,59 @@ public class NotificationService {
     }
 
     @Transactional
+    public RealtimeReply startTreasuryConversation(NotificationReplyRequest request, String email) {
+        UserEntity guardian = currentUser(email);
+        if (guardian.getRol() == RoleEnum.ADMIN)
+            throw error("recipient", HttpStatus.BAD_REQUEST,
+                    "La conversación con Tesorería debe iniciarla un apoderado");
+        UserEntity admin = soleTreasuryAdmin();
+        LocalDateTime now = LocalDateTime.now();
+        NotificationEntity notification = new NotificationEntity();
+        notification.setTitle("Conversación con Tesorería");
+        notification.setMessage("Canal de atención iniciado por " + guardian.getNombre() + ".");
+        notification.setType("INFO");
+        notification.setCreatedBy(admin);
+        notification.setCreatedAt(now);
+        NotificationEntity savedNotification = notifications.save(notification);
+        UserNotificationEntity delivery = new UserNotificationEntity();
+        delivery.setNotification(savedNotification);
+        delivery.setUser(guardian);
+        delivery.setRead(true);
+        delivery.setCreatedAt(now);
+        delivery.setVisible(true);
+        UserNotificationEntity savedDelivery = deliveries.save(delivery);
+        NotificationReplyEntity reply = new NotificationReplyEntity();
+        reply.setDelivery(savedDelivery);
+        reply.setAuthor(guardian);
+        reply.setMessage(request.message().trim());
+        reply.setRead(false);
+        reply.setCreatedAt(now);
+        NotificationReplyResponse savedReply = replyResponse(replyRepository.save(reply));
+        events.publishEvent(new NotificationCreatedEvent(savedNotification.getId(),
+                List.of(admin.getCorreo())));
+        return new RealtimeReply(savedDelivery.getId(), savedReply, admin.getCorreo());
+    }
+
+    @Transactional(readOnly = true)
+    public TreasuryContactResponse treasuryContact(String email) {
+        UserEntity requester = currentUser(email);
+        if (requester.getRol() == RoleEnum.ADMIN)
+            throw error("recipient", HttpStatus.BAD_REQUEST,
+                    "El contacto de Tesorería está disponible para apoderados");
+        UserEntity admin = soleTreasuryAdmin();
+        return new TreasuryContactResponse(admin.getId(), admin.getNombre(), admin.getCorreo(),
+                admin.getProfileImageType().name(), admin.getProfileImageUrl());
+    }
+
+    private UserEntity soleTreasuryAdmin() {
+        List<UserEntity> admins = users.findByRolOrderByIdAsc(RoleEnum.ADMIN);
+        if (admins.size() != 1)
+            throw error("recipient", HttpStatus.CONFLICT,
+                    "No existe una cuenta única de Tesorería disponible");
+        return admins.get(0);
+    }
+
+    @Transactional
     public NotificationReplyResponse editReply(Long id, NotificationReplyRequest request, String email) {
         NotificationReplyEntity reply = ownEditableReply(id, email);
         reply.setMessage(request.message().trim());

@@ -72,7 +72,10 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
     setMessages(current => current.some(item => item.id === reply.id)
       ? current : [...current, reply]);
     setLoaded(true);
-  }), [deliveryId, subscribeMessages]);
+    if (active && reply.authorId !== auth?.user?.id) {
+      void repository.listReplies(deliveryId).then(setMessages);
+    }
+  }), [active, auth?.user?.id, deliveryId, repository, subscribeMessages]);
   const submit = () => {
     const message = draft.trim();
     if (!message || sending) return;
@@ -113,7 +116,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
       {loading && <p className="notification-conversation__state">Cargando conversación…</p>}
       <div ref={timelineRef}
         className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}
-        onScroll={event => updateMessageVisibility(event.currentTarget)}>
+        onScroll={isAdmin ? event => updateMessageVisibility(event.currentTarget) : undefined}>
       {timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         className={`notification-reply ${item.message.authorRole === "ADMIN" ? "is-admin" : "is-guardian"}`}>
@@ -184,6 +187,8 @@ export const Notificacion = () => {
 };
 
 const AdminNotificationCenter = () => {
+  const { unreadCount: adminUnreadCount, loading: notificationsLoading,
+    markAllRead: markAllAdminRead } = useNotifications();
   const { apoderados, loading, error, currentPage, nextPage, prevPage, hasPrevPage,
     isLastPage, search, setSearch, refetch } = useApoderados({ pageSize: 20 });
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -197,6 +202,7 @@ const AdminNotificationCenter = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [recipientsOpen, setRecipientsOpen] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<number>>(new Set());
+  const adminAutoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const sentByRecipient = useMemo(() => {
     const groups = new Map<number, {
@@ -221,6 +227,17 @@ const AdminNotificationCenter = () => {
   }, [repository]);
 
   useEffect(() => { void loadSent(); }, [loadSent]);
+  useEffect(() => {
+    if (!notificationsLoading && adminUnreadCount > 0 && !adminAutoReadRequested.current) {
+      adminAutoReadRequested.current = true;
+      void markAllAdminRead();
+    }
+  }, [adminUnreadCount, markAllAdminRead, notificationsLoading]);
+  useEffect(() => {
+    const refreshSent = () => { void loadSent(); };
+    window.addEventListener("notification-realtime-received", refreshSent);
+    return () => window.removeEventListener("notification-realtime-received", refreshSent);
+  }, [loadSent]);
 
   const toggle = (id: number, checked: boolean) => setSelectedIds(current => {
     const next = new Set(current); if (checked) next.add(id); else next.delete(id); return next;
@@ -315,8 +332,25 @@ const AdminNotificationCenter = () => {
         <Button label="Actualizar historial" variant="secondary" icon={<FiRefreshCw />}
           iconPosition="left" loading={sentLoading} onClick={() => void loadSent()} /></header>
       <div className="sent-notifications__list">
-        {!sentLoading && !sentByRecipient.length && <p className="notifications-empty">
-          Todavía no has enviado notificaciones.</p>}
+        {!sentLoading && !sentByRecipient.length && <div className="sent-notifications__empty"
+          role="status">
+          <div className="sent-notifications__empty-recipient" aria-hidden="true">
+            <span className="sent-notifications__empty-avatar"><FiUsers /></span>
+            <span className="sent-notifications__empty-identity">
+              <i /><i />
+            </span>
+            <em>0 mensajes</em>
+            <FiChevronDown />
+          </div>
+          <div className="sent-notifications__empty-message">
+            <span className="sent-notifications__empty-icon" aria-hidden="true">
+              <IoNotificationsOutline />
+            </span>
+            <span><strong>Todavía no has enviado notificaciones</strong>
+              <small>Cuando envíes una, aparecerá aquí junto con su destinatario y estado de lectura.</small>
+            </span>
+          </div>
+        </div>}
         {sentByRecipient.map(group => <details key={group.userId} className="sent-user-group"
           onToggle={event => {
             const deliveryId = group.messages[group.messages.length - 1]?.deliveryId;
@@ -414,6 +448,15 @@ const GuardianInbox = () => {
   const { notifications, unreadCount, loading, markRead, markAllRead, refresh,
     deleteNotification } = useNotifications();
   const [deleteError, setDeleteError] = useState(false);
+  const [firstMessage, setFirstMessage] = useState("");
+  const [treasuryContact, setTreasuryContact] = useState<{
+    id: number; name: string; email: string;
+    profileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
+    profileImageUrl: string | null;
+  } | null>(null);
+  const [startingConversation, setStartingConversation] = useState(false);
+  const [startError, setStartError] = useState("");
+  const firstMessageRef = useRef<HTMLTextAreaElement>(null);
   const autoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
@@ -427,6 +470,22 @@ const GuardianInbox = () => {
       void markAllRead();
     }
   }, [loading, markAllRead, unreadCount]);
+  useEffect(() => {
+    if (loading || notifications.length > 0 || treasuryContact) return;
+    void repository.treasuryContact().then(setTreasuryContact).catch(() => setStartError(
+      "No fue posible cargar el contacto de Tesorería."));
+  }, [loading, notifications.length, repository, treasuryContact]);
+  const startConversation = async () => {
+    const message = firstMessage.trim();
+    if (!message || startingConversation) return;
+    setStartingConversation(true); setStartError("");
+    try {
+      await repository.startTreasuryConversation(message);
+      setFirstMessage("");
+      await refresh();
+    } catch { setStartError("No fue posible iniciar la conversación con Tesorería."); }
+    finally { setStartingConversation(false); }
+  };
   return <main className="page-container notifications-page notifications-inbox">
     <header className="page-header"><div><h1 className="page-header__title">Notificaciones</h1>
       <p className="page-header__subtitle">Mensajes y avisos de tesorería.</p></div>
@@ -445,8 +504,44 @@ const GuardianInbox = () => {
           className="notifications-header-action notifications-header-action--read"
           onClick={() => void markAllRead()} /></div></header>
     <section className="notifications-list" data-notification-tour="messages" aria-live="polite">
-      {!loading && notifications.length === 0 && <p className="notifications-empty">
-        No tienes notificaciones.</p>}
+      {!loading && notifications.length === 0 && <div className="notifications-empty-conversation">
+        <section className="notifications-empty-conversation__contact-section">
+          <h2>Contactos</h2>
+          <div className="notifications-empty-conversation__contacts"
+            aria-label="Contactos disponibles">
+          <button type="button" className="notifications-contact-avatar is-selected"
+            aria-label={`Conversar con ${treasuryContact?.name ?? "Tesorería"}`}
+            title={treasuryContact?.name ?? "Tesorería"}
+            aria-pressed="true"
+            disabled={!treasuryContact}
+            onClick={() => firstMessageRef.current?.focus()}>
+            {treasuryContact ? <UserAvatar fallbackName={treasuryContact.name}
+              user={{ nombre: treasuryContact.name,
+                profileImageType: treasuryContact.profileImageType,
+                profileImageUrl: treasuryContact.profileImageUrl }}
+              customImageUserId={treasuryContact.id} /> : <FiUsers aria-hidden="true" />}
+            <span className="notifications-contact-name">
+              {treasuryContact?.name ?? "Tesorería"}
+            </span>
+          </button>
+          </div>
+        </section>
+        <section className="notifications-empty-conversation__chat-section">
+        <h2>Conversación</h2>
+        <p className="notifications-empty-conversation__state">Aún no hay mensajes con Tesorería.</p>
+        {startError && <p className="notification-conversation__error">{startError}</p>}
+        <form className="notification-reply-form" onSubmit={event => {
+          event.preventDefault(); void startConversation();
+        }}>
+          <textarea ref={firstMessageRef} maxLength={2000} value={firstMessage}
+            onChange={event => setFirstMessage(event.target.value)}
+            placeholder="Escribe un mensaje a Tesorería" aria-label="Mensaje para Tesorería" />
+          <button type="submit" disabled={!firstMessage.trim() || startingConversation}>
+            <FiSend /> {startingConversation ? "Enviando…" : "Enviar"}
+          </button>
+        </form>
+        </section>
+      </div>}
       {orderedNotifications.length > 0 && <NotificationConversation
         key={orderedNotifications[orderedNotifications.length - 1].id}
         deliveryId={orderedNotifications[orderedNotifications.length - 1].id}

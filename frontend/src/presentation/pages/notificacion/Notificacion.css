@@ -70,6 +70,36 @@ body.notifications-inbox-open { overflow: hidden; }
   top: .35rem; right: .35rem; margin: 0; padding: .35rem; color: var(--color-text-muted); }
 .notifications-inbox .notification-card__content > header { padding-right: 2rem; }
 .notifications-empty { padding: 2rem; text-align: center; color: var(--color-text-muted); }
+.notifications-empty-conversation { align-self: end; display: grid; gap: .45rem; width: 100%;
+  padding: .65rem; border: 1px solid var(--border-color); border-radius: 12px;
+  background: var(--color-surface); box-sizing: border-box; }
+.notifications-empty-conversation__contact-section,
+.notifications-empty-conversation__chat-section { display: grid; gap: .35rem; min-width: 0; }
+.notifications-empty-conversation h2 { margin: 0; font-size: .68rem; color: var(--color-text-main); }
+.notifications-empty-conversation__contact-section { padding-bottom: .45rem;
+  border-bottom: 1px solid var(--border-color); }
+.notifications-empty-conversation__state { margin: 0; padding: .45rem; border: 1px dashed
+  color-mix(in srgb, var(--color-text-muted) 35%, transparent); border-radius: 8px;
+  color: var(--color-text-muted); font-size: .6rem; text-align: center; }
+.notifications-empty-conversation__contacts { display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.1rem, 1fr)); align-items: start;
+  gap: .25rem; max-height: 8rem; min-height: 2.6rem; padding: .15rem;
+  overflow-y: auto; scrollbar-width: thin; }
+.notifications-contact-avatar { display: grid; grid-template-rows: auto auto; place-items: center;
+  gap: .15rem; min-width: 0; min-height: 0; padding: .22rem .1rem;
+  border: 1px solid transparent; border-radius: 8px; color: var(--color-accent);
+  background: transparent; cursor: pointer; transition: border-color .18s ease,
+  background .18s ease; }
+.notifications-contact-avatar > .user-avatar { width: 1.65rem; height: 1.65rem;
+  font-size: .5rem; }
+.notifications-contact-avatar > svg { width: .9rem; height: .9rem; }
+.notifications-contact-name { display: block; width: 100%; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-main);
+  font-size: .45rem; font-weight: 700; text-align: center; }
+.notifications-contact-avatar:hover, .notifications-contact-avatar:focus-visible,
+.notifications-contact-avatar.is-selected { border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  box-shadow: none; transform: none; outline: none; }
 .notifications-inbox { max-width: 500px; height: calc(100dvh - 7rem); margin-inline: auto;
   overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); }
 .notifications-inbox .notifications-list { grid-template-columns: 1fr; gap: .55rem;
@@ -246,10 +276,11 @@ body.notifications-inbox-open { overflow: hidden; }
   width: 100%; height: 100%; min-height: 0; margin: 0; border: 0; padding: 0;
   background: var(--color-surface); }
 .notifications-inbox .notification-conversation__content {
-  height: 100%; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
+  height: 100%; min-height: 0; align-content: end; grid-template-rows: minmax(0, auto) auto; }
 .notifications-inbox .notification-conversation__messages {
-  height: 100%; min-height: 0; max-height: none;
-  padding: .15rem .2rem 1rem; scroll-snap-type: y proximity; align-content: start; }
+  height: auto; min-height: 0; max-height: min(52dvh, 19rem);
+  padding: .15rem .2rem 1rem; scroll-snap-type: none; scroll-behavior: auto;
+  overflow-anchor: none; align-content: start; }
 .notifications-inbox .notification-reply-form { margin-top: .75rem; padding-top: .65rem;
   border-top: 1px solid var(--border-color); }
 .sent-user-group > .notification-conversation { width: min(480px, calc(100% - .8rem));
@@ -299,6 +330,33 @@ body.notifications-inbox-open { overflow: hidden; }
   font-size: .62rem; }
 .sent-notifications__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .3rem; align-items: start; }
+.sent-notifications__empty { min-width: 0; border: 1px solid var(--border-color);
+  border-radius: 8px; overflow: hidden; background: var(--color-surface); }
+.sent-notifications__empty-recipient { display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: .4rem;
+  padding: .48rem .55rem; border-bottom: 1px solid var(--border-color); }
+.sent-notifications__empty-avatar, .sent-notifications__empty-icon { display: inline-grid;
+  place-items: center; border-radius: 50%; color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 10%, var(--color-surface)); }
+.sent-notifications__empty-avatar { width: 1.75rem; height: 1.75rem; }
+.sent-notifications__empty-avatar svg { width: .85rem; height: .85rem; }
+.sent-notifications__empty-identity { display: grid; gap: .28rem; }
+.sent-notifications__empty-identity i { display: block; width: min(9rem, 70%); height: .42rem;
+  border-radius: 1rem; background: color-mix(in srgb, var(--color-text-muted) 16%, transparent); }
+.sent-notifications__empty-identity i:last-child { width: min(6rem, 48%); height: .32rem; }
+.sent-notifications__empty-recipient em { padding: .18rem .3rem; border-radius: 1rem;
+  color: var(--color-text-muted); background: color-mix(in srgb, var(--color-text-muted) 9%, transparent);
+  font-size: .55rem; font-style: normal; font-weight: 700; white-space: nowrap; }
+.sent-notifications__empty-recipient > svg { width: .85rem; height: .85rem;
+  color: var(--color-text-muted); }
+.sent-notifications__empty-message { display: grid; grid-template-columns: auto 1fr;
+  align-items: center; gap: .55rem; margin: .45rem; padding: .65rem;
+  border: 1px dashed color-mix(in srgb, var(--color-text-muted) 38%, transparent);
+  border-radius: 8px; color: var(--color-text-muted); }
+.sent-notifications__empty-icon { width: 2rem; height: 2rem; }
+.sent-notifications__empty-message > span:last-child { display: grid; gap: .15rem; }
+.sent-notifications__empty-message strong { color: var(--color-text-main); font-size: .68rem; }
+.sent-notifications__empty-message small { font-size: .57rem; line-height: 1.35; }
 .sent-user-group { min-width: 0; border: 1px solid var(--border-color); border-radius: 8px;
   background: var(--color-surface); }
 .sent-user-group > summary { display: grid; grid-template-columns: auto 1fr auto auto;
@@ -484,6 +542,13 @@ body.notifications-inbox-open { overflow: hidden; }
   .sent-notifications header .base-button { min-height: 24px; padding: .16rem .28rem;
     font-size: .5rem; }
   .sent-notifications__list { gap: .22rem; }
+  .sent-notifications__empty-recipient { gap: .2rem; padding: .2rem .25rem; }
+  .sent-notifications__empty-avatar { width: 1.45rem; height: 1.45rem; }
+  .sent-notifications__empty-recipient em { padding: .12rem .22rem; font-size: .47rem; }
+  .sent-notifications__empty-message { gap: .35rem; margin: .25rem; padding: .4rem; }
+  .sent-notifications__empty-icon { width: 1.55rem; height: 1.55rem; }
+  .sent-notifications__empty-message strong { font-size: .56rem; }
+  .sent-notifications__empty-message small { font-size: .48rem; }
   .sent-user-group { border-radius: 6px; }
   .sent-user-group > summary { grid-template-columns: auto 1fr auto auto;
     gap: .2rem; padding: .2rem .25rem; }
@@ -526,12 +591,21 @@ body.notifications-inbox-open { overflow: hidden; }
     width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
     padding: .35rem .3rem .35rem .5rem; }
   .notifications-inbox .notification-conversation__content {
-    grid-template-rows: minmax(0, 1fr) auto; }
+    grid-template-rows: minmax(0, auto) auto; }
   .notifications-inbox .notification-conversation__messages {
-    height: 100%; max-height: none; }
+    height: auto; max-height: min(48dvh, 13.5rem); scroll-snap-type: none;
+    overflow-anchor: none; }
   .notifications-inbox .notifications-empty { width: 100%; min-width: 0;
     box-sizing: border-box; margin: 0; padding: .8rem .4rem;
     overflow-wrap: anywhere; font-size: .58rem; }
+  .notifications-empty-conversation { gap: .3rem; padding: .35rem; }
+  .notifications-empty-conversation__contacts {
+    grid-template-columns: repeat(auto-fill, minmax(2.65rem, 1fr)); gap: .16rem;
+    max-height: 6.4rem; min-height: 2.25rem; padding: .1rem; }
+  .notifications-contact-avatar { padding: .14rem .05rem; border-radius: 6px; }
+  .notifications-contact-avatar > .user-avatar { width: 1.4rem; height: 1.4rem;
+    font-size: .42rem; }
+  .notifications-contact-name { font-size: .39rem; }
   .notifications-inbox .notification-card { width: calc(100% - .4rem);
     grid-template-columns: 1.3rem 1fr; gap: .28rem; padding: .3rem .38rem;
     margin-bottom: .12rem; border-radius: 10px; }
