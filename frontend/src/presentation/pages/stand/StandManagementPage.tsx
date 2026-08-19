@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
 import {
   FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiCreditCard, FiDollarSign, FiEdit2, FiPercent, FiPlus,
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
-  FiTrendingUp,
+  FiTrendingUp, FiChevronDown,
 } from "react-icons/fi";
 import type { SchoolEvent, SchoolEventOption } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
@@ -241,33 +241,41 @@ export const StandManagementPage = () => {
   };
 
   return <main className="stand-page">
-    <header className="stand-page__header">
-      <div><h1>Ventas del stand</h1>
-        <p>{readOnly ? "Consulta el resumen de ventas y recaudación de cada stand."
-          : "Configura productos, registra compras y controla la caja en tiempo real."}</p></div>
-      {!readOnly && <div className="stand-page__header-actions">
-        <button onClick={click => {
-          setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
-            Math.min(320, window.innerWidth - 24), 430));
-          setCreating(true);
-        }} disabled={!eventId}>
-          <FiPlus /> Crear stand</button>
-        <button className="is-reload" onClick={() => void loadStands()}>
-          <FiRefreshCw /> Recargar</button>
-      </div>}
-    </header>
+    <details className="stand-page__overview">
+      <summary>
+        <span><strong>Ventas del stand</strong><small>Configuración, año escolar y evento</small></span>
+        <span className="stand-page__overview-action">Ver opciones <FiChevronDown /></span>
+      </summary>
+      <div className="stand-page__overview-content">
+        <header className="stand-page__header">
+          <div><h1>Ventas del stand</h1>
+            <p>{readOnly ? "Consulta el resumen de ventas y recaudación de cada stand."
+              : "Configura productos, registra compras y controla la caja en tiempo real."}</p></div>
+          {!readOnly && <div className="stand-page__header-actions">
+            <button onClick={click => {
+              setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                Math.min(320, window.innerWidth - 24), 430));
+              setCreating(true);
+            }} disabled={!eventId}>
+              <FiPlus /> Crear stand</button>
+            <button className="is-reload" onClick={() => void loadStands()}>
+              <FiRefreshCw /> Recargar</button>
+          </div>}
+        </header>
 
-    <section className="stand-page__filters" aria-label="Selección de evento">
-      <label>Año escolar<input type="number" value={year}
-        onChange={event => setYear(Number(event.target.value))} /></label>
-      <label>Evento<select value={eventId}
-        onChange={event => setEventId(Number(event.target.value))}>
-        {events.length === 0 && <option value={0}>No hay eventos</option>}
-        {events.map(item => <option key={item.id} value={item.id}>
-          {item.name} · {item.eventDate}
-        </option>)}
-      </select></label>
-    </section>
+        <section className="stand-page__filters" aria-label="Selección de evento">
+          <label>Año escolar<input type="number" value={year}
+            onChange={event => setYear(Number(event.target.value))} /></label>
+          <label>Evento<select value={eventId}
+            onChange={event => setEventId(Number(event.target.value))}>
+            {events.length === 0 && <option value={0}>No hay eventos</option>}
+            {events.map(item => <option key={item.id} value={item.id}>
+              {item.name} · {item.eventDate}
+            </option>)}
+          </select></label>
+        </section>
+      </div>
+    </details>
 
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
     {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton readOnly={readOnly} />
@@ -317,10 +325,15 @@ export const StandManagementPage = () => {
 
         {selected && <section className={`stand-workspace ${operationalLoading
           ? "is-refreshing" : ""}`} aria-busy={operationalLoading}>
-          <header className="stand-workspace__header">
-            <div><span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
-              {statusLabels[selected.status]}</span>
-              <h2>{selected.name}</h2>
+          <details className="stand-workspace__overview">
+            <summary>
+              <span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
+                {statusLabels[selected.status]}</span>
+              <strong>{selected.name}</strong>
+              <span className="stand-workspace__overview-action">Administrar <FiChevronDown /></span>
+            </summary>
+            <header className="stand-workspace__header">
+              <div>
               <p>{selected.responsible} · {selected.date} · {selected.startTime.slice(0, 5)}
                 –{selected.endTime.slice(0, 5)}</p></div>
             {!readOnly && <div className="stand-workspace__actions">
@@ -349,7 +362,8 @@ export const StandManagementPage = () => {
               {selected.status === "CLOSED" &&
                 <button onClick={() => void changeStatus("reopen")}><FiRefreshCw /> Reabrir</button>}
             </div>}
-          </header>
+            </header>
+          </details>
           {!readOnly && <nav className="stand-tabs" aria-label="Secciones del stand">
             <button className={tab === "products" ? "is-active" : ""}
               onClick={() => setTab("products")}><FiBox /> Productos</button>
@@ -817,8 +831,11 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         <button type="submit" disabled={stand.status !== "OPEN" || cart.length === 0}>
           <FiCheckCircle /> Enviar venta</button></footer>
     </form>
-    <section className="stand-recent-sales"><header><div><h3>Historial de ventas</h3>
-      <small>Más recientes primero · {sales.length} registros</small></div></header>
+    <details className="stand-recent-sales">
+      <summary><span><strong>Historial de ventas</strong>
+        <small>Más recientes primero · {sales.length} registros</small></span>
+        <span className="stand-recent-sales__action">Ver historial <FiChevronDown /></span>
+      </summary>
       <div className="stand-sales-page">
         {visibleSales.map(sale => <article key={sale.id}
           className={sale.status === "CANCELLED" ? "is-cancelled" : ""}>
@@ -848,7 +865,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         <button type="button" disabled={historyPage + 1 >= totalHistoryPages}
           onClick={() => setHistoryPage(page => page + 1)}>Siguiente</button>
       </nav>}
-    </section>
+    </details>
     {saleQueue.length > 0 && <aside className="stand-sale-queue"
       aria-label="Cola de ventas" aria-live="polite">
       <header><strong>Ventas en proceso</strong><small>{saleQueue.length}</small></header>
