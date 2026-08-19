@@ -63,4 +63,14 @@ public class NotificationController {
             @Valid @RequestBody NotificationReplyRequest request, Authentication authentication) {
         return service.reply(deliveryId, request, authentication.getName());
     }
+    @PatchMapping("/messages/{id}")
+    public NotificationReplyResponse editReply(@PathVariable Long id,
+            @Valid @RequestBody NotificationReplyRequest request, Authentication authentication) {
+        return service.editReply(id, request, authentication.getName());
+    }
+    @DeleteMapping("/messages/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteReply(@PathVariable Long id, Authentication authentication) {
+        service.deleteReply(id, authentication.getName());
+    }
 }

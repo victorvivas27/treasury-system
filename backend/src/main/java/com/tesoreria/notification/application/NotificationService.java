@@ -10,6 +10,7 @@ import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -18,21 +19,24 @@ import java.util.*;
 @Service
 public class NotificationService {
     private static final String NOTIFICATION_FIELD = "notification";
+    private static final long MESSAGE_EDIT_MINUTES = 15;
     private final NotificationJpaRepository notifications;
     private final UserNotificationJpaRepository deliveries;
     private final NotificationReplyJpaRepository replyRepository;
     private final UserJpaRepository users;
     private final ApoderadoJpaRepository guardians;
+    private final ApplicationEventPublisher events;
 
     public NotificationService(NotificationJpaRepository notifications,
             UserNotificationJpaRepository deliveries, NotificationReplyJpaRepository replyRepository,
             UserJpaRepository users,
-            ApoderadoJpaRepository guardians) {
+            ApoderadoJpaRepository guardians, ApplicationEventPublisher events) {
         this.notifications = notifications;
         this.deliveries = deliveries;
         this.replyRepository = replyRepository;
         this.users = users;
         this.guardians = guardians;
+        this.events = events;
     }
 
     @Transactional
@@ -56,6 +60,8 @@ public class NotificationService {
             return row;
         }).toList();
         deliveries.saveAll(rows);
+        events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipients.stream()
+                .map(UserEntity::getCorreo).toList()));
         return rows.size();
     }
 
@@ -138,12 +144,14 @@ public class NotificationService {
         UserNotificationEntity delivery = accessibleDelivery(deliveryId, user);
         List<NotificationReplyEntity> conversation = replyRepository.findConversation(
                 delivery.getUser().getId(),
-                delivery.getNotification().getCreatedBy().getId());
+                delivery.getNotification().getCreatedBy().getId(), user.getId());
         LocalDateTime now = LocalDateTime.now();
-        conversation.stream().filter(reply -> !reply.isRead()
-                && !reply.getAuthor().getId().equals(user.getId()))
-                .forEach(reply -> { reply.setRead(true); reply.setReadAt(now); });
-        replyRepository.saveAll(conversation.stream().filter(NotificationReplyEntity::isRead).toList());
+        List<NotificationReplyEntity> receivedUnread = conversation.stream()
+                .filter(reply -> !reply.isRead()
+                        && !reply.getAuthor().getId().equals(user.getId()))
+                .toList();
+        receivedUnread.forEach(reply -> { reply.setRead(true); reply.setReadAt(now); });
+        replyRepository.saveAll(receivedUnread);
         return conversation.stream()
                 .map(this::replyResponse).toList();
     }
@@ -162,10 +170,65 @@ public class NotificationService {
         return replyResponse(replyRepository.save(reply));
     }
 
+    @Transactional
+    public RealtimeReply realtimeReply(Long deliveryId, NotificationReplyRequest request, String email) {
+        UserEntity author = currentUser(email);
+        UserNotificationEntity delivery = accessibleDelivery(deliveryId, author);
+        NotificationReplyEntity reply = new NotificationReplyEntity();
+        reply.setDelivery(delivery);
+        reply.setAuthor(author);
+        reply.setMessage(request.message().trim());
+        reply.setRead(false);
+        reply.setCreatedAt(LocalDateTime.now());
+        NotificationReplyResponse saved = replyResponse(replyRepository.save(reply));
+        UserEntity creator = delivery.getNotification().getCreatedBy();
+        String recipientEmail = author.getId().equals(creator.getId())
+                ? delivery.getUser().getCorreo() : creator.getCorreo();
+        return new RealtimeReply(deliveryId, saved, recipientEmail);
+    }
+
+    @Transactional
+    public NotificationReplyResponse editReply(Long id, NotificationReplyRequest request, String email) {
+        NotificationReplyEntity reply = ownEditableReply(id, email);
+        reply.setMessage(request.message().trim());
+        reply.setUpdatedAt(LocalDateTime.now());
+        return replyResponse(replyRepository.save(reply));
+    }
+
+    @Transactional
+    public void deleteReply(Long id, String email) {
+        UserEntity user = currentUser(email);
+        NotificationReplyEntity reply = replyRepository.findById(id)
+                .orElseThrow(() -> error("message", HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
+        UserNotificationEntity delivery = reply.getDelivery();
+        Long creatorId = delivery.getNotification().getCreatedBy().getId();
+        Long recipientId = delivery.getUser().getId();
+        if (!user.getId().equals(creatorId) && !user.getId().equals(recipientId))
+            throw error("message", HttpStatus.NOT_FOUND, "Mensaje no encontrado");
+        if (user.getId().equals(reply.getAuthor().getId())) {
+            String recipientEmail = user.getId().equals(creatorId)
+                    ? delivery.getUser().getCorreo()
+                    : delivery.getNotification().getCreatedBy().getCorreo();
+            replyRepository.delete(reply);
+            events.publishEvent(new NotificationReplyDeletedEvent(reply.getId(), recipientEmail));
+        } else {
+            replyRepository.hideForUser(reply.getId(), user.getId());
+        }
+    }
+
+    private NotificationReplyEntity ownEditableReply(Long id, String email) {
+        NotificationReplyEntity reply = replyRepository.findByIdAndAuthorCorreo(id, email)
+                .orElseThrow(() -> error("message", HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
+        if (reply.getCreatedAt().plusMinutes(MESSAGE_EDIT_MINUTES).isBefore(LocalDateTime.now()))
+            throw error("message", HttpStatus.CONFLICT,
+                    "El plazo de 15 minutos para modificar el mensaje terminó");
+        return reply;
+    }
+
     private UserNotificationEntity accessibleDelivery(Long deliveryId, UserEntity user) {
         Optional<UserNotificationEntity> delivery = user.getRol() == RoleEnum.ADMIN
                 ? deliveries.findByIdAndNotificationCreatedById(deliveryId, user.getId())
-                : deliveries.findByIdAndUserIdAndVisibleTrue(deliveryId, user.getId());
+                : deliveries.findByIdAndUserId(deliveryId, user.getId());
         return delivery.orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                 "Conversación no encontrada"));
     }

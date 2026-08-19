@@ -42,10 +42,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       .then(setUnreadCount).catch(() => undefined);
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("notification-unread-changed", unreadChanged);
+    window.addEventListener("notification-realtime-received", refresh);
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("notification-unread-changed", unreadChanged);
+      window.removeEventListener("notification-realtime-received", refresh);
     };
   }, [auth?.isAuthenticated, refresh, repository]);
 

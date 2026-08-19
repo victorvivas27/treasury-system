@@ -18,6 +18,7 @@ public class NotificationReplyEntity {
     private boolean read;
     @Column(name = "read_at") private LocalDateTime readAt;
     @Column(name = "created_at", nullable = false) private LocalDateTime createdAt;
+    @Column(name = "updated_at") private LocalDateTime updatedAt;
 
     public Long getId() { return id; }
     public UserNotificationEntity getDelivery() { return delivery; }
@@ -32,4 +33,6 @@ public class NotificationReplyEntity {
     public void setReadAt(LocalDateTime readAt) { this.readAt = readAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime value) { updatedAt = value; }
 }

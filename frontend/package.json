@@ -16,6 +16,7 @@
     "test:coverage:open": "vitest run --coverage && start coverage/index.html"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "axios": "^1.18.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

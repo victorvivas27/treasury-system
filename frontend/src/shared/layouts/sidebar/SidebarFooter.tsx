@@ -57,7 +57,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
                     aria-label={hasUnread ? `${link.label}: ${unreadCount} sin leer` : link.label}
                   >
                     <span className="sidebar-footer-icon-wrap">
-                      <span className="sidebar-footer-bell-motion">
+                      <span className="sidebar-footer-chat-motion">
                         <Icon className="sidebar-footer-icon" />
                       </span>
                       {hasUnread && <span className="sidebar-footer-badge">

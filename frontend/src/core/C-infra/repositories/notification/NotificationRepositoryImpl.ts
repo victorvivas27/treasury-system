@@ -32,4 +32,10 @@ export class NotificationRepositoryImpl {
     return (await apiClient.post<NotificationReply>(
       `/notifications/threads/${deliveryId}/messages`, { message })).data;
   }
+  async editReply(id: number, message: string): Promise<NotificationReply> {
+    return (await apiClient.patch<NotificationReply>(`/notifications/messages/${id}`, { message })).data;
+  }
+  async deleteReply(id: number): Promise<void> {
+    await apiClient.delete(`/notifications/messages/${id}`);
+  }
 }
