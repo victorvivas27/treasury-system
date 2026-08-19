@@ -12,9 +12,10 @@ import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
-  type ReactNode } from "react";
+  type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { FiCheckCircle, FiChevronDown, FiEdit2, FiHelpCircle, FiRefreshCw, FiSend,
-  FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
+  FiMove, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
@@ -42,7 +43,12 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState("");
   const timelineRef = useRef<HTMLDivElement>(null);
-  const initialScrollDone = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
+  const [floatingPosition, setFloatingPosition] = useState<{
+    left: number; top: number; width: number;
+  } | null>(null);
+  const renderedTimelineLength = useRef(0);
   const load = useCallback(async () => {
     if (loading) return;
     setLoading(true); setError("");
@@ -107,16 +113,64 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
   ].sort((first, second) => new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime());
   useLayoutEffect(() => {
     const container = timelineRef.current;
-    if (!initialScrollToBottom || !loaded || initialScrollDone.current || !container) return;
+    if (!loaded || !container) return;
+    const hasNewItems = timeline.length > renderedTimelineLength.current;
+    const isInitialPosition = initialScrollToBottom && renderedTimelineLength.current === 0;
+    renderedTimelineLength.current = timeline.length;
+    if (!hasNewItems && !isInitialPosition) return;
     container.scrollTop = container.scrollHeight;
-    initialScrollDone.current = true;
   }, [initialScrollToBottom, loaded, timeline.length]);
-  return <div className="notification-conversation">
+  useEffect(() => {
+    const move = (event: PointerEvent) => {
+      const drag = dragRef.current;
+      const panel = panelRef.current;
+      if (!drag || drag.pointerId !== event.pointerId || !panel) return;
+      event.preventDefault();
+      const rect = panel.getBoundingClientRect();
+      const margin = 8;
+      const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+      const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
+      setFloatingPosition(current => current && ({ ...current,
+        left: Math.min(maxLeft, Math.max(margin, event.clientX - drag.offsetX)),
+        top: Math.min(maxTop, Math.max(margin, event.clientY - drag.offsetY)),
+      }));
+    };
+    const stop = (event: PointerEvent) => {
+      if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null;
+    };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+  }, []);
+  const startDragging = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || !panelRef.current) return;
+    const rect = panelRef.current.getBoundingClientRect();
+    const width = Math.min(rect.width, 290, window.innerWidth - 16);
+    setFloatingPosition({ left: rect.left, top: rect.top, width });
+    dragRef.current = { pointerId: event.pointerId,
+      offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+    event.preventDefault();
+  };
+  const floatingStyle: CSSProperties | undefined = floatingPosition ? {
+    left: floatingPosition.left, top: floatingPosition.top, width: floatingPosition.width,
+  } : undefined;
+  const panel = <div ref={panelRef}
+    className={`notification-conversation ${floatingPosition ? "is-floating" : ""}`}
+    style={floatingStyle}>
+    {!isAdmin && <div className="notification-conversation__drag-handle" onPointerDown={startDragging}>
+      <FiMove aria-hidden="true" /><span>Conversación</span>
+      {floatingPosition && <button type="button" onPointerDown={event => event.stopPropagation()}
+        onClick={() => setFloatingPosition(null)}>Volver a su lugar</button>}
+    </div>}
     <div className="notification-conversation__content">
       {loading && <p className="notification-conversation__state">Cargando conversación…</p>}
       <div ref={timelineRef}
-        className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}
-        onScroll={isAdmin ? event => updateMessageVisibility(event.currentTarget) : undefined}>
+        className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}>
       {timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         className={`notification-reply ${item.message.authorRole === "ADMIN" ? "is-admin" : "is-guardian"}`}>
@@ -161,22 +215,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
       </form>
     </div>
   </div>;
-};
-
-const updateMessageVisibility = (container: HTMLElement) => {
-  const bounds = container.getBoundingClientRect();
-  container.querySelectorAll<HTMLElement>(".sent-notification, .notification-card").forEach(message => {
-    const rect = message.getBoundingClientRect();
-    const visualBottom = rect.bottom + 16;
-    const visualHeight = rect.height + 16;
-    const visibleHeight = Math.max(0, Math.min(visualBottom, bounds.bottom)
-      - Math.max(rect.top, bounds.top));
-    const ratio = Math.min(1, visibleHeight / Math.max(1, visualHeight));
-    const visibility = ratio >= .96 ? 1 : Math.max(.16, ratio * .82);
-    message.style.setProperty("--message-visibility", String(visibility));
-    message.style.setProperty("--message-blur", `${(1 - ratio) * 3.5}px`);
-    message.style.setProperty("--message-scale", String(.975 + ratio * .025));
-  });
+  return floatingPosition ? createPortal(panel, document.body) : panel;
 };
 
 export const Notificacion = () => {
@@ -202,6 +241,14 @@ const AdminNotificationCenter = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [recipientsOpen, setRecipientsOpen] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<number>>(new Set());
+  const [floatingContact, setFloatingContact] = useState<{
+    userId: number; left: number; top: number; width: number;
+  } | null>(null);
+  const contactDragRef = useRef<{
+    userId: number; pointerId: number; startX: number; startY: number;
+    offsetX: number; offsetY: number; element: HTMLElement;
+  } | null>(null);
+  const suppressContactClick = useRef<number | null>(null);
   const adminAutoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const sentByRecipient = useMemo(() => {
@@ -238,6 +285,44 @@ const AdminNotificationCenter = () => {
     window.addEventListener("notification-realtime-received", refreshSent);
     return () => window.removeEventListener("notification-realtime-received", refreshSent);
   }, [loadSent]);
+  useEffect(() => {
+    const move = (event: PointerEvent) => {
+      const drag = contactDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const moved = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+      if (moved < 5 && floatingContact?.userId !== drag.userId) return;
+      event.preventDefault();
+      suppressContactClick.current = drag.userId;
+      const rect = drag.element.getBoundingClientRect();
+      const width = Math.min(290, window.innerWidth - 16);
+      const height = Math.min(rect.height, window.innerHeight - 16);
+      setFloatingContact({ userId: drag.userId, width,
+        left: Math.min(window.innerWidth - width - 8,
+          Math.max(8, event.clientX - drag.offsetX)),
+        top: Math.min(window.innerHeight - height - 8,
+          Math.max(8, event.clientY - drag.offsetY)),
+      });
+    };
+    const stop = (event: PointerEvent) => {
+      if (contactDragRef.current?.pointerId === event.pointerId) contactDragRef.current = null;
+    };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+  }, [floatingContact?.userId]);
+  const startContactDrag = (event: ReactPointerEvent<HTMLElement>, userId: number) => {
+    const element = event.currentTarget.parentElement as HTMLDetailsElement | null;
+    if (event.button !== 0 || !element?.open) return;
+    const rect = element.getBoundingClientRect();
+    contactDragRef.current = { userId, pointerId: event.pointerId,
+      startX: event.clientX, startY: event.clientY,
+      offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top, element };
+  };
 
   const toggle = (id: number, checked: boolean) => setSelectedIds(current => {
     const next = new Set(current); if (checked) next.add(id); else next.delete(id); return next;
@@ -351,7 +436,11 @@ const AdminNotificationCenter = () => {
             </span>
           </div>
         </div>}
-        {sentByRecipient.map(group => <details key={group.userId} className="sent-user-group"
+        {sentByRecipient.map(group => <details key={group.userId}
+          className={`sent-user-group ${floatingContact?.userId === group.userId ? "is-floating" : ""}`}
+          style={floatingContact?.userId === group.userId ? {
+            left: floatingContact.left, top: floatingContact.top, width: floatingContact.width,
+          } : undefined}
           onToggle={event => {
             const deliveryId = group.messages[group.messages.length - 1]?.deliveryId;
             const isOpen = event.currentTarget.open;
@@ -360,23 +449,24 @@ const AdminNotificationCenter = () => {
               if (isOpen) next.add(deliveryId); else next.delete(deliveryId);
               return next;
             });
-            if (!isOpen) return;
-            const groupElement = event.currentTarget;
-            window.requestAnimationFrame(() => {
-              const messages = groupElement.querySelector<HTMLElement>(".sent-user-group__messages");
-              if (messages) {
-                updateMessageVisibility(messages);
-              }
-            });
           }}>
-          <summary><UserAvatar className="sent-user-group__avatar" fallbackName={group.name}
+          <summary onPointerDown={event => startContactDrag(event, group.userId)}
+            onClick={event => {
+              if (suppressContactClick.current !== group.userId) return;
+              event.preventDefault(); event.stopPropagation(); suppressContactClick.current = null;
+            }}><UserAvatar className="sent-user-group__avatar" fallbackName={group.name}
             user={{ nombre: group.name,
               profileImageType: group.profileImageType === "PREDEFINED_AVATAR"
                 ? "PREDEFINED_AVATAR" : "INITIALS",
               profileImageUrl: group.profileImageUrl }} /><span><strong>{group.name}</strong>
             <small>{group.email}</small></span><em>{group.messages.length}
               {group.messages.length === 1 ? " mensaje" : " mensajes"}</em>
-            <FiChevronDown aria-hidden="true" /></summary>
+            {floatingContact?.userId === group.userId
+              ? <button type="button" className="sent-user-group__restore"
+                onPointerDown={event => event.stopPropagation()}
+                onClick={event => { event.preventDefault(); setFloatingContact(null); }}>
+                Volver</button>
+              : <FiChevronDown aria-hidden="true" />}</summary>
           {group.messages.length > 0 && <NotificationConversation
             deliveryId={group.messages[group.messages.length - 1].deliveryId}
             repository={repository} isAdmin
