@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -89,6 +90,29 @@ class NotificationServiceTest {
         assertEquals(12L, result.deliveryId());
         assertEquals("Gracias", result.reply().message());
         assertEquals(admin.getCorreo(), result.recipientEmail());
+        verify(replies).save(any(NotificationReplyEntity.class));
+    }
+
+    @Test
+    void startTreasuryConversation_deberiaCrearHiloConElUnicoAdministrador() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        UserNotificationEntity savedDelivery = mock(UserNotificationEntity.class);
+        when(savedDelivery.getId()).thenReturn(40L);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(users.findByRolOrderByIdAsc(RoleEnum.ADMIN)).thenReturn(List.of(admin));
+        when(notifications.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(deliveries.save(any())).thenReturn(savedDelivery);
+        when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.startTreasuryConversation(
+                new NotificationReplyRequest("  Necesito ayuda  "), guardian.getCorreo());
+
+        assertEquals(40L, result.deliveryId());
+        assertEquals("Necesito ayuda", result.reply().message());
+        assertEquals(admin.getCorreo(), result.recipientEmail());
+        verify(notifications).save(any(NotificationEntity.class));
+        verify(deliveries).save(any(UserNotificationEntity.class));
         verify(replies).save(any(NotificationReplyEntity.class));
     }
 
