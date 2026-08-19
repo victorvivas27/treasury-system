@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .hasRole("ADMIN")
+                        .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/tesoreria/dashboard",
                                 "/api/v1/tesoreria/dashboard/overview",

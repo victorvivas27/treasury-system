@@ -9,9 +9,13 @@ import java.util.Optional;
 
 public interface UserNotificationJpaRepository extends JpaRepository<UserNotificationEntity, Long> {
     List<UserNotificationEntity> findByUserIdAndVisibleTrueOrderByCreatedAtDesc(Long userId);
+    List<UserNotificationEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
     long countByUserIdAndReadFalseAndVisibleTrue(Long userId);
+    long countByUserIdAndReadFalse(Long userId);
     Optional<UserNotificationEntity> findByIdAndUserIdAndVisibleTrue(Long id, Long userId);
+    Optional<UserNotificationEntity> findByIdAndUserId(Long id, Long userId);
     Optional<UserNotificationEntity> findByIdAndNotificationCreatedById(Long id, Long creatorId);
+    List<UserNotificationEntity> findByUserIdAndReadFalse(Long userId);
     List<UserNotificationEntity> findByUserIdAndReadFalseAndVisibleTrue(Long userId);
     List<UserNotificationEntity> findByNotificationIdOrderByUserNombreAsc(Long notificationId);
     @Modifying(flushAutomatically = true, clearAutomatically = true)

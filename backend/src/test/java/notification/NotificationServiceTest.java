@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,15 +27,16 @@ class NotificationServiceTest {
     @Mock private NotificationReplyJpaRepository replies;
     @Mock private UserJpaRepository users;
     @Mock private ApoderadoJpaRepository guardians;
+    @Mock private ApplicationEventPublisher events;
     private NotificationService service;
 
     @BeforeEach
     void setUp() {
-        service = new NotificationService(notifications, deliveries, replies, users, guardians);
+        service = new NotificationService(notifications, deliveries, replies, users, guardians, events);
     }
 
     @Test
-    void unreadCount_deberiaSumarNotificacionesYRespuestasRecibidas() {
+    void unreadCount_deberiaSumarNotificacionesYMensajesRecibidos() {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
         when(deliveries.countByUserIdAndReadFalseAndVisibleTrue(7L)).thenReturn(2L);
@@ -53,7 +55,7 @@ class NotificationServiceTest {
         delivery.setNotification(notification);
         delivery.setUser(guardian);
         when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
-        when(deliveries.findByIdAndUserIdAndVisibleTrue(12L, 7L)).thenReturn(Optional.of(delivery));
+        when(deliveries.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(delivery));
         when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = service.reply(12L, new NotificationReplyRequest("  Recibido  "),
@@ -69,6 +71,28 @@ class NotificationServiceTest {
     }
 
     @Test
+    void realtimeReply_deberiaPersistirYDirigirLaRespuestaAlOtroParticipante() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        NotificationEntity notification = new NotificationEntity();
+        notification.setCreatedBy(admin);
+        UserNotificationEntity delivery = new UserNotificationEntity();
+        delivery.setNotification(notification);
+        delivery.setUser(guardian);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(deliveries.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(delivery));
+        when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.realtimeReply(12L, new NotificationReplyRequest("  Gracias  "),
+                guardian.getCorreo());
+
+        assertEquals(12L, result.deliveryId());
+        assertEquals("Gracias", result.reply().message());
+        assertEquals(admin.getCorreo(), result.recipientEmail());
+        verify(replies).save(any(NotificationReplyEntity.class));
+    }
+
+    @Test
     void reply_deberiaImpedirQueOtroAdministradorAccedaAlHilo() {
         UserEntity admin = user(2L, "Otro admin", "other@mail.com", RoleEnum.ADMIN);
         when(users.findByCorreo(admin.getCorreo())).thenReturn(Optional.of(admin));
@@ -80,19 +104,66 @@ class NotificationServiceTest {
     }
 
     @Test
-    void deleteSent_deberiaEliminarRespuestasEntregasYNotificacionEnOrden() {
+    void deleteSent_deberiaEliminarMensajesEntregasYNotificacionEnOrden() {
         NotificationEntity notification = mock(NotificationEntity.class);
-        when(notification.getId()).thenReturn(15L);
-        when(notifications.findByIdAndCreatedByCorreo(15L, "admin@mail.com"))
+        when(notification.getId()).thenReturn(18L);
+        when(notifications.findByIdAndCreatedByCorreo(18L, "admin@mail.com"))
                 .thenReturn(Optional.of(notification));
 
-        service.deleteSent(15L, "admin@mail.com");
+        service.deleteSent(18L, "admin@mail.com");
 
         var ordered = inOrder(replies, deliveries, notifications);
-        ordered.verify(replies).deleteAllByNotificationId(15L);
-        ordered.verify(deliveries).deleteAllByNotificationId(15L);
-        ordered.verify(notifications).deleteById(15L);
+        ordered.verify(replies).deleteAllByNotificationId(18L);
+        ordered.verify(deliveries).deleteAllByNotificationId(18L);
+        ordered.verify(notifications).deleteById(18L);
         ordered.verify(notifications).flush();
+    }
+
+    @Test
+    void deleteReply_delAutorDeberiaEliminarParaAmbos() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        NotificationReplyEntity reply = reply(22L, guardian, admin, guardian);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(replies.findById(22L)).thenReturn(Optional.of(reply));
+
+        service.deleteReply(22L, guardian.getCorreo());
+
+        verify(replies).delete(reply);
+        verify(replies, never()).hideForUser(anyLong(), anyLong());
+        ArgumentCaptor<Object> deletedEvent = ArgumentCaptor.forClass(Object.class);
+        verify(events).publishEvent(deletedEvent.capture());
+        assertInstanceOf(com.tesoreria.notification.application.NotificationReplyDeletedEvent.class,
+                deletedEvent.getValue());
+    }
+
+    @Test
+    void deleteReply_delReceptorDeberiaOcultarSoloParaEl() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        NotificationReplyEntity reply = reply(22L, guardian, admin, guardian);
+        when(users.findByCorreo(admin.getCorreo())).thenReturn(Optional.of(admin));
+        when(replies.findById(22L)).thenReturn(Optional.of(reply));
+
+        service.deleteReply(22L, admin.getCorreo());
+
+        verify(replies).hideForUser(22L, 1L);
+        verify(replies, never()).delete(any());
+        verify(events, never()).publishEvent(any());
+    }
+
+    private NotificationReplyEntity reply(Long id, UserEntity author, UserEntity creator,
+            UserEntity recipient) {
+        NotificationEntity notification = new NotificationEntity();
+        notification.setCreatedBy(creator);
+        UserNotificationEntity delivery = new UserNotificationEntity();
+        delivery.setNotification(notification);
+        delivery.setUser(recipient);
+        NotificationReplyEntity reply = mock(NotificationReplyEntity.class);
+        when(reply.getId()).thenReturn(id);
+        when(reply.getAuthor()).thenReturn(author);
+        when(reply.getDelivery()).thenReturn(delivery);
+        return reply;
     }
 
     private UserEntity user(Long id, String name, String email, RoleEnum role) {

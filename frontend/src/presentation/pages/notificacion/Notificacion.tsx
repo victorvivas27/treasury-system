@@ -11,26 +11,38 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FiCheckCircle, FiChevronDown, FiHelpCircle, FiRefreshCw, FiSend, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  type ReactNode } from "react";
+import { FiCheckCircle, FiChevronDown, FiEdit2, FiHelpCircle, FiRefreshCw, FiSend,
+  FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
 import "./Notificacion.css";
 import { NotificationTour, OPEN_NOTIFICATION_TOUR_EVENT } from "./NotificationTour";
+import { useRealtime } from "@/presentation/context/RealtimeContext";
 
 const labels = { INFO: "Informativa", IMPORTANT: "Importante", URGENT: "Urgente" };
 
-const NotificationConversation = ({ deliveryId, repository, isAdmin, notificationItems }: {
+const NotificationConversation = ({ deliveryId, repository, isAdmin, notificationItems,
+  active = true, initialScrollToBottom = false }: {
   deliveryId: number; repository: NotificationRepositoryImpl; isAdmin: boolean;
   notificationItems: Array<{ id: string; createdAt: string; content: ReactNode }>;
+  active?: boolean;
+  initialScrollToBottom?: boolean;
 }) => {
+  const { connected, sendNotificationReply, subscribeMessages, registerActiveThread } = useRealtime();
+  const auth = useOptionalAuth();
   const [messages, setMessages] = useState<NotificationReply[]>([]);
   const [draft, setDraft] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const initialScrollDone = useRef(false);
   const load = useCallback(async () => {
     if (loading) return;
     setLoading(true); setError("");
@@ -39,26 +51,63 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
     finally { setLoading(false); }
   }, [deliveryId, loading, repository]);
   useEffect(() => { if (!loaded) void load(); }, [loaded, load]);
-  const submit = async () => {
+  useEffect(() => {
+    let unregister = () => undefined;
+    const syncActiveThread = () => {
+      unregister();
+      unregister = active && document.visibilityState === "visible"
+        ? registerActiveThread(deliveryId) : () => undefined;
+    };
+    syncActiveThread();
+    document.addEventListener("visibilitychange", syncActiveThread);
+    return () => { document.removeEventListener("visibilitychange", syncActiveThread); unregister(); };
+  }, [active, deliveryId, registerActiveThread]);
+  useEffect(() => subscribeMessages(event => {
+    if (event.deletedMessageId !== undefined) {
+      setMessages(current => current.filter(item => item.id !== event.deletedMessageId));
+      return;
+    }
+    if (event.deliveryId !== deliveryId || !event.reply) return;
+    const reply = event.reply;
+    setMessages(current => current.some(item => item.id === reply.id)
+      ? current : [...current, reply]);
+    setLoaded(true);
+  }), [deliveryId, subscribeMessages]);
+  const submit = () => {
     const message = draft.trim();
     if (!message || sending) return;
     setSending(true); setError("");
     try {
-      const saved = await repository.reply(deliveryId, message);
-      setMessages(current => [...current, saved]); setDraft(""); setLoaded(true);
+      sendNotificationReply(deliveryId, message);
+      setDraft("");
     } catch { setError("No fue posible enviar la respuesta."); }
     finally { setSending(false); }
+  };
+  const editMessage = async () => {
+    if (editingId === null || !editingText.trim()) return;
+    try {
+      const updated = await repository.editReply(editingId, editingText.trim());
+      setMessages(current => current.map(item => item.id === updated.id ? updated : item));
+      setEditingId(null); setEditingText("");
+    } catch { setError("El mensaje ya no puede editarse."); }
+  };
+  const deleteMessage = async (id: number) => {
+    try {
+      await repository.deleteReply(id);
+      setMessages(current => current.filter(item => item.id !== id));
+    } catch { setError("No fue posible eliminar el mensaje."); }
   };
   const timeline = [
     ...notificationItems.map(item => ({ ...item, kind: "notification" as const })),
     ...messages.map(message => ({ id: `reply-${message.id}`, createdAt: message.createdAt,
       kind: "reply" as const, message })),
   ].sort((first, second) => new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime());
-  const timelineRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = timelineRef.current;
-    if (container) container.scrollTop = container.scrollHeight;
-  }, [timeline.length]);
+    if (!initialScrollToBottom || !loaded || initialScrollDone.current || !container) return;
+    container.scrollTop = container.scrollHeight;
+    initialScrollDone.current = true;
+  }, [initialScrollToBottom, loaded, timeline.length]);
   return <div className="notification-conversation">
     <div className="notification-conversation__content">
       {loading && <p className="notification-conversation__state">Cargando conversación…</p>}
@@ -78,7 +127,22 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
         </span>
           <time dateTime={item.message.createdAt}>{new Date(item.message.createdAt).toLocaleString("es-CL", {
             day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
-          })}</time></header><p>{item.message.message}</p>
+          })}</time></header>
+        {editingId === item.message.id ? <form className="notification-reply__edit"
+          onSubmit={event => { event.preventDefault(); void editMessage(); }}>
+          <textarea maxLength={2000} value={editingText}
+            onChange={event => setEditingText(event.target.value)} aria-label="Editar mensaje" />
+          <button type="submit">Guardar</button>
+          <button type="button" onClick={() => setEditingId(null)}>Cancelar</button>
+        </form> : <p>{item.message.message}</p>}
+        {auth?.user?.id === item.message.authorId && editingId !== item.message.id
+          && <footer className="notification-reply__actions">
+            {Date.now() - new Date(item.message.createdAt).getTime() <= 15 * 60 * 1000
+              && <button type="button" onClick={() => { setEditingId(item.message.id);
+                setEditingText(item.message.message); }}><FiEdit2 /> Editar</button>}
+            <button type="button" onClick={() => void deleteMessage(item.message.id)}>
+              <FiTrash2 /> Eliminar</button>
+          </footer>}
       </article>)}
       </div>
       {error && <p className="notification-conversation__error">{error}</p>}
@@ -89,7 +153,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
           placeholder={isAdmin ? "Escribe una respuesta al apoderado…" : "Escribe una respuesta a administración…"}
           maxLength={2000} rows={2} value={draft}
           onChange={event => setDraft(event.target.value)} />
-        <button type="submit" disabled={!draft.trim() || sending}><FiSend />
+        <button type="submit" disabled={!connected || !draft.trim() || sending}><FiSend />
           {sending ? "Enviando…" : "Responder"}</button>
       </form>
     </div>
@@ -132,6 +196,7 @@ const AdminNotificationCenter = () => {
   const [sentLoading, setSentLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [recipientsOpen, setRecipientsOpen] = useState(false);
+  const [openThreads, setOpenThreads] = useState<Set<number>>(new Set());
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const sentByRecipient = useMemo(() => {
     const groups = new Map<number, {
@@ -182,13 +247,12 @@ const AdminNotificationCenter = () => {
     } finally { setSending(false); }
   };
 
-  const deleteSent = async (notification: SentNotification) => {
+  const deleteSent = async (id: number) => {
     if (deletingId !== null) return;
-    setDeletingId(notification.id);
+    setDeletingId(id);
     try {
-      await new Promise(resolve => window.setTimeout(resolve, 320));
-      await repository.deleteSent(notification.id);
-      setSent(items => items.filter(item => item.id !== notification.id));
+      await repository.deleteSent(id);
+      setSent(items => items.filter(item => item.id !== id));
     } catch {
       setAlert({ open: true, message: "No fue posible eliminar la notificación.", type: "error" });
     } finally { setDeletingId(null); }
@@ -255,12 +319,18 @@ const AdminNotificationCenter = () => {
           Todavía no has enviado notificaciones.</p>}
         {sentByRecipient.map(group => <details key={group.userId} className="sent-user-group"
           onToggle={event => {
-            if (!event.currentTarget.open) return;
+            const deliveryId = group.messages[group.messages.length - 1]?.deliveryId;
+            const isOpen = event.currentTarget.open;
+            if (deliveryId !== undefined) setOpenThreads(current => {
+              const next = new Set(current);
+              if (isOpen) next.add(deliveryId); else next.delete(deliveryId);
+              return next;
+            });
+            if (!isOpen) return;
             const groupElement = event.currentTarget;
             window.requestAnimationFrame(() => {
               const messages = groupElement.querySelector<HTMLElement>(".sent-user-group__messages");
               if (messages) {
-                messages.scrollTop = messages.scrollHeight;
                 updateMessageVisibility(messages);
               }
             });
@@ -275,7 +345,9 @@ const AdminNotificationCenter = () => {
             <FiChevronDown aria-hidden="true" /></summary>
           {group.messages.length > 0 && <NotificationConversation
             deliveryId={group.messages[group.messages.length - 1].deliveryId}
-            repository={repository} isAdmin notificationItems={group.messages.map(({
+            repository={repository} isAdmin
+            active={openThreads.has(group.messages[group.messages.length - 1].deliveryId)}
+            notificationItems={group.messages.map(({
               notification: item, read }) => ({ id: `notification-${item.id}`,
               createdAt: item.createdAt, content: <article
               className={`sent-notification chat-bubble chat-bubble--outgoing sent-notification--${
@@ -296,11 +368,10 @@ const AdminNotificationCenter = () => {
                   {read ? <FiCheckCircle aria-hidden="true" /> : <FiXCircle aria-hidden="true" />}
                   {read ? "Leída" : "Pendiente"}
                 </em>
-                <button type="button" className={`notification-delete-action ${
-                  deletingId === item.id ? "is-deleting" : ""}`}
+                <button type="button" className="notification-delete-action"
                   disabled={deletingId !== null}
-                  aria-label={`Eliminar notificación ${item.title}`}
-                  title="Eliminar notificación" onClick={() => void deleteSent(item)}>
+                  aria-label={`Eliminar notificación ${item.title}`} title="Eliminar para todos"
+                  onClick={() => void deleteSent(item.id)}>
                   <FiTrash2 aria-hidden="true" />
                 </button>
               </header>
@@ -342,11 +413,14 @@ const AdminNotificationCenter = () => {
 const GuardianInbox = () => {
   const { notifications, unreadCount, loading, markRead, markAllRead, refresh,
     deleteNotification } = useNotifications();
-  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState(false);
   const autoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
+  useEffect(() => {
+    document.body.classList.add("notifications-inbox-open");
+    return () => document.body.classList.remove("notifications-inbox-open");
+  }, []);
   useEffect(() => {
     if (!loading && unreadCount > 0 && !autoReadRequested.current) {
       autoReadRequested.current = true;
@@ -374,8 +448,9 @@ const GuardianInbox = () => {
       {!loading && notifications.length === 0 && <p className="notifications-empty">
         No tienes notificaciones.</p>}
       {orderedNotifications.length > 0 && <NotificationConversation
+        key={orderedNotifications[orderedNotifications.length - 1].id}
         deliveryId={orderedNotifications[orderedNotifications.length - 1].id}
-        repository={repository} isAdmin={false}
+        repository={repository} isAdmin={false} initialScrollToBottom
         notificationItems={orderedNotifications.map(item => ({ id: `notification-${item.id}`,
           createdAt: item.createdAt, content: <article
         className={`notification-card chat-bubble chat-bubble--incoming notification-card--${item.type.toLowerCase()} ${
@@ -405,19 +480,10 @@ const GuardianInbox = () => {
           </div>
           <h2>{item.title}</h2><p>{item.message}</p>
         </div>
-        <button type="button" className={`notification-delete-action ${
-          deletingId === item.id ? "is-deleting" : ""}`}
-          disabled={deletingId !== null}
-          aria-label={`Eliminar notificación ${item.title}`} title="Eliminar notificación"
-          onClick={event => { event.stopPropagation();
-            if (deletingId !== null) return;
-            setDeletingId(item.id);
-            window.setTimeout(() => {
-              void deleteNotification(item.id)
-                .catch(() => setDeleteError(true))
-                .finally(() => setDeletingId(null));
-            }, 320);
-          }}>
+        <button type="button" className="notification-delete-action"
+          aria-label={`Eliminar notificación ${item.title}`} title="Eliminar de mi vista"
+          onClick={event => { event.stopPropagation(); void deleteNotification(item.id)
+            .catch(() => setDeleteError(true)); }}>
           <FiTrash2 aria-hidden="true" />
         </button>
       </article> }))} />}

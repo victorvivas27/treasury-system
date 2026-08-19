@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '@/presentation/context/AuthContext'
 import { ThemeProvider } from '@/presentation/context/ThemeContext'
 import { NotificationProvider } from '@/presentation/context/NotificationContext'
+import { RealtimeProvider } from '@/presentation/context/RealtimeContext'
 
 function App() {
 
@@ -10,7 +11,7 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <NotificationProvider><AppRouter /></NotificationProvider>
+          <RealtimeProvider><NotificationProvider><AppRouter /></NotificationProvider></RealtimeProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

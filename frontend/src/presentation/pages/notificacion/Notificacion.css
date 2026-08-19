@@ -17,6 +17,7 @@
 .notifications-inbox .notifications-header-action:hover:not(:disabled) { filter: brightness(1.12);
   transform: translateY(-1px); }
 .notifications-inbox .notifications-header-action:disabled { opacity: .48; box-shadow: none; }
+body.notifications-inbox-open { overflow: hidden; }
 .notifications-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; }
 .notification-card { border: 1px solid var(--border-color); border-left: 4px solid #6482a4;
   border-radius: 8px; padding: .6rem .7rem; background: var(--color-surface); }
@@ -69,10 +70,11 @@
   top: .35rem; right: .35rem; margin: 0; padding: .35rem; color: var(--color-text-muted); }
 .notifications-inbox .notification-card__content > header { padding-right: 2rem; }
 .notifications-empty { padding: 2rem; text-align: center; color: var(--color-text-muted); }
-.notifications-inbox { max-width: 680px; margin-inline: auto; }
+.notifications-inbox { max-width: 500px; height: calc(100dvh - 7rem); margin-inline: auto;
+  overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); }
 .notifications-inbox .notifications-list { grid-template-columns: 1fr; gap: .55rem;
   padding: .65rem .65rem .65rem .85rem; border-radius: 10px; background: var(--color-surface);
-  overflow: visible;
+  min-height: 0; overflow: hidden;
   scrollbar-color: color-mix(in srgb, var(--color-accent) 50%, transparent) transparent;
   scroll-snap-type: y proximity; scroll-padding-block: .5rem .9rem; }
 .notifications-inbox .notifications-list::-webkit-scrollbar { width: 6px; }
@@ -236,15 +238,22 @@
   padding: .2rem .4rem; font-size: .6rem; }
 .notification-conversation { width: 100%; margin-top: .1rem; border-top: 1px solid var(--border-color);
   padding: .35rem 0 .2rem; }
-.notification-conversation__content { display: grid; gap: .22rem; }
+.notification-conversation__content { display: grid; gap: .55rem; }
 .notification-conversation__messages { display: grid; gap: .35rem; min-height: 0;
   overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
 .notification-timeline-item { display: contents; }
 .notifications-inbox .notification-conversation { position: relative; z-index: 3;
-  width: 100%; margin: 0; border: 0; padding: 0; background: var(--color-surface); }
-.notifications-inbox .notification-conversation__messages { max-height: 410px;
-  padding: .15rem .2rem .5rem; scroll-snap-type: y proximity; }
-.sent-user-group > .notification-conversation { width: calc(100% - .8rem); margin: .15rem .4rem .4rem;
+  width: 100%; height: 100%; min-height: 0; margin: 0; border: 0; padding: 0;
+  background: var(--color-surface); }
+.notifications-inbox .notification-conversation__content {
+  height: 100%; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
+.notifications-inbox .notification-conversation__messages {
+  height: 100%; min-height: 0; max-height: none;
+  padding: .15rem .2rem 1rem; scroll-snap-type: y proximity; align-content: start; }
+.notifications-inbox .notification-reply-form { margin-top: .75rem; padding-top: .65rem;
+  border-top: 1px solid var(--border-color); }
+.sent-user-group > .notification-conversation { width: min(480px, calc(100% - .8rem));
+  margin: .15rem auto .4rem;
   padding-top: .35rem; }
 .notification-reply { max-width: 88%; border-radius: 9px; padding: .3rem .42rem;
   background: color-mix(in srgb, var(--color-info) 12%, var(--color-surface)); }
@@ -258,8 +267,16 @@
 .notification-reply header strong { color: var(--color-text-main); font-size: .54rem; }
 .notification-reply p { margin: .15rem 0 0; color: var(--color-text-main);
   white-space: pre-wrap; overflow-wrap: anywhere; font-size: .61rem; }
+.notification-reply__actions { display: flex; justify-content: flex-end; gap: .25rem; margin-top: .25rem; }
+.notification-reply__actions button { display: inline-flex; align-items: center; gap: .15rem;
+  border: 0; padding: .1rem .2rem; background: transparent; color: var(--color-text-muted);
+  cursor: pointer; font-size: .48rem; }
+.notification-reply__edit { display: grid; grid-template-columns: 1fr auto auto; gap: .25rem;
+  margin-top: .3rem; }
+.notification-reply__edit textarea { min-height: 38px; resize: vertical; }
+.notification-reply__edit button { border: 0; border-radius: 5px; padding: .2rem .35rem; cursor: pointer; }
 .notification-reply-form { display: grid; grid-template-columns: 1fr auto; gap: .4rem;
-  align-items: stretch; margin-top: .12rem; }
+  align-items: stretch; margin-top: .35rem; }
 .notification-reply-form textarea { min-width: 0; min-height: 40px; border: 1px solid var(--border-color);
   border-radius: 7px; padding: .35rem; resize: vertical; background: var(--color-surface);
   color: var(--color-text-main); font: inherit; font-size: .6rem; }
@@ -303,7 +320,7 @@
 .sent-user-group__messages { display: grid; gap: .18rem; padding: .4rem .65rem .45rem .4rem;
   max-height: 285px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--color-accent) 45%, transparent) transparent;
-  scroll-snap-type: y proximity; scroll-padding-block: .4rem .9rem;
+  overscroll-behavior: contain; overflow-anchor: none;
   animation: recipientPanelOpen .18s ease-out; }
 .sent-user-group__messages::-webkit-scrollbar { width: 5px; }
 .sent-user-group__messages::-webkit-scrollbar-thumb { border-radius: 1rem;
@@ -314,7 +331,6 @@
   --bubble-bg: color-mix(in srgb, #6482a4 7%, var(--color-surface));
   border: 1px solid var(--bubble-border); border-radius: 12px; margin: 0 0 .2rem;
   background: var(--bubble-bg); box-shadow: 0 2px 7px color-mix(in srgb, #000 8%, transparent);
-  scroll-snap-align: start; scroll-snap-stop: normal;
   opacity: var(--message-visibility, 1); filter: blur(var(--message-blur, 0));
   transform: scale(var(--message-scale, 1)); transform-origin: center;
   transition: opacity .24s ease, filter .24s ease, transform .24s ease; }
@@ -498,7 +514,8 @@
     border-width: 11px 0 0 12px; }
   .sent-user-group__messages .chat-bubble--outgoing::after { right: 15px; bottom: -8px;
     border-width: 9px 0 0 9px; }
-  .notifications-inbox { width: 100%; padding: .3rem; gap: .18rem; }
+  .notifications-inbox { width: 100%; height: calc(100dvh - 5rem);
+    padding: .3rem; gap: .18rem; }
   .notifications-inbox .page-header { gap: .2rem; }
   .notifications-inbox .page-header__title { font-size: .82rem; }
   .notifications-inbox .page-header__subtitle { font-size: .58rem; }
@@ -508,7 +525,10 @@
   .notifications-inbox .notifications-list { gap: .22rem; max-height: none;
     width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
     padding: .35rem .3rem .35rem .5rem; }
-  .notifications-inbox .notification-conversation__messages { max-height: 310px; }
+  .notifications-inbox .notification-conversation__content {
+    grid-template-rows: minmax(0, 1fr) auto; }
+  .notifications-inbox .notification-conversation__messages {
+    height: 100%; max-height: none; }
   .notifications-inbox .notifications-empty { width: 100%; min-width: 0;
     box-sizing: border-box; margin: 0; padding: .8rem .4rem;
     overflow-wrap: anywhere; font-size: .58rem; }

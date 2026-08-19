@@ -3,7 +3,7 @@ import { PiStudent } from "react-icons/pi";
 import { BsPerson } from "react-icons/bs";
 import { TbPigMoney } from "react-icons/tb";
 import { GrPieChart } from "react-icons/gr";
-import { IoNotificationsOutline, IoSettingsOutline } from "react-icons/io5";
+import { IoChatbubblesOutline, IoSettingsOutline } from "react-icons/io5";
 import { BiExit } from "react-icons/bi";
 import { FcConferenceCall } from "react-icons/fc";
 import { TfiReload } from "react-icons/tfi";
@@ -35,7 +35,7 @@ export const ICONS = {
   familia: MdFamilyRestroom,
   tesoreria: TbPigMoney,
   expand: IoChevronDownOutline,
-  notifications: IoNotificationsOutline,
+  notifications: IoChatbubblesOutline,
   settings: IoSettingsOutline,
   logout: BiExit,
   edit: GrEdit,
