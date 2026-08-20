@@ -3,6 +3,8 @@
 .public-home__brand img { width:48px; height:48px; object-fit:contain; transition:transform 300ms ease,filter 300ms ease; }
 .public-home__brand:hover img { transform:rotate(-7deg) scale(1.08); filter:drop-shadow(0 0 10px rgba(14,235,205,.35)); }
 .public-home__nav { display:flex; align-items:center; gap:.75rem; }
+.public-home__nav.is-authenticated > a:not(.public-home__register) { color:var(--text-main); font-size:.9rem; font-weight:600; white-space:nowrap; transition:color 160ms ease; }
+.public-home__nav.is-authenticated > a:not(.public-home__register):hover { color:var(--color-accent); }
 .public-home__login,.public-home__register { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:.45rem; border-radius:.7rem; font-weight:650; transition:transform 160ms ease,background-color 160ms ease; }
 .public-home__login { border:1px solid var(--border-color); padding:0 1rem; background:var(--color-surface); color:var(--text-main); }
 .public-home__register { padding:0 1.25rem; background:var(--color-accent); color:#071512; }
@@ -10,11 +12,13 @@
 .public-home__register:hover { transform:translateY(-2px); }
 @keyframes home-header-in { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:none; } }
 @media (max-width:680px) {
-  .public-home__header { min-height:72px; }
+  .public-home__header { min-height:72px; flex-wrap:wrap; padding-block:.5rem; }
   .public-home__brand { min-width:0; gap:.25rem; font-size:.62rem; white-space:nowrap; }
   .public-home__brand img { width:34px; height:34px; }
   .public-home__brand > span { display:inline; }
   .public-home__nav { flex:0 0 auto; gap:.2rem; }
+  .public-home__nav.is-authenticated { order:3; width:100%; overflow-x:auto; padding:.35rem 0 .5rem; }
+  .public-home__nav.is-authenticated > a:not(.public-home__register) { padding:.4rem .35rem; font-size:.68rem; }
   .public-home__login,.public-home__register { min-height:34px; gap:.2rem; padding-inline:.35rem; font-size:.58rem; white-space:nowrap; }
   .public-home__login svg,.public-home__register svg { flex:0 0 auto; font-size:.75rem; }
 }

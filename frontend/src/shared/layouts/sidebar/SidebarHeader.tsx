@@ -1,5 +1,6 @@
 
 import { IoIosArrowBack } from "react-icons/io";
+import { Link } from "react-router-dom";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "./style/SidebarHeader.css";
 type SidebarHeaderProps = {
@@ -20,10 +21,10 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
         <IoIosArrowBack className="sidebar-btn-arrow-icon" />
       </button>
 
-      <header className="sidebar-brand-header">
+      <Link className="sidebar-brand-header" to="/" aria-label="Ir a la página de inicio">
         <BrandLogo className="sidebar-brand-icon" />
         <span className="sidebar-brand-name">Sistema de Tesorería</span>
-      </header>
+      </Link>
     </>
   );
 };

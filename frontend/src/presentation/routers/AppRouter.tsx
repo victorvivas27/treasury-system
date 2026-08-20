@@ -30,6 +30,7 @@ import { ExpensesPage } from "../pages/tesoreria/ExpensesPage";
 import { IncomesPage } from "../pages/tesoreria/IncomesPage";
 import { EventsPage } from "../pages/tesoreria/EventsPage";
 import { StandManagementPage } from "../pages/stand/StandManagementPage";
+import { AboutManagementPage } from "../pages/community/AboutManagementPage";
 
 export const AppRouter = () => {
   return (
@@ -56,6 +57,7 @@ export const AppRouter = () => {
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
         </Route>
         <Route element={<AdminRoute />}>
+          <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
           <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />

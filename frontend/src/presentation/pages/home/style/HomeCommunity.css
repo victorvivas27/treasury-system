@@ -1,0 +1,50 @@
+.home-community { display:grid; gap:5rem; padding:5rem 0 2rem; scroll-behavior:smooth; }
+.home-community__section,.home-community__contact { display:flex; align-items:center; gap:1.5rem; border:1px solid var(--border-color); border-radius:1.25rem; padding:2rem; background:var(--color-surface); }
+.home-community__icon,.home-community__contact > svg { flex:0 0 auto; width:3.5rem; height:3.5rem; padding:.85rem; border-radius:1rem; background:var(--color-accent-soft); color:var(--color-primary); }
+.home-community__eyebrow { color:var(--color-primary); font-size:.78rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; }
+.home-community__about>header { max-width:42rem; margin:0 auto 2rem; text-align:center; }.home-community__about>header p{margin:auto}.home-community__about-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }.home-community__about-grid>.home-community__eyebrow{display:none}
+.home-community__about-card { --card-accent:#0eebcd; position:relative; display:grid; grid-template-columns:auto minmax(0,1fr); align-items:start; gap:.7rem 1rem; overflow:hidden; border:1px solid color-mix(in srgb,var(--card-accent) 28%,var(--border-color)); border-radius:1.2rem; padding:1.5rem; background:linear-gradient(140deg,color-mix(in srgb,var(--card-accent) 9%,var(--color-surface)),var(--color-surface) 70%); box-shadow:var(--shadow-card); animation:community-card-in 600ms var(--card-delay,0ms) both; transition:transform 200ms ease,box-shadow 200ms ease; }.home-community__about-card:hover{transform:translateY(-5px);box-shadow:0 18px 45px color-mix(in srgb,var(--card-accent) 15%,transparent)}
+.home-community__about-card > div { display:contents; }
+.home-community__about-card h2,.home-community__about-card h3 { align-self:center; }
+.home-community__about-card p,.home-community__about-card blockquote,
+.home-community__about-card .home-community__read-more { grid-column:1/-1; }
+.home-community__about-card.is-featured { grid-column:1/-1; padding:clamp(1.5rem,4vw,2.3rem); }.home-community__card-icon { display:grid; flex:0 0 auto; width:3.25rem; height:3.25rem; place-items:center; border-radius:1rem; background:color-mix(in srgb,var(--card-accent) 18%,transparent); color:var(--card-accent); font-size:1.5rem; }.home-community__about-card h2,.home-community__about-card h3{margin:.1rem 0 .55rem}.home-community__about-card blockquote{margin:1rem 0 0;padding-left:.9rem;border-left:3px solid var(--card-accent);color:var(--text-main);font-weight:650;font-style:italic}
+.home-community__read-more { display:none; color:var(--card-accent); font-weight:700; }
+.home-community .is-turquoise{--card-accent:#0eebcd}.home-community .is-blue{--card-accent:#3b82f6}.home-community .is-purple{--card-accent:#8b5cf6}.home-community .is-orange{--card-accent:#f59e0b}.home-community .is-pink{--card-accent:#ec4899}.home-community .is-green{--card-accent:#22c55e}
+@keyframes community-card-in{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
+.home-community h2 { margin:.35rem 0 .65rem; color:var(--text-main); font-size:clamp(1.5rem,3vw,2.2rem); }
+.home-community p { margin:0; color:var(--text-muted); line-height:1.7; }
+.home-community__content { scroll-margin-top:1rem; }
+.home-community__heading { max-width:42rem; margin-bottom:1.5rem; }
+.home-community__photo-placeholder { display:grid; min-height:18rem; place-content:center; justify-items:center; gap:.75rem; border:1px dashed var(--border-color); border-radius:1.25rem; background:linear-gradient(135deg,var(--color-accent-soft),var(--color-surface)); color:var(--text-muted); font-weight:650; }
+.home-community__photo-placeholder svg { font-size:2.5rem; color:var(--color-primary); }
+.home-community__board { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.home-community__board article { border:1px solid var(--border-color); border-radius:1rem; padding:1.5rem; background:var(--color-surface); text-align:center; }
+.home-community__board article > span { display:grid; width:3rem; height:3rem; margin:0 auto .75rem; place-items:center; border-radius:50%; background:var(--color-accent-soft); color:var(--color-primary); font-weight:800; }
+.home-community__board h3 { margin:.25rem 0; color:var(--text-main); }
+.home-community__contact { scroll-margin-top:1rem; }
+@media (max-width:680px) {
+  .home-community { gap:3.5rem; padding-top:3.5rem; }
+  .home-community__section,.home-community__contact { align-items:flex-start; padding:1.25rem; }
+  .home-community__board { grid-template-columns:1fr; }
+  .home-community__about > header { margin-bottom:1.25rem; }
+  .home-community__about > header h2 { font-size:1.35rem; }
+  .home-community__about > header p { font-size:.82rem; line-height:1.45; }
+  .home-community__about-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+  .home-community__about-card { grid-template-columns:auto minmax(0,1fr); gap:.45rem .55rem; min-width:0; padding:.8rem; border-radius:.85rem; }
+  .home-community__about-card.is-featured { grid-column:1/-1; }
+  .home-community__card-icon { width:2.15rem; height:2.15rem; border-radius:.65rem; font-size:1rem; }
+  .home-community__about-card h2,.home-community__about-card h3 { margin:.1rem 0 .35rem; font-size:.9rem; line-height:1.2; }
+  .home-community__about-card p { display:-webkit-box; overflow:hidden; margin:0; font-size:.72rem; line-height:1.4; -webkit-box-orient:vertical; -webkit-line-clamp:5; }
+  .home-community__about-card p.is-expanded { display:block; overflow:visible; }
+  .home-community__read-more { display:block; margin-top:.35rem; font-size:.68rem; }
+  .home-community__about-card blockquote { display:-webkit-box; overflow:hidden; margin:.55rem 0 0; padding-left:.5rem; font-size:.68rem; line-height:1.35; -webkit-box-orient:vertical; -webkit-line-clamp:3; }
+  .home-community__photo-placeholder { min-height:12rem; }
+}
+
+@media (max-width:360px) {
+  .home-community__about-grid { gap:.5rem; }
+  .home-community__about-card { padding:.65rem; }
+  .home-community__about-card h2,.home-community__about-card h3 { font-size:.82rem; }
+  .home-community__about-card p { font-size:.66rem; -webkit-line-clamp:4; }
+}
