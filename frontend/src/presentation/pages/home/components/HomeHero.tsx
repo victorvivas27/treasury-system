@@ -46,7 +46,7 @@ const AnimatedNumber = ({ value, currency = false, suffix = "" }: {
   return <strong ref={elementRef}>{currency ? `$ ${formatted}` : formatted}{suffix}</strong>;
 };
 
-export const HomeHero = () => (
+export const HomeHero = ({ isAuthenticated = false }: { isAuthenticated?: boolean }) => (
   <section className="public-home__hero">
     <div className="public-home__hero-copy public-home__hero-enter">
       <span className="public-home__eyebrow"><FiShield aria-hidden="true" />Gestión simple y segura</span>
@@ -56,12 +56,16 @@ export const HomeHero = () => (
         gastos del curso con total transparencia.
       </p>
       <div className="public-home__actions">
-        <Link className="public-home__primary-action" to="/register">
+        <Link className="public-home__primary-action" to={isAuthenticated ? "/dashboard" : "/register"}>
+          {isAuthenticated ? <><FiUsers aria-hidden="true" /> Entrar al sistema</> : <>
           <FiUserPlus aria-hidden="true" /> Crear cuenta
+          </>}
         </Link>
-        <Link className="public-home__secondary-action" to="/login">
+        {isAuthenticated ? <a className="public-home__secondary-action" href="#sobre-nosotros">
+          Conocer nuestro curso
+        </a> : <Link className="public-home__secondary-action" to="/login">
           <FiLogIn aria-hidden="true" /> Iniciar sesión
-        </Link>
+        </Link>}
       </div>
       <div className="public-home__trust">
         <span><FiCheckCircle aria-hidden="true" /> Fácil de usar</span>

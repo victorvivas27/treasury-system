@@ -39,6 +39,12 @@ describe('Sidebar Component', () => {
   });
 
   describe('Sidebar Principal', () => {
+    it('[Sidebar #00] El logo enlaza a la página de inicio', () => {
+      renderSidebar();
+      expect(screen.getByRole('link', { name: /ir a la página de inicio/i }))
+        .toHaveAttribute('href', '/');
+    });
+
     it('[Sidebar #01] Llama a onToggleSidebar al hacer clic en el botón toggle', () => {
       renderSidebar();
       fireEvent.click(screen.getByRole("button", { name: /toggle sidebar/i }));
