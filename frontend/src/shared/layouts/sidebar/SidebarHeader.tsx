@@ -23,7 +23,7 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
 
       <Link className="sidebar-brand-header" to="/" aria-label="Ir a la página de inicio">
         <BrandLogo className="sidebar-brand-icon" />
-        <span className="sidebar-brand-name">Sistema de Tesorería</span>
+        <span className="sidebar-brand-name">Home</span>
       </Link>
     </>
   );

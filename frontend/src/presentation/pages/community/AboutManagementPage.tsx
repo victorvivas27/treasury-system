@@ -45,7 +45,7 @@ export const AboutManagementPage = () => {
 
   const load = useCallback(async () => {
     try { setItems(await about.adminList()); }
-    catch { setError("No fue posible cargar el contenido de Sobre nosotros."); }
+    catch { setError("No fue posible cargar el contenido de Lo que nos mueve."); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -74,7 +74,7 @@ export const AboutManagementPage = () => {
   };
 
   return <section className="about-admin" aria-labelledby="about-admin-title">
-    <header><span>Administración de la Home</span><h1 id="about-admin-title">Sobre nosotros</h1>
+    <header><span>Administración de la Home</span><h1 id="about-admin-title">Lo que nos mueve</h1>
       <p>Crea, actualiza, ordena y publica el contenido que verá la comunidad.</p></header>
     <form className="about-admin__form" onSubmit={submit}>
       <div className="about-admin__form-title"><h2>{editingId ? "Editar contenido" : "Nuevo contenido"}</h2>

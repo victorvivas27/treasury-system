@@ -96,13 +96,14 @@ public class AccountRecoveryService {
     }
 
     @Transactional
-    public void verifyEmail(String rawToken) {
+    public User verifyEmail(String rawToken) {
         UserTokenEntity token = validToken(rawToken, UserTokenType.EMAIL_VERIFICATION);
         User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setEnabled(true);
         users.save(user);
         tokens.delete(token);
+        return user;
     }
 
     @Transactional

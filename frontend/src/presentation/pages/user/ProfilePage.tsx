@@ -269,7 +269,7 @@ export const ProfilePage = () => {
             const paid = payment?.status === "PAID";
             return <div className={`profile-contribution-status ${paid ? "is-current" : "has-debt"}`}
               key={type}>
-              <span>{type === "CEPA" ? "Aporte CEPA" : "Aporte solidario"}</span>
+              <span>{type === "CEPA" ? "Aporte CEPA" : "Fondo de Apoyo por Fallecimiento"}</span>
               <strong>{paid ? "Pagado" : "Pendiente"}</strong>
             </div>;
           })}

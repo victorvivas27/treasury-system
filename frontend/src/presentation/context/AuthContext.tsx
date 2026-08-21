@@ -23,6 +23,7 @@ interface AuthContextValue {
   loading: boolean;
   isAuthenticated: boolean;
   login: (correo: string, password: string) => Promise<void>;
+  establishSession: (response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => void;
   logout: () => Promise<void>;
   syncUser: (updatedUser: User) => void;
 }
@@ -159,6 +160,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
+    sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
+    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+    validatedToken.current = response.token;
+    hadActiveSession.current = true;
+    setSessionExpired(false);
+    setToken(response.token);
+    setUser(response.user);
+    setLoading(false);
+  }, []);
+
   const logout = async () => {
     // Inicia la revocación con el token todavía disponible, pero no bloquea la interfaz.
     const revocation = token ? useCases.logout.execute() : null;
@@ -173,7 +185,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return <>
     <AuthContext.Provider
-      value={{ user, token, loading, isAuthenticated: Boolean(token && user), login, logout,
+      value={{ user, token, loading, isAuthenticated: Boolean(token && user), login, establishSession, logout,
         syncUser }}
     >
       {children}

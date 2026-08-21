@@ -20,6 +20,7 @@
 .contribution-summary-card i { display:grid; width:1.8rem; height:1.8rem; flex:0 0 auto; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--summary-color) 16%,transparent); color:var(--summary-color); font-style:normal; }
 .contribution-summary-card i svg { width:1rem; height:1rem; overflow:visible; }
 .contribution-summary-card strong { color:var(--summary-color); }
+.contribution-summary-status { width:max-content; border-radius:99px; padding:.15rem .42rem; background:color-mix(in srgb,var(--summary-color) 16%,transparent); color:var(--summary-color); font-size:.6rem; font-style:normal; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .contribution-summary-card--families { --summary-color:var(--color-accent); }
 .contribution-summary-card--cepa-paid { --summary-color:var(--color-success); }
 .contribution-summary-card--cepa-pending { --summary-color:var(--color-warning); }
@@ -72,6 +73,7 @@
 .contribution-badge.is-pending { background:rgba(245,158,11,.1); color:var(--color-warning); }
 .contribution-badge span { display:grid; min-width:0; font-size:.64rem; }
 .contribution-badge strong { color:var(--text-main); font-size:.66rem; }
+.contribution-badge em { width:max-content; margin-top:.18rem; border-radius:99px; padding:.1rem .36rem; background:color-mix(in srgb,currentColor 14%,transparent); color:currentColor; font-size:.57rem; font-style:normal; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .contribution-card>button { width:100%; min-height:32px; margin-top:.55rem; padding:.35rem .55rem; background:var(--color-hover); color:var(--text-main); font-size:.68rem; }
 .contribution-card--skeleton { border-color:var(--border-color); }
 .contribution-card--skeleton .contribution-card__heading>div:first-child { display:grid; width:65%; gap:.45rem; }

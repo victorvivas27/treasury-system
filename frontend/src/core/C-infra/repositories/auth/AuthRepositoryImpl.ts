@@ -35,9 +35,8 @@ export class AuthRepositoryImpl implements IAuthRepository {
     });
   }
 
-  async verifyEmail(token: string): Promise<string> {
-    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/verify-email`, { token }))
-      .data.message;
+  async verifyEmail(token: string): Promise<LoginResponse> {
+    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/verify-email`, { token })).data;
   }
 
   async resendVerification(email: string): Promise<string> {

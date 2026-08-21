@@ -165,7 +165,9 @@
 
 /* Info */
 .sidebar-user-info {
-  max-width: 10rem;
+  min-width: 0;
+  max-width: none;
+  flex: 1 1 auto;
   overflow: hidden;
   white-space: nowrap;
   visibility: visible;
@@ -178,11 +180,17 @@
 }
 
 .sidebar-user-name {
+  font-size: clamp(0.68rem, 1.5vh, 0.78rem);
   font-weight: 600;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-user-email {
   color: var(--text-muted);
+  font-size: clamp(0.56rem, 1.25vh, 0.68rem);
+  line-height: 1.15;
   overflow: hidden;
   text-overflow: ellipsis;
 }

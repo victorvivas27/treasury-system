@@ -72,7 +72,7 @@ export const LoginPage = () => {
       const requestedDestination = (location.state as { from?: string } | null)?.from;
       const destination = requestedDestination && requestedDestination !== "/login"
         ? requestedDestination
-        : "/dashboard";
+        : "/";
       navigate(destination, { replace: true });
       loginPerformance.mark("navigation");
     } catch (loginError) {
@@ -85,7 +85,7 @@ export const LoginPage = () => {
   const requestedDestination = (location.state as { from?: string } | null)?.from;
   const authenticatedDestination = requestedDestination && requestedDestination !== "/login"
     ? requestedDestination
-    : "/dashboard";
+    : "/";
 
   if (isAuthenticated) return <Navigate to={authenticatedDestination} replace />;
   if (sessionLoading && token) return <LoadingState mesage="Recuperando tu sesión..." />;

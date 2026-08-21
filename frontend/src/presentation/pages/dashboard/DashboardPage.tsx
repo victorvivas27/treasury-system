@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
+import { FcExpand } from "react-icons/fc";
 import {
   Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip,
@@ -45,6 +46,8 @@ export const DashboardPage = () => {
   const [cleanupError, setCleanupError] = useState("");
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.innerWidth <= 700);
 
@@ -147,7 +150,7 @@ export const DashboardPage = () => {
         <span>Año escolar</span>
         <button type="button" aria-label="Año escolar" aria-haspopup="listbox"
           aria-expanded={yearOpen} onClick={() => setYearOpen(current => !current)}>
-          {year}<span aria-hidden="true">⌄</span>
+          {year}<FcExpand className={yearOpen ? "is-open" : ""} aria-hidden="true" />
         </button>
         {yearOpen && <div className="dashboard-year-select__menu" role="listbox"
           aria-label="Año escolar">
@@ -287,13 +290,13 @@ export const DashboardPage = () => {
 
         <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
           <header><div><span>Aportes del curso</span>
-            <h2>Cuota CEPA y Cuota Solidaria</h2>
+            <h2>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h2>
             <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div></header>
           {contributions && contributions.totalFamilies > 0
             ? <div className="contribution-donuts">
               <ContributionDonut title="Cuota CEPA"
                 paid={contributions.cepaPaid} pending={contributions.cepaPending} />
-              <ContributionDonut title="Cuota Solidaria"
+              <ContributionDonut title="Fondo de Apoyo por Fallecimiento"
                 paid={contributions.solidarityPaid}
                 pending={contributions.solidarityPending} />
             </div>
@@ -302,7 +305,16 @@ export const DashboardPage = () => {
       </section>
 
       <section className="dashboard-panel dashboard-activity">
-        <header><div><span>Últimos registros</span><h2>Actividad reciente</h2></div></header>
+        <header><button className="dashboard-collapse-trigger" type="button"
+          aria-expanded={activityOpen} aria-controls="dashboard-recent-activity"
+          onClick={() => setActivityOpen(open => !open)}>
+          <div><span>Últimos registros</span><h2>Actividad reciente</h2></div>
+          <FcExpand className={activityOpen ? "is-open" : ""} aria-hidden="true" />
+        </button></header>
+        <div id="dashboard-recent-activity"
+          className={`dashboard-collapse-content ${activityOpen ? "is-open" : ""}`}
+          aria-hidden={!activityOpen} inert={!activityOpen}>
+          <div>
         {data.recentMovements.length === 0 ? <p className="dashboard-empty">
           No hay movimientos registrados para {year}.</p> : <div className="dashboard-table-wrap">
           <table><thead><tr><th>Tipo</th><th>Descripción</th><th>Fecha</th>
@@ -332,19 +344,28 @@ export const DashboardPage = () => {
             onPrevious={() => setActivityPage(page => page - 1)}
             onNext={() => setActivityPage(page => page + 1)}
             ariaLabel="Paginación de actividad reciente" />}
-        </div>}
+        </div>}</div></div>
       </section>
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
-        <header><div><span>Historial del sistema</span><h2>Trazas de Tesorería</h2>
-          <p>Registro de creaciones, modificaciones, anulaciones y pagos.</p></div>
-          {data.auditTrail.length > 0 && <div className="audit-actions">
+        <header><button className="dashboard-collapse-trigger" type="button"
+          aria-expanded={auditOpen} aria-controls="dashboard-audit-trail"
+          onClick={() => setAuditOpen(open => !open)}>
+          <div><span>Historial del sistema</span><h2>Trazas de Tesorería</h2>
+            <p>Registro de creaciones, modificaciones, anulaciones y pagos.</p></div>
+          <FcExpand className={auditOpen ? "is-open" : ""} aria-hidden="true" />
+        </button>
+          {auditOpen && data.auditTrail.length > 0 && <div className="audit-actions">
             <button disabled={selectedAudits.size === 0}
               onClick={() => setCleanup("selected")}><FiTrash2 /> Limpiar seleccionadas</button>
             <button className="is-danger" onClick={() => setCleanup("all")}>
               <FiTrash2 /> Limpiar todo {year}</button>
           </div>}
         </header>
+        <div id="dashboard-audit-trail"
+          className={`dashboard-collapse-content ${auditOpen ? "is-open" : ""}`}
+          aria-hidden={!auditOpen} inert={!auditOpen}>
+          <div>
         {data.auditTrail.length === 0 ? <p className="dashboard-empty">
           No hay trazas registradas para {year}.</p> : <div className="dashboard-table-wrap">
           <table><thead><tr>
@@ -382,7 +403,7 @@ export const DashboardPage = () => {
             onPrevious={() => setAuditPage(page => page - 1)}
             onNext={() => setAuditPage(page => page + 1)}
             ariaLabel="Paginación de trazas de Tesorería" />}
-        </div>}
+        </div>}</div></div>
       </section>}
     </>)}
     {isAdmin && <ModalConfirm isOpen={cleanup !== null} title="Limpiar trazas"
@@ -463,7 +484,7 @@ const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
       ["Flujo mensual", "Ingresos extraordinarios y egresos", true],
       ["Cuota anual", "Modalidad y avance de recaudación", false],
       ["Principales egresos", "¿En qué se gastó?", false],
-      ["Aportes del curso", "Cuota CEPA y Cuota Solidaria", true],
+      ["Aportes del curso", "Cuota CEPA y Fondo de Apoyo por Fallecimiento", true],
     ].map(([eyebrow, title, wide]) => <article
       className={`dashboard-panel ${wide ? "dashboard-panel--wide" : ""}`} key={String(title)}>
       <header><div><span>{eyebrow}</span><h2>{title}</h2></div></header>

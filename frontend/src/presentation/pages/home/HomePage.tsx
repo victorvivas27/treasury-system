@@ -11,13 +11,14 @@ import { LoadingState } from "@/shared/ui/loading/LoadingState";
 
 export const HomePage = () => {
   useHomeReveal();
-  const { token, loading, isAuthenticated, user } = useAuth();
+  const { token, loading, isAuthenticated, user, logout } = useAuth();
 
   if (loading && token) return <LoadingState mesage="Recuperando tu sesión..." />;
 
   return (
     <div className="public-home">
-      <HomeHeader isAuthenticated={isAuthenticated} isAdmin={user?.rol === "ADMIN"} />
+      <HomeHeader isAuthenticated={isAuthenticated} isAdmin={user?.rol === "ADMIN"}
+        user={user} onLogout={() => void logout()} />
       <main>
         <HomeInstallGuide />
         <HomeHero isAuthenticated={isAuthenticated} />

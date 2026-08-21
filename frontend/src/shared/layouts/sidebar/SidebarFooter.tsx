@@ -7,6 +7,7 @@ import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./style/SidebarFooter.css";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
+import { FiLogOut } from "react-icons/fi";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -20,10 +21,8 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { actions } = SIDEBAR_USER_MOCK;
   const name = auth?.user?.nombre ?? SIDEBAR_USER_MOCK.name;
   const email = auth?.user?.correo ?? SIDEBAR_USER_MOCK.email;
-  const LogoutIcon = actions.logoutIcon;
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -80,8 +79,8 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
         >
           <UserAvatar user={auth?.user ?? null} fallbackName={name} className="sidebar-user-avatar" />
           <div className="sidebar-user-info">
-            <span className="sidebar-user-name">{name}</span>
-            <span className="sidebar-user-email">{email}</span>
+            <span className="sidebar-user-name" title={name}>{name}</span>
+            <span className="sidebar-user-email" title={email}>{email}</span>
           </div>
         </NavLink>
 
@@ -89,7 +88,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
           type="button"
           variant="secondary"
           onClick={() => setIsLogoutModalOpen(true)}
-          icon={<LogoutIcon className="sidebar-footer-icon" />}
+          icon={<FiLogOut className="sidebar-footer-icon" />}
           label="Cerrar sesión"
           className={!isSidebarOpen ? "button--sidebar-closed" : "button--sidebar-open"}
           testId="sidebar-logout-btn"

@@ -105,12 +105,13 @@ export const FamilyContributionsPage = () => {
 
   const pay = async (type: ContributionType) => {
     if (!selected) return;
-    const label = type === "CEPA" ? "Cuota CEPA" : "Cuota Solidaria";
     setSaving(true);
     setError("");
     try {
       await repository.payContribution(selected.familyId, year, type, paymentDate);
-      setMessage(`La ${label} de la familia ${selected.familyCode} fue marcada como pagada.`);
+      setMessage(type === "CEPA"
+        ? `La Cuota CEPA de la familia ${selected.familyCode} fue marcada como pagada.`
+        : `El Fondo de Apoyo por Fallecimiento de la familia ${selected.familyCode} fue marcado como pagado.`);
       setPendingAction(null);
       setSelected(null);
       await load();
@@ -148,7 +149,7 @@ export const FamilyContributionsPage = () => {
     <main className="contributions-page">
       <header className="contributions-page__header">
         <div>
-          <h1>Cuota CEPA y Cuota Solidaria</h1>
+          <h1>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h1>
           <p>
             Seguimiento anual por familia. Las familias existentes aparecen automáticamente
             cada año; solo debes seleccionar el año y actualizar sus estados.
@@ -158,19 +159,19 @@ export const FamilyContributionsPage = () => {
 
       <section className="contributions-summary" aria-label="Resumen de aportes">
         {initialLoading ? ["Total familias", "CEPA pagada", "CEPA pendiente",
-          "Solidaria pagada", "Solidaria pendiente", "Completamente al día"].map(label =>
+          "Fondo de Apoyo por Fallecimiento pagado", "Fondo de Apoyo por Fallecimiento pendiente", "Completamente al día"].map(label =>
           <article className="contribution-summary-skeleton" key={label}>
             <div><span>{label}</span></div><CardValueSkeleton />
           </article>) : <>
           <SummaryCard label="Total familias" value={summary.totalFamilies} tone="families"
             icon={<FiUsers />} />
-          <SummaryCard label="CEPA pagada" value={summary.cepaPaid} tone="cepa-paid"
+          <SummaryCard label="CEPA" statusLabel="Pagada" value={summary.cepaPaid} tone="cepa-paid"
             icon={<FiCheckCircle />} />
-          <SummaryCard label="CEPA pendiente" value={summary.cepaPending} tone="cepa-pending"
+          <SummaryCard label="CEPA" statusLabel="Pendiente" value={summary.cepaPending} tone="cepa-pending"
             icon={<FiClock />} />
-          <SummaryCard label="Solidaria pagada" value={summary.solidarityPaid}
+          <SummaryCard label="Fondo de Apoyo por Fallecimiento" statusLabel="Pagado" value={summary.solidarityPaid}
             tone="solidarity-paid" icon={<FiHeart />} />
-          <SummaryCard label="Solidaria pendiente" value={summary.solidarityPending}
+          <SummaryCard label="Fondo de Apoyo por Fallecimiento" statusLabel="Pendiente" value={summary.solidarityPending}
             tone="solidarity-pending" icon={<FiAlertCircle />} />
           <SummaryCard label="Completamente al día" value={summary.fullyPaid} tone="complete"
             icon={<FiAward />} />
@@ -204,7 +205,7 @@ export const FamilyContributionsPage = () => {
           options={courses} allLabel="Todos los cursos" />
         <Filter label="Estado CEPA" value={cepaStatus} onChange={setCepaStatus}
           options={["PAID", "PENDING"]} labels={["Pagada", "Pendiente"]} />
-        <Filter label="Estado Solidaria" value={solidarityStatus}
+        <Filter label="Estado Fondo de Apoyo por Fallecimiento" value={solidarityStatus}
           onChange={setSolidarityStatus} options={["PAID", "PENDING"]}
           labels={["Pagada", "Pendiente"]} />
         <footer className="contributions-filter-actions">
@@ -238,7 +239,7 @@ export const FamilyContributionsPage = () => {
               </div>
               <div className="contribution-card__statuses">
                 <ContributionBadge label="CEPA" status={item.cepa?.status} />
-                <ContributionBadge label="Solidaria" status={item.solidarity?.status} />
+                <ContributionBadge label="Fondo de Apoyo por Fallecimiento" status={item.solidarity?.status} />
               </div>
               <button type="button" onClick={() => setSelected(item)}>
                 {canManage ? "Gestionar aportes" : "Ver detalle"}
@@ -279,7 +280,7 @@ export const FamilyContributionsPage = () => {
                   setPendingAction({ kind: "pay", type: "CEPA" });
                 }}
                 onCancel={() => setPendingAction({ kind: "cancel", type: "CEPA" })} />
-              <ContributionAction label="Cuota Solidaria" payment={selected.solidarity}
+              <ContributionAction label="Fondo de Apoyo por Fallecimiento" payment={selected.solidarity}
                 canManage={canManage} disabled={saving}
                 onPay={() => {
                   setPaymentDate(localToday());
@@ -296,8 +297,8 @@ export const FamilyContributionsPage = () => {
         title={pendingAction?.kind === "cancel" ? "Anular registro de pago" : "Confirmar pago"}
         message={pendingAction && selected
           ? pendingAction.kind === "cancel"
-            ? `Se anulará la ${pendingAction.type === "CEPA" ? "Cuota CEPA" : "Cuota Solidaria"} de la familia ${selected.familyCode}. Esta acción quedará auditada.`
-            : `Se registrará la ${pendingAction.type === "CEPA" ? "Cuota CEPA" : "Cuota Solidaria"} de la familia ${selected.familyCode}.`
+            ? `Se anulará ${pendingAction.type === "CEPA" ? "la Cuota CEPA" : "el Fondo de Apoyo por Fallecimiento"} de la familia ${selected.familyCode}. Esta acción quedará auditada.`
+            : `Se registrará ${pendingAction.type === "CEPA" ? "la Cuota CEPA" : "el Fondo de Apoyo por Fallecimiento"} de la familia ${selected.familyCode}.`
           : ""}
         confirmLabel={pendingAction?.kind === "cancel" ? "Anular pago" : "Registrar pago"}
         cancelLabel="Volver"
@@ -355,10 +356,12 @@ export const FamilyContributionsPage = () => {
   );
 };
 
-const SummaryCard = ({ label, value, icon, tone }: {
-  label: string; value: number; icon: ReactNode; tone: string;
+const SummaryCard = ({ label, statusLabel, value, icon, tone }: {
+  label: string; statusLabel?: string; value: number; icon: ReactNode; tone: string;
 }) => <article className={`contribution-summary-card contribution-summary-card--${tone}`}>
-  <div><span>{label}</span><i aria-hidden="true">{icon}</i></div><strong>{value}</strong>
+  <div><span>{label}</span><i aria-hidden="true">{icon}</i></div>
+  {statusLabel && <em className="contribution-summary-status">{statusLabel}</em>}
+  <strong>{value}</strong>
 </article>;
 
 const ContributionsSkeleton = () => (
@@ -395,7 +398,7 @@ const ContributionBadge = ({ label, status }: { label: string; status?: Contribu
   const paid = isPaid(status);
   return <div className={`contribution-badge ${paid ? "is-paid" : "is-pending"}`}>
     {paid ? <FiCheck aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}
-    <span><strong>{label}</strong>{paid ? "Pagada" : "Pendiente"}</span>
+    <span><strong>{label}</strong><em>{paid ? label === "CEPA" ? "Pagada" : "Pagado" : "Pendiente"}</em></span>
   </div>;
 };
 
