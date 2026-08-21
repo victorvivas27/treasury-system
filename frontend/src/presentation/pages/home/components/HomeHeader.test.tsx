@@ -35,4 +35,18 @@ describe("HomeHeader", () => {
     fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
     expect(onLogout).toHaveBeenCalledOnce();
   });
+  it("abre y cierra el menú móvil accesible", () => {
+    render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
+
+    const toggle = screen.getByLabelText(/abrir menú/i);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(toggle);
+    expect(screen.getByLabelText(/cerrar menú/i))
+      .toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.getByLabelText(/abrir menú/i))
+      .toHaveAttribute("aria-expanded", "false");
+  });
 });
