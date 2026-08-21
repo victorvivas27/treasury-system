@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
+import type { LoginResponse } from "@/core/A-domain/entities/auth/Auth";
+import { useAuth } from "@/presentation/context/AuthContext";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
-import { FaRegSmileBeam } from "react-icons/fa";
 import axios from "axios";
 import "./AccountFlowPages.css";
 
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const VERIFICATION_CHANNEL = "treasury-email-verification";
+type VerificationMessage =
+  | { type: "verified"; requestId: string; session: LoginResponse }
+  | { type: "received"; requestId: string };
 
 const recoveryErrorMessage = (error: unknown) => {
   if (!axios.isAxiosError(error)) return "No fue posible actualizar la contraseña. Intenta nuevamente.";
@@ -36,9 +41,22 @@ const Shell = ({ title, message, children }: {
 export const CheckEmailPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { establishSession } = useAuth();
   const email = (location.state as { email?: string } | null)?.email ?? "";
   const [message, setMessage] = useState("Enviamos un enlace de activación. Revisa también tu carpeta de spam.");
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!("BroadcastChannel" in window)) return;
+    const channel = new BroadcastChannel(VERIFICATION_CHANNEL);
+    channel.onmessage = ({ data }: MessageEvent<VerificationMessage>) => {
+      if (data?.type !== "verified" || !data.session?.token || !data.session.user) return;
+      establishSession(data.session);
+      channel.postMessage({ type: "received", requestId: data.requestId } satisfies VerificationMessage);
+      navigate("/", { replace: true });
+    };
+    return () => channel.close();
+  }, [establishSession, navigate]);
   const resend = async () => {
     if (!email) return;
     setLoading(true);
@@ -56,26 +74,49 @@ export const CheckEmailPage = () => {
 export const VerifyEmailPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const { establishSession } = useAuth();
   const [state, setState] = useState("Verificando tu correo...");
-  const [verified, setVerified] = useState(false);
   const processedTokenRef = useRef<string | null>(null);
   useEffect(() => {
+    let channel: BroadcastChannel | undefined;
+    let fallbackTimer: number | undefined;
+    let closeFallbackTimer: number | undefined;
     const token = params.get("token");
     if (!token) { setState("El enlace no es válido."); return; }
     if (processedTokenRef.current === token) return;
     processedTokenRef.current = token;
     setState("Verificando tu correo...");
     repository.verifyEmail(token)
-      .then(() => {
-        setVerified(true);
-        setState("¡Todo listo! Ya puedes iniciar sesión con tu cuenta.");
+      .then((session) => {
+        establishSession(session);
+        if ("BroadcastChannel" in window) {
+          channel = new BroadcastChannel(VERIFICATION_CHANNEL);
+          const requestId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+          channel.onmessage = ({ data }: MessageEvent<VerificationMessage>) => {
+            if (data?.type !== "received" || data.requestId !== requestId) return;
+            window.clearTimeout(fallbackTimer);
+            channel?.close();
+            window.close();
+            closeFallbackTimer = window.setTimeout(() => navigate("/", { replace: true }), 250);
+          };
+          channel.postMessage({ type: "verified", requestId, session } satisfies VerificationMessage);
+          fallbackTimer = window.setTimeout(() => {
+            channel?.close();
+            navigate("/", { replace: true });
+          }, 600);
+          return;
+        }
+        navigate("/", { replace: true });
       })
       .catch(() => setState("El enlace es inválido, venció o ya fue utilizado."));
-  }, [params, repository]);
-  return <Shell title={verified ? "Correo verificado" : "Verificar correo"} message={state}>
-    {verified && <div className="auth-flow__success-icon" aria-hidden="true">
-      <FaRegSmileBeam />
-    </div>}
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      window.clearTimeout(closeFallbackTimer);
+      channel?.close();
+    };
+  }, [establishSession, navigate, params, repository]);
+  return <Shell title="Verificar correo" message={state}>
     <Link to="/login">Ir al inicio de sesión</Link>
   </Shell>;
 };

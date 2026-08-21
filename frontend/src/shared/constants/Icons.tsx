@@ -3,7 +3,7 @@ import { PiStudent } from "react-icons/pi";
 import { BsPerson } from "react-icons/bs";
 import { TbPigMoney } from "react-icons/tb";
 import { GrPieChart } from "react-icons/gr";
-import { IoChatbubblesOutline, IoSettingsOutline } from "react-icons/io5";
+import { IoChatbubblesOutline, IoChevronDownOutline, IoSettingsOutline } from "react-icons/io5";
 import { BiExit } from "react-icons/bi";
 import { FcConferenceCall } from "react-icons/fc";
 import { TfiReload } from "react-icons/tfi";
@@ -14,7 +14,6 @@ import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { TiArrowBackOutline } from "react-icons/ti";
 import { MdOutlineCancel } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
-import { IoChevronDownOutline } from "react-icons/io5";
 import {
   BsArrowDownCircle,
   BsArrowUpCircle,
@@ -64,7 +63,7 @@ export const SIDEBAR_LINKS = [
 
 export const TREASURY_LINKS = [
   { label: "Cuotas", path: "/tesoreria/cuotas", icon: BsReceipt },
-  { label: "CEPA y Solidaria", path: "/tesoreria/aportes", icon: BsHeart },
+  { label: "Aportes CEPA", path: "/tesoreria/aportes", icon: BsHeart },
   { label: "Ingresos", path: "/tesoreria/ingresos", icon: BsArrowDownCircle },
   { label: "Egresos", path: "/tesoreria/gastos", icon: BsArrowUpCircle },
   { label: "Eventos", path: "/tesoreria/eventos", icon: BsCalendarEvent },

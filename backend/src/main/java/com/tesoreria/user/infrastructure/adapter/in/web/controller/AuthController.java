@@ -149,9 +149,14 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<MessageResponseDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO request) {
-        accountRecoveryService.verifyEmail(request.token());
-        return ResponseEntity.ok(new MessageResponseDTO("Correo verificado correctamente."));
+    public ResponseEntity<LoginResponseDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO request) {
+        User verifiedUser = accountRecoveryService.verifyEmail(request.token());
+        String token = authService.issueTokenForVerifiedEmail(verifiedUser.getCorreo());
+        return ResponseEntity.ok(new LoginResponseDTO(
+                token,
+                "Bearer",
+                jwtService.getExpirationMs() / 1000,
+                mapper.toResponse(verifiedUser)));
     }
 
     @PostMapping("/resend-verification")

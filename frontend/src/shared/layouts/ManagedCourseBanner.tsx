@@ -3,6 +3,12 @@ import { FiBookOpen } from "react-icons/fi";
 import { apiClient } from "@/core/D-config/api";
 import "./ManagedCourseBanner.css";
 
+const formatCourse = (course: string) => {
+  const normalized = course.trim().replace(/^Curso\s+/i, "")
+    .replace(/^(\d+)\s*°?\s*([a-z])$/i, "$1° $2");
+  return /\b(básico|medio)\b/i.test(normalized) ? normalized : `${normalized} Básico`;
+};
+
 export const ManagedCourseBanner = () => {
   const [course, setCourse] = useState("1A");
 
@@ -24,13 +30,12 @@ export const ManagedCourseBanner = () => {
     };
   }, []);
 
+  const courseLabel = formatCourse(course);
+
   return (
-    <aside className="managed-course-banner" aria-label={`Curso administrado: ${course}`}>
+    <aside className="managed-course-banner" aria-label={`Tesorería ${courseLabel}`}>
       <FiBookOpen aria-hidden="true" />
-      <div>
-        <span>Tesorería exclusiva para</span>
-        <strong>Curso {course}</strong>
-      </div>
+      <strong>Tesorería {courseLabel}</strong>
     </aside>
   );
 };

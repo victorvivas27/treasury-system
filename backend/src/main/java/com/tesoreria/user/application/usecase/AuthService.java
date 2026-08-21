@@ -67,6 +67,10 @@ public class AuthService {
         return jwtService.generateToken(userDetails);
     }
 
+    public String issueTokenForVerifiedEmail(String correo) {
+        return jwtService.generateToken(userDetailsService.loadUserByUsername(correo));
+    }
+
     private String maskEmail(String correo) {
         if (correo == null || !correo.contains("@")) {
             return "***";

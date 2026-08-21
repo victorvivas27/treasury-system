@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { FiAward, FiBookOpen, FiCamera, FiCompass, FiGift, FiHeart, FiMail, FiMusic,
   FiSmile, FiStar, FiSun, FiTarget, FiUsers } from "react-icons/fi";
+import { FcSportsMode } from "react-icons/fc";
 import type { AboutIcon, AboutSection } from "@/core/A-domain/entities/community/AboutSection";
 import { AboutSectionUseCases } from "@/core/B-application/use-cases/community/AboutSectionUseCases";
 import { AboutSectionRepositoryImpl } from "@/core/C-infra/repositories/community/AboutSectionRepositoryImpl";
@@ -21,11 +22,11 @@ export const HomeCommunity = () => {
   return (
   <div className="home-community">
     <section id="sobre-nosotros" className="home-community__about" data-home-reveal>
-      <header><span className="home-community__eyebrow">Sobre nosotros</span>
-        <h2>Conoce el corazón de nuestro curso</h2>
-        <p>Cada historia, valor y meta que compartimos construye nuestra comunidad.</p></header>
+      <header className="home-community__title-banner">
+        <FcSportsMode aria-hidden="true" />
+        <h2>Lo que nos mueve</h2>
+      </header>
       <div className="home-community__about-grid">
-        <span className="home-community__eyebrow">Sobre nosotros</span>
         {sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured">
           <span className="home-community__card-icon"><FiUsers /></span><div><h2>Una comunidad organizada y conectada</h2>
           <p>Este espacio reúne la información del curso y facilita una comunicación clara entre

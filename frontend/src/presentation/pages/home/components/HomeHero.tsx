@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn,
   FiShield, FiUserPlus, FiUsers } from "react-icons/fi";
+import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "../style/HomeHero.css";
 
 const AnimatedNumber = ({ value, currency = false, suffix = "" }: {
@@ -57,7 +58,10 @@ export const HomeHero = ({ isAuthenticated = false }: { isAuthenticated?: boolea
       </p>
       <div className="public-home__actions">
         <Link className="public-home__primary-action" to={isAuthenticated ? "/dashboard" : "/register"}>
-          {isAuthenticated ? <><FiUsers aria-hidden="true" /> Entrar al sistema</> : <>
+          {isAuthenticated ? <>
+            <BrandLogo className="public-home__system-access-logo" alt="" />
+            <span>Sistema</span>
+          </> : <>
           <FiUserPlus aria-hidden="true" /> Crear cuenta
           </>}
         </Link>

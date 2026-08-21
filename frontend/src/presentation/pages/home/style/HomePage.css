@@ -1,7 +1,7 @@
 .public-home {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow: clip;
   background: radial-gradient(circle at 76% 12%, rgba(14,235,205,.1), transparent 24rem), var(--color-bg);
   color: var(--text-main);
 }

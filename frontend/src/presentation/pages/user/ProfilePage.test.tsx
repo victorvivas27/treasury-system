@@ -107,7 +107,7 @@ describe("ProfilePage", () => {
   it("muestra aportes pendientes y modalidad de dos cuotas", async () => {
     renderProfile();
     expect(await screen.findByText("Aporte CEPA")).toBeInTheDocument();
-    expect(screen.getByText("Aporte solidario")).toBeInTheDocument();
+    expect(screen.getByText("Fondo de Apoyo por Fallecimiento")).toBeInTheDocument();
     expect(screen.getAllByText("Pendiente")).toHaveLength(4);
     expect(screen.getByText("Cuota del curso · Dos cuotas")).toBeInTheDocument();
     expect(screen.getByText("2 cuotas pendientes")).toBeInTheDocument();
