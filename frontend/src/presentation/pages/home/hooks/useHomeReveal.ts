@@ -21,13 +21,16 @@ export const useHomeReveal = () => {
     );
     const repeatObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if (entry.intersectionRatio >= 0.25) {
+        const isCommunity = entry.target.hasAttribute("data-home-community-repeat");
+        const showAt = isCommunity ? 0.14 : 0.25;
+        const hideAt = isCommunity ? 0.06 : 0.02;
+        if (entry.intersectionRatio >= showAt) {
           entry.target.classList.add("is-visible");
-        } else if (entry.intersectionRatio <= 0.02) {
+        } else if (entry.intersectionRatio <= hideAt) {
           entry.target.classList.remove("is-visible");
         }
       });
-    }, { threshold: [0, 0.02, 0.25] });
+    }, { threshold: [0, 0.02, 0.06, 0.14, 0.25] });
     repeatableElements.forEach(element => repeatObserver.observe(element));
 
     const preview = document.querySelector<HTMLElement>("[data-home-preview-reveal]");

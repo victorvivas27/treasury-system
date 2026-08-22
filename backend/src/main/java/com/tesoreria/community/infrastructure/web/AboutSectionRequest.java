@@ -9,6 +9,7 @@ public record AboutSectionRequest(
         boolean visible,
         @NotBlank @Pattern(regexp = "USERS|HEART|STAR|BOOK|TARGET|SMILE|AWARD|COMPASS|GIFT|MUSIC|SUN")
         String icon,
-        @NotBlank @Pattern(regexp = "TURQUOISE|BLUE|PURPLE|ORANGE|PINK|GREEN") String accentColor,
+        @NotBlank @Pattern(regexp = "TURQUOISE|BLUE|PURPLE|ORANGE|PINK|GREEN|RED|YELLOW|INDIGO|CORAL|SKY|LIME")
+        String accentColor,
         @Size(max = 240) String highlightedPhrase,
         boolean featured) { }

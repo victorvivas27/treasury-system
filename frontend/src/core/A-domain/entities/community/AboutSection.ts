@@ -1,6 +1,7 @@
 export type AboutIcon = "USERS" | "HEART" | "STAR" | "BOOK" | "TARGET" | "SMILE"
   | "AWARD" | "COMPASS" | "GIFT" | "MUSIC" | "SUN";
-export type AboutAccent = "TURQUOISE" | "BLUE" | "PURPLE" | "ORANGE" | "PINK" | "GREEN";
+export type AboutAccent = "TURQUOISE" | "BLUE" | "PURPLE" | "ORANGE" | "PINK" | "GREEN"
+  | "RED" | "YELLOW" | "INDIGO" | "CORAL" | "SKY" | "LIME";
 
 export interface AboutSection {
   id: number;

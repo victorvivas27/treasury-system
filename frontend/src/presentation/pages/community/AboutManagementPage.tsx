@@ -31,6 +31,9 @@ const colorOptions: Array<{ value: AboutAccent; label: string }> = [
   { value: "TURQUOISE", label: "Turquesa" }, { value: "BLUE", label: "Azul" },
   { value: "PURPLE", label: "Morado" }, { value: "ORANGE", label: "Naranjo" },
   { value: "PINK", label: "Rosado" }, { value: "GREEN", label: "Verde" },
+  { value: "RED", label: "Rojo" }, { value: "YELLOW", label: "Amarillo" },
+  { value: "INDIGO", label: "Índigo" }, { value: "CORAL", label: "Coral" },
+  { value: "SKY", label: "Celeste" }, { value: "LIME", label: "Lima" },
 ];
 
 export const AboutManagementPage = () => {
