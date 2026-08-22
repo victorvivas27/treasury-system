@@ -31,6 +31,7 @@ import { IncomesPage } from "../pages/tesoreria/IncomesPage";
 import { EventsPage } from "../pages/tesoreria/EventsPage";
 import { StandManagementPage } from "../pages/stand/StandManagementPage";
 import { AboutManagementPage } from "../pages/community/AboutManagementPage";
+import { CoursePhotoManagementPage } from "../pages/community/CoursePhotoManagementPage";
 
 export const AppRouter = () => {
   return (
@@ -58,6 +59,7 @@ export const AppRouter = () => {
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />
+          <Route path="admin/fotos-del-curso" element={<CoursePhotoManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
           <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
