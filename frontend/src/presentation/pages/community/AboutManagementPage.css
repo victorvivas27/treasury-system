@@ -19,7 +19,7 @@
 .about-admin__icons label.selected,.about-admin__colors label.selected { border-color:var(--color-accent); background:var(--color-accent-soft); color:var(--text-main); }
 .about-admin__icons input,.about-admin__colors input { position:absolute; width:1px; opacity:0; }
 .about-admin__colors label>span { width:1rem; height:1rem; border-radius:50%; background:var(--card-accent); }
-.is-turquoise{--card-accent:#0eebcd}.is-blue{--card-accent:#3b82f6}.is-purple{--card-accent:#8b5cf6}.is-orange{--card-accent:#f59e0b}.is-pink{--card-accent:#ec4899}.is-green{--card-accent:#22c55e}
+.is-turquoise{--card-accent:#0eebcd}.is-blue{--card-accent:#3b82f6}.is-purple{--card-accent:#8b5cf6}.is-orange{--card-accent:#f59e0b}.is-pink{--card-accent:#ec4899}.is-green{--card-accent:#22c55e}.is-red{--card-accent:#ef4444}.is-yellow{--card-accent:#eab308}.is-indigo{--card-accent:#6366f1}.is-coral{--card-accent:#fb7185}.is-sky{--card-accent:#38bdf8}.is-lime{--card-accent:#84cc16}
 .about-admin__save { display:flex; min-height:44px; align-items:center; gap:.45rem; margin-top:var(--lg); border-radius:var(--radius-md); padding:.65rem 1rem; background:var(--color-accent); color:var(--color-bg); font-weight:750; }
 .about-admin__save:disabled { opacity:.55; }
 .about-admin__list { margin-top:var(--lg); }

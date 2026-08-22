@@ -1,4 +1,3 @@
-import { HomeFeatures } from "./components/HomeFeatures";
 import { HomeFooter } from "./components/HomeFooter";
 import { HomeHeader } from "./components/HomeHeader";
 import { HomeHero } from "./components/HomeHero";
@@ -22,7 +21,6 @@ export const HomePage = () => {
       <main>
         <HomeInstallGuide />
         <HomeHero isAuthenticated={isAuthenticated} />
-        <HomeFeatures />
         {isAuthenticated && <HomeCommunity />}
       </main>
       <HomeFooter />

@@ -21,18 +21,24 @@ export const HomeCommunity = () => {
   useEffect(() => { about.publicList().then(setSections).catch(() => setSections([])); }, []);
   return (
   <div className="home-community">
-    <section id="sobre-nosotros" className="home-community__about" data-home-reveal>
+    <section id="sobre-nosotros" className="home-community__about" data-home-reveal
+      data-home-scroll-repeat data-home-community-repeat>
       <header className="home-community__title-banner">
         <FcSportsMode aria-hidden="true" />
-        <h2>Lo que nos mueve</h2>
+        <div>
+          <span>Nuestro manifiesto</span>
+          <h2>Lo que nos mueve</h2>
+        </div>
       </header>
       <div className="home-community__about-grid">
-        {sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured">
+        {sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured"
+          data-card-number="01">
           <span className="home-community__card-icon"><FiUsers /></span><div><h2>Una comunidad organizada y conectada</h2>
           <p>Este espacio reúne la información del curso y facilita una comunicación clara entre
             las familias y su directiva.</p></div></article> : sections.map((section, index) => {
           const Icon = icons[section.icon] ?? FiUsers;
-          return <article key={section.id} style={{ "--card-delay": `${index * 90}ms` } as CSSProperties}
+          return <article key={section.id} style={{ "--card-delay": `${index * 170}ms` } as CSSProperties}
+            data-card-number={String(index + 1).padStart(2, "0")}
             className={`home-community__about-card is-${section.accentColor.toLowerCase()} ${section.featured ? "is-featured" : ""}`}>
             <span className="home-community__card-icon"><Icon aria-hidden="true" /></span>
             <div><h3>{section.title}</h3>

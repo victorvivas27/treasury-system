@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn,
   FiShield, FiUserPlus, FiUsers } from "react-icons/fi";
+import { FcExpand } from "react-icons/fc";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "../style/HomeHero.css";
 
@@ -81,7 +82,8 @@ export const HomeHero = ({ isAuthenticated = false }: { isAuthenticated?: boolea
       aria-label="Vista previa del dashboard con datos de muestra">
       <div className="public-home__preview-top">
         <div><strong>Dashboard</strong><span>Estado financiero del curso</span></div>
-        <div className="public-home__preview-year"><span>Año escolar</span><strong>2026⌄</strong></div>
+        <div className="public-home__preview-year"><span>Año escolar</span>
+          <strong>2026 <FcExpand aria-hidden="true" /></strong></div>
       </div>
       <span className="public-home__sample-badge">Datos de muestra</span>
       <div className="public-home__dashboard-kpis">
