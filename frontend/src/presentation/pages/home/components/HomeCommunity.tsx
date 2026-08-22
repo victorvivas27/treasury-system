@@ -1,10 +1,13 @@
-import { useEffect, useState, type CSSProperties } from "react";
-import { FiAward, FiBookOpen, FiCamera, FiCompass, FiGift, FiHeart, FiMail, FiMusic,
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
+import { FiAward, FiBookOpen, FiCamera, FiChevronLeft, FiChevronRight, FiCompass, FiGift, FiHeart, FiMail, FiMusic,
   FiSmile, FiStar, FiSun, FiTarget, FiUsers } from "react-icons/fi";
 import { FcSportsMode } from "react-icons/fc";
 import type { AboutIcon, AboutSection } from "@/core/A-domain/entities/community/AboutSection";
+import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
 import { AboutSectionUseCases } from "@/core/B-application/use-cases/community/AboutSectionUseCases";
 import { AboutSectionRepositoryImpl } from "@/core/C-infra/repositories/community/AboutSectionRepositoryImpl";
+import { coursePhotos } from "@/core/C-infra/repositories/community/CoursePhotoRepository";
+import { useTheme } from "@/presentation/context/ThemeContext";
 import "../style/HomeCommunity.css";
 
 const boardRoles = ["Presidencia", "Tesorería", "Secretaría"];
@@ -14,11 +17,104 @@ const icons: Record<AboutIcon, typeof FiUsers> = {
   TARGET: FiTarget, SMILE: FiSmile,
   AWARD: FiAward, COMPASS: FiCompass, GIFT: FiGift, MUSIC: FiMusic, SUN: FiSun,
 };
+const Lottie = lazy(() => import("lottie-react").then(module => ({ default: module.Lottie })));
+
+const lottieColor = (value: string) => {
+  const normalized = value.trim();
+  if (normalized.startsWith("#")) {
+    const hex = normalized.slice(1);
+    const full = hex.length === 3 ? hex.split("").map(item => item + item).join("") : hex;
+    return [0, 2, 4].map(index => Number.parseInt(full.slice(index, index + 2), 16) / 255);
+  }
+  const channels = normalized.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [0, 0, 0];
+  return channels.map(channel => channel / 255);
+};
+
+const themedCameraAnimation = (animation: object) => {
+  const styles = getComputedStyle(document.documentElement);
+  const colors = {
+    accent: lottieColor(styles.getPropertyValue("--color-accent")),
+    surface: lottieColor(styles.getPropertyValue("--color-surface")),
+    text: lottieColor(styles.getPropertyValue("--text-main")),
+  };
+  const copy = structuredClone(animation) as Record<string, unknown>;
+  const visit = (value: unknown) => {
+    if (Array.isArray(value)) { value.forEach(visit); return; }
+    if (!value || typeof value !== "object") return;
+    const item = value as Record<string, unknown>;
+    const color = item.c as { k?: number[] } | undefined;
+    if ((item.ty === "st" || item.ty === "fl") && Array.isArray(color?.k)) {
+      const original = color.k;
+      color.k = item.ty === "fl" ? colors.surface
+        : original[0] + original[1] + original[2] < .15 ? colors.text : colors.accent;
+    }
+    Object.values(item).forEach(visit);
+  };
+  visit(copy);
+  return copy;
+};
+
+const CameraV3Icon = () => {
+  const { resolvedTheme } = useTheme();
+  const [animationData, setAnimationData] = useState<object>();
+  const reduceMotion = typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    let active = true;
+    fetch("/icons/Camera%20V3.json").then(response => response.json() as Promise<object>)
+      .then(animation => { if (active) setAnimationData(themedCameraAnimation(animation)); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [resolvedTheme]);
+  return <span className="home-community__camera-icon" aria-hidden="true">
+    <Suspense fallback={<img src="/icons/Camera%20V3.svg" alt="" />}>
+      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
+        loop={!reduceMotion} autoplay={!reduceMotion} />
+        : <img src="/icons/Camera%20V3.svg" alt="" />}
+    </Suspense>
+  </span>;
+};
 
 export const HomeCommunity = () => {
   const [sections, setSections] = useState<AboutSection[]>([]);
+  const [photos, setPhotos] = useState<CoursePhoto[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
+  const [activePhoto, setActivePhoto] = useState(0);
+  const [dragStart, setDragStart] = useState<number>();
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const [carouselCycle, setCarouselCycle] = useState(0);
+  const [containedPhotos, setContainedPhotos] = useState<Set<number>>(new Set());
   const [expandedCard, setExpandedCard] = useState<number>();
   useEffect(() => { about.publicList().then(setSections).catch(() => setSections([])); }, []);
+  useEffect(() => { coursePhotos.list().then(setPhotos).catch(() => setPhotos([])); }, []);
+  useEffect(() => {
+    let active = true;
+    const urls: string[] = [];
+    void Promise.all(photos.map(async photo => {
+      const url = await coursePhotos.loadImageUrl(photo); urls.push(url); return [photo.id, url] as const;
+    })).then(entries => { if (active) setPhotoUrls(Object.fromEntries(entries)); })
+      .catch(() => { if (active) setPhotoUrls({}); });
+    return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)); };
+  }, [photos]);
+  useEffect(() => { setActivePhoto(current => Math.min(current, Math.max(0, photos.length - 1))); }, [photos.length]);
+  useEffect(() => {
+    if (photos.length < 2 || carouselPaused) return;
+    const timer = window.setTimeout(() => setActivePhoto(current =>
+      (current + 1) % photos.length), 5500);
+    return () => window.clearTimeout(timer);
+  }, [activePhoto, carouselCycle, carouselPaused, photos.length]);
+  const showPhoto = (index: number) => {
+    setActivePhoto((index + photos.length) % photos.length); setCarouselCycle(value => value + 1);
+  };
+  const movePhoto = (direction: number) => {
+    setActivePhoto(current => (current + direction + photos.length) % photos.length);
+    setCarouselCycle(value => value + 1);
+  };
+  const photoPosition = (index: number) => {
+    if (index === activePhoto) return "is-active";
+    if ((index - activePhoto + photos.length) % photos.length === 1) return "is-next";
+    return "is-previous";
+  };
   return (
   <div className="home-community">
     <section id="sobre-nosotros" className="home-community__about" data-home-reveal
@@ -56,15 +152,71 @@ export const HomeCommunity = () => {
     </section>
 
     <section id="fotos-del-curso" className="home-community__content" data-home-reveal>
-      <div className="home-community__heading">
-        <span className="home-community__eyebrow">Fotos del curso</span>
-        <h2>Nuestros momentos</h2>
-        <p>Próximamente la directiva podrá compartir aquí las actividades y recuerdos del curso.</p>
-      </div>
-      <div className="home-community__photo-placeholder" role="img"
-        aria-label="Galería de fotos del curso pendiente de publicación">
-        <FiCamera aria-hidden="true" /><span>Galería del curso</span>
-      </div>
+      <header className="home-community__photo-heading">
+        <CameraV3Icon />
+        <div><h2>Nuestros momentos</h2>
+          <p>Historias compartidas que merecen quedarse con nosotros.</p></div>
+      </header>
+      {photos.length > 0 ? <div className="home-community__carousel" role="region"
+        aria-roledescription="carrusel" aria-label="Nuestros momentos" tabIndex={0}
+        onMouseEnter={() => setCarouselPaused(true)} onMouseLeave={() => setCarouselPaused(false)}
+        onKeyDown={event => {
+          if (event.key === "ArrowLeft") { event.preventDefault(); movePhoto(-1); }
+          if (event.key === "ArrowRight") { event.preventDefault(); movePhoto(1); }
+        }} onPointerDown={event => {
+          if ((event.target as HTMLElement).closest("button")) return;
+          setDragStart(event.clientX); event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerUp={event => {
+          if (dragStart !== undefined && Math.abs(event.clientX - dragStart) > 35)
+            movePhoto(event.clientX < dragStart ? 1 : -1);
+          setDragStart(undefined);
+        }} onPointerCancel={() => setDragStart(undefined)}>
+        <div className="home-community__photo-gallery" aria-live="polite">
+          {photos.map((photo, index) => <figure key={photo.id}
+            className={photoPosition(index)} aria-hidden={index !== activePhoto}
+            onClick={() => showPhoto(index)}>
+            <div className={`home-community__photo-media ${containedPhotos.has(photo.id) ? "uses-contain" : "uses-cover"}`}>
+              <img className="home-community__photo-backdrop" src={photoUrls[photo.id]} alt=""
+                aria-hidden="true" draggable={false} />
+              <img className="home-community__photo-image" src={photoUrls[photo.id]}
+                alt={photo.caption || `Momento del curso ${index + 1}`}
+                style={{ objectPosition: photo.objectPosition ?? "50% 50%" }}
+                loading={index === 0 ? "eager" : "lazy"} draggable={false}
+                onLoad={event => {
+                  const image = event.currentTarget;
+                  const shouldContain = image.naturalWidth / image.naturalHeight < 1.1;
+                  setContainedPhotos(current => {
+                    if (current.has(photo.id) === shouldContain) return current;
+                    const next = new Set(current);
+                    if (shouldContain) next.add(photo.id); else next.delete(photo.id);
+                    return next;
+                  });
+                }} />
+            </div>
+            <figcaption>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div><small>Recuerdo del curso</small>
+                <p>{photo.caption || "Un momento que forma parte de nuestra historia."}</p></div>
+            </figcaption>
+          </figure>)}
+        </div>
+        {photos.length > 1 && <>
+          <button className="home-community__carousel-arrow is-previous" type="button"
+            aria-label="Ver foto anterior" onClick={() => movePhoto(-1)}><FiChevronLeft /></button>
+          <button className="home-community__carousel-arrow is-next" type="button"
+            aria-label="Ver foto siguiente" onClick={() => movePhoto(1)}><FiChevronRight /></button>
+          <div className="home-community__carousel-dots" aria-label="Seleccionar fotografía">
+            {photos.map((photo, index) => <button key={photo.id} type="button"
+              className={index === activePhoto ? "is-active" : ""}
+              aria-label={`Ver foto ${index + 1}`} aria-current={index === activePhoto ? "true" : undefined}
+              onClick={() => showPhoto(index)} />)}
+          </div>
+        </>}
+      </div> : <div className="home-community__photo-placeholder" role="img"
+          aria-label="Galería de fotos del curso pendiente de publicación">
+          <FiCamera aria-hidden="true" /><span>Galería del curso</span>
+        </div>}
     </section>
 
     <section id="directiva" className="home-community__content" data-home-reveal>

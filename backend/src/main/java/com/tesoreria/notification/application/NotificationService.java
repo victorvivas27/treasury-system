@@ -19,7 +19,9 @@ import java.util.*;
 @Service
 public class NotificationService {
     private static final String NOTIFICATION_FIELD = "notification";
+    private static final String MESSAGE_FIELD = "message";
     private static final long MESSAGE_EDIT_MINUTES = 15;
+    private static final int EXPECTED_ADMIN_COUNT = 1;
     private final NotificationJpaRepository notifications;
     private final UserNotificationJpaRepository deliveries;
     private final NotificationReplyJpaRepository replyRepository;
@@ -234,7 +236,7 @@ public class NotificationService {
 
     private UserEntity soleTreasuryAdmin() {
         List<UserEntity> admins = users.findByRolOrderByIdAsc(RoleEnum.ADMIN);
-        if (admins.size() != 1)
+        if (admins.size() != EXPECTED_ADMIN_COUNT)
             throw error("recipient", HttpStatus.CONFLICT,
                     "No existe una cuenta única de Tesorería disponible");
         return admins.get(0);
@@ -252,12 +254,12 @@ public class NotificationService {
     public void deleteReply(Long id, String email) {
         UserEntity user = currentUser(email);
         NotificationReplyEntity reply = replyRepository.findById(id)
-                .orElseThrow(() -> error("message", HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
+                .orElseThrow(() -> error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
         UserNotificationEntity delivery = reply.getDelivery();
         Long creatorId = delivery.getNotification().getCreatedBy().getId();
         Long recipientId = delivery.getUser().getId();
         if (!user.getId().equals(creatorId) && !user.getId().equals(recipientId))
-            throw error("message", HttpStatus.NOT_FOUND, "Mensaje no encontrado");
+            throw error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado");
         if (user.getId().equals(reply.getAuthor().getId())) {
             String recipientEmail = user.getId().equals(creatorId)
                     ? delivery.getUser().getCorreo()
@@ -271,9 +273,9 @@ public class NotificationService {
 
     private NotificationReplyEntity ownEditableReply(Long id, String email) {
         NotificationReplyEntity reply = replyRepository.findByIdAndAuthorCorreo(id, email)
-                .orElseThrow(() -> error("message", HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
+                .orElseThrow(() -> error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
         if (reply.getCreatedAt().plusMinutes(MESSAGE_EDIT_MINUTES).isBefore(LocalDateTime.now()))
-            throw error("message", HttpStatus.CONFLICT,
+            throw error(MESSAGE_FIELD, HttpStatus.CONFLICT,
                     "El plazo de 15 minutos para modificar el mensaje terminó");
         return reply;
     }
