@@ -6,7 +6,6 @@ import { ApoderadoPage } from "@/presentation/pages/apoderado/ApoderadoPage";
 import { NotFoundPage } from "../pages/NotFoundPage/NotFoundPage";
 import { User } from "../pages/user/User";
 import { AlumnoPage } from "../pages/alumno/AlumnoPage";
-import { TreasurySectionPage } from "../pages/tesoreria/TreasurySectionPage";
 import { AnnualFeesPage } from "../pages/tesoreria/AnnualFeesPage";
 import { TreasuryReportsPage } from "../pages/tesoreria/TreasuryReportsPage";
 import { Notificacion } from "../pages/notificacion/Notificacion";
@@ -33,6 +32,7 @@ import { StandManagementPage } from "../pages/stand/StandManagementPage";
 import { AboutManagementPage } from "../pages/community/AboutManagementPage";
 import { CoursePhotoManagementPage } from "../pages/community/CoursePhotoManagementPage";
 import { BoardManagementPage } from "../pages/community/BoardManagementPage";
+import { PaymentsPage } from "../pages/tesoreria/PaymentsPage";
 
 export const AppRouter = () => {
   return (
@@ -57,6 +57,7 @@ export const AppRouter = () => {
           <Route path="tesoreria/stands" element={<StandManagementPage />} />
           <Route path="tesoreria/ingresos" element={<IncomesPage />} />
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
+          <Route path="tesoreria/pagos" element={<PaymentsPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />
@@ -64,7 +65,6 @@ export const AppRouter = () => {
           <Route path="admin/directiva" element={<BoardManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
-          <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
           <Route path="tesoreria/eventos" element={<EventsPage />} />
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />

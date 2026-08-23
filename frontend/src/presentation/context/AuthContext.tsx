@@ -70,13 +70,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (loading) return;
     const loader = document.getElementById("app-boot-loader");
     if (!loader) return;
-    const startedAt = Number(document.documentElement.dataset.bootStartedAt ?? 0);
-    const remaining = Math.max(0, 650 - (performance.now() - startedAt));
-    const hideTimer = window.setTimeout(() => {
-      loader.classList.add("is-leaving");
-      window.setTimeout(() => loader.remove(), 400);
-    }, remaining);
-    return () => window.clearTimeout(hideTimer);
+    let hideTimer: number | undefined;
+    let removeTimer: number | undefined;
+    const hideLoader = () => {
+      const startedAt = Number(document.documentElement.dataset.bootStartedAt ?? 0);
+      const remaining = Math.max(0, 650 - (performance.now() - startedAt));
+      hideTimer = window.setTimeout(() => {
+        loader.classList.add("is-leaving");
+        removeTimer = window.setTimeout(() => loader.remove(), 400);
+      }, remaining);
+    };
+    const appStyles = document.querySelector("link[data-app-styles]");
+    const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
+    if (stylesReady) hideLoader();
+    else window.addEventListener("app:styles-ready", hideLoader, { once: true });
+    return () => {
+      window.removeEventListener("app:styles-ready", hideLoader);
+      if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+      if (removeTimer !== undefined) window.clearTimeout(removeTimer);
+    };
   }, [loading]);
 
   const useCases = useMemo(() => {

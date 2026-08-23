@@ -13,6 +13,20 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     let reloading = false
     let hasController = Boolean(navigator.serviceWorker.controller)
 
+    const reloadWithAppBackground = () => {
+      const cover = document.createElement('div')
+      cover.setAttribute('role', 'status')
+      cover.setAttribute('aria-label', 'Actualizando Sistema de Tesorería')
+      cover.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:2147483647', 'display:grid',
+        'place-items:center', `background:${document.documentElement.dataset.theme === 'light'
+          ? '#eef1f4' : '#0a0f1a'}`, 'color:#38bdf8',
+      ].join(';')
+      cover.innerHTML = '<span style="width:42px;height:42px;border:3px solid rgba(56,189,248,.2);border-top-color:#38bdf8;border-radius:50%;animation:boot-spin 1s linear infinite"></span>'
+      document.body.appendChild(cover)
+      requestAnimationFrame(() => requestAnimationFrame(() => window.location.reload()))
+    }
+
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       // La primera instalación toma control de la pestaña actual. No necesita
       // recargar porque ya se está ejecutando el bundle recién descargado.
@@ -29,7 +43,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
       reloading = true
       if (controllerVersion) sessionStorage.setItem('pwa-controller-version', controllerVersion)
-      window.location.reload()
+      reloadWithAppBackground()
     })
 
     void navigator.serviceWorker.register(serviceWorkerUrl, { updateViaCache: 'none' }).then((registration) => {

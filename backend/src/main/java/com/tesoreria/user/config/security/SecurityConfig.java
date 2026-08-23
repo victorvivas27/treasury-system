@@ -78,6 +78,12 @@ public class SecurityConfig {
                                 "/api/v1/tesoreria/egresos/**",
                                 "/api/v1/tesoreria/resumen-financiero")
                         .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tesoreria/pagos-transferencia/**")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/tesoreria/pagos-transferencia/mi-plan",
+                                "/api/v1/tesoreria/pagos-transferencia/mis-cuotas/*/comprobante")
+                        .hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/tesoreria/**")
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/notifications")

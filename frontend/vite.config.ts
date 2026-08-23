@@ -9,7 +9,22 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'non-blocking-app-styles',
+      enforce: 'post',
+      transformIndexHtml: {
+        order: 'post',
+        handler(html) {
+          return html.replace(
+            /<link rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g,
+            (_, href: string) => `<link rel="preload" as="style" href="${href}" data-app-styles onload="this.onload=null;this.rel='stylesheet';document.documentElement.dataset.appStyles='ready';window.dispatchEvent(new Event('app:styles-ready'))"><noscript><link rel="stylesheet" href="${href}"></noscript>`,
+          )
+        },
+      },
+    },
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -158,12 +158,12 @@ public class TreasuryController {
             long paid = validObligations.stream()
                     .filter(item -> item.status() == ObligationStatus.PAGADA).count();
             long pending = validObligations.stream()
-                    .filter(item -> item.status() == ObligationStatus.PENDIENTE).count();
+                    .filter(item -> item.status() != ObligationStatus.PAGADA).count();
             BigDecimal collected = validObligations.stream()
                     .filter(item -> item.status() == ObligationStatus.PAGADA)
                     .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal pendingAmount = validObligations.stream()
-                    .filter(item -> item.status() == ObligationStatus.PENDIENTE)
+                    .filter(item -> item.status() != ObligationStatus.PAGADA)
                     .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
             TreasuryDashboard quotas = new TreasuryDashboard(validPlans.size(),
                     validPlans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
