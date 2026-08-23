@@ -5,6 +5,8 @@ server:
 app:
   jwt:
     secret: ${JWT_SECRET}
+  refresh-token:
+    cookie-secure: true
 
 spring:
   flyway:

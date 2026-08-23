@@ -23,7 +23,9 @@ export class AuthRepositoryImpl implements IAuthRepository {
   }
 
   async refresh(): Promise<LoginResponse> {
-    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/refresh`)).data;
+    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/refresh`, undefined, {
+      withCredentials: true,
+    })).data;
   }
 
   async logout(): Promise<void> {
@@ -31,6 +33,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
     await apiClient.post(`${this.baseUrl}/logout`, undefined, {
       // El cierre local no debe depender de la disponibilidad del servidor.
       timeout: 2500,
+      withCredentials: true,
       ...(token && { headers: { Authorization: `Bearer ${token}` } }),
     });
   }

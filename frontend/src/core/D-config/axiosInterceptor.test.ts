@@ -154,19 +154,19 @@ describe("configureAxiosInterceptors", () => {
     expect(request).not.toHaveBeenCalled();
   });
 
-  it("finaliza inmediatamente una sesión cuyo JWT ya venció", async () => {
+  it("renueva una sesión cuyo access token ya venció", async () => {
     const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }));
     const expiredToken = `header.${payload}.signature`;
     sessionStorage.setItem(AUTH_TOKEN_KEY, expiredToken);
     const expired = vi.fn();
     window.addEventListener(SESSION_EXPIRED_EVENT, expired);
 
-    await expect(prepareRequest({ url: "/tesoreria/eventos", headers: {} }))
-      .rejects.toThrow("La sesión expiró");
+    const config = await prepareRequest({ url: "/tesoreria/eventos", headers: {} });
 
-    expect(axios.post).not.toHaveBeenCalled();
-    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
-    expect(expired).toHaveBeenCalledOnce();
+    expect(axios.post).toHaveBeenCalledOnce();
+    expect(config).toMatchObject({ headers: { Authorization: "Bearer token-renovado" } });
+    expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe("token-renovado");
+    expect(expired).not.toHaveBeenCalled();
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
   });
 

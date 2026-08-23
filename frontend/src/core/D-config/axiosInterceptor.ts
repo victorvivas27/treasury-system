@@ -2,6 +2,7 @@ import axios, { type AxiosInstance } from "axios";
 
 export const AUTH_TOKEN_KEY = "treasury.auth.token";
 export const SESSION_EXPIRED_EVENT = "treasury:session-expired";
+export const SESSION_REFRESHED_EVENT = "treasury:session-refreshed";
 
 const requestToken = (authorization: unknown) => {
   if (typeof authorization !== "string" || !authorization.startsWith("Bearer ")) return null;
@@ -22,13 +23,8 @@ const expiresSoon = (token: string) => {
   return expiration !== null && expiration - Date.now() < 5 * 60 * 1000;
 };
 
-const isExpired = (token: string) => {
-  const expiration = tokenExpiration(token);
-  return expiration !== null && expiration <= Date.now();
-};
-
-const expireSession = (token: string) => {
-  if (sessionStorage.getItem(AUTH_TOKEN_KEY) !== token) return;
+const expireSession = (token?: string | null) => {
+  if (token && sessionStorage.getItem(AUTH_TOKEN_KEY) !== token) return;
   sessionStorage.removeItem(AUTH_TOKEN_KEY);
   window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 };
@@ -36,16 +32,17 @@ const expireSession = (token: string) => {
 export const configureAxiosInterceptors = (client: AxiosInstance) => {
   let refreshPromise: Promise<string> | null = null;
 
-  const refreshToken = (token: string) => {
+  const refreshToken = () => {
     refreshPromise ??= axios.post<{ token: string }>(
       `${client.defaults.baseURL}/auth/refresh`,
       {},
       {
-        headers: { Authorization: `Bearer ${token}` },
         timeout: client.defaults.timeout ?? 30000,
+        withCredentials: true,
       },
     ).then(({ data }) => {
       sessionStorage.setItem(AUTH_TOKEN_KEY, data.token);
+      window.dispatchEvent(new CustomEvent(SESSION_REFRESHED_EVENT, { detail: data.token }));
       return data.token;
     }).finally(() => {
       refreshPromise = null;
@@ -56,13 +53,9 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
   client.interceptors.request.use(async (config) => {
     let token = sessionStorage.getItem(AUTH_TOKEN_KEY);
     const isAuthRequest = config.url?.includes("/auth/") ?? false;
-    if (token && !isAuthRequest && isExpired(token)) {
-      expireSession(token);
-      throw new Error("La sesión expiró");
-    }
     if (token && !isAuthRequest && expiresSoon(token)) {
       try {
-        token = await refreshToken(token);
+        token = await refreshToken();
       } catch {
         // La respuesta original determinará si corresponde cerrar la sesión.
       }
@@ -102,7 +95,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
           if (requestConfig && !requestConfig._authRetry && !isAuthRequest) {
             requestConfig._authRetry = true;
             try {
-              const renewedToken = await refreshToken(currentToken);
+              const renewedToken = await refreshToken();
               requestConfig.headers.Authorization = `Bearer ${renewedToken}`;
               return client.request(requestConfig);
             } catch (refreshError) {
