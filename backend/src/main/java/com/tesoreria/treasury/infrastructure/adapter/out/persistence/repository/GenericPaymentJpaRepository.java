@@ -8,4 +8,5 @@ public interface GenericPaymentJpaRepository extends JpaRepository<GenericPaymen
     List<GenericPaymentEntity> findByStatusOrderByCreatedAtDesc(PaymentStatus status);
     List<GenericPaymentEntity> findAllByOrderByCreatedAtDesc();
     boolean existsByInstallmentIdAndStatusIn(Long id, Collection<PaymentStatus> statuses);
+    List<GenericPaymentEntity> findByInstallmentIdIn(Collection<Long> ids);
 }

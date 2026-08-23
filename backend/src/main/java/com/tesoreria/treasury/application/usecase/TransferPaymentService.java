@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.*;
 import java.util.*;
 import java.util.function.Function;
@@ -32,6 +33,7 @@ public class TransferPaymentService {
     private static final int MIN_SIGNATURE_BYTES = 4;
     private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "application/pdf");
     private final BankAccountSettingJpaRepository settings;
+    private final AnnualFeeConfigJpaRepository feeConfigs;
     private final GenericPaymentJpaRepository payments;
     private final BankTransferPaymentJpaRepository transfers;
     private final FamilyFeePlanJpaRepository plans;
@@ -44,6 +46,7 @@ public class TransferPaymentService {
     private final long maxBytes;
 
     public TransferPaymentService(BankAccountSettingJpaRepository settings,
+                                  AnnualFeeConfigJpaRepository feeConfigs,
                                   GenericPaymentJpaRepository payments,
                                   BankTransferPaymentJpaRepository transfers,
                                   FamilyFeePlanJpaRepository plans,
@@ -54,7 +57,7 @@ public class TransferPaymentService {
                                   TreasuryUseCase treasury,
                                   ObjectProvider<FileStorageService> storageProvider,
                                   Environment environment) {
-        this.settings = settings; this.payments = payments; this.transfers = transfers;
+        this.settings = settings; this.feeConfigs = feeConfigs; this.payments = payments; this.transfers = transfers;
         this.plans = plans; this.obligations = obligations; this.families = families;
         this.guardians = guardians; this.students = students; this.treasury = treasury;
         this.storage = storageProvider.getIfAvailable();
@@ -106,14 +109,35 @@ public class TransferPaymentService {
 
     @Transactional
     public PaymentView submitProof(Long installmentId, MultipartFile file, String email) {
-        FeeObligationEntity obligation = ownObligation(installmentId, email);
+        FamiliaEntity family = ownFamily(email);
+        FeeObligationEntity obligation = ownObligation(installmentId, family);
+        return submitProof(obligation, family, file);
+    }
+
+    @Transactional
+    public PaymentView submitProofByAdmin(Long installmentId, MultipartFile file) {
+        FeeObligationEntity obligation = obligations.findById(installmentId)
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Cuota no encontrada"));
+        FamilyFeePlanEntity plan = plans.findById(obligation.getPlanId())
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Plan de pago no encontrado"));
+        FamiliaEntity family = families.findById(plan.getFamilyId())
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Familia no encontrada"));
+        return submitProof(obligation, family, file);
+    }
+
+    private PaymentView submitProof(FeeObligationEntity obligation, FamiliaEntity family, MultipartFile file) {
+        Long installmentId = obligation.getId();
         if (obligation.getStatus() == ObligationStatus.PAGADA)
             throw error(HttpStatus.CONFLICT, "Esta cuota ya está pagada");
         if (payments.existsByInstallmentIdAndStatusIn(installmentId,
                 List.of(PaymentStatus.PROOF_SUBMITTED, PaymentStatus.UNDER_REVIEW, PaymentStatus.PAID)))
             throw error(HttpStatus.CONFLICT, "Esta cuota ya tiene un comprobante en revisión");
         ValidFile valid = validate(file); FileStorageService fileStorage = requireStorage();
-        String objectName = "tesorerias/transferencias/%d/%s".formatted(installmentId, UUID.randomUUID());
+        String studentName = students.findById(family.getAlumnoId()).map(value -> value.getNombre()).orElse("alumno");
+        String familyFolder = firstName(studentName) + "-" + family.getFamiliaId();
+        int schoolYear = schoolYear(obligation);
+        String objectName = "tesorerias/%d/transferencias/%s/cuota-%d/%s.%s".formatted(
+                schoolYear, familyFolder, installmentId, UUID.randomUUID(), extension(valid.contentType()));
         fileStorage.upload(objectName, valid.bytes(), valid.contentType());
         try {
             LocalDateTime now = LocalDateTime.now();
@@ -133,6 +157,27 @@ public class TransferPaymentService {
         }
     }
 
+    @Transactional
+    public void deleteFamilyPayments(Long familyId) {
+        List<Long> planIds = plans.findByFamilyId(familyId).stream().map(FamilyFeePlanEntity::getId).toList();
+        if (planIds.isEmpty()) return;
+        List<Long> obligationIds = obligations.findByPlanIdInOrderByDueDate(planIds).stream()
+                .map(FeeObligationEntity::getId).toList();
+        if (obligationIds.isEmpty()) return;
+        List<GenericPaymentEntity> familyPayments = payments.findByInstallmentIdIn(obligationIds);
+        if (familyPayments.isEmpty()) return;
+        List<BankTransferPaymentEntity> familyTransfers = transfers.findByPaymentIdIn(
+                familyPayments.stream().map(GenericPaymentEntity::getId).toList());
+        if (!familyTransfers.isEmpty()) {
+            FileStorageService fileStorage = requireStorage();
+            for (BankTransferPaymentEntity transfer : familyTransfers) {
+                fileStorage.delete(transfer.getProofObjectName());
+            }
+        }
+        transfers.deleteAllInBatch(familyTransfers);
+        payments.deleteAllInBatch(familyPayments);
+    }
+
     @Transactional(readOnly = true)
     public List<ReviewPaymentView> reviewList(int year, PaymentStatus status) {
         AnnualFeeConfig config = treasury.getConfig(year);
@@ -149,11 +194,17 @@ public class TransferPaymentService {
 
     @Transactional
     public PaymentView approve(Long paymentId, String reviewer) {
+        return approve(paymentId, reviewer, LocalDate.now());
+    }
+
+    @Transactional
+    public PaymentView approve(Long paymentId, String reviewer, LocalDate paymentDate) {
         GenericPaymentEntity payment = payment(paymentId); BankTransferPaymentEntity transfer = transfer(paymentId);
         if (payment.getStatus() == PaymentStatus.PAID) return view(payment, transfer, null);
         if (payment.getStatus() != PaymentStatus.PROOF_SUBMITTED && payment.getStatus() != PaymentStatus.UNDER_REVIEW)
             throw error(HttpStatus.CONFLICT, "El pago no está pendiente de revisión");
-        treasury.registerPayment(payment.getInstallmentId(), LocalDate.now(), payment.getAmount(), reviewer,
+        treasury.registerPayment(payment.getInstallmentId(), paymentDate == null ? LocalDate.now() : paymentDate,
+                payment.getAmount(), reviewer,
                 "Transferencia aprobada · intento #" + payment.getId());
         LocalDateTime now = LocalDateTime.now(); payment.setStatus(PaymentStatus.PAID); payment.setPaidAt(now); payment.setUpdatedAt(now);
         transfer.setReviewedBy(reviewer); transfer.setReviewedAt(now); transfer.setUpdatedAt(now);
@@ -199,7 +250,9 @@ public class TransferPaymentService {
         String student = students.findById(family.getAlumnoId()).map(value -> value.getNombre()).orElse("");
         String guardian = family.getApoderados().stream().filter(value -> Boolean.TRUE.equals(value.getEsPrincipal())).findFirst()
                 .flatMap(value -> guardians.findById(value.getApoderadoId())).map(ApoderadoEntity::getNombre).orElse("");
-        return new ReviewPaymentView(payment.getId(), student, guardian, obligation.getConcept(), payment.getAmount(), payment.getStatus(),
+        return new ReviewPaymentView(payment.getId(), payment.getInstallmentId(), student, guardian,
+                obligation.getConcept(), payment.getAmount(), payment.getStatus(),
+                transfer == null ? null : transfer.getOriginalFileName(),
                 transfer == null ? null : transfer.getSubmittedAt(), transfer == null ? null : transfer.getRejectionReason());
     }
 
@@ -208,11 +261,35 @@ public class TransferPaymentService {
         return families.findByGuardianId(guardian.getApoderadoId()).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "No existe una familia asociada"));
     }
     private FeeObligationEntity ownObligation(Long id, String email) {
-        FamiliaEntity family = ownFamily(email); FeeObligationEntity obligation = obligations.findById(id)
+        return ownObligation(id, ownFamily(email));
+    }
+    private FeeObligationEntity ownObligation(Long id, FamiliaEntity family) {
+        FeeObligationEntity obligation = obligations.findById(id)
                 .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Cuota no encontrada"));
         FamilyFeePlanEntity plan = plans.findById(obligation.getPlanId()).orElseThrow();
         if (!plan.getFamilyId().equals(family.getFamiliaId())) throw error(HttpStatus.FORBIDDEN, "La cuota no pertenece a tu familia");
         return obligation;
+    }
+    private String firstName(String fullName) {
+        String first = Optional.ofNullable(fullName).orElse("").trim().split("\\s+")[0];
+        String normalized = Normalizer.normalize(first, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        String safe = normalized.replaceAll("[^A-Za-z0-9_-]", "");
+        return safe.isBlank() ? "alumno" : safe;
+    }
+    private String extension(String contentType) {
+        return switch (contentType) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            case "application/pdf" -> "pdf";
+            default -> "bin";
+        };
+    }
+    private int schoolYear(FeeObligationEntity obligation) {
+        FamilyFeePlanEntity plan = plans.findById(obligation.getPlanId())
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Plan de pago no encontrado"));
+        return feeConfigs.findById(plan.getConfigId())
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Configuración anual no encontrada"))
+                .getYear();
     }
     private GenericPaymentEntity payment(Long id) { return payments.findById(id).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Pago no encontrado")); }
     private BankTransferPaymentEntity transfer(Long id) { return transfers.findByPaymentId(id).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Comprobante no encontrado")); }
@@ -241,9 +318,12 @@ public class TransferPaymentService {
     public record BankAccountView(Long id, Integer schoolYear, String accountHolderName, String accountHolderRut, String bankName, String accountType, String accountNumber, String email) {}
     public record PlanRequest(int year, PaymentMode mode) {}
     public record RejectRequest(String reason) {}
+    public record ApprovalRequest(LocalDate paymentDate) {}
     public record PaymentView(Long id, Long installmentId, BigDecimal amount, String currency, PaymentMethod paymentMethod, PaymentStatus status, LocalDateTime paidAt, String originalFileName, LocalDateTime submittedAt, LocalDateTime reviewedAt, String rejectionReason) {}
     public record InstallmentView(Long id, InstallmentType installment, String concept, BigDecimal amount, LocalDate dueDate, ObligationStatus status, List<PaymentView> history) {}
     public record MyPaymentsView(int schoolYear, BigDecimal totalAmount, AllowedPaymentMode allowedMode, LocalDate annualDueDate, LocalDate firstDueDate, LocalDate secondDueDate, Long familyId, String studentName, PaymentMode selectedMode, BigDecimal paidAmount, List<InstallmentView> installments, BankAccountView bankAccount) {}
-    public record ReviewPaymentView(Long id, String studentName, String guardianName, String installment, BigDecimal amount, PaymentStatus status, LocalDateTime submittedAt, String rejectionReason) {}
+    public record ReviewPaymentView(Long id, Long installmentId, String studentName, String guardianName,
+                                    String installment, BigDecimal amount, PaymentStatus status,
+                                    String originalFileName, LocalDateTime submittedAt, String rejectionReason) {}
     public record Download(String filename, String contentType, byte[] bytes) {}
 }

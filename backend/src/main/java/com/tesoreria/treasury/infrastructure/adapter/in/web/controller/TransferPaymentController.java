@@ -41,6 +41,13 @@ public class TransferPaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.submitProof(installmentId, file, principal.getName()));
     }
 
+    @PostMapping(value = "/obligaciones/{installmentId}/comprobante", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(ADMIN_ROLE)
+    public ResponseEntity<PaymentView> uploadByAdmin(@PathVariable Long installmentId,
+                                                      @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.submitProofByAdmin(installmentId, file));
+    }
+
     @GetMapping("/revision")
     @PreAuthorize(ADMIN_ROLE)
     public List<ReviewPaymentView> review(@RequestParam int year, @RequestParam(required = false) PaymentStatus status) {
@@ -49,7 +56,11 @@ public class TransferPaymentController {
 
     @PostMapping("/{paymentId}/aprobar")
     @PreAuthorize(ADMIN_ROLE)
-    public PaymentView approve(@PathVariable Long paymentId, Principal principal) { return service.approve(paymentId, principal.getName()); }
+    public PaymentView approve(@PathVariable Long paymentId,
+                               @RequestBody(required = false) ApprovalRequest request,
+                               Principal principal) {
+        return service.approve(paymentId, principal.getName(), request == null ? null : request.paymentDate());
+    }
 
     @PostMapping("/{paymentId}/rechazar")
     @PreAuthorize(ADMIN_ROLE)

@@ -17,6 +17,7 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
+import com.tesoreria.treasury.application.usecase.TransferPaymentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,7 @@ public class FamiliaController {
     private final ApoderadoService apoderadoService;
     private final AlumnoService alumnoService;
     private final TreasuryUseCase treasury;
+    private final TransferPaymentService transferPayments;
 
     public FamiliaController(
             AlumnoService alumnoService,
@@ -46,7 +48,8 @@ public class FamiliaController {
             DeleteFamiliaUseCase deleteUseCase,
             GetFamiliaUseCase getUseCase,
             FamiliaMapper mapper,
-            TreasuryUseCase treasury) {
+            TreasuryUseCase treasury,
+            TransferPaymentService transferPayments) {
         this.alumnoService = alumnoService;
         this.apoderadoService = apoderadoService;
         this.createUseCase = createUseCase;
@@ -55,6 +58,7 @@ public class FamiliaController {
         this.getUseCase = getUseCase;
         this.mapper = mapper;
         this.treasury = treasury;
+        this.transferPayments = transferPayments;
     }
 
     @PostMapping
@@ -101,6 +105,7 @@ public class FamiliaController {
     @DeleteMapping("/{familiaId}")
     @Transactional
     public ResponseEntity<Void> eliminarFamilia(@PathVariable Long familiaId) {
+        transferPayments.deleteFamilyPayments(familiaId);
         treasury.deleteFamilyTreasuryData(familiaId);
         deleteUseCase.eliminarFamilia(familiaId);
         return ResponseEntity.noContent().build();
