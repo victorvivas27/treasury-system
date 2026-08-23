@@ -6,7 +6,8 @@ import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserReposit
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
-import { FiEdit2, FiUpload, FiUser, FiX } from "react-icons/fi";
+import { FiBookOpen, FiCheck, FiClock, FiEdit2, FiHeart, FiPhone, FiUpload,
+  FiUser, FiUsers, FiX } from "react-icons/fi";
 import "./ProfilePage.css";
 
 const money = new Intl.NumberFormat("es-CL", {
@@ -169,6 +170,7 @@ export const ProfilePage = () => {
   return <main className="profile-page">
     <article className="profile-card" aria-label="Perfil de usuario">
       <section className="profile-identity" aria-label="Identidad">
+        <span className="profile-identity-glow" aria-hidden="true" />
         <div className="profile-summary">
           <UserAvatar user={user} className="profile-avatar" />
           <div className="profile-copy">
@@ -187,9 +189,9 @@ export const ProfilePage = () => {
       </section>
 
       <section className="profile-real-data" aria-label="Datos de la cuenta">
-        <h2>Estado de la cuenta</h2>
+        <div><span>Tu espacio personal</span><h2>Estado de la cuenta</h2></div>
         <strong className={`profile-account-status ${user?.enabled ? "is-active" : "is-inactive"}`}>
-          {user?.enabled ? "Activa" : "Inactiva"}
+          {user?.enabled ? <FiCheck /> : <FiX />}{user?.enabled ? "Cuenta activa" : "Cuenta inactiva"}
         </strong>
       </section>
 
@@ -251,9 +253,9 @@ export const ProfilePage = () => {
           </strong>
         </header>
         <dl className="profile-data-grid">
-          <div><dt>Alumno</dt><dd>{familyProfile.studentName}</dd></div>
-          <div><dt>Parentesco</dt><dd>{familyProfile.relationship}</dd></div>
-          <div><dt>Teléfono</dt><dd>{familyProfile.guardianPhone}</dd></div>
+          <div><i><FiUser /></i><dt>Alumno</dt><dd>{familyProfile.studentName}</dd></div>
+          <div><i><FiUsers /></i><dt>Parentesco</dt><dd>{familyProfile.relationship}</dd></div>
+          <div><i><FiPhone /></i><dt>Teléfono</dt><dd>{familyProfile.guardianPhone}</dd></div>
         </dl>
 
         {familyProfile.studentMessage?.trim() && <aside className="profile-student-message">
@@ -269,13 +271,16 @@ export const ProfilePage = () => {
             const paid = payment?.status === "PAID";
             return <div className={`profile-contribution-status ${paid ? "is-current" : "has-debt"}`}
               key={type}>
-              <span>{type === "CEPA" ? "Aporte CEPA" : "Fondo de Apoyo por Fallecimiento"}</span>
-              <strong>{paid ? "Pagado" : "Pendiente"}</strong>
+              <i>{type === "CEPA" ? <FiUsers /> : <FiHeart />}</i>
+              <span><small>{type === "CEPA" ? "Aporte CEPA" : "Fondo de Apoyo"}</small>
+                <strong>{paid ? "Pagado" : "Pendiente"}</strong></span>
+              <em>{paid ? <FiCheck /> : <FiClock />}</em>
             </div>;
           })}
         </div>
 
         {paymentMode && <div className={`profile-payment-status ${familyProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
+          <i className="profile-payment-icon"><FiBookOpen /></i>
           <div>
             <span>Cuota del curso · {paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
             <strong>{familyProfile.obligations.length === 0
