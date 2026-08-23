@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export const useHomeReveal = () => {
+export const useHomeReveal = (refreshKey?: unknown) => {
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>(
       "[data-home-reveal]:not([data-home-card]):not([data-home-scroll-repeat]), "
@@ -44,5 +44,5 @@ export const useHomeReveal = () => {
       repeatObserver.disconnect();
       previewObserver.disconnect();
     };
-  }, []);
+  }, [refreshKey]);
 };

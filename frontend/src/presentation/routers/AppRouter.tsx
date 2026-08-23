@@ -32,6 +32,7 @@ import { EventsPage } from "../pages/tesoreria/EventsPage";
 import { StandManagementPage } from "../pages/stand/StandManagementPage";
 import { AboutManagementPage } from "../pages/community/AboutManagementPage";
 import { CoursePhotoManagementPage } from "../pages/community/CoursePhotoManagementPage";
+import { BoardManagementPage } from "../pages/community/BoardManagementPage";
 
 export const AppRouter = () => {
   return (
@@ -60,6 +61,7 @@ export const AppRouter = () => {
         <Route element={<AdminRoute />}>
           <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />
           <Route path="admin/fotos-del-curso" element={<CoursePhotoManagementPage />} />
+          <Route path="admin/directiva" element={<BoardManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
           <Route path="tesoreria/pagos" element={<TreasurySectionPage section="Pagos" />} />
