@@ -3,7 +3,7 @@ import { GetCurrentUserUseCase } from "@/core/B-application/use-cases/auth/GetCu
 import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
 import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
-import { AUTH_TOKEN_KEY, SESSION_EXPIRED_EVENT } from "@/core/D-config/axiosInterceptor";
+import { AUTH_TOKEN_KEY, SESSION_EXPIRED_EVENT, SESSION_REFRESHED_EVENT } from "@/core/D-config/axiosInterceptor";
 import { FiAlertCircle, FiX } from "react-icons/fi";
 import "./AuthContext.css";
 import {
@@ -30,6 +30,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const AUTH_USER_KEY = "treasury.auth.user";
+const MANUAL_LOGOUT_KEY = "treasury.auth.manual-logout";
 
 const storedUser = () => {
   if (!sessionStorage.getItem(AUTH_TOKEN_KEY)) return null;
@@ -60,10 +61,23 @@ const tokenExpiration = (token: string) => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState(() => sessionStorage.getItem(AUTH_TOKEN_KEY));
   const [user, setUser] = useState<User | null>(storedUser);
-  const [loading, setLoading] = useState(Boolean(token && !user));
+  const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
   const hadActiveSession = useRef(Boolean(token && user));
   const validatedToken = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (loading) return;
+    const loader = document.getElementById("app-boot-loader");
+    if (!loader) return;
+    const startedAt = Number(document.documentElement.dataset.bootStartedAt ?? 0);
+    const remaining = Math.max(0, 650 - (performance.now() - startedAt));
+    const hideTimer = window.setTimeout(() => {
+      loader.classList.add("is-leaving");
+      window.setTimeout(() => loader.remove(), 400);
+    }, remaining);
+    return () => window.clearTimeout(hideTimer);
+  }, [loading]);
 
   const useCases = useMemo(() => {
     const repository = new AuthRepositoryImpl();
@@ -71,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       login: new LoginUseCase(repository),
       current: new GetCurrentUserUseCase(repository),
       logout: new LogoutUseCase(repository),
+      refresh: () => repository.refresh(),
     };
   }, []);
 
@@ -95,13 +110,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [clearSession]);
 
   useEffect(() => {
+    const handleSessionRefreshed = (event: Event) => {
+      const renewedToken = (event as CustomEvent<string>).detail;
+      if (renewedToken) setToken(renewedToken);
+    };
+    window.addEventListener(SESSION_REFRESHED_EVENT, handleSessionRefreshed);
+    return () => window.removeEventListener(SESSION_REFRESHED_EVENT, handleSessionRefreshed);
+  }, []);
+
+  useEffect(() => {
     if (!token || !user) return;
     const checkExpiration = () => {
       const currentToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
       if (!currentToken) return;
       const expiration = tokenExpiration(currentToken);
       if (expiration !== null && expiration <= Date.now()) {
-        window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+        useCases.refresh().catch(() => undefined);
       } else if (currentToken !== token) {
         setToken(currentToken);
       }
@@ -119,11 +143,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [token, user]);
+  }, [token, user, useCases]);
 
   useEffect(() => {
     if (!token) {
-      setLoading(false);
+      if (localStorage.getItem(MANUAL_LOGOUT_KEY) === "true") {
+        setLoading(false);
+        return;
+      }
+      useCases.refresh()
+        .then((response) => {
+          sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
+          sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+          validatedToken.current = response.token;
+          hadActiveSession.current = true;
+          setToken(response.token);
+          setUser(response.user);
+        })
+        .catch((error: unknown) => {
+          if (isAuthenticationRejection(error) && !sessionStorage.getItem(AUTH_TOKEN_KEY)) clearSession();
+        })
+        .finally(() => setLoading(false));
       return;
     }
     if (validatedToken.current === token) {
@@ -148,6 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const response = await useCases.login.execute({ correo, password });
+      localStorage.removeItem(MANUAL_LOGOUT_KEY);
       sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
       sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
       validatedToken.current = response.token;
@@ -161,6 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
+    localStorage.removeItem(MANUAL_LOGOUT_KEY);
     sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
     validatedToken.current = response.token;
@@ -174,6 +216,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     // Inicia la revocación con el token todavía disponible, pero no bloquea la interfaz.
     const revocation = token ? useCases.logout.execute() : null;
+    localStorage.setItem(MANUAL_LOGOUT_KEY, "true");
     clearSession();
     void revocation?.catch(() => undefined);
   };

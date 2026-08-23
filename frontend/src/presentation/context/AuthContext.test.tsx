@@ -7,10 +7,11 @@ import { SESSION_EXPIRED_EVENT } from "@/core/D-config/axiosInterceptor";
 const loginMock = vi.fn();
 const logoutMock = vi.fn();
 const meMock = vi.fn();
+const refreshMock = vi.fn();
 
 vi.mock("@/core/C-infra/repositories/auth/AuthRepositoryImpl", () => ({
   AuthRepositoryImpl: vi.fn().mockImplementation(function () {
-    return { login: loginMock, logout: logoutMock, me: meMock, refresh: vi.fn(), register: vi.fn() };
+    return { login: loginMock, logout: logoutMock, me: meMock, refresh: refreshMock, register: vi.fn() };
   }),
 }));
 
@@ -31,7 +32,9 @@ describe("AuthContext", () => {
 
   beforeEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
     vi.clearAllMocks();
+    refreshMock.mockRejectedValue({ response: { status: 401 } });
   });
 
   it("[AuthContext #01] debe iniciar sesión y guardar el token", async () => {
@@ -67,6 +70,17 @@ describe("AuthContext", () => {
     expect(result.current.user).toBeNull();
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(logoutMock).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem("treasury.auth.manual-logout")).toBe("true");
+  });
+
+  it("[AuthContext #02c] no restaura la cookie después de un logout manual", async () => {
+    localStorage.setItem("treasury.auth.manual-logout", "true");
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(refreshMock).not.toHaveBeenCalled();
+    expect(result.current.isAuthenticated).toBe(false);
   });
 
   it("[AuthContext #03] debe cerrar la sesión y avisar cuando expira", async () => {

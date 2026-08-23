@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, Long> {
     Optional<UserTokenEntity> findByTokenHashAndType(String tokenHash, UserTokenType type);
@@ -16,4 +17,8 @@ public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, L
     void deleteByUserIdAndType(Long userId, UserTokenType type);
 
     void deleteByUserId(Long userId);
+
+    @Modifying
+    @Query("delete from UserTokenEntity t where t.expiresAt < :now or t.usedAt is not null")
+    void deleteExpiredOrUsed(LocalDateTime now);
 }

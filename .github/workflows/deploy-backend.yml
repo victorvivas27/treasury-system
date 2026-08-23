@@ -82,6 +82,10 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             APP_PROFILE=${{ secrets.APP_PROFILE }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION_MS=1800000
+            REFRESH_TOKEN_EXPIRATION_SECONDS=2592000
+            REFRESH_COOKIE_SECURE=true
+            REFRESH_COOKIE_SAME_SITE=${{ secrets.REFRESH_COOKIE_SAME_SITE }}
             APP_CORS_ALLOWED_ORIGINS=${{ secrets.APP_CORS_ALLOWED_ORIGINS }}
             EMAIL_PROVIDER=${{ secrets.EMAIL_PROVIDER }}
             GMAIL_USER=${{ secrets.GMAIL_USER }}

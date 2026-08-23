@@ -6,6 +6,7 @@ import com.tesoreria.shared.infrastructure.performance.LoginPerformanceProbe;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.AuthService;
 import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
+import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.SecurityConstants;
@@ -25,6 +26,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -47,6 +50,10 @@ public class AuthController {
     private final String bootstrapAdminKey;
     private final boolean allowLocalBootstrapWithoutKey;
     private final LoginPerformanceProbe loginPerformance;
+    private final RefreshTokenService refreshTokenService;
+    private final boolean refreshCookieSecure;
+    private final String refreshCookieSameSite;
+    private static final String REFRESH_COOKIE = "treasury_refresh";
 
     @Autowired
     public AuthController(
@@ -59,7 +66,10 @@ public class AuthController {
             AccountRecoveryService accountRecoveryService,
             @Value("${app.bootstrap.admin-key:}") String bootstrapAdminKey,
             @Value("${app.bootstrap.allow-local-without-key:false}") boolean allowLocalBootstrapWithoutKey,
-            LoginPerformanceProbe loginPerformance) {
+            LoginPerformanceProbe loginPerformance,
+            RefreshTokenService refreshTokenService,
+            @Value("${app.refresh-token.cookie-secure:true}") boolean refreshCookieSecure,
+            @Value("${app.refresh-token.cookie-same-site:Lax}") String refreshCookieSameSite) {
         this.authService = authService;
         this.userService = userService;
         this.mapper = mapper;
@@ -70,6 +80,9 @@ public class AuthController {
         this.bootstrapAdminKey = bootstrapAdminKey;
         this.allowLocalBootstrapWithoutKey = allowLocalBootstrapWithoutKey;
         this.loginPerformance = loginPerformance;
+        this.refreshTokenService = refreshTokenService;
+        this.refreshCookieSecure = refreshCookieSecure;
+        this.refreshCookieSameSite = refreshCookieSameSite;
     }
 
     public AuthController(
@@ -80,7 +93,7 @@ public class AuthController {
             TokenRevocationService revocationService,
             RegistrationRateLimiter registrationRateLimiter) {
         this(authService, userService, mapper, jwtService, revocationService,
-                registrationRateLimiter, null, "", false, null);
+                registrationRateLimiter, null, "", false, null, null, false, "Lax");
     }
 
     @Operation(summary = "Iniciar sesión")
@@ -95,13 +108,19 @@ public class AuthController {
                 ? null : loginPerformance.start();
         try {
             long startedAt = LoginPerformanceProbe.now();
-            String token = authService.login(request.correo(), request.password());
+            String authenticatedToken = authService.login(request.correo(), request.password());
+            RefreshTokenService.IssuedTokens issued = refreshTokenService == null
+                    ? new RefreshTokenService.IssuedTokens(authenticatedToken, null)
+                    : refreshTokenService.issue(request.correo());
             if (measurement != null) loginPerformance.phase(measurement, "authenticateAndJwt", startedAt);
             startedAt = LoginPerformanceProbe.now();
             UserResponseDTO user = mapper.toResponse(userService.findByCorreo(request.correo()));
             if (measurement != null) loginPerformance.phase(measurement, "findUserAndMap", startedAt);
-            return ResponseEntity.ok(new LoginResponseDTO(
-                    token,
+            ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+            if (issued.refreshToken() != null) response.header(HttpHeaders.SET_COOKIE,
+                    refreshCookie(issued.refreshToken(), refreshTokenService.getExpirationSeconds()).toString());
+            return response.body(new LoginResponseDTO(
+                    issued.accessToken(),
                     "Bearer",
                     jwtService.getExpirationMs() / 1000,
                     user));
@@ -152,8 +171,14 @@ public class AuthController {
     public ResponseEntity<LoginResponseDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO request) {
         User verifiedUser = accountRecoveryService.verifyEmail(request.token());
         String token = authService.issueTokenForVerifiedEmail(verifiedUser.getCorreo());
-        return ResponseEntity.ok(new LoginResponseDTO(
-                token,
+        RefreshTokenService.IssuedTokens issued = refreshTokenService == null
+                ? new RefreshTokenService.IssuedTokens(token, null)
+                : refreshTokenService.issue(verifiedUser.getCorreo());
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+        if (issued.refreshToken() != null) response.header(HttpHeaders.SET_COOKIE,
+                refreshCookie(issued.refreshToken(), refreshTokenService.getExpirationSeconds()).toString());
+        return response.body(new LoginResponseDTO(
+                issued.accessToken(),
                 "Bearer",
                 jwtService.getExpirationMs() / 1000,
                 mapper.toResponse(verifiedUser)));
@@ -199,44 +224,48 @@ public class AuthController {
 
     @Operation(summary = "Cerrar sesión")
     @PostMapping("/logout")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logout(
-            @RequestHeader(SecurityConstants.AUTHORIZATION_HEADER) String authorization) {
-        if (authorization.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+            @RequestHeader(value = SecurityConstants.AUTHORIZATION_HEADER, required = false) String authorization,
+            @CookieValue(value = REFRESH_COOKIE, required = false) String refreshToken) {
+        if (authorization != null && authorization.startsWith(SecurityConstants.TOKEN_PREFIX)) {
             String token = authorization.substring(SecurityConstants.TOKEN_PREFIX.length());
-            revocationService.revoke(token, jwtService.extractExpiration(token));
+            try {
+                revocationService.revoke(token, jwtService.extractExpiration(token));
+            } catch (io.jsonwebtoken.JwtException ignored) {
+                // Un access token expirado no debe impedir revocar la sesión persistente.
+            }
         }
-        return ResponseEntity.noContent().build();
+        if (refreshTokenService != null) refreshTokenService.revoke(refreshToken);
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie("", 0).toString()).build();
     }
 
     @Operation(summary = "Refrescar JWT")
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponseDTO> refresh(
-            @RequestHeader(SecurityConstants.AUTHORIZATION_HEADER) String authorization) {
-        if (!authorization.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+            @CookieValue(value = REFRESH_COOKIE, required = false) String refreshToken) {
+        if (refreshTokenService == null || refreshToken == null || refreshToken.isBlank()) {
             throw new DomainException(
                     UserErrorCode.INVALID_CREDENTIALS.getField(),
                     UserErrorCode.INVALID_CREDENTIALS.getStatus(),
-                    "Token Bearer requerido");
+                    "Refresh token requerido");
         }
-        String token = authService.refresh(
-                requireActiveToken(authorization.substring(SecurityConstants.TOKEN_PREFIX.length())));
-        String correo = jwtService.extractUsername(token);
-        return ResponseEntity.ok(new LoginResponseDTO(
-                token,
+        RefreshTokenService.IssuedTokens issued = refreshTokenService.rotate(refreshToken);
+        String correo = jwtService.extractUsername(issued.accessToken());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE,
+                        refreshCookie(issued.refreshToken(), refreshTokenService.getExpirationSeconds()).toString())
+                .body(new LoginResponseDTO(
+                issued.accessToken(),
                 "Bearer",
                 jwtService.getExpirationMs() / 1000,
                 mapper.toResponse(userService.findByCorreo(correo))));
     }
 
-    private String requireActiveToken(String token) {
-        if (revocationService.isRevoked(token)) {
-            throw new DomainException(
-                    UserErrorCode.INVALID_CREDENTIALS.getField(),
-                    UserErrorCode.INVALID_CREDENTIALS.getStatus(),
-                    "Token revocado");
-        }
-        return token;
+    private ResponseCookie refreshCookie(String value, long maxAge) {
+        return ResponseCookie.from(REFRESH_COOKIE, value)
+                .httpOnly(true).secure(refreshCookieSecure).sameSite(refreshCookieSameSite)
+                .path("/").maxAge(maxAge).build();
     }
 
     private boolean validBootstrapKey(String key) {

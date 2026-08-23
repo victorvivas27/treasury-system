@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/bootstrap-admin",
                                 "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout",
                                 "/api/v1/auth/verify-email",
                                 "/api/v1/auth/resend-verification",
                                 "/api/v1/auth/forgot-password",
@@ -93,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}/profile-image/content")
                         .hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout", "/api/v1/auth/change-password")
+                        .requestMatchers("/api/v1/auth/me", "/api/v1/auth/change-password")
                         .hasAnyRole("ADMIN", "USER")
                         .anyRequest().denyAll())
                 .headers(headers -> headers

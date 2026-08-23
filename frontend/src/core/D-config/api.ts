@@ -6,6 +6,7 @@ export const apiClient = axios.create({
   // Las pantallas de tesorería realizan varias lecturas al mismo tiempo, por lo que 10 s
   // cancelaba solicitudes válidas durante un arranque en frío.
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
