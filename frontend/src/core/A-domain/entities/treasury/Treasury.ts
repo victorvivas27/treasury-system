@@ -1,6 +1,6 @@
 export type PaymentMode = "ANUAL" | "DOS_CUOTAS";
 export type AllowedPaymentMode = PaymentMode | "AMBAS";
-export type ObligationStatus = "PENDIENTE" | "PAGADA";
+export type ObligationStatus = "PENDIENTE" | "EN_REVISION" | "PAGADA";
 export type InstallmentType = "ANUAL" | "PRIMERA" | "SEGUNDA";
 
 export interface AnnualFeeConfig {

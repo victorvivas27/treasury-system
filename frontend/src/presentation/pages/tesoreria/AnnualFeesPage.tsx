@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
-  FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUsers,
+  FiEye, FiFileText, FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUpload, FiUsers,
   FiXCircle }
   from "react-icons/fi";
 import type { AllowedPaymentMode, PaymentMode, TreasuryFilters }
@@ -10,6 +10,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
+import { apiClient } from "@/core/D-config/api";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./AnnualFeesPage.css";
 
@@ -23,6 +24,9 @@ const today = (() => {
 const isOverdue = (status: string, dueDate: string) => status === "PENDIENTE" && dueDate < today;
 const PLAN_PAGE_SIZE = 2;
 const OBLIGATION_FAMILY_PAGE_SIZE = 5;
+const transferBase = "/tesoreria/pagos-transferencia";
+type TransferProof = { id: number; installmentId: number; status: string;
+  originalFileName: string | null; submittedAt: string | null; rejectionReason: string | null };
 
 export const AnnualFeesPage = () => {
   const fees = useAnnualFees();
@@ -36,6 +40,10 @@ export const AnnualFeesPage = () => {
   const [filters, setFilters] = useState<TreasuryFilters>({});
   const [payment, setPayment] = useState<{ id: number; amount: number; concept: string } | null>(null);
   const [paymentDate, setPaymentDate] = useState(today);
+  const [paymentFile, setPaymentFile] = useState<File | null>(null);
+  const [transferProofs, setTransferProofs] = useState<TransferProof[]>([]);
+  const [proofSaving, setProofSaving] = useState(false);
+  const [proofError, setProofError] = useState("");
   const [annulmentId, setAnnulmentId] = useState<number | null>(null);
   const [annulmentReason, setAnnulmentReason] = useState("");
   const [removePlan, setRemovePlan] = useState<{ familyId: number; code: string } | null>(null);
@@ -67,6 +75,19 @@ export const AnnualFeesPage = () => {
     obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
   const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
     [visibleObligationGroups]);
+  const proofsByInstallment = useMemo(() => {
+    const values = new Map<number, TransferProof>();
+    transferProofs.forEach(proof => { if (!values.has(proof.installmentId)) values.set(proof.installmentId, proof); });
+    return values;
+  }, [transferProofs]);
+  const selectedProof = payment ? proofsByInstallment.get(payment.id) : undefined;
+
+  const loadTransferProofs = useCallback(async () => {
+    try {
+      setTransferProofs((await apiClient.get<TransferProof[]>(`${transferBase}/revision`,
+        { params: { year: fees.year } })).data);
+    } catch { setTransferProofs([]); }
+  }, [fees.year]);
 
   useEffect(() => {
     setPlanPage(current => Math.min(current, planPages));
@@ -80,6 +101,8 @@ export const AnnualFeesPage = () => {
     setPlanPage(1);
     setObligationPage(1);
   }, [fees.year]);
+
+  useEffect(() => { void loadTransferProofs(); }, [loadTransferProofs]);
 
   useEffect(() => {
     if (currentConfig) {
@@ -102,6 +125,49 @@ export const AnnualFeesPage = () => {
     const success = await fees.saveConfig({ annualAmount: amount, allowedMode, annualDueDate,
       firstDueDate, secondDueDate });
     if (success) setConfigOpen(false);
+  };
+
+  const openProof = async (paymentId: number) => {
+    const response = await apiClient.get<Blob>(`${transferBase}/${paymentId}/comprobante`,
+      { responseType: "blob" });
+    const url = URL.createObjectURL(response.data);
+    window.open(url, "_blank", "noopener,noreferrer");
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const closePayment = () => {
+    setPayment(null); setPaymentFile(null); setProofError("");
+  };
+
+  const selectPayment = (item: { id: number; amount: number; concept: string }) => {
+    setPaymentDate(today); setPaymentFile(null); setProofError(""); setPayment(item);
+  };
+
+  const registerPayment = async () => {
+    if (!payment || !paymentDate) return;
+    setProofSaving(true); setProofError("");
+    try {
+      const pendingProof = selectedProof
+        && ["PROOF_SUBMITTED", "UNDER_REVIEW"].includes(selectedProof.status) ? selectedProof : undefined;
+      let paymentId = pendingProof?.id;
+      if (!paymentId && paymentFile) {
+        const form = new FormData(); form.append("file", paymentFile);
+        const uploaded = await apiClient.post<{ id: number }>(
+          `${transferBase}/obligaciones/${payment.id}/comprobante`, form,
+          { headers: { "Content-Type": "multipart/form-data" } });
+        paymentId = uploaded.data.id;
+      }
+      if (paymentId) {
+        await apiClient.post(`${transferBase}/${paymentId}/aprobar`, { paymentDate });
+        await Promise.all([fees.refresh(), loadTransferProofs()]);
+      } else {
+        const success = await fees.pay(payment.id, paymentDate, payment.amount);
+        if (!success) return;
+      }
+      closePayment();
+    } catch {
+      setProofError("No fue posible guardar el comprobante y registrar el pago.");
+    } finally { setProofSaving(false); }
   };
 
   return <main className="annual-fees-page annual-fees-config-page">
@@ -269,10 +335,10 @@ export const AnnualFeesPage = () => {
       {fees.error && <p className="treasury-error" role="alert">{fees.error}</p>}
       <div className="treasury-table-wrap"><table><thead><tr><th>Responsable</th><th>Curso</th>
         <th>Concepto</th><th>Vence</th><th>Fecha de pago</th><th>Monto</th><th>Estado</th>
-        <th>Acción</th></tr></thead>
+        <th>Comprobante</th><th>Acción</th></tr></thead>
         <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
-            {Array.from({ length: 7 }, (_, column) => <td key={column}>
+            {Array.from({ length: 8 }, (_, column) => <td key={column}>
               <div className="skeleton-block treasury-cell-skeleton" />
             </td>)}<td><Button label="Registrar pago" size="small" disabled
               onClick={() => undefined} className="loading-action-placeholder" /></td>
@@ -290,13 +356,22 @@ export const AnnualFeesPage = () => {
             <span className={`fee-status fee-status--${isOverdue(item.status, item.dueDate)
               ? "vencida" : item.status.toLowerCase()}`}>
             {isOverdue(item.status, item.dueDate) ? "VENCIDA" : item.status}</span></td>
-          <td className="obligation-card__action">{item.status === "PENDIENTE"
+          <td className="obligation-card__proof" data-label="Comprobante">
+            {proofsByInstallment.get(item.id)
+              ? <button type="button" className="proof-link"
+                  onClick={() => void openProof(proofsByInstallment.get(item.id)!.id)}>
+                  <FiEye /> Ver archivo</button>
+              : item.status !== "PAGADA"
+                ? <button type="button" className="proof-link proof-link--upload"
+                    onClick={() => selectPayment({ id: item.id, amount: item.amount,
+                      concept: item.concept })}><FiUpload /> Subir comprobante</button>
+                : <span className="proof-empty">Sin comprobante</span>}
+          </td>
+          <td className="obligation-card__action">{item.status !== "PAGADA"
             ? <Button label="Registrar pago" size="small" icon={<FiCreditCard />}
                 iconPosition="left"
-                onClick={() => {
-                  setPaymentDate(today);
-                  setPayment({ id: item.id, amount: item.amount, concept: item.concept });
-                }} />
+                onClick={() => selectPayment({ id: item.id, amount: item.amount,
+                  concept: item.concept })} />
             : <Button label="Anular" size="small" variant="danger" icon={<FiSlash />}
                 iconPosition="left"
                 onClick={() => setAnnulmentId(item.id)} />}</td>
@@ -330,14 +405,21 @@ export const AnnualFeesPage = () => {
                     <div><dt>Vence</dt><dd>{item.dueDate}</dd></div>
                     <div><dt>Fecha de pago</dt><dd>{item.paymentDate ?? "—"}</dd></div>
                     <div><dt>Monto</dt><dd>{money.format(item.amount)}</dd></div>
+                    <div><dt>Comprobante</dt><dd>{proofsByInstallment.get(item.id)
+                      ? <button type="button" className="proof-link"
+                          onClick={() => void openProof(proofsByInstallment.get(item.id)!.id)}>
+                          <FiEye /> Ver archivo</button>
+                      : item.status !== "PAGADA"
+                        ? <button type="button" className="proof-link proof-link--upload"
+                            onClick={() => selectPayment({ id: item.id, amount: item.amount,
+                              concept: item.concept })}><FiUpload /> Subir comprobante</button>
+                        : <span className="proof-empty">Sin comprobante</span>}</dd></div>
                   </dl>
-                  {item.status === "PENDIENTE"
+                  {item.status !== "PAGADA"
                     ? <Button label="Registrar pago" size="small" icon={<FiCreditCard />}
                         iconPosition="left"
-                        onClick={() => {
-                          setPaymentDate(today);
-                          setPayment({ id: item.id, amount: item.amount, concept: item.concept });
-                        }} />
+                        onClick={() => selectPayment({ id: item.id, amount: item.amount,
+                          concept: item.concept })} />
                     : <Button label="Anular" size="small" variant="danger" icon={<FiSlash />}
                         iconPosition="left"
                         onClick={() => setAnnulmentId(item.id)} />}
@@ -389,25 +471,34 @@ export const AnnualFeesPage = () => {
     <ModalConfirm
       isOpen={payment !== null}
       title="Registrar pago de cuota"
-      message={payment ? `Selecciona la fecha real del pago de ${payment.concept}.` : ""}
+      message={payment ? `Verifica el comprobante y selecciona la fecha real del pago de ${payment.concept}.` : ""}
       confirmLabel="Registrar pago"
       cancelLabel="Volver"
-      isLoading={fees.loading}
+      isLoading={fees.loading || proofSaving}
       confirmDisabled={!paymentDate}
       compact
-      onCancel={() => setPayment(null)}
-      onConfirm={() => {
-        if (!payment || !paymentDate) return;
-        void fees.pay(payment.id, paymentDate, payment.amount).then(success => {
-          if (success) setPayment(null);
-        });
-      }}
+      onCancel={closePayment}
+      onConfirm={() => void registerPayment()}
     >
       <label>
         Fecha de pago
         <input type="date" value={paymentDate} max={today}
           onChange={event => setPaymentDate(event.target.value)} autoFocus />
       </label>
+      <div className="payment-proof-field">
+        <span><FiFileText /> Comprobante</span>
+        {selectedProof && selectedProof.status !== "REJECTED" ? <div className="payment-proof-existing">
+          <div><strong>{selectedProof.originalFileName || "Comprobante enviado"}</strong>
+            <small>Comprobante disponible para verificar</small></div>
+          <button type="button" onClick={() => void openProof(selectedProof.id)}><FiEye /> Ver</button>
+        </div> : <label className="payment-proof-upload"><FiUpload />
+          <span>{paymentFile ? paymentFile.name : "Adjuntar comprobante (opcional)"}</span>
+          <input type="file" accept="image/jpeg,image/png,application/pdf"
+            onChange={event => setPaymentFile(event.target.files?.[0] ?? null)} />
+        </label>}
+        {selectedProof?.status === "REJECTED" && <small>El comprobante anterior fue rechazado. Puedes adjuntar uno nuevo.</small>}
+      </div>
+      {proofError && <p className="treasury-error" role="alert">{proofError}</p>}
     </ModalConfirm>
     <ModalConfirm
       isOpen={annulmentId !== null}
