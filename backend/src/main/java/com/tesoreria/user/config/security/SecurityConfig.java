@@ -58,6 +58,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/about").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/gallery", "/api/v1/community/gallery/**").authenticated()
                         .requestMatchers("/api/v1/community/gallery/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/board").authenticated()
+                        .requestMatchers("/api/v1/community/board/**", "/api/v1/community/board").hasRole("ADMIN")
                         .requestMatchers("/api/v1/community/about/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/community/about").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,

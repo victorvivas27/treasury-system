@@ -1,16 +1,24 @@
-import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import { FiAward, FiBookOpen, FiCamera, FiChevronLeft, FiChevronRight, FiCompass, FiGift, FiHeart, FiMail, FiMusic,
   FiSmile, FiStar, FiSun, FiTarget, FiUsers } from "react-icons/fi";
-import { FcSportsMode } from "react-icons/fc";
 import type { AboutIcon, AboutSection } from "@/core/A-domain/entities/community/AboutSection";
 import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
+import type { BoardMember } from "@/core/A-domain/entities/community/BoardMember";
 import { AboutSectionUseCases } from "@/core/B-application/use-cases/community/AboutSectionUseCases";
 import { AboutSectionRepositoryImpl } from "@/core/C-infra/repositories/community/AboutSectionRepositoryImpl";
 import { coursePhotos } from "@/core/C-infra/repositories/community/CoursePhotoRepository";
+import { courseBoard } from "@/core/C-infra/repositories/community/CourseBoardRepository";
 import { useTheme } from "@/presentation/context/ThemeContext";
+import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeCommunity.css";
 
-const boardRoles = ["Presidencia", "Tesorería", "Secretaría"];
+const boardLabels = { PRESIDENTE: "Presidente/a", VICEPRESIDENTE: "Vicepresidente/a",
+  SECRETARIA: "Secretario/a", TESORERO: "Tesorero/a", PASTORAL: "Pastoral" } as const;
+const boardSlots = [
+  { role: "PRESIDENTE", position: 1 }, { role: "VICEPRESIDENTE", position: 1 },
+  { role: "SECRETARIA", position: 1 }, { role: "TESORERO", position: 1 },
+  { role: "PASTORAL", position: 1 }, { role: "PASTORAL", position: 2 },
+] as const;
 const about = new AboutSectionUseCases(new AboutSectionRepositoryImpl());
 const icons: Record<AboutIcon, typeof FiUsers> = {
   USERS: FiUsers, HEART: FiHeart, STAR: FiStar, BOOK: FiBookOpen,
@@ -30,7 +38,7 @@ const lottieColor = (value: string) => {
   return channels.map(channel => channel / 255);
 };
 
-const themedCameraAnimation = (animation: object) => {
+const themedCommunityAnimation = (animation: object) => {
   const styles = getComputedStyle(document.documentElement);
   const colors = {
     accent: lottieColor(styles.getPropertyValue("--color-accent")),
@@ -62,7 +70,7 @@ const CameraV3Icon = () => {
   useEffect(() => {
     let active = true;
     fetch("/icons/Camera%20V3.json").then(response => response.json() as Promise<object>)
-      .then(animation => { if (active) setAnimationData(themedCameraAnimation(animation)); })
+      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
       .catch(() => undefined);
     return () => { active = false; };
   }, [resolvedTheme]);
@@ -75,9 +83,50 @@ const CameraV3Icon = () => {
   </span>;
 };
 
+const StaffIcon = () => {
+  const { resolvedTheme } = useTheme();
+  const [animationData, setAnimationData] = useState<object>();
+  const reduceMotion = typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    let active = true;
+    fetch("/icons/Staff.json").then(response => response.json() as Promise<object>)
+      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [resolvedTheme]);
+  return <span className="home-community__staff-icon" aria-hidden="true">
+    <Suspense fallback={<FiUsers />}>
+      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.8}
+        loop={!reduceMotion} autoplay={!reduceMotion} /> : <FiUsers />}
+    </Suspense>
+  </span>;
+};
+
+const HeartIcon = () => {
+  const { resolvedTheme } = useTheme();
+  const [animationData, setAnimationData] = useState<object>();
+  const reduceMotion = typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    let active = true;
+    fetch("/icons/Heart.json").then(response => response.json() as Promise<object>)
+      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [resolvedTheme]);
+  return <span className="home-community__heart-icon" aria-hidden="true">
+    <Suspense fallback={<FiHeart />}>
+      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
+        loop={!reduceMotion} autoplay={!reduceMotion} /> : <FiHeart />}
+    </Suspense>
+  </span>;
+};
+
 export const HomeCommunity = () => {
   const [sections, setSections] = useState<AboutSection[]>([]);
   const [photos, setPhotos] = useState<CoursePhoto[]>([]);
+  const [board, setBoard] = useState<BoardMember[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
   const [activePhoto, setActivePhoto] = useState(0);
   const [dragStart, setDragStart] = useState<number>();
@@ -85,8 +134,13 @@ export const HomeCommunity = () => {
   const [carouselCycle, setCarouselCycle] = useState(0);
   const [containedPhotos, setContainedPhotos] = useState<Set<number>>(new Set());
   const [expandedCard, setExpandedCard] = useState<number>();
+  const boardTrackRef = useRef<HTMLDivElement>(null);
+  const moveBoard = (direction: number) => boardTrackRef.current?.scrollBy({
+    left: direction * boardTrackRef.current.clientWidth * .78, behavior: "smooth",
+  });
   useEffect(() => { about.publicList().then(setSections).catch(() => setSections([])); }, []);
   useEffect(() => { coursePhotos.list().then(setPhotos).catch(() => setPhotos([])); }, []);
+  useEffect(() => { courseBoard.list().then(setBoard).catch(() => setBoard([])); }, []);
   useEffect(() => {
     let active = true;
     const urls: string[] = [];
@@ -120,7 +174,7 @@ export const HomeCommunity = () => {
     <section id="sobre-nosotros" className="home-community__about" data-home-reveal
       data-home-scroll-repeat data-home-community-repeat>
       <header className="home-community__title-banner">
-        <FcSportsMode aria-hidden="true" />
+        <HeartIcon />
         <div>
           <span>Nuestro manifiesto</span>
           <h2>Lo que nos mueve</h2>
@@ -220,19 +274,44 @@ export const HomeCommunity = () => {
     </section>
 
     <section id="directiva" className="home-community__content" data-home-reveal>
-      <div className="home-community__heading">
-        <span className="home-community__eyebrow">Directiva</span>
-        <h2>Representantes del curso</h2>
+      <div className="home-community__board-heading">
+        <StaffIcon />
+        <div><span className="home-community__eyebrow">Directiva</span>
+          <h2>Representantes del curso</h2></div>
       </div>
-      <div className="home-community__board">
-        {boardRoles.map((role) => <article key={role}>
-          <span aria-hidden="true">{role.charAt(0)}</span><h3>{role}</h3>
-          <p>Información por publicar</p>
-        </article>)}
+      <div className="home-community__board-carousel" role="region" aria-label="Integrantes de la directiva">
+        <button className="home-community__board-arrow is-previous" type="button"
+          aria-label="Ver representantes anteriores" onClick={() => moveBoard(-1)}>
+          <FiChevronLeft /></button>
+        <div className="home-community__board" ref={boardTrackRef} tabIndex={0}
+          onKeyDown={event => {
+            if (event.key === "ArrowLeft") { event.preventDefault(); moveBoard(-1); }
+            if (event.key === "ArrowRight") { event.preventDefault(); moveBoard(1); }
+          }}>
+          {boardSlots.map((slot, index) => {
+          const member = board.find(item => item.role === slot.role && item.positionNumber === slot.position);
+          const roleLabel = `${boardLabels[slot.role]}${slot.role === "PASTORAL" ? ` ${slot.position}` : ""}`;
+          return <article key={`${slot.role}-${slot.position}`}
+            className={`is-${slot.role.toLowerCase()}`}
+            style={{ "--board-delay": `${index * 120}ms` } as CSSProperties}>
+            {member ? <UserAvatar className="home-community__board-avatar"
+              customImageUserId={member.userId ?? undefined} user={{ nombre: member.nombre,
+                profileImageType: member.profileImageType, profileImageUrl: member.profileImageUrl }} />
+              : <span className="home-community__board-avatar is-empty" aria-hidden="true">
+                {roleLabel.charAt(0)}</span>}
+            <small>{roleLabel}</small>
+            <h3>{member?.nombre ?? "Información por publicar"}</h3>
+            {member && <a href={`mailto:${member.email}`}>{member.email}</a>}
+          </article>;
+          })}
+        </div>
+        <button className="home-community__board-arrow is-next" type="button"
+          aria-label="Ver representantes siguientes" onClick={() => moveBoard(1)}>
+          <FiChevronRight /></button>
       </div>
     </section>
 
-    <section id="contacto" className="home-community__contact" data-home-reveal>
+    <section id="contacto" className="home-community__contact" data-home-reveal hidden>
       <FiMail aria-hidden="true" />
       <div><span className="home-community__eyebrow">Contacto</span>
         <h2>Comunícate con la directiva</h2>

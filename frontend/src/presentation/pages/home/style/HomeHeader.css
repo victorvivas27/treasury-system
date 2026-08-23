@@ -63,3 +63,4 @@
   .public-home__brand img { width:30px; height:30px; }
   .public-home__login,.public-home__register { padding-inline:.25rem; font-size:.52rem; }
 }
+.public-home__header [hidden] { display:none; }

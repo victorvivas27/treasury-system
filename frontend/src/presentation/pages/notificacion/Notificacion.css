@@ -622,7 +622,7 @@ body.notifications-inbox-open { overflow: hidden; }
     width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
     padding: .35rem .3rem .35rem .5rem; }
   .notifications-inbox .notification-conversation__content {
-    grid-template-rows: minmax(0, auto) auto; }
+    height: auto; align-content: start; grid-template-rows: minmax(0, auto) auto; }
   .notifications-inbox .notification-conversation__messages {
     height: auto; max-height: min(48dvh, 13.5rem); scroll-snap-type: none;
     overflow-anchor: none; }

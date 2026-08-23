@@ -77,8 +77,10 @@ export const HomeHeader = ({ isAuthenticated = false, isAdmin = false, user, onL
           <FiCamera aria-hidden="true" /> Editar fotos del curso</Link>
           : <a href="#fotos-del-curso" {...sectionProps("fotos-del-curso")}>
             <FiCamera aria-hidden="true" /> Fotos del curso</a>}
-        <a href="#contacto" {...sectionProps("contacto")}><FiMail aria-hidden="true" /> Contacto</a>
-        <a href="#directiva" {...sectionProps("directiva")}><FiUsers aria-hidden="true" /> Directiva</a>
+        <a href="#contacto" {...sectionProps("contacto")} hidden><FiMail aria-hidden="true" /> Contacto</a>
+        {isAdmin ? <Link to="/admin/directiva" onClick={closeMobileMenu}>
+          <FiUsers aria-hidden="true" /> Editar Directiva</Link>
+          : <a href="#directiva" {...sectionProps("directiva")}><FiUsers aria-hidden="true" /> Directiva</a>}
         <Link className="public-home__system-access" to="/dashboard" onClick={closeMobileMenu}>
           <BrandLogo className="public-home__system-access-logo" alt="" />
           <span>Sistema</span>

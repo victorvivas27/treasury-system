@@ -3,14 +3,15 @@ import { HomeHeader } from "./components/HomeHeader";
 import { HomeHero } from "./components/HomeHero";
 import { HomeInstallGuide } from "./components/HomeInstallGuide";
 import { HomeCommunity } from "./components/HomeCommunity";
+import { HomeFeatures } from "./components/HomeFeatures";
 import { useHomeReveal } from "./hooks/useHomeReveal";
 import "./style/HomePage.css";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { LoadingState } from "@/shared/ui/loading/LoadingState";
 
 export const HomePage = () => {
-  useHomeReveal();
   const { token, loading, isAuthenticated, user, logout } = useAuth();
+  useHomeReveal(`${loading}-${isAuthenticated}`);
 
   if (loading && token) return <LoadingState mesage="Recuperando tu sesión..." />;
 
@@ -19,9 +20,13 @@ export const HomePage = () => {
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={user?.rol === "ADMIN"}
         user={user} onLogout={() => void logout()} />
       <main>
-        <HomeInstallGuide />
-        <HomeHero isAuthenticated={isAuthenticated} />
-        {isAuthenticated && <HomeCommunity />}
+        {isAuthenticated ? <>
+          <HomeInstallGuide />
+          <HomeCommunity />
+        </> : <>
+          <HomeHero />
+          <HomeFeatures />
+        </>}
       </main>
       <HomeFooter />
     </div>
