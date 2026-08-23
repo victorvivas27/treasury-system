@@ -46,10 +46,16 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
+    const networkResponse = fetch(request).then((response) => {
+      if (response.ok && response.type === 'basic') {
+        void caches.open(CACHE_VERSION).then((cache) => cache.put('/', response.clone()))
+      }
+      return response
+    })
+    event.waitUntil(networkResponse.then(() => undefined).catch(() => undefined))
     event.respondWith(
-      fetch(request).catch(async () => {
-        const cachedShell = await caches.match('/')
-        return cachedShell ?? Response.error()
+      caches.match('/').then((cachedShell) => {
+        return cachedShell ?? networkResponse.catch(() => Response.error())
       }),
     )
     return

@@ -225,12 +225,12 @@ public class TreasuryService implements TreasuryUseCase {
                 .filter(item -> item.status() == ObligationStatus.PAGADA)
                 .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal pending = obligations.stream()
-                .filter(item -> item.status() == ObligationStatus.PENDIENTE)
+                .filter(item -> item.status() != ObligationStatus.PAGADA)
                 .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new TreasuryDashboard(plans.size(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
-                obligations.stream().filter(item -> item.status() == ObligationStatus.PENDIENTE).count(),
+                obligations.stream().filter(item -> item.status() != ObligationStatus.PAGADA).count(),
                 obligations.stream().filter(item -> item.status() == ObligationStatus.PAGADA).count(),
                 collected, pending);
     }
@@ -280,7 +280,7 @@ public class TreasuryService implements TreasuryUseCase {
                 new TreasuryDashboardOverview.StatusMetric("PAGADA", obligations.stream()
                         .filter(item -> item.status() == ObligationStatus.PAGADA).count()),
                 new TreasuryDashboardOverview.StatusMetric("PENDIENTE", obligations.stream()
-                        .filter(item -> item.status() == ObligationStatus.PENDIENTE).count()));
+                        .filter(item -> item.status() != ObligationStatus.PAGADA).count()));
 
         List<TreasuryDashboardOverview.CategoryMetric> categories = expenses.stream()
                 .filter(item -> item.status() == ExpenseStatus.ACTIVE)

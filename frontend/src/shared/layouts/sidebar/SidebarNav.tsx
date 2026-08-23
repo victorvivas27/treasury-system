@@ -12,7 +12,7 @@ interface SidebarNavProps {
 
 const ADMIN_PATHS = new Set(["/users", "/students", "/parents", "/family"]);
 const USER_TREASURY_PATHS = new Set([
-  "/tesoreria/ingresos", "/tesoreria/gastos", "/tesoreria/stands",
+  "/tesoreria/ingresos", "/tesoreria/gastos", "/tesoreria/stands", "/tesoreria/pagos",
 ]);
 const TREASURY_MENU_AUTO_CLOSE_MS = 6000;
 

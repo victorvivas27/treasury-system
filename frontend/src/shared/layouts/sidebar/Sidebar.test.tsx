@@ -167,8 +167,10 @@ describe('Sidebar Component', () => {
       .toHaveAttribute('href', '/tesoreria/ingresos');
     expect(screen.getByRole('link', { name: 'Egresos' }))
       .toHaveAttribute('href', '/tesoreria/gastos');
+    expect(screen.getByRole('link', { name: 'Pagos' }))
+      .toHaveAttribute('href', '/tesoreria/pagos');
     TREASURY_LINKS.filter(link => ![
-      '/tesoreria/ingresos', '/tesoreria/gastos', '/tesoreria/stands',
+      '/tesoreria/ingresos', '/tesoreria/gastos', '/tesoreria/stands', '/tesoreria/pagos',
     ].includes(link.path)).forEach((link) => {
       expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
     });

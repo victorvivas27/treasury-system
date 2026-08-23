@@ -18,6 +18,7 @@ import {
   BsArrowDownCircle,
   BsArrowUpCircle,
   BsCalendarEvent,
+  BsCreditCard2Front,
   BsFileEarmarkBarGraph,
   BsHeart,
   BsReceipt,
@@ -63,6 +64,7 @@ export const SIDEBAR_LINKS = [
 
 export const TREASURY_LINKS = [
   { label: "Cuotas", path: "/tesoreria/cuotas", icon: BsReceipt },
+  { label: "Pagos", path: "/tesoreria/pagos", icon: BsCreditCard2Front },
   { label: "Aportes CEPA", path: "/tesoreria/aportes", icon: BsHeart },
   { label: "Ingresos", path: "/tesoreria/ingresos", icon: BsArrowDownCircle },
   { label: "Egresos", path: "/tesoreria/gastos", icon: BsArrowUpCircle },
