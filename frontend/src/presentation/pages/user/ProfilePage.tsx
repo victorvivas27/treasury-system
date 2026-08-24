@@ -191,7 +191,7 @@ export const ProfilePage = () => {
       <section className="profile-real-data" aria-label="Datos de la cuenta">
         <div><span>Tu espacio personal</span><h2>Estado de la cuenta</h2></div>
         <strong className={`profile-account-status ${user?.enabled ? "is-active" : "is-inactive"}`}>
-          {user?.enabled ? <FiCheck /> : <FiX />}{user?.enabled ? "Cuenta activa" : "Cuenta inactiva"}
+          {user?.enabled ? <FiCheck /> : <FiX />}{user?.enabled ? "Activa" : "Inactiva"}
         </strong>
       </section>
 
@@ -272,7 +272,7 @@ export const ProfilePage = () => {
             return <div className={`profile-contribution-status ${paid ? "is-current" : "has-debt"}`}
               key={type}>
               <i>{type === "CEPA" ? <FiUsers /> : <FiHeart />}</i>
-              <span><small>{type === "CEPA" ? "Aporte CEPA" : "Fondo de Apoyo"}</small>
+              <span><small>{type === "CEPA" ? "Aporte CEPA" : "Fondo de Apoyo por Fallecimiento"}</small>
                 <strong>{paid ? "Pagado" : "Pendiente"}</strong></span>
               <em>{paid ? <FiCheck /> : <FiClock />}</em>
             </div>;

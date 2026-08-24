@@ -24,6 +24,26 @@ const friendly: Record<string, string> = { PENDIENTE: "Pendiente", EN_REVISION: 
 const emptyBank = (schoolYear: number): BankAccount => ({ schoolYear, accountHolderName: "", accountHolderRut: "",
   bankName: "", accountType: "", accountNumber: "", email: "" });
 
+export const formatChileanRut = (rut: string) => {
+  const normalizedRut = rut.replace(/[^0-9kK]/g, "").toUpperCase();
+  if (normalizedRut.length < 2) return normalizedRut;
+
+  const verificationDigit = normalizedRut.slice(-1);
+  const body = normalizedRut.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${body}-${verificationDigit}`;
+};
+
+const formatBankAccountType = (accountType: string) => {
+  const normalizedType = accountType.trim();
+  const typeWithoutPrefix = normalizedType.replace(/^Cuenta(?:\s+de)?\s+/i, "").toLocaleLowerCase("es-CL");
+  const bankAccountTypes: Record<string, string> = {
+    corriente: "Cuenta Corriente",
+    vista: "Cuenta Vista",
+    ahorro: "Cuenta de Ahorro",
+  };
+  return bankAccountTypes[typeWithoutPrefix] ?? normalizedType;
+};
+
 export const PaymentsPage = () => {
   const { user } = useAuth();
   const admin = user?.rol === "ADMIN";
@@ -63,14 +83,20 @@ export const PaymentsPage = () => {
 
   const flash = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 2200); };
   const copy = async (value: string, label: string) => { await navigator.clipboard.writeText(value); flash(`${label} copiado`); };
-  const copyBank = (account: BankAccount, amount?: number) => void copy(
-    `Titular: ${account.accountHolderName}\nRUT: ${account.accountHolderRut}\nBanco: ${account.bankName}\nTipo de cuenta: ${account.accountType}\nN° de cuenta: ${account.accountNumber}\nCorreo: ${account.email}${amount === undefined ? "" : `\nMonto: ${money.format(amount)}`}`,
-    "Datos",
-  );
+  const copyBank = (account: BankAccount) => {
+    const text = [
+      `${account.accountHolderName.trim()} .`,
+      formatChileanRut(account.accountHolderRut),
+      formatBankAccountType(account.accountType),
+      account.accountNumber.trim(),
+      account.bankName.trim(),
+      account.email.trim(),
+    ].join("\n");
+    void copy(text, "Datos");
+  };
   const copyAll = () => {
     if (!mine?.bankAccount) return;
-    const pending = mine.installments.find(item => item.status === "PENDIENTE");
-    copyBank(mine.bankAccount, pending?.amount ?? 0);
+    copyBank(mine.bankAccount);
   };
   const choose = async (mode: "ANUAL" | "DOS_CUOTAS") => {
     setBusy(true); setError("");
