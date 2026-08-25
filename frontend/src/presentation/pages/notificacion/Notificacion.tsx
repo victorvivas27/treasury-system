@@ -58,7 +58,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
   }, [deliveryId, loading, repository]);
   useEffect(() => { if (!loaded) void load(); }, [loaded, load]);
   useEffect(() => {
-    let unregister = () => undefined;
+    let unregister: () => void = () => undefined;
     const syncActiveThread = () => {
       unregister();
       unregister = active && document.visibilityState === "visible"

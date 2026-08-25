@@ -257,7 +257,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
         </tbody>
       </table>
 
-      <Pagination currentPage={currentPage + 1} hasPrevious={hasPrevPage}
+      <Pagination currentPage={currentPage + 1} hasPrevious={Boolean(hasPrevPage)}
         hasNext={!isLastPage} loading={loading} onPrevious={onPrevPage}
         onNext={onNextPage} ariaLabel="Paginación de apoderados" />
 

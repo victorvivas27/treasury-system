@@ -1,0 +1,89 @@
+name: Promote dev to main
+
+on:
+  workflow_run:
+    workflows:
+      - Frontend CI
+      - Backend CI
+      - Bruno API Tests (Cached)
+      - Commit Validation
+    branches: [dev]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+concurrency:
+  group: promote-dev-to-main
+  cancel-in-progress: false
+
+jobs:
+  create-pull-request:
+    name: Crear PR de dev a main
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verificar que todos los controles de dev aprobaron
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          runs="$(gh api --paginate \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${REPOSITORY}/actions/runs?head_sha=${HEAD_SHA}&event=push&per_page=100" \
+            --jq '[.workflow_runs[] | {name, status, conclusion}]')"
+
+          echo "$runs" | jq .
+
+          for required in 'Commit Validation' 'Bruno API Tests (Cached)'; do
+            if ! echo "$runs" | jq -e --arg name "$required" \
+              'any(.[]; .name == $name and .status == "completed" and .conclusion == "success")' \
+              > /dev/null; then
+              echo "El control obligatorio '$required' todavia no aprobo para ${HEAD_SHA}."
+              exit 1
+            fi
+          done
+
+          if ! echo "$runs" | jq -e '
+            [
+              .[]
+              | select(.name == "Frontend CI"
+                    or .name == "Backend CI"
+                    or .name == "Bruno API Tests (Cached)"
+                    or .name == "Commit Validation")
+            ]
+            | all(.status == "completed" and .conclusion == "success")
+          ' > /dev/null; then
+            echo 'Todavia hay controles pendientes o fallidos para dev.'
+            exit 1
+          fi
+
+      - name: Crear el pull request si no existe
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          existing_pr="$(gh pr list \
+            --repo "$REPOSITORY" \
+            --base main \
+            --head dev \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -n "$existing_pr" ]; then
+            echo "Ya existe el PR #${existing_pr} de dev a main."
+            exit 0
+          fi
+
+          gh pr create \
+            --repo "$REPOSITORY" \
+            --base main \
+            --head dev \
+            --title 'chore(release): promover dev a main' \
+            --body "Todos los controles de CI aprobaron para dev (${HEAD_SHA}). Este PR fue creado automaticamente por GitHub Actions."
