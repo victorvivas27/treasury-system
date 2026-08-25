@@ -16,8 +16,8 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: promote-dev-to-main
-  cancel-in-progress: false
+  group: promote-dev-to-main-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: true
 
 jobs:
   create-pull-request:
@@ -32,35 +32,59 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          runs="$(gh api --paginate \
-            -H 'Accept: application/vnd.github+json' \
-            "/repos/${REPOSITORY}/actions/runs?head_sha=${HEAD_SHA}&event=push&per_page=100" \
-            --jq '[.workflow_runs[] | {name, status, conclusion}]')"
+          for attempt in $(seq 1 80); do
+            runs="$(gh api \
+              -H 'Accept: application/vnd.github+json' \
+              "/repos/${REPOSITORY}/actions/runs?head_sha=${HEAD_SHA}&event=push&per_page=100" \
+              --jq '[.workflow_runs[] | {name, status, conclusion}]')"
 
-          echo "$runs" | jq .
+            echo "Revision ${attempt}/80 de los controles para ${HEAD_SHA}:"
+            echo "$runs" | jq .
 
-          for required in 'Commit Validation' 'Bruno API Tests (Cached)'; do
-            if ! echo "$runs" | jq -e --arg name "$required" \
-              'any(.[]; .name == $name and .status == "completed" and .conclusion == "success")' \
-              > /dev/null; then
-              echo "El control obligatorio '$required' todavia no aprobo para ${HEAD_SHA}."
+            if echo "$runs" | jq -e '
+              any(.[];
+                (.name == "Frontend CI"
+                  or .name == "Backend CI"
+                  or .name == "Bruno API Tests (Cached)"
+                  or .name == "Commit Validation")
+                and .status == "completed"
+                and .conclusion != "success")
+            ' > /dev/null; then
+              echo 'Uno o mas controles de dev finalizaron con error.'
               exit 1
             fi
-          done
 
-          if ! echo "$runs" | jq -e '
-            [
+            mandatory_ready=true
+            for required in 'Commit Validation' 'Bruno API Tests (Cached)'; do
+              if ! echo "$runs" | jq -e --arg name "$required" \
+                'any(.[]; .name == $name and .status == "completed" and .conclusion == "success")' \
+                > /dev/null; then
+                mandatory_ready=false
+              fi
+            done
+
+            pending="$(echo "$runs" | jq '[
               .[]
               | select(.name == "Frontend CI"
                     or .name == "Backend CI"
                     or .name == "Bruno API Tests (Cached)"
                     or .name == "Commit Validation")
-            ]
-            | all(.status == "completed" and .conclusion == "success")
-          ' > /dev/null; then
-            echo 'Todavia hay controles pendientes o fallidos para dev.'
-            exit 1
-          fi
+              | select(.status != "completed")
+            ] | length')"
+
+            if [ "$mandatory_ready" = true ] && [ "$pending" -eq 0 ]; then
+              echo 'Todos los controles de dev aprobaron.'
+              break
+            fi
+
+            if [ "$attempt" -eq 80 ]; then
+              echo 'Los controles no terminaron dentro del tiempo de espera de 20 minutos.'
+              exit 1
+            fi
+
+            echo 'Hay controles pendientes; se revisaran nuevamente en 15 segundos.'
+            sleep 15
+          done
 
       - name: Crear el pull request si no existe
         env:

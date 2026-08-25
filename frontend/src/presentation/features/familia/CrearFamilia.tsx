@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button/Button";
 
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useState } from "react";
+import { FcExpand } from "react-icons/fc";
 
 const parentescos = [
   "Padre",
@@ -53,7 +54,7 @@ export const CompactSelect = ({
         onClick={() => setOpen((current) => !current)}
       >
         {selectedLabel || placeholder}
-        <span aria-hidden="true">⌄</span>
+        <FcExpand aria-hidden="true" />
       </button>
       {open && (
         <div className="familia-parentesco__menu" role="listbox" aria-label={label}>
