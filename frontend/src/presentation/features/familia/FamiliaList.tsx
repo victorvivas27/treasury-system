@@ -226,7 +226,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
         </tbody>
       </table>
 
-      <Pagination currentPage={currentPage + 1} hasPrevious={hasPrevPage}
+      <Pagination currentPage={currentPage + 1} hasPrevious={Boolean(hasPrevPage)}
         hasNext={!isLastPage} loading={loading} onPrevious={onPrevPage}
         onNext={onNextPage} ariaLabel="Paginación de familias" />
     </article>

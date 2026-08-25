@@ -26,7 +26,7 @@ export const EditarApoderadoForm = () => {
   const [observacionesOpen, setObservacionesOpen] = useState(false);
 
   useEffect(() => {
-    if (!initialLoading && formData.observaciones.trim()) {
+    if (!initialLoading && formData.observaciones?.trim()) {
       setObservacionesOpen(true);
     }
   }, [initialLoading, formData.observaciones]);

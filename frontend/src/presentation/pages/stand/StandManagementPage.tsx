@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
 import {
   FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiCreditCard, FiDollarSign, FiEdit2, FiPercent, FiPlus,
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
-  FiTrendingUp, FiChevronDown,
+  FiTrendingUp, FiChevronDown, FiMaximize2,
 } from "react-icons/fi";
 import type { SchoolEvent, SchoolEventOption } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
@@ -15,6 +15,7 @@ import { StandUseCases } from "@/core/B-application/use-cases/stand/StandUseCase
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import { useAuth } from "@/presentation/context/AuthContext";
 import "./StandManagementPage.css";
@@ -284,11 +285,11 @@ export const StandManagementPage = () => {
         <p>{readOnly ? "Cuando exista un evento con stands, su resumen aparecerá aquí."
           : "Todo stand debe estar asociado a un evento existente."}</p>
       </section> : <>
-        <div className="stand-page__selector">
+        {standList.length !== 1 && <div className="stand-page__selector">
           {standList.map(item => <button key={item.id}
             className={selected?.id === item.id ? "is-active" : ""}
             onClick={() => setSelected(item)}>
-            <span>{item.name}</span><small>{statusLabels[item.status]}</small>
+            <span>{item.name}</span>
           </button>)}
           {standList.length === 0 && (readOnly ? <section className="stand-page__empty">
             <FiBox /><h2>No hay stands en este evento</h2>
@@ -321,7 +322,7 @@ export const StandManagementPage = () => {
                 <small>Controla caja y medios de pago</small></div><b>{money.format(0)}</b></article>
             </div>
           </section>)}
-        </div>
+        </div>}
 
         {selected && <section className={`stand-workspace ${operationalLoading
           ? "is-refreshing" : ""}`} aria-busy={operationalLoading}>
@@ -577,7 +578,8 @@ const ProductsPanel = ({ stand, products, onSaved }: {
     </div>}
     <div className="stand-product-grid">
       {products.map(product => <article key={product.id}
-        className={!product.available ? "is-sold-out" : ""}>
+        className={`stand-product-card${!product.available ? " is-sold-out" : ""}`}
+      >
         <div className="stand-product-card__main">
           <div className="stand-product-card__heading">
             <h4>{product.name}{product.variant ? ` · ${product.variant}` : ""}</h4>
@@ -610,6 +612,12 @@ const ProductsPanel = ({ stand, products, onSaved }: {
             setProductToDelete(product);
           }}><FiTrash2 /> Eliminar</button>
         </div>}
+        <span className="stand-product-card__resize-handle" tabIndex={0}
+          aria-label={"Redimensionar la tarjeta del producto"}>
+          <FiMaximize2 aria-hidden="true" />
+          <HintTooltip className="stand-product-card__resize-tooltip" position="top"
+            content={"Arrastra la esquina para ajustar el tama\u00f1o"} />
+        </span>
       </article>)}
       {products.length === 0 && <p className="stand-page__empty">Agrega el primer producto.</p>}
     </div>
