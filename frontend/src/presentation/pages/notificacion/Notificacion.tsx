@@ -561,10 +561,10 @@ const GuardianInbox = () => {
     }
   }, [loading, markAllRead, unreadCount]);
   useEffect(() => {
-    if (loading || notifications.length > 0 || treasuryContact) return;
+    if (treasuryContact) return;
     void repository.treasuryContact().then(setTreasuryContact).catch(() => setStartError(
       "No fue posible cargar el contacto de Tesorería."));
-  }, [loading, notifications.length, repository, treasuryContact]);
+  }, [repository, treasuryContact]);
   const startConversation = async () => {
     const message = firstMessage.trim();
     if (!message || startingConversation) return;

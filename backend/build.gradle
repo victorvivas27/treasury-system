@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.6'
+    id 'org.springframework.boot' version '4.0.8'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
     id 'pmd'
-
+    id 'org.owasp.dependencycheck' version '12.2.2'
 }
 
 group = 'com.tesoreria'
@@ -45,7 +45,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // OpenAPI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
 
     // MAPSTRUCT
     implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -60,7 +60,7 @@ dependencies {
 
     // DB
     runtimeOnly 'com.h2database:h2'
-    implementation 'org.postgresql:postgresql:42.7.3'
+    runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
@@ -68,7 +68,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
@@ -162,6 +161,15 @@ tasks.withType(Pmd).configureEach {
 
 tasks.named('pmdTest') {
     enabled = false
+}
+
+// ========== CONFIGURACION OWASP DEPENDENCY-CHECK ==========
+dependencyCheck {
+    failBuildOnCVSS = 7.0
+    formats = ['HTML', 'JSON']
+    nvd.datafeedUrl = 'https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/nvdcve-{0}.json.gz'
+    analyzers.assemblyEnabled = false
+    analyzers.ossIndex.enabled = false
 }
 
 check.dependsOn jacocoTestCoverageVerification
