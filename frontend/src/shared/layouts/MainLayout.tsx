@@ -5,6 +5,7 @@ import { useSidebarBehavior } from "@/presentation/hooks/sidebar/useSidebarBehav
 import { ManagedCourseBanner } from "./ManagedCourseBanner";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { AppTour } from "@/shared/ui/apptour/AppTour";
+import { HomeFooter } from "@/presentation/pages/home/components/HomeFooter";
 
 
 
@@ -23,6 +24,7 @@ const auth = useOptionalAuth();
       <section className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
         <ManagedCourseBanner />
         <Outlet />
+        <HomeFooter reveal={false} />
       </section>
       {auth?.user && <AppTour user={auth.user} />}
     </main>
