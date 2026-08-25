@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FiChevronDown } from "react-icons/fi";
+import { FcExpand } from "react-icons/fc";
 import "./CompactSelect.css";
 
 type CompactOption = { value: string; label: string };
@@ -21,7 +21,7 @@ export const CompactSelect = ({ value, options, placeholder, onChange }: {
   return <div className="compact-select" ref={root}>
     <button type="button" className="compact-select__trigger" aria-haspopup="listbox"
       aria-expanded={open} onClick={() => setOpen(current => !current)}>
-      <span>{selected?.label ?? placeholder}</span><FiChevronDown aria-hidden="true" />
+      <span>{selected?.label ?? placeholder}</span><FcExpand aria-hidden="true" />
     </button>
     {open && <div className="compact-select__menu" role="listbox">
       <button type="button" role="option" aria-selected={!value}

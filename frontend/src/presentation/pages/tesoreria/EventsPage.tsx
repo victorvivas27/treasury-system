@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiCalendar, FiCheckCircle, FiDollarSign, FiEdit2, FiMinusCircle, FiPlus,
   FiRefreshCw, FiTrash2,
   FiTrendingUp, FiUsers, FiX } from "react-icons/fi";
+import { FcExpand } from "react-icons/fc";
 import type { EventSettlement, SchoolEvent,
   SchoolEventExpense } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
@@ -153,7 +154,7 @@ export const EventsPage = () => {
           <span>Año escolar</span>
           <button type="button" aria-label="Año escolar" aria-haspopup="listbox"
             aria-expanded={yearOpen} onClick={() => setYearOpen(current => !current)}>
-            {year}<span aria-hidden="true">⌄</span>
+            {year}<FcExpand aria-hidden="true" />
           </button>
           {yearOpen && <div className="events-year-select__menu" role="listbox"
             aria-label="Año escolar">

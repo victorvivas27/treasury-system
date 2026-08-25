@@ -3,8 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
 import {
   FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiCreditCard, FiDollarSign, FiEdit2, FiPercent, FiPlus,
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
-  FiTrendingUp, FiChevronDown, FiMaximize2,
+  FiTrendingUp, FiMaximize2,
 } from "react-icons/fi";
+import { FcExpand } from "react-icons/fc";
 import type { SchoolEvent, SchoolEventOption } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
   Stand, StandPaymentMethod, StandProduct, StandSale, StandSalePayload, StandSummary,
@@ -245,7 +246,7 @@ export const StandManagementPage = () => {
     <details className="stand-page__overview">
       <summary>
         <span><strong>Ventas del stand</strong><small>Configuración, año escolar y evento</small></span>
-        <span className="stand-page__overview-action">Ver opciones <FiChevronDown /></span>
+        <span className="stand-page__overview-action">Ver opciones <FcExpand /></span>
       </summary>
       <div className="stand-page__overview-content">
         <header className="stand-page__header">
@@ -331,7 +332,7 @@ export const StandManagementPage = () => {
               <span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
                 {statusLabels[selected.status]}</span>
               <strong>{selected.name}</strong>
-              <span className="stand-workspace__overview-action">Administrar <FiChevronDown /></span>
+              <span className="stand-workspace__overview-action">Administrar <FcExpand /></span>
             </summary>
             <header className="stand-workspace__header">
               <div>
@@ -842,7 +843,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
     <details className="stand-recent-sales">
       <summary><span><strong>Historial de ventas</strong>
         <small>Más recientes primero · {sales.length} registros</small></span>
-        <span className="stand-recent-sales__action">Ver historial <FiChevronDown /></span>
+        <span className="stand-recent-sales__action">Ver historial <FcExpand /></span>
       </summary>
       <div className="stand-sales-page">
         {visibleSales.map(sale => <article key={sale.id}

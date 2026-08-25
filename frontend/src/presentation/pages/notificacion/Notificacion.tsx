@@ -14,8 +14,9 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { FiCheckCircle, FiChevronDown, FiEdit2, FiHelpCircle, FiRefreshCw, FiSend,
+import { FiCheckCircle, FiEdit2, FiHelpCircle, FiRefreshCw, FiSend,
   FiMove, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
+import { FcExpand } from "react-icons/fc";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDoneAll } from "react-icons/md";
@@ -375,7 +376,7 @@ const AdminNotificationCenter = () => {
       onToggle={event => setRecipientsOpen(event.currentTarget.open)}>
       <summary className="notification-recipient-summary"><FiUsers aria-hidden="true" />
         <span>Apoderados destinatarios</span><small>{apoderados.length} en esta página</small>
-        <FiChevronDown className="notification-recipient-summary__chevron" aria-hidden="true" />
+        <FcExpand className="notification-recipient-summary__chevron" aria-hidden="true" />
       </summary>
       <div className="notification-recipient-content">
       <header className="notification-recipient-toolbar">
@@ -425,7 +426,7 @@ const AdminNotificationCenter = () => {
               <i /><i />
             </span>
             <em>0 mensajes</em>
-            <FiChevronDown />
+            <FcExpand />
           </div>
           <div className="sent-notifications__empty-message">
             <span className="sent-notifications__empty-icon" aria-hidden="true">
@@ -466,7 +467,7 @@ const AdminNotificationCenter = () => {
                 onPointerDown={event => event.stopPropagation()}
                 onClick={event => { event.preventDefault(); setFloatingContact(null); }}>
                 Volver</button>
-              : <FiChevronDown aria-hidden="true" />}</summary>
+              : <FcExpand aria-hidden="true" />}</summary>
           {group.messages.length > 0 && <NotificationConversation
             deliveryId={group.messages[group.messages.length - 1].deliveryId}
             repository={repository} isAdmin
