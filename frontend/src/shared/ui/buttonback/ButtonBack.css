@@ -1,3 +1,62 @@
 .button-back {
   margin-right: 8px;
 }
+
+.button-back--animated {
+  min-height: 44px;
+  padding: .45rem 1rem .45rem .55rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 36%, var(--border-color));
+  border-radius: 999px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)),
+    color-mix(in srgb, var(--color-info) 9%, var(--color-surface)));
+  color: var(--text-main);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.button-back--animated:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 68%, var(--border-color));
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  transform: translateY(-1px);
+}
+
+.button-back--animated:active {
+  transform: translateY(0) scale(.98);
+}
+
+.button-back--animated:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  outline-offset: 3px;
+}
+
+.button-back__animation {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  overflow: hidden;
+}
+
+.button-back--animated .button-icon svg,
+.button-back__animation > div {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+.button-back--animated .button-content {
+  gap: .55rem;
+}
+
+.button-back--animated .button-label {
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-back--animated {
+    transition: none;
+  }
+}

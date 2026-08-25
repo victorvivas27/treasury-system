@@ -10,7 +10,6 @@ import { FiLock, FiLogIn, FiMail, FiUserPlus } from "react-icons/fi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import "./PasswordVisibility.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,7 +87,7 @@ export const LoginPage = () => {
     : "/";
 
   if (isAuthenticated) return <Navigate to={authenticatedDestination} replace />;
-  if (sessionLoading && token) return <LoadingState mesage="Recuperando tu sesión..." />;
+  if (sessionLoading && token) return null;
 
   return (
     <main className="form-page-container">
@@ -142,7 +141,7 @@ export const LoginPage = () => {
             <label htmlFor="login-password" className="login-floating-label">Contraseña</label>
             <FiLock className="login-field-icon" aria-hidden="true" />
             <button
-              className="password-visibility-button"
+              className="password-visibility-button login-password-visibility"
               type="button"
               aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               aria-pressed={showPassword}
@@ -182,7 +181,7 @@ export const LoginPage = () => {
         </div>
         <Link className="auth-text-link" to="/olvide-password">¿Olvidaste tu contraseña?</Link>
       </form>
-      <ButtonBack />
+      <ButtonBack className="login-back-button" />
     </main>
   );
 };

@@ -206,7 +206,8 @@ describe('Sidebar Component', () => {
   it('[Sidebar #09] Cambia el color de fondo del botón toggle según el estado isLocked', () => {
     renderSidebar({ isLocked: true });
     const toggleButton = screen.getByRole("button", { name: /toggle sidebar/i });
-    expect(toggleButton).toHaveStyle({ backgroundColor: "var(--color-warning)" });
+    expect(toggleButton).toHaveClass("is-pinned");
+    expect(toggleButton).toHaveAttribute("aria-pressed", "true");
   });
 });
 

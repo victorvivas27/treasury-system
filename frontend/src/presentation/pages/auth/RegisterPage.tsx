@@ -6,6 +6,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { useNavigate } from "react-router-dom";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
+import { FiUserCheck } from "react-icons/fi";
 
 export const RegisterPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
@@ -40,8 +41,10 @@ export const RegisterPage = () => {
         onSubmit={register}
         loading={loading}
         submitLabel="Crear cuenta"
+        submitIcon={<FiUserCheck aria-hidden="true" />}
         showRole={false}
         showAccountStatus={false}
+        showFieldIcons
       />
       <ButtonBack />
       <ModalAlert

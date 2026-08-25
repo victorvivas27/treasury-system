@@ -1,19 +1,21 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import type { UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
-import { FiSave, FiX } from "react-icons/fi";
+import { FiLock, FiMail, FiSave, FiUser, FiX } from "react-icons/fi";
 import "@/presentation/pages/auth/PasswordVisibility.css";
 
 interface UserFormProps {
   initialData?: Partial<UserPayload>;
   loading?: boolean;
   submitLabel?: string;
+  submitIcon?: ReactNode;
   onSubmit: (payload: UserPayload) => Promise<void> | void;
   onCancel?: () => void;
   showRole?: boolean;
   showAccountStatus?: boolean;
+  showFieldIcons?: boolean;
 }
 
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
@@ -24,10 +26,12 @@ export const UserForm = ({
   initialData,
   loading = false,
   submitLabel = "Guardar usuario",
+  submitIcon,
   onSubmit,
   onCancel,
   showRole = true,
   showAccountStatus = true,
+  showFieldIcons = false,
 }: UserFormProps) => {
   const [formData, setFormData] = useState<UserPayload>({
     nombre: initialData?.nombre ?? "",
@@ -88,6 +92,7 @@ export const UserForm = ({
     >
       <div className="form-group">
         <span className="login-input-wrapper login-floating-field">
+          {showFieldIcons && <FiUser className="login-field-icon" aria-hidden="true" />}
           <input id="user-form-nombre"
             className={`form-input ${errors.nombre ? "input-error" : ""}`}
             name="nombre" placeholder="Ej.: Ana Pérez" autoComplete="name"
@@ -99,6 +104,7 @@ export const UserForm = ({
 
       <div className="form-group">
         <span className="login-input-wrapper login-floating-field">
+          {showFieldIcons && <FiMail className="login-field-icon" aria-hidden="true" />}
           <input id="user-form-correo"
             className={`form-input ${errors.correo ? "input-error" : ""}`}
             name="correo" type="email" placeholder="Ej.: nombre@correo.cl"
@@ -110,6 +116,7 @@ export const UserForm = ({
 
       {!initialData && <div className="form-group user-form__password-group">
         <span className="password-input-wrapper login-floating-field">
+          {showFieldIcons && <FiLock className="login-field-icon" aria-hidden="true" />}
           <input
             id="user-form-password"
             className={`form-input password-input ${errors.password ? "input-error" : ""}`}
@@ -122,7 +129,7 @@ export const UserForm = ({
           />
           <label htmlFor="user-form-password" className="login-floating-label">Contraseña</label>
           <button
-            className="password-visibility-button"
+            className={`password-visibility-button ${showFieldIcons ? "login-password-visibility" : ""}`}
             type="button"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             aria-pressed={showPassword}
@@ -181,7 +188,7 @@ export const UserForm = ({
           onClick={() => {}}
           loading={loading}
           label={loading ? "Guardando..." : submitLabel}
-          icon={<FiSave aria-hidden="true" />}
+          icon={submitIcon ?? <FiSave aria-hidden="true" />}
           size="medium"
         />
         {onCancel && (

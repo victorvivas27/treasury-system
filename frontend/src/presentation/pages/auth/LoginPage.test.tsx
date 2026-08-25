@@ -6,6 +6,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { LoginPage } from "./LoginPage";
 
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
+vi.mock("lottie-react", () => ({ Lottie: () => <span data-testid="back-animation" /> }));
 
 describe("LoginPage", () => {
   it("[LoginPage #01] navega al registro desde el botón Registrarme", () => {
@@ -148,7 +149,7 @@ describe("LoginPage", () => {
     );
   });
 
-  it("[LoginPage #07] diferencia la restauración de sesión del envío del formulario", () => {
+  it("[LoginPage #07] delega la restauración de sesión al loader de arranque", () => {
     vi.mocked(useAuth).mockReturnValue({
       login: vi.fn(),
       token: "token-guardado",
@@ -156,9 +157,8 @@ describe("LoginPage", () => {
       isAuthenticated: false,
     } as unknown as ReturnType<typeof useAuth>);
 
-    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    const { container } = render(<MemoryRouter><LoginPage /></MemoryRouter>);
 
-    expect(screen.getByText("Recuperando tu sesión...")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Ingresando..." })).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 });

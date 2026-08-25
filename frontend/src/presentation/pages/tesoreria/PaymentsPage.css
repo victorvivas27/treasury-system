@@ -6,3 +6,46 @@
 .bank-only-state{display:grid;grid-template-columns:minmax(280px,.75fr) minmax(0,1.25fr);align-items:stretch;gap:1rem}.bank-only-state .payment-preview{width:100%;max-width:420px}.bank-only-state__message{display:grid;align-content:center;gap:.35rem;border-style:dashed}.bank-only-state__message h2{margin:0;font-size:1rem}.bank-only-state__message p{margin:0;color:var(--text-muted);font-size:.78rem;line-height:1.5}@media(max-width:760px){.bank-only-state{grid-template-columns:1fr}.bank-only-state .payment-preview{max-width:none}}
 .installment-list{--installment-accent:#6366f1}.installment-list>header{padding:.15rem .1rem}.installment-list>header h2{margin:0;font-size:1.05rem}.installment-list>header>span{border:1px solid color-mix(in srgb,var(--installment-accent) 30%,var(--border-color));border-radius:999px;padding:.28rem .55rem;background:color-mix(in srgb,var(--installment-accent) 11%,transparent);color:var(--installment-accent);font-weight:700}.installment-card{position:relative;isolation:isolate;overflow:hidden;border-color:color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 26%,var(--border-color));background:linear-gradient(135deg,color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 9%,var(--color-surface)),var(--color-surface) 58%);box-shadow:0 10px 28px color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 8%,transparent);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.installment-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,var(--installment-tone,var(--installment-accent)),color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 35%,transparent))}.installment-card::after{content:"";position:absolute;right:-2.4rem;top:-2.8rem;z-index:-1;width:7rem;height:7rem;border-radius:50%;background:color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 9%,transparent)}.installment-card:has(.is-pendiente){--installment-tone:var(--color-warning)}.installment-card:has(.is-en_revision){--installment-tone:var(--color-info)}.installment-card:has(.is-pagada){--installment-tone:var(--color-success)}.installment-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 48%,var(--border-color));box-shadow:0 14px 32px color-mix(in srgb,var(--installment-tone,var(--installment-accent)) 14%,transparent)}.installment-card>header{min-width:0;align-items:center}.installment-card>header>div{min-width:0;gap:.1rem}.installment-card>header>div small{color:var(--text-muted);font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}.installment-card>header>div strong{overflow-wrap:anywhere}.installment-card>header>.payment-status{flex:0 0 auto;align-items:center;justify-content:center;max-width:48%;min-height:28px;margin:0;text-align:center;white-space:normal}.installment-card .proof-upload{background:linear-gradient(110deg,#4f46e5,#6366f1);box-shadow:0 7px 18px rgba(79,70,229,.22);transition:transform .18s ease,box-shadow .18s ease}.installment-card .proof-upload:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(79,70,229,.32)}@media(max-width:480px){.installment-card{padding:.85rem}.installment-card>header{align-items:flex-start;flex-direction:column}.installment-card>header>.payment-status{max-width:100%;align-self:flex-start}.installment-card .proof-upload{width:100%;justify-content:center}}
 .payment-hero{position:relative;isolation:isolate;overflow:hidden;min-height:190px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(125deg,#312e81 0%,#4338ca 48%,#5b4fd4 100%);box-shadow:0 18px 42px rgba(49,46,129,.25)}.payment-hero::before{content:"";position:absolute;right:-4rem;top:-6rem;z-index:-1;width:16rem;height:16rem;border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 0 2.5rem rgba(255,255,255,.035),0 0 0 5rem rgba(255,255,255,.025)}.payment-hero__orb{position:absolute;bottom:-5rem;left:28%;z-index:-1;width:13rem;height:13rem;border-radius:50%;background:rgba(129,140,248,.28);filter:blur(36px)}.payment-hero__summary{display:grid;align-content:center;gap:.16rem}.payment-hero__eyebrow{display:inline-flex;width:max-content;align-items:center;gap:.38rem;margin-bottom:.5rem;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.3rem .58rem;background:rgba(255,255,255,.1);font-size:.68rem;font-weight:750;letter-spacing:.04em}.payment-hero__summary>small{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.66}.payment-hero__summary h2{margin:0;color:white;font-size:clamp(1.15rem,3vw,1.65rem);font-weight:800;letter-spacing:-.025em}.payment-hero__amount{display:grid;gap:.02rem;margin-top:.65rem}.payment-hero__amount span{font-size:.7rem;opacity:.72}.payment-hero__amount strong{font-size:clamp(1.55rem,4vw,2.15rem);line-height:1.05;letter-spacing:-.04em}.payment-progress{align-self:center;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:.9rem;background:rgba(20,18,70,.24);box-shadow:inset 0 1px rgba(255,255,255,.08);backdrop-filter:blur(8px)}.payment-progress header{display:flex;align-items:center;justify-content:space-between;gap:.75rem}.payment-progress header span{font-size:.7rem;font-weight:700;opacity:.78}.payment-progress header b{display:grid;min-width:2.2rem;height:2.2rem;place-items:center;border-radius:50%;background:rgba(255,255,255,.12);font-size:.68rem}.payment-progress>strong{margin-top:.25rem;font-size:1.25rem}.payment-progress>small{font-size:.66rem;opacity:.68}.payment-progress progress{overflow:hidden;height:.48rem;margin-top:.35rem;border-radius:999px;background:rgba(255,255,255,.15);accent-color:#c7d2fe}.payment-progress progress::-webkit-progress-bar{border-radius:999px;background:rgba(255,255,255,.15)}.payment-progress progress::-webkit-progress-value{border-radius:999px;background:linear-gradient(90deg,#c7d2fe,#fff)}@media(max-width:760px){.payment-hero{min-height:0;padding:1rem}.payment-progress{width:100%}.payment-hero__summary h2{overflow-wrap:anywhere}}
+
+.payments-page { min-width: 0; box-sizing: border-box; }
+
+@media (max-width: 760px) {
+  .payments-page { width: 100%; max-width: 100%; padding: .65rem .55rem; overflow-x: clip; }
+  .payments-page > *, .payments-head > div, .payments-admin-grid > *,
+  .guardian-payment-grid > *, .bank-only-state > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .payment-panel, .installment-card { padding: .8rem; }
+  .payments-head { width: 100%; gap: .55rem; }
+  .payments-head > div { width: 100%; align-items: flex-start; }
+  .payments-head > div > div { min-width: 0; }
+  .payments-head h1, .payments-head p { overflow-wrap: anywhere; }
+  .payments-head label { width: 100%; flex-direction: row; align-items: center; }
+  .payments-head select { min-width: 7rem; margin-left: auto; }
+  .bank-form header { gap: .45rem; }
+  .bank-form header a { width: 100%; justify-content: flex-start; white-space: normal; }
+  .review-panel > header { align-items: stretch; flex-direction: column; }
+  .review-panel > header select { width: 100%; }
+  .review-list article { grid-template-columns: minmax(0, 1fr); gap: .45rem; }
+  .review-list article > div:first-child, .review-list article span { min-width: 0; overflow-wrap: anywhere; }
+  .review-actions { width: 100%; grid-column: auto; }
+  .review-actions button { flex: 1 1 auto; justify-content: center; }
+  .payment-hero__eyebrow { width: fit-content; max-width: 100%; white-space: normal; }
+  .payment-progress { box-sizing: border-box; }
+  .transfer-data > div { align-items: flex-start; }
+  .transfer-data > div span { min-width: 0; }
+  .transfer-data > div b { overflow-wrap: anywhere; word-break: break-word; }
+  .transfer-data > div button { flex: 0 0 auto; }
+  .payment-preview { min-height: 0; }
+  .payment-preview h3, .payment-preview p, .payment-preview dd { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 420px) {
+  .payments-page { padding-inline: .4rem; }
+  .payment-panel, .installment-card, .payment-hero { border-radius: 13px; padding: .7rem; }
+  .payment-preview dl { grid-template-columns: 1fr; gap: .18rem; }
+  .payment-preview dd { justify-content: flex-start; margin-bottom: .35rem; text-align: left; white-space: normal; }
+  .review-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .review-actions button:first-child { grid-column: 1 / -1; }
+  .transfer-data > div { align-items: stretch; flex-direction: column; }
+  .transfer-data > div button { align-self: flex-start; }
+  .payments-toast { right: .5rem; bottom: .5rem; left: .5rem; justify-content: center; }
+}

@@ -7,6 +7,8 @@ import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeHeader.css";
 
+const MOBILE_MENU_AUTO_CLOSE_MS = 4000;
+
 export const HomeHeader = ({ isAuthenticated = false, isAdmin = false, user, onLogout }: {
   isAuthenticated?: boolean; isAdmin?: boolean;
   user?: Pick<User, "nombre" | "profileImageType" | "profileImageUrl"> | null;
@@ -33,8 +35,15 @@ export const HomeHeader = ({ isAuthenticated = false, isAdmin = false, user, onL
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsMobileMenuOpen(false);
     };
+    const autoCloseTimer = window.setTimeout(
+      () => setIsMobileMenuOpen(false),
+      MOBILE_MENU_AUTO_CLOSE_MS,
+    );
     window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    return () => {
+      window.clearTimeout(autoCloseTimer);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
   }, [isMobileMenuOpen]);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -62,7 +71,14 @@ export const HomeHeader = ({ isAuthenticated = false, isAdmin = false, user, onL
       aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
       aria-expanded={isMobileMenuOpen} aria-controls="public-home-menu"
       onClick={() => setIsMobileMenuOpen(isOpen => !isOpen)}>
-      {isMobileMenuOpen ? <FiX aria-hidden="true" /> : <FiMenu aria-hidden="true" />}
+      <span className="public-home__menu-toggle-icon" aria-hidden="true">
+        {isMobileMenuOpen
+          ? <FiX className="public-home__menu-toggle-glyph" />
+          : <FiMenu className="public-home__menu-toggle-glyph" />}
+        {isMobileMenuOpen && <svg className="public-home__menu-timer" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="18" pathLength="100" />
+        </svg>}
+      </span>
     </button>}
     <nav id={isAuthenticated ? "public-home-menu" : undefined}
       className={`public-home__nav ${isAuthenticated ? "is-authenticated" : ""} ${isMobileMenuOpen ? "is-open" : ""}`}

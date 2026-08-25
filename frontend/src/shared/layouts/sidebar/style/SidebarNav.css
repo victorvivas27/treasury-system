@@ -89,6 +89,41 @@
   color: var(--color-warning);
 }
 
+.sidebar-treasury-icon-wrap {
+  position: relative;
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 1.9rem;
+  place-items: center;
+}
+
+.sidebar-treasury-icon-wrap .sidebar-nav-icon {
+  min-width: 0;
+  font-size: 1.3rem;
+}
+
+.sidebar-treasury-timer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.sidebar-treasury-timer circle {
+  fill: none;
+  stroke: var(--color-warning);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-warning) 55%, transparent));
+  animation: sidebar-treasury-timer 6s linear forwards;
+}
+
 .sidebar-nav--treasury-open .sidevar-nav-section .sidebar-nav-link-item.active {
   background: transparent;
   box-shadow: none;
@@ -226,9 +261,19 @@
   }
 }
 
+@keyframes sidebar-treasury-timer {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sidebar-submenu {
     animation: none;
+  }
+
+  .sidebar-treasury-timer circle {
+    animation-timing-function: steps(20, end);
   }
 }
 
