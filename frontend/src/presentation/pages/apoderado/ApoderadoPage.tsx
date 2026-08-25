@@ -23,11 +23,24 @@ export const ApoderadoPage: FC = () => {
   const [accessAlert, setAccessAlert] = useState({
     isOpen: false, message: "", type: "success" as "success" | "error",
   });
+  const toggleStatus = async (apoderado: Apoderado) => {
+    try {
+      const updatedApoderado = await new ApoderadoRepositoryImpl()
+        .changeStatus(apoderado.codigo, !apoderado.activo);
+      replaceApoderado(updatedApoderado);
+      setAccessAlert({ isOpen: true,
+        message: apoderado.activo ? "Apoderado desactivado." : "Apoderado reactivado.",
+        type: "success" });
+    } catch {
+      setAccessAlert({ isOpen: true, message: "No fue posible cambiar el estado del apoderado.", type: "error" });
+    }
+  };
   const {
     apoderados,
     loading,
     error,
     refetch,
+    replaceApoderado,
     currentPage,
     nextPage,
     prevPage,
@@ -126,6 +139,7 @@ export const ApoderadoPage: FC = () => {
           handleDelete={(codigo) => openDeleteConfirm(String(codigo))}
           handleEdit={handleEdit}
           handleEnableAccess={setAccessGuardian}
+          handleToggleStatus={(apoderado) => void toggleStatus(apoderado)}
           currentPage={currentPage}
           onNextPage={nextPage}
           onPrevPage={prevPage}

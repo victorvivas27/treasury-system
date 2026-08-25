@@ -8,6 +8,7 @@ import com.tesoreria.alumno.infrastructure.adapter.in.web.mapper.AlumnoMapper;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.shared.infrastructure.web.EstadoActivoRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,5 +77,11 @@ public class AlumnoController {
     public ResponseEntity<Void> delete(@PathVariable String codigo) {
         alumnoService.deleteByCodigo(codigo);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/estado")
+    public ResponseEntity<AlumnoResponse> cambiarEstado(
+            @PathVariable String codigo, @RequestBody EstadoActivoRequest request) {
+        return ResponseEntity.ok(mapper.toResponse(alumnoService.cambiarEstado(codigo, request.activo())));
     }
 }

@@ -10,10 +10,11 @@ import { useApoderados } from "../apoderado/useApoderados";
 
 export const useEditFamilia = () => {
   const {
-    apoderados,
+    apoderados: apoderadosRegistrados,
     loading: loadingApoderados,
     error: apoderadosError,
   } = useApoderados({ pageSize: 100 });
+  const apoderados = apoderadosRegistrados.filter((apoderado) => apoderado.activo !== false);
   const navigate = useNavigate();
   const { familiaId } = useParams();
   const numericId = useMemo(

@@ -36,6 +36,7 @@ export const useEditAlumno = () => {
     nombre: "",
     curso: "",
     observacion: "",
+    genero: "OTROS",
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -76,6 +77,7 @@ export const useEditAlumno = () => {
         nombre: alumno.nombre,
         curso: alumno.curso,
         observacion: alumno.observacion ?? "",
+        genero: alumno.genero ?? "OTROS",
         ...("apoderadoId" in alumno ? { apoderadoId: alumno.apoderadoId } : {}),
       });
     } catch {

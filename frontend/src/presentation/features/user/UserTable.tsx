@@ -6,6 +6,7 @@ import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./UserTable.css";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
+import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
 
 interface UserTableProps {
   users: User[];
@@ -13,6 +14,7 @@ interface UserTableProps {
   isAdmin: boolean;
   onEdit: (user: User) => void;
   onDelete: (id: number) => void;
+  onToggleStatus: (user: User) => void;
   currentPage: number;
   totalPages: number;
   pageSize: number;
@@ -22,7 +24,7 @@ interface UserTableProps {
   onSearchChange?: (value: string) => void;
 }
 
-export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
+export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, onToggleStatus,
   currentPage, totalPages, pageSize, onPrevious, onNext,
   search = "", onSearchChange }: UserTableProps) => {
 
@@ -39,10 +41,10 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
       <table className="usuarios-table">
         <thead>
           <tr>
+            <th className="usuarios-table__th">Estado</th>
             <th className="usuarios-table__th">Nombre</th>
             <th className="usuarios-table__th">Correo</th>
             <th className="usuarios-table__th">Rol</th>
-            <th className="usuarios-table__th">Estado</th>
             {isAdmin && <th className="usuarios-table__th">Acciones</th>}
           </tr>
         </thead>
@@ -73,6 +75,16 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
             const isActive = user.enabled && user.accountNonLocked;
             return (
               <tr key={user.id} className="usuarios-table__row--data">
+                <td className="usuarios-table__td" data-label="Estado">
+                  <span className="status-toggle-cell usuarios-status-toggle">
+                    <span className={`usuarios-status ${isActive ? "is-active" : "is-inactive"}`}>
+                      {isActive ? "Activo" : "Inactivo"}
+                    </span>
+                    {isAdmin && <StatusToggleButton active={user.enabled}
+                      entityLabel={`usuario ${user.nombre}`}
+                      onToggle={() => onToggleStatus(user)} />}
+                  </span>
+                </td>
                 <td className="usuarios-table__td usuarios-table__text" data-label="Nombre">
                   <span className="usuarios-table__person">
                     <span>{user.nombre}</span>
@@ -83,11 +95,6 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete,
                 <td className="usuarios-table__td" data-label="Rol">
                   <span className={`usuarios-role ${user.rol === "ADMIN" ? "is-admin" : "is-user"}`}>
                     {user.rol === "ADMIN" ? "ADMIN" : "USUARIO"}
-                  </span>
-                </td>
-                <td className="usuarios-table__td" data-label="Estado">
-                  <span className={`usuarios-status ${isActive ? "is-active" : "is-inactive"}`}>
-                    {isActive ? "Activo" : "Inactivo"}
                   </span>
                 </td>
                 {isAdmin && (

@@ -123,6 +123,21 @@ public class UserService implements UserUseCase {
         repository.deleteById(id);
     }
 
+    @Transactional
+    public User cambiarEstado(Long id, boolean activo, String authenticatedEmail) {
+        User user = findById(id);
+        if (user.getCorreo().equalsIgnoreCase(authenticatedEmail) && !activo) {
+            throw new DomainException("enabled", org.springframework.http.HttpStatus.CONFLICT,
+                    "No puede desactivar su propio usuario");
+        }
+        if (!activo && user.getRol() == RoleEnum.ADMIN
+                && repository.countByRol(RoleEnum.ADMIN) <= 1) {
+            throw lastAdminError();
+        }
+        user.setEnabled(activo);
+        return repository.save(user);
+    }
+
     private DomainException lastAdminError() {
         return new DomainException(
                 UserErrorCode.LAST_ADMIN.getField(),

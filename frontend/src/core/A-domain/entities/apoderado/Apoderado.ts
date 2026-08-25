@@ -7,9 +7,10 @@ export interface Apoderado {
   telefono: string;
   observaciones?: string;
   accessStatus?: "SIN_ACCESO" | "INVITACION_PENDIENTE" | "ACTIVO" | "BLOQUEADO";
+  activo: boolean;
 }
 
-export type CreateApoderadoDTO = Omit<Apoderado, "apoderadoId" | "codigo">;
+export type CreateApoderadoDTO = Omit<Apoderado, "apoderadoId" | "codigo" | "activo">;
 
 export interface PageResponse<T> {
   content: T[];

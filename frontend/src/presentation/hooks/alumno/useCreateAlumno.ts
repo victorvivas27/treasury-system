@@ -13,6 +13,7 @@ export const useCreateAlumno = () => {
     nombre: "",
     curso: "",
     observacion: "",
+    genero: "OTROS",
     apoderadoId: 0,
   };
 

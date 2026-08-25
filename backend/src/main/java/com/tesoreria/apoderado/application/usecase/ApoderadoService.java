@@ -100,6 +100,13 @@ public class ApoderadoService implements
         repository.deleteByCodigo(codigo);
     }
 
+    @Transactional
+    public Apoderado cambiarEstado(String codigo, boolean activo) {
+        Apoderado apoderado = findByCodigo(codigo);
+        apoderado.setActivo(activo);
+        return repository.save(apoderado);
+    }
+
     private DomainException apoderadoNoEncontrado(String codigo) {
         return new DomainException(
                 ApoderadoErrorCode.NOT_FOUND.getField(),

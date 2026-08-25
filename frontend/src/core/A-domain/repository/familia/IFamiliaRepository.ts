@@ -17,4 +17,5 @@ export interface IFamiliaRepository {
   update(familiaId: number, familia: UpdateFamiliaDTO): Promise<Familia>;
 
   delete(familiaId: number): Promise<void>;
+  changeStatus(familiaId: number, activo: boolean): Promise<Familia>;
 }

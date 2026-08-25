@@ -49,4 +49,8 @@ export class AlumnoRepositoryImpl implements IAlumnoRepository {
   async delete(alumnoId: number): Promise<void> {
     await this.deleteByCodigo(String(alumnoId));
   }
+
+  async changeStatus(codigo: string, activo: boolean): Promise<Alumno> {
+    return (await apiClient.patch<Alumno>(`${this.baseUrl}/${codigo}/estado`, { activo })).data;
+  }
 }

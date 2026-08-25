@@ -6,6 +6,7 @@ public record FamiliaDetalleResponse(
         Long familiaId,
         String codigoFamilia,
         String observacionesGenerales,
+        boolean activo,
         AlumnoFamiliaResponse alumno,
         List<ApoderadoDetalleResponse> apoderados) {
 }

@@ -60,7 +60,15 @@ public class AlumnoService implements
         existing.setNombre(alumno.getNombre());
         existing.setCurso(alumno.getCurso());
         existing.setObservacion(alumno.getObservacion());
+        existing.setGenero(alumno.getGenero());
         return repository.save(existing);
+    }
+
+    @Transactional
+    public Alumno cambiarEstado(String codigo, boolean activo) {
+        Alumno alumno = findByCodigo(codigo);
+        alumno.setActivo(activo);
+        return repository.save(alumno);
     }
 
     @Override

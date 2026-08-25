@@ -14,6 +14,8 @@ public class AlumnoPersistenceMapper {
                 entity.getNombre(),
                 entity.getCurso(),
                 entity.getObservacion(),
+                entity.getGenero(),
+                entity.isActivo(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
@@ -35,6 +37,8 @@ public class AlumnoPersistenceMapper {
         if (domain.getUpdatedAt() != null) {
             entity.setUpdatedAt(domain.getUpdatedAt());
         }
+        entity.setGenero(domain.getGenero());
+        entity.setActivo(domain.isActivo());
 
         return entity;
     }

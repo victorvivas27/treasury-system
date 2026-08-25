@@ -64,6 +64,18 @@ export const CrearAlumnoForm = () => {
           )}
         </div>
 
+        <div className="form-group-alumno">
+          <select id="genero_input" name="genero" value={formData.genero}
+            onChange={handleChange} className="form-input-alumno">
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMENINO">Femenino</option>
+            <option value="OTROS">Otros</option>
+          </select>
+          <label htmlFor="genero_input" className="floating-label-alumno form-label-alumno">
+            Género
+          </label>
+        </div>
+
         <div className="form-group-alumno form-group-alumno--wide">
           <textarea
             id="observacion_input"

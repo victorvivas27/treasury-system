@@ -16,7 +16,8 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
 
     boolean existsByAlumnoId(Long alumnoId);
 
-    @Query("select distinct f from FamiliaEntity f join f.apoderados a where a.apoderadoId = :guardianId")
+    @Query("select distinct f from FamiliaEntity f join f.apoderados a "
+            + "where a.apoderadoId = :guardianId and f.activo = true")
     Optional<FamiliaEntity> findByGuardianId(@Param("guardianId") Long guardianId);
 
     @Query(value = """
@@ -28,6 +29,7 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
             LEFT JOIN familia_apoderados fa
                    ON fa.familia_id = f.familia_id AND fa.es_principal = TRUE
             LEFT JOIN apoderados ap ON ap.apoderado_id = fa.apoderado_id
+            WHERE f.activo = TRUE AND a.activo = TRUE
             ORDER BY f.codigo
             """, nativeQuery = true)
     List<FamilyTreasuryView> findTreasuryData();

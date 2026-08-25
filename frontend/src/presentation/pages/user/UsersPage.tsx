@@ -10,6 +10,7 @@ import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { FiRefreshCw, FiUserPlus, FiX } from "react-icons/fi";
+import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
 import "./UsersPage.css";
 
 export const UsersPage = () => {
@@ -86,6 +87,19 @@ export const UsersPage = () => {
     }
   };
 
+  const toggleStatus = async (selectedUser: User) => {
+    try {
+      await new UserRepositoryImpl().changeStatus(selectedUser.id, !selectedUser.enabled);
+      await load(currentPage);
+      setUserAlert({ isOpen: true,
+        message: selectedUser.enabled ? "Usuario desactivado." : "Usuario reactivado.",
+        type: "success" });
+    } catch {
+      setUserAlert({ isOpen: true, message: "No fue posible cambiar el estado del usuario.",
+        type: "error" });
+    }
+  };
+
   if (error) return <FeedbackState message={error} onRefresh={() => load()} />;
 
   return (
@@ -151,6 +165,7 @@ export const UsersPage = () => {
               const selectedUser = users.find((listedUser) => listedUser.id === id);
               if (selectedUser) setUserToDelete(selectedUser);
             }}
+            onToggleStatus={(selectedUser) => void toggleStatus(selectedUser)}
             currentPage={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}

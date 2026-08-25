@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
+import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
   Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart,
@@ -9,6 +10,7 @@ import {
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
 import { expenseCategoryLabel } from "@/shared/constants/ExpenseConstants";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -20,6 +22,7 @@ import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 
 const repository = new TreasuryRepositoryImpl();
+const studentRepository = new AlumnoRepositoryImpl();
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
 const money = new Intl.NumberFormat("es-CL", {
@@ -38,6 +41,7 @@ export const DashboardPage = () => {
   const [yearOpen, setYearOpen] = useState(false);
   const [data, setData] = useState<TreasuryDashboardOverview>();
   const [contributions, setContributions] = useState<ContributionSummary>();
+  const [genderCounts, setGenderCounts] = useState({ masculino: 0, femenino: 0, otros: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedAudits, setSelectedAudits] = useState<Set<number>>(new Set());
@@ -61,12 +65,20 @@ export const DashboardPage = () => {
     setLoading(true);
     setError("");
     try {
-      const [overview, contributionSummary] = await Promise.all([
+      const [overview, contributionSummary, studentsPage] = await Promise.all([
         repository.dashboardOverview(year),
         repository.contributionSummary(year),
+        studentRepository.getAll(0, 500).catch(() => undefined),
       ]);
       setData(overview);
       setContributions(contributionSummary);
+      const activeStudents = studentsPage?.content.filter(student => student.activo !== false) ?? [];
+      setGenderCounts({
+        masculino: activeStudents.filter(student => student.genero === "MASCULINO").length,
+        femenino: activeStudents.filter(student => student.genero === "FEMENINO").length,
+        otros: activeStudents.filter(student => student.genero !== "MASCULINO"
+          && student.genero !== "FEMENINO").length,
+      });
       loginPerformance.mark("dashboard-api");
       setSelectedAudits(new Set());
       setActivityPage(1);
@@ -168,6 +180,23 @@ export const DashboardPage = () => {
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <Kpi label="Familias activas" value={String(data.quotas.totalFamilies)}
           icon="families" description={`Registradas para ${year}`} />
+        <article className="dashboard-gender-card">
+          <header>
+            <span>Composición del curso</span>
+            <strong>{genderCounts.masculino + genderCounts.femenino + genderCounts.otros}</strong>
+          </header>
+          <div className="dashboard-gender-card__items">
+            <span className="is-boy"><MdBoy aria-hidden="true" />
+              <b>{genderCounts.masculino}</b><small>Niños</small></span>
+            <span className="is-girl"><MdGirl aria-hidden="true" />
+              <b>{genderCounts.femenino}</b><small>Niñas</small></span>
+            {genderCounts.otros > 0 && <span className="is-other">
+              <MdTransgender aria-hidden="true" />
+              <b>{genderCounts.otros}</b><small>Otros</small>
+            </span>}
+          </div>
+          <small className="dashboard-gender-card__note">Solo alumnos activos</small>
+        </article>
         <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
           featured negative={data.finances.availableBalance < 0}
           positive={data.finances.availableBalance >= 0}

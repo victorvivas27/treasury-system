@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.UUID;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 
 @Entity
 @Table(name = "alumnos")
@@ -27,6 +28,13 @@ public final class AlumnoEntity {
 
     @Column(length = 300)
     private String observacion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16, columnDefinition = "varchar(16) default 'OTROS'")
+    private GeneroAlumno genero = GeneroAlumno.OTROS;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean activo = true;
 
 
     @CreationTimestamp
@@ -106,6 +114,11 @@ public final class AlumnoEntity {
     public void setObservacion(String observacion) {
         this.observacion = observacion;
     }
+
+    public GeneroAlumno getGenero() { return genero; }
+    public void setGenero(GeneroAlumno genero) { this.genero = genero; }
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

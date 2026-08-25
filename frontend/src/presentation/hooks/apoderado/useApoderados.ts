@@ -59,6 +59,14 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
     return fetchApoderados(currentPage);
   }, [currentPage, fetchApoderados]);
 
+  const replaceApoderado = useCallback((updatedApoderado: Apoderado) => {
+    setApoderados((current) => current.map((apoderado) =>
+      apoderado.apoderadoId === updatedApoderado.apoderadoId
+        ? updatedApoderado
+        : apoderado,
+    ));
+  }, []);
+
   useEffect(() => {
     fetchApoderados(initialPage);
   }, [fetchApoderados, initialPage]);
@@ -73,6 +81,7 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
     refreshing: loading && hasLoaded,
     error,
     refetch,
+    replaceApoderado,
     currentPage,
     nextPage,
     prevPage,

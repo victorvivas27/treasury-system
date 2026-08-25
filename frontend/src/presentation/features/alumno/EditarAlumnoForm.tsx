@@ -74,6 +74,19 @@ export const EditarAlumnoForm = () => {
           {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
         </div>
 
+        <div className="form-group floating-group alumno-edit-form__group">
+          <SkeletonWrapper isLoading={initialLoading} className="skeleton-name"
+            height="48px" width="100%">
+            <select id="genero_input" name="genero" value={formData.genero}
+              onChange={handleChange} className="form-input">
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO">Femenino</option>
+              <option value="OTROS">Otros</option>
+            </select>
+          </SkeletonWrapper>
+          <label htmlFor="genero_input" className="floating-label form-label">Género</label>
+        </div>
+
         <div className="form-group floating-group alumno-edit-form__group alumno-edit-form__group--wide">
           <SkeletonWrapper
             isLoading={initialLoading}

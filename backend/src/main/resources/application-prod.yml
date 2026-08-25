@@ -27,7 +27,6 @@ spring:
       max-lifetime: ${DB_POOL_MAX_LIFETIME_MS:600000}
 
   jpa:
-    database: postgresql
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:validate}
     show-sql: false

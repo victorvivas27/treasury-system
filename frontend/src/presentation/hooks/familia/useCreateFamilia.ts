@@ -14,16 +14,19 @@ import { useApoderados } from "../apoderado/useApoderados";
 export const useCreateFamilia = () => {
 
     const {
-    alumnos,
+    alumnos: alumnosRegistrados,
     loading: loadingAlumnos,
     error: alumnosError,
   } = useAlumnos({ pageSize: 100 });
 
   const {
-    apoderados,
+    apoderados: apoderadosRegistrados,
     loading: loadingApoderados,
     error: apoderadosError,
   } = useApoderados({ pageSize: 100 });
+
+  const alumnos = alumnosRegistrados.filter((alumno) => alumno.activo !== false);
+  const apoderados = apoderadosRegistrados.filter((apoderado) => apoderado.activo !== false);
 
   const navigate = useNavigate();
   const initialFormState: CreateFamiliaDTO = {

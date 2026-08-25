@@ -3,6 +3,7 @@ package com.tesoreria.user.infrastructure.adapter.in.web.controller;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.shared.infrastructure.web.EstadoActivoRequest;
 import com.tesoreria.user.application.usecase.UserService;
 import com.tesoreria.user.application.usecase.ProfileImageService;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.AvatarRequestDTO;
@@ -109,6 +110,16 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> cambiarEstado(
+            @PathVariable Long id,
+            @RequestBody EstadoActivoRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(mapper.toResponse(
+                service.cambiarEstado(id, request.activo(), authentication.getName())));
     }
 
     @Operation(summary = "Cambiar rol de usuario")

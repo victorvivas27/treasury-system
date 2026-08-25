@@ -36,6 +36,9 @@ public final class FamiliaEntity {
     @Column(name = "observaciones_generales", length = 200)
     private String observacionesGenerales;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean activo = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -52,7 +55,8 @@ public final class FamiliaEntity {
             List<FamiliaApoderadoEntity> apoderados,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
-            String observacionesGenerales) {
+            String observacionesGenerales,
+            boolean activo) {
         this.familiaId = familiaId;
         this.alumnoId = alumnoId;
         this.codigo = codigo;
@@ -60,6 +64,15 @@ public final class FamiliaEntity {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.observacionesGenerales = observacionesGenerales;
+        this.activo = activo;
+    }
+
+    public FamiliaEntity(Long familiaId, Long alumnoId, String codigo,
+                         List<FamiliaApoderadoEntity> apoderados,
+                         LocalDateTime createdAt, LocalDateTime updatedAt,
+                         String observacionesGenerales) {
+        this(familiaId, alumnoId, codigo, apoderados, createdAt, updatedAt,
+                observacionesGenerales, true);
     }
 
     @PrePersist
@@ -103,4 +116,6 @@ public final class FamiliaEntity {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+    public boolean isActivo() { return activo; }
 }

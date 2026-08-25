@@ -4,4 +4,5 @@ import com.tesoreria.familia.core.model.Familia;
 
 public interface UpdateFamiliaUseCase {
     Familia actualizarFamilia(Long familiaId, Familia familia);
+    Familia cambiarEstado(Long familiaId, boolean activo);
 }

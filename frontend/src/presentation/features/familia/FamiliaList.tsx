@@ -9,6 +9,7 @@ import { FAMILIA_ICONS } from "@/shared/constants/Icons";
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
+import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
 
 interface FamiliaListProps {
   familias: FamiliaDetalle[];
@@ -17,6 +18,7 @@ interface FamiliaListProps {
   onRefresh?: () => void;
   handleDelete?: (id: number) => void;
   handleEdit?: (id: number) => void;
+  handleToggleStatus?: (familia: FamiliaDetalle) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -41,6 +43,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
   onRefresh,
   handleDelete,
   handleEdit,
+  handleToggleStatus,
   currentPage,
   onNextPage,
   onPrevPage,
@@ -142,6 +145,14 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                           { label: "Alumno", value: familia.alumno.codigo },
                         ]}
                       />
+                      <span className="status-toggle-inline">
+                        <span className="status-toggle-inline__label">
+                          {familia.activo ? "Activa" : "Inactiva"}
+                        </span>
+                        <StatusToggleButton active={familia.activo}
+                          entityLabel={`familia ${familia.codigoFamilia}`}
+                          onToggle={() => handleToggleStatus?.(familia)} />
+                      </span>
                     </span>
                   )}
                 </td>

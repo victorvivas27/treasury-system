@@ -8,13 +8,17 @@ import { useNavigate } from "react-router-dom";
 import { useDeleteAlumno } from "@/presentation/hooks/alumno/useDeleteAlumno";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
+import { useState } from "react";
 
 export const AlumnoPage: FC = () => {
+  const [statusAlert, setStatusAlert] = useState({ isOpen: false, message: "", type: "success" as "success" | "error" });
   const {
     alumnos,
     loading,
     error,
     refetch,
+    replaceAlumno,
     currentPage,
     nextPage,
     prevPage,
@@ -29,6 +33,16 @@ export const AlumnoPage: FC = () => {
 
   const handleEdit = (codigo: string) => {
     navigate(`/students/edit/${codigo}`);
+  };
+
+  const handleToggleStatus = async (alumno: import("@/core/A-domain/entities/alumno/Alumno").Alumno) => {
+    try {
+      const updatedAlumno = await new AlumnoRepositoryImpl().changeStatus(alumno.codigo, !alumno.activo);
+      replaceAlumno(updatedAlumno);
+      setStatusAlert({ isOpen: true, message: alumno.activo ? "Alumno desactivado." : "Alumno reactivado.", type: "success" });
+    } catch {
+      setStatusAlert({ isOpen: true, message: "No fue posible cambiar el estado del alumno.", type: "error" });
+    }
   };
 
   // const handleFamilia = (id: number) => {
@@ -93,6 +107,7 @@ export const AlumnoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
           handleEdit={handleEdit}
+          handleToggleStatus={(alumno) => void handleToggleStatus(alumno)}
          //handleFamilia={handleFamilia}
           currentPage={currentPage}
           onNextPage={nextPage}
@@ -126,6 +141,9 @@ export const AlumnoPage: FC = () => {
         autoCloseTime={2000}
         variant={alert.type === "success" ? "toast" : "modal"}
       />
+      <ModalAlert isOpen={statusAlert.isOpen} message={statusAlert.message} type={statusAlert.type}
+        onClose={() => setStatusAlert((current) => ({ ...current, isOpen: false }))}
+        autoCloseTime={2000} variant="toast" />
     </main>
   );
 };

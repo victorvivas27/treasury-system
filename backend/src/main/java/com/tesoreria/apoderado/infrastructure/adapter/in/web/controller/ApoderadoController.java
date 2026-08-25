@@ -8,6 +8,7 @@ import com.tesoreria.apoderado.infrastructure.adapter.in.web.mapper.ApoderadoMap
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.shared.infrastructure.web.EstadoActivoRequest;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
@@ -92,6 +93,12 @@ public class ApoderadoController {
     public ResponseEntity<Void> deleteByCodigo(@PathVariable String codigo) {
         apoderadoService.deleteByCodigo(codigo);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{codigo}/estado")
+    public ResponseEntity<ApoderadoResponse> cambiarEstado(
+            @PathVariable String codigo, @RequestBody EstadoActivoRequest request) {
+        return ResponseEntity.ok(response(apoderadoService.cambiarEstado(codigo, request.activo())));
     }
 
     private ApoderadoResponse response(Apoderado guardian) {

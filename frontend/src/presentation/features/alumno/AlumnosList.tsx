@@ -8,9 +8,11 @@ import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import { useState, type FC } from "react";
 import { FiMessageSquare } from "react-icons/fi";
+import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
+import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
 
 interface AlumnosListProps {
   alumnos: Alumno[];
@@ -19,6 +21,7 @@ interface AlumnosListProps {
   onRefresh?: () => void;
   handleDelete?: (codigo: string) => void;
   handleEdit?: (codigo: string) => void;
+  handleToggleStatus?: (alumno: Alumno) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -62,6 +65,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   onRefresh,
   handleDelete,
   handleEdit,
+  handleToggleStatus,
   currentPage,
   onNextPage,
   onPrevPage,
@@ -149,6 +153,14 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                     <span className="alumnos-table__person">
                       <span>{alumno.nombre}</span>
                       <CodeReveal codes={[{ value: alumnoIdentifier }]} />
+                      <span className="status-toggle-inline">
+                        <span className="status-toggle-inline__label">
+                          {alumno.activo ? "Activo" : "Inactivo"}
+                        </span>
+                        <StatusToggleButton active={alumno.activo}
+                          entityLabel={`alumno ${alumno.nombre}`}
+                          onToggle={() => handleToggleStatus?.(alumno)} />
+                      </span>
                     </span>
                   )}
                 </td>
@@ -159,7 +171,22 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                   ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (
-                    alumno.curso
+                    <span className="alumnos-table__course-gender">
+                      <span>{alumno.curso}</span>
+                      <span
+                        className={`alumnos-table__gender is-${alumno.genero?.toLowerCase() ?? "otros"}`}
+                        role="img"
+                        aria-label={{
+                          MASCULINO: "Género masculino",
+                          FEMENINO: "Género femenino",
+                          OTROS: "Otro género",
+                        }[alumno.genero] ?? "Otro género"}
+                      >
+                        {alumno.genero === "MASCULINO" ? <MdBoy aria-hidden="true" />
+                          : alumno.genero === "FEMENINO" ? <MdGirl aria-hidden="true" />
+                            : <MdTransgender aria-hidden="true" />}
+                      </span>
+                    </span>
                   )}
                 </td>
 

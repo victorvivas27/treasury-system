@@ -47,7 +47,8 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
     public PageResponse<Alumno> findAll(PageRequest pageRequest) {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(
                 pageRequest.page(),
-                pageRequest.size());
+                pageRequest.size(),
+                org.springframework.data.domain.Sort.by("alumnoId").ascending());
 
         String search = pageRequest.search() == null ? "" : pageRequest.search().trim();
         Page<AlumnoEntity> pageEntity = search.isEmpty()

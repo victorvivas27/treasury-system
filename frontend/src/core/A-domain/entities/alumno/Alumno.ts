@@ -4,9 +4,11 @@ export interface Alumno {
   nombre: string;
   curso: string;
   observacion?: string | null;
+  genero: "MASCULINO" | "FEMENINO" | "OTROS";
+  activo: boolean;
 }
 
-export type CreateAlumnoDTO = Omit<Alumno, "alumnoId" | "codigo">;
+export type CreateAlumnoDTO = Omit<Alumno, "alumnoId" | "codigo" | "activo">;
 
 export interface PageResponse<T> {
   content: T[];

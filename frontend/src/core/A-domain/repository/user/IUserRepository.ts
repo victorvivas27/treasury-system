@@ -9,6 +9,7 @@ export interface IUserRepository {
   update(id: number, payload: UserPayload): Promise<User>;
   changeRole(id: number, rol: UserRole): Promise<User>;
   delete(id: number): Promise<void>;
+  changeStatus(id: number, activo: boolean): Promise<User>;
   selectAvatar(avatar: string): Promise<User>;
   uploadProfileImage(file: File, onProgress?: (percentage: number) => void): Promise<User>;
   resetProfileImage(): Promise<User>;
