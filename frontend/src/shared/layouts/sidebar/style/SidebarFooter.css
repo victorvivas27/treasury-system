@@ -201,7 +201,53 @@
 
 }
 
-.sidebar-footer > .base-button {
+.sidebar-logout-progress .button-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.sidebar-logout-progress .button-icon::before {
+  --logout-progress: 1;
+  position: absolute;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  background: conic-gradient(from -90deg,
+    #22c55e 0,
+    #06b6d4 calc(var(--logout-progress) * .2turn),
+    #3b82f6 calc(var(--logout-progress) * .4turn),
+    #8b5cf6 calc(var(--logout-progress) * .6turn),
+    #ec4899 calc(var(--logout-progress) * .8turn),
+    #f59e0b calc(var(--logout-progress) * 1turn),
+    transparent 0);
+  content: "";
+  animation: sidebar-logout-countdown 2s linear forwards;
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
+}
+
+.sidebar-logout-progress .button-icon svg {
+  position: relative;
+  z-index: 1;
+}
+
+@property --logout-progress {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@keyframes sidebar-logout-countdown {
+  from { --logout-progress: 1; }
+  to { --logout-progress: 0; }
+}
+
+.sidebar-logout-action {
+  display: block;
+  width: 100%;
+}
+
+.sidebar-logout-action > .base-button {
   display: flex;
   align-items: center;
   width: 100%;
@@ -256,7 +302,15 @@
   padding-left: 0.5rem;
 }
 
-.sidebar--collapsed .sidebar-footer > .base-button {
+.sidebar--collapsed .sidebar-logout-action > .base-button {
   padding-right: 1.1rem;
   padding-left: 1.1rem;
+}
+
+.sidebar-icon-tooltip {
+  border-radius: .35rem;
+  padding: .22rem .38rem;
+  font-size: .56rem;
+  font-weight: 650;
+  box-shadow: 0 4px 12px rgb(2 6 23 / 20%);
 }

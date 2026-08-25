@@ -10,6 +10,7 @@ import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
+import { SingleLineFitText } from "@/shared/ui/single-line-fit-text/SingleLineFitText";
 
 interface FamiliaListProps {
   familias: FamiliaDetalle[];
@@ -137,7 +138,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                     <span>&nbsp;</span>
                   ) : (
                     <span className="familia-table__student">
-                      <span>{familia.alumno.nombre}</span>
+                      <SingleLineFitText>{familia.alumno.nombre}</SingleLineFitText>
                       <CodeReveal
                         label="Ver códigos"
                         codes={[
@@ -173,9 +174,9 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    <span className={principal ? "badge-success" : "badge-secondary"}>
+                    <SingleLineFitText className={principal ? "badge-success" : "badge-secondary"}>
                       {principal?.nombre ?? "-"}
-                    </span>
+                    </SingleLineFitText>
                   )}
                 </td>
 
@@ -185,11 +186,11 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    <span className="badge-secondary">
+                    <SingleLineFitText className="badge-secondary">
                       {secundarios.length > 0
                         ? secundarios.map((apoderado) => apoderado.nombre).join(", ")
                         : "-"}
-                    </span>
+                    </SingleLineFitText>
                   )}
                 </td>
 

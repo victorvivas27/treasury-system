@@ -13,6 +13,7 @@ import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
+import { SingleLineFitText } from "@/shared/ui/single-line-fit-text/SingleLineFitText";
 
 interface AlumnosListProps {
   alumnos: Alumno[];
@@ -151,7 +152,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                     <span>&nbsp;</span>
                   ) : (
                     <span className="alumnos-table__person">
-                      <span>{alumno.nombre}</span>
+                      <SingleLineFitText>{alumno.nombre}</SingleLineFitText>
                       <CodeReveal codes={[{ value: alumnoIdentifier }]} />
                       <span className="status-toggle-inline">
                         <span className="status-toggle-inline__label">

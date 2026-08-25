@@ -1,12 +1,12 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { SIDEBAR_FOOTER_LINKS, SIDEBAR_USER_MOCK } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
-import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./style/SidebarFooter.css";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
+import { Tooltip } from "@/shared/ui/tooltip/Tooltip";
 import { FiLogOut } from "react-icons/fi";
 
 interface SidebarProps {
@@ -19,20 +19,31 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
   const auth = useOptionalAuth();
   const unreadCount = useOptionalNotifications()?.unreadCount ?? 0;
   const navigate = useNavigate();
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const logoutTimer = useRef<number | undefined>(undefined);
   const name = auth?.user?.nombre ?? SIDEBAR_USER_MOCK.name;
   const email = auth?.user?.correo ?? SIDEBAR_USER_MOCK.email;
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await (onLogout ?? auth?.logout)?.();
-      setIsLogoutModalOpen(false);
-      navigate("/", { replace: true });
-    } finally {
+  useEffect(() => () => {
+    if (logoutTimer.current !== undefined) window.clearTimeout(logoutTimer.current);
+  }, []);
+
+  const handleLogout = () => {
+    if (isLoggingOut) {
+      if (logoutTimer.current !== undefined) window.clearTimeout(logoutTimer.current);
+      logoutTimer.current = undefined;
       setIsLoggingOut(false);
+      return;
     }
+
+    setIsLoggingOut(true);
+    logoutTimer.current = window.setTimeout(() => {
+      logoutTimer.current = undefined;
+      void (async () => {
+        await (onLogout ?? auth?.logout)?.();
+        navigate("/", { replace: true });
+      })();
+    }, 2000);
   };
 
   return (
@@ -63,6 +74,7 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
                         {unreadCount > 99 ? "99+" : unreadCount}</span>}
                     </span>
                     <span className="sidebar-footer-text">{link.label}</span>
+                    <Tooltip content={link.label} position="right" className="sidebar-icon-tooltip" />
                   </NavLink>
                 </li>
               );
@@ -82,32 +94,25 @@ export const SidebarFooter: FC<SidebarProps> = ({ isSidebarOpen, onLogout, onNav
             <span className="sidebar-user-name" title={name}>{name}</span>
             <span className="sidebar-user-email" title={email}>{email}</span>
           </div>
+          <Tooltip content="Mi perfil" position="right" className="sidebar-icon-tooltip" />
         </NavLink>
 
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => setIsLogoutModalOpen(true)}
-          icon={<FiLogOut className="sidebar-footer-icon" />}
-          label="Cerrar sesión"
-          className={!isSidebarOpen ? "button--sidebar-closed" : "button--sidebar-open"}
-          testId="sidebar-logout-btn"
-        />
+        <span className="sidebar-logout-action">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleLogout}
+            icon={<FiLogOut className="sidebar-footer-icon" />}
+            label="Cerrar sesión"
+            ariaLabel={isLoggingOut ? "Cancelar cierre de sesión" : "Cerrar sesión"}
+            className={`${!isSidebarOpen ? "button--sidebar-closed" : "button--sidebar-open"} ${
+              isLoggingOut ? "sidebar-logout-progress" : ""}`}
+            testId="sidebar-logout-btn"
+          />
+          <Tooltip content="Cerrar sesión" position="right" className="sidebar-icon-tooltip" />
+        </span>
       </footer>
 
-      <ModalConfirm
-        isOpen={isLogoutModalOpen}
-        compact
-        raised
-        title="Cerrar sesión"
-        message="¿Estás seguro de que deseas cerrar la sesión?"
-        confirmLabel="Cerrar sesión"
-        cancelLabel="Cancelar"
-        isLoading={isLoggingOut}
-        confirmVariant="danger"
-        onConfirm={handleLogout}
-        onCancel={() => setIsLogoutModalOpen(false)}
-      />
     </>
   );
 };
