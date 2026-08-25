@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 import { MemoryRouter } from "react-router-dom";
@@ -115,21 +115,35 @@ describe('Sidebar Component', () => {
     expect(activeLink).toHaveClass('active');
   });
 
-  it('[Sidebar #07] Solicita confirmación y ejecuta logout al confirmar', async () => {
+  it('[Sidebar #07] muestra el indicador y ejecuta logout después de dos segundos', async () => {
+    vi.useFakeTimers();
     const logout = vi.fn().mockResolvedValue(undefined);
     renderWithRouter(<SidebarFooter isSidebarOpen={true} onLogout={logout} />);
 
     fireEvent.click(screen.getByTestId('sidebar-logout-btn'));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/seguro de que deseas cerrar/i)).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByTestId('sidebar-logout-btn')).not.toBeDisabled();
+    expect(screen.getByTestId('sidebar-logout-btn')).toHaveClass('sidebar-logout-progress');
     expect(logout).not.toHaveBeenCalled();
 
-    fireEvent.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: /cerrar sesi/i }),
-    );
+    await act(async () => vi.advanceTimersByTimeAsync(2000));
+    expect(logout).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
 
-    await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  it('[Sidebar #07.1] cancela el cierre de sesión con un segundo clic', async () => {
+    vi.useFakeTimers();
+    const logout = vi.fn().mockResolvedValue(undefined);
+    renderWithRouter(<SidebarFooter isSidebarOpen={true} onLogout={logout} />);
+
+    const button = screen.getByTestId('sidebar-logout-btn');
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(button).not.toHaveClass('sidebar-logout-progress');
+    await act(async () => vi.advanceTimersByTimeAsync(2000));
+    expect(logout).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it('[Sidebar #08] Ejecuta onNavLinkClick al hacer clic en un enlace', () => {

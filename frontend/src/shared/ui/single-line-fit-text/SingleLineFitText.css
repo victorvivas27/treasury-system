@@ -1,0 +1,15 @@
+.single-line-fit-text {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.single-line-fit-text > span {
+  display: block;
+  width: max-content;
+  max-width: none;
+  line-height: 1.2;
+  white-space: nowrap;
+}

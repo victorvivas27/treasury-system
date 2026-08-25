@@ -10,6 +10,7 @@ import type { FC } from "react";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
+import { SingleLineFitText } from "@/shared/ui/single-line-fit-text/SingleLineFitText";
 
 
 interface ApoderadosListProps {
@@ -155,7 +156,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                     <span>&nbsp;</span>
                   ) : (
                     <span className="apoderados-table__person">
-                      <span>{apoderado.nombre}</span>
+                      <SingleLineFitText>{apoderado.nombre}</SingleLineFitText>
                       <CodeReveal codes={[{
                         value: apoderado.codigo || apoderadoIdentifier,
                       }]} />
@@ -177,7 +178,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
-                    apoderado.email
+                    <SingleLineFitText>{apoderado.email}</SingleLineFitText>
                   )}
                 </td>
 

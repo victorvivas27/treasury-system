@@ -4,6 +4,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { UserRole } from "@/core/A-domain/entities/user/User";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
+import { Tooltip } from "@/shared/ui/tooltip/Tooltip";
 
 interface SidebarNavProps {
   onNavLinkClick: () => void;
@@ -65,6 +66,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
                     >
                       <Icon className="sidebar-nav-icon" />
                       <span className="sidebar-nav-label">{link.label}</span>
+                      <Tooltip content={link.label} position="right" className="sidebar-icon-tooltip" />
                     </NavLink>
                   </li>
                 );
@@ -93,6 +95,7 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
             <ICONS.expand
               className={`sidebar-nav-chevron ${isTreasuryOpen ? "is-open" : ""}`}
             />
+            <Tooltip content="Tesorería" position="right" className="sidebar-icon-tooltip" />
           </button>
           {isTreasuryOpen && (
             <ul id="treasury-submenu" className="sidebar-submenu">
@@ -109,6 +112,9 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
                     <TreasuryIcon className="sidebar-submenu-icon" aria-hidden="true" />
                     {currentRole === "USER" && link.path === "/tesoreria/stands"
                       ? "Resumen de stands" : link.label}
+                    <Tooltip content={currentRole === "USER" && link.path === "/tesoreria/stands"
+                      ? "Resumen de stands" : link.label} position="right"
+                      className="sidebar-icon-tooltip" />
                   </NavLink>
                 </li>
               })}

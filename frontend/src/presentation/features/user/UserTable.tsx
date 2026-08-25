@@ -7,6 +7,7 @@ import "./UserTable.css";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
+import { SingleLineFitText } from "@/shared/ui/single-line-fit-text/SingleLineFitText";
 
 interface UserTableProps {
   users: User[];
@@ -87,11 +88,13 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
                 </td>
                 <td className="usuarios-table__td usuarios-table__text" data-label="Nombre">
                   <span className="usuarios-table__person">
-                    <span>{user.nombre}</span>
+                    <SingleLineFitText>{user.nombre}</SingleLineFitText>
                     <CodeReveal codes={[{ value: user.code }]} />
                   </span>
                 </td>
-                <td className="usuarios-table__td usuarios-table__email" data-label="Correo">{user.correo}</td>
+                <td className="usuarios-table__td usuarios-table__email" data-label="Correo">
+                  <SingleLineFitText>{user.correo}</SingleLineFitText>
+                </td>
                 <td className="usuarios-table__td" data-label="Rol">
                   <span className={`usuarios-role ${user.rol === "ADMIN" ? "is-admin" : "is-user"}`}>
                     {user.rol === "ADMIN" ? "ADMIN" : "USUARIO"}
