@@ -21,6 +21,7 @@ public class ApoderadoMapper {
                 apoderado.getTelefono(),
                 apoderado.getObservaciones(),
                 accessStatus,
+                apoderado.isActivo(),
                 apoderado.getCreatedAt(),
                 apoderado.getUpdatedAt());
     }
@@ -33,6 +34,7 @@ public class ApoderadoMapper {
                 request.getEmail(),
                 request.getTelefono(),
                 request.getObservaciones(),
+                true,
                 null,
                 null);
     }

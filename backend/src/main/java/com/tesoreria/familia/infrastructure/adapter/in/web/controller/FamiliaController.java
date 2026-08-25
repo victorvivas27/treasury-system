@@ -15,7 +15,9 @@ import com.tesoreria.familia.infrastructure.adapter.in.web.dto.FamiliaResponse;
 import com.tesoreria.familia.infrastructure.adapter.in.web.mapper.FamiliaMapper;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
+import com.tesoreria.shared.infrastructure.web.EstadoActivoRequest;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
 import com.tesoreria.treasury.application.usecase.TransferPaymentService;
 import jakarta.validation.Valid;
@@ -111,6 +113,12 @@ public class FamiliaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{familiaId}/estado")
+    public ResponseEntity<FamiliaResponse> cambiarEstado(
+            @PathVariable Long familiaId, @RequestBody EstadoActivoRequest request) {
+        return ResponseEntity.ok(mapper.toResponse(updateUseCase.cambiarEstado(familiaId, request.activo())));
+    }
+
     private FamiliaDetalleResponse toDetalleResponse(Familia familia) {
         Alumno alumno = alumnoService.findById(familia.getAlumnoId());
         List<Apoderado> apoderados = apoderadoService.findByIds(familia.getApoderadosIds());
@@ -118,7 +126,17 @@ public class FamiliaController {
     }
 
     private void validarReferencias(FamiliaRequest request) {
-        alumnoService.findById(request.getAlumnoId());
-        request.getApoderados().forEach(apoderado -> apoderadoService.findById(apoderado.getApoderadoId()));
+        Alumno alumno = alumnoService.findById(request.getAlumnoId());
+        if (!alumno.isActivo()) {
+            throw new DomainException("alumnoId", HttpStatus.CONFLICT,
+                    "No se puede vincular un alumno inactivo");
+        }
+        request.getApoderados().forEach(relacion -> {
+            Apoderado apoderado = apoderadoService.findById(relacion.getApoderadoId());
+            if (!apoderado.isActivo()) {
+                throw new DomainException("apoderados", HttpStatus.CONFLICT,
+                        "No se puede vincular un apoderado inactivo");
+            }
+        });
     }
 }

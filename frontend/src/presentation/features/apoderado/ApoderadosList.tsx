@@ -9,6 +9,7 @@ import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import type { FC } from "react";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
+import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
 
 
 interface ApoderadosListProps {
@@ -19,6 +20,7 @@ interface ApoderadosListProps {
   handleDelete?: (codigo: string | number) => void;
   handleEdit?: (codigo: string) => void;
   handleEnableAccess?: (apoderado: Apoderado) => void;
+  handleToggleStatus?: (apoderado: Apoderado) => void;
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -49,6 +51,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   handleDelete,
   handleEdit,
   handleEnableAccess,
+  handleToggleStatus,
   currentPage,
   onNextPage,
   onPrevPage,
@@ -156,6 +159,14 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                       <CodeReveal codes={[{
                         value: apoderado.codigo || apoderadoIdentifier,
                       }]} />
+                      <span className="status-toggle-inline">
+                        <span className="status-toggle-inline__label">
+                          {apoderado.activo ? "Activo" : "Inactivo"}
+                        </span>
+                        <StatusToggleButton active={apoderado.activo}
+                          entityLabel={`apoderado ${apoderado.nombre}`}
+                          onToggle={() => handleToggleStatus?.(apoderado)} />
+                      </span>
                     </span>
                   )}
                 </td>

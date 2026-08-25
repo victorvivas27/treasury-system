@@ -30,7 +30,8 @@ public class FamiliaMapper {
                                 apoderado.getParentesco(),
                                 apoderado.getEsPrincipal()))
                         .toList(),
-                request.getObservacionesGenerales());
+                request.getObservacionesGenerales(),
+                true);
     }
 
     public FamiliaResponse toResponse(Familia familia) {
@@ -43,6 +44,7 @@ public class FamiliaMapper {
                 familia.getCodigo(),
                 familia.getAlumnoId(),
                 familia.getObservaciones(),
+                familia.isActivo(),
                 familia.getApoderados().stream()
                         .map(apoderado -> new FamiliaApoderadoResponse(
                                 apoderado.getApoderadoId(),
@@ -84,6 +86,7 @@ public class FamiliaMapper {
                 familia.getFamiliaId(),
                 familia.getCodigo(),
                 familia.getObservaciones(),
+                familia.isActivo(),
                 alumnoResponse,
                 apoderadosDetalle);
     }

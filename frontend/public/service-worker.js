@@ -46,7 +46,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
-    const networkResponse = fetch(request).then((response) => {
+    const networkResponse = fetch(request, { cache: 'no-store' }).then((response) => {
       if (response.ok && response.type === 'basic') {
         void caches.open(CACHE_VERSION).then((cache) => cache.put('/', response.clone()))
       }
@@ -54,9 +54,7 @@ self.addEventListener('fetch', (event) => {
     })
     event.waitUntil(networkResponse.then(() => undefined).catch(() => undefined))
     event.respondWith(
-      caches.match('/').then((cachedShell) => {
-        return cachedShell ?? networkResponse.catch(() => Response.error())
-      }),
+      networkResponse.catch(async () => (await caches.match('/')) ?? Response.error()),
     )
     return
   }

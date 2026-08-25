@@ -10,4 +10,5 @@ export interface IAlumnoRepository {
   updateByCodigo(codigo: string, alumno: Partial<Alumno>): Promise<Alumno>;
 
   deleteByCodigo(codigo: string): Promise<void>;
+  changeStatus(codigo: string, activo: boolean): Promise<Alumno>;
 }

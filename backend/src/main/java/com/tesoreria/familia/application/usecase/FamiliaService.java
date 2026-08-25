@@ -80,6 +80,14 @@ public class FamiliaService implements
         familiaRepository.deleteById(id);
     }
 
+    @Override
+    @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, allEntries = true)
+    public Familia cambiarEstado(Long id, boolean activo) {
+        Familia familia = obtenerFamiliaPorId(id);
+        familia.setActivo(activo);
+        return familiaRepository.save(familia);
+    }
+
     private DomainException familiaNoEncontrada(String message) {
         return new DomainException(
                 FamiliaErrorCode.NOT_FOUND.getField(),

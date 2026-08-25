@@ -54,11 +54,11 @@
 
 @media (min-width: 769px) {
   .usuarios-table__th:nth-child(1),
-  .usuarios-table__td:nth-child(1) { width: 22%; }
+  .usuarios-table__td:nth-child(1) { width: 13%; }
   .usuarios-table__th:nth-child(2),
-  .usuarios-table__td:nth-child(2) { width: 30%; }
+  .usuarios-table__td:nth-child(2) { width: 22%; }
   .usuarios-table__th:nth-child(3),
-  .usuarios-table__td:nth-child(3) { width: 13%; }
+  .usuarios-table__td:nth-child(3) { width: 30%; }
   .usuarios-table__th:nth-child(4),
   .usuarios-table__td:nth-child(4) { width: 13%; }
   .usuarios-table__th:nth-child(5),
@@ -88,6 +88,22 @@
 .usuarios-table__icon-button .button-icon svg {
   width: .8rem;
   height: .8rem;
+}
+
+.usuarios-status-toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .usuarios-status-toggle {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: right;
+  }
 }
 
 @media (max-width: 768px) {

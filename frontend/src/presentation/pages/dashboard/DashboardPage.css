@@ -18,6 +18,8 @@
 
 @media(max-width:340px){.dashboard-kpis{grid-template-columns:1fr}}
 
+.dashboard-gender-card header{display:flex;align-items:center;justify-content:space-between}.dashboard-gender-card header>span{font-weight:700}.dashboard-gender-card__items{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:.35rem}.dashboard-gender-card__items>span{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:center;column-gap:.25rem;padding:.35rem;border-radius:.65rem;background:color-mix(in srgb,currentColor 8%,var(--color-surface))}.dashboard-gender-card__items svg{grid-row:1/3;width:1.45rem;height:1.45rem}.dashboard-gender-card__items b{color:var(--text-main);font-size:.9rem}.dashboard-gender-card__items small{font-size:.55rem}.dashboard-gender-card__items .is-boy{color:#2563eb}.dashboard-gender-card__items .is-girl{color:#db2777}.dashboard-gender-card__items .is-other{color:#7c3aed}.dashboard-gender-card__note{color:var(--text-muted);font-size:.58rem}
+
 .movement-type--cuota{background:color-mix(in srgb,var(--color-info) 15%,transparent);color:var(--color-info)}
 .dashboard-empty-row{visibility:hidden}
 .dashboard-panel--wide{padding:.7rem}.dashboard-panel--wide .dashboard-chart{margin-inline:-.2rem}.dashboard-panel--wide .recharts-legend-item-text{font-size:.7rem}.dashboard-panel--wide .recharts-default-tooltip{font-size:.72rem}

@@ -15,6 +15,7 @@ public class Apoderado {
     private String email;
     private String telefono;
     private String observaciones;
+    private boolean activo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -28,6 +29,7 @@ public class Apoderado {
             String email,
             String telefono,
             String observaciones,
+            boolean activo,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
 
@@ -40,6 +42,13 @@ public class Apoderado {
         setEmail(email);
         setTelefono(telefono);
         setObservaciones(observaciones);
+        this.activo = activo;
+    }
+
+    public Apoderado(Long apoderadoId, String codigo, String nombre, String email,
+                     String telefono, String observaciones, LocalDateTime createdAt,
+                     LocalDateTime updatedAt) {
+        this(apoderadoId, codigo, nombre, email, telefono, observaciones, true, createdAt, updatedAt);
     }
 
     public Long getApoderadoId() {
@@ -282,5 +291,8 @@ public class Apoderado {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 
 }

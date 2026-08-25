@@ -38,6 +38,10 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     await apiClient.delete(`${this.baseUrl}/${codigo}`);
   }
 
+  async changeStatus(codigo: string, activo: boolean): Promise<Apoderado> {
+    return (await apiClient.patch<Apoderado>(`${this.baseUrl}/${codigo}/estado`, { activo })).data;
+  }
+
   async enableAccess(codigo: string, token?: string): Promise<Apoderado> {
     return (await apiClient.post<Apoderado>(
       `${this.baseUrl}/${codigo}/habilitar-acceso`, {}, {

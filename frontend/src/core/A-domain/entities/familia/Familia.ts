@@ -26,6 +26,7 @@ export interface Familia {
   alumnoId: number;
   observacionesGenerales?: string | null;
   apoderados?: CreateFamiliaApoderadoDTO[];
+  activo: boolean;
 }
 
 export interface FamiliaDetalle {
@@ -34,6 +35,7 @@ export interface FamiliaDetalle {
   observacionesGenerales?: string | null;
   alumno: AlumnoFamilia;
   apoderados: FamiliaApoderado[];
+  activo: boolean;
 }
 
 export interface CreateFamiliaApoderadoDTO {

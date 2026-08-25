@@ -14,6 +14,8 @@ public class Alumno {
     private String nombre;
     private String curso;
     private String observacion;
+    private GeneroAlumno genero;
+    private boolean activo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -26,6 +28,8 @@ public class Alumno {
             String nombre,
             String curso,
             String observacion,
+            GeneroAlumno genero,
+            boolean activo,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         this.alumnoId = alumnoId;
@@ -35,11 +39,18 @@ public class Alumno {
         setNombre(nombre);
         setCurso(curso);
         setObservacion(observacion);
+        this.genero = genero == null ? GeneroAlumno.OTROS : genero;
+        this.activo = activo;
     }
 
     public Alumno(Long alumnoId, String codigo, String nombre, String curso,
                   LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this(alumnoId, codigo, nombre, curso, null, createdAt, updatedAt);
+        this(alumnoId, codigo, nombre, curso, null, GeneroAlumno.OTROS, true, createdAt, updatedAt);
+    }
+
+    public Alumno(Long alumnoId, String codigo, String nombre, String curso, String observacion,
+                  LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this(alumnoId, codigo, nombre, curso, observacion, GeneroAlumno.OTROS, true, createdAt, updatedAt);
     }
 
     public Long getAlumnoId() {
@@ -164,5 +175,15 @@ public class Alumno {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+    public GeneroAlumno getGenero() { return genero; }
+
+    public void setGenero(GeneroAlumno genero) {
+        this.genero = genero == null ? GeneroAlumno.OTROS : genero;
+    }
+
+    public boolean isActivo() { return activo; }
+
+    public void setActivo(boolean activo) { this.activo = activo; }
 
 }

@@ -60,6 +60,14 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
     return fetchAlumnos(currentPage);
   }, [currentPage, fetchAlumnos]);
 
+  const replaceAlumno = useCallback((updatedAlumno: Alumno) => {
+    setAlumnos((current) => current.map((alumno) =>
+      alumno.alumnoId === updatedAlumno.alumnoId
+        ? updatedAlumno
+        : alumno,
+    ));
+  }, []);
+
   useEffect(() => {
     fetchAlumnos(initialPage);
   }, [fetchAlumnos, initialPage]);
@@ -74,6 +82,7 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
     refreshing: loading && hasLoaded,
     error,
     refetch,
+    replaceAlumno,
     currentPage,
     nextPage,
     prevPage,

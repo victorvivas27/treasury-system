@@ -15,6 +15,7 @@ public class ApoderadoPersistenceMapper {
                 entity.getEmail(),
                 entity.getTelefono(),
                 entity.getObservaciones(),
+                entity.isActivo(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
@@ -36,6 +37,7 @@ public class ApoderadoPersistenceMapper {
         if (domain.getUpdatedAt() != null) {
             entity.setUpdatedAt(domain.getUpdatedAt());
         }
+        entity.setActivo(domain.isActivo());
 
         return entity;
     }

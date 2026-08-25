@@ -36,4 +36,10 @@ export class FamiliaRepositoryImpl implements IFamiliaRepository {
   async delete(familiaId: number): Promise<void> {
     await apiClient.delete(`${this.familiasBaseUrl}/${familiaId}`);
   }
+
+  async changeStatus(familiaId: number, activo: boolean): Promise<Familia> {
+    return (await apiClient.patch<Familia>(
+      `${this.familiasBaseUrl}/${familiaId}/estado`, { activo },
+    )).data;
+  }
 }

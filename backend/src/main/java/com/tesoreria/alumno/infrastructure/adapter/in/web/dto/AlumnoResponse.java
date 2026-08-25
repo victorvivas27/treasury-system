@@ -3,6 +3,7 @@ package com.tesoreria.alumno.infrastructure.adapter.in.web.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 
 public record AlumnoResponse(
         Long alumnoId,
@@ -10,6 +11,8 @@ public record AlumnoResponse(
         String nombre,
         String curso,
         String observacion,
+        GeneroAlumno genero,
+        boolean activo,
         @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
         LocalDateTime createdAt,
 

@@ -31,6 +31,9 @@ public final class ApoderadoEntity {
     @Column(length = 500)
     private String observaciones;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean activo = true;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -136,5 +139,8 @@ public final class ApoderadoEntity {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 
 }

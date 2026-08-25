@@ -40,6 +40,10 @@ export class UserRepositoryImpl implements IUserRepository {
     await apiClient.delete(`${this.baseUrl}/${id}`);
   }
 
+  async changeStatus(id: number, activo: boolean): Promise<User> {
+    return (await apiClient.patch<User>(`${this.baseUrl}/${id}/estado`, { activo })).data;
+  }
+
   async selectAvatar(avatar: string): Promise<User> {
     return (await apiClient.patch<User>(`${this.baseUrl}/me/avatar`, { avatar })).data;
   }

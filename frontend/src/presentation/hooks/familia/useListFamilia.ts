@@ -61,6 +61,12 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
     return fetchFamilia(currentPage);
   }, [currentPage, fetchFamilia]);
 
+  const updateFamiliaStatus = useCallback((familiaId: number, activo: boolean) => {
+    setFamilia((current) => current.map((item) =>
+      item.familiaId === familiaId ? { ...item, activo } : item,
+    ));
+  }, []);
+
   useEffect(() => {
     fetchFamilia(initialPage);
   }, [fetchFamilia, initialPage]);
@@ -76,6 +82,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
     refreshing: loading && hasLoaded,
     error,
     refetch,
+    updateFamiliaStatus,
     currentPage,
     nextPage,
     prevPage,

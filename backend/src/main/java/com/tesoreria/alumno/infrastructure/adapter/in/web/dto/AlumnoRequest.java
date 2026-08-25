@@ -1,6 +1,7 @@
 package com.tesoreria.alumno.infrastructure.adapter.in.web.dto;
 
 import java.util.Locale;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 
 // import jakarta.validation.constraints.NotBlank;
 // import jakarta.validation.constraints.Pattern;
@@ -20,6 +21,7 @@ public class AlumnoRequest {
     // @Size(max = 50, message = "El curso no puede tener más de 50 caracteres")
     private String curso;
     private String observacion;
+    private GeneroAlumno genero = GeneroAlumno.OTROS;
 
     public AlumnoRequest() {
     }
@@ -57,4 +59,7 @@ public class AlumnoRequest {
     public void setObservacion(String observacion) {
         this.observacion = observacion;
     }
+
+    public GeneroAlumno getGenero() { return genero; }
+    public void setGenero(GeneroAlumno genero) { this.genero = genero; }
 }

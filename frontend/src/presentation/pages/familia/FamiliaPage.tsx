@@ -5,18 +5,21 @@ import { FAMILIA_ICONS } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
+import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
 
 
 
 export const FamiliaPage: FC = () => {
+  const [statusAlert, setStatusAlert] = useState({ isOpen: false, message: "", type: "success" as "success" | "error" });
 
   const {
     familia,
     loading,
     error,
     refetch,
+    updateFamiliaStatus,
     currentPage,
     nextPage,
     prevPage,
@@ -41,6 +44,15 @@ export const FamiliaPage: FC = () => {
     closeAlert,
   } = useDeleteFamilia(refetch);
   const navigate = useNavigate();
+  const toggleStatus = async (familiaId: number, activo: boolean) => {
+    try {
+      await new FamiliaRepositoryImpl().changeStatus(familiaId, !activo);
+      updateFamiliaStatus(familiaId, !activo);
+      setStatusAlert({ isOpen: true, message: activo ? "Familia desactivada." : "Familia reactivada.", type: "success" });
+    } catch {
+      setStatusAlert({ isOpen: true, message: "No fue posible cambiar el estado de la familia.", type: "error" });
+    }
+  };
 
   return (
     <main className="page-container">
@@ -86,6 +98,7 @@ export const FamiliaPage: FC = () => {
           onRefresh={refetch}
           handleDelete={openDeleteConfirm}
           handleEdit={handleEdit}
+          handleToggleStatus={(item) => void toggleStatus(item.familiaId, item.activo)}
           currentPage={currentPage}
           onNextPage={nextPage}
           onPrevPage={prevPage}
@@ -118,6 +131,9 @@ export const FamiliaPage: FC = () => {
         autoCloseTime={2000}
         variant={alert.type === "success" ? "toast" : "modal"}
       />
+      <ModalAlert isOpen={statusAlert.isOpen} message={statusAlert.message} type={statusAlert.type}
+        onClose={() => setStatusAlert((current) => ({ ...current, isOpen: false }))}
+        autoCloseTime={2000} variant="toast" />
     </main>
   );
 };

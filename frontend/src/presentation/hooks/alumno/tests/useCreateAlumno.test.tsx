@@ -39,6 +39,7 @@ describe("useCreateAlumno", () => {
       nombre: "",
       curso: "",
       observacion: "",
+      genero: "OTROS",
       apoderadoId: 0,
     });
     expect(result.current.loading).toBe(false);
@@ -63,6 +64,7 @@ describe("useCreateAlumno", () => {
       nombre: "Juan",
       curso: "4A",
       observacion: "",
+      genero: "OTROS",
       apoderadoId: 7,
     });
   });
@@ -87,6 +89,7 @@ describe("useCreateAlumno", () => {
       nombre: "",
       curso: "",
       observacion: "",
+      genero: "OTROS",
       apoderadoId: 0,
     });
   });
@@ -156,6 +159,7 @@ describe("useCreateAlumno", () => {
       nombre: "Maria",
       curso: "5B",
       observacion: "",
+      genero: "OTROS",
       apoderadoId: 9,
     });
   });

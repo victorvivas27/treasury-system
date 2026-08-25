@@ -24,7 +24,8 @@ public class FamiliaPersistenceMapper {
                                 apoderado.getParentesco(),
                                 apoderado.getEsPrincipal()))
                         .toList(),
-                entity.getObservacionesGenerales());
+                entity.getObservacionesGenerales(),
+                entity.isActivo());
     }
 
     public FamiliaEntity toEntity(Familia domain) {
@@ -44,6 +45,7 @@ public class FamiliaPersistenceMapper {
                         .toList(),
                 null,
                 null,
-                domain.getObservaciones());
+                domain.getObservaciones(),
+                domain.isActivo());
     }
 }

@@ -14,6 +14,7 @@ public class Familia {
     private String codigo;
     private List<FamiliaApoderado> apoderados = new ArrayList<>();
     private String observaciones;
+    private boolean activo;
 
     public Familia() {
     }
@@ -23,12 +24,19 @@ public class Familia {
             Long alumnoId,
             String codigo,
             List<FamiliaApoderado> apoderados,
-            String observaciones) {
+            String observaciones,
+            boolean activo) {
         this.familiaId = familiaId;
         this.codigo = codigo;
         setAlumnoId(alumnoId);
         setApoderados(apoderados);
         setObservaciones(observaciones);
+        this.activo = activo;
+    }
+
+    public Familia(Long familiaId, Long alumnoId, String codigo,
+                   List<FamiliaApoderado> apoderados, String observaciones) {
+        this(familiaId, alumnoId, codigo, apoderados, observaciones, true);
     }
 
     public Long getFamiliaId() {
@@ -122,4 +130,7 @@ public class Familia {
 
         this.observaciones = normalizadas;
     }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 }
