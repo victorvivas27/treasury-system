@@ -1,34 +1,87 @@
 .sidebar-btn-arrow {
   position: absolute;
-  top: 1%;
-  right: -1rem;
-
-  width: var(--xl);
-  height:var(--xl);
-
+  top: 1rem;
+  right: -1.1rem;
+  isolation: isolate;
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 70%, white 18%);
   border-radius: 50%;
-  background-color: var(--color-primary);
-  color: var(--color-surface);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-primary) 88%, white), var(--color-primary));
+  color: #fff;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 30%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 28%);
+  cursor: pointer;
+  transition: border-color 240ms ease, box-shadow 240ms ease,
+    transform 240ms cubic-bezier(.2,.8,.2,1), background 240ms ease;
+}
 
-  transition: right 0.3s ease, transform 0.3s ease;
+.sidebar-btn-arrow::after {
+  position: absolute;
+  z-index: -1;
+  inset: -5px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+  border-radius: inherit;
+  content: "";
+  opacity: .7;
+  transition: inset 240ms ease, opacity 240ms ease;
+}
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.sidebar-btn-arrow-glow {
+  position: absolute;
+  z-index: -1;
+  inset: 4px;
+  border-radius: inherit;
+  background: rgb(255 255 255 / 10%);
+  pointer-events: none;
 }
 
 .sidebar-btn-arrow-icon {
-  font-size: clamp(1rem, 2vh, 1.3rem);
+  font-size: 1.15rem;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 18%));
+  transition: transform 360ms cubic-bezier(.34,1.56,.64,1);
 }
 
-.sidebar--collapsed .sidebar-btn-arrow {
+.sidebar--collapsed .sidebar-btn-arrow-icon {
   transform: rotate(180deg);
-  right: -2rem;
+}
+
+.sidebar-btn-arrow:hover {
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--color-primary) 44%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 34%);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.sidebar-btn-arrow:hover::after {
+  inset: -8px;
+  opacity: .35;
+}
+
+.sidebar-btn-arrow:active {
+  transform: translateY(0) scale(.94);
+}
+
+.sidebar-btn-arrow:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+  outline-offset: 4px;
+}
+
+.sidebar-btn-arrow.is-pinned {
+  border-color: color-mix(in srgb, var(--color-warning) 72%, white 15%);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-warning) 88%, white), var(--color-warning));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-warning) 30%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 32%);
+}
+
+.sidebar-btn-arrow.is-pinned::after {
+  border-color: color-mix(in srgb, var(--color-warning) 38%, transparent);
 }
 
 .sidebar-brand-header {
   margin-left: 0.45rem;
-  margin-top: var(--md);
+  margin-top: calc(var(--md) + 2.5rem);
   display: flex;
   align-items: center;
   gap: clamp(0.25rem, 1vh, 0.5rem);

@@ -12,13 +12,13 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
     <>
       <button
         onClick={onToggleSidebar}
-        className="sidebar-btn-arrow"
+        className={`sidebar-btn-arrow ${isLocked ? "is-pinned" : ""}`}
         aria-label="Toggle sidebar"
-        style={{
-          backgroundColor: isLocked ? "var(--color-warning)" : "var(--color-primary)",
-        }}
+        aria-pressed={isLocked}
+        title={isLocked ? "Cerrar menú lateral" : "Abrir y fijar menú lateral"}
       >
-        <IoIosArrowBack className="sidebar-btn-arrow-icon" />
+        <span className="sidebar-btn-arrow-glow" aria-hidden="true" />
+        <IoIosArrowBack className="sidebar-btn-arrow-icon" aria-hidden="true" />
       </button>
 
       <Link className="sidebar-brand-header" to="/" aria-label="Ir a la página de inicio">

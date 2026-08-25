@@ -83,7 +83,12 @@ export const SidebarNav = ({ onNavLinkClick, role }: SidebarNavProps) => {
             aria-controls="treasury-submenu"
             onClick={() => setIsTreasuryOpen((open) => !open)}
           >
-            <ICONS.tesoreria className="sidebar-nav-icon" />
+            <span className="sidebar-treasury-icon-wrap" aria-hidden="true">
+              <ICONS.tesoreria className="sidebar-nav-icon" />
+              {isTreasuryOpen && <svg className="sidebar-treasury-timer" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="18" pathLength="100" />
+              </svg>}
+            </span>
             <span className="sidebar-nav-label">Tesorería</span>
             <ICONS.expand
               className={`sidebar-nav-chevron ${isTreasuryOpen ? "is-open" : ""}`}

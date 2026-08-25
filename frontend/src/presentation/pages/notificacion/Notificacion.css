@@ -629,7 +629,7 @@ body.notifications-inbox-open { overflow: hidden; }
   .notifications-inbox .notifications-empty { width: 100%; min-width: 0;
     box-sizing: border-box; margin: 0; padding: .8rem .4rem;
     overflow-wrap: anywhere; font-size: .58rem; }
-  .notifications-empty-conversation { gap: .3rem; padding: .35rem; }
+  .notifications-empty-conversation { align-self: start; gap: .3rem; padding: .35rem; }
   .notifications-empty-conversation__contacts {
     grid-template-columns: repeat(auto-fill, minmax(2.65rem, 1fr)); gap: .16rem;
     max-height: 6.4rem; min-height: 2.25rem; padding: .1rem; }

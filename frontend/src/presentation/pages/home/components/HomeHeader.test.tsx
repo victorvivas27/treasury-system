@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { HomeHeader } from "./HomeHeader";
 
 describe("HomeHeader", () => {
+  afterEach(() => vi.useRealTimers());
   it("muestra la navegación de la comunidad para una sesión autenticada", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
 
@@ -48,5 +49,19 @@ describe("HomeHeader", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.getByLabelText(/abrir menú/i))
       .toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("cierra automáticamente el menú móvil para USER y ADMIN", () => {
+    vi.useFakeTimers();
+    const { rerender } = render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
+
+    fireEvent.click(screen.getByLabelText(/abrir menú/i));
+    act(() => vi.advanceTimersByTime(4000));
+    expect(screen.getByLabelText(/abrir menú/i)).toHaveAttribute("aria-expanded", "false");
+
+    rerender(<MemoryRouter><HomeHeader isAuthenticated isAdmin /></MemoryRouter>);
+    fireEvent.click(screen.getByLabelText(/abrir menú/i));
+    act(() => vi.advanceTimersByTime(4000));
+    expect(screen.getByLabelText(/abrir menú/i)).toHaveAttribute("aria-expanded", "false");
   });
 });
