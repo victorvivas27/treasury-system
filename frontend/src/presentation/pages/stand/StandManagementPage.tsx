@@ -803,12 +803,16 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
           {available.map(product => <option key={product.id} value={product.id}>
             {product.name}{product.variant ? ` · ${product.variant}` : ""} · {money.format(product.price)}
           </option>)}</select></label>
-        <label>Cantidad<input type="number" min="1" inputMode="numeric" value={quantity}
-          onFocus={event => event.currentTarget.select()}
-          onChange={event => {
-            const withoutLeadingZeros = event.target.value.replace(/^0+(?=\d)/, "");
-            setQuantity(withoutLeadingZeros === "" ? 0 : Number(withoutLeadingZeros));
-          }} /></label>
+        <div className="stand-quantity-picker">
+          <span>Cantidad</span>
+          <div role="group" aria-label="Seleccionar cantidad">
+            {[1, 2, 3, 4, 5, 6].map(value => <button key={value} type="button"
+              className={quantity === value ? "is-selected" : ""}
+              aria-label={`${value} ${value === 1 ? "unidad" : "unidades"}`}
+              aria-pressed={quantity === value} onClick={() => setQuantity(value)}>
+              {value}</button>)}
+          </div>
+        </div>
         <button type="button" onClick={add} disabled={!productId || quantity < 1}>
           <FiPlus /> Agregar</button>
       </div>
@@ -1041,7 +1045,12 @@ const SummaryBar = ({ value, max }: { value: number; max: number }) =>
 const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
   const maxPayment = Math.max(1, ...Object.values(summary.salesByPaymentMethod));
   const maxProduct = Math.max(1, ...summary.salesByProduct.map(item => item.total));
-  const maxVariant = Math.max(1, ...Object.values(summary.salesByVariant));
+  const unitsByVariant = summary.salesByProduct.reduce<Record<string, number>>((totals, item) => {
+    const variant = item.variant?.trim() || "Sin variante";
+    totals[variant] = (totals[variant] ?? 0) + item.units;
+    return totals;
+  }, {});
+  const maxVariantUnits = Math.max(1, ...Object.values(unitsByVariant));
   const maxPresentation = Math.max(1, ...Object.values(summary.unitsByPresentation));
   return <div className="stand-summary">
     <div className="stand-summary__cards">
@@ -1082,9 +1091,13 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
           <SummaryBar value={item.total} max={maxProduct} /></div>)}</section>
       <section className="is-variant"><h3><i><FiTrendingUp /></i> Ventas por variante</h3>
         {Object.entries(summary.salesByVariant).map(([variant, total]) =>
-          <div className="stand-summary-row" key={variant}><div><span>{variant}</span>
-            <strong>{money.format(total)}</strong></div>
-            <SummaryBar value={total} max={maxVariant} /></div>)}
+          <div className="stand-summary-row stand-summary-variant" key={variant}><div>
+            <span className="stand-summary-variant__name">{variant}</span>
+            <span className="stand-summary-variant__metric"><small>Cantidad</small>
+              <strong>{unitsByVariant[variant] ?? 0} <small>unidades</small></strong></span>
+            <span className="stand-summary-variant__metric"><small>Total vendido</small>
+              <strong>{money.format(total)}</strong></span>
+            </div><SummaryBar value={unitsByVariant[variant] ?? 0} max={maxVariantUnits} /></div>)}
       </section>
       <section className="is-presentation"><h3><i><FiCopy /></i> Unidades por presentación</h3>
         {Object.keys(summary.unitsByPresentation).length === 0
