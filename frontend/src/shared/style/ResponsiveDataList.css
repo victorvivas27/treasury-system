@@ -1,4 +1,4 @@
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .main-content .responsive-data-list {
     width: calc(100% + 1rem);
     max-width: none;

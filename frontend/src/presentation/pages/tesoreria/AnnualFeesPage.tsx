@@ -345,7 +345,7 @@ export const AnnualFeesPage = () => {
           </tr>) : visibleObligations.map(item => <tr key={item.id}>
           <td className="obligation-card__responsible" data-label="Responsable">
             <strong>{item.primaryGuardian || "Sin apoderado principal"}</strong>
-            <small>{item.familyCode} · Alumno: {item.studentName}</small></td>
+            <small>{item.familyCode}</small></td>
           <td className="obligation-card__course" data-label="Curso">{item.course}</td>
           <td className="obligation-card__concept" data-label="Concepto">{item.concept}</td>
           <td className="obligation-card__due" data-label="Vence">{item.dueDate}</td>
@@ -387,7 +387,7 @@ export const AnnualFeesPage = () => {
             return <article className="obligation-family-card" key={family.familyId}>
               <header>
                 <div><strong>{family.primaryGuardian || "Sin apoderado principal"}</strong>
-                  <span>Alumno: {family.studentName} · {family.course}</span></div>
+                  <span>{family.course}</span></div>
                 <span className={`payment-mode payment-mode--${family.mode.toLowerCase()}`}>
                   {family.mode === "ANUAL" ? "Cuota única" : "Dos cuotas"}
                 </span>
