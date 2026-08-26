@@ -19,6 +19,7 @@ export interface IStandRepository {
   listSales(standId: number): Promise<StandSale[]>;
   registerSale(standId: number, payload: StandSalePayload): Promise<StandSale>;
   cancelSale(standId: number, saleId: number, reason: string): Promise<StandSale>;
+  deleteCancelledSale(standId: number, saleId: number): Promise<void>;
   updateSale(standId: number, saleId: number,
     payload: StandSaleUpdatePayload): Promise<StandSale>;
   summary(standId: number): Promise<StandSummary>;

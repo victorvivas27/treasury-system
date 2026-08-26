@@ -51,6 +51,9 @@ export class StandRepositoryImpl implements IStandRepository {
     return (await apiClient.patch(
       `${this.baseUrl}/${standId}/ventas/${saleId}/anulacion`, { reason })).data;
   }
+  async deleteCancelledSale(standId: number, saleId: number) {
+    await apiClient.delete(`${this.baseUrl}/${standId}/ventas/${saleId}`);
+  }
   async updateSale(standId: number, saleId: number, payload: StandSaleUpdatePayload) {
     return (await apiClient.put(
       `${this.baseUrl}/${standId}/ventas/${saleId}`, payload)).data;

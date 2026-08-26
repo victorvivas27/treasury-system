@@ -112,7 +112,8 @@ export interface StandSummary {
   salesByCategory: Record<string, number>;
   salesByVariant: Record<string, number>;
   stockAlerts: Array<{
-    productId: number; product: string; variant?: string; stock: number; soldOut: boolean;
+    productId: number; product: string; variant?: string; initialStock?: number;
+    stock: number; soldOut: boolean;
   }>;
   unitsByPresentation: Record<string, number>;
   equivalentUnits: number;

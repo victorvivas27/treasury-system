@@ -40,7 +40,9 @@ public class StandProductEntity {
     @Column(name = "initial_stock")
     private Integer initialStock;
     @Column(name = "current_stock")
-    private Integer currentStock;
+    private BigDecimal currentStock;
+    @Column(name = "stock_set_at")
+    private LocalDateTime stockSetAt;
     @Column(nullable = false)
     private boolean available = true;
     @Column(name = "created_at", nullable = false)
