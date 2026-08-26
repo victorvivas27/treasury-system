@@ -59,6 +59,10 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
     };
     const show = () => {
       clearHideTimeout();
+      if (window.matchMedia("(max-width: 680px), (hover: none), (pointer: coarse)").matches) {
+        setVisible(false);
+        return;
+      }
       setVisible(true);
     };
     const hide = () => {

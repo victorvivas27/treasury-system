@@ -48,3 +48,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-tooltip { animation: none; }
 }
+
+@media (max-width: 680px), (hover: none), (pointer: coarse) {
+  .ui-tooltip { display: none; }
+}

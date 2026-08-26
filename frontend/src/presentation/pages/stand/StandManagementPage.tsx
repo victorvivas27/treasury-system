@@ -72,11 +72,18 @@ const StandPanelSkeleton = ({ tab }: { tab: Tab }) => <section
   role="status" aria-label={tab === "products" ? "Cargando productos"
     : tab === "sales" ? "Cargando ventas" : "Cargando resumen"}>
   {tab === "products" && <div className="stand-product-grid">
-    {Array.from({ length: 6 }, (_, index) => <article key={index} aria-hidden="true">
-      <Skeleton width="68%" height="1rem" />
-      <Skeleton width="88%" height=".75rem" />
-      <Skeleton width="52%" height="1.15rem" />
-      <Skeleton width="76%" height=".7rem" />
+    {Array.from({ length: 6 }, (_, index) => <article key={index} aria-hidden="true"
+      className="stand-product-card stand-product-card--skeleton">
+      <div className="stand-product-card__main">
+        <div className="stand-product-card__heading">
+          <Skeleton width="58%" height="1rem" />
+          <Skeleton width="4.2rem" height="1.1rem" />
+        </div>
+        <Skeleton className="stand-product-skeleton__category" width="5.5rem" height="1.15rem" />
+        <Skeleton width="72%" height=".7rem" />
+      </div>
+      <Skeleton width="88%" height=".7rem" />
+      <Skeleton width="54%" height=".7rem" />
     </article>)}
   </div>}
   {tab === "sales" && <div className="stand-sales-layout">
