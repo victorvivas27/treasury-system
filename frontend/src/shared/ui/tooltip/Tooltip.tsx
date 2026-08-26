@@ -12,6 +12,7 @@ type TooltipProps = {
 
 type Coordinates = { left: number; top: number };
 const GAP = 8;
+const CLICK_VISIBLE_TIME = 2000;
 
 export const Tooltip = ({ content, position = "top", className = "" }: TooltipProps) => {
   const markerRef = useRef<HTMLSpanElement>(null);
@@ -50,17 +51,42 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
   useEffect(() => {
     const anchor = markerRef.current?.parentElement;
     if (!anchor) return;
-    const show = () => setVisible(true);
-    const hide = () => setVisible(false);
-    anchor.addEventListener("mouseenter", show);
-    anchor.addEventListener("mouseleave", hide);
-    anchor.addEventListener("focusin", show);
-    anchor.addEventListener("focusout", hide);
+    let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+    let hovered = false;
+    const clearHideTimeout = () => {
+      if (hideTimeout) clearTimeout(hideTimeout);
+      hideTimeout = undefined;
+    };
+    const show = () => {
+      clearHideTimeout();
+      setVisible(true);
+    };
+    const hide = () => {
+      clearHideTimeout();
+      setVisible(false);
+    };
+    const showOnHover = () => {
+      hovered = true;
+      show();
+    };
+    const hideOnLeave = () => {
+      hovered = false;
+      hide();
+    };
+    const showTemporarily = () => {
+      show();
+      hideTimeout = setTimeout(() => {
+        if (!hovered || !window.matchMedia("(hover: hover)").matches) setVisible(false);
+      }, CLICK_VISIBLE_TIME);
+    };
+    anchor.addEventListener("mouseenter", showOnHover);
+    anchor.addEventListener("mouseleave", hideOnLeave);
+    anchor.addEventListener("click", showTemporarily);
     return () => {
-      anchor.removeEventListener("mouseenter", show);
-      anchor.removeEventListener("mouseleave", hide);
-      anchor.removeEventListener("focusin", show);
-      anchor.removeEventListener("focusout", hide);
+      clearHideTimeout();
+      anchor.removeEventListener("mouseenter", showOnHover);
+      anchor.removeEventListener("mouseleave", hideOnLeave);
+      anchor.removeEventListener("click", showTemporarily);
     };
   }, []);
 

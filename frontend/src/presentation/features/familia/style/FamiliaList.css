@@ -51,7 +51,7 @@
   white-space: nowrap;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1101px) {
   .familia-table__th:nth-child(1),
   .familia-table__td:nth-child(1) { width: 21%; }
   .familia-table__th:nth-child(2),
@@ -175,7 +175,7 @@
   height: 36px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .main-content .familia-list.responsive-data-list {
     width: calc(100% - .7rem);
     margin: .25rem .35rem .75rem;
