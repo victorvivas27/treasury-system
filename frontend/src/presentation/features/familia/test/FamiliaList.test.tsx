@@ -67,7 +67,7 @@ describe("FamiliaList", () => {
   it("[FamiliaList #02] Debe mostrar un guion cuando no existen apoderados secundarios", () => {
     renderList([crearFamilia(false)]);
 
-    expect(screen.getByText("-", { selector: ".badge-secondary" })).toBeInTheDocument();
+    expect(document.querySelector(".badge-secondary")).toHaveTextContent("-");
   });
 
   it("[FamiliaList #03] permite revelar los códigos desde el alumno", () => {
@@ -77,13 +77,13 @@ describe("FamiliaList", () => {
       .not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Código alumno" }))
       .not.toBeInTheDocument();
-    const trigger = screen.getByText("Ver códigos");
-    const details = trigger.closest("details");
-    expect(details).not.toHaveAttribute("open");
+    const trigger = screen.getByRole("button", { name: "Ver códigos" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
 
     fireEvent.click(trigger);
 
-    expect(details).toHaveAttribute("open");
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("dialog", { name: "Código de registro" })).toBeInTheDocument();
     expect(screen.getByText("FAM-12345678")).toBeInTheDocument();
     expect(screen.getByText("AL-12345678")).toBeInTheDocument();
   });

@@ -1,5 +1,6 @@
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import "./style/ApoderadosList.css";
+import "@/shared/style/AdminDataTable.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";
@@ -126,9 +127,18 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
       )}
 
 
-      <table className="apoderados-table">
+      <table className="apoderados-table admin-data-table admin-data-table--guardians">
+        <colgroup>
+          <col className="admin-col-status" />
+          <col className="admin-col-primary" />
+          <col className="admin-col-email" />
+          <col className="admin-col-compact" />
+          <col className="admin-col-compact" />
+          <col className="admin-col-actions" />
+        </colgroup>
         <thead>
           <tr>
+            <th className="apoderados-table__th">Estado</th>
             <th className="apoderados-table__th">Nombre</th>
             <th className="apoderados-table__th">Correo</th>
             <th className="apoderados-table__th">Teléfono</th>
@@ -149,6 +159,18 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 className={`apoderados-table__row--data ${isEmptyRow && !loading ? "empty-row" : ""
                   }`}
               >
+                <td className="apoderados-table__td" data-label="Estado">
+                  {loading ? <div className="skeleton-block skeleton-input" />
+                    : isEmptyRow ? <span>&nbsp;</span>
+                    : <span className="status-toggle-cell">
+                      <span className="admin-status-label">
+                        {apoderado.activo ? "Activo" : "Inactivo"}
+                      </span>
+                      <StatusToggleButton active={apoderado.activo}
+                        entityLabel={`apoderado ${apoderado.nombre}`}
+                        onToggle={() => handleToggleStatus?.(apoderado)} />
+                    </span>}
+                </td>
                 <td className="apoderados-table__td apoderados-table__text" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
@@ -160,14 +182,6 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                       <CodeReveal codes={[{
                         value: apoderado.codigo || apoderadoIdentifier,
                       }]} />
-                      <span className="status-toggle-inline">
-                        <span className="status-toggle-inline__label">
-                          {apoderado.activo ? "Activo" : "Inactivo"}
-                        </span>
-                        <StatusToggleButton active={apoderado.activo}
-                          entityLabel={`apoderado ${apoderado.nombre}`}
-                          onToggle={() => handleToggleStatus?.(apoderado)} />
-                      </span>
                     </span>
                   )}
                 </td>
@@ -224,7 +238,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                         icon={<APODERADOS_ICONS.delete />} label="Eliminar" />
                     </div>
                   ) : !isEmptyRow && apoderado ? (
-                    <div className="apoderados-table__td--actions">
+                    <div className="apoderados-table__td--actions admin-table-actions">
                       <span className="apoderados-table__access-slot">
                         {apoderado.accessStatus !== "ACTIVO"
                           && apoderado.accessStatus !== "BLOQUEADO" && <Button

@@ -8,8 +8,8 @@
 
 .single-line-fit-text > span {
   display: block;
-  width: max-content;
-  max-width: none;
+  width: auto;
+  max-width: 100%;
   line-height: 1.2;
   white-space: nowrap;
 }

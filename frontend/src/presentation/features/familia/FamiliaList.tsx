@@ -1,6 +1,7 @@
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "./style/FamiliaList.css";
+import "@/shared/style/AdminDataTable.css";
 import type { FC } from "react";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { FcHighPriority } from "react-icons/fc";
@@ -100,9 +101,18 @@ export const FamiliaList: FC<FamiliaListProps> = ({
         <p className="list-search-empty">No se encontraron familias con ese nombre.</p>
       )}
 
-      <table className="familia-table">
+      <table className="familia-table admin-data-table admin-data-table--families">
+        <colgroup>
+          <col className="admin-col-status" />
+          <col className="admin-col-primary" />
+          <col className="admin-col-compact" />
+          <col className="admin-col-flex" />
+          <col className="admin-col-flex" />
+          <col className="admin-col-actions" />
+        </colgroup>
         <thead>
           <tr>
+            <th className="familia-table__th">Estado</th>
             <th className="familia-table__th">Alumno</th>
             <th className="familia-table__th">Apoderados</th>
             <th className="familia-table__th">Principal</th>
@@ -131,6 +141,18 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                   isEmptyRow && !loading ? "empty-row" : ""
                 }`}
               >
+                <td className="familia-table__td" data-label="Estado">
+                  {loading ? <div className="skeleton-block skeleton-input" />
+                    : isEmptyRow ? <span>&nbsp;</span>
+                    : <span className="status-toggle-cell">
+                      <span className="admin-status-label">
+                        {familia.activo ? "Activa" : "Inactiva"}
+                      </span>
+                      <StatusToggleButton active={familia.activo}
+                        entityLabel={`familia ${familia.codigoFamilia}`}
+                        onToggle={() => handleToggleStatus?.(familia)} />
+                    </span>}
+                </td>
                 <td className="familia-table__td familia-table__person" data-label="Alumno">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
@@ -146,14 +168,6 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                           { label: "Alumno", value: familia.alumno.codigo },
                         ]}
                       />
-                      <span className="status-toggle-inline">
-                        <span className="status-toggle-inline__label">
-                          {familia.activo ? "Activa" : "Inactiva"}
-                        </span>
-                        <StatusToggleButton active={familia.activo}
-                          entityLabel={`familia ${familia.codigoFamilia}`}
-                          onToggle={() => handleToggleStatus?.(familia)} />
-                      </span>
                     </span>
                   )}
                 </td>
@@ -207,7 +221,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                         icon={<FAMILIA_ICONS.edit />} label="Editar" />
                     </div>
                   ) : !isEmptyRow && familia ? (
-                    <div className="familia-table__td--actions">
+                    <div className="familia-table__td--actions admin-table-actions">
                       <Button
                         variant="danger"
                         size="small"

@@ -1,5 +1,6 @@
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import "./style/AlumnosList.css";
+import "@/shared/style/AdminDataTable.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";
@@ -124,9 +125,17 @@ export const AlumnosList: FC<AlumnosListProps> = ({
         <p className="list-search-empty">No se encontraron alumnos con ese nombre.</p>
       )}
 
-      <table className="alumnos-table">
+      <table className="alumnos-table admin-data-table admin-data-table--students">
+        <colgroup>
+          <col className="admin-col-status" />
+          <col className="admin-col-primary" />
+          <col className="admin-col-compact" />
+          <col className="admin-col-compact" />
+          <col className="admin-col-actions" />
+        </colgroup>
         <thead>
           <tr>
+            <th className="alumnos-table__th">Estado</th>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
             <th className="alumnos-table__th">Mensaje</th>
@@ -145,6 +154,18 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 key={getRowKey(item)}
                 className={`alumnos-table__row--data ${empty && !loading ? "empty-row" : ""}`}
               >
+                <td className="alumnos-table__td" data-label="Estado">
+                  {loading ? <div className="skeleton-block skeleton-input" />
+                    : empty ? <span>&nbsp;</span>
+                    : <span className="status-toggle-cell">
+                      <span className="admin-status-label">
+                        {alumno.activo ? "Activo" : "Inactivo"}
+                      </span>
+                      <StatusToggleButton active={alumno.activo}
+                        entityLabel={`alumno ${alumno.nombre}`}
+                        onToggle={() => handleToggleStatus?.(alumno)} />
+                    </span>}
+                </td>
                 <td className="alumnos-table__td alumnos-table__text" data-label="Nombre">
                   {loading ? (
                     <div className="skeleton-block skeleton-input" />
@@ -154,14 +175,6 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                     <span className="alumnos-table__person">
                       <SingleLineFitText>{alumno.nombre}</SingleLineFitText>
                       <CodeReveal codes={[{ value: alumnoIdentifier }]} />
-                      <span className="status-toggle-inline">
-                        <span className="status-toggle-inline__label">
-                          {alumno.activo ? "Activo" : "Inactivo"}
-                        </span>
-                        <StatusToggleButton active={alumno.activo}
-                          entityLabel={`alumno ${alumno.nombre}`}
-                          onToggle={() => handleToggleStatus?.(alumno)} />
-                      </span>
                     </span>
                   )}
                 </td>
@@ -238,7 +251,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                         icon={<ALUMNOS_ICONS.edit />} label="Editar" />
                     </div>
                   ) : !empty && alumno ? (
-                    <div className="alumnos-table__td--actions">
+                    <div className="alumnos-table__td--actions admin-table-actions">
                       <Button
                         variant="danger"
                         size="small"

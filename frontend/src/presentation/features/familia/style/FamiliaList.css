@@ -73,31 +73,10 @@
 }
 
 .familia-table__student {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  grid-template-areas:
-    "status name"
-    "status code";
+  display: flex;
   align-items: center;
-  column-gap: .65rem;
-  row-gap: .2rem;
-}
-
-.familia-table__student > :first-child { grid-area: name; }
-.familia-table__student > :nth-child(2) { grid-area: code; }
-
-.familia-table__student .status-toggle-inline {
-  grid-area: status;
-  align-self: center;
-  justify-self: start;
-  justify-content: space-between;
-  box-sizing: border-box;
-  width: 104px;
-}
-
-.familia-table__student .status-toggle-inline__label {
-  width: 48px;
-  text-align: center;
+  gap: .375rem;
+  min-width: 0;
   white-space: nowrap;
 }
 

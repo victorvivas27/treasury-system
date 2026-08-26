@@ -10,7 +10,10 @@
   color: var(--color-accent);
   font-size: .95rem;
 }
-.usuarios-table-wrapper { width: var(--wh-100); overflow-x: auto; }
+.usuarios-table-wrapper {
+  width: var(--wh-100);
+  max-width: var(--wh-100);
+}
 
 .usuarios-table {
   width: var(--wh-100);
@@ -50,7 +53,13 @@
   overflow-wrap: anywhere;
 }
 
-.usuarios-table__person { display: grid; gap: .2rem; }
+.usuarios-table__person {
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+  min-width: 0;
+  white-space: nowrap;
+}
 
 @media (min-width: 769px) {
   .usuarios-table__th:nth-child(1),
