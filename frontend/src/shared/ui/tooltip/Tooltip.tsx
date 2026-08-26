@@ -13,6 +13,8 @@ type TooltipProps = {
 type Coordinates = { left: number; top: number };
 const GAP = 8;
 const CLICK_VISIBLE_TIME = 2000;
+const tooltipDisabledForDevice = () => typeof window.matchMedia === "function"
+  && window.matchMedia("(max-width: 680px), (hover: none), (pointer: coarse)").matches;
 
 export const Tooltip = ({ content, position = "top", className = "" }: TooltipProps) => {
   const markerRef = useRef<HTMLSpanElement>(null);
@@ -59,7 +61,7 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
     };
     const show = () => {
       clearHideTimeout();
-      if (window.matchMedia("(max-width: 680px), (hover: none), (pointer: coarse)").matches) {
+      if (tooltipDisabledForDevice()) {
         setVisible(false);
         return;
       }
@@ -80,7 +82,9 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
     const showTemporarily = () => {
       show();
       hideTimeout = setTimeout(() => {
-        if (!hovered || !window.matchMedia("(hover: hover)").matches) setVisible(false);
+        const supportsHover = typeof window.matchMedia !== "function"
+          || window.matchMedia("(hover: hover)").matches;
+        if (!hovered || !supportsHover) setVisible(false);
       }, CLICK_VISIBLE_TIME);
     };
     anchor.addEventListener("mouseenter", showOnHover);
