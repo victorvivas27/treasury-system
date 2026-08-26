@@ -11,7 +11,7 @@ on:
     types: [completed]
 
 permissions:
-  contents: read
+  contents: write
   actions: read
   pull-requests: write
 
@@ -86,7 +86,8 @@ jobs:
             sleep 15
           done
 
-      - name: Crear el pull request si no existe
+      - name: Crear o encontrar el pull request
+        id: pull-request
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -102,12 +103,27 @@ jobs:
 
           if [ -n "$existing_pr" ]; then
             echo "Ya existe el PR #${existing_pr} de dev a main."
+            echo "number=${existing_pr}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          gh pr create \
+          created_url="$(gh pr create \
             --repo "$REPOSITORY" \
             --base main \
             --head dev \
             --title 'chore(release): promover dev a main' \
-            --body "Todos los controles de CI aprobaron para dev (${HEAD_SHA}). Este PR fue creado automaticamente por GitHub Actions."
+            --body "Todos los controles de CI aprobaron para dev (${HEAD_SHA}). Este PR fue creado automaticamente por GitHub Actions.")"
+
+          created_pr="${created_url##*/}"
+          echo "number=${created_pr}" >> "$GITHUB_OUTPUT"
+
+      - name: Fusionar automaticamente el pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pull-request.outputs.number }}
+        run: |
+          echo "Fusionando automaticamente el PR #${PR_NUMBER} hacia main."
+          gh pr merge "$PR_NUMBER" \
+            --repo "$REPOSITORY" \
+            --squash

@@ -90,7 +90,7 @@ describe("AlumnosList Component", () => {
     expect(screen.getByText("Curso")).toBeInTheDocument();
     expect(screen.getByText("Mensaje")).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Código" })).not.toBeInTheDocument();
-    expect(screen.getAllByText("Ver código")).toHaveLength(mockAlumnos.length);
+    expect(screen.getAllByRole("button", { name: "Ver código" })).toHaveLength(mockAlumnos.length);
     expect(screen.getByText("Acciones")).toBeInTheDocument();
   });
 
@@ -140,12 +140,13 @@ describe("AlumnosList Component", () => {
     // Verificamos datos del primer alumno
     expect(screen.getByText("Juan Pérez")).toBeInTheDocument();
     expect(screen.getByText("4A")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
 
     // Verificamos datos del segundo alumno
     expect(screen.getByText("Maria Lopez")).toBeInTheDocument();
     expect(screen.getByText("4B")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.queryByText("1")).not.toBeInTheDocument();
+    expect(screen.queryByText("2")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Ver código" })).toHaveLength(2);
   });
 
   it("[AlumnosList #07] Debe incluir los atributos data-label para el diseño responsive.", () => {
@@ -164,11 +165,12 @@ describe("AlumnosList Component", () => {
     );
 
     // Verificamos que las celdas tengan el atributo data-label correcto
-    if (nonEmptyCells.length >= 4) {
-      expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Nombre");
-      expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Curso");
-      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Mensaje");
-      expect(nonEmptyCells[3]).toHaveAttribute("data-label", "Acciones");
+    if (nonEmptyCells.length >= 5) {
+      expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Estado");
+      expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Nombre");
+      expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Curso");
+      expect(nonEmptyCells[3]).toHaveAttribute("data-label", "Mensaje");
+      expect(nonEmptyCells[4]).toHaveAttribute("data-label", "Acciones");
     }
   });
 
@@ -210,7 +212,7 @@ describe("AlumnosList Component", () => {
 
     const skeletons = container.querySelectorAll(".skeleton-block");
     // Solo los datos remotos tienen skeleton; la columna de acciones queda vacía.
-    expect(skeletons.length).toBe(pageSize * 2);
+    expect(skeletons.length).toBe(pageSize * 3);
   });
 
   it("[AlumnosList #10] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {

@@ -4,6 +4,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./UserTable.css";
+import "@/shared/style/AdminDataTable.css";
 import { CodeReveal } from "@/shared/ui/codereveal/CodeReveal";
 import { ExpandableSearch } from "@/shared/ui/expandablesearch/ExpandableSearch";
 import { StatusToggleButton } from "@/shared/ui/status-toggle/StatusToggleButton";
@@ -39,7 +40,14 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
     )}
 
     <div className="usuarios-table-wrapper">
-      <table className="usuarios-table">
+      <table className="usuarios-table admin-data-table admin-data-table--users">
+        <colgroup>
+          <col className="admin-col-status" />
+          <col className="admin-col-primary" />
+          <col className="admin-col-email" />
+          <col className="admin-col-compact" />
+          {isAdmin && <col className="admin-col-actions" />}
+        </colgroup>
         <thead>
           <tr>
             <th className="usuarios-table__th">Estado</th>
@@ -102,7 +110,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
                 </td>
                 {isAdmin && (
                   <td className="usuarios-table__td" data-label="Acciones">
-                    <div className="usuarios-table__td--actions">
+                    <div className="usuarios-table__td--actions admin-table-actions">
                       <Button
                         variant="danger"
                         size="small"
