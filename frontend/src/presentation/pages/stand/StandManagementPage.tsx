@@ -19,6 +19,7 @@ import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import { useAuth } from "@/presentation/context/AuthContext";
+import pizzaEquivalentImage from "@/assets/stand/pizza-equivalent-optimized.png";
 import "./StandManagementPage.css";
 
 const eventsRepository = new TreasuryRepositoryImpl();
@@ -26,6 +27,17 @@ const stands = new StandUseCases(new StandRepositoryImpl());
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
 });
+const decimal = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 3 });
+const productPresentations = [
+  { label: "Pizza entera", presentation: "Entera", equivalence: "1",
+    image: "/images/products/pizza-entera.png" },
+  { label: "Media pizza", presentation: "Media", equivalence: "0.5",
+    image: "/images/products/media-pizza.png" },
+  { label: "Porción", presentation: "Porción", equivalence: "0.125",
+    image: "/images/products/porcion-pizza.png" },
+] as const;
+const presentationImage = (presentation?: string) => productPresentations.find(option =>
+  option.presentation.toLocaleLowerCase("es") === presentation?.trim().toLocaleLowerCase("es"))?.image;
 const paymentLabels: Record<StandPaymentMethod, string> = {
   CASH: "Efectivo", DEBIT: "Débito", CREDIT: "Crédito",
   TRANSFER: "Transferencia", OTHER: "Otro",
@@ -559,6 +571,18 @@ const ProductsPanel = ({ stand, products, onSaved }: {
           <span>Catálogo del stand</span><h2 id="product-form-title">
           {editingProduct ? "Editar producto" : "Crear producto"}</h2></div>
           <button type="button" aria-label="Cerrar" onClick={closeForm}><FiX /></button></header>
+        <fieldset className="stand-presentation-picker">
+          <legend>Imagen y presentación</legend>
+          <div>{productPresentations.map(option =>
+            <button type="button" key={option.presentation}
+              className={form.presentation === option.presentation ? "is-selected" : ""}
+              aria-pressed={form.presentation === option.presentation}
+              onClick={() => setForm({ ...form, presentation: option.presentation,
+                unitEquivalence: option.equivalence })}>
+              <img src={option.image} alt="" aria-hidden="true" />
+              <span>{option.label}</span>
+            </button>)}</div>
+        </fieldset>
         <div className="stand-modal__grid">
           <label>Producto<input required maxLength={120} value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })} /></label>
@@ -566,9 +590,6 @@ const ProductsPanel = ({ stand, products, onSaved }: {
             onChange={e => setForm({ ...form, category: e.target.value })} /></label>
           <label>Variante<input maxLength={100} value={form.variant}
             onChange={e => setForm({ ...form, variant: e.target.value })} /></label>
-          <label>Presentación<input maxLength={80} placeholder="Entera, Media, Porción"
-            value={form.presentation}
-            onChange={e => setForm({ ...form, presentation: e.target.value })} /></label>
           <label>Equivalencia<input min="0.0001" step="0.0001" type="number"
             placeholder="1, 0.5, 0.125" value={form.unitEquivalence}
             onChange={e => setForm({ ...form, unitEquivalence: e.target.value })} /></label>
@@ -590,7 +611,11 @@ const ProductsPanel = ({ stand, products, onSaved }: {
       >
         <div className="stand-product-card__main">
           <div className="stand-product-card__heading">
-            <h4>{product.name}{product.variant ? ` · ${product.variant}` : ""}</h4>
+            <div className="stand-product-card__identity">
+              {presentationImage(product.presentation) && <img
+                src={presentationImage(product.presentation)} alt="" aria-hidden="true" />}
+              <h4>{product.name}{product.variant ? ` · ${product.variant}` : ""}</h4>
+            </div>
             <strong>{money.format(product.price)}</strong>
           </div>
           <span className="stand-product-card__category">
@@ -647,6 +672,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const available = products.filter(item => item.available);
   const [cart, setCart] = useState<Array<{ productId: number; quantity: number }>>([]);
   const [productId, setProductId] = useState(0);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [method, setMethod] = useState<StandPaymentMethod>(stand.paymentMethods[0] ?? "CASH");
   const [received, setReceived] = useState("");
@@ -681,6 +707,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const total = useMemo(() => cart.reduce((sum, item) =>
     sum + (products.find(product => product.id === item.productId)?.price ?? 0) * item.quantity, 0),
   [cart, products]);
+  const selectedProduct = available.find(product => product.id === productId);
   const add = () => {
     if (!productId || quantity < 1) return;
     setCart(current => {
@@ -797,12 +824,35 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       {stand.status !== "OPEN" && <p className="stand-page__warning">
         Abre la jornada para habilitar ventas.</p>}
       <div className="stand-sale-form__picker">
-        <label>Producto<select value={productId}
-          onChange={e => setProductId(Number(e.target.value))}>
-          <option value={0}>Seleccionar…</option>
-          {available.map(product => <option key={product.id} value={product.id}>
-            {product.name}{product.variant ? ` · ${product.variant}` : ""} · {money.format(product.price)}
-          </option>)}</select></label>
+        <label>Producto<div className="stand-product-select"
+          onBlur={event => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node)) setProductPickerOpen(false);
+          }}>
+          <button type="button" className="stand-product-select__trigger"
+            aria-haspopup="listbox" aria-expanded={productPickerOpen}
+            onClick={() => setProductPickerOpen(open => !open)}>
+            {selectedProduct ? <>
+              {presentationImage(selectedProduct.presentation) && <img
+                src={presentationImage(selectedProduct.presentation)} alt="" aria-hidden="true" />}
+              <span>{selectedProduct.name}{selectedProduct.variant
+                ? ` · ${selectedProduct.variant}` : ""}</span>
+              <strong>{money.format(selectedProduct.price)}</strong>
+            </> : <span>Seleccionar…</span>}
+            <FcExpand aria-hidden="true" />
+          </button>
+          {productPickerOpen && <div className="stand-product-select__menu" role="listbox">
+            {available.map(product => <button type="button" role="option" key={product.id}
+              aria-selected={product.id === productId}
+              className={product.id === productId ? "is-selected" : ""}
+              onClick={() => { setProductId(product.id); setProductPickerOpen(false); }}>
+              {presentationImage(product.presentation) && <img
+                src={presentationImage(product.presentation)} alt="" aria-hidden="true" />}
+              <span><strong>{product.name}{product.variant ? ` · ${product.variant}` : ""}</strong>
+                <small>{product.presentation || "Sin presentación"}</small></span>
+              <b>{money.format(product.price)}</b>
+            </button>)}
+          </div>}
+        </div></label>
         <div className="stand-quantity-picker">
           <span>Cantidad</span>
           <div role="group" aria-label="Seleccionar cantidad">
@@ -1050,7 +1100,7 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
     totals[variant] = (totals[variant] ?? 0) + item.units;
     return totals;
   }, {});
-  const maxVariantUnits = Math.max(1, ...Object.values(unitsByVariant));
+  const maxVariantEquivalent = Math.max(1, ...Object.values(summary.equivalentUnitsByVariant ?? {}));
   const maxPresentation = Math.max(1, ...Object.values(summary.unitsByPresentation));
   return <div className="stand-summary">
     <div className="stand-summary__cards">
@@ -1092,12 +1142,28 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
       <section className="is-variant"><h3><i><FiTrendingUp /></i> Ventas por variante</h3>
         {Object.entries(summary.salesByVariant).map(([variant, total]) =>
           <div className="stand-summary-row stand-summary-variant" key={variant}><div>
-            <span className="stand-summary-variant__name">{variant}</span>
-            <span className="stand-summary-variant__metric"><small>Cantidad</small>
-              <strong>{unitsByVariant[variant] ?? 0} <small>unidades</small></strong></span>
-            <span className="stand-summary-variant__metric"><small>Total vendido</small>
-              <strong>{money.format(total)}</strong></span>
-            </div><SummaryBar value={unitsByVariant[variant] ?? 0} max={maxVariantUnits} /></div>)}
+            <span className="stand-summary-variant__heading">
+              <img src={pizzaEquivalentImage} alt="" aria-hidden="true" />
+              <span>
+                <strong>{variant}</strong>
+                <small>{unitsByVariant[variant] ?? 0} unidades registradas</small>
+              </span>
+            </span>
+            <span className="stand-summary-variant__metrics">
+              <span className="stand-summary-variant__metric is-primary">
+                <span>
+                  <small>Pizzas enteras</small>
+                  <strong>{decimal.format(summary.equivalentUnitsByVariant?.[variant] ?? 0)}</strong>
+                  <small>equivalentes</small>
+                </span>
+              </span>
+              <span className="stand-summary-variant__metric">
+                <small>Total vendido</small>
+                <strong>{money.format(total)}</strong>
+              </span>
+            </span>
+            </div><SummaryBar value={summary.equivalentUnitsByVariant?.[variant] ?? 0}
+              max={maxVariantEquivalent} /></div>)}
       </section>
       <section className="is-presentation"><h3><i><FiCopy /></i> Unidades por presentación</h3>
         {Object.keys(summary.unitsByPresentation).length === 0

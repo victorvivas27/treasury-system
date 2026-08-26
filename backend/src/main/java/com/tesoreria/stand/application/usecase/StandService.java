@@ -337,6 +337,7 @@ public class StandService {
         Map<String, ProductSummary> productTotals = new LinkedHashMap<>();
         Map<String, BigDecimal> categoryTotals = new LinkedHashMap<>();
         Map<String, BigDecimal> variantTotals = new LinkedHashMap<>();
+        Map<String, BigDecimal> equivalentUnitsByVariant = new LinkedHashMap<>();
         Map<String, Integer> unitsByPresentation = new LinkedHashMap<>();
         BigDecimal equivalentUnits = BigDecimal.ZERO;
         for (StandSaleJpaRepository.ItemAggregate item : sales.aggregateItems(standId)) {
@@ -349,7 +350,9 @@ public class StandService {
                     current.units() + Math.toIntExact(item.getUnits()), current.total().add(item.getTotal()),
                     current.cost().add(item.getCost()), current.profit().add(item.getTotal().subtract(item.getCost()))));
             categoryTotals.merge(Objects.toString(item.getCategory(), "Sin categoría"), item.getTotal(), BigDecimal::add);
-            variantTotals.merge(Objects.toString(item.getVariant(), "Sin variante"), item.getTotal(), BigDecimal::add);
+            String variant = Objects.toString(item.getVariant(), "Sin variante");
+            variantTotals.merge(variant, item.getTotal(), BigDecimal::add);
+            equivalentUnitsByVariant.merge(variant, item.getEquivalentUnits(), BigDecimal::add);
             if (item.getPresentation() != null) {
                 unitsByPresentation.merge(item.getPresentation(), Math.toIntExact(item.getUnits()), Integer::sum);
             }
@@ -368,7 +371,7 @@ public class StandService {
                 commissions, debitCommission, creditCommission, transferCommission,
                 total.subtract(totalCost).subtract(commissions), saleCount, units,
                 new ArrayList<>(productTotals.values()), categoryTotals, variantTotals, alerts,
-                unitsByPresentation, equivalentUnits);
+                unitsByPresentation, equivalentUnits, equivalentUnitsByVariant);
     }
 
     private void apply(StandEntity value, StandInput input) {
@@ -588,6 +591,6 @@ public class StandService {
                                int saleCount, int unitsSold, List<ProductSummary> salesByProduct,
                                Map<String, BigDecimal> salesByCategory, Map<String, BigDecimal> salesByVariant,
                                List<StockAlert> stockAlerts, Map<String, Integer> unitsByPresentation,
-                               BigDecimal equivalentUnits) {
+                               BigDecimal equivalentUnits, Map<String, BigDecimal> equivalentUnitsByVariant) {
     }
 }
