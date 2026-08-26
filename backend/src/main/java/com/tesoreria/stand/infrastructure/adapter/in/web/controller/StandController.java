@@ -122,6 +122,12 @@ public class StandController {
         return saleResponse(service.cancelSale(id, saleId, request.reason(), user));
     }
 
+    @DeleteMapping("/{id}/ventas/{saleId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCancelledSale(@PathVariable Long id, @PathVariable Long saleId) {
+        service.deleteCancelledSale(id, saleId);
+    }
+
     @PutMapping("/{id}/ventas/{saleId}")
     public SaleResponse updateSale(@PathVariable Long id, @PathVariable Long saleId,
                                    @Valid @RequestBody UpdateSaleRequest request, Principal principal) {
@@ -225,7 +231,7 @@ public class StandController {
 
     public record ProductResponse(Long id, Long standId, String name, String category,
                                   String variant, String presentation, BigDecimal unitEquivalence, BigDecimal price,
-                                  Integer initialStock, BigDecimal unitCost, Integer currentStock,
+                                  Integer initialStock, BigDecimal unitCost, BigDecimal currentStock,
                                   boolean available) {
     }
 

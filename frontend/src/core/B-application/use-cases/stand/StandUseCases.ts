@@ -33,6 +33,9 @@ export class StandUseCases {
   cancelSale(standId: number, saleId: number, reason: string) {
     return this.repository.cancelSale(standId, saleId, reason);
   }
+  deleteCancelledSale(standId: number, saleId: number) {
+    return this.repository.deleteCancelledSale(standId, saleId);
+  }
   updateSale(standId: number, saleId: number, payload: StandSaleUpdatePayload) {
     return this.repository.updateSale(standId, saleId, payload);
   }

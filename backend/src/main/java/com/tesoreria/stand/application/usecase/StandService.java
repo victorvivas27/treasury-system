@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.AvoidInstantiatingObjectsInLoops"})
 public class StandService {
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+    private static final BigDecimal HALF_UNIT = new BigDecimal("0.5");
+    private static final BigDecimal PORTION_UNIT = new BigDecimal("0.125");
     private final StandJpaRepository stands;
     private final StandProductJpaRepository products;
     private final StandSaleJpaRepository sales;
@@ -194,14 +196,7 @@ public class StandService {
             }
             StandProductEntity product = product(standId, item.productId());
             if (!product.isAvailable()) throw conflict("producto", "El producto no está disponible");
-            if (product.getCurrentStock() != null) {
-                if (product.getCurrentStock() < item.quantity()) {
-                    throw conflict("stock", "Stock insuficiente para " + product.getName());
-                }
-                product.setCurrentStock(product.getCurrentStock() - item.quantity());
-                if (product.getCurrentStock() == 0) product.setAvailable(false);
-                products.save(product);
-            }
+            consumeStock(standId, product, item.quantity());
             StandSaleItemEmbeddable saleItem = new StandSaleItemEmbeddable();
             saleItem.setProductId(product.getId());
             saleItem.setProductName(product.getName());
@@ -257,12 +252,8 @@ public class StandService {
             throw conflict("venta", "La venta ya está anulada");
         }
         for (StandSaleItemEmbeddable item : sale.getItems()) {
-            StandProductEntity product = product(standId, item.getProductId());
-            if (product.getCurrentStock() != null) {
-                product.setCurrentStock(product.getCurrentStock() + item.getQuantity());
-                product.setAvailable(true);
-                products.save(product);
-            }
+            restoreStock(standId, product(standId, item.getProductId()),
+                    item.getUnitEquivalence(), item.getQuantity(), effectiveStockDate(sale));
         }
         sale.setStatus(StandSaleStatus.CANCELLED);
         sale.setCancelledAt(LocalDateTime.now());
@@ -273,6 +264,19 @@ public class StandService {
             synchronizeEventRevenue(stand.getEvent().getId(), stand.getDate());
         }
         return cancelled;
+    }
+
+    public void deleteCancelledSale(Long standId, Long saleId) {
+        get(standId);
+        StandSaleEntity sale = sales.findById(saleId)
+                .orElseThrow(() -> notFound("venta", "Venta no encontrada"));
+        if (!sale.getStand().getId().equals(standId)) {
+            throw notFound("venta", "Venta no encontrada en el stand");
+        }
+        if (sale.getStatus() != StandSaleStatus.CANCELLED) {
+            throw conflict("venta", "Solo puedes eliminar definitivamente una venta anulada");
+        }
+        sales.delete(sale);
     }
 
     public StandSaleEntity updateSale(Long standId, Long saleId, SaleInput input,
@@ -295,7 +299,7 @@ public class StandService {
         if (input.items() == null || input.items().isEmpty()) {
             throw invalid("productos", "La venta debe incluir al menos un producto");
         }
-        restoreStock(standId, sale.getItems());
+        restoreStock(standId, sale.getItems(), effectiveStockDate(sale));
         SaleCalculation calculation = calculateSale(standId, input);
         sale.setItems(calculation.items());
         sale.setPaymentMethod(input.paymentMethod());
@@ -361,9 +365,10 @@ public class StandService {
             units += Math.toIntExact(item.getUnits());
         }
         List<StockAlert> alerts = products.findByStandIdOrderByNameAscVariantAsc(standId).stream()
-                .filter(product -> product.getCurrentStock() != null && product.getCurrentStock() <= 5)
+                .filter(product -> product.getCurrentStock() != null)
                 .map(product -> new StockAlert(product.getId(), product.getName(), product.getVariant(),
-                        product.getCurrentStock(), product.getCurrentStock() == 0)).toList();
+                        product.getInitialStock(), product.getCurrentStock(),
+                        product.getCurrentStock().signum() == 0)).toList();
         BigDecimal cashExpected = stand.getInitialFund().add(byMethod.get(StandPaymentMethod.CASH));
         int saleCount = Math.toIntExact(saleTotals.stream()
                 .mapToLong(StandSaleJpaRepository.SaleAggregate::getSaleCount).sum());
@@ -397,15 +402,15 @@ public class StandService {
         value.setUnitCost(input.unitCost());
         if (creating) {
             value.setInitialStock(input.stock());
-            value.setCurrentStock(input.stock());
-        } else if (!Objects.equals(value.getInitialStock(), input.stock())) {
-            int sold = value.getInitialStock() == null || value.getCurrentStock() == null
-                    ? 0 : value.getInitialStock() - value.getCurrentStock();
+            value.setCurrentStock(input.stock() == null ? null : BigDecimal.valueOf(input.stock()));
+            value.setStockSetAt(input.stock() == null ? null : LocalDateTime.now());
+        } else {
             value.setInitialStock(input.stock());
-            value.setCurrentStock(input.stock() == null ? null : Math.max(0, input.stock() - sold));
+            value.setCurrentStock(input.stock() == null ? null : BigDecimal.valueOf(input.stock()));
+            value.setStockSetAt(input.stock() == null ? null : LocalDateTime.now());
         }
         value.setAvailable(input.available()
-                && (value.getCurrentStock() == null || value.getCurrentStock() > 0));
+                && (value.getCurrentStock() == null || value.getCurrentStock().signum() > 0));
     }
 
     private void validateInput(StandInput input) {
@@ -457,14 +462,11 @@ public class StandService {
         return value;
     }
 
-    private void restoreStock(Long standId, List<StandSaleItemEmbeddable> items) {
+    private void restoreStock(Long standId, List<StandSaleItemEmbeddable> items,
+                              LocalDateTime saleDate) {
         for (StandSaleItemEmbeddable item : items) {
-            StandProductEntity product = product(standId, item.getProductId());
-            if (product.getCurrentStock() != null) {
-                product.setCurrentStock(product.getCurrentStock() + item.getQuantity());
-                product.setAvailable(true);
-                products.save(product);
-            }
+            restoreStock(standId, product(standId, item.getProductId()),
+                    item.getUnitEquivalence(), item.getQuantity(), saleDate);
         }
     }
 
@@ -477,14 +479,7 @@ public class StandService {
                 throw invalid("productos", "Los productos deben ser únicos y tener cantidad positiva");
             }
             StandProductEntity product = product(standId, item.productId());
-            if (product.getCurrentStock() != null) {
-                if (product.getCurrentStock() < item.quantity()) {
-                    throw conflict("stock", "Stock insuficiente para " + product.getName());
-                }
-                product.setCurrentStock(product.getCurrentStock() - item.quantity());
-                product.setAvailable(product.getCurrentStock() > 0);
-                products.save(product);
-            }
+            consumeStock(standId, product, item.quantity());
             StandSaleItemEmbeddable saleItem = new StandSaleItemEmbeddable();
             saleItem.setProductId(product.getId());
             saleItem.setProductName(product.getName());
@@ -512,6 +507,63 @@ public class StandService {
             throw invalid("montoRecibido", "El monto recibido solo corresponde a pagos en efectivo");
         }
         return new SaleCalculation(saleItems, total, received, change);
+    }
+
+    private void consumeStock(Long standId, StandProductEntity product, int quantity) {
+        StandProductEntity inventory = inventoryProduct(standId, product);
+        if (inventory == null || inventory.getCurrentStock() == null) return;
+        BigDecimal required = equivalence(product).multiply(BigDecimal.valueOf(quantity));
+        if (inventory.getCurrentStock().compareTo(required) < 0) {
+            throw conflict("stock", "Stock insuficiente para " + product.getName()
+                    + "; quedan " + inventory.getCurrentStock().stripTrailingZeros().toPlainString()
+                    + " pizzas enteras equivalentes");
+        }
+        inventory.setCurrentStock(inventory.getCurrentStock().subtract(required));
+        inventory.setAvailable(inventory.getCurrentStock().signum() > 0);
+        products.save(inventory);
+    }
+
+    private void restoreStock(Long standId, StandProductEntity product,
+                              BigDecimal saleEquivalence, int quantity, LocalDateTime saleDate) {
+        StandProductEntity inventory = inventoryProduct(standId, product);
+        if (inventory == null || inventory.getCurrentStock() == null) return;
+        if (inventory.getStockSetAt() != null && saleDate.isBefore(inventory.getStockSetAt())) return;
+        BigDecimal restored = (saleEquivalence == null ? equivalence(product) : saleEquivalence)
+                .multiply(BigDecimal.valueOf(quantity));
+        inventory.setCurrentStock(inventory.getCurrentStock().add(restored));
+        inventory.setAvailable(true);
+        products.save(inventory);
+    }
+
+    private StandProductEntity inventoryProduct(Long standId, StandProductEntity product) {
+        if (product.getUnitEquivalence() == null
+                || product.getUnitEquivalence().compareTo(BigDecimal.ONE) == 0) {
+            return product.getCurrentStock() == null ? null : product;
+        }
+        if (product.getVariant() == null || product.getVariant().isBlank()) return null;
+        return products.findByStandIdOrderByNameAscVariantAsc(standId).stream()
+                .filter(candidate -> candidate.getCurrentStock() != null)
+                .filter(candidate -> candidate.getVariant() != null
+                        && candidate.getVariant().trim().equalsIgnoreCase(product.getVariant().trim()))
+                .filter(candidate -> equivalence(candidate).compareTo(BigDecimal.ONE) == 0)
+                .findFirst().orElse(null);
+    }
+
+    private BigDecimal equivalence(StandProductEntity product) {
+        if (product.getPresentation() != null) {
+            BigDecimal normalized = switch (product.getPresentation().trim().toLowerCase(Locale.ROOT)) {
+                case "entera" -> BigDecimal.ONE;
+                case "media" -> HALF_UNIT;
+                case "porción", "porcion" -> PORTION_UNIT;
+                default -> null;
+            };
+            if (normalized != null) return normalized;
+        }
+        return product.getUnitEquivalence() == null ? BigDecimal.ONE : product.getUnitEquivalence();
+    }
+
+    private LocalDateTime effectiveStockDate(StandSaleEntity sale) {
+        return sale.getModifiedAt() == null ? sale.getSoldAt() : sale.getModifiedAt();
     }
 
     private void ensureNotClosed(StandEntity stand) {
@@ -579,8 +631,8 @@ public class StandService {
                                  BigDecimal total, BigDecimal cost, BigDecimal profit) {
     }
 
-    public record StockAlert(Long productId, String product, String variant, int stock,
-                             boolean soldOut) {
+    public record StockAlert(Long productId, String product, String variant, Integer initialStock,
+                             BigDecimal stock, boolean soldOut) {
     }
 
     public record StandSummary(BigDecimal totalSold,

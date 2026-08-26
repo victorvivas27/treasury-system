@@ -458,6 +458,12 @@ export const StandManagementPage = () => {
 const ProductsPanel = ({ stand, products, onSaved }: {
   stand: Stand; products: StandProduct[]; onSaved: (message: string) => Promise<void>;
 }) => {
+  const variantStock = (product: StandProduct) => product.unitEquivalence != null
+    && product.unitEquivalence !== 1 && product.variant
+    ? products.find(candidate => candidate.currentStock != null && candidate.unitEquivalence === 1
+      && candidate.variant?.trim().toLocaleLowerCase("es")
+        === product.variant?.trim().toLocaleLowerCase("es"))?.currentStock
+    : product.currentStock;
   const [showForm, setShowForm] = useState(false);
   const [formAnchor, setFormAnchor] = useState<{ top: number; left: number }>();
   const dragOffset = useRef<{ x: number; y: number } | null>(null);
@@ -483,7 +489,7 @@ const ProductsPanel = ({ stand, products, onSaved }: {
       presentation: product.presentation ?? "",
       unitEquivalence: product.unitEquivalence == null ? "" : String(product.unitEquivalence),
       unitCost: String(product.unitCost), price: String(product.price),
-      stock: product.initialStock == null ? "" : String(product.initialStock),
+      stock: product.currentStock == null ? "" : String(product.currentStock),
       available: product.available,
     });
     setEditingProduct(product);
@@ -510,7 +516,8 @@ const ProductsPanel = ({ stand, products, onSaved }: {
       presentation: form.presentation || undefined,
       unitEquivalence: form.unitEquivalence === "" ? undefined : Number(form.unitEquivalence),
       unitCost: Number(form.unitCost), price: Number(form.price),
-      stock: form.stock === "" ? undefined : Number(form.stock),
+      stock: (form.unitEquivalence === "" || form.unitEquivalence === "1") && form.stock !== ""
+        ? Number(form.stock) : undefined,
       available: form.available,
     };
     if (editingProduct) await stands.updateProduct(stand.id, editingProduct.id, payload);
@@ -550,7 +557,7 @@ const ProductsPanel = ({ stand, products, onSaved }: {
   };
   return <div className="stand-panel">
     <div className="stand-panel__heading"><div><h3>Catálogo del stand</h3>
-      <p>Los campos categoría, variante y stock son opcionales.</p></div>
+      <p>En pizzas, el stock se configura en enteras y se comparte por variante.</p></div>
       {stand.status !== "CLOSED" && <button className="stand-add-product-button"
         onClick={click => {
           setFormAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
@@ -597,8 +604,10 @@ const ProductsPanel = ({ stand, products, onSaved }: {
             onChange={e => setForm({ ...form, unitCost: e.target.value })} /></label>
           <label>Precio de venta<input required min="1" type="number" value={form.price}
             onChange={e => setForm({ ...form, price: e.target.value })} /></label>
-          <label>Stock (opcional)<input min="0" type="number" value={form.stock}
-            onChange={e => setForm({ ...form, stock: e.target.value })} /></label>
+          {(form.unitEquivalence === "" || form.unitEquivalence === "1") && <label>
+            {form.unitEquivalence === "1" ? "Stock de la variante (pizzas enteras)" : "Stock (opcional)"}
+            <input min="0" type="number" value={form.stock}
+              onChange={e => setForm({ ...form, stock: e.target.value })} /></label>}
         </div>
         <footer><button type="button" onClick={closeForm}><FiX /> Cancelar</button>
           <button type="submit"><FiCheckCircle /> {editingProduct
@@ -629,8 +638,9 @@ const ProductsPanel = ({ stand, products, onSaved }: {
         </div>
         <small>Costo {money.format(product.unitCost)} · Margen unitario {money.format(
           product.price - product.unitCost)}</small>
-        <small>{product.currentStock == null ? "Stock libre"
-          : product.currentStock === 0 ? "Agotado" : `${product.currentStock} disponibles`}</small>
+        <small>{variantStock(product) == null ? "Stock libre"
+          : variantStock(product) === 0 ? "Agotado"
+            : `${decimal.format(variantStock(product)!)} pizzas equivalentes disponibles`}</small>
         {stand.status !== "CLOSED" && <div className="stand-product-actions">
           <button type="button" className="stand-product-edit"
             onClick={click => editProduct(product, standModalAnchor(
@@ -669,25 +679,43 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   stand: Stand; products: StandProduct[]; sales: StandSale[];
   onSaved: (message: string) => Promise<void>;
 }) => {
-  const available = products.filter(item => item.available);
+  const sharedStock = (product: StandProduct) => {
+    if (product.unitEquivalence == null || product.unitEquivalence === 1 || !product.variant) {
+      return product.currentStock;
+    }
+    return products.find(candidate => candidate.currentStock != null && candidate.unitEquivalence === 1
+      && candidate.variant?.trim().toLocaleLowerCase("es")
+        === product.variant?.trim().toLocaleLowerCase("es"))?.currentStock;
+  };
+  const available = products.filter(item => item.available
+    && (sharedStock(item) == null || sharedStock(item)! >= (item.unitEquivalence ?? 1)));
+  const presentations = productPresentations.filter(option => available.some(product =>
+    product.presentation?.trim().toLocaleLowerCase("es")
+      === option.presentation.toLocaleLowerCase("es")));
+  const [selectedPresentation, setSelectedPresentation] = useState("");
+  const filteredAvailable = selectedPresentation ? available.filter(product =>
+    product.presentation?.trim().toLocaleLowerCase("es")
+      === selectedPresentation.toLocaleLowerCase("es")) : available;
   const [cart, setCart] = useState<Array<{ productId: number; quantity: number }>>([]);
   const [productId, setProductId] = useState(0);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [method, setMethod] = useState<StandPaymentMethod>(stand.paymentMethods[0] ?? "CASH");
-  const [received, setReceived] = useState("");
+  const orderedPaymentMethods = [...stand.paymentMethods].sort((left, right) =>
+    left === "OTHER" ? 1 : right === "OTHER" ? -1 : 0);
   const [observation, setObservation] = useState("");
   const [observationDraft, setObservationDraft] = useState("");
   const [observationOpen, setObservationOpen] = useState(false);
   const [saleToCancel, setSaleToCancel] = useState<StandSale>();
+  const [saleToDelete, setSaleToDelete] = useState<StandSale>();
   const [saleToEdit, setSaleToEdit] = useState<StandSale>();
   const [cancellationReason, setCancellationReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [deletingSale, setDeletingSale] = useState(false);
   const [editItems, setEditItems] = useState<Array<{
     productId: number; quantity: number | "";
   }>>([]);
   const [editMethod, setEditMethod] = useState<StandPaymentMethod>("CASH");
-  const [editReceived, setEditReceived] = useState("");
   const [editObservation, setEditObservation] = useState("");
   const [editReason, setEditReason] = useState("");
   const [editProductToAdd, setEditProductToAdd] = useState(0);
@@ -707,7 +735,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const total = useMemo(() => cart.reduce((sum, item) =>
     sum + (products.find(product => product.id === item.productId)?.price ?? 0) * item.quantity, 0),
   [cart, products]);
-  const selectedProduct = available.find(product => product.id === productId);
+  const selectedProduct = filteredAvailable.find(product => product.id === productId);
   const add = () => {
     if (!productId || quantity < 1) return;
     setCart(current => {
@@ -721,7 +749,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
     event.preventDefault();
     const payload: StandSalePayload = {
         items: cart, paymentMethod: method,
-        amountReceived: method === "CASH" ? Number(received) : undefined,
+        amountReceived: method === "CASH" ? Math.ceil(total) : undefined,
         observation: observation || undefined,
     };
     setSaleQueue(current => [...current, {
@@ -731,7 +759,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       units: cart.reduce((sum, item) => sum + item.quantity, 0),
       status: "pending",
     }]);
-    setCart([]); setProductId(0); setQuantity(1); setReceived(""); setObservation("");
+    setCart([]); setProductId(0); setQuantity(1); setObservation("");
   };
   useEffect(() => {
     const next = saleQueue.find(item => item.status === "pending");
@@ -776,13 +804,25 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       setCancelling(false);
     }
   };
+  const deleteCancelledSale = async () => {
+    if (!saleToDelete) return;
+    setDeletingSale(true);
+    try {
+      await stands.deleteCancelledSale(stand.id, saleToDelete.id);
+      setSaleToDelete(undefined);
+      await onSaved(`Venta #${saleToDelete.id} eliminada definitivamente.`);
+    } catch (error) {
+      await onSaved(errorMessage(error, "No fue posible eliminar la venta."));
+    } finally {
+      setDeletingSale(false);
+    }
+  };
   const startEditingSale = (sale: StandSale) => {
     setSaleToEdit(sale);
     setEditItems(sale.items.map(item => ({
       productId: item.productId, quantity: item.quantity,
     })));
     setEditMethod(sale.paymentMethod);
-    setEditReceived(sale.amountReceived == null ? "" : String(sale.amountReceived));
     setEditObservation(sale.observation ?? "");
     setEditReason("");
     setEditProductToAdd(0);
@@ -800,7 +840,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
           productId: item.productId, quantity: Number(item.quantity),
         })),
         paymentMethod: editMethod,
-        amountReceived: editMethod === "CASH" ? Number(editReceived) : undefined,
+        amountReceived: editMethod === "CASH" ? Math.ceil(editTotal) : undefined,
         observation: editObservation || undefined,
         reason: editReason.trim(),
       });
@@ -823,8 +863,25 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         <p>Agrega uno o varios productos.</p></div></div>
       {stand.status !== "OPEN" && <p className="stand-page__warning">
         Abre la jornada para habilitar ventas.</p>}
+      <div className="stand-sale-flow-step stand-presentation-sale-picker">
+        <span><b>1</b> Presentación</span>
+        <div role="group" aria-label="Seleccionar presentación">
+          {presentations.map(option => <button type="button" key={option.presentation}
+            className={selectedPresentation === option.presentation ? "is-selected" : ""}
+            aria-pressed={selectedPresentation === option.presentation}
+            onClick={() => {
+              setSelectedPresentation(option.presentation);
+              setProductId(0);
+              setProductPickerOpen(false);
+            }}>
+            <img src={option.image} alt="" aria-hidden="true" />
+            <span>{option.label}</span>
+          </button>)}
+        </div>
+      </div>
       <div className="stand-sale-form__picker">
-        <label>Producto<div className="stand-product-select"
+        <label><span className="stand-sale-step-label"><b>2</b> Variante / producto</span>
+          <div className="stand-product-select"
           onBlur={event => {
             if (!event.currentTarget.contains(event.relatedTarget as Node)) setProductPickerOpen(false);
           }}>
@@ -841,7 +898,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
             <FcExpand aria-hidden="true" />
           </button>
           {productPickerOpen && <div className="stand-product-select__menu" role="listbox">
-            {available.map(product => <button type="button" role="option" key={product.id}
+            {filteredAvailable.map(product => <button type="button" role="option" key={product.id}
               aria-selected={product.id === productId}
               className={product.id === productId ? "is-selected" : ""}
               onClick={() => { setProductId(product.id); setProductPickerOpen(false); }}>
@@ -854,7 +911,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
           </div>}
         </div></label>
         <div className="stand-quantity-picker">
-          <span>Cantidad</span>
+          <span><b>3</b> Cantidad</span>
           <div role="group" aria-label="Seleccionar cantidad">
             {[1, 2, 3, 4, 5, 6].map(value => <button key={value} type="button"
               className={quantity === value ? "is-selected" : ""}
@@ -863,44 +920,46 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
               {value}</button>)}
           </div>
         </div>
-        <button type="button" onClick={add} disabled={!productId || quantity < 1}>
-          <FiPlus /> Agregar</button>
-      </div>
-      <div className="stand-cart">
-        {cart.map(item => {
-          const product = products.find(value => value.id === item.productId);
-          return <div className="stand-cart__item" key={item.productId}><span>{product?.name}
-            {product?.variant ? ` · ${product.variant}` : ""}</span>
-            <small>{item.quantity} × {money.format(product?.price ?? 0)}</small>
-            <strong>{money.format((product?.price ?? 0) * item.quantity)}</strong>
-            <button type="button" aria-label="Quitar producto del carrito"
-              onClick={() => setCart(current => current.filter(value =>
-                value.productId !== item.productId))}><FiX /> Cancelar</button></div>;
-        })}
-        {cart.length === 0 && <p>El carrito está vacío.</p>}
+        <button type="button" className="stand-add-sale-item" onClick={add}
+          disabled={!productId || quantity < 1}><b>4</b><FiPlus /> Agregar</button>
       </div>
       <div className="stand-sale-form__payment">
-        <label>Método de pago<select value={method}
-          onChange={e => setMethod(e.target.value as StandPaymentMethod)}>
-          {stand.paymentMethods.map(value => <option key={value} value={value}>
-            {paymentLabels[value]}</option>)}</select></label>
-        {method === "CASH" && <label>Monto recibido<input required type="number" min={total}
-          value={received} onChange={e => setReceived(e.target.value)} />
-          <small>Vuelto: {money.format(Math.max(0, Number(received || 0) - total))}</small></label>}
-        <div className="stand-observation-field">
-          <span>Observación</span>
-          <button type="button" className="stand-observation-trigger" onClick={() => {
-            setObservationDraft(observation);
-            setObservationOpen(true);
-          }}>
-            <FiMessageSquare /> {observation ? "Editar observación" : "Agregar observación"}
-          </button>
+        <div className="stand-payment-picker">
+          <span><b>5</b> Método de pago</span>
+          <div>{orderedPaymentMethods.map(value => <button type="button" key={value}
+            className={method === value ? "is-selected" : ""}
+            aria-pressed={method === value} onClick={() => setMethod(value)}>
+            {paymentLabels[value]}{value === "CASH" && total > 0
+              ? ` · ${money.format(Math.ceil(total))}` : ""}</button>)}</div>
         </div>
       </div>
-      <footer><div><span>Total</span><strong>{money.format(total)}</strong></div>
+      <footer><div><span>Total</span><strong>{money.format(total)}</strong>
+        <button type="button" className="stand-observation-inline" onClick={() => {
+          setObservationDraft(observation);
+          setObservationOpen(true);
+        }}><FiMessageSquare /> {observation ? "Observación agregada" : "Añadir observación"}</button>
+      </div>
         <button type="submit" disabled={stand.status !== "OPEN" || cart.length === 0}>
-          <FiCheckCircle /> Enviar venta</button></footer>
+          <b>6</b><FiCheckCircle /> Confirmar venta</button></footer>
     </form>
+    <div className="stand-sales-sidebar">
+      <aside className="stand-cart-card" aria-label="Pedido actual">
+        <header><span><strong>Pedido actual</strong>
+          <small>{cart.reduce((sum, item) => sum + item.quantity, 0)} unidades</small></span>
+          <strong>{money.format(total)}</strong></header>
+        {cart.length > 0 ? <div className="stand-cart" aria-label="Productos agregados">
+          {cart.map(item => {
+            const product = products.find(value => value.id === item.productId);
+            return <div className="stand-cart__item" key={item.productId}><span>{product?.name}
+              {product?.variant ? ` · ${product.variant}` : ""}</span>
+              <small>{item.quantity} × {money.format(product?.price ?? 0)}</small>
+              <strong>{money.format((product?.price ?? 0) * item.quantity)}</strong>
+              <button type="button" aria-label="Quitar producto del carrito"
+                onClick={() => setCart(current => current.filter(value =>
+                  value.productId !== item.productId))}><FiX /> Quitar</button></div>;
+          })}
+        </div> : <p>Agrega productos para comenzar el pedido.</p>}
+      </aside>
     <details className="stand-recent-sales">
       <summary><span><strong>Historial de ventas</strong>
         <small>Más recientes primero · {sales.length} registros</small></span>
@@ -923,7 +982,9 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
                 onClick={() => startEditingSale(sale)}>Modificar</button>
               <button type="button" className="cancel-sale"
                 onClick={() => setSaleToCancel(sale)}>Anular</button>
-            </>}</footer>
+            </>}
+            {sale.status === "CANCELLED" && <button type="button" className="cancel-sale"
+              onClick={() => setSaleToDelete(sale)}>Eliminar definitivamente</button>}</footer>
         </article>)}
         {sales.length === 0 && <p className="stand-page__empty">Aún no hay ventas.</p>}
       </div>
@@ -936,6 +997,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
           onClick={() => setHistoryPage(page => page + 1)}>Siguiente</button>
       </nav>}
     </details>
+    </div>
     {saleQueue.length > 0 && <aside className="stand-sale-queue"
       aria-label="Cola de ventas" aria-live="polite">
       <header><strong>Ventas en proceso</strong><small>{saleQueue.length}</small></header>
@@ -1007,6 +1069,20 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         Escribe un motivo para habilitar la anulación.</small>}
     </ModalConfirm>
     <ModalConfirm
+      isOpen={Boolean(saleToDelete)}
+      compact
+      confirmVariant="danger"
+      title={`Eliminar venta #${saleToDelete?.id ?? ""}`}
+      message="Esta venta anulada desaparecerá definitivamente. El stock no se modificará otra vez."
+      confirmLabel="Eliminar definitivamente"
+      cancelLabel="Conservar registro"
+      isLoading={deletingSale}
+      confirmIcon={<FiTrash2 />}
+      cancelIcon={<FiX />}
+      onConfirm={() => void deleteCancelledSale()}
+      onCancel={() => setSaleToDelete(undefined)}
+    />
+    <ModalConfirm
       isOpen={Boolean(saleToEdit)}
       compact
       title={`Modificar venta #${saleToEdit?.id ?? ""}`}
@@ -1014,8 +1090,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       confirmLabel="Guardar modificación"
       cancelLabel="Descartar cambios"
       isLoading={editingSale}
-      confirmDisabled={editItems.length === 0 || editItems.some(item => Number(item.quantity) < 1)
-        || (editMethod === "CASH" && Number(editReceived) < editTotal)}
+      confirmDisabled={editItems.length === 0 || editItems.some(item => Number(item.quantity) < 1)}
       confirmIcon={<FiCheckCircle />}
       cancelIcon={<FiX />}
       onConfirm={() => void updateSale()}
@@ -1058,14 +1133,10 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         </div>
         <label>Método de pago<select value={editMethod}
           onChange={event => setEditMethod(event.target.value as StandPaymentMethod)}>
-          {stand.paymentMethods.map(method =>
+          {orderedPaymentMethods.map(method =>
             <option key={method} value={method}>{paymentLabels[method]}</option>)}
         </select></label>
-        {editMethod === "CASH" && <label>Monto recibido
-          <input type="number" min={editTotal} value={editReceived}
-            onChange={event => setEditReceived(event.target.value)} />
-          <small>Vuelto: {money.format(Math.max(0, Number(editReceived || 0) - editTotal))}</small>
-        </label>}
+        {editMethod === "CASH" && <small>Efectivo exacto: {money.format(Math.ceil(editTotal))}</small>}
         <label>Observación<textarea maxLength={500} value={editObservation}
           onChange={event => setEditObservation(event.target.value)} /></label>
         <label>Motivo de modificación (obligatorio)<textarea required maxLength={500}
@@ -1173,12 +1244,27 @@ const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
               <span>{presentation}</span><strong>{units}</strong></div>
               <SummaryBar value={units} max={maxPresentation} /></div>)}
       </section>
-      <section className="is-stock"><h3><i><FiAlertTriangle /></i> Alertas de stock</h3>
-        {summary.stockAlerts.length === 0 ? <p>Sin alertas de stock.</p>
-          : summary.stockAlerts.map(item => <div className="stand-summary-stock" key={item.productId}>
-            <span>{item.product}{item.variant ? ` · ${item.variant}` : ""}</span>
-            <strong className="stock-alert">{item.soldOut ? "Agotado" : `${item.stock} restantes`}</strong>
-          </div>)}</section>
+      <section className="is-stock"><h3><i><FiAlertTriangle /></i> Stock por variante</h3>
+        {summary.stockAlerts.length === 0 ? <p>No hay productos con stock configurado.</p>
+          : summary.stockAlerts.map(item => {
+            const initial = item.initialStock ?? item.stock;
+            const percentage = initial > 0 ? Math.min(100, (item.stock / initial) * 100) : 0;
+            const lowStock = item.stock <= 5;
+            return <div className={`stand-summary-stock${lowStock ? " is-low" : ""}`}
+              key={item.productId}>
+              <div className="stand-summary-stock__heading">
+                <span><strong>{item.variant || item.product}</strong>
+                  <small>{item.variant ? item.product : "Stock disponible"}</small></span>
+                <strong className="stock-alert">{item.soldOut ? "Agotado"
+                  : `${decimal.format(item.stock)} disponibles`}</strong>
+              </div>
+              <span className="stand-summary-stock__bar" aria-hidden="true">
+                <i style={{ width: `${percentage}%` }} /></span>
+              <small className="stand-summary-stock__detail">Inicial: {decimal.format(initial)} · Vendido: {
+                decimal.format(Math.max(0, initial - item.stock))} pizzas equivalentes
+                {lowStock && !item.soldOut ? " · Stock bajo" : ""}</small>
+            </div>;
+          })}</section>
     </div>
   </div>;
 };

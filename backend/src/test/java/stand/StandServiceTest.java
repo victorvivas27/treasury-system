@@ -24,6 +24,7 @@ import org.mockito.Mock;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -131,7 +132,7 @@ class StandServiceTest {
         product.setName("Café");
         product.setPrice(new BigDecimal("1500"));
         product.setUnitCost(new BigDecimal("200"));
-        product.setCurrentStock(4);
+        product.setCurrentStock(new BigDecimal("4"));
         product.setAvailable(true);
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
         when(products.findById(10L)).thenReturn(Optional.of(product));
@@ -143,9 +144,50 @@ class StandServiceTest {
 
         assertAll(() -> assertEquals(new BigDecimal("3000"), result.getTotal()),
                 () -> assertEquals(new BigDecimal("2000"), result.getChangeAmount()),
-                () -> assertEquals(2, product.getCurrentStock()),
+                () -> assertEquals(new BigDecimal("2"), product.getCurrentStock()),
                 () -> assertEquals("admin", result.getRegisteredBy()));
         verify(products).save(product);
+    }
+
+    @Test
+    void registerSale_deberiaDescontarMediasDelStockCompartidoDeLaVariante() {
+        StandProductEntity wholePizza = new StandProductEntity();
+        wholePizza.setId(10L);
+        wholePizza.setStand(stand);
+        wholePizza.setName("Pizza entera");
+        wholePizza.setVariant("Pepperoni");
+        wholePizza.setPresentation("Entera");
+        wholePizza.setUnitEquivalence(BigDecimal.ONE);
+        wholePizza.setCurrentStock(new BigDecimal("56"));
+        wholePizza.setAvailable(true);
+        StandProductEntity halfPizza = new StandProductEntity();
+        halfPizza.setId(11L);
+        halfPizza.setStand(stand);
+        halfPizza.setName("Media pizza");
+        halfPizza.setVariant("Pepperoni");
+        halfPizza.setPresentation("Media");
+        halfPizza.setUnitEquivalence(new BigDecimal("0.5"));
+        halfPizza.setPrice(new BigDecimal("3000"));
+        halfPizza.setUnitCost(new BigDecimal("1000"));
+        halfPizza.setAvailable(true);
+        when(stands.findById(3L)).thenReturn(Optional.of(stand));
+        when(products.findById(11L)).thenReturn(Optional.of(halfPizza));
+        when(products.findByStandIdOrderByNameAscVariantAsc(3L))
+                .thenReturn(List.of(wholePizza, halfPizza));
+        when(sales.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        StandSaleEntity sale = service.registerSale(3L, new StandService.SaleInput(
+                List.of(new StandService.SaleItemInput(11L, 2)),
+                StandPaymentMethod.CASH, new BigDecimal("6000"), null), "admin");
+
+        assertEquals(new BigDecimal("55.0"), wholePizza.getCurrentStock());
+        assertNull(halfPizza.getCurrentStock());
+        sale.setId(20L);
+        when(sales.findById(20L)).thenReturn(Optional.of(sale));
+        service.cancelSale(3L, 20L, "Venta duplicada", "admin");
+
+        assertEquals(new BigDecimal("56.0"), wholePizza.getCurrentStock());
+        verify(products, times(2)).save(wholePizza);
     }
 
     @Test
@@ -211,7 +253,7 @@ class StandServiceTest {
         product.setId(10L);
         product.setStand(stand);
         product.setName("Café");
-        product.setCurrentStock(2);
+        product.setCurrentStock(new BigDecimal("2"));
         product.setAvailable(true);
         StandSaleEntity sale = sale(StandPaymentMethod.CASH, "3000",
                 item(10L, "Café", 2, "1500"));
@@ -228,8 +270,61 @@ class StandServiceTest {
                 () -> assertEquals("Cantidad incorrecta", result.getCancellationReason()),
                 () -> assertEquals("admin", result.getCancelledBy()),
                 () -> assertNotNull(result.getCancelledAt()),
-                () -> assertEquals(4, product.getCurrentStock()));
+                () -> assertEquals(new BigDecimal("4"), product.getCurrentStock()));
         verify(products).save(product);
+    }
+
+    @Test
+    void cancelSale_noDeberiaSumarVentaAnteriorALaCargaDelStock() {
+        StandProductEntity product = new StandProductEntity();
+        product.setId(10L);
+        product.setStand(stand);
+        product.setName("Pizza entera");
+        product.setCurrentStock(new BigDecimal("50"));
+        product.setStockSetAt(LocalDateTime.now());
+        product.setAvailable(true);
+        StandSaleEntity sale = sale(StandPaymentMethod.CASH, "6000",
+                item(10L, "Pizza entera", 2, "3000"));
+        sale.setId(20L);
+        sale.setSoldAt(LocalDateTime.now().minusDays(1));
+        sale.setStatus(StandSaleStatus.ACTIVE);
+        when(stands.findById(3L)).thenReturn(Optional.of(stand));
+        when(sales.findById(20L)).thenReturn(Optional.of(sale));
+        when(products.findById(10L)).thenReturn(Optional.of(product));
+
+        service.cancelSale(3L, 20L, "Venta antigua", "admin");
+
+        assertEquals(new BigDecimal("50"), product.getCurrentStock());
+        verify(products, never()).save(any());
+    }
+
+    @Test
+    void deleteCancelledSale_deberiaEliminarSoloLaVentaAnuladaSinModificarStock() {
+        StandSaleEntity sale = new StandSaleEntity();
+        sale.setId(20L);
+        sale.setStand(stand);
+        sale.setStatus(StandSaleStatus.CANCELLED);
+        when(stands.findById(3L)).thenReturn(Optional.of(stand));
+        when(sales.findById(20L)).thenReturn(Optional.of(sale));
+
+        service.deleteCancelledSale(3L, 20L);
+
+        verify(sales).delete(sale);
+        verify(products, never()).save(any());
+    }
+
+    @Test
+    void deleteCancelledSale_deberiaRechazarUnaVentaActiva() {
+        StandSaleEntity sale = new StandSaleEntity();
+        sale.setId(20L);
+        sale.setStand(stand);
+        sale.setStatus(StandSaleStatus.ACTIVE);
+        when(stands.findById(3L)).thenReturn(Optional.of(stand));
+        when(sales.findById(20L)).thenReturn(Optional.of(sale));
+
+        assertThrows(DomainException.class, () -> service.deleteCancelledSale(3L, 20L));
+
+        verify(sales, never()).delete(any());
     }
 
     @Test
@@ -240,7 +335,7 @@ class StandServiceTest {
         product.setName("Café");
         product.setPrice(new BigDecimal("1500"));
         product.setUnitCost(new BigDecimal("200"));
-        product.setCurrentStock(2);
+        product.setCurrentStock(new BigDecimal("2"));
         product.setAvailable(true);
         StandSaleEntity sale = sale(StandPaymentMethod.CASH, "3000",
                 item(10L, "Café", 2, "1500"));
@@ -258,7 +353,7 @@ class StandServiceTest {
 
         assertAll(() -> assertEquals(new BigDecimal("1500"), result.getTotal()),
                 () -> assertEquals(new BigDecimal("500"), result.getChangeAmount()),
-                () -> assertEquals(3, product.getCurrentStock()),
+                () -> assertEquals(new BigDecimal("3"), product.getCurrentStock()),
                 () -> assertEquals("Cantidad incorrecta", result.getModificationReason()),
                 () -> assertEquals("admin", result.getModifiedBy()),
                 () -> assertNotNull(result.getModifiedAt()));
