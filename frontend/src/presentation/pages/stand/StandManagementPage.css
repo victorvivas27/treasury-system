@@ -87,7 +87,10 @@
 .stand-product-grid article .stand-product-card__category { justify-self: start; border-radius: 999px; padding: .16rem .45rem; background: var(--color-accent-soft); color: var(--color-accent); font-weight: 600; }
 .stand-product-grid article .stand-product-card__presentation { margin: 0; }
 .stand-panel-skeleton { min-height: 12rem; }
-.stand-panel-skeleton .stand-product-grid article { align-content: start; min-height: 8.5rem; }
+.stand-panel-skeleton .stand-product-grid .stand-product-card--skeleton { align-content: start; min-height: 145px; overflow: hidden; resize: none; }
+.stand-product-card--skeleton .stand-product-card__heading > .skeleton-block:first-child { min-width: 0; }
+.stand-product-card--skeleton .stand-product-card__heading > .skeleton-block:last-child { flex: 0 0 4.2rem; }
+.stand-product-card--skeleton .stand-product-skeleton__category { border-radius: 999px; }
 .stand-panel-skeleton .stand-sales-layout > article { display: grid; align-content: start; gap: .75rem; min-height: 14rem; border: 1px solid var(--border-color); border-radius: .9rem; padding: 1rem; background: var(--color-bg); }
 .stand-panel-skeleton .stand-summary__cards article { display: grid; gap: .65rem; }
 .stand-product-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
