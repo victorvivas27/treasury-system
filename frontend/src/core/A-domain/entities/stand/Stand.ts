@@ -116,4 +116,5 @@ export interface StandSummary {
   }>;
   unitsByPresentation: Record<string, number>;
   equivalentUnits: number;
+  equivalentUnitsByVariant: Record<string, number>;
 }

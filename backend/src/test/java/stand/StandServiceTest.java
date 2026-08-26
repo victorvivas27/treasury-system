@@ -270,14 +270,17 @@ class StandServiceTest {
         StandSaleItemEmbeddable cashItem = item(10L, "Café", 2, "1500");
         StandSaleItemEmbeddable debitItem = item(11L, "Pizza", 1, "5000");
         cashItem.setPresentation("Entera");
+        cashItem.setVariant("Familiar");
         cashItem.setUnitEquivalence(BigDecimal.ONE);
         debitItem.setPresentation("Media");
+        debitItem.setVariant("Familiar");
         debitItem.setUnitEquivalence(new BigDecimal("0.5"));
         StandSaleEntity cashSale = sale(StandPaymentMethod.CASH, "3000", cashItem);
         StandSaleEntity debitSale = sale(StandPaymentMethod.DEBIT, "5000", debitItem);
         StandSaleItemEmbeddable transferItem = item(12L, "Jugo", 1, "2000");
         transferItem.setPresentation("Porción");
         transferItem.setUnitEquivalence(new BigDecimal("0.125"));
+        transferItem.setVariant("Individual");
         StandSaleEntity transferSale = sale(StandPaymentMethod.TRANSFER, "2000", transferItem);
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
         var saleTotals = List.of(
@@ -302,6 +305,10 @@ class StandServiceTest {
                 () -> assertEquals(new BigDecimal("9105.00"), result.netProfit()),
                 () -> assertEquals(2, result.unitsByPresentation().get("Entera")),
                 () -> assertEquals(new BigDecimal("2.625"), result.equivalentUnits()),
+                () -> assertEquals(new BigDecimal("2.5"),
+                        result.equivalentUnitsByVariant().get("Familiar")),
+                () -> assertEquals(new BigDecimal("0.125"),
+                        result.equivalentUnitsByVariant().get("Individual")),
                 () -> assertEquals(3, result.saleCount()), () -> assertEquals(4, result.unitsSold()));
     }
 
