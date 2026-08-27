@@ -179,8 +179,8 @@ tasks.register('generateVapidKeys') {
         def generator = java.security.KeyPairGenerator.getInstance('EC')
         generator.initialize(new java.security.spec.ECGenParameterSpec('secp256r1'))
         def pair = generator.generateKeyPair()
-        def publicKey = (java.security.interfaces.ECPublicKey) pair.public
-        def privateKey = (java.security.interfaces.ECPrivateKey) pair.private
+        def publicKey = (java.security.interfaces.ECPublicKey) pair.getPublic()
+        def privateKey = (java.security.interfaces.ECPrivateKey) pair.getPrivate()
         def fixed32 = { java.math.BigInteger number ->
             byte[] raw = number.toByteArray()
             byte[] result = new byte[32]
@@ -191,11 +191,11 @@ tasks.register('generateVapidKeys') {
         }
         byte[] encodedPublic = new byte[65]
         encodedPublic[0] = 0x04
-        System.arraycopy(fixed32(publicKey.w.affineX), 0, encodedPublic, 1, 32)
-        System.arraycopy(fixed32(publicKey.w.affineY), 0, encodedPublic, 33, 32)
+        System.arraycopy(fixed32(publicKey.getW().getAffineX()), 0, encodedPublic, 1, 32)
+        System.arraycopy(fixed32(publicKey.getW().getAffineY()), 0, encodedPublic, 33, 32)
         def encoder = java.util.Base64.urlEncoder.withoutPadding()
         logger.lifecycle("WEB_PUSH_PUBLIC_KEY=${encoder.encodeToString(encodedPublic)}")
-        logger.lifecycle("WEB_PUSH_PRIVATE_KEY=${encoder.encodeToString(fixed32(privateKey.s))}")
+        logger.lifecycle("WEB_PUSH_PRIVATE_KEY=${encoder.encodeToString(fixed32(privateKey.getS()))}")
     }
 }
 

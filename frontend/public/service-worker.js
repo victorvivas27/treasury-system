@@ -48,7 +48,9 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     const networkResponse = fetch(request, { cache: 'no-store' }).then((response) => {
       if (response.ok && response.type === 'basic') {
-        void caches.open(CACHE_VERSION).then((cache) => cache.put('/', response.clone()))
+        // Clone before respondWith can consume the original response body.
+        const responseToCache = response.clone()
+        void caches.open(CACHE_VERSION).then((cache) => cache.put('/', responseToCache))
       }
       return response
     })
