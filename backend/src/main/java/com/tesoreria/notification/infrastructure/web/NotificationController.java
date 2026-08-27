@@ -12,7 +12,12 @@ import java.util.*;
 @RequestMapping("/api/v1/notifications")
 public class NotificationController {
     private final NotificationService service;
-    public NotificationController(NotificationService service) { this.service = service; }
+    private final com.tesoreria.notification.application.WebPushSubscriptionService pushSubscriptions;
+    public NotificationController(NotificationService service,
+            com.tesoreria.notification.application.WebPushSubscriptionService pushSubscriptions) {
+        this.service = service;
+        this.pushSubscriptions = pushSubscriptions;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -33,6 +38,23 @@ public class NotificationController {
     @GetMapping("/me/unread-count")
     public Map<String, Long> unread(Authentication authentication) {
         return Map.of("count", service.unreadCount(authentication.getName()));
+    }
+    @GetMapping("/push/config")
+    public com.tesoreria.notification.application.WebPushSubscriptionService.WebPushAvailability
+            pushConfig() {
+        return pushSubscriptions.availability();
+    }
+    @PutMapping("/push/subscription")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void subscribe(@Valid @RequestBody WebPushSubscriptionRequest request,
+            Authentication authentication) {
+        pushSubscriptions.subscribe(request, authentication.getName());
+    }
+    @DeleteMapping("/push/subscription")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unsubscribe(@Valid @RequestBody WebPushEndpointRequest request,
+            Authentication authentication) {
+        pushSubscriptions.unsubscribe(request.endpoint(), authentication.getName());
     }
     @PatchMapping("/{id}/read")
     public NotificationResponse read(@PathVariable Long id, Authentication authentication) {

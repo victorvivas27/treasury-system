@@ -39,6 +39,15 @@ dependencies {
     implementation platform('com.google.cloud:libraries-bom:26.72.0')
     implementation 'com.google.cloud:google-cloud-storage'
 
+    // WEB PUSH
+    implementation('nl.martijndwars:web-push:5.1.2') {
+        exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
+        exclude group: 'org.bitbucket.b_c', module: 'jose4j'
+    }
+    implementation 'org.apache.httpcomponents:httpasyncclient:4.1.5'
+    implementation 'org.bitbucket.b_c:jose4j:0.9.6'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.85.2'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
@@ -161,6 +170,33 @@ tasks.withType(Pmd).configureEach {
 
 tasks.named('pmdTest') {
     enabled = false
+}
+
+tasks.register('generateVapidKeys') {
+    group = 'application'
+    description = 'Genera un par de claves VAPID en formato base64url para Web Push.'
+    doLast {
+        def generator = java.security.KeyPairGenerator.getInstance('EC')
+        generator.initialize(new java.security.spec.ECGenParameterSpec('secp256r1'))
+        def pair = generator.generateKeyPair()
+        def publicKey = (java.security.interfaces.ECPublicKey) pair.public
+        def privateKey = (java.security.interfaces.ECPrivateKey) pair.private
+        def fixed32 = { java.math.BigInteger number ->
+            byte[] raw = number.toByteArray()
+            byte[] result = new byte[32]
+            int sourceStart = Math.max(0, raw.length - 32)
+            int length = Math.min(32, raw.length)
+            System.arraycopy(raw, sourceStart, result, 32 - length, length)
+            result
+        }
+        byte[] encodedPublic = new byte[65]
+        encodedPublic[0] = 0x04
+        System.arraycopy(fixed32(publicKey.w.affineX), 0, encodedPublic, 1, 32)
+        System.arraycopy(fixed32(publicKey.w.affineY), 0, encodedPublic, 33, 32)
+        def encoder = java.util.Base64.urlEncoder.withoutPadding()
+        logger.lifecycle("WEB_PUSH_PUBLIC_KEY=${encoder.encodeToString(encodedPublic)}")
+        logger.lifecycle("WEB_PUSH_PRIVATE_KEY=${encoder.encodeToString(fixed32(privateKey.s))}")
+    }
 }
 
 // ========== CONFIGURACION OWASP DEPENDENCY-CHECK ==========
