@@ -476,6 +476,7 @@ const ContributionDonut = ({ title, paid, pending }: {
 }) => {
   const total = paid + pending;
   const percentage = total === 0 ? 0 : Math.round((paid * 100) / total);
+  const pendingPercentage = total === 0 ? 0 : 100 - percentage;
   const chartData = [
     { name: "Pagado", value: paid, color: "var(--color-success)" },
     { name: "Pendiente", value: pending, color: "var(--color-warning)" },
@@ -488,15 +489,23 @@ const ContributionDonut = ({ title, paid, pending }: {
           outerRadius="78%" paddingAngle={2}>
           {chartData.map(item => <Cell key={item.name} fill={item.color} />)}
         </Pie>
-        <Tooltip formatter={(value, name) => [`${value} familias`, name]}
-          contentStyle={{ background: "var(--color-elevated)",
-            borderColor: "var(--border-color)", color: "var(--text-main)" }}
-          itemStyle={{ color: "var(--text-main)" }} />
         </PieChart>
       </ResponsiveContainer>
       <strong>{percentage}%<small>pagado</small></strong>
     </div>
-    <p>{paid} pagadas · {pending} pendientes</p>
+    <div className="contribution-donut__details"
+      aria-label={`${paid} familias pagadas y ${pending} pendientes`}>
+      <div className="contribution-donut__metric is-paid">
+        <i aria-hidden="true" />
+        <span><small>Pagadas</small><strong>{paid} familias</strong></span>
+        <b>{percentage}%</b>
+      </div>
+      <div className="contribution-donut__metric is-pending">
+        <i aria-hidden="true" />
+        <span><small>Pendientes</small><strong>{pending} familias</strong></span>
+        <b>{pendingPercentage}%</b>
+      </div>
+    </div>
   </article>;
 };
 

@@ -12,6 +12,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/icono-tesoreria.png" />
   <link rel="icon" type="image/png" href="/favicon-tesoreria-v3.png" />
+  <link rel="preload" as="image" href="/icono-tesoreria-loader.png" fetchpriority="high" />
   <title>Sistema de Tesorería</title>
   <style>
     html,body,#root{min-width:100%;min-height:100%;margin:0;background:#0a0f1a;color:#f8fafc}
@@ -62,7 +63,8 @@
     <div class="boot-loader__content">
       <div class="boot-loader__mark" aria-hidden="true">
         <span class="boot-loader__ring"></span>
-        <img class="boot-loader__logo" src="/icono-tesoreria.png" alt="" />
+        <img class="boot-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
+          decoding="sync" fetchpriority="high" />
       </div>
       <div>
         <p class="boot-loader__title">Sistema de Tesorería</p>
