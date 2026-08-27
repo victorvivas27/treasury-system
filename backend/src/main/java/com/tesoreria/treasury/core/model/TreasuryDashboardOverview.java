@@ -13,7 +13,11 @@ public record TreasuryDashboardOverview(
         List<CategoryMetric> expensesByCategory,
         List<ExpenseMetric> expensesByDescription,
         List<RecentMovement> recentMovements,
-        List<AuditEntry> auditTrail) {
+        List<AuditEntry> auditTrail,
+        CourseComposition courseComposition) {
+
+    public record CourseComposition(long masculino, long femenino, long otros) {
+    }
 
     public record MonthlyCashFlow(int month, BigDecimal income, BigDecimal expense) {
     }

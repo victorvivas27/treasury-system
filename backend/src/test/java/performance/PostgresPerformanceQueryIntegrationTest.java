@@ -1,6 +1,8 @@
 package performance;
 
 import com.tesoreria.TesoreriaAppApplication;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
+import com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository;
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.repository.FamiliaJpaRepository;
 import com.tesoreria.stand.core.model.StandPaymentMethod;
 import com.tesoreria.stand.infrastructure.adapter.out.persistence.entity.StandSaleEntity;
@@ -44,6 +46,8 @@ class PostgresPerformanceQueryIntegrationTest {
     private StandSaleJpaRepository sales;
     @Autowired
     private FamiliaJpaRepository families;
+    @Autowired
+    private AlumnoJpaRepository students;
     @Autowired
     private jakarta.persistence.EntityManagerFactory entityManagerFactory;
 
@@ -192,6 +196,24 @@ class PostgresPerformanceQueryIntegrationTest {
                 () -> assertNull(result.get(1).getPrimaryGuardian()));
     }
 
+    @Test
+    void activeStudentComposition_deberiaAgruparSinExponerAlumnosInactivos() {
+        long boy = insertStudent("AL-00000011", "ALUMNO UNO", "1A");
+        long girl = insertStudent("AL-00000012", "ALUMNA DOS", "1A");
+        long other = insertStudent("AL-00000013", "ALUMNO TRES", "1A");
+        long inactive = insertStudent("AL-00000014", "ALUMNA INACTIVA", "1A");
+        jdbc.update("UPDATE alumnos SET genero = 'MASCULINO' WHERE alumno_id = ?", boy);
+        jdbc.update("UPDATE alumnos SET genero = 'FEMENINO' WHERE alumno_id = ?", girl);
+        jdbc.update("UPDATE alumnos SET genero = 'OTROS' WHERE alumno_id = ?", other);
+        jdbc.update("UPDATE alumnos SET genero = 'FEMENINO', activo = FALSE WHERE alumno_id = ?", inactive);
+
+        List<AlumnoJpaRepository.ActiveGenderCount> result = students.countActiveByGender();
+
+        assertAll(() -> assertEquals(1L, genderCount(result, GeneroAlumno.MASCULINO)),
+                () -> assertEquals(1L, genderCount(result, GeneroAlumno.FEMENINO)),
+                () -> assertEquals(1L, genderCount(result, GeneroAlumno.OTROS)));
+    }
+
     private BigDecimal commission(String amount, String percentage) {
         return new BigDecimal(amount).multiply(new BigDecimal(percentage))
                 .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
@@ -208,6 +230,12 @@ class PostgresPerformanceQueryIntegrationTest {
     private StandSaleJpaRepository.ItemAggregate item(
             List<StandSaleJpaRepository.ItemAggregate> values, String name) {
         return values.stream().filter(item -> name.equals(item.getProductName())).findFirst().orElseThrow();
+    }
+
+    private long genderCount(List<AlumnoJpaRepository.ActiveGenderCount> values,
+                             GeneroAlumno gender) {
+        return values.stream().filter(value -> value.getGender() == gender)
+                .mapToLong(AlumnoJpaRepository.ActiveGenderCount::getTotal).findFirst().orElse(0);
     }
 
     private long insertEvent(String name) {

@@ -3,6 +3,7 @@ package alumno;
 import com.tesoreria.alumno.application.usecase.AlumnoService;
 import com.tesoreria.alumno.core.exception.AlumnoErrorCode;
 import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 import com.tesoreria.alumno.core.port.out.AlumnoRepositoryOutPort;
 import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
 import com.tesoreria.shared.domain.exception.DomainException;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -87,6 +89,19 @@ public class AlumnoServiceTest {
             assertEquals(1, resultado.totalPages());
             assertEquals(1, resultado.totalElements());
             verify(repository).findAll(pageRequest);
+        }
+
+        @Test
+        void countActiveByGender_deberiaCompletarGenerosSinAlumnosConCero() {
+            when(repository.countActiveByGender()).thenReturn(Map.of(
+                    GeneroAlumno.MASCULINO, 12L,
+                    GeneroAlumno.FEMENINO, 15L));
+
+            Map<GeneroAlumno, Long> result = service.countActiveByGender();
+
+            assertAll(() -> assertEquals(12L, result.get(GeneroAlumno.MASCULINO)),
+                    () -> assertEquals(15L, result.get(GeneroAlumno.FEMENINO)),
+                    () -> assertEquals(0L, result.get(GeneroAlumno.OTROS)));
         }
     }
 

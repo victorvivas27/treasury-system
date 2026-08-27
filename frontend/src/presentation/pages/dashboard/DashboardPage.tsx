@@ -10,7 +10,6 @@ import {
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
-import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
 import { expenseCategoryLabel } from "@/shared/constants/ExpenseConstants";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -22,7 +21,6 @@ import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 
 const repository = new TreasuryRepositoryImpl();
-const studentRepository = new AlumnoRepositoryImpl();
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
 const money = new Intl.NumberFormat("es-CL", {
@@ -41,7 +39,6 @@ export const DashboardPage = () => {
   const [yearOpen, setYearOpen] = useState(false);
   const [data, setData] = useState<TreasuryDashboardOverview>();
   const [contributions, setContributions] = useState<ContributionSummary>();
-  const [genderCounts, setGenderCounts] = useState({ masculino: 0, femenino: 0, otros: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedAudits, setSelectedAudits] = useState<Set<number>>(new Set());
@@ -65,20 +62,12 @@ export const DashboardPage = () => {
     setLoading(true);
     setError("");
     try {
-      const [overview, contributionSummary, studentsPage] = await Promise.all([
+      const [overview, contributionSummary] = await Promise.all([
         repository.dashboardOverview(year),
         repository.contributionSummary(year),
-        studentRepository.getAll(0, 500).catch(() => undefined),
       ]);
       setData(overview);
       setContributions(contributionSummary);
-      const activeStudents = studentsPage?.content.filter(student => student.activo !== false) ?? [];
-      setGenderCounts({
-        masculino: activeStudents.filter(student => student.genero === "MASCULINO").length,
-        femenino: activeStudents.filter(student => student.genero === "FEMENINO").length,
-        otros: activeStudents.filter(student => student.genero !== "MASCULINO"
-          && student.genero !== "FEMENINO").length,
-      });
       loginPerformance.mark("dashboard-api");
       setSelectedAudits(new Set());
       setActivityPage(1);
@@ -100,6 +89,7 @@ export const DashboardPage = () => {
   const monthly = useMemo(() => data?.monthlyCashFlow.map(item => ({
     ...item, name: monthName(item.month),
   })) ?? [], [data]);
+  const genderCounts = data?.courseComposition ?? { masculino: 0, femenino: 0, otros: 0 };
   const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6).map(item => ({
     ...item, categoryName: expenseCategoryLabel(item.category),
   })) ?? [], [data]);

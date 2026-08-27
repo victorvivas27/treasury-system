@@ -54,6 +54,7 @@ export interface TreasuryDashboard {
 export interface TreasuryDashboardOverview {
   quotas: TreasuryDashboard;
   finances: FinancialSummary;
+  courseComposition: { masculino: number; femenino: number; otros: number };
   monthlyCashFlow: Array<{ month: number; income: number; expense: number }>;
   obligationStatus: Array<{ status: "PAGADA" | "PENDIENTE"; count: number }>;
   expensesByCategory: Array<{ category: ExpenseCategory; amount: number }>;
