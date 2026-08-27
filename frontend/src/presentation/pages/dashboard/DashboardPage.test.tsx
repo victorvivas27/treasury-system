@@ -62,8 +62,15 @@ describe("DashboardPage", () => {
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
     expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
-    expect(screen.getByText("75%")).toBeInTheDocument();
-    expect(screen.getByText("50%")).toBeInTheDocument();
+    const cepaCard = screen.getByRole("heading", { name: "Cuota CEPA" }).closest("article");
+    const solidarityCard = screen.getByRole("heading",
+      { name: "Fondo de Apoyo por Fallecimiento" }).closest("article");
+    expect(cepaCard?.querySelector(".contribution-donut__chart > strong")).toHaveTextContent("75%");
+    expect(solidarityCard?.querySelector(".contribution-donut__chart > strong"))
+      .toHaveTextContent("50%");
+    expect(cepaCard).toHaveTextContent("Pagadas3 familias75%");
+    expect(cepaCard).toHaveTextContent("Pendientes1 familias25%");
+    expect(cepaCard?.querySelector(".recharts-tooltip-wrapper")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Últimos registros Actividad reciente/i }));
     expect(screen.getByRole("link", { name: "Abrir" }))
       .toHaveAttribute("href", "/tesoreria/ingresos");
