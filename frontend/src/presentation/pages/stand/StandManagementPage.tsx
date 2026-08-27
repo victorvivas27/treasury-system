@@ -20,6 +20,7 @@ import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import { useAuth } from "@/presentation/context/AuthContext";
 import pizzaEquivalentImage from "@/assets/stand/pizza-equivalent-optimized.png";
+import { loadStandPanelData, type StandPanelTab } from "./standPanelData";
 import "./StandManagementPage.css";
 
 const eventsRepository = new TreasuryRepositoryImpl();
@@ -45,7 +46,7 @@ const paymentLabels: Record<StandPaymentMethod, string> = {
 const statusLabels = {
   PREPARATION: "Preparación", OPEN: "Abierto", CLOSED: "Cerrado",
 } as const;
-type Tab = "products" | "sales" | "summary";
+type Tab = StandPanelTab;
 type QueuedSale = {
   clientId: string;
   payload: StandSalePayload;
@@ -134,10 +135,11 @@ export const StandManagementPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [operationalLoading, setOperationalLoading] = useState(false);
-  const [loadedStandId, setLoadedStandId] = useState<number>();
+  const [loadedPanelKey, setLoadedPanelKey] = useState<string>();
   const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [modalAnchor, setModalAnchor] = useState<{ top: number; left: number }>();
+  const operationalRequest = useRef(0);
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
@@ -171,27 +173,29 @@ export const StandManagementPage = () => {
   }, [eventId]);
 
   const loadOperationalData = useCallback(async () => {
-    if (!selected) return;
+    const request = ++operationalRequest.current;
+    if (!selected) {
+      setLoadedPanelKey(undefined);
+      setOperationalLoading(false);
+      return;
+    }
+    const panelTab: Tab = readOnly ? "summary" : tab;
+    const panelKey = `${selected.id}:${panelTab}`;
     setOperationalLoading(true);
     try {
-      if (readOnly) {
-        setSummary(await stands.summary(selected.id));
-      } else {
-        const [productData, saleData, summaryData] = await Promise.all([
-          stands.listProducts(selected.id), stands.listSales(selected.id),
-          stands.summary(selected.id),
-        ]);
-        setProducts(productData);
-        setSales(saleData);
-        setSummary(summaryData);
-      }
-      setLoadedStandId(selected.id);
+      const data = await loadStandPanelData(stands, selected.id, panelTab, readOnly);
+      if (request !== operationalRequest.current) return;
+      if (data.products) setProducts(data.products);
+      if (data.sales) setSales(data.sales);
+      if (data.summary) setSummary(data.summary);
+      setLoadedPanelKey(panelKey);
     } catch (error) {
+      if (request !== operationalRequest.current) return;
       setFeedback(errorMessage(error, "No fue posible actualizar el stand."));
     } finally {
-      setOperationalLoading(false);
+      if (request === operationalRequest.current) setOperationalLoading(false);
     }
-  }, [selected?.id, readOnly]);
+  }, [selected?.id, readOnly, tab]);
 
   useEffect(() => { void loadEvents(); }, [loadEvents]);
   useEffect(() => { void loadStands(); }, [loadStands]);
@@ -393,7 +397,8 @@ export const StandManagementPage = () => {
             <button className={tab === "summary" ? "is-active" : ""}
               onClick={() => setTab("summary")}><FiDollarSign /> Resumen</button>
           </nav>}
-          {loadedStandId !== selected.id ? <StandPanelSkeleton tab={readOnly ? "summary" : tab} /> : <>
+          {loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}`
+            ? <StandPanelSkeleton tab={readOnly ? "summary" : tab} /> : <>
             {!readOnly && tab === "products" && <ProductsPanel stand={selected} products={products}
               onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
             {!readOnly && tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
