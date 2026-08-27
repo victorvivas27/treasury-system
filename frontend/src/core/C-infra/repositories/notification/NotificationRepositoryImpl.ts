@@ -3,6 +3,18 @@ import type { AppNotification, NotificationReply, SendNotificationPayload, SentN
 import { apiClient } from "@/core/D-config/api";
 
 export class NotificationRepositoryImpl {
+  async pushConfig(): Promise<{ enabled: boolean; publicKey: string | null }> {
+    return (await apiClient.get<{ enabled: boolean; publicKey: string | null }>(
+      "/notifications/push/config")).data;
+  }
+  async savePushSubscription(subscription: {
+    endpoint: string; p256dh: string; auth: string;
+  }): Promise<void> {
+    await apiClient.put("/notifications/push/subscription", subscription);
+  }
+  async deletePushSubscription(endpoint: string): Promise<void> {
+    await apiClient.delete("/notifications/push/subscription", { data: { endpoint } });
+  }
   async listMine(): Promise<AppNotification[]> {
     return (await apiClient.get<AppNotification[]>("/notifications/me")).data;
   }

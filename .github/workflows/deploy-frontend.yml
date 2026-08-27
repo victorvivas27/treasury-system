@@ -46,6 +46,7 @@ jobs:
         run: |
           docker build \
             --build-arg VITE_API_URL="${{ secrets.VITE_API_URL }}" \
+            --build-arg VITE_SITE_URL="${{ secrets.VITE_SITE_URL }}" \
             --tag "$IMAGE_URI" \
             .
 

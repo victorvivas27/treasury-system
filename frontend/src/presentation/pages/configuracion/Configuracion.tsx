@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiBookOpen, FiCheck, FiCompass, FiMonitor, FiMoon, FiSave, FiSun } from "react-icons/fi";
+import { FiBell, FiBookOpen, FiCheck, FiCompass, FiMonitor, FiMoon, FiSave,
+  FiSun } from "react-icons/fi";
 import { useTheme } from "@/presentation/context/ThemeContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import type { ThemePreference } from "@/presentation/context/theme";
@@ -7,6 +8,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { OPEN_APP_TOUR_EVENT } from "@/shared/ui/apptour/AppTour";
+import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./Configuracion.css";
 
 const THEME_OPTIONS: Array<{
@@ -38,6 +40,9 @@ const THEME_OPTIONS: Array<{
 export const Configuracion = () => {
   const { themePreference, resolvedTheme, setThemePreference } = useTheme();
   const auth = useOptionalAuth();
+  const notifications = useOptionalNotifications();
+  const pushStatus = notifications?.pushStatus ?? "unsupported";
+  const pushLoading = notifications?.pushLoading ?? false;
   const repository = useMemo(() => new TreasuryRepositoryImpl(), []);
   const selectedOption = THEME_OPTIONS.find(({ value }) => value === themePreference)!;
   const [savedCourse, setSavedCourse] = useState("1A");
@@ -47,6 +52,14 @@ export const Configuracion = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const canEditCourse = auth?.user?.rol === "ADMIN";
+  const pushCopy = {
+    checking: ["Comprobando…", "Estamos revisando la configuración de este dispositivo."],
+    unsupported: ["No compatible", "Este navegador o dispositivo no permite notificaciones web."],
+    unavailable: ["No disponible", "El servidor todavía no tiene configuradas las claves Web Push."],
+    prompt: ["Desactivadas", "Actívalas para recibir avisos y ver el contador sobre el ícono."],
+    denied: ["Permiso bloqueado", "Habilita las notificaciones desde los ajustes del dispositivo."],
+    enabled: ["Activadas", "Recibirás avisos aunque la aplicación esté cerrada."],
+  }[pushStatus];
 
   useEffect(() => {
     if (!canEditCourse) {
@@ -130,6 +143,25 @@ export const Configuracion = () => {
         <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_APP_TOUR_EVENT))}>
           Ver recorrido
         </button>
+      </article>
+
+      <article className={`push-settings-card push-settings-card--${pushStatus}`}>
+        <span className="push-settings-icon"><FiBell aria-hidden="true" /></span>
+        <div>
+          <h2>Notificaciones del dispositivo</h2>
+          <strong>{pushCopy[0]}</strong>
+          <p>{pushCopy[1]}</p>
+        </div>
+        {pushStatus === "enabled" ? <button type="button" disabled={pushLoading}
+          onClick={() => void notifications?.disablePush().catch(() => setError(
+            "No fue posible desactivar las notificaciones en este dispositivo."))}>
+          {pushLoading ? "Desactivando…" : "Desactivar"}
+        </button> : <button type="button"
+          disabled={pushLoading || ["checking", "unsupported", "unavailable", "denied"].includes(pushStatus)}
+          onClick={() => void notifications?.enablePush().catch((reason: unknown) => setError(reason instanceof Error
+            ? reason.message : "No fue posible activar las notificaciones."))}>
+          {pushLoading ? "Activando…" : "Activar"}
+        </button>}
       </article>
 
       {canEditCourse && <article className="managed-course-card">

@@ -90,3 +90,24 @@ En Windows usar `gradlew.bat` cuando el shell no ejecute `./gradlew`.
 Flyway aplica `src/main/resources/db/migration/V1__create_initial_schema.sql` en producción antes de Hibernate
 `validate`. No editar migraciones aplicadas; agregar una versión posterior para cualquier cambio de esquema.
 Consulta [NEON_DEPLOYMENT.md](NEON_DEPLOYMENT.md) para PostgreSQL/Neon, Secret Manager y Cloud Run.
+
+## Web Push y contador del ícono
+
+Las notificaciones del dispositivo usan Web Push estándar y claves VAPID. Generar una pareja una sola vez:
+
+```bash
+./gradlew generateVapidKeys
+```
+
+Guardar los valores producidos de forma segura y configurar:
+
+```text
+WEB_PUSH_ENABLED=true
+WEB_PUSH_PUBLIC_KEY=<clave pública generada>
+WEB_PUSH_PRIVATE_KEY=<clave privada generada>
+WEB_PUSH_SUBJECT=mailto:correo-responsable@dominio.cl
+```
+
+La clave privada no debe agregarse al repositorio. En producción, las tres variables se inyectan desde los secretos
+de GitHub Actions. Si faltan o son inválidas, la API informa que Web Push no está disponible y el frontend no solicita
+permisos al usuario.

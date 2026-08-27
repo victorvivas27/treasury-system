@@ -56,3 +56,8 @@ app:
       enabled: ${GCS_ENABLED:false}
       bucket-name: ${GCS_BUCKET_NAME:}
       max-file-size-mb: ${GCS_MAX_FILE_SIZE_MB:10}
+  web-push:
+    enabled: ${WEB_PUSH_ENABLED:false}
+    public-key: ${WEB_PUSH_PUBLIC_KEY:}
+    private-key: ${WEB_PUSH_PRIVATE_KEY:}
+    subject: ${WEB_PUSH_SUBJECT:mailto:tesoreria@example.com}

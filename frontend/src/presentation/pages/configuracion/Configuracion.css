@@ -57,6 +57,47 @@
   box-shadow: var(--shadow-card);
 }
 
+.push-settings-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--md);
+  margin-top: var(--lg);
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.push-settings-icon {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 1.35rem;
+}
+
+.push-settings-card h2 { margin: 0; font-size: 1rem; }
+.push-settings-card strong { display: block; margin-top: .2rem; color: var(--color-accent); font-size: .78rem; }
+.push-settings-card p { margin: .15rem 0 0; color: var(--text-muted); font-size: var(--sm); }
+.push-settings-card button {
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  padding: .5rem .85rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  font-weight: 750;
+}
+.push-settings-card button:disabled { cursor: not-allowed; opacity: .5; }
+.push-settings-card--enabled .push-settings-icon {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
 .guided-tour-card > svg {
   color: var(--color-accent);
   font-size: 1.7rem;
@@ -283,6 +324,9 @@
   .managed-course-form button {
     width: 100%;
   }
+
+  .push-settings-card { grid-template-columns: auto 1fr; }
+  .push-settings-card button { grid-column: 1 / -1; width: 100%; }
 }
 
 @media (max-width: 380px) {

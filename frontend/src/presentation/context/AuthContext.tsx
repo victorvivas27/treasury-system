@@ -4,6 +4,8 @@ import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
 import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import { AUTH_TOKEN_KEY, SESSION_EXPIRED_EVENT, SESSION_REFRESHED_EVENT } from "@/core/D-config/axiosInterceptor";
+import { detachPushSubscription } from
+  "@/core/C-infra/repositories/notification/detachPushSubscription";
 import { FiAlertCircle, FiX } from "react-icons/fi";
 import "./AuthContext.css";
 import {
@@ -228,9 +230,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     // Inicia la revocación con el token todavía disponible, pero no bloquea la interfaz.
     const revocation = token ? useCases.logout.execute() : null;
+    const pushCleanup = token ? detachPushSubscription(token) : null;
     localStorage.setItem(MANUAL_LOGOUT_KEY, "true");
     clearSession();
     void revocation?.catch(() => undefined);
+    void pushCleanup?.catch(() => undefined);
   };
 
   const syncUser = useCallback((updatedUser: User) => {

@@ -92,6 +92,10 @@ jobs:
             GMAIL_APP_PASSWORD=${{ secrets.GMAIL_APP_PASSWORD }}
             EMAIL_FROM=${{ secrets.EMAIL_FROM }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            WEB_PUSH_ENABLED=true
+            WEB_PUSH_PUBLIC_KEY=${{ secrets.WEB_PUSH_PUBLIC_KEY }}
+            WEB_PUSH_PRIVATE_KEY=${{ secrets.WEB_PUSH_PRIVATE_KEY }}
+            WEB_PUSH_SUBJECT=${{ secrets.WEB_PUSH_SUBJECT }}
             GCS_ENABLED=true
             GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}
             GCS_MAX_FILE_SIZE_MB=10

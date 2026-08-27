@@ -20,6 +20,7 @@ import java.util.*;
 public class NotificationService {
     private static final String NOTIFICATION_FIELD = "notification";
     private static final String MESSAGE_FIELD = "message";
+    private static final String NOTIFICATIONS_PATH = "/notifications";
     private static final long MESSAGE_EDIT_MINUTES = 15;
     private static final int EXPECTED_ADMIN_COUNT = 1;
     private final NotificationJpaRepository notifications;
@@ -62,8 +63,10 @@ public class NotificationService {
             return row;
         }).toList();
         deliveries.saveAll(rows);
-        events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipients.stream()
-                .map(UserEntity::getCorreo).toList()));
+        List<String> recipientEmails = recipients.stream().map(UserEntity::getCorreo).toList();
+        events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipientEmails));
+        events.publishEvent(new PushRequestedEvent("notification-" + saved.getId(),
+                saved.getTitle(), saved.getMessage(), NOTIFICATIONS_PATH, recipientEmails));
         return rows.size();
     }
 
@@ -169,7 +172,12 @@ public class NotificationService {
         reply.setMessage(request.message().trim());
         reply.setRead(false);
         reply.setCreatedAt(LocalDateTime.now());
-        return replyResponse(replyRepository.save(reply));
+        NotificationReplyEntity saved = replyRepository.save(reply);
+        String recipientEmail = otherParticipantEmail(delivery, author);
+        events.publishEvent(new PushRequestedEvent("reply-" + saved.getId(),
+                "Nuevo mensaje de " + author.getNombre(), saved.getMessage(), NOTIFICATIONS_PATH,
+                List.of(recipientEmail)));
+        return replyResponse(saved);
     }
 
     @Transactional
@@ -183,9 +191,10 @@ public class NotificationService {
         reply.setRead(false);
         reply.setCreatedAt(LocalDateTime.now());
         NotificationReplyResponse saved = replyResponse(replyRepository.save(reply));
-        UserEntity creator = delivery.getNotification().getCreatedBy();
-        String recipientEmail = author.getId().equals(creator.getId())
-                ? delivery.getUser().getCorreo() : creator.getCorreo();
+        String recipientEmail = otherParticipantEmail(delivery, author);
+        events.publishEvent(new PushRequestedEvent("reply-" + reply.getId(),
+                "Nuevo mensaje de " + author.getNombre(), reply.getMessage(), NOTIFICATIONS_PATH,
+                List.of(recipientEmail)));
         return new RealtimeReply(deliveryId, saved, recipientEmail);
     }
 
@@ -219,6 +228,9 @@ public class NotificationService {
         reply.setCreatedAt(now);
         NotificationReplyResponse savedReply = replyResponse(replyRepository.save(reply));
         events.publishEvent(new NotificationCreatedEvent(savedNotification.getId(),
+                List.of(admin.getCorreo())));
+        events.publishEvent(new PushRequestedEvent("reply-" + reply.getId(),
+                "Nuevo mensaje de " + guardian.getNombre(), reply.getMessage(), NOTIFICATIONS_PATH,
                 List.of(admin.getCorreo())));
         return new RealtimeReply(savedDelivery.getId(), savedReply, admin.getCorreo());
     }
@@ -286,6 +298,12 @@ public class NotificationService {
                 : deliveries.findByIdAndUserId(deliveryId, user.getId());
         return delivery.orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                 "Conversación no encontrada"));
+    }
+
+    private String otherParticipantEmail(UserNotificationEntity delivery, UserEntity author) {
+        UserEntity creator = delivery.getNotification().getCreatedBy();
+        return author.getId().equals(creator.getId())
+                ? delivery.getUser().getCorreo() : creator.getCorreo();
     }
 
     private NotificationReplyResponse replyResponse(NotificationReplyEntity reply) {
