@@ -2,6 +2,7 @@ package com.tesoreria.treasury.infrastructure.adapter.in.web.controller;
 
 import com.tesoreria.alumno.application.usecase.AlumnoService;
 import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 import com.tesoreria.apoderado.core.model.Apoderado;
 import com.tesoreria.apoderado.core.port.in.GetApoderadoUseCase;
 import com.tesoreria.familia.core.model.Familia;
@@ -137,7 +138,8 @@ public class TreasuryController {
         DashboardPerformanceProbe.Measurement measurement = performanceProbe.start(year);
         try {
             long startedAt = DashboardPerformanceProbe.now();
-            TreasuryDashboardOverview overview = treasury.dashboardOverview(year);
+            TreasuryDashboardOverview overview = withCourseComposition(
+                    treasury.dashboardOverview(year));
             performanceProbe.phase(measurement, "dashboardOverview", startedAt);
             if (overview.quotas().totalFamilies() == 0) return overview;
 
@@ -178,10 +180,22 @@ public class TreasuryController {
                     new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
             return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
                     overview.expensesByCategory(), overview.expensesByDescription(),
-                    overview.recentMovements(), overview.auditTrail());
+                    overview.recentMovements(), overview.auditTrail(), overview.courseComposition());
         } finally {
             performanceProbe.finish(measurement);
         }
+    }
+
+    private TreasuryDashboardOverview withCourseComposition(TreasuryDashboardOverview overview) {
+        Map<GeneroAlumno, Long> counts = students.countActiveByGender();
+        var composition = new TreasuryDashboardOverview.CourseComposition(
+                counts.getOrDefault(GeneroAlumno.MASCULINO, 0L),
+                counts.getOrDefault(GeneroAlumno.FEMENINO, 0L),
+                counts.getOrDefault(GeneroAlumno.OTROS, 0L));
+        return new TreasuryDashboardOverview(overview.quotas(), overview.finances(),
+                overview.monthlyCashFlow(), overview.obligationStatus(),
+                overview.expensesByCategory(), overview.expensesByDescription(),
+                overview.recentMovements(), overview.auditTrail(), composition);
     }
 
     @DeleteMapping("/auditoria")

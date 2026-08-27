@@ -334,7 +334,8 @@ public class TreasuryService implements TreasuryUseCase {
                 .toList();
 
         return new TreasuryDashboardOverview(quotas, financialSummary(year), monthly, statuses,
-                categories, expenseDetails, recent, auditTrail);
+                categories, expenseDetails, recent, auditTrail,
+                new TreasuryDashboardOverview.CourseComposition(0, 0, 0));
     }
 
     @Override

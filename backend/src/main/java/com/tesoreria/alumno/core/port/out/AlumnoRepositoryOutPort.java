@@ -1,9 +1,11 @@
 package com.tesoreria.alumno.core.port.out;
 
 import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface AlumnoRepositoryOutPort {
@@ -15,6 +17,8 @@ public interface AlumnoRepositoryOutPort {
     Optional<Alumno> findById(Long alumnoId);
 
     PageResponse<Alumno> findAll(PageRequest pageRequest);
+
+    Map<GeneroAlumno, Long> countActiveByGender();
 
     void deleteByCodigo(String codigo);
 

@@ -27,6 +27,7 @@ const overview = {
     schoolYear: 2026, feeIncome: 140000, otherIncome: 100000,
     totalIncome: 240000, totalExpenses: 30000, availableBalance: 210000,
   },
+  courseComposition: { masculino: 12, femenino: 15, otros: 1 },
   monthlyCashFlow: Array.from({ length: 12 }, (_, index) => ({
     month: index + 1, income: index === 6 ? 100000 : 0, expense: index === 6 ? 30000 : 0,
   })),
@@ -101,6 +102,26 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Alimentación")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Avance de recaudación" }))
       .toHaveAttribute("aria-valuenow", "67");
+  });
+
+  it("muestra al apoderado la composicion agregada del curso", async () => {
+    currentUser.rol = "USER";
+    dashboardOverview.mockResolvedValue(overview);
+    contributionSummary.mockResolvedValue({
+      totalFamilies: 0, cepaPaid: 0, cepaPending: 0,
+      solidarityPaid: 0, solidarityPending: 0, fullyPaid: 0, withPending: 0,
+    });
+
+    const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+
+    const composition = await waitFor(() => {
+      const card = container.querySelector(".dashboard-gender-card");
+      expect(card).toBeInTheDocument();
+      return card;
+    });
+    const values = [...composition!.querySelectorAll(".dashboard-gender-card__items b")]
+      .map(item => item.textContent);
+    expect(values).toEqual(["12", "15", "1"]);
   });
 
   it("pagina la actividad reciente de cinco en cinco", async () => {

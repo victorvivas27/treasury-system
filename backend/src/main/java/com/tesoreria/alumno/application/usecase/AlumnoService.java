@@ -2,6 +2,7 @@ package com.tesoreria.alumno.application.usecase;
 
 import com.tesoreria.alumno.core.exception.AlumnoErrorCode;
 import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 import com.tesoreria.alumno.core.port.in.CreateAlumnoUseCase;
 import com.tesoreria.alumno.core.port.in.DeleteAlumnoUseCase;
 import com.tesoreria.alumno.core.port.in.GetAlumnoUseCase;
@@ -12,6 +13,9 @@ import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public class AlumnoService implements
         CreateAlumnoUseCase,
@@ -47,6 +51,14 @@ public class AlumnoService implements
     @Override
     public PageResponse<Alumno> findAll(PageRequest pageRequest) {
         return repository.findAll(pageRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<GeneroAlumno, Long> countActiveByGender() {
+        Map<GeneroAlumno, Long> counts = new EnumMap<>(GeneroAlumno.class);
+        for (GeneroAlumno gender : GeneroAlumno.values()) counts.put(gender, 0L);
+        counts.putAll(repository.countActiveByGender());
+        return counts;
     }
 
     @Override

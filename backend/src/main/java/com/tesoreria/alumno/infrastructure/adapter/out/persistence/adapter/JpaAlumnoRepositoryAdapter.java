@@ -1,6 +1,7 @@
 package com.tesoreria.alumno.infrastructure.adapter.out.persistence.adapter;
 
 import com.tesoreria.alumno.core.model.Alumno;
+import com.tesoreria.alumno.core.model.GeneroAlumno;
 import com.tesoreria.alumno.core.port.out.AlumnoRepositoryOutPort;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity.AlumnoEntity;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.mapper.AlumnoPersistenceMapper;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -61,6 +64,14 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
                 pageEntity.getSize(),
                 pageEntity.getTotalElements(),
                 pageEntity.getTotalPages());
+    }
+
+    @Override
+    public Map<GeneroAlumno, Long> countActiveByGender() {
+        Map<GeneroAlumno, Long> result = new EnumMap<>(GeneroAlumno.class);
+        jpaRepository.countActiveByGender()
+                .forEach(value -> result.put(value.getGender(), value.getTotal()));
+        return result;
     }
 
     @Override
