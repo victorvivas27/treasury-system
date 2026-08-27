@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface StandSaleJpaRepository extends JpaRepository<StandSaleEntity, Long> {
-    List<StandSaleEntity> findByStandIdOrderBySoldAtDesc(Long standId);
+    @Query("select distinct s from StandSaleEntity s left join fetch s.items "
+            + "where s.stand.id = :standId order by s.soldAt desc")
+    List<StandSaleEntity> findByStandIdOrderBySoldAtDesc(@Param("standId") Long standId);
 
     boolean existsByStandId(Long standId);
 

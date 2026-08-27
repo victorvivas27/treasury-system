@@ -3,7 +3,9 @@ package performance;
 import com.tesoreria.TesoreriaAppApplication;
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.repository.FamiliaJpaRepository;
 import com.tesoreria.stand.core.model.StandPaymentMethod;
+import com.tesoreria.stand.infrastructure.adapter.out.persistence.entity.StandSaleEntity;
 import com.tesoreria.stand.infrastructure.adapter.out.persistence.repository.StandSaleJpaRepository;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -27,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestPropertySource(properties = {
         "spring.flyway.enabled=true",
         "spring.jpa.hibernate.ddl-auto=validate",
-        "spring.jpa.database=postgresql"
+        "spring.jpa.database=postgresql",
+        "spring.jpa.properties.hibernate.generate_statistics=true"
 })
 class PostgresPerformanceQueryIntegrationTest {
     @Container
@@ -41,6 +44,8 @@ class PostgresPerformanceQueryIntegrationTest {
     private StandSaleJpaRepository sales;
     @Autowired
     private FamiliaJpaRepository families;
+    @Autowired
+    private jakarta.persistence.EntityManagerFactory entityManagerFactory;
 
     @BeforeEach
     void clean() {
@@ -142,6 +147,27 @@ class PostgresPerformanceQueryIntegrationTest {
         assertAll(() -> assertTrue(sales.aggregateSales(standId).isEmpty()),
                 () -> assertTrue(sales.aggregateItems(standId).isEmpty()),
                 () -> assertEquals(new BigDecimal("0"), sales.calculateEventNetRevenue(eventId)));
+    }
+
+    @Test
+    void listSales_deberiaCargarVentasEItemsEnUnaSolaConsulta() {
+        long eventId = insertEvent("Evento historial");
+        long standId = insertStand(eventId, "Stand", "OPEN", "0", "0", "0");
+        long firstSale = insertSale(standId, "CASH", "20.00", "ACTIVE");
+        insertItem(firstSale, 1, "Producto A", "Comida", null, "Unidad", "1.0000",
+                2, "10.00", "3.00", "20.00", "6.00");
+        long secondSale = insertSale(standId, "DEBIT", "15.00", "ACTIVE");
+        insertItem(secondSale, 2, "Producto B", "Bebida", null, "Unidad", "1.0000",
+                1, "15.00", "5.00", "15.00", "5.00");
+
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.clear();
+        List<StandSaleEntity> result = sales.findByStandIdOrderBySoldAtDesc(standId);
+        int loadedItems = result.stream().mapToInt(sale -> sale.getItems().size()).sum();
+
+        assertAll(() -> assertEquals(2, result.size()),
+                () -> assertEquals(2, loadedItems),
+                () -> assertEquals(1, statistics.getPrepareStatementCount()));
     }
 
     @Test
