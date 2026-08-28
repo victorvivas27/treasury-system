@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FiCheck, FiClipboard, FiCreditCard, FiExternalLink, FiEye, FiUpload, FiX } from "react-icons/fi";
 import { apiClient } from "@/core/D-config/api";
 import { useAuth } from "@/presentation/context/AuthContext";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import "./PaymentsPage.css";
 
 type BankAccount = { id?: number; schoolYear: number; accountHolderName: string; accountHolderRut: string;
@@ -52,6 +53,7 @@ export const PaymentsPage = () => {
   const [bank, setBank] = useState<BankAccount>(emptyBank(yearNow));
   const [reviews, setReviews] = useState<Review[]>([]);
   const [filter, setFilter] = useState("");
+  const [loadingMine, setLoadingMine] = useState(!admin);
   const [busy, setBusy] = useState(false);
   const [uploadingInstallmentId, setUploadingInstallmentId] = useState<number | null>(null);
   const [notice, setNotice] = useState("");
@@ -67,16 +69,28 @@ export const PaymentsPage = () => {
         ]);
         setBank(setting); setReviews(review);
       } else {
-        const bankData = await apiClient.get<BankAccount>(`${base}/cuenta-bancaria`,
-          { params: { year } }).then(response => response.data).catch(() => null);
-        if (bankData) setBank(bankData);
-        const paymentsData = await apiClient.get<MyPayments>(`${base}/mis-pagos`,
-          { params: { year } }).then(response => response.data);
+        setLoadingMine(true);
+        const [bankResult, paymentsResult] = await Promise.allSettled([
+          apiClient.get<BankAccount>(`${base}/cuenta-bancaria`,
+            { params: { year } }).then(response => response.data),
+          apiClient.get<MyPayments>(`${base}/mis-pagos`,
+            { params: { year } }).then(response => response.data),
+        ]);
+        const bankData = bankResult.status === "fulfilled" ? bankResult.value : null;
+        setBank(bankData ?? emptyBank(year));
+        if (paymentsResult.status === "rejected") {
+          setMine(null);
+          setError("No fue posible cargar la cuota anual de este año.");
+          return;
+        }
+        const paymentsData = paymentsResult.value;
         setMine({ ...paymentsData, bankAccount: bankData ?? paymentsData.bankAccount });
       }
     } catch {
       setMine(null);
       setError("La cuenta bancaria está disponible, pero falta configurar la cuota anual de este año.");
+    } finally {
+      if (!admin) setLoadingMine(false);
     }
   }, [admin, filter, year]);
   useEffect(() => { void load(); }, [load]);
@@ -143,7 +157,42 @@ export const PaymentsPage = () => {
       <section className="payment-panel review-panel"><header><div><h2>Comprobantes</h2><p>{reviews.length} movimientos encontrados.</p></div><select aria-label="Filtrar pagos" value={filter} onChange={event => setFilter(event.target.value)}><option value="">Todos</option><option value="PROOF_SUBMITTED">Pendientes de revisión</option><option value="PAID">Pagados</option><option value="REJECTED">Rechazados</option></select></header>
         <div className="review-list">{reviews.length === 0 ? <p className="empty-payments">No hay comprobantes en este filtro.</p> : reviews.map(item => <article key={item.id}><div><strong>{item.studentName}</strong><span>{item.guardianName} · {item.installment}</span></div><b>{money.format(item.amount)}</b><span className={`payment-status is-${item.status.toLowerCase()}`}>{friendly[item.status] ?? item.status}</span><div className="review-actions"><button onClick={() => void openProof(item.id)}><FiExternalLink /> Ver</button>{item.status === "PROOF_SUBMITTED" && <><button className="approve" disabled={busy} onClick={() => void review(item.id, true)}><FiCheck /> Aprobar</button><button className="reject" disabled={busy} onClick={() => void review(item.id, false)}><FiX /> Rechazar</button></>}</div></article>)}</div>
       </section>
-    </> : mine ? <>
+    </> : loadingMine ? <div className="payments-skeleton" role="status"
+      aria-label="Cargando tus pagos">
+      <section className="payment-hero payment-hero-skeleton">
+        <div className="payment-hero__summary">
+          <Skeleton width="9rem" height="1.25rem" />
+          <Skeleton width="3.5rem" height=".6rem" />
+          <Skeleton width="11rem" height="1.5rem" />
+          <Skeleton width="7.5rem" height="2rem" />
+        </div>
+        <div className="payment-progress">
+          <Skeleton width="100%" height=".7rem" />
+          <Skeleton width="6.5rem" height="1.25rem" />
+          <Skeleton width="9rem" height=".6rem" />
+          <Skeleton width="100%" height=".5rem" />
+        </div>
+      </section>
+      <div className="guardian-payment-grid">
+        <section className="installment-list">
+          <header><Skeleton width="7rem" height="1rem" />
+            <Skeleton width="5rem" height="1.4rem" /></header>
+          {[0, 1].map(item => <article className="installment-card" key={item}>
+            <header><div><Skeleton width="6rem" height=".65rem" />
+              <Skeleton width="8rem" height="1.3rem" /></div>
+              <Skeleton width="5rem" height="1.45rem" /></header>
+            <Skeleton width="8rem" height=".65rem" />
+            <Skeleton width="9rem" height="2rem" />
+          </article>)}
+        </section>
+        <aside className="payment-panel transfer-data">
+          <Skeleton width="9rem" height=".65rem" />
+          <Skeleton width="10rem" height="1.25rem" />
+          <Skeleton width="7rem" height=".7rem" />
+          {[0, 1, 2].map(item => <Skeleton key={item} width="100%" height="2rem" />)}
+        </aside>
+      </div>
+    </div> : mine ? <>
       <section className="payment-hero"><div className="payment-hero__orb" aria-hidden="true" /><div className="payment-hero__summary"><span className="payment-hero__eyebrow"><FiCreditCard /> Cuota de curso {year}</span><small>Alumno</small><h2>{mine.studentName}</h2><div className="payment-hero__amount"><span>Total anual</span><strong>{money.format(mine.totalAmount)}</strong></div></div><div className="payment-progress"><header><span>Progreso del plan</span><b>{mine.totalAmount > 0 ? Math.round((mine.paidAmount / mine.totalAmount) * 100) : 0}%</b></header><strong>{money.format(mine.paidAmount)}</strong><small>de {money.format(mine.totalAmount)} pagados</small><progress max={mine.totalAmount} value={mine.paidAmount} /></div></section>
       {!mine.selectedMode ? <div className="guardian-payment-grid"><section className="payment-panel plan-picker"><h2>¿Cómo quieres pagar?</h2><p>El sistema calculará automáticamente los montos.</p><div>{mine.allowedMode !== "DOS_CUOTAS" && <button disabled={busy} onClick={() => void choose("ANUAL")}><strong>Pago único</strong><span>{money.format(mine.totalAmount)}</span></button>}{mine.allowedMode !== "ANUAL" && <button disabled={busy} onClick={() => void choose("DOS_CUOTAS")}><strong>2 cuotas</strong><span>{money.format(Math.ceil(mine.totalAmount / 2))} aprox.</span></button>}</div></section><aside className="payment-panel transfer-data"><small>Cuenta bancaria configurada</small>{mine.bankAccount ? <><h3>{mine.bankAccount.accountHolderName}</h3><p>{mine.bankAccount.bankName} · {mine.bankAccount.accountType}</p>{[["RUT", mine.bankAccount.accountHolderRut], ["Número de cuenta", mine.bankAccount.accountNumber], ["Correo", mine.bankAccount.email]].map(([label, value]) => <div key={label}><span><small>{label}</small><b>{value}</b></span><button onClick={() => void copy(value, label)}><FiClipboard /> Copiar</button></div>)}<button className="copy-all" onClick={copyAll}><FiClipboard /> Copiar todos los datos</button></> : <p>El tesorero aún no configura la cuenta bancaria para {year}.</p>}</aside></div> : <div className="guardian-payment-grid"><section className="installment-list"><header><h2>Mis cuotas</h2><span>{mine.selectedMode === "ANUAL" ? "Pago único" : "Dos cuotas"}</span></header>{mine.installments.map(item => <article className="installment-card" key={item.id}><header><div><small>{item.concept}</small><strong>{money.format(item.amount)}</strong></div><span className={`payment-status is-${item.status.toLowerCase()}`}>{friendly[item.status]}</span></header><p>Vence el {new Date(`${item.dueDate}T12:00:00`).toLocaleDateString("es-CL")}</p>{item.status === "PENDIENTE" && <label className="proof-upload"><FiUpload />{uploadingInstallmentId === item.id ? "Enviando..." : "Subir comprobante"}<input type="file" accept="image/jpeg,image/png,application/pdf" disabled={uploadingInstallmentId !== null} onChange={event => void upload(item.id, event.target.files?.[0])} /></label>}{item.history.length > 0 && <div className="attempts"><small>Comprobantes</small>{item.history.map((attempt, index) => <button key={attempt.id} onClick={() => void openProof(attempt.id)}><span><FiEye /> Ver comprobante</span><small>Intento {item.history.length - index} · {friendly[attempt.status] ?? attempt.status}{attempt.rejectionReason ? ` — ${attempt.rejectionReason}` : ""}</small></button>)}</div>}</article>)}</section>
         <aside className="payment-panel transfer-data"><small>Datos para transferir</small>{mine.bankAccount ? <><h3>{mine.bankAccount.accountHolderName}</h3><p>{mine.bankAccount.bankName} · {mine.bankAccount.accountType}</p>{[["RUT", mine.bankAccount.accountHolderRut], ["Número de cuenta", mine.bankAccount.accountNumber], ["Correo", mine.bankAccount.email]].map(([label, value]) => <div key={label}><span><small>{label}</small><b>{value}</b></span><button onClick={() => void copy(value, label)}><FiClipboard /> Copiar</button></div>)}<button className="copy-all" onClick={copyAll}><FiClipboard /> Copiar todos los datos</button></> : <p>El tesorero aún no configura la cuenta bancaria.</p>}</aside></div>}
