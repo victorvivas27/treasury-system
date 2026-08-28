@@ -13,7 +13,99 @@
 
 .system-home-footer {
   width: min(100% - 2rem, 1180px);
+  height: 104px;
+  min-height: 104px;
+  flex: 0 0 104px;
+  box-sizing: border-box;
   margin: auto auto 0;
+}
+
+.system-home-footer .public-home__footer-content {
+  width: min(100%, 540px);
+  margin-inline: auto;
+  grid-template-areas: "brand signature" "copyright signature";
+  grid-template-columns: minmax(120px, .7fr) minmax(0, 1.3fr);
+  gap: .12rem .7rem;
+  padding: .45rem .6rem;
+  border: 1px solid rgba(14, 235, 205, .18);
+  border-radius: .8rem;
+  background: linear-gradient(135deg, rgba(14, 235, 205, .055), rgba(59, 130, 246, .035));
+  box-sizing: border-box;
+}
+
+.system-home-footer .public-home__footer-brand {
+  grid-area: brand;
+  gap: .08rem;
+}
+
+.system-home-footer .public-home__footer-brand .public-home__brand {
+  gap: .3rem;
+  font-size: .72rem;
+}
+
+.system-home-footer .public-home__footer-brand .public-home__brand img {
+  width: 26px;
+  height: 26px;
+}
+
+.system-home-footer .public-home__footer-brand p {
+  font-size: .48rem;
+}
+
+.system-home-footer .public-home__signature {
+  grid-area: signature;
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .15rem .5rem;
+  padding: .2rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.system-home-footer .public-home__signature-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: .5rem;
+  font-size: .78rem;
+}
+
+.system-home-footer .public-home__signature-stage {
+  min-width: 0;
+  min-height: 36px;
+}
+
+.system-home-footer .public-home__signature-code {
+  font-size: .46rem;
+  line-height: 1.15;
+}
+
+.system-home-footer .public-home__signature-rendered {
+  gap: .08rem;
+}
+
+.system-home-footer .public-home__signature-copy small {
+  font-size: .48rem;
+}
+
+.system-home-footer .public-home__signature-copy strong {
+  font-size: .68rem;
+}
+
+.system-home-footer .public-home__signature-links {
+  gap: .08rem .45rem;
+}
+
+.system-home-footer .public-home__signature-links a {
+  font-size: .49rem;
+}
+
+.system-home-footer .public-home__copyright {
+  grid-area: copyright;
+  font-size: .46rem;
+  text-align: left;
+  white-space: nowrap;
 }
 
 @media (min-width: 1024px) {
@@ -28,6 +120,14 @@
   }
 }
 
+@media (min-width: 681px) and (max-width: 1100px) {
+  .system-home-footer {
+    height: 138px;
+    min-height: 138px;
+    flex-basis: 138px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-layout {
     width: calc(100% - 3.5rem);
@@ -38,5 +138,30 @@
   .main-content {
     width: 100%;
     overflow: clip;
+  }
+
+  .public-home__footer.system-home-footer {
+    height: 132px;
+    min-height: 132px;
+    flex-basis: 132px;
+    padding-bottom: 0;
+  }
+
+  .system-home-footer .public-home__footer-content {
+    width: min(100%, 310px);
+    grid-template-areas: "brand copyright" "signature signature";
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .25rem .45rem;
+    padding: .35rem .45rem;
+  }
+
+  .system-home-footer .public-home__copyright {
+    align-self: center;
+    font-size: .42rem;
+    text-align: right;
+  }
+
+  .system-home-footer .public-home__footer-brand p {
+    display: none;
   }
 }

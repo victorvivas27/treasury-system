@@ -27,7 +27,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [pushStatus, setPushStatus] = useState<NotificationContextValue["pushStatus"]>("checking");
   const [pushLoading, setPushLoading] = useState(false);
 
@@ -60,7 +60,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, [auth?.isAuthenticated, repository]);
 
   useEffect(() => {
-    if (!auth?.isAuthenticated) { setNotifications([]); setUnreadCount(0); return; }
+    if (!auth?.isAuthenticated) {
+      setNotifications([]); setUnreadCount(0); setLoading(false); return;
+    }
     void refresh();
     const timer = window.setInterval(() => void repository.unreadCount()
       .then(setUnreadCount).catch(() => undefined), 10_000);
