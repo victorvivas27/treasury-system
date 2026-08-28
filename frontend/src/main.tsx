@@ -16,7 +16,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     const reloadWithAppBackground = () => {
       const cover = document.createElement('div')
       cover.setAttribute('role', 'status')
-      cover.setAttribute('aria-label', 'Actualizando Sistema de Tesorería')
+      cover.setAttribute('aria-label', 'Actualizando Tesorería Escolar')
       cover.style.cssText = [
         'position:fixed', 'inset:0', 'z-index:2147483647', 'display:grid',
         'place-items:center', `background:${document.documentElement.dataset.theme === 'light'

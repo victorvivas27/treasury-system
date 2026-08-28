@@ -8,7 +8,7 @@ export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
     {...(reveal ? { "data-home-footer-reveal": true } : {})}>
     <div className="public-home__footer-brand">
       <Link className="public-home__brand" to="/">
-        <BrandLogo alt="" /><span>Sistema de Tesorería</span>
+        <BrandLogo alt="" /><span>Tesorería Escolar</span>
       </Link>
       <p>Finanzas claras para cada curso.</p>
     </div>
@@ -35,6 +35,6 @@ export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
         </span>
       </span>
     </address>
-    <span className="public-home__copyright">© {new Date().getFullYear()} Sistema de Tesorería</span>
+    <span className="public-home__copyright">© {new Date().getFullYear()} Tesorería Escolar</span>
   </footer>
 );

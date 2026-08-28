@@ -12,7 +12,7 @@ public class TesoreriaAppApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(TesoreriaAppApplication.class, args);
-        logger.info("🚀 Tesorería App iniciada.");
+        logger.info("🚀 Tesorería Escolar iniciada.");
 
     }
 }

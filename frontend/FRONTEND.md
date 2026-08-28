@@ -1,4 +1,4 @@
-# Frontend del Sistema de Tesorería (Treasury System)
+# Frontend de Tesorería Escolar
 
 Aplicación React 19 y TypeScript construida con Vite. Los comandos de esta guía se ejecutan desde `frontend/` y usan pnpm 11.5.0.
 

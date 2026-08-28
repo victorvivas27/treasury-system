@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Sistema de Tesorería",
-  "short_name": "Tesorería",
+  "name": "Tesorería Escolar",
+  "short_name": "Tesorería Escolar",
   "description": "Administra cuotas, ingresos, gastos y actividades del curso con claridad y transparencia.",
   "lang": "es-CL",
   "dir": "ltr",

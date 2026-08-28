@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FiDownload, FiMoreVertical, FiShare2 } from "react-icons/fi";
 import "../style/HomeInstallGuide.css";
 
-const installTitle = "¡Instala Tesorería en tu celular!";
+const installTitle = "¡Instala Tesorería Escolar en tu celular!";
 
 export const HomeInstallGuide = () => {
   const [visibleTitle, setVisibleTitle] = useState("");
@@ -41,7 +41,7 @@ export const HomeInstallGuide = () => {
     <section className="public-home__install" data-home-reveal aria-labelledby="install-app-title">
     <div className="public-home__install-heading">
       <span className="public-home__install-icon">
-        <img src="/icono-tesoreria.png" alt="Icono de la aplicación Tesorería" />
+        <img src="/icono-tesoreria.png" alt="Icono de Tesorería Escolar" />
       </span>
       <div>
         <span className="public-home__install-eyebrow"><FiDownload aria-hidden="true" /> Aplicación instalable</span>

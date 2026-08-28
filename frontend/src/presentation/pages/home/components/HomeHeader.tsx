@@ -63,9 +63,9 @@ export const HomeHeader = ({ isAuthenticated = false, isAdmin = false, user, onL
       aria-label={`Ver perfil de ${user?.nombre ?? "Usuario"}`}>
       <UserAvatar user={user ?? null} className="public-home__account-avatar" />
       <span>{user?.nombre ?? "Usuario"}</span>
-    </Link> : <Link className="public-home__brand" to="/" aria-label="Sistema de Tesorería, inicio">
+    </Link> : <Link className="public-home__brand" to="/" aria-label="Tesorería Escolar, inicio">
       <BrandLogo alt="" />
-      <span>Sistema de Tesorería</span>
+      <span>Tesorería Escolar</span>
     </Link>}
     {isAuthenticated && <button className="public-home__menu-toggle" type="button"
       aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}

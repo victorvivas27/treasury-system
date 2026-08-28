@@ -34,7 +34,7 @@ export const RegisterPage = () => {
       <header className="form-page-header">
         <BrandLogo className="login-brand-logo" />
         <h1 className="form-page-header__title">Regístrate como usuario</h1>
-        <p className="form-page-header__subtitle">Accede al Sistema de Tesorería</p>
+        <p className="form-page-header__subtitle">Accede a Tesorería Escolar</p>
       </header>
       <UserForm
         key={formKey}
