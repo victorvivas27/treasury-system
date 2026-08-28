@@ -42,11 +42,11 @@ describe("RegisterPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("img", { name: "Logo del Sistema de Tesorería" }))
+    expect(screen.getByRole("img", { name: "Logo de Tesorería Escolar" }))
       .toHaveAttribute("src", "/icono-tesoreria-loader.png");
     expect(screen.getByRole("heading", { name: "Regístrate como usuario" }))
       .toBeInTheDocument();
-    expect(screen.getByText("Accede al Sistema de Tesorería")).toBeInTheDocument();
+    expect(screen.getByText("Accede a Tesorería Escolar")).toBeInTheDocument();
     expect(screen.getByLabelText("Nombre")).toHaveAttribute("placeholder", "Ej.: Ana Pérez");
     expect(screen.getByLabelText("Correo")).toHaveAttribute(
       "placeholder", "Ej.: nombre@correo.cl");

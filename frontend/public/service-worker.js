@@ -120,7 +120,7 @@ self.addEventListener('push', (event) => {
     payload = { body: event.data?.text() ?? 'Tienes una nueva notificación.' }
   }
   const count = Math.max(0, Number(payload.badgeCount) || 0)
-  const title = payload.title || 'Sistema de Tesorería'
+  const title = payload.title || 'Tesorería Escolar'
   const options = {
     body: payload.body || 'Tienes una nueva notificación.',
     icon: payload.icon || '/icono-tesoreria.png',

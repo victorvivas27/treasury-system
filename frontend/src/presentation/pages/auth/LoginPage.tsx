@@ -94,7 +94,7 @@ export const LoginPage = () => {
       <header className="form-page-header">
         <BrandLogo className="login-brand-logo" />
         <h1 className="form-page-header__title">Iniciar sesión</h1>
-        <p className="form-page-header__subtitle">Accede al Sistema de Tesorería</p>
+        <p className="form-page-header__subtitle">Accede a Tesorería Escolar</p>
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
         <div className="form-group">
