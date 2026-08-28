@@ -38,7 +38,8 @@ export const HomeInstallGuide = () => {
   }, []);
 
   return (
-    <section className="public-home__install" data-home-reveal aria-labelledby="install-app-title">
+    <section className="public-home__install" data-home-reveal data-home-scroll-repeat
+      aria-labelledby="install-app-title">
     <div className="public-home__install-heading">
       <span className="public-home__install-icon">
         <img src="/icono-tesoreria.png" alt="Icono de Tesorería Escolar" />

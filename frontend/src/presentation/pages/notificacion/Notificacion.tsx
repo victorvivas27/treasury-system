@@ -552,10 +552,6 @@ const GuardianInbox = () => {
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
   useEffect(() => {
-    document.body.classList.add("notifications-inbox-open");
-    return () => document.body.classList.remove("notifications-inbox-open");
-  }, []);
-  useEffect(() => {
     if (!loading && unreadCount > 0 && !autoReadRequested.current) {
       autoReadRequested.current = true;
       void markAllRead();
@@ -594,7 +590,19 @@ const GuardianInbox = () => {
           icon={<FiCheckCircle />} iconPosition="left"
           className="notifications-header-action notifications-header-action--read"
           onClick={() => void markAllRead()} /></div></header>
-    <section className="notifications-list" data-notification-tour="messages" aria-live="polite">
+    <section className="notifications-list" data-notification-tour="messages" aria-live="polite"
+      aria-busy={loading}>
+      {loading && notifications.length === 0 && <div className="notifications-loading" role="status"
+        aria-label="Cargando mensajes">
+        {[0, 1, 2].map(item => <article className="notification-message-skeleton" key={item}
+          aria-hidden="true">
+          <span className="notification-message-skeleton__avatar" />
+          <div><span className="notification-message-skeleton__meta" />
+            <span className="notification-message-skeleton__title" />
+            <span className="notification-message-skeleton__line" />
+            <span className="notification-message-skeleton__line is-short" /></div>
+        </article>)}
+      </div>}
       {!loading && notifications.length === 0 && <div className="notifications-empty-conversation">
         <section className="notifications-empty-conversation__contact-section">
           <h2>Contactos</h2>
@@ -637,10 +645,11 @@ const GuardianInbox = () => {
         key={orderedNotifications[orderedNotifications.length - 1].id}
         deliveryId={orderedNotifications[orderedNotifications.length - 1].id}
         repository={repository} isAdmin={false} initialScrollToBottom
-        notificationItems={orderedNotifications.map(item => ({ id: `notification-${item.id}`,
+        notificationItems={orderedNotifications.map((item, index) => ({ id: `notification-${item.id}`,
           createdAt: item.createdAt, content: <article
         className={`notification-card chat-bubble chat-bubble--incoming notification-card--${item.type.toLowerCase()} ${
           item.read ? "is-read" : "is-unread"}`}
+        style={{ "--message-delay": `${Math.min(index, 8) * 70}ms` } as CSSProperties}
         onClick={() => !item.read && void markRead(item.id)}>
         <span className="notification-card__icon"><IoNotificationsOutline aria-hidden="true" /></span>
         <div className="notification-card__content">

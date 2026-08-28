@@ -6,6 +6,7 @@ import "../style/HomeFooter.css";
 export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
   <footer className={`public-home__footer${reveal ? "" : " system-home-footer"}`}
     {...(reveal ? { "data-home-footer-reveal": true } : {})}>
+    <div className="public-home__footer-content">
     <div className="public-home__footer-brand">
       <Link className="public-home__brand" to="/">
         <BrandLogo alt="" /><span>Tesorería Escolar</span>
@@ -36,5 +37,6 @@ export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
       </span>
     </address>
     <span className="public-home__copyright">© {new Date().getFullYear()} Tesorería Escolar</span>
+    </div>
   </footer>
 );

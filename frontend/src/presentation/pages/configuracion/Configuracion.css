@@ -296,41 +296,104 @@
 
 @media (max-width: 640px) {
   .settings-page {
-    padding: var(--md);
+    padding: .45rem .5rem .65rem;
   }
 
-  .appearance-heading {
-    flex-direction: column;
+  .settings-header { margin-bottom:.55rem; }
+  .settings-eyebrow { margin:0; font-size:.52rem; letter-spacing:.07em; }
+  .settings-header h1 { margin:.08rem 0; font-size:1rem; line-height:1.1; }
+  .settings-header > p:last-child { margin:.08rem 0 0; font-size:.6rem; }
+
+  .appearance-card,.managed-course-card,.guided-tour-card,.push-settings-card {
+    border-radius:.75rem;
   }
+
+  .appearance-card { padding:.55rem .6rem; }
+  .appearance-heading {
+    align-items:center;
+    gap:.4rem;
+    margin-bottom:.45rem;
+  }
+  .appearance-heading h2 { margin:0; font-size:.78rem; }
+  .appearance-heading p { margin-top:.08rem; font-size:.52rem; }
+  .resolved-theme { padding:.2rem .38rem; font-size:.46rem; white-space:nowrap; }
+
+  .theme-selector legend { margin-bottom:.35rem; font-size:.54rem; }
 
   .theme-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap:.3rem;
   }
 
   .theme-option {
-    min-height: 3.5rem;
+    min-height:2.75rem;
+    flex-direction:column;
+    gap:.12rem;
+    padding:.3rem .18rem;
+    border-radius:.55rem;
+    font-size:.55rem;
   }
+  .theme-option > svg { width:.88rem; height:.88rem; }
+  .theme-check { top:.2rem; right:.2rem; width:.65rem!important; height:.65rem!important; }
+  .theme-description { min-height:0; margin:.4rem 0 0; font-size:.53rem; line-height:1.35; }
+
+  .guided-tour-card,.push-settings-card {
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:.42rem;
+    margin-top:.45rem;
+    padding:.48rem .55rem;
+  }
+  .guided-tour-card > svg { width:1.15rem; height:1.15rem; font-size:1.15rem; }
+  .guided-tour-card h2,.push-settings-card h2 { font-size:.68rem; line-height:1.15; }
+  .guided-tour-card p,.push-settings-card p { margin-top:.08rem; font-size:.5rem; line-height:1.28; }
+  .guided-tour-card button,.push-settings-card button {
+    min-height:30px;
+    padding:.3rem .45rem;
+    border-radius:.5rem;
+    font-size:.52rem;
+    white-space:nowrap;
+  }
+  .push-settings-card strong { margin-top:.08rem; font-size:.55rem; }
+  .push-settings-icon { width:1.7rem; height:1.7rem; font-size:.82rem; }
 
   .managed-course-heading {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:.4rem;
+    margin-bottom:.45rem;
   }
+  .managed-course-card { margin-top:.45rem; padding:.58rem .62rem; border-width:1px; }
+  .managed-course-heading > svg { font-size:1.15rem; }
+  .managed-course-heading h2 { margin:0; font-size:.7rem; }
+  .managed-course-heading p { margin:.08rem 0 0; font-size:.5rem; line-height:1.25; }
+  .managed-course-heading strong { font-size:.9rem; }
+  .managed-course-card > label { margin-bottom:.18rem; font-size:.5rem; }
 
   .managed-course-form {
-    flex-direction: column;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:.35rem;
   }
 
   .managed-course-form input,
   .managed-course-form button {
-    width: 100%;
+    min-height:32px;
+    border-radius:.5rem;
+    padding:.3rem .45rem;
+    font-size:.62rem;
   }
+  .managed-course-form input { width:100%; min-width:0; }
+  .managed-course-form button { gap:.25rem; white-space:nowrap; }
+  .managed-course-help { margin:.38rem 0 0; font-size:.49rem; line-height:1.3; }
 
-  .push-settings-card { grid-template-columns: auto 1fr; }
-  .push-settings-card button { grid-column: 1 / -1; width: 100%; }
+  .push-settings-card button { grid-column:auto; width:auto; }
 }
 
 @media (max-width: 380px) {
-  .settings-page { padding: var(--sm); }
-  .appearance-card, .managed-course-card { padding: var(--md); }
-  .resolved-theme { white-space: normal; }
+  .settings-page { padding:.35rem .38rem .55rem; }
+  .appearance-card,.managed-course-card { padding:.48rem; }
+  .resolved-theme { max-width:6rem; white-space:normal; text-align:center; }
+  .guided-tour-card,.push-settings-card { gap:.3rem; padding:.42rem; }
+  .guided-tour-card button,.push-settings-card button { padding-inline:.34rem; }
+  .managed-course-form button { font-size:.54rem; }
 }
