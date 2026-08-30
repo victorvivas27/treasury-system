@@ -20,6 +20,7 @@ import java.util.*;
 public class NotificationService {
     private static final String NOTIFICATION_FIELD = "notification";
     private static final String MESSAGE_FIELD = "message";
+    private static final String RECIPIENTS_FIELD = "recipients";
     private static final String NOTIFICATIONS_PATH = "/notifications";
     private static final long MESSAGE_EDIT_MINUTES = 15;
     private static final int EXPECTED_ADMIN_COUNT = 1;
@@ -45,8 +46,8 @@ public class NotificationService {
     @Transactional
     public int send(NotificationRequest request, String creatorEmail) {
         UserEntity creator = currentUser(creatorEmail);
-        List<UserEntity> recipients = resolveRecipients(request);
-        if (recipients.isEmpty()) throw error("recipients", HttpStatus.BAD_REQUEST,
+        List<UserEntity> recipients = resolveRecipients(request, creator.getOrganizationId());
+        if (recipients.isEmpty()) throw error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST,
                 "Debes seleccionar al menos un apoderado con acceso");
         LocalDateTime now = LocalDateTime.now();
         NotificationEntity notification = new NotificationEntity();
@@ -204,7 +205,7 @@ public class NotificationService {
         if (guardian.getRol() == RoleEnum.ADMIN)
             throw error("recipient", HttpStatus.BAD_REQUEST,
                     "La conversación con Tesorería debe iniciarla un apoderado");
-        UserEntity admin = soleTreasuryAdmin();
+        UserEntity admin = soleTreasuryAdmin(guardian.getOrganizationId());
         LocalDateTime now = LocalDateTime.now();
         NotificationEntity notification = new NotificationEntity();
         notification.setTitle("Conversación con Tesorería");
@@ -241,13 +242,16 @@ public class NotificationService {
         if (requester.getRol() == RoleEnum.ADMIN)
             throw error("recipient", HttpStatus.BAD_REQUEST,
                     "El contacto de Tesorería está disponible para apoderados");
-        UserEntity admin = soleTreasuryAdmin();
+        UserEntity admin = soleTreasuryAdmin(requester.getOrganizationId());
         return new TreasuryContactResponse(admin.getId(), admin.getNombre(), admin.getCorreo(),
                 admin.getProfileImageType().name(), admin.getProfileImageUrl());
     }
 
-    private UserEntity soleTreasuryAdmin() {
-        List<UserEntity> admins = users.findByRolOrderByIdAsc(RoleEnum.ADMIN);
+    private UserEntity soleTreasuryAdmin(Long organizationId) {
+        List<UserEntity> admins = organizationId == null
+                ? users.findByRolOrderByIdAsc(RoleEnum.ADMIN)
+                : users.findByRolInAndOrganizationIdOrderByIdAsc(
+                        List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), organizationId);
         if (admins.size() != EXPECTED_ADMIN_COUNT)
             throw error("recipient", HttpStatus.CONFLICT,
                     "No existe una cuenta única de Tesorería disponible");
@@ -314,19 +318,23 @@ public class NotificationService {
                 reply.getMessage(), reply.getCreatedAt());
     }
 
-    private List<UserEntity> resolveRecipients(NotificationRequest request) {
+    private List<UserEntity> resolveRecipients(NotificationRequest request, Long organizationId) {
         if (request.sendToAll()) return guardians.findAll().stream()
                 .map(guardian -> users.findByCorreo(guardian.getEmail()).orElse(null))
                 .filter(Objects::nonNull)
+                .filter(user -> Objects.equals(organizationId, user.getOrganizationId()))
                 .filter(user -> user.getRol() == RoleEnum.USER)
                 .toList();
         if (request.recipientIds() == null || request.recipientIds().isEmpty()) return List.of();
         List<ApoderadoEntity> selected = guardians.findAllById(new LinkedHashSet<>(request.recipientIds()));
         if (selected.size() != new HashSet<>(request.recipientIds()).size())
-            throw error("recipients", HttpStatus.BAD_REQUEST, "Uno o más apoderados no existen");
+            throw error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST, "Uno o más apoderados no existen");
         List<UserEntity> resolved = selected.stream().map(guardian -> users.findByCorreo(guardian.getEmail())
-                .orElseThrow(() -> error("recipients", HttpStatus.BAD_REQUEST,
+                .orElseThrow(() -> error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST,
                         "El apoderado " + guardian.getNombre() + " todavía no tiene acceso"))).toList();
+        if (resolved.stream().anyMatch(user -> !Objects.equals(organizationId, user.getOrganizationId())))
+            throw error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST,
+                    "Uno o más destinatarios no pertenecen a la organización");
         return resolved.stream().collect(java.util.stream.Collectors.toMap(UserEntity::getId,
                 user -> user, (first, second) -> first, LinkedHashMap::new)).values().stream().toList();
     }

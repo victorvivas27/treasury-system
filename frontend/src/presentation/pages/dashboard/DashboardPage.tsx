@@ -10,6 +10,7 @@ import {
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { expenseCategoryLabel } from "@/shared/constants/ExpenseConstants";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -34,7 +35,7 @@ const monthName = (month: number) => new Intl.DateTimeFormat("es-CL", { month: "
 export const DashboardPage = () => {
   const auth = useOptionalAuth();
   const user = auth?.user;
-  const isAdmin = user?.rol === "ADMIN";
+  const isAdmin = isAdminRole(user?.rol);
   const [year, setYear] = useState(years.includes(currentYear) ? currentYear : 2026);
   const [yearOpen, setYearOpen] = useState(false);
   const [data, setData] = useState<TreasuryDashboardOverview>();

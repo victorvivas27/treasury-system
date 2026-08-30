@@ -19,18 +19,36 @@ public class TreasurySettingsController {
 
     @GetMapping("/curso")
     public ManagedCourseResponse getCourse() {
-        return new ManagedCourseResponse(managedCourse.get());
+        var settings = managedCourse.getSettings();
+        return response(settings);
     }
 
     @PutMapping("/curso")
     @PreAuthorize("hasRole('ADMIN')")
     public ManagedCourseResponse saveCourse(@Valid @RequestBody ManagedCourseRequest request) {
-        return new ManagedCourseResponse(managedCourse.save(request.course()));
+        return response(managedCourse.save(request.course(), request.schoolYear()));
     }
 
-    public record ManagedCourseRequest(@NotBlank @Size(max = 80) String course) {
+    private ManagedCourseResponse response(ManagedCourseService.ManagedCourseSettings settings) {
+        return new ManagedCourseResponse(settings.course(), settings.schoolYear(),
+                settings.history().stream()
+                        .map(value -> new ManagedCoursePeriodResponse(
+                                value.course(), value.schoolYear()))
+                        .toList());
     }
 
-    public record ManagedCourseResponse(String course) {
+    public record ManagedCourseRequest(
+            @NotBlank @Size(max = 80) String course,
+            @jakarta.validation.constraints.NotNull
+            @jakarta.validation.constraints.Min(2000)
+            @jakarta.validation.constraints.Max(2100) Integer schoolYear) {
     }
+
+    public record ManagedCourseResponse(
+            String course,
+            Integer schoolYear,
+            java.util.List<ManagedCoursePeriodResponse> history) {
+    }
+
+    public record ManagedCoursePeriodResponse(String course, Integer schoolYear) { }
 }

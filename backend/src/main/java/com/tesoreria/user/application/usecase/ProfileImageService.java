@@ -1,5 +1,6 @@
 package com.tesoreria.user.application.usecase;
 
+import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.treasury.core.port.out.FileStorageService;
 import com.tesoreria.user.core.constant.ProfileImageType;
@@ -22,10 +23,17 @@ public class ProfileImageService {
             "image/jpeg", "jpg", "image/png", "png", "image/webp", "webp");
     private final UserRepositoryOutPort users;
     private final FileStorageService storage;
+    private final CurrentOrganizationService currentOrganization;
 
     public ProfileImageService(UserRepositoryOutPort users, FileStorageService storage) {
+        this(users, storage, null);
+    }
+
+    public ProfileImageService(UserRepositoryOutPort users, FileStorageService storage,
+                               CurrentOrganizationService currentOrganization) {
         this.users = users;
         this.storage = storage;
+        this.currentOrganization = currentOrganization;
     }
 
     public User selectAvatar(String email, String avatar) {
@@ -80,7 +88,9 @@ public class ProfileImageService {
     }
 
     public FileStorageService.StoredContent read(Long userId) {
-        User user = users.findById(userId).orElseThrow(() ->
+        User user = (currentOrganization == null || currentOrganization.isSuperAdmin()
+                ? users.findById(userId)
+                : users.findByIdAndOrganizationId(userId, currentOrganization.getId())).orElseThrow(() ->
                 new DomainException("user", HttpStatus.NOT_FOUND, "Usuario no encontrado"));
         return readCustomImage(user);
     }

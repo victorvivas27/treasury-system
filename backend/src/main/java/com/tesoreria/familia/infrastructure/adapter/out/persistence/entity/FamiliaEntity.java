@@ -1,5 +1,7 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +16,7 @@ import java.util.UUID;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_familias_alumno",
                 columnNames = {"alumno_id"}))
-public final class FamiliaEntity {
+public final class FamiliaEntity extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

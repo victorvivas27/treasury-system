@@ -1,5 +1,7 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.treasury.core.model.PaymentMode;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FamilyFeePlanEntity {
+public class FamilyFeePlanEntity extends TenantScopedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

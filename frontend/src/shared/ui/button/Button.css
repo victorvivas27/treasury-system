@@ -1,8 +1,43 @@
+/* =========================================================
+   BASE BUTTON
+   ========================================================= */
+
 .base-button {
   border-radius: var(--xs);
   cursor: pointer;
-  color: var(--color-primary);
-  margin: 0.2em;;
+
+  color: var(--color-accent);
+
+  margin: 0.2em;
+
+  background-color: transparent;
+  border: 1px solid var(--color-accent);
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease,
+    color 150ms ease;
+}
+
+.base-button:hover {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.base-button:active {
+  transform: scale(0.97);
+}
+
+.base-button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.base-button:focus-visible:hover {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-soft);
 }
 
 .base-button:disabled,
@@ -12,24 +47,201 @@
   pointer-events: none;
 }
 
-/* Variantes */
+
+/* =========================================================
+   PRIMARY
+   ========================================================= */
+
 .button-primary {
   background-color: var(--color-accent);
+  color: var(--color-bg);
 
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
 }
+
+.button-primary:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.button-primary:active {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: scale(0.96);
+}
+
+.button-primary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.button-primary:focus-visible:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.button-primary .button-label,
+.button-primary .button-icon--left > svg,
+.button-primary .button-icon--right > svg {
+  color: var(--color-bg);
+  transition: color 150ms ease;
+}
+
+.button-primary:hover .button-label,
+.button-primary:hover .button-icon--left > svg,
+.button-primary:hover .button-icon--right > svg {
+  color: var(--color-bg);
+}
+
+
+/* =========================================================
+   SECONDARY
+   ========================================================= */
 
 .button-secondary {
-  background-color: var(--color-info);
+  background-color: transparent;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
 }
+
+.button-secondary:hover {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.button-secondary:active {
+  transform: scale(0.96);
+}
+
+.button-secondary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.button-secondary:disabled,
+.button-secondary.is-loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button-secondary .button-label,
+.button-secondary .button-icon--left > svg,
+.button-secondary .button-icon--right > svg {
+  color: var(--color-accent);
+  transition: color 150ms ease;
+}
+
+.button-secondary:hover .button-label,
+.button-secondary:hover .button-icon--left > svg,
+.button-secondary:hover .button-icon--right > svg {
+  color: var(--color-accent);
+}
+
+
+/* =========================================================
+   DANGER
+   ========================================================= */
 
 .button-danger {
-  background-color: var(--color-error);
+  background-color: var(--color-danger);
+  color: #fff;
+  border-color: var(--color-danger);
+
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
 }
 
-/* Tamaños */
+.button-danger:hover {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+.button-danger:active {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  transform: scale(0.96);
+}
+
+.button-danger:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.button-danger:disabled,
+.button-danger.is-loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button-danger .button-label,
+.button-danger .button-icon--left > svg,
+.button-danger .button-icon--right > svg {
+  color: #fff;
+  transition: color 150ms ease;
+}
+
+.button-danger:hover .button-label,
+.button-danger:hover .button-icon--left > svg,
+.button-danger:hover .button-icon--right > svg {
+  color: #fff;
+}
+
+
+/* =========================================================
+   ICON ANIMATION
+
+   IMPORTANTE:
+   Solo afecta SVG hijo DIRECTO de .button-icon.
+   No afecta SVG internos de componentes personalizados.
+   ========================================================= */
+
+.button-icon--left > svg,
+.button-icon--right > svg {
+  transition: transform 150ms ease;
+}
+
+.button-primary:hover .button-icon--left > svg,
+.button-primary:hover .button-icon--right > svg,
+.button-secondary:hover .button-icon--left > svg,
+.button-secondary:hover .button-icon--right > svg,
+.button-danger:hover .button-icon--left > svg,
+.button-danger:hover .button-icon--right > svg {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.button-primary:active .button-icon--left > svg,
+.button-primary:active .button-icon--right > svg,
+.button-secondary:active .button-icon--left > svg,
+.button-secondary:active .button-icon--right > svg,
+.button-danger:active .button-icon--left > svg,
+.button-danger:active .button-icon--right > svg {
+  transform: translateY(1px) scale(0.95);
+}
+
+
+/* =========================================================
+   SIZES
+   ========================================================= */
+
 .size-none {
   padding: 5px;
-  background-color: transparent;
 }
 
 .size-small {
@@ -50,28 +262,54 @@
   min-height: 44px;
 }
 
-/* Contenido del botón */
+
+/* =========================================================
+   BUTTON CONTENT
+   ========================================================= */
+
 .button-content {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 0.3rem;
 }
 
-.button-icon svg {
+
+/*
+ * IMPORTANTE:
+ *
+ * Antes era:
+ *
+ * .button-icon svg
+ *
+ * Eso modificaba TODOS los SVG internos.
+ *
+ * Ahora solo modificamos un SVG que sea hijo directo.
+ */
+
+.button-icon > svg {
+  display: block;
+
   width: 1.5em;
   height: 1.5em;
-  display: block;
 }
 
-/* Loader animation para iconos cuando está cargando */
+
+/* =========================================================
+   LOADER
+   ========================================================= */
+
 .button-loader {
+  display: block;
+
   width: 1.1em;
   height: 1.1em;
-  display: block;
+
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
+
   animation: spin 1s linear infinite;
 }
 
@@ -85,56 +323,61 @@
   }
 }
 
-/* ============================================ */
-/* BOTONES MÁS PEQUEÑOS EN MÓVIL (TODOS LOS TAMAÑOS) */
-/* ============================================ */
-@media (max-width: 768px) {
 
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
   .mobile-inline-header-actions {
     flex-wrap: nowrap !important;
   }
 
   .mobile-inline-header-actions .base-button {
     flex: 1 1 0 !important;
+
     min-width: 0;
     margin: 0;
   }
 
-  /* Acciones principales compactas de los encabezados administrativos */
   .base-button.mobile-compact-header-action {
     min-height: 28px !important;
+
     padding: 0.2rem 0.55rem !important;
+
     font-size: 0.65rem !important;
   }
 
-  .base-button.mobile-compact-header-action .button-icon svg {
+  .base-button.mobile-compact-header-action .button-icon > svg {
     width: 0.8rem;
     height: 0.8rem;
   }
 
-  /* Tamaño small en móvil */
   .size-small {
     padding: 0.2rem 0.6rem;
+
     font-size: 0.7rem;
+
     min-height: 28px;
   }
 
-  /* Tamaño medium en móvil */
   .size-medium {
     padding: 0.3rem 0.8rem;
+
     font-size: 0.75rem;
+
     min-height: 32px;
   }
 
-  /* Tamaño large en móvil */
   .size-large {
     padding: 0.4rem 1rem;
+
     font-size: 0.8rem;
+
     min-height: 36px;
   }
 
-  /* Todos los íconos en móvil */
-  .button-icon svg {
+  .button-icon > svg {
     width: 1em;
     height: 1em;
   }

@@ -2,6 +2,7 @@
 
 import { useNotifications } from "@/presentation/context/NotificationContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
 import type { NotificationReply, NotificationType, SentNotification } from
   "@/core/A-domain/entities/notification/Notification";
@@ -174,14 +175,14 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
         className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}>
       {timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
-        className={`notification-reply ${item.message.authorRole === "ADMIN" ? "is-admin" : "is-guardian"}`}>
+        className={`notification-reply ${isAdminRole(item.message.authorRole) ? "is-admin" : "is-guardian"}`}>
         <header><span className="notification-reply__author">
           <UserAvatar className="notification-reply__avatar" fallbackName={item.message.authorName}
             user={{ nombre: item.message.authorName,
               profileImageType: item.message.authorProfileImageType,
               profileImageUrl: item.message.authorProfileImageUrl }}
             customImageUserId={item.message.authorId} />
-          <strong>{item.message.authorRole === "ADMIN" ? "Tesorería" : item.message.authorName}</strong>
+          <strong>{isAdminRole(item.message.authorRole) ? "Tesorería" : item.message.authorName}</strong>
         </span>
           <time dateTime={item.message.createdAt}>{new Date(item.message.createdAt).toLocaleString("es-CL", {
             day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
@@ -222,7 +223,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
 export const Notificacion = () => {
   const auth = useOptionalAuth();
   if (!auth?.user) return null;
-  if (auth.user.rol === "ADMIN") return <AdminNotificationCenter />;
+  if (isAdminRole(auth.user.rol)) return <AdminNotificationCenter />;
   return <><GuardianInbox /><NotificationTour user={auth.user} /></>;
 };
 

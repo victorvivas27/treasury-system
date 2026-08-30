@@ -1,5 +1,7 @@
 package com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,14 +12,15 @@ import java.util.UUID;
 import com.tesoreria.alumno.core.model.GeneroAlumno;
 
 @Entity
-@Table(name = "alumnos")
-public final class AlumnoEntity {
+@Table(name = "alumnos", uniqueConstraints = @UniqueConstraint(
+        name = "uk_alumnos_organization_codigo", columnNames = {"organization_id", "codigo"}))
+public final class AlumnoEntity extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long alumnoId;
 
-    @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
+    @Column(name = "codigo", nullable = false, updatable = false, length = 15)
     private String codigo;
 
     @Column(nullable = false, length = 100)

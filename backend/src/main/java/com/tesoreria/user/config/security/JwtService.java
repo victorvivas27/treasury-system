@@ -1,5 +1,6 @@
 package com.tesoreria.user.config.security;
 
+import com.tesoreria.organization.config.TenantUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -39,7 +40,7 @@ public class JwtService {
 
         Date now = new Date();
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
                 .claim(
@@ -51,8 +52,12 @@ public class JwtService {
                                 .filter(authority -> authority != null)
                                 .toList())
                 .setIssuedAt(now)
-                .setExpiration(
-                        new Date(now.getTime() + expirationMs))
+                .setExpiration(new Date(now.getTime() + expirationMs));
+        if (userDetails instanceof TenantUserDetails tenantUser) {
+            builder.claim("userId", tenantUser.getUserId())
+                    .claim("organizationId", tenantUser.getOrganizationId());
+        }
+        return builder
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -65,7 +70,9 @@ public class JwtService {
 
     public ParsedToken parseToken(String token) {
         Claims claims = parseClaims(token);
-        return new ParsedToken(claims.getSubject(), claims.getIssuedAt(), claims.getExpiration());
+        Number organizationId = claims.get("organizationId", Number.class);
+        return new ParsedToken(claims.getSubject(), claims.getIssuedAt(), claims.getExpiration(),
+                organizationId == null ? null : organizationId.longValue());
     }
 
     public boolean isTokenValid(
@@ -79,6 +86,8 @@ public class JwtService {
             UserDetails userDetails) {
         return token.username() != null
                 && userDetails.getUsername().equalsIgnoreCase(token.username())
+                && (!(userDetails instanceof TenantUserDetails tenantUser)
+                    || tenantUser.isOrganizationActive())
                 && token.expiresAt().after(new Date());
     }
 
@@ -112,6 +121,9 @@ public class JwtService {
                 .getBody();
     }
 
-    public record ParsedToken(String username, Date issuedAt, Date expiresAt) {
+    public record ParsedToken(String username, Date issuedAt, Date expiresAt, Long organizationId) {
+        public ParsedToken(String username, Date issuedAt, Date expiresAt) {
+            this(username, issuedAt, expiresAt, null);
+        }
     }
 }

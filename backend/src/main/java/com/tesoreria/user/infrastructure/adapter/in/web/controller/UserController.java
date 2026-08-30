@@ -90,7 +90,7 @@ public class UserController {
     @GetMapping("/email/{email}")
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<UserResponseDTO> findByEmail(@PathVariable String email) {
-        return ResponseEntity.ok(mapper.toResponse(service.findByCorreo(email)));
+        return ResponseEntity.ok(mapper.toResponse(service.findByCorreoInCurrentOrganization(email)));
     }
 
     @Operation(summary = "Actualizar usuario")

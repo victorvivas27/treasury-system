@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { UserForm } from "@/presentation/features/user/UserForm";
 import { UserTable } from "@/presentation/features/user/UserTable";
@@ -119,7 +120,7 @@ export const UsersPage = () => {
             size="medium"
             className="mobile-compact-header-action"
           />
-          {user?.rol === "ADMIN" && (
+          {isAdminRole(user?.rol) && (
             <Button
               label={showForm ? "Cerrar formulario" : "Crear usuario"}
               icon={showForm ? <FiX aria-hidden="true" /> : <FiUserPlus aria-hidden="true" />}
@@ -156,7 +157,7 @@ export const UsersPage = () => {
           <UserTable
             users={users}
             loading={loading}
-            isAdmin={user?.rol === "ADMIN"}
+            isAdmin={isAdminRole(user?.rol)}
             onEdit={(selectedUser) => {
               setShowForm(false);
               setEditingUser(selectedUser);

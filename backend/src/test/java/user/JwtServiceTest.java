@@ -1,6 +1,8 @@
 package user;
 
+import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.user.config.security.JwtService;
+import com.tesoreria.user.core.constant.RoleEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
@@ -59,5 +61,16 @@ class JwtServiceTest {
     @Test
     void constructor_deberiaRechazarSecretCorto() {
         assertThrows(IllegalArgumentException.class, () -> new JwtService("short", 60_000L));
+    }
+
+    @Test
+    void generateToken_deberiaIncluirOrganizacionSinRomperTokensAnteriores() {
+        UserDetails tenantUser = new TenantUserDetails(7L, 23L, "tenant@mail.com", "secret",
+                RoleEnum.ADMIN, true, true);
+
+        JwtService.ParsedToken parsed = jwtService.parseToken(jwtService.generateToken(tenantUser));
+
+        assertEquals(23L, parsed.organizationId());
+        assertNull(jwtService.parseToken(jwtService.generateToken(userDetails)).organizationId());
     }
 }

@@ -1,5 +1,7 @@
 package com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -9,20 +11,25 @@ import java.util.Locale;
 import java.util.UUID;
 
 @Entity
-@Table(name = "apoderados")
-public final class ApoderadoEntity {
+@Table(name = "apoderados", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_apoderados_organization_codigo",
+                columnNames = {"organization_id", "codigo"}),
+        @UniqueConstraint(name = "uk_apoderados_organization_email",
+                columnNames = {"organization_id", "email"})
+})
+public final class ApoderadoEntity extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long apoderadoId;
 
-    @Column(name = "codigo", nullable = false, unique = true, updatable = false, length = 15)
+    @Column(name = "codigo", nullable = false, updatable = false, length = 15)
     private String codigo;
 
     @Column(nullable = false, length = 50)
     private String nombre;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
 
     @Column(nullable = false, length = 20)

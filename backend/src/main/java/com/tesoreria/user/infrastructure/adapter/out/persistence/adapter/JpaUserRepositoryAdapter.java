@@ -11,6 +11,7 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.User
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
@@ -36,8 +37,18 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     }
 
     @Override
+    public Optional<User> findByIdAndOrganizationId(Long id, Long organizationId) {
+        return repository.findByIdAndOrganizationId(id, organizationId).map(mapper::toDomain);
+    }
+
+    @Override
     public Optional<User> findByCode(String code) {
         return repository.findByCode(code).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<User> findByCodeAndOrganizationId(String code, Long organizationId) {
+        return repository.findByCodeAndOrganizationId(code, organizationId).map(mapper::toDomain);
     }
 
     @Override
@@ -61,6 +72,19 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     }
 
     @Override
+    public PageResponse<User> findAllByOrganizationId(PageRequest request, Long organizationId) {
+        var pageable = org.springframework.data.domain.PageRequest.of(request.page(), request.size());
+        String search = request.search() == null ? "" : request.search().trim();
+        var page = search.isEmpty()
+                ? repository.findAllByOrganizationId(organizationId, pageable)
+                : repository.findByOrganizationIdAndNombreContainingIgnoreCase(
+                        organizationId, search, pageable);
+        return new PageResponse<>(
+                page.getContent().stream().map(mapper::toDomain).toList(),
+                page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
+    }
+
+    @Override
     public boolean existsByCode(String code) {
         return repository.existsByCode(code);
     }
@@ -73,6 +97,18 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     @Override
     public long countByRol(RoleEnum rol) {
         return repository.countByRol(rol);
+    }
+
+    @Override
+    public long countByRolAndOrganizationId(RoleEnum rol, Long organizationId) {
+        return repository.countByRolAndOrganizationId(rol, organizationId);
+    }
+
+    @Override
+    public List<User> findByRolAndOrganizationId(RoleEnum rol, Long organizationId) {
+        return repository.findByRolAndOrganizationIdOrderByIdAsc(rol, organizationId).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

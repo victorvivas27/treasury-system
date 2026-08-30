@@ -13,20 +13,20 @@
 
 .system-home-footer {
   width: min(100% - 2rem, 1180px);
-  height: 104px;
-  min-height: 104px;
-  flex: 0 0 104px;
+  height: 152px;
+  min-height: 152px;
+  flex: 0 0 152px;
   box-sizing: border-box;
   margin: auto auto 0;
 }
 
 .system-home-footer .public-home__footer-content {
-  width: min(100%, 540px);
+  width: min(100%, 820px);
   margin-inline: auto;
   grid-template-areas: "brand signature" "copyright signature";
-  grid-template-columns: minmax(120px, .7fr) minmax(0, 1.3fr);
-  gap: .12rem .7rem;
-  padding: .45rem .6rem;
+  grid-template-columns: minmax(190px, .75fr) minmax(360px, 1.25fr);
+  gap: .25rem 1.2rem;
+  padding: .75rem .9rem;
   border: 1px solid rgba(14, 235, 205, .18);
   border-radius: .8rem;
   background: linear-gradient(135deg, rgba(14, 235, 205, .055), rgba(59, 130, 246, .035));
@@ -35,29 +35,29 @@
 
 .system-home-footer .public-home__footer-brand {
   grid-area: brand;
-  gap: .08rem;
+  gap: .2rem;
 }
 
 .system-home-footer .public-home__footer-brand .public-home__brand {
-  gap: .3rem;
-  font-size: .72rem;
+  gap: .45rem;
+  font-size: .9rem;
 }
 
 .system-home-footer .public-home__footer-brand .public-home__brand img {
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
 }
 
 .system-home-footer .public-home__footer-brand p {
-  font-size: .48rem;
+  font-size: .64rem;
 }
 
 .system-home-footer .public-home__signature {
   grid-area: signature;
   width: 100%;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: .15rem .5rem;
-  padding: .2rem;
+  gap: .2rem .7rem;
+  padding: .35rem;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -65,45 +65,45 @@
 }
 
 .system-home-footer .public-home__signature-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: .5rem;
-  font-size: .78rem;
+  width: 36px;
+  height: 36px;
+  border-radius: .65rem;
+  font-size: .95rem;
 }
 
 .system-home-footer .public-home__signature-stage {
   min-width: 0;
-  min-height: 36px;
+  min-height: 48px;
 }
 
 .system-home-footer .public-home__signature-code {
-  font-size: .46rem;
-  line-height: 1.15;
+  font-size: .55rem;
+  line-height: 1.25;
 }
 
 .system-home-footer .public-home__signature-rendered {
-  gap: .08rem;
+  gap: .15rem;
 }
 
 .system-home-footer .public-home__signature-copy small {
-  font-size: .48rem;
+  font-size: .58rem;
 }
 
 .system-home-footer .public-home__signature-copy strong {
-  font-size: .68rem;
+  font-size: .82rem;
 }
 
 .system-home-footer .public-home__signature-links {
-  gap: .08rem .45rem;
+  gap: .15rem .65rem;
 }
 
 .system-home-footer .public-home__signature-links a {
-  font-size: .49rem;
+  font-size: .6rem;
 }
 
 .system-home-footer .public-home__copyright {
   grid-area: copyright;
-  font-size: .46rem;
+  font-size: .56rem;
   text-align: left;
   white-space: nowrap;
 }
@@ -120,11 +120,86 @@
   }
 }
 
+@media (min-width: 1101px) {
+  .system-home-footer {
+    height: 184px;
+    min-height: 184px;
+    flex-basis: 184px;
+  }
+
+  .system-home-footer .public-home__footer-content {
+    width: min(100%, 1080px);
+    grid-template-areas: "brand signature copyright";
+    grid-template-columns: minmax(200px, .8fr) minmax(400px, 1.5fr) minmax(170px, .7fr);
+    gap: 1.75rem;
+    padding: 1.1rem 1.4rem;
+    border-radius: 1rem;
+  }
+
+  .system-home-footer .public-home__footer-brand {
+    gap: .4rem;
+  }
+
+  .system-home-footer .public-home__footer-brand .public-home__brand {
+    gap: .6rem;
+    font-size: 1rem;
+  }
+
+  .system-home-footer .public-home__footer-brand .public-home__brand img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .system-home-footer .public-home__footer-brand p {
+    font-size: .72rem;
+  }
+
+  .system-home-footer .public-home__signature {
+    gap: .3rem .8rem;
+    padding: .65rem .75rem;
+    border: 1px solid rgba(14, 235, 205, .2);
+    border-radius: .85rem;
+    background: rgba(14, 235, 205, .035);
+  }
+
+  .system-home-footer .public-home__signature-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.05rem;
+  }
+
+  .system-home-footer .public-home__signature-stage {
+    min-height: 52px;
+  }
+
+  .system-home-footer .public-home__signature-code {
+    font-size: .6rem;
+    line-height: 1.3;
+  }
+
+  .system-home-footer .public-home__signature-copy small {
+    font-size: .64rem;
+  }
+
+  .system-home-footer .public-home__signature-copy strong {
+    font-size: .92rem;
+  }
+
+  .system-home-footer .public-home__signature-links a {
+    font-size: .66rem;
+  }
+
+  .system-home-footer .public-home__copyright {
+    font-size: .64rem;
+    text-align: right;
+  }
+}
+
 @media (min-width: 681px) and (max-width: 1100px) {
   .system-home-footer {
-    height: 138px;
-    min-height: 138px;
-    flex-basis: 138px;
+    height: 152px;
+    min-height: 152px;
+    flex-basis: 152px;
   }
 }
 
@@ -153,6 +228,61 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: .25rem .45rem;
     padding: .35rem .45rem;
+  }
+
+  .system-home-footer .public-home__footer-brand {
+    gap: .08rem;
+  }
+
+  .system-home-footer .public-home__footer-brand .public-home__brand {
+    gap: .3rem;
+    font-size: .72rem;
+  }
+
+  .system-home-footer .public-home__footer-brand .public-home__brand img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .system-home-footer .public-home__signature {
+    gap: .15rem .5rem;
+    padding: .2rem;
+  }
+
+  .system-home-footer .public-home__signature-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: .5rem;
+    font-size: .78rem;
+  }
+
+  .system-home-footer .public-home__signature-stage {
+    min-height: 36px;
+  }
+
+  .system-home-footer .public-home__signature-code {
+    font-size: .46rem;
+    line-height: 1.15;
+  }
+
+  .system-home-footer .public-home__signature-rendered {
+    gap: .08rem;
+  }
+
+  .system-home-footer .public-home__signature-copy small {
+    font-size: .48rem;
+  }
+
+  .system-home-footer .public-home__signature-copy strong {
+    font-size: .68rem;
+  }
+
+  .system-home-footer .public-home__signature-links {
+    gap: .08rem .45rem;
+  }
+
+  .system-home-footer .public-home__signature-links a {
+    font-size: .49rem;
   }
 
   .system-home-footer .public-home__copyright {

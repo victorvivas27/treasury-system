@@ -6,6 +6,7 @@ import type {
   FamilyContribution,
 } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
@@ -34,7 +35,7 @@ type PendingAction = { kind: "pay" | "cancel"; type: ContributionType } | null;
 
 export const FamilyContributionsPage = () => {
   const { user } = useAuth();
-  const canManage = user?.rol === "ADMIN";
+  const canManage = isAdminRole(user?.rol);
   const [year, setYear] = useState(currentYear);
   const [items, setItems] = useState<FamilyContribution[]>([]);
   const [summary, setSummary] = useState(emptySummary);

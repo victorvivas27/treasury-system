@@ -1,5 +1,7 @@
 package com.tesoreria.user.application.usecase;
 
+import com.tesoreria.organization.application.CurrentOrganizationService;
+import com.tesoreria.organization.application.OrganizationEmailBrandingService;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.user.config.security.TokenRevocationService;
 import com.tesoreria.user.core.constant.UserTokenType;
@@ -13,6 +15,7 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.User
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
@@ -39,6 +42,30 @@ public class AccountRecoveryService {
     private final TokenRevocationService revocationService;
     private final SecureRandom secureRandom = new SecureRandom();
     private final String frontendUrl;
+    private final CurrentOrganizationService currentOrganization;
+    private final OrganizationEmailBrandingService emailBranding;
+
+    @Autowired
+    public AccountRecoveryService(
+            UserRepositoryOutPort users,
+            UserTokenJpaRepository tokens,
+            EmailOutPort email,
+            PasswordEncoder passwordEncoder,
+            AuthFlowRateLimiter rateLimiter,
+            TokenRevocationService revocationService,
+            @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
+            CurrentOrganizationService currentOrganization,
+            OrganizationEmailBrandingService emailBranding) {
+        this.users = users;
+        this.tokens = tokens;
+        this.email = email;
+        this.passwordEncoder = passwordEncoder;
+        this.rateLimiter = rateLimiter;
+        this.revocationService = revocationService;
+        this.frontendUrl = frontendUrl.replaceAll("/+$", "");
+        this.currentOrganization = currentOrganization;
+        this.emailBranding = emailBranding;
+    }
 
     public AccountRecoveryService(
             UserRepositoryOutPort users,
@@ -47,14 +74,9 @@ public class AccountRecoveryService {
             PasswordEncoder passwordEncoder,
             AuthFlowRateLimiter rateLimiter,
             TokenRevocationService revocationService,
-            @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
-        this.users = users;
-        this.tokens = tokens;
-        this.email = email;
-        this.passwordEncoder = passwordEncoder;
-        this.rateLimiter = rateLimiter;
-        this.revocationService = revocationService;
-        this.frontendUrl = frontendUrl.replaceAll("/+$", "");
+            String frontendUrl) {
+        this(users, tokens, email, passwordEncoder, rateLimiter, revocationService,
+                frontendUrl, null, null);
     }
 
     @Transactional
@@ -68,7 +90,7 @@ public class AccountRecoveryService {
         user.setEnabled(false);
         User saved = users.save(user);
         String rawToken = issue(saved.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
-        requireDelivery(email.sendVerificationEmail(saved.getCorreo(), saved.getNombre(),
+        requireDelivery(sendVerification(saved,
                 frontendUrl + "/verificar-correo?token=" + rawToken));
         return saved;
     }
@@ -76,6 +98,7 @@ public class AccountRecoveryService {
     @Transactional
     public User inviteGuardian(String name, String address) {
         String normalized = normalize(address);
+        Long organizationId = currentOrganization == null ? null : currentOrganization.getId();
         User user = users.findByCorreo(normalized).orElseGet(() -> {
             String temporaryPassword = "Tmp!" + UUID.randomUUID() + "aA1";
             User invited = new User(null,
@@ -84,13 +107,23 @@ public class AccountRecoveryService {
                     com.tesoreria.user.core.constant.RoleEnum.USER,
                     false, true, null, LocalDateTime.now(), LocalDateTime.now());
             invited.setPassword(passwordEncoder.encode(temporaryPassword));
+            invited.setOrganizationId(organizationId);
             return users.save(invited);
         });
+        if (organizationId != null && user.getOrganizationId() != null
+                && !organizationId.equals(user.getOrganizationId())) {
+            throw new DomainException("email", org.springframework.http.HttpStatus.CONFLICT,
+                    "El correo ya pertenece a otra administración");
+        }
+        if (organizationId != null && user.getOrganizationId() == null) {
+            user.setOrganizationId(organizationId);
+            user = users.save(user);
+        }
         if (Boolean.TRUE.equals(user.getEnabled()) && user.getEmailVerifiedAt() != null) {
             return user;
         }
         String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true);
-        requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
+        requireDelivery(sendPasswordReset(user,
                 frontendUrl + "/restablecer-password?token=" + rawToken));
         return user;
     }
@@ -112,7 +145,7 @@ public class AccountRecoveryService {
         rateLimiter.checkAndRecord("verification", normalized);
         users.findByCorreo(normalized).filter(user -> user.getEmailVerifiedAt() == null).ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
-            requireDelivery(email.sendVerificationEmail(user.getCorreo(), user.getNombre(),
+            requireDelivery(sendVerification(user,
                     frontendUrl + "/verificar-correo?token=" + rawToken));
         });
         return GENERIC_VERIFICATION;
@@ -124,7 +157,7 @@ public class AccountRecoveryService {
         rateLimiter.checkAndRecord("password-reset", normalized);
         users.findByCorreo(normalized).ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
-            requireDelivery(email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(),
+            requireDelivery(sendPasswordReset(user,
                     frontendUrl + "/restablecer-password?token=" + rawToken));
         });
         return GENERIC_RESET;
@@ -148,7 +181,7 @@ public class AccountRecoveryService {
         users.save(user);
         tokens.deleteByUserIdAndType(token.getUserId(), token.getType());
         revocationService.revokeAllForUser(user.getCorreo());
-        requireDelivery(email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), LocalDateTime.now()));
+        requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
     @Transactional
@@ -166,7 +199,31 @@ public class AccountRecoveryService {
         user.setPassword(passwordEncoder.encode(newPassword));
         users.save(user);
         revocationService.revokeAllForUser(user.getCorreo());
-        requireDelivery(email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), LocalDateTime.now()));
+        requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
+    }
+
+    private boolean sendVerification(User user, String link) {
+        if (emailBranding == null) {
+            return email.sendVerificationEmail(user.getCorreo(), user.getNombre(), link);
+        }
+        return email.sendVerificationEmail(user.getCorreo(), user.getNombre(), link,
+                emailBranding.find(user.getOrganizationId()));
+    }
+
+    private boolean sendPasswordReset(User user, String link) {
+        if (emailBranding == null) {
+            return email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(), link);
+        }
+        return email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(), link,
+                emailBranding.find(user.getOrganizationId()));
+    }
+
+    private boolean sendPasswordChanged(User user, LocalDateTime changedAt) {
+        if (emailBranding == null) {
+            return email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), changedAt);
+        }
+        return email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), changedAt,
+                emailBranding.find(user.getOrganizationId()));
     }
 
     private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting) {

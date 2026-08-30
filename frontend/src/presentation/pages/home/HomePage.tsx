@@ -7,6 +7,7 @@ import { HomeFeatures } from "./components/HomeFeatures";
 import { useHomeReveal } from "./hooks/useHomeReveal";
 import "./style/HomePage.css";
 import { useAuth } from "@/presentation/context/AuthContext";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 
 export const HomePage = () => {
   const { token, loading, isAuthenticated, user, logout } = useAuth();
@@ -16,8 +17,8 @@ export const HomePage = () => {
 
   return (
     <div className="public-home">
-      <HomeHeader isAuthenticated={isAuthenticated} isAdmin={user?.rol === "ADMIN"}
-        user={user} onLogout={() => void logout()} />
+      <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
+        isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main>
         {isAuthenticated ? <>
           <HomeInstallGuide />

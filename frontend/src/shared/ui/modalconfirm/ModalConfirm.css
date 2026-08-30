@@ -38,10 +38,11 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background-color: var(--color-warning);
-  color: var(--color-background);
+  background-color: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  color: var(--color-warning);
   font-size: 1.1rem;
   font-weight: bold;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
 .modal-confirm-title {

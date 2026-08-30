@@ -1,5 +1,6 @@
 package com.tesoreria.familia.infrastructure.adapter.out.persistence.adapter;
 
+import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.familia.core.model.Familia;
 import com.tesoreria.familia.core.model.FamilyTreasuryData;
 import com.tesoreria.familia.core.port.out.FamiliaRepositoryOutPort;
@@ -20,10 +21,13 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
 
     private final FamiliaJpaRepository jpaRepository;
     private final FamiliaPersistenceMapper mapper;
+    private final CurrentOrganizationService currentOrganization;
 
-    public JpaFamiliaRepositoryAdapter(FamiliaJpaRepository jpaRepository, FamiliaPersistenceMapper mapper) {
+    public JpaFamiliaRepositoryAdapter(FamiliaJpaRepository jpaRepository,
+            FamiliaPersistenceMapper mapper, CurrentOrganizationService currentOrganization) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
+        this.currentOrganization = currentOrganization;
     }
 
     @Override
@@ -60,7 +64,7 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
     @Override
     @Transactional(readOnly = true)
     public List<FamilyTreasuryData> findTreasuryData() {
-        return jpaRepository.findTreasuryData().stream()
+        return jpaRepository.findTreasuryData(currentOrganization.getId()).stream()
                 .map(value -> new FamilyTreasuryData(value.getFamilyId(), value.getFamilyCode(),
                         value.getStudentId(), value.getStudentName(), value.getCourse(),
                         value.getPrimaryGuardian()))
@@ -77,7 +81,7 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
         String search = pageRequest.search() == null ? "" : pageRequest.search().trim();
         org.springframework.data.domain.Page<FamiliaEntity> pageEntity = search.isEmpty()
                 ? jpaRepository.findAll(pageable)
-                : jpaRepository.searchByMemberName(search, pageable);
+                : jpaRepository.searchByMemberName(search, currentOrganization.getId(), pageable);
 
         return new PageResponse<>(
                 pageEntity.getContent().stream().map(mapper::toDomain).toList(),

@@ -1,5 +1,6 @@
 package user;
 
+import com.tesoreria.organization.application.OrganizationEmailBranding;
 import com.tesoreria.user.infrastructure.adapter.out.email.GmailEmailAdapter;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
@@ -67,5 +68,20 @@ class GmailEmailAdapterTest {
 
         assertFalse(withoutFrom.sendPasswordChangedEmail(
                 "usuario@example.com", "Usuario", LocalDateTime.now()));
+    }
+
+    @Test
+    void sendVerificationEmail_deberiaAplicarMarcaYReplyToDeOrganizacion() throws Exception {
+        boolean sent = adapter.sendVerificationEmail(
+                "usuario@example.com", "Usuario", "https://app.example/verificar",
+                new OrganizationEmailBranding("Curso 4A", "admin4a@colegio.cl"));
+
+        assertTrue(sent);
+        MimeMessage message = mailSender.createMimeMessage();
+        InternetAddress sender = (InternetAddress) message.getFrom()[0];
+        InternetAddress replyTo = (InternetAddress) message.getReplyTo()[0];
+        assertEquals("Curso 4A", sender.getPersonal());
+        assertEquals("tesoreria.colegio@gmail.com", sender.getAddress());
+        assertEquals("admin4a@colegio.cl", replyTo.getAddress());
     }
 }

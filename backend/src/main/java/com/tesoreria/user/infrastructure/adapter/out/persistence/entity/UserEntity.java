@@ -29,8 +29,11 @@ public class UserEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 20)
     private RoleEnum rol = RoleEnum.USER;
+
+    @Column(name = "organization_id")
+    private Long organizationId;
 
     @Column(nullable = false)
     private Boolean enabled = true;
@@ -56,6 +59,16 @@ public class UserEntity {
     @ColumnDefault("'INITIALS'")
     @Column(name = "profile_image_type", nullable = false, length = 24)
     private ProfileImageType profileImageType = ProfileImageType.INITIALS;
+
+    @Column(name = "totp_secret", length = 64)
+    private String totpSecret;
+
+    @ColumnDefault("false")
+    @Column(name = "totp_enabled", nullable = false)
+    private Boolean totpEnabled = false;
+
+    @Column(name = "backup_codes", columnDefinition = "TEXT")
+    private String backupCodes;
 
     public Long getId() {
         return id;
@@ -105,6 +118,9 @@ public class UserEntity {
         this.rol = rol;
     }
 
+    public Long getOrganizationId() { return organizationId; }
+    public void setOrganizationId(Long value) { organizationId = value; }
+
     public Boolean getEnabled() {
         return enabled;
     }
@@ -149,4 +165,10 @@ public class UserEntity {
     public void setProfileImageUrl(String value) { profileImageUrl = value; }
     public ProfileImageType getProfileImageType() { return profileImageType; }
     public void setProfileImageType(ProfileImageType value) { profileImageType = value; }
+    public String getTotpSecret() { return totpSecret; }
+    public void setTotpSecret(String value) { totpSecret = value; }
+    public Boolean getTotpEnabled() { return totpEnabled; }
+    public void setTotpEnabled(Boolean value) { totpEnabled = value; }
+    public String getBackupCodes() { return backupCodes; }
+    public void setBackupCodes(String value) { backupCodes = value; }
 }

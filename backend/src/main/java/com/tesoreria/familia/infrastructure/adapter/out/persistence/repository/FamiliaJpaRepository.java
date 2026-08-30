@@ -29,28 +29,35 @@ public interface FamiliaJpaRepository extends JpaRepository<FamiliaEntity, Long>
             LEFT JOIN familia_apoderados fa
                    ON fa.familia_id = f.familia_id AND fa.es_principal = TRUE
             LEFT JOIN apoderados ap ON ap.apoderado_id = fa.apoderado_id
-            WHERE f.activo = TRUE AND a.activo = TRUE
+            WHERE f.organization_id = :organizationId
+              AND a.organization_id = :organizationId
+              AND f.activo = TRUE AND a.activo = TRUE
             ORDER BY f.codigo
             """, nativeQuery = true)
-    List<FamilyTreasuryView> findTreasuryData();
+    List<FamilyTreasuryView> findTreasuryData(@Param("organizationId") Long organizationId);
 
     @Query(value = """
             SELECT DISTINCT f.* FROM familias f
             JOIN alumnos a ON a.alumno_id = f.alumno_id
             LEFT JOIN familia_apoderados fa ON fa.familia_id = f.familia_id
             LEFT JOIN apoderados ap ON ap.apoderado_id = fa.apoderado_id
-            WHERE LOWER(a.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
-               OR LOWER(ap.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
+            WHERE f.organization_id = :organizationId
+              AND a.organization_id = :organizationId
+              AND (LOWER(a.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
+               OR LOWER(ap.nombre) LIKE LOWER(CONCAT('%', :search, '%')))
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT f.familia_id) FROM familias f
                     JOIN alumnos a ON a.alumno_id = f.alumno_id
                     LEFT JOIN familia_apoderados fa ON fa.familia_id = f.familia_id
                     LEFT JOIN apoderados ap ON ap.apoderado_id = fa.apoderado_id
-                    WHERE LOWER(a.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
-                       OR LOWER(ap.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
+                    WHERE f.organization_id = :organizationId
+                      AND a.organization_id = :organizationId
+                      AND (LOWER(a.nombre) LIKE LOWER(CONCAT('%', :search, '%'))
+                       OR LOWER(ap.nombre) LIKE LOWER(CONCAT('%', :search, '%')))
                     """, nativeQuery = true)
-    Page<FamiliaEntity> searchByMemberName(@Param("search") String search, Pageable pageable);
+    Page<FamiliaEntity> searchByMemberName(@Param("search") String search,
+            @Param("organizationId") Long organizationId, Pageable pageable);
 
     interface FamilyTreasuryView {
         Long getFamilyId();

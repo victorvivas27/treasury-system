@@ -18,12 +18,15 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
     return (await apiClient.get(`${this.baseUrl}/configuraciones`)).data;
   }
   async getManagedCourse(): Promise<string> {
-    return (await apiClient.get<{ course: string }>(
-      `${this.baseUrl}/configuracion-general/curso`)).data.course;
+    return (await this.getManagedCourseSettings()).course;
   }
-  async saveManagedCourse(course: string): Promise<string> {
-    return (await apiClient.put<{ course: string }>(
-      `${this.baseUrl}/configuracion-general/curso`, { course })).data.course;
+  async getManagedCourseSettings(): Promise<ManagedCourseSettings> {
+    return (await apiClient.get<ManagedCourseSettings>(
+      `${this.baseUrl}/configuracion-general/curso`)).data;
+  }
+  async saveManagedCourse(course: string, schoolYear: number): Promise<ManagedCourseSettings> {
+    return (await apiClient.put<ManagedCourseSettings>(
+      `${this.baseUrl}/configuracion-general/curso`, { course, schoolYear })).data;
   }
   async saveConfig(year: number, payload: AnnualFeeConfigPayload) {
     return (await apiClient.put(`${this.baseUrl}/configuraciones/${year}`, payload)).data;
@@ -241,4 +244,13 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async cancelEventSettlement(id: number): Promise<SchoolEvent> {
     return (await apiClient.post(`${this.baseUrl}/eventos/${id}/liquidacion/cancelar`)).data;
   }
+}
+
+export interface ManagedCoursePeriod {
+  course: string;
+  schoolYear: number;
+}
+
+export interface ManagedCourseSettings extends ManagedCoursePeriod {
+  history: ManagedCoursePeriod[];
 }

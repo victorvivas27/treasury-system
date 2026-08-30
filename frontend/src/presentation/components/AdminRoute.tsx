@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 
 export const AdminRoute = () => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -9,6 +10,6 @@ export const AdminRoute = () => {
   if (!isAuthenticated) {
     return <Navigate to="/" replace state={{ from: location.pathname, sessionEnded: true }} />;
   }
-  if (user?.rol !== "ADMIN") return <Navigate to="/" replace />;
+  if (!isAdminRole(user?.rol)) return <Navigate to="/" replace />;
   return <Outlet />;
 };

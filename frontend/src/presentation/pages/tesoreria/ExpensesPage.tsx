@@ -9,6 +9,7 @@ import type {
   ExpenseDocument, FinancialSummary, TreasuryExpense,
 } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
@@ -40,7 +41,7 @@ const initialForm = (year: number): ExpensePayload => ({
 
 export const ExpensesPage = () => {
   const { user } = useAuth();
-  const canManage = user?.rol === "ADMIN";
+  const canManage = isAdminRole(user?.rol);
   const [year, setYear] = useState(2026);
   const [items, setItems] = useState<TreasuryExpense[]>([]);
   const [summary, setSummary] = useState(emptySummary);

@@ -46,6 +46,7 @@ class SecurityConfigTest {
         userRepository.deleteAll();
         createUser("USR-001", "user@mail.com", RoleEnum.USER);
         createUser("ADM-001", "admin@mail.com", RoleEnum.ADMIN);
+        createUser("SAD-001", "superadmin@mail.com", RoleEnum.SUPER_ADMIN);
     }
 
     @Test
@@ -179,6 +180,29 @@ class SecurityConfigTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("NUEVO NOMBRE"));
+    }
+
+    @Test
+    void administradorComun_noDeberiaPoderOtorgarRolSuperAdmin() throws Exception {
+        UserEntity target = userRepository.findByCorreo("user@mail.com").orElseThrow();
+        String token = tokenFor("admin@mail.com");
+
+        mockMvc.perform(patch("/api/v1/users/{id}/rol", target.getId())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"rol\":\"SUPER_ADMIN\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void organizaciones_deberianSerExclusivasDelSuperAdministrador() throws Exception {
+        mockMvc.perform(get("/api/v1/organizations")
+                        .header("Authorization", "Bearer " + tokenFor("admin@mail.com")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/v1/organizations")
+                        .header("Authorization", "Bearer " + tokenFor("superadmin@mail.com")))
+                .andExpect(status().isOk());
     }
 
     @Test

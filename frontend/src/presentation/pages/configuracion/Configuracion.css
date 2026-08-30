@@ -158,6 +158,7 @@
 
 .managed-course-form {
   display: flex;
+  align-items: flex-end;
   gap: var(--sm);
 }
 
@@ -173,6 +174,18 @@
   font-size: 1.05rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.managed-course-year {
+  display: grid;
+  gap: .35rem;
+  color: var(--text-muted);
+  font-size: var(--sm);
+  font-weight: 650;
+}
+
+.managed-course-year input {
+  width: 8rem;
 }
 
 .managed-course-form button {
@@ -195,6 +208,43 @@
 .managed-course-help {
   margin-top: var(--md);
   font-size: var(--sm);
+}
+
+.managed-course-history {
+  margin-top: var(--md);
+  border-top: 1px solid var(--divider);
+  padding-top: var(--sm);
+}
+
+.managed-course-history > span {
+  color: var(--text-muted);
+  font-size: var(--xs);
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.managed-course-history ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-top: .5rem;
+}
+
+.managed-course-history li {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: .3rem .6rem;
+  background: var(--color-bg);
+  color: var(--text-main);
+  font-size: var(--xs);
+}
+
+.managed-course-history li strong {
+  color: var(--color-accent);
 }
 
 .appearance-heading {
@@ -379,7 +429,7 @@
 
   .managed-course-form {
     display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-columns:minmax(0,1fr) auto auto;
     gap:.35rem;
   }
 
@@ -391,8 +441,14 @@
     font-size:.62rem;
   }
   .managed-course-form input { width:100%; min-width:0; }
+  .managed-course-year { gap:.18rem; font-size:.49rem; }
+  .managed-course-year input { width:4.6rem; }
   .managed-course-form button { gap:.25rem; white-space:nowrap; }
   .managed-course-help { margin:.38rem 0 0; font-size:.49rem; line-height:1.3; }
+  .managed-course-history { margin-top:.4rem; padding-top:.35rem; }
+  .managed-course-history > span { font-size:.46rem; }
+  .managed-course-history ul { gap:.25rem; margin-top:.3rem; }
+  .managed-course-history li { gap:.25rem; padding:.2rem .38rem; font-size:.48rem; }
 
   .push-settings-card button { grid-column:auto; width:auto; }
 }

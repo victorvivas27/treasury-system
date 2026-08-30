@@ -5,6 +5,7 @@ import { useTheme } from "@/presentation/context/ThemeContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import type { ThemePreference } from "@/presentation/context/theme";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { OPEN_APP_TOUR_EVENT } from "@/shared/ui/apptour/AppTour";
@@ -47,11 +48,16 @@ export const Configuracion = () => {
   const selectedOption = THEME_OPTIONS.find(({ value }) => value === themePreference)!;
   const [savedCourse, setSavedCourse] = useState("1A");
   const [course, setCourse] = useState("1A");
+  const [schoolYear, setSchoolYear] = useState(new Date().getFullYear());
+  const [savedSchoolYear, setSavedSchoolYear] = useState(new Date().getFullYear());
+  const [courseHistory, setCourseHistory] = useState<Array<{
+    course: string; schoolYear: number;
+  }>>([]);
   const [loadingCourse, setLoadingCourse] = useState(true);
   const [confirmCourse, setConfirmCourse] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const canEditCourse = auth?.user?.rol === "ADMIN";
+  const canEditCourse = isAdminRole(auth?.user?.rol);
   const pushCopy = {
     checking: ["Comprobando…", "Estamos revisando la configuración de este dispositivo."],
     unsupported: ["No compatible", "Este navegador o dispositivo no permite notificaciones web."],
@@ -66,10 +72,13 @@ export const Configuracion = () => {
       setLoadingCourse(false);
       return;
     }
-    repository.getManagedCourse()
+    repository.getManagedCourseSettings()
       .then(value => {
-        setSavedCourse(value);
-        setCourse(value);
+        setSavedCourse(value.course);
+        setCourse(value.course);
+        setSchoolYear(value.schoolYear);
+        setSavedSchoolYear(value.schoolYear);
+        setCourseHistory(value.history);
       })
       .catch(() => setError("No fue posible cargar el curso administrado."))
       .finally(() => setLoadingCourse(false));
@@ -78,11 +87,14 @@ export const Configuracion = () => {
   const saveCourse = async () => {
     setConfirmCourse(false);
     try {
-      const saved = await repository.saveManagedCourse(course);
-      setSavedCourse(saved);
-      setCourse(saved);
+      const saved = await repository.saveManagedCourse(course, schoolYear);
+      setSavedCourse(saved.course);
+      setCourse(saved.course);
+      setSchoolYear(saved.schoolYear);
+      setSavedSchoolYear(saved.schoolYear);
+      setCourseHistory(saved.history);
       window.dispatchEvent(new CustomEvent("managed-course-changed", { detail: saved }));
-      setMessage(`El curso administrado cambió a ${saved}.`);
+      setMessage(`El período vigente cambió a ${saved.course} · ${saved.schoolYear}.`);
     } catch {
       setError("No fue posible cambiar el curso administrado.");
     }
@@ -169,24 +181,36 @@ export const Configuracion = () => {
           <FiBookOpen aria-hidden="true" />
           <div><h2>Curso administrado</h2>
             <p>Define el curso que gestiona esta instalación completa de Tesorería.</p></div>
-          <strong>{savedCourse}</strong>
+          <strong>{savedCourse} · {schoolYear}</strong>
         </div>
-        <label htmlFor="managed-course">Curso</label>
+        <label htmlFor="managed-course">Curso actual</label>
         <div className="managed-course-form">
           <input id="managed-course" maxLength={80} value={course}
             onChange={event => setCourse(event.target.value.toUpperCase())}
             placeholder="Ejemplo: 1A" />
+          <label className="managed-course-year" htmlFor="managed-school-year">
+            <span>Año lectivo</span>
+            <input id="managed-school-year" type="number" min={2000} max={2100}
+              value={schoolYear} onChange={event => setSchoolYear(Number(event.target.value))} />
+          </label>
           <button type="button"
-            disabled={loadingCourse || !course.trim() || course.trim() === savedCourse}
-            onClick={() => setConfirmCourse(true)}><FiSave /> Guardar curso</button>
+            disabled={loadingCourse || !course.trim() || schoolYear < 2000 || schoolYear > 2100
+              || (course.trim() === savedCourse && schoolYear === savedSchoolYear)}
+            onClick={() => setConfirmCourse(true)}><FiSave /> Actualizar curso</button>
         </div>
-        <p className="managed-course-help">El cambio se aplicará a las operaciones nuevas.
-          Los movimientos históricos conservarán el curso con el que fueron registrados.</p>
+        <p className="managed-course-help">El nuevo período se aplicará a las operaciones futuras.
+          Los movimientos ya registrados conservarán su año y curso históricos.</p>
+        {courseHistory.length > 0 && <div className="managed-course-history">
+          <span>Historial de períodos</span>
+          <ul>{courseHistory.map(period => <li key={period.schoolYear}>
+            <strong>{period.schoolYear}</strong><span>{period.course}</span>
+          </li>)}</ul>
+        </div>}
       </article>}
 
-      {canEditCourse && <ModalConfirm isOpen={confirmCourse} title="Cambiar curso administrado"
-        message={`La aplicación dejará de administrar ${savedCourse} y pasará a administrar ${course.trim().toUpperCase()}. Los datos históricos no cambiarán.`}
-        confirmLabel="Sí, cambiar curso" onConfirm={() => void saveCourse()}
+      {canEditCourse && <ModalConfirm isOpen={confirmCourse} title="Actualizar período lectivo"
+        message={`La administración pasará de ${savedCourse} · ${savedSchoolYear} a ${course.trim().toUpperCase()} · ${schoolYear}. Los datos históricos no cambiarán.`}
+        confirmLabel="Sí, actualizar" onConfirm={() => void saveCourse()}
         onCancel={() => setConfirmCourse(false)} />}
       <ModalAlert isOpen={Boolean(message)} type="success" message={message}
         onClose={() => setMessage("")} />

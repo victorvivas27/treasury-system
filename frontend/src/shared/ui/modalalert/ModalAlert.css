@@ -135,7 +135,7 @@
 
 .modal-header-error .modal-icon {
   background: var(--color-error);
-  color: var(--color-text-main);
+  color: var(--color-bg);
 }
 
 .modal-title {

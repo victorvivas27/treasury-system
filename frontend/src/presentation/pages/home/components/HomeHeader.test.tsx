@@ -40,15 +40,19 @@ describe("HomeHeader", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
 
     const toggle = screen.getByLabelText(/abrir menú/i);
+    const container = document.body;
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector(".public-home__menu-timer")).not.toBeInTheDocument();
 
     fireEvent.click(toggle);
     expect(screen.getByLabelText(/cerrar menú/i))
       .toHaveAttribute("aria-expanded", "true");
+    expect(container.querySelector(".public-home__menu-timer")).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.getByLabelText(/abrir menú/i))
       .toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector(".public-home__menu-timer")).not.toBeInTheDocument();
   });
 
   it("cierra automáticamente el menú móvil para USER y ADMIN", () => {

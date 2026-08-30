@@ -10,6 +10,7 @@ import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.shared.infrastructure.web.EstadoActivoRequest;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
+import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import jakarta.validation.Valid;
@@ -41,7 +42,7 @@ public class ApoderadoController {
     public ResponseEntity<ApoderadoResponse> create(@Valid @RequestBody ApoderadoRequest request) {
         Apoderado apoderado = mapper.toDomain(request);
         Apoderado created = apoderadoService.create(apoderado);
-        return new ResponseEntity<>(mapper.toResponse(created), HttpStatus.CREATED);
+        return new ResponseEntity<>(response(created), HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -109,7 +110,10 @@ public class ApoderadoController {
 
     private String accessStatus(User user) {
         if (!Boolean.TRUE.equals(user.getAccountNonLocked())) return "BLOQUEADO";
-        if (Boolean.TRUE.equals(user.getEnabled()) && user.getEmailVerifiedAt() != null) {
+        boolean roleCanAccessWithoutVerification = user.getRol() == RoleEnum.ADMIN
+                || user.getRol() == RoleEnum.SUPER_ADMIN;
+        if (Boolean.TRUE.equals(user.getEnabled())
+                && (roleCanAccessWithoutVerification || user.getEmailVerifiedAt() != null)) {
             return "ACTIVO";
         }
         return "INVITACION_PENDIENTE";

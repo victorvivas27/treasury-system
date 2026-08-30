@@ -1,11 +1,13 @@
 package com.tesoreria.community.infrastructure.persistence;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "course_photos")
-public class CoursePhotoEntity {
+public class CoursePhotoEntity extends TenantScopedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(nullable = false, length = 255) private String originalName;
     @Column(nullable = false, length = 500, unique = true) private String storageObjectName;

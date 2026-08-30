@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByCode(String code);
+    Optional<UserEntity> findByIdAndOrganizationId(Long id, Long organizationId);
+    Optional<UserEntity> findByCodeAndOrganizationId(String code, Long organizationId);
 
     Optional<UserEntity> findByCorreo(String correo);
 
@@ -19,9 +21,16 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByCorreo(String correo);
 
     long countByRol(RoleEnum rol);
+    long countByRolAndOrganizationId(RoleEnum rol, Long organizationId);
 
     List<UserEntity> findByRolOrderByIdAsc(RoleEnum rol);
+    List<UserEntity> findByRolAndOrganizationIdOrderByIdAsc(RoleEnum rol, Long organizationId);
+    List<UserEntity> findByRolInAndOrganizationIdOrderByIdAsc(
+            List<RoleEnum> roles, Long organizationId);
 
     Page<UserEntity> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
+    Page<UserEntity> findAllByOrganizationId(Long organizationId, Pageable pageable);
+    Page<UserEntity> findByOrganizationIdAndNombreContainingIgnoreCase(
+            Long organizationId, String nombre, Pageable pageable);
 
 }

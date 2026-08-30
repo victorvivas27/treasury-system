@@ -44,6 +44,41 @@
 
 }
 
+.apoderados-table .guardian-access {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 24px;
+  padding: .3rem .65rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: .58rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.apoderados-table .guardian-access--activo {
+  color: #16803a;
+  border-color: color-mix(in srgb, #16803a 35%, transparent);
+  background: color-mix(in srgb, #16803a 12%, transparent);
+}
+
+.apoderados-table .guardian-access--invitacion_pendiente {
+  color: #b45309;
+  border-color: color-mix(in srgb, #d97706 38%, transparent);
+  background: color-mix(in srgb, #d97706 12%, transparent);
+}
+
+.apoderados-table .guardian-access--sin_acceso,
+.apoderados-table .guardian-access--bloqueado {
+  color: #c5221f;
+  border-color: color-mix(in srgb, #d92d20 35%, transparent);
+  background: color-mix(in srgb, #d92d20 10%, transparent);
+}
+
 .apoderados-table__text {
   line-height: 1.3;
   white-space: normal;

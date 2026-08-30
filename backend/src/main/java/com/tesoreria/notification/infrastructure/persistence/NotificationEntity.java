@@ -1,12 +1,14 @@
 package com.tesoreria.notification.infrastructure.persistence;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications")
-public class NotificationEntity {
+public class NotificationEntity extends TenantScopedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, length = 120) private String title;

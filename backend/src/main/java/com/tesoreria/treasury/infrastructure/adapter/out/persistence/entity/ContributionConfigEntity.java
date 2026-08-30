@@ -1,5 +1,7 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.treasury.core.model.ContributionType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,11 +13,12 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "contribution_configs", uniqueConstraints = @UniqueConstraint(
-        name = "uk_contribution_config_year_type", columnNames = {"school_year", "contribution_type"}))
+        name = "uk_contribution_config_organization_year_type",
+        columnNames = {"organization_id", "school_year", "contribution_type"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class ContributionConfigEntity {
+public class ContributionConfigEntity extends TenantScopedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -3,6 +3,7 @@ import type { TreasuryProfile } from "@/core/A-domain/entities/treasury/Treasury
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
@@ -183,7 +184,7 @@ export const ProfilePage = () => {
               </button>
             </div>
             {user?.correo && <p className="profile-username">{user.correo}</p>}
-            <span className="profile-role">{user?.rol === "ADMIN" ? "Administrador" : "Usuario"}</span>
+            <span className="profile-role">{isAdminRole(user?.rol) ? "Administrador" : "Usuario"}</span>
           </div>
         </div>
       </section>

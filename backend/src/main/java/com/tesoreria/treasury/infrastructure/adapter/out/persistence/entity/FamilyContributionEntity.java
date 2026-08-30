@@ -1,5 +1,7 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.treasury.core.model.ContributionStatus;
 import com.tesoreria.treasury.core.model.ContributionType;
 import jakarta.persistence.*;
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FamilyContributionEntity {
+public class FamilyContributionEntity extends TenantScopedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

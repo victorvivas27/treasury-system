@@ -23,6 +23,7 @@ import { CheckEmailPage, ForgotPasswordPage, PasswordUpdatedPage, ResetPasswordP
   VerifyEmailPage } from "../pages/auth/AccountFlowPages";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { AdminRoute } from "../components/AdminRoute";
+import { SuperAdminRoute } from "../components/SuperAdminRoute";
 import { ProfilePage } from "../pages/user/ProfilePage";
 import { FamilyContributionsPage } from "../pages/tesoreria/FamilyContributionsPage";
 import { ExpensesPage } from "../pages/tesoreria/ExpensesPage";
@@ -33,6 +34,7 @@ import { AboutManagementPage } from "../pages/community/AboutManagementPage";
 import { CoursePhotoManagementPage } from "../pages/community/CoursePhotoManagementPage";
 import { BoardManagementPage } from "../pages/community/BoardManagementPage";
 import { PaymentsPage } from "../pages/tesoreria/PaymentsPage";
+import { AdministrationsPage } from "../pages/organization/AdministrationsPage";
 
 export const AppRouter = () => {
   return (
@@ -77,6 +79,9 @@ export const AppRouter = () => {
           <Route path="/students/edit/:codigo" element={<AlumnoEditFormPage />} />
           <Route path="family/new" element={<FamiliaCrearFormPage/>} />
           <Route path="/family/edit/:familiaId" element={<FamiliaEditFormPage />} />
+        </Route>
+        <Route element={<SuperAdminRoute />}>
+          <Route path="administrations" element={<AdministrationsPage />} />
         </Route>
         <Route path="configuration" element={<Configuracion />} />
       </Route>
