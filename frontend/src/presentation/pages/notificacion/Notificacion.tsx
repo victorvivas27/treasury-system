@@ -46,19 +46,21 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
   const [editingText, setEditingText] = useState("");
   const timelineRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const [floatingPosition, setFloatingPosition] = useState<{
     left: number; top: number; width: number;
   } | null>(null);
   const renderedTimelineLength = useRef(0);
   const load = useCallback(async () => {
-    if (loading) return;
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true); setError("");
     try { setMessages(await repository.listReplies(deliveryId)); setLoaded(true); }
     catch { setError("No fue posible cargar la conversación."); }
-    finally { setLoading(false); }
-  }, [deliveryId, loading, repository]);
-  useEffect(() => { if (!loaded) void load(); }, [loaded, load]);
+    finally { loadingRef.current = false; setLoading(false); }
+  }, [deliveryId, repository]);
+  useEffect(() => { if (active && !loaded) void load(); }, [active, loaded, load]);
   useEffect(() => {
     let unregister: () => void = () => undefined;
     const syncActiveThread = () => {
@@ -223,7 +225,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
 export const Notificacion = () => {
   const auth = useOptionalAuth();
   if (!auth?.user) return null;
-  if (isAdminRole(auth.user.rol)) return <AdminNotificationCenter />;
+  if (isAdminRole(auth.user.rol)) return <AdminNotificationCenter key={auth.user.id} />;
   return <><GuardianInbox /><NotificationTour user={auth.user} /></>;
 };
 
@@ -272,7 +274,9 @@ const AdminNotificationCenter = () => {
   }, [sent]);
   const loadSent = useCallback(async () => {
     setSentLoading(true);
-    try { setSent(await repository.listSent()); } finally { setSentLoading(false); }
+    try { setSent(await repository.listSent()); }
+    catch { setSent([]); }
+    finally { setSentLoading(false); }
   }, [repository]);
 
   useEffect(() => { void loadSent(); }, [loadSent]);
