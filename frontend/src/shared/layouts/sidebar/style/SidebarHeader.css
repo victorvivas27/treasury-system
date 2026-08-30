@@ -1,132 +1,335 @@
+/* =========================================================
+   SIDEBAR HEADER
+   ========================================================= */
+
+
+/* =========================================================
+   1. BOTÓN DE ABRIR / CERRAR SIDEBAR
+   ========================================================= */
+
 .sidebar-btn-arrow {
   position: absolute;
+
   top: 1rem;
   right: -1.1rem;
+
   isolation: isolate;
+
   display: grid;
+  place-items: center;
+
   width: 2.2rem;
   height: 2.2rem;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 70%, white 18%);
+
+  padding: 0;
+
+  border:
+    1px solid color-mix(in srgb,
+      var(--color-primary) 70%,
+      white 18%);
+
   border-radius: 50%;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--color-primary) 88%, white), var(--color-primary));
+
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,
+        var(--color-primary) 88%,
+        white),
+      var(--color-primary));
+
   color: #fff;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 30%, transparent),
+
+  box-shadow:
+    0 8px 20px color-mix(in srgb,
+      var(--color-primary) 30%,
+      transparent),
     inset 0 1px 0 rgb(255 255 255 / 28%);
+
   cursor: pointer;
-  transition: border-color 240ms ease, box-shadow 240ms ease,
-    transform 240ms cubic-bezier(.2,.8,.2,1), background 240ms ease;
+
+  transition:
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    transform 240ms cubic-bezier(.2, .8, .2, 1),
+    background 240ms ease;
 }
+
+
+/* =========================================================
+   2. ARO EXTERIOR DEL BOTÓN
+   ========================================================= */
 
 .sidebar-btn-arrow::after {
   position: absolute;
+
   z-index: -1;
+
   inset: -5px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+
+  border:
+    1px solid color-mix(in srgb,
+      var(--color-primary) 32%,
+      transparent);
+
   border-radius: inherit;
+
   content: "";
-  opacity: .7;
-  transition: inset 240ms ease, opacity 240ms ease;
+
+  opacity: 0.7;
+
+  transition:
+    inset 240ms ease,
+    opacity 240ms ease;
 }
+
+
+/* =========================================================
+   3. GLOW INTERIOR DEL BOTÓN
+   ========================================================= */
 
 .sidebar-btn-arrow-glow {
   position: absolute;
+
   z-index: -1;
+
   inset: 4px;
+
   border-radius: inherit;
-  background: rgb(255 255 255 / 10%);
+
+  background:
+    rgb(255 255 255 / 10%);
+
   pointer-events: none;
 }
 
+
+/* =========================================================
+   4. ICONO DE LA FLECHA
+   ========================================================= */
+
+/*
+ * Usa la misma escala que nav y footer.
+ */
+
 .sidebar-btn-arrow-icon {
-  font-size: 1.15rem;
-  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 18%));
-  transition: transform 360ms cubic-bezier(.34,1.56,.64,1);
+  display: block;
+
+  width: var(--lg);
+  height: var(--lg);
+
+  flex: 0 0 var(--xl);
+
+  font-size: var(--xl);
+
+  line-height: 1;
+
+  filter:
+    drop-shadow(0 1px 1px rgb(0 0 0 / 18%));
+
+  transition:
+    transform var(--sidebar-motion-duration) var(--sidebar-motion-easing);
 }
+
+
+/* =========================================================
+   5. FLECHA EN SIDEBAR COLAPSADO
+   ========================================================= */
 
 .sidebar--collapsed .sidebar-btn-arrow-icon {
-  transform: rotate(180deg);
+  transform:
+    rotate(180deg);
 }
 
+
+/* =========================================================
+   6. HOVER DEL BOTÓN
+   ========================================================= */
+
 .sidebar-btn-arrow:hover {
-  box-shadow: 0 10px 26px color-mix(in srgb, var(--color-primary) 44%, transparent),
+  box-shadow:
+    0 10px 26px color-mix(in srgb,
+      var(--color-primary) 44%,
+      transparent),
     inset 0 1px 0 rgb(255 255 255 / 34%);
-  transform: translateY(-2px) scale(1.05);
+
+  transform:
+    translateY(-2px) scale(1.05);
 }
 
 .sidebar-btn-arrow:hover::after {
   inset: -8px;
-  opacity: .35;
+
+  opacity: 0.35;
 }
 
+
+/* =========================================================
+   7. ACTIVE / FOCUS DEL BOTÓN
+   ========================================================= */
+
 .sidebar-btn-arrow:active {
-  transform: translateY(0) scale(.94);
+  transform:
+    translateY(0) scale(0.94);
 }
 
 .sidebar-btn-arrow:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+  outline:
+    3px solid color-mix(in srgb,
+      var(--color-primary) 32%,
+      transparent);
+
   outline-offset: 4px;
 }
 
+
+/* =========================================================
+   8. BOTÓN PINNED
+   ========================================================= */
+
 .sidebar-btn-arrow.is-pinned {
-  border-color: color-mix(in srgb, var(--color-warning) 72%, white 15%);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--color-warning) 88%, white), var(--color-warning));
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-warning) 30%, transparent),
+  border-color:
+    color-mix(in srgb,
+      var(--color-warning) 72%,
+      white 15%);
+
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,
+        var(--color-warning) 88%,
+        white),
+      var(--color-warning));
+
+  box-shadow:
+    0 8px 22px color-mix(in srgb,
+      var(--color-warning) 30%,
+      transparent),
     inset 0 1px 0 rgb(255 255 255 / 32%);
 }
 
 .sidebar-btn-arrow.is-pinned::after {
-  border-color: color-mix(in srgb, var(--color-warning) 38%, transparent);
+  border-color:
+    color-mix(in srgb,
+      var(--color-warning) 38%,
+      transparent);
 }
 
+
+/* =========================================================
+   9. BRAND / HOME
+   ========================================================= */
+
 .sidebar-brand-header {
-  margin-left: 0.45rem;
-  margin-top: calc(var(--md) + 2.5rem);
   display: flex;
   align-items: center;
-  gap: clamp(0.25rem, 1vh, 0.5rem);
+
+  width: 100%;
+
+  margin-top:
+    calc(var(--md) + 2.5rem);
+
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--xl)) / 2);
+
+  gap: var(--sm);
+
   overflow: hidden;
-  transition: margin-left 360ms cubic-bezier(0.32, 0.72, 0, 1),
-    gap 280ms ease;
+
+  transition:
+    padding var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    gap var(--sidebar-motion-duration) var(--sidebar-motion-easing);
+
 }
+
+
+/* =========================================================
+   10. ICONO DEL BRAND
+   ========================================================= */
+
+/*
+ * MISMO TAMAÑO BASE:
+ *
+ * Header -> var(--xl)
+ * Nav    -> var(--xl)
+ * Footer -> var(--xl)
+ */
 
 .sidebar-brand-icon {
   display: block;
-  flex: 0 0 auto;
-  width: clamp(2rem, 5vh, 3rem);
-  height: clamp(2rem, 5vh, 3rem);
+
+  width: var(--xl);
+  height: var(--xl);
+
+  flex: 0 0 var(--xl);
+
   object-fit: contain;
 }
 
+
+/* =========================================================
+   11. NOMBRE DEL BRAND
+   ========================================================= */
+
 .sidebar-brand-name {
   max-width: 10rem;
+
   overflow: hidden;
-  color: var(--color-primary);
+
+  color:
+    var(--color-primary);
+
   font-weight: 600;
+
   white-space: nowrap;
-  opacity: 1;
+
   visibility: visible;
-  transition: max-width 300ms cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 180ms ease, visibility 0s linear;
+  opacity: 1;
+
+  transition:
+    max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    visibility 0s linear;
 }
 
-.sidebar--collapsed .sidebar-brand-name {
-  visibility: hidden;
-  max-width: 0;
-  opacity: 0;
-  transition: max-width 260ms ease, opacity 120ms ease,
-    visibility 0s linear 260ms;
-}
+
+/* =========================================================
+   12. BRAND EN SIDEBAR COLAPSADO
+   ========================================================= */
+
+/*
+ * Igual que hicimos con el NAV:
+ *
+ * no centramos por margin-left;
+ * centramos con justify-content.
+ */
 
 .sidebar--collapsed .sidebar-brand-header {
-  width: 100%;
-  margin-left: 0;
-  justify-content: center;
-  gap: 0;
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--xl)) / 2);
 }
+
+
+/* =========================================================
+   13. TEXTO OCULTO EN SIDEBAR COLAPSADO
+   ========================================================= */
+
+.sidebar--collapsed .sidebar-brand-name {
+  max-width: 0;
+
+  visibility: hidden;
+  opacity: 0;
+
+  transition:
+    max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    visibility 0s linear var(--sidebar-motion-duration);
+}
+
+
+/* =========================================================
+   14. DESKTOP
+   ========================================================= */
 
 @media (min-width: 1024px) {
   .sidebar-brand-name {
-    color: var(--text-main);
+    color:
+      var(--text-main);
   }
 }

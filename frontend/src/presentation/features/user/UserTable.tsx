@@ -1,4 +1,5 @@
 import type { User } from "@/core/A-domain/entities/user/User";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { ICONS } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
@@ -104,8 +105,8 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
                   <SingleLineFitText>{user.correo}</SingleLineFitText>
                 </td>
                 <td className="usuarios-table__td" data-label="Rol">
-                  <span className={`usuarios-role ${user.rol === "ADMIN" ? "is-admin" : "is-user"}`}>
-                    {user.rol === "ADMIN" ? "ADMIN" : "USUARIO"}
+                  <span className={`usuarios-role ${isAdminRole(user.rol) ? "is-admin" : "is-user"}`}>
+                    {isAdminRole(user.rol) ? "ADMIN" : "USUARIO"}
                   </span>
                 </td>
                 {isAdmin && (

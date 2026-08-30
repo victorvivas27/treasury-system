@@ -78,7 +78,7 @@ class UserServiceTest {
             User result = service.bootstrapAdmin(initialAdmin);
 
             assertAll(
-                    () -> assertEquals(RoleEnum.ADMIN, result.getRol()),
+                    () -> assertEquals(RoleEnum.SUPER_ADMIN, result.getRol()),
                     () -> assertTrue(result.getEnabled()),
                     () -> assertTrue(result.getAccountNonLocked()));
             verify(repository).count();

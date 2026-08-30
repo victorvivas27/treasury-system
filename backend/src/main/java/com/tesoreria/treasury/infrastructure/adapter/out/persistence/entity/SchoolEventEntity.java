@@ -1,5 +1,7 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.treasury.core.model.EventStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,11 +16,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "school_events", uniqueConstraints =
-@UniqueConstraint(name = "uk_school_event_name", columnNames = "name"))
+@UniqueConstraint(name = "uk_school_event_organization_name",
+        columnNames = {"organization_id", "name"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class SchoolEventEntity {
+public class SchoolEventEntity extends TenantScopedEntity {
     private static final String EVENT_ID = "event_id";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

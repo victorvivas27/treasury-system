@@ -1,5 +1,7 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "bank_transfer_payments")
 @Getter @Setter @NoArgsConstructor
-public class BankTransferPaymentEntity {
+public class BankTransferPaymentEntity extends TenantScopedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "payment_id", nullable = false, unique = true) private Long paymentId;
     @Column(name = "proof_object_name", nullable = false, length = 500) private String proofObjectName;

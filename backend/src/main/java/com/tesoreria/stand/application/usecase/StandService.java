@@ -577,9 +577,9 @@ public class StandService {
     }
 
     private void synchronizeEventRevenue(Long eventId, LocalDate revenueDate) {
+        var schoolEvent = schoolEvents.get(eventId);
         BigDecimal total = sales.calculateEventNetRevenue(eventId)
                 .setScale(0, RoundingMode.HALF_UP);
-        var schoolEvent = schoolEvents.get(eventId);
         if (total.signum() > 0) {
             schoolEvents.registerRevenue(eventId, total, revenueDate,
                     "Recaudación automática de stands", "MIXED", null,

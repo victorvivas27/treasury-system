@@ -6,6 +6,7 @@
   --color-primary: #1E3A5F;
   --color-accent: #0eebcd;
   --color-success: #22C55E;
+  --color-danger: #EF4444;
   --color-error: #EF4444;
   --color-warning: #F59E0B;
   --color-info: #3B82F6;
@@ -96,6 +97,7 @@
   --shadow-card: 0 1px 3px rgba(28, 35, 42, 0.08);
   --shadow-elevated: 0 14px 35px rgba(28, 35, 42, 0.16);
   --color-success: #187a3c;
+  --color-danger: #c63737;
   --color-error: #c63737;
   --color-warning: #9a5c05;
   --color-info: #2466b1;
@@ -192,6 +194,29 @@ input,
 select,
 textarea {
   color-scheme: inherit;
+}
+
+/* Mantiene los campos autocompletados dentro de la paleta activa.
+   Chrome, Edge y Safari aplican por defecto un fondo propio a las credenciales. */
+input:autofill,
+select:autofill,
+textarea:autofill,
+input:-webkit-autofill,
+select:-webkit-autofill,
+textarea:-webkit-autofill,
+input:-webkit-autofill:hover,
+select:-webkit-autofill:hover,
+textarea:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill:active,
+textarea:-webkit-autofill:active {
+  background-color: var(--color-bg);
+  box-shadow: 0 0 0 1000px var(--color-bg) inset;
+  caret-color: var(--text-main);
+  -webkit-text-fill-color: var(--text-main);
 }
 
 /* Evita que iOS amplíe toda la página al enfocar controles con texto menor a 16 px. */

@@ -57,7 +57,8 @@ export const useCreateAlumno = () => {
       });
 
     const handleManagedCourseChange = (event: Event) => {
-      applyManagedCourse((event as CustomEvent<string>).detail);
+      const detail = (event as CustomEvent<string | { course: string }>).detail;
+      applyManagedCourse(typeof detail === "string" ? detail : detail.course);
     };
     window.addEventListener("managed-course-changed", handleManagedCourseChange);
 

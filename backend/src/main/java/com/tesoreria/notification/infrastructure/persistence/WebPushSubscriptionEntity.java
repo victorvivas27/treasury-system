@@ -1,12 +1,14 @@
 package com.tesoreria.notification.infrastructure.persistence;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "web_push_subscriptions")
-public class WebPushSubscriptionEntity {
+public class WebPushSubscriptionEntity extends TenantScopedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,4 +1,6 @@
-export type UserRole = "ADMIN" | "USER";
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
+export const isAdminRole = (role: string | undefined): boolean =>
+  role === "SUPER_ADMIN" || role === "ADMIN";
 export type ProfileImageType = "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
 
 export interface User {

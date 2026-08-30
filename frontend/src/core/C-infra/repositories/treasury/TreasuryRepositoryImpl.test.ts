@@ -13,6 +13,25 @@ describe("TreasuryRepositoryImpl", () => {
     vi.clearAllMocks();
   });
 
+  it("actualiza curso y año sin perder el historial de períodos", async () => {
+    const settings = {
+      course: "2° A Básico",
+      schoolYear: 2027,
+      history: [
+        { course: "2° A Básico", schoolYear: 2027 },
+        { course: "1° A Básico", schoolYear: 2026 },
+      ],
+    };
+    vi.mocked(apiClient.put).mockResolvedValue({ data: settings });
+
+    await expect(repository.saveManagedCourse("2° A Básico", 2027))
+      .resolves.toEqual(settings);
+    expect(apiClient.put).toHaveBeenCalledWith(
+      "/tesoreria/configuracion-general/curso",
+      { course: "2° A Básico", schoolYear: 2027 },
+    );
+  });
+
   it("[Tesorería repository #01] guarda la configuración anual", async () => {
     const payload = {
       annualAmount: 70000, allowedMode: "AMBAS" as const,

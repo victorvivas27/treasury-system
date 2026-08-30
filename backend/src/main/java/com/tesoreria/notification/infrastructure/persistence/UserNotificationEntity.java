@@ -1,5 +1,7 @@
 package com.tesoreria.notification.infrastructure.persistence;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -7,7 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user_notifications", uniqueConstraints =
         @UniqueConstraint(columnNames = {"notification_id", "user_id"}))
-public class UserNotificationEntity {
+public class UserNotificationEntity extends TenantScopedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

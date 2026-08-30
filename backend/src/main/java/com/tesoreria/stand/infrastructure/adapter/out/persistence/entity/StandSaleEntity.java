@@ -1,5 +1,7 @@
 package com.tesoreria.stand.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.stand.core.model.StandPaymentMethod;
 import com.tesoreria.stand.core.model.StandSaleStatus;
 import jakarta.persistence.*;
@@ -17,7 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class StandSaleEntity {
+public class StandSaleEntity extends TenantScopedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

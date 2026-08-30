@@ -20,6 +20,7 @@ public class User {
     private String correo;
     private String password;
     private RoleEnum rol;
+    private Long organizationId;
     private Boolean enabled;
     private Boolean accountNonLocked;
     private LocalDateTime emailVerifiedAt;
@@ -27,6 +28,9 @@ public class User {
     private LocalDateTime updatedAt;
     private String profileImageUrl;
     private ProfileImageType profileImageType = ProfileImageType.INITIALS;
+    private String totpSecret;
+    private Boolean totpEnabled = false;
+    private String backupCodes;
 
     public User() {
     }
@@ -148,6 +152,9 @@ public class User {
         rol = value == null ? RoleEnum.USER : value;
     }
 
+    public Long getOrganizationId() { return organizationId; }
+    public void setOrganizationId(Long value) { organizationId = value; }
+
     public Boolean getEnabled() {
         return enabled;
     }
@@ -195,5 +202,29 @@ public class User {
     }
     public void setProfileImageType(ProfileImageType value) {
         profileImageType = value == null ? ProfileImageType.INITIALS : value;
+    }
+
+    public String getTotpSecret() {
+        return totpSecret;
+    }
+
+    public void setTotpSecret(String totpSecret) {
+        this.totpSecret = totpSecret;
+    }
+
+    public Boolean getTotpEnabled() {
+        return totpEnabled == null ? false : totpEnabled;
+    }
+
+    public void setTotpEnabled(Boolean totpEnabled) {
+        this.totpEnabled = totpEnabled == null ? false : totpEnabled;
+    }
+
+    public String getBackupCodes() {
+        return backupCodes;
+    }
+
+    public void setBackupCodes(String backupCodes) {
+        this.backupCodes = backupCodes;
     }
 }

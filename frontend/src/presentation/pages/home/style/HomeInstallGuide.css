@@ -11,20 +11,15 @@
   background: rgba(17, 24, 39, .72);
   box-shadow: var(--shadow-card);
   backface-visibility: hidden;
-  filter: blur(14px) brightness(.45) saturate(.6);
-  transform: perspective(900px) translate3d(0, 120px, -650px) scale(.55)
-    rotateX(58deg) rotateY(-38deg) rotateZ(-5deg);
-  transform-origin: 50% 85%;
-  transform-style: preserve-3d;
-  will-change: opacity, filter, transform;
+  opacity: 0;
+  transform: translateY(22px) scale(.985);
+  transform-origin: center;
+  will-change: opacity, transform;
 }
 
 .public-home__install.is-visible {
-  animation: install-3d-impact 1.65s cubic-bezier(.16, 1, .3, 1) both,
-    install-attention 2.8s ease-in-out 1.85s infinite alternate;
-  filter: none;
-  transform: perspective(900px) translate3d(0, 0, 0) scale(1)
-    rotateX(0) rotateY(0) rotateZ(0);
+  animation: install-gentle-reveal 900ms cubic-bezier(.22, 1, .36, 1) both,
+    install-attention 3.8s ease-in-out 1.2s infinite alternate;
 }
 
 .public-home__install-heading {
@@ -84,53 +79,14 @@
   }
 }
 
-@keyframes install-3d-impact {
-  0% {
+@keyframes install-gentle-reveal {
+  from {
     opacity: 0;
-    filter: blur(14px) brightness(.45) saturate(.6);
-    transform: perspective(900px) translate3d(0, 120px, -650px) scale(.55)
-      rotateX(58deg) rotateY(-38deg) rotateZ(-5deg);
+    transform: translateY(22px) scale(.985);
   }
-  68% {
+  to {
     opacity: 1;
-    filter: blur(0) brightness(1.08) saturate(1.15);
-    transform: perspective(900px) translate3d(0, -18px, 55px) scale(1.055)
-      rotateX(-5deg) rotateY(4deg) rotateZ(.7deg);
-  }
-  84% {
-    transform: perspective(900px) translate3d(0, 7px, -12px) scale(.985)
-      rotateX(2deg) rotateY(-1.5deg) rotateZ(-.25deg);
-  }
-  100% {
-    opacity: 1;
-    filter: none;
-    transform: perspective(900px) translate3d(0, 0, 0) scale(1)
-      rotateX(0) rotateY(0) rotateZ(0);
-  }
-}
-
-@keyframes install-3d-impact-mobile {
-  0% {
-    opacity: 0;
-    filter: blur(10px) brightness(.55) saturate(.7);
-    transform: perspective(1000px) translate3d(0, 80px, -360px) scale(.68)
-      rotateX(42deg) rotateY(-24deg) rotateZ(-3deg);
-  }
-  72% {
-    opacity: 1;
-    filter: blur(0) brightness(1.04) saturate(1.08);
-    transform: perspective(1000px) translate3d(0, -8px, 0) scale(1.01)
-      rotateX(-2deg) rotateY(1.5deg) rotateZ(.25deg);
-  }
-  88% {
-    transform: perspective(1000px) translate3d(0, 3px, -8px) scale(.995)
-      rotateX(1deg) rotateY(-.5deg) rotateZ(-.1deg);
-  }
-  100% {
-    opacity: 1;
-    filter: none;
-    transform: perspective(1000px) translate3d(0, 0, 0) scale(1)
-      rotateX(0) rotateY(0) rotateZ(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -139,8 +95,8 @@
 }
 
 @media (max-width: 760px) {
-  .public-home__install { width: min(100% - 1rem, 1180px); grid-template-columns: 1fr; gap: .8rem; margin: .45rem auto 1rem; padding: .85rem; border-radius: .9rem; filter:blur(10px) brightness(.55) saturate(.7); transform:perspective(1000px) translate3d(0,80px,-360px) scale(.68) rotateX(42deg) rotateY(-24deg) rotateZ(-3deg); }
-  .public-home__install.is-visible { animation:install-3d-impact-mobile 1.8s cubic-bezier(.16,1,.3,1) both,install-attention 2.8s ease-in-out 2s infinite alternate; }
+  .public-home__install { width: min(100% - 1rem, 1180px); grid-template-columns: 1fr; gap: .8rem; margin: .45rem auto 1rem; padding: .85rem; border-radius: .9rem; transform:translateY(18px) scale(.99); }
+  .public-home__install.is-visible { animation:install-gentle-reveal 850ms cubic-bezier(.22,1,.36,1) both,install-attention 3.8s ease-in-out 1.2s infinite alternate; }
   .public-home__install-heading { gap: .65rem; }
   .public-home__install-icon { width: 2.3rem; height: 2.3rem; border-radius: .65rem; font-size: 1.1rem; }
   .public-home__install-icon img { width: 2rem; height: 2rem; }
@@ -156,6 +112,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .public-home__install,
-  .public-home__install.is-visible { animation: none; transform: none; }
+  .public-home__install.is-visible { opacity: 1; animation: none; transform: none; }
   .public-home__typing-caret { animation: none; }
 }

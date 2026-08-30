@@ -1,5 +1,6 @@
 package com.tesoreria.user.infrastructure.adapter.out.email;
 
+import com.tesoreria.organization.application.OrganizationEmailBranding;
 import com.tesoreria.user.core.port.out.EmailOutPort;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -32,29 +33,51 @@ public class GmailEmailAdapter implements EmailOutPort {
 
     @Override
     public boolean sendVerificationEmail(String email, String name, String link) {
+        return sendVerificationEmail(email, name, link, null);
+    }
+
+    @Override
+    public boolean sendVerificationEmail(String email, String name, String link,
+                                         OrganizationEmailBranding branding) {
         return send(email, name, "Verifica tu correo para activar tu cuenta",
-                EmailTemplates.verification(name, link));
+                EmailTemplates.verification(name, link), branding);
     }
 
     @Override
     public boolean sendPasswordResetEmail(String email, String name, String link) {
-        return send(email, name, "Restablece tu contraseña", EmailTemplates.passwordReset(name, link));
+        return sendPasswordResetEmail(email, name, link, null);
+    }
+
+    @Override
+    public boolean sendPasswordResetEmail(String email, String name, String link,
+                                          OrganizationEmailBranding branding) {
+        return send(email, name, "Restablece tu contraseña",
+                EmailTemplates.passwordReset(name, link), branding);
     }
 
     @Override
     public boolean sendPasswordChangedEmail(String email, String name, LocalDateTime changedAt) {
-        return send(email, name, "Tu contraseña fue modificada",
-                EmailTemplates.passwordChanged(name, changedAt));
+        return sendPasswordChangedEmail(email, name, changedAt, null);
     }
 
-    private boolean send(String to, String recipientName, String subject, String html) {
-        if (from == null || from.isBlank()) {
-            return false;
-        }
+    @Override
+    public boolean sendPasswordChangedEmail(String email, String name, LocalDateTime changedAt,
+                                            OrganizationEmailBranding branding) {
+        return send(email, name, "Tu contraseña fue modificada",
+                EmailTemplates.passwordChanged(name, changedAt), branding);
+    }
+
+    private boolean send(String to, String recipientName, String subject, String html,
+                         OrganizationEmailBranding branding) {
+        if (from == null || from.isBlank()) return false;
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-            helper.setFrom(parseFrom());
+            helper.setFrom(parseFrom(branding));
+            if (branding != null && branding.replyToEmail() != null
+                    && !branding.replyToEmail().isBlank()) {
+                helper.setReplyTo(new InternetAddress(branding.replyToEmail().trim(), true));
+            }
             helper.setTo(new InternetAddress(to, repairUtf8Mojibake(recipientName), "UTF-8"));
             helper.setSubject(subject);
             helper.setText(html, true);
@@ -65,7 +88,8 @@ public class GmailEmailAdapter implements EmailOutPort {
         }
     }
 
-    private InternetAddress parseFrom() throws MessagingException, UnsupportedEncodingException {
+    private InternetAddress parseFrom(OrganizationEmailBranding branding)
+            throws MessagingException, UnsupportedEncodingException {
         String normalized = repairUtf8Mojibake(from.trim());
         if (normalized.length() >= QUOTED_VALUE_MIN_LENGTH && normalized.startsWith("\"")
                 && normalized.endsWith("\"")) {
@@ -76,16 +100,16 @@ public class GmailEmailAdapter implements EmailOutPort {
             throw new MessagingException("EMAIL_FROM debe contener un único remitente");
         }
         InternetAddress parsed = addresses[0];
-        return new InternetAddress(parsed.getAddress(), parsed.getPersonal(), "UTF-8");
+        String personal = branding != null && branding.senderName() != null
+                && !branding.senderName().isBlank()
+                ? repairUtf8Mojibake(branding.senderName().trim()) : parsed.getPersonal();
+        return new InternetAddress(parsed.getAddress(), personal, "UTF-8");
     }
 
     private String repairUtf8Mojibake(String value) {
-        if (value == null || (!value.contains("Ã") && !value.contains("Â"))) {
-            return value;
-        }
+        if (value == null || (!value.contains("\u00C3") && !value.contains("\u00C2"))) return value;
         String repaired =
                 new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
         return repaired.contains("\uFFFD") ? value : repaired;
     }
-
 }

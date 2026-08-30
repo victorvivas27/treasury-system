@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { FiCheckCircle, FiChevronLeft, FiChevronRight, FiCompass, FiUsers } from "react-icons/fi";
 import type { User } from "@/core/A-domain/entities/user/User";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import "./AppTour.css";
 
 const TOUR_VERSION = "v2";
@@ -20,7 +21,7 @@ const commonFinalStep: TourStep = {
   icon: FiCheckCircle,
 };
 
-const stepsFor = (user: User): TourStep[] => user.rol === "ADMIN" ? [
+const stepsFor = (user: User): TourStep[] => isAdminRole(user.rol) ? [
   { title: `¡Bienvenido, ${user.nombre}!`, description: "Te mostraremos las áreas principales para comenzar a administrar el sistema.", icon: FiCompass },
   { title: "Panel principal", description: "Aquí encuentras el resumen general y los indicadores más importantes.", selector: '[data-tour-path="/dashboard"]', icon: FiCompass },
   { title: "Familias", description: "Administra los vínculos entre cada alumno y sus apoderados, indicando su parentesco y apoderado principal.", selector: '[data-tour-path="/family"]', icon: FiUsers },

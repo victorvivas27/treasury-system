@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { FiCheck, FiClipboard, FiCreditCard, FiExternalLink, FiEye, FiUpload, FiX } from "react-icons/fi";
 import { apiClient } from "@/core/D-config/api";
+import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import "./PaymentsPage.css";
@@ -47,7 +48,7 @@ const formatBankAccountType = (accountType: string) => {
 
 export const PaymentsPage = () => {
   const { user } = useAuth();
-  const admin = user?.rol === "ADMIN";
+  const admin = isAdminRole(user?.rol);
   const [year, setYear] = useState(yearNow);
   const [mine, setMine] = useState<MyPayments | null>(null);
   const [bank, setBank] = useState<BankAccount>(emptyBank(yearNow));

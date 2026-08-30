@@ -1,5 +1,7 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import com.tesoreria.treasury.core.model.AllowedPaymentMode;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,11 +13,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "annual_fee_configs", uniqueConstraints = @UniqueConstraint(columnNames = "fee_year"))
+@Table(name = "annual_fee_configs", uniqueConstraints = @UniqueConstraint(
+        name = "uk_annual_fee_organization_year", columnNames = {"organization_id", "fee_year"}))
 @Getter
 @Setter
 @NoArgsConstructor
-public class AnnualFeeConfigEntity {
+public class AnnualFeeConfigEntity extends TenantScopedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,5 +1,8 @@
 package user;
 
+import com.tesoreria.organization.application.CurrentOrganizationService;
+import com.tesoreria.organization.application.OrganizationEmailBranding;
+import com.tesoreria.organization.application.OrganizationEmailBrandingService;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.AuthFlowRateLimiter;
 import com.tesoreria.user.config.security.TokenRevocationService;
@@ -24,6 +27,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class AccountRecoveryServiceTest {
@@ -88,5 +92,29 @@ class AccountRecoveryServiceTest {
 
         verify(tokens).deleteByUserIdAndType(7L, UserTokenType.PASSWORD_RESET);
         verify(user).setPassword("new-hash");
+    }
+
+    @Test
+    void inviteGuardian_deberiaAsociarOrganizacionYUsarSuRemitente() {
+        CurrentOrganizationService currentOrganization = mock(CurrentOrganizationService.class);
+        OrganizationEmailBrandingService brandingService = mock(OrganizationEmailBrandingService.class);
+        OrganizationEmailBranding branding =
+                new OrganizationEmailBranding("Curso 4A", "admin4a@colegio.cl");
+        AccountRecoveryService tenantService = new AccountRecoveryService(
+                users, tokens, email, passwordEncoder, rateLimiter, revocationService,
+                "https://app.example", currentOrganization, brandingService);
+        when(currentOrganization.getId()).thenReturn(4L);
+        when(brandingService.find(4L)).thenReturn(branding);
+        when(users.findByCorreo("apoderado@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$mockedBcryptHash");
+        when(users.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), eq(branding)))
+                .thenReturn(true);
+
+        User invited = tenantService.inviteGuardian("Apoderado Curso", "apoderado@example.com");
+
+        assertEquals(4L, invited.getOrganizationId());
+        verify(email).sendPasswordResetEmail(eq("apoderado@example.com"),
+                eq("APODERADO CURSO"), contains("/restablecer-password?token="), eq(branding));
     }
 }

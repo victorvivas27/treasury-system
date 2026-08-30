@@ -1,13 +1,17 @@
 package com.tesoreria.community.infrastructure.persistence;
 
+import com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "course_board_members", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"election_year", "role", "position_number"}),
-        @UniqueConstraint(columnNames = {"election_year", "apoderado_id"})
+        @UniqueConstraint(name = "uq_board_organization_position",
+                columnNames = {"organization_id", "election_year", "role", "position_number"}),
+        @UniqueConstraint(name = "uq_board_organization_parent",
+                columnNames = {"organization_id", "election_year", "apoderado_id"})
 })
-public class BoardMemberEntity {
+public class BoardMemberEntity extends TenantScopedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "election_year", nullable = false) private Integer electionYear;

@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .hasRole("ADMIN")
+                        .requestMatchers("/api/v1/organizations/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/about").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/gallery", "/api/v1/community/gallery/**").authenticated()

@@ -62,10 +62,10 @@
   .admin-data-table--users .admin-col-actions { width: 150px; }
 
   .admin-data-table--guardians .admin-col-status { width: 90px; }
-  .admin-data-table--guardians .admin-col-primary { width: calc((100% - 518px) * .48); }
-  .admin-data-table--guardians .admin-col-email { width: calc((100% - 518px) * .52); }
+  .admin-data-table--guardians .admin-col-primary { width: calc((100% - 538px) * .48); }
+  .admin-data-table--guardians .admin-col-email { width: calc((100% - 538px) * .52); }
   .admin-data-table--guardians col:nth-child(4) { width: 105px; }
-  .admin-data-table--guardians col:nth-child(5) { width: 105px; }
+  .admin-data-table--guardians col:nth-child(5) { width: 125px; }
   .admin-data-table--guardians .admin-col-actions { width: 218px; }
 
   .admin-data-table--students .admin-col-status { width: 90px; }

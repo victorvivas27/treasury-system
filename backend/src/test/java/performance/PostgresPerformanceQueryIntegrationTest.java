@@ -185,7 +185,7 @@ class PostgresPerformanceQueryIntegrationTest {
         insertRelationship(familyA, principal, true);
         insertRelationship(familyA, secondary, false);
 
-        List<FamiliaJpaRepository.FamilyTreasuryView> result = families.findTreasuryData();
+        List<FamiliaJpaRepository.FamilyTreasuryView> result = families.findTreasuryData(organizationId());
 
         assertEquals(2, result.size());
         assertAll(() -> assertEquals("FAM-001", result.get(0).getFamilyCode()),
@@ -240,11 +240,11 @@ class PostgresPerformanceQueryIntegrationTest {
 
     private long insertEvent(String name) {
         return jdbc.queryForObject("""
-                INSERT INTO school_events(name, school_year, event_date, status,
+                INSERT INTO school_events(name, school_year, event_date, status, organization_id,
                     settlement_confirmed, created_at, updated_at)
-                VALUES (?, 2026, DATE '2026-08-01', 'OPEN', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                VALUES (?, 2026, DATE '2026-08-01', 'OPEN', ?, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 RETURNING id
-                """, Long.class, name);
+                """, Long.class, name, organizationId());
     }
 
     private long insertStand(long eventId, String name, String status,
@@ -252,20 +252,20 @@ class PostgresPerformanceQueryIntegrationTest {
         return jdbc.queryForObject("""
                         INSERT INTO event_stands(event_id, name, stand_date, start_time, end_time,
                             responsible, initial_fund, status, debit_commission, credit_commission,
-                            transfer_commission, created_at, updated_at, version)
+                            transfer_commission, created_at, updated_at, version, organization_id)
                         VALUES (?, ?, DATE '2026-08-01', TIME '09:00', TIME '18:00', 'Responsable',
-                            0, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                            0, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, ?)
                         RETURNING id
                         """, Long.class, eventId, name, status, new BigDecimal(debit),
-                new BigDecimal(credit), new BigDecimal(transfer));
+                new BigDecimal(credit), new BigDecimal(transfer), organizationId());
     }
 
     private long insertSale(long standId, String method, String total, String status) {
         return jdbc.queryForObject("""
                 INSERT INTO event_stand_sales(stand_id, payment_method, total, registered_by,
-                    sold_at, status) VALUES (?, ?, ?, 'tester', CURRENT_TIMESTAMP, ?)
+                    sold_at, status, organization_id) VALUES (?, ?, ?, 'tester', CURRENT_TIMESTAMP, ?, ?)
                 RETURNING id
-                """, Long.class, standId, method, new BigDecimal(total), status);
+                """, Long.class, standId, method, new BigDecimal(total), status, organizationId());
     }
 
     private void insertItem(long saleId, long productId, String name, String category,
@@ -282,20 +282,22 @@ class PostgresPerformanceQueryIntegrationTest {
     }
 
     private long insertStudent(String code, String name, String course) {
-        return jdbc.queryForObject("INSERT INTO alumnos(codigo, nombre, curso) VALUES (?, ?, ?) RETURNING alumno_id",
-                Long.class, code, name, course);
+        return jdbc.queryForObject("INSERT INTO alumnos(codigo, nombre, curso, organization_id) "
+                        + "VALUES (?, ?, ?, ?) RETURNING alumno_id",
+                Long.class, code, name, course, organizationId());
     }
 
     private long insertFamily(long studentId, String code) {
-        return jdbc.queryForObject("INSERT INTO familias(alumno_id, codigo) VALUES (?, ?) RETURNING familia_id",
-                Long.class, studentId, code);
+        return jdbc.queryForObject("INSERT INTO familias(alumno_id, codigo, organization_id) "
+                        + "VALUES (?, ?, ?) RETURNING familia_id",
+                Long.class, studentId, code, organizationId());
     }
 
     private long insertGuardian(String code, String name, String email) {
         return jdbc.queryForObject("""
-                INSERT INTO apoderados(codigo, nombre, email, telefono)
-                VALUES (?, ?, ?, '+56912345678') RETURNING apoderado_id
-                """, Long.class, code, name, email);
+                INSERT INTO apoderados(codigo, nombre, email, telefono, organization_id)
+                VALUES (?, ?, ?, '+56912345678', ?) RETURNING apoderado_id
+                """, Long.class, code, name, email, organizationId());
     }
 
     private void insertRelationship(long familyId, long guardianId, boolean primary) {
@@ -303,5 +305,9 @@ class PostgresPerformanceQueryIntegrationTest {
                 INSERT INTO familia_apoderados(familia_id, apoderado_id, parentesco, es_principal)
                 VALUES (?, ?, 'MADRE', ?)
                 """, familyId, guardianId, primary);
+    }
+
+    private Long organizationId() {
+        return jdbc.queryForObject("SELECT id FROM organizations WHERE slug = 'default'", Long.class);
     }
 }
