@@ -128,6 +128,50 @@ class NotificationServiceTest {
     }
 
     @Test
+    void replies_deberiaPermitirAlSuperAdminAccederAlHiloQueCreo() {
+        UserEntity superAdmin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.SUPER_ADMIN);
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        NotificationEntity notification = new NotificationEntity();
+        notification.setCreatedBy(superAdmin);
+        UserNotificationEntity delivery = new UserNotificationEntity();
+        delivery.setNotification(notification);
+        delivery.setUser(guardian);
+        when(users.findByCorreo(superAdmin.getCorreo())).thenReturn(Optional.of(superAdmin));
+        when(deliveries.findByIdAndNotificationCreatedById(12L, 1L))
+                .thenReturn(Optional.of(delivery));
+        when(replies.findConversation(7L, 1L, 1L)).thenReturn(List.of());
+
+        assertTrue(service.replies(12L, superAdmin.getCorreo()).isEmpty());
+
+        verify(deliveries).findByIdAndNotificationCreatedById(12L, 1L);
+        verify(deliveries, never()).findByIdAndUserId(anyLong(), anyLong());
+    }
+
+    @Test
+    void startTreasuryConversation_deberiaImpedirQueSuperAdminInicieComoApoderado() {
+        UserEntity superAdmin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.SUPER_ADMIN);
+        when(users.findByCorreo(superAdmin.getCorreo())).thenReturn(Optional.of(superAdmin));
+
+        assertThrows(DomainException.class, () -> service.startTreasuryConversation(
+                new NotificationReplyRequest("Mensaje"), superAdmin.getCorreo()));
+
+        verify(notifications, never()).save(any());
+        verify(deliveries, never()).save(any());
+        verify(replies, never()).save(any());
+    }
+
+    @Test
+    void treasuryContact_deberiaImpedirQueSuperAdminLoConsulteComoApoderado() {
+        UserEntity superAdmin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.SUPER_ADMIN);
+        when(users.findByCorreo(superAdmin.getCorreo())).thenReturn(Optional.of(superAdmin));
+
+        assertThrows(DomainException.class, () -> service.treasuryContact(superAdmin.getCorreo()));
+
+        verify(users, never()).findByRolOrderByIdAsc(any());
+        verify(users, never()).findByRolInAndOrganizationIdOrderByIdAsc(any(), any());
+    }
+
+    @Test
     void deleteSent_deberiaEliminarMensajesEntregasYNotificacionEnOrden() {
         NotificationEntity notification = mock(NotificationEntity.class);
         when(notification.getId()).thenReturn(18L);

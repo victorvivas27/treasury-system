@@ -202,7 +202,7 @@ public class NotificationService {
     @Transactional
     public RealtimeReply startTreasuryConversation(NotificationReplyRequest request, String email) {
         UserEntity guardian = currentUser(email);
-        if (guardian.getRol() == RoleEnum.ADMIN)
+        if (isAdministrative(guardian))
             throw error("recipient", HttpStatus.BAD_REQUEST,
                     "La conversación con Tesorería debe iniciarla un apoderado");
         UserEntity admin = soleTreasuryAdmin(guardian.getOrganizationId());
@@ -239,7 +239,7 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public TreasuryContactResponse treasuryContact(String email) {
         UserEntity requester = currentUser(email);
-        if (requester.getRol() == RoleEnum.ADMIN)
+        if (isAdministrative(requester))
             throw error("recipient", HttpStatus.BAD_REQUEST,
                     "El contacto de Tesorería está disponible para apoderados");
         UserEntity admin = soleTreasuryAdmin(requester.getOrganizationId());
@@ -297,11 +297,15 @@ public class NotificationService {
     }
 
     private UserNotificationEntity accessibleDelivery(Long deliveryId, UserEntity user) {
-        Optional<UserNotificationEntity> delivery = user.getRol() == RoleEnum.ADMIN
+        Optional<UserNotificationEntity> delivery = isAdministrative(user)
                 ? deliveries.findByIdAndNotificationCreatedById(deliveryId, user.getId())
                 : deliveries.findByIdAndUserId(deliveryId, user.getId());
         return delivery.orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                 "Conversación no encontrada"));
+    }
+
+    private boolean isAdministrative(UserEntity user) {
+        return user.getRol() == RoleEnum.ADMIN || user.getRol() == RoleEnum.SUPER_ADMIN;
     }
 
     private String otherParticipantEmail(UserNotificationEntity delivery, UserEntity author) {
