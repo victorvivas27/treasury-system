@@ -37,6 +37,10 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        return generateToken(userDetails, null);
+    }
+
+    public String generateToken(UserDetails userDetails, UUID tokenFamilyId) {
 
         Date now = new Date();
 
@@ -57,6 +61,9 @@ public class JwtService {
             builder.claim("userId", tenantUser.getUserId())
                     .claim("organizationId", tenantUser.getOrganizationId());
         }
+        if (tokenFamilyId != null) {
+            builder.claim("tokenFamilyId", tokenFamilyId.toString());
+        }
         return builder
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -71,8 +78,10 @@ public class JwtService {
     public ParsedToken parseToken(String token) {
         Claims claims = parseClaims(token);
         Number organizationId = claims.get("organizationId", Number.class);
+        String tokenFamilyId = claims.get("tokenFamilyId", String.class);
         return new ParsedToken(claims.getSubject(), claims.getIssuedAt(), claims.getExpiration(),
-                organizationId == null ? null : organizationId.longValue());
+                organizationId == null ? null : organizationId.longValue(),
+                tokenFamilyId == null ? null : UUID.fromString(tokenFamilyId));
     }
 
     public boolean isTokenValid(
@@ -121,9 +130,14 @@ public class JwtService {
                 .getBody();
     }
 
-    public record ParsedToken(String username, Date issuedAt, Date expiresAt, Long organizationId) {
+    public record ParsedToken(
+            String username,
+            Date issuedAt,
+            Date expiresAt,
+            Long organizationId,
+            UUID tokenFamilyId) {
         public ParsedToken(String username, Date issuedAt, Date expiresAt) {
-            this(username, issuedAt, expiresAt, null);
+            this(username, issuedAt, expiresAt, null, null);
         }
     }
 }

@@ -53,7 +53,10 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final boolean refreshCookieSecure;
     private final String refreshCookieSameSite;
+    private final String authCookiePath;
     private static final String REFRESH_COOKIE = "treasury_refresh";
+    private static final String CSRF_COOKIE = "treasury_csrf";
+    private static final String CSRF_HEADER = "X-CSRF-Token";
 
     @Autowired
     public AuthController(
@@ -69,7 +72,8 @@ public class AuthController {
             LoginPerformanceProbe loginPerformance,
             RefreshTokenService refreshTokenService,
             @Value("${app.refresh-token.cookie-secure:true}") boolean refreshCookieSecure,
-            @Value("${app.refresh-token.cookie-same-site:Lax}") String refreshCookieSameSite) {
+            @Value("${app.refresh-token.cookie-same-site:Lax}") String refreshCookieSameSite,
+            @Value("${server.servlet.context-path:}") String contextPath) {
         this.authService = authService;
         this.userService = userService;
         this.mapper = mapper;
@@ -83,6 +87,7 @@ public class AuthController {
         this.refreshTokenService = refreshTokenService;
         this.refreshCookieSecure = refreshCookieSecure;
         this.refreshCookieSameSite = refreshCookieSameSite;
+        this.authCookiePath = normalizeCookiePath(contextPath);
     }
 
     public AuthController(
@@ -93,7 +98,7 @@ public class AuthController {
             TokenRevocationService revocationService,
             RegistrationRateLimiter registrationRateLimiter) {
         this(authService, userService, mapper, jwtService, revocationService,
-                registrationRateLimiter, null, "", false, null, null, false, "Lax");
+                registrationRateLimiter, null, "", false, null, null, false, "Lax", "");
     }
 
     @Operation(summary = "Iniciar sesión")
@@ -103,7 +108,9 @@ public class AuthController {
             @ApiResponse(responseCode = "429", description = "Login temporalmente bloqueado")
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+    public ResponseEntity<LoginResponseDTO> login(
+            @Valid @RequestBody LoginRequestDTO request,
+            HttpServletRequest httpRequest) {
         LoginPerformanceProbe.Measurement measurement = loginPerformance == null
                 ? null : loginPerformance.start();
         try {
@@ -111,14 +118,14 @@ public class AuthController {
             String authenticatedToken = authService.login(request.correo(), request.password());
             RefreshTokenService.IssuedTokens issued = refreshTokenService == null
                     ? new RefreshTokenService.IssuedTokens(authenticatedToken, null)
-                    : refreshTokenService.issue(request.correo());
+                    : refreshTokenService.issue(request.correo(),
+                    httpRequest.getHeader("User-Agent"), clientIp(httpRequest));
             if (measurement != null) loginPerformance.phase(measurement, "authenticateAndJwt", startedAt);
             startedAt = LoginPerformanceProbe.now();
             UserResponseDTO user = mapper.toResponse(userService.findByCorreo(request.correo()));
             if (measurement != null) loginPerformance.phase(measurement, "findUserAndMap", startedAt);
             ResponseEntity.BodyBuilder response = ResponseEntity.ok();
-            if (issued.refreshToken() != null) response.header(HttpHeaders.SET_COOKIE,
-                    refreshCookie(issued.refreshToken(), refreshTokenService.getExpirationSeconds()).toString());
+            addSessionCookies(response, issued);
             return response.body(new LoginResponseDTO(
                     issued.accessToken(),
                     "Bearer",
@@ -168,15 +175,17 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<LoginResponseDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO request) {
+    public ResponseEntity<LoginResponseDTO> verifyEmail(
+            @Valid @RequestBody TokenRequestDTO request,
+            HttpServletRequest httpRequest) {
         User verifiedUser = accountRecoveryService.verifyEmail(request.token());
         String token = authService.issueTokenForVerifiedEmail(verifiedUser.getCorreo());
         RefreshTokenService.IssuedTokens issued = refreshTokenService == null
                 ? new RefreshTokenService.IssuedTokens(token, null)
-                : refreshTokenService.issue(verifiedUser.getCorreo());
+                : refreshTokenService.issue(verifiedUser.getCorreo(),
+                httpRequest.getHeader("User-Agent"), clientIp(httpRequest));
         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
-        if (issued.refreshToken() != null) response.header(HttpHeaders.SET_COOKIE,
-                refreshCookie(issued.refreshToken(), refreshTokenService.getExpirationSeconds()).toString());
+        addSessionCookies(response, issued);
         return response.body(new LoginResponseDTO(
                 issued.accessToken(),
                 "Bearer",
@@ -226,7 +235,9 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @RequestHeader(value = SecurityConstants.AUTHORIZATION_HEADER, required = false) String authorization,
-            @CookieValue(value = REFRESH_COOKIE, required = false) String refreshToken) {
+            @RequestHeader(value = CSRF_HEADER, required = false) String csrfHeader,
+            @CookieValue(value = REFRESH_COOKIE, required = false) String refreshToken,
+            @CookieValue(value = CSRF_COOKIE, required = false) String csrfCookie) {
         if (authorization != null && authorization.startsWith(SecurityConstants.TOKEN_PREFIX)) {
             String token = authorization.substring(SecurityConstants.TOKEN_PREFIX.length());
             try {
@@ -235,26 +246,31 @@ public class AuthController {
                 // Un access token expirado no debe impedir revocar la sesión persistente.
             }
         }
-        if (refreshTokenService != null) refreshTokenService.revoke(refreshToken);
+        if (refreshTokenService != null) refreshTokenService.revoke(refreshToken,
+                csrfFromRequest(refreshToken, csrfHeader, csrfCookie));
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, refreshCookie("", 0).toString()).build();
+                .header(HttpHeaders.SET_COOKIE, refreshCookie("", 0).toString(), csrfCookie("", 0).toString())
+                .build();
     }
 
     @Operation(summary = "Refrescar JWT")
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponseDTO> refresh(
-            @CookieValue(value = REFRESH_COOKIE, required = false) String refreshToken) {
+            @RequestHeader(value = CSRF_HEADER, required = false) String csrfHeader,
+            @CookieValue(value = REFRESH_COOKIE, required = false) String refreshToken,
+            @CookieValue(value = CSRF_COOKIE, required = false) String csrfCookie) {
         if (refreshTokenService == null || refreshToken == null || refreshToken.isBlank()) {
             throw new DomainException(
                     UserErrorCode.INVALID_CREDENTIALS.getField(),
                     UserErrorCode.INVALID_CREDENTIALS.getStatus(),
                     "Refresh token requerido");
         }
-        RefreshTokenService.IssuedTokens issued = refreshTokenService.rotate(refreshToken);
+        RefreshTokenService.IssuedTokens issued = refreshTokenService.rotate(
+                refreshToken, csrfFromRequest(refreshToken, csrfHeader, csrfCookie));
         String correo = jwtService.extractUsername(issued.accessToken());
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE,
-                        refreshCookie(issued.refreshToken(), refreshTokenService.getExpirationSeconds()).toString())
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+        addSessionCookies(response, issued);
+        return response
                 .body(new LoginResponseDTO(
                 issued.accessToken(),
                 "Bearer",
@@ -265,7 +281,38 @@ public class AuthController {
     private ResponseCookie refreshCookie(String value, long maxAge) {
         return ResponseCookie.from(REFRESH_COOKIE, value)
                 .httpOnly(true).secure(refreshCookieSecure).sameSite(refreshCookieSameSite)
+                .path(authCookiePath).maxAge(maxAge).build();
+    }
+
+    private ResponseCookie csrfCookie(String value, long maxAge) {
+        return ResponseCookie.from(CSRF_COOKIE, value)
+                .httpOnly(false).secure(refreshCookieSecure).sameSite(refreshCookieSameSite)
                 .path("/").maxAge(maxAge).build();
+    }
+
+    private void addSessionCookies(ResponseEntity.BodyBuilder response, RefreshTokenService.IssuedTokens issued) {
+        if (issued.refreshToken() == null) return;
+        long maxAge = refreshTokenService.getExpirationSeconds();
+        response.header(HttpHeaders.SET_COOKIE,
+                refreshCookie(issued.refreshToken(), maxAge).toString(),
+                csrfCookie(issued.csrfToken(), maxAge).toString());
+    }
+
+    private String csrfFromRequest(String refreshToken, String csrfHeader, String csrfCookie) {
+        if (refreshToken == null || refreshToken.isBlank()) return null;
+        if (csrfHeader == null || csrfHeader.isBlank() || csrfCookie == null || csrfCookie.isBlank()
+                || !MessageDigest.isEqual(csrfHeader.getBytes(StandardCharsets.UTF_8),
+                csrfCookie.getBytes(StandardCharsets.UTF_8))) {
+            throw new DomainException("csrf", HttpStatus.FORBIDDEN, "CSRF token inválido");
+        }
+        return csrfHeader;
+    }
+
+    private String normalizeCookiePath(String contextPath) {
+        String normalized = contextPath == null || contextPath.isBlank() || "/".equals(contextPath)
+                ? ""
+                : contextPath.replaceAll("/+$", "");
+        return normalized + ApiConstants.AUTH;
     }
 
     private boolean validBootstrapKey(String key) {
@@ -281,5 +328,13 @@ public class AuthController {
         } catch (java.net.UnknownHostException exception) {
             return false;
         }
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

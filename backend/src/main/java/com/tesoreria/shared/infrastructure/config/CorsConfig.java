@@ -29,10 +29,13 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        if (Arrays.asList(allowedOrigins).contains("*")) {
+            throw new IllegalStateException("CORS no puede usar '*' con credenciales habilitadas");
+        }
         registry.addMapping("/api/v1/**")
                 .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
+                .allowedHeaders("Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With")
                 .allowCredentials(true);
     }
 
