@@ -44,10 +44,10 @@ interface HomeHeaderProps {
   isSuperAdmin?: boolean;
 
   user?:
-    | Pick<
+    | (Pick<
         User,
         "nombre" | "profileImageType" | "profileImageUrl"
-      >
+      > & { id?: number })
     | null;
 
   onLogout?: () => void;
@@ -441,9 +441,10 @@ export const HomeHeader = ({
               <BrandLogo
                 className="public-home__system-access-logo"
                 alt=""
+                src="/icono-gestion-curso.png"
               />
 
-              <span>Sistema</span>
+              <span>Gestion del curso</span>
             </Link>
 
 

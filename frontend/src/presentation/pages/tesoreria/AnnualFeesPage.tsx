@@ -222,38 +222,46 @@ export const AnnualFeesPage = () => {
     <div className="annual-fees-grid">
       <section className="treasury-panel treasury-family-mode-panel">
         <h2>Modalidad por familia</h2>
-        <label>Familia<select value={familyId} disabled={fees.familiesLoading}
-          onChange={event => setFamilyId(Number(event.target.value))}>
-          <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
-          {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
-            {family.apoderados?.find(item => item.relacion?.esPrincipal)?.nombre
-              ?? "Sin apoderado principal"}
-          </option>)}
-        </select></label>
-        <label>Modalidad<select value={mode}
-          onChange={event => setMode(event.target.value as PaymentMode)}>
-          <option value="ANUAL">Cuota única</option>
-          <option value="DOS_CUOTAS">Dos cuotas</option>
-        </select></label>
-        <Button label="Guardar y generar cuotas" loading={fees.loading}
-          disabled={!familyId} onClick={() => void fees.assignMode(familyId, mode)
-            .then(success => {
-              if (success) setFamilyId(0);
-            })} size="medium" />
-        {fees.dataLoading
-          ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true" />
-          : <p>{fees.plans.length} familias configuradas para {fees.year}.</p>}
-        <p className="treasury-mode-help">
-          Para cambiar la modalidad de una familia con pagos, anula primero todos sus pagos
-          activos. Luego selecciona la nueva modalidad y guárdala; las obligaciones se
-          regenerarán automáticamente.
-        </p>
+        <div className="treasury-family-mode-layout">
+          <div className="treasury-family-mode-controls">
+            <label>Familia<select value={familyId} disabled={fees.familiesLoading}
+              onChange={event => setFamilyId(Number(event.target.value))}>
+              <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
+              {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
+                {family.apoderados?.find(item => item.relacion?.esPrincipal)?.nombre
+                  ?? "Sin apoderado principal"}
+              </option>)}
+            </select></label>
+            <label>Modalidad<select value={mode}
+              onChange={event => setMode(event.target.value as PaymentMode)}>
+              <option value="ANUAL">Cuota única</option>
+              <option value="DOS_CUOTAS">Dos cuotas</option>
+            </select></label>
+            <Button label="Guardar y generar cuotas" loading={fees.loading}
+              disabled={!familyId} onClick={() => void fees.assignMode(familyId, mode)
+                .then(success => {
+                  if (success) setFamilyId(0);
+                })} size="medium" />
+          </div>
+          <div className="treasury-family-mode-summary">
+            {fees.dataLoading
+              ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true" />
+              : <p>{fees.plans.length} familias configuradas para {fees.year}.</p>}
+            <p className="treasury-mode-help">
+              Para cambiar la modalidad de una familia con pagos, anula primero todos sus pagos
+              activos. Luego selecciona la nueva modalidad y guárdala; las obligaciones se
+              regenerarán automáticamente.
+            </p>
+          </div>
+        </div>
         <div className="treasury-plan-list" aria-label="Familias con modalidad configurada">
           {fees.dataLoading
             ? Array.from({ length: 2 }, (_, index) =>
               <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
-                <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
+                <div className="treasury-plan-main"><div className="skeleton-block" />
+                  <div className="skeleton-block" /></div>
                 <div className="treasury-plan-actions loading-action-placeholder">
+                  <span className="payment-mode">&nbsp;</span>
                   <button type="button" disabled>Cambiar modalidad</button>
                   <button type="button" disabled>Quitar familia</button>
                 </div>
@@ -261,7 +269,7 @@ export const AnnualFeesPage = () => {
             : fees.plans.length === 0
             ? <p>Aún no hay familias con modalidad configurada.</p>
             : visiblePlans.map(plan => <article key={plan.id}>
-                <div>
+                <div className="treasury-plan-main">
                   <strong>{plan.primaryGuardian || "Sin apoderado principal"}</strong>
                   <span>{plan.familyCode} · Alumno: {plan.studentName} · {plan.course}</span>
                 </div>
@@ -284,7 +292,7 @@ export const AnnualFeesPage = () => {
             && Array.from({ length: PLAN_PAGE_SIZE - visiblePlans.length }, (_, index) =>
               <article className="treasury-plan-placeholder" aria-hidden="true"
                 key={`empty-plan-${index}`}>
-                <div><strong>&nbsp;</strong><span>&nbsp;</span></div>
+                <div className="treasury-plan-main"><strong>&nbsp;</strong><span>&nbsp;</span></div>
                 <div className="treasury-plan-actions">
                   <span className="payment-mode">&nbsp;</span>
                   <button type="button">Cambiar modalidad</button>

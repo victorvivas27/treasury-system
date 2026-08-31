@@ -12,6 +12,10 @@ import {
 } from "@/core/D-config/axiosInterceptor";
 import { detachPushSubscription } from
   "@/core/C-infra/repositories/notification/detachPushSubscription";
+import {
+  clearProfileImageCache,
+  prefetchUserProfileImage,
+} from "@/shared/ui/user-avatar/profileImageCache";
 import { FiAlertCircle, FiX } from "react-icons/fi";
 import "./AuthContext.css";
 import {
@@ -112,6 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hadActiveSession.current = false;
     clearAccessToken();
     sessionStorage.removeItem(AUTH_USER_KEY);
+    clearProfileImageCache();
     validatedToken.current = null;
     setToken(null);
     setUser(null);
@@ -174,6 +179,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .then((response) => {
           setAccessToken(response.token);
           sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+          prefetchUserProfileImage(response.user);
           validatedToken.current = response.token;
           hadActiveSession.current = true;
           setToken(response.token);
@@ -194,6 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .then((currentUser) => {
         hadActiveSession.current = true;
         sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+        prefetchUserProfileImage(currentUser);
         setUser(currentUser);
       })
       .catch((error: unknown) => {
@@ -210,6 +217,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
       setAccessToken(response.token);
       sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+      prefetchUserProfileImage(response.user);
       validatedToken.current = response.token;
       hadActiveSession.current = true;
       setSessionExpired(false);
@@ -224,6 +232,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem(MANUAL_LOGOUT_KEY);
     setAccessToken(response.token);
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+    prefetchUserProfileImage(response.user);
     validatedToken.current = response.token;
     hadActiveSession.current = true;
     setSessionExpired(false);
@@ -244,6 +253,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const syncUser = useCallback((updatedUser: User) => {
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser));
+    prefetchUserProfileImage(updatedUser);
     setUser(updatedUser);
   }, []);
 

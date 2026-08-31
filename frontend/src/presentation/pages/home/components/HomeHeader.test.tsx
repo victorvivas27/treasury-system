@@ -16,7 +16,7 @@ describe("HomeHeader", () => {
     expect(screen.getByRole("link", { name: "Directiva" })).toHaveAttribute("href", "#directiva");
     expect(screen.getByRole("link", { name: /ver perfil de usuario/i }))
       .toHaveAttribute("href", "/profile");
-    expect(screen.getByRole("link", { name: /^sistema$/i }))
+    expect(screen.getByRole("link", { name: /^gestion del curso$/i }))
       .toHaveAttribute("href", "/dashboard");
     expect(screen.queryByRole("link", { name: /iniciar sesión/i })).not.toBeInTheDocument();
   });

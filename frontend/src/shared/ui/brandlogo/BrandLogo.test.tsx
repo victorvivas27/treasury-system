@@ -11,4 +11,10 @@ describe("BrandLogo", () => {
     expect(logo).toHaveAttribute("decoding", "sync");
     expect(container.querySelector(".brand-logo-skeleton")).not.toBeInTheDocument();
   });
+  it("permite usar un recurso alternativo", () => {
+    render(<BrandLogo src="/icono-gestion-curso.png" alt="Gestion del curso" />);
+
+    expect(screen.getByRole("img", { name: "Gestion del curso" }))
+      .toHaveAttribute("src", "/icono-gestion-curso.png");
+  });
 });

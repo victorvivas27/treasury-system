@@ -207,11 +207,20 @@
 }
 
 .public-home__nav.is-authenticated > a > svg {
-  flex: 0 0 auto;
+  box-sizing: border-box;
 
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
+  border-radius: 50%;
+
+  padding: 0.48rem;
+
+  background: color-mix(in srgb, var(--color-accent) 9%, transparent);
   color: var(--color-accent);
-
-  font-size: 1rem;
 }
 
 
@@ -233,12 +242,15 @@
 .public-home__system-access-logo {
   display: block;
 
-  width: 27px;
-  height: 27px;
+  width: 34px;
+  height: 34px;
 
-  flex: 0 0 27px;
+  flex: 0 0 34px;
 
-  object-fit: contain;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
+  border-radius: 50%;
+
+  object-fit: cover;
 }
 
 
@@ -286,11 +298,20 @@
 }
 
 .public-home__logout svg {
-  flex: 0 0 auto;
+  box-sizing: border-box;
 
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
+  border-radius: 50%;
+
+  padding: 0.48rem;
+
+  background: color-mix(in srgb, var(--color-accent) 9%, transparent);
   color: var(--color-accent);
-
-  font-size: 1rem;
 }
 
 
