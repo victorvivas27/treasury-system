@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import type { User } from "@/core/A-domain/entities/user/User";
-import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
+import { loadCachedProfileImage } from "./profileImageCache";
 import "./UserAvatar.css";
 
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
   .map(part => part.charAt(0).toUpperCase()).join("");
 
 export const UserAvatar = ({ user, className = "", fallbackName = "Usuario", customImageUserId }:
-  { user: Pick<User, "nombre" | "profileImageType" | "profileImageUrl"> | null;
+  { user: Pick<User, "nombre" | "profileImageType" | "profileImageUrl"> & { id?: number } | null;
     className?: string; fallbackName?: string; customImageUserId?: number }) => {
   const [source, setSource] = useState<string | null>(
     user?.profileImageType === "PREDEFINED_AVATAR" ? user.profileImageUrl : null);
@@ -17,24 +17,18 @@ export const UserAvatar = ({ user, className = "", fallbackName = "Usuario", cus
 
   useEffect(() => {
     let active = true;
-    let objectUrl: string | null = null;
     setFailed(false);
     setImageLoaded(false);
     if (user?.profileImageType === "PREDEFINED_AVATAR") {
       setSource(user.profileImageUrl);
     } else if (user?.profileImageType === "CUSTOM_IMAGE") {
       setSource(null);
-      const repository = new UserRepositoryImpl();
-      const request = customImageUserId === undefined
-        ? repository.getProfileImage(user.profileImageUrl ?? undefined)
-        : repository.getProfileImageByUserId(customImageUserId, user.profileImageUrl ?? undefined);
-      request.then(blob => {
-        objectUrl = URL.createObjectURL(blob);
-        if (active) setSource(objectUrl);
-      }).catch(() => { if (active) setFailed(true); });
+      loadCachedProfileImage(user, customImageUserId)
+        .then((objectUrl) => { if (active) setSource(objectUrl); })
+        .catch(() => { if (active) setFailed(true); });
     } else setSource(null);
-    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [customImageUserId, user?.profileImageType, user?.profileImageUrl]);
+    return () => { active = false; };
+  }, [customImageUserId, user?.id, user?.profileImageType, user?.profileImageUrl]);
 
   const isLoading = Boolean(source && !failed && !imageLoaded);
 
@@ -44,6 +38,7 @@ export const UserAvatar = ({ user, className = "", fallbackName = "Usuario", cus
       ? <>
         {isLoading && <span className="user-avatar__skeleton" aria-hidden="true" />}
         <img className={imageLoaded ? "is-loaded" : ""} src={source} alt=""
+          loading="eager" decoding="async"
           onLoad={() => setImageLoaded(true)} onError={() => setFailed(true)} />
       </>
       : <span aria-hidden="true">{initialsOf(name)}</span>}

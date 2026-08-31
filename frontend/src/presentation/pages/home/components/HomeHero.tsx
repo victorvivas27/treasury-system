@@ -60,8 +60,8 @@ export const HomeHero = ({ isAuthenticated = false }: { isAuthenticated?: boolea
       <div className="public-home__actions">
         <Link className="public-home__primary-action" to={isAuthenticated ? "/dashboard" : "/register"}>
           {isAuthenticated ? <>
-            <BrandLogo className="public-home__system-access-logo" alt="" />
-            <span>Sistema</span>
+            <BrandLogo className="public-home__system-access-logo" alt="" src="/icono-gestion-curso.png" />
+            <span>Gestion del curso</span>
           </> : <>
           <FiUserPlus aria-hidden="true" /> Crear cuenta
           </>}
