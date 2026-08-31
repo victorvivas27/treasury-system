@@ -2,7 +2,7 @@ import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
-import { SESSION_EXPIRED_EVENT } from "@/core/D-config/axiosInterceptor";
+import { getAccessToken, SESSION_EXPIRED_EVENT, setAccessToken } from "@/core/D-config/axiosInterceptor";
 
 const loginMock = vi.fn();
 const logoutMock = vi.fn();
@@ -33,17 +33,19 @@ describe("AuthContext", () => {
   beforeEach(() => {
     sessionStorage.clear();
     localStorage.clear();
+    setAccessToken(null);
     vi.clearAllMocks();
     refreshMock.mockRejectedValue({ response: { status: 401 } });
   });
 
-  it("[AuthContext #01] debe iniciar sesión y guardar el token", async () => {
+  it("[AuthContext #01] debe iniciar sesión y guardar el token en memoria", async () => {
     loginMock.mockResolvedValue({ token: "jwt", tokenType: "Bearer", expiresIn: 100, user });
     const { result } = renderHook(() => useAuth(), { wrapper });
     await act(() => result.current.login("admin@mail.com", "Password1!"));
     expect(result.current.user).toEqual(user);
     expect(result.current.isAuthenticated).toBe(true);
-    expect(sessionStorage.getItem("treasury.auth.token")).toBe("jwt");
+    expect(getAccessToken()).toBe("jwt");
+    expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(JSON.parse(sessionStorage.getItem("treasury.auth.user") ?? "null")).toEqual(user);
   });
 
@@ -55,6 +57,7 @@ describe("AuthContext", () => {
     await act(() => result.current.logout());
     await waitFor(() => expect(result.current.user).toBeNull());
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(getAccessToken()).toBeNull();
     expect(sessionStorage.getItem("treasury.auth.user")).toBeNull();
   });
 
@@ -69,6 +72,7 @@ describe("AuthContext", () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(getAccessToken()).toBeNull();
     expect(logoutMock).toHaveBeenCalledTimes(1);
     expect(localStorage.getItem("treasury.auth.manual-logout")).toBe("true");
   });
@@ -92,6 +96,7 @@ describe("AuthContext", () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(getAccessToken()).toBeNull();
     expect(screen.getByRole("status")).toHaveTextContent("Tu sesión terminó");
     expect(screen.getByRole("button", { name: "Cerrar aviso" })).toBeInTheDocument();
   });
@@ -104,7 +109,8 @@ describe("AuthContext", () => {
   });
 
   it("[AuthContext #05] limpia silenciosamente un token inválido al iniciar", async () => {
-    sessionStorage.setItem("treasury.auth.token", "token-viejo");
+    setAccessToken("token-viejo");
+    sessionStorage.setItem("treasury.auth.user", JSON.stringify(user));
     meMock.mockRejectedValue({ response: { status: 401 } });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -112,6 +118,7 @@ describe("AuthContext", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.isAuthenticated).toBe(false);
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
+    expect(getAccessToken()).toBeNull();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
@@ -128,7 +135,7 @@ describe("AuthContext", () => {
   });
 
   it("[AuthContext #07] conserva la sesión restaurada ante un fallo temporal de red", async () => {
-    sessionStorage.setItem("treasury.auth.token", "token-vigente");
+    setAccessToken("token-vigente");
     sessionStorage.setItem("treasury.auth.user", JSON.stringify(user));
     meMock.mockRejectedValue({ code: "ERR_NETWORK" });
 
@@ -137,6 +144,7 @@ describe("AuthContext", () => {
     expect(result.current.isAuthenticated).toBe(true);
     await waitFor(() => expect(meMock).toHaveBeenCalledTimes(1));
     expect(result.current.isAuthenticated).toBe(true);
-    expect(sessionStorage.getItem("treasury.auth.token")).toBe("token-vigente");
+    expect(getAccessToken()).toBe("token-vigente");
+    expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
   });
 });

@@ -1,8 +1,28 @@
-import axios, { type AxiosInstance } from "axios";
+import axios, { AxiosHeaders, type AxiosInstance } from "axios";
 
-export const AUTH_TOKEN_KEY = "treasury.auth.token";
 export const SESSION_EXPIRED_EVENT = "treasury:session-expired";
 export const SESSION_REFRESHED_EVENT = "treasury:session-refreshed";
+const CSRF_COOKIE = "treasury_csrf";
+let accessToken: string | null = null;
+
+export const getAccessToken = () => accessToken;
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+export const clearAccessToken = (token?: string | null) => {
+  if (token && accessToken !== token) return;
+  accessToken = null;
+};
+
+const csrfToken = () => {
+  if (typeof document === "undefined") return null;
+  const cookie = document.cookie
+    .split("; ")
+    .find((value) => value.startsWith(`${CSRF_COOKIE}=`));
+  return cookie ? decodeURIComponent(cookie.slice(CSRF_COOKIE.length + 1)) : null;
+};
 
 const requestToken = (authorization: unknown) => {
   if (typeof authorization !== "string" || !authorization.startsWith("Bearer ")) return null;
@@ -24,8 +44,8 @@ const expiresSoon = (token: string) => {
 };
 
 const expireSession = (token?: string | null) => {
-  if (token && sessionStorage.getItem(AUTH_TOKEN_KEY) !== token) return;
-  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  if (token && accessToken !== token) return;
+  clearAccessToken(token);
   window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 };
 
@@ -33,15 +53,19 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
   let refreshPromise: Promise<string> | null = null;
 
   const refreshToken = () => {
+    const csrf = csrfToken();
     refreshPromise ??= axios.post<{ token: string }>(
       `${client.defaults.baseURL}/auth/refresh`,
       {},
       {
         timeout: client.defaults.timeout ?? 30000,
         withCredentials: true,
+        headers: {
+          ...(csrf && { "X-CSRF-Token": csrf }),
+        },
       },
     ).then(({ data }) => {
-      sessionStorage.setItem(AUTH_TOKEN_KEY, data.token);
+      setAccessToken(data.token);
       window.dispatchEvent(new CustomEvent(SESSION_REFRESHED_EVENT, { detail: data.token }));
       return data.token;
     }).finally(() => {
@@ -51,8 +75,14 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
   };
 
   client.interceptors.request.use(async (config) => {
-    let token = sessionStorage.getItem(AUTH_TOKEN_KEY);
+    let token = getAccessToken();
     const isAuthRequest = config.url?.includes("/auth/") ?? false;
+    const csrf = csrfToken();
+    const headers = AxiosHeaders.from(config.headers);
+    config.headers = headers;
+    if (csrf && (config.url?.includes("/auth/refresh") || config.url?.includes("/auth/logout"))) {
+      headers.set("X-CSRF-Token", csrf);
+    }
     if (token && !isAuthRequest && expiresSoon(token)) {
       try {
         token = await refreshToken();
@@ -61,7 +91,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
       }
     }
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      headers.set("Authorization", `Bearer ${token}`);
     }
     return config;
   });
@@ -85,7 +115,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
       }
 
       if (error.response?.status === 401) {
-        const currentToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
+        const currentToken = getAccessToken();
         const failedToken = requestToken(error.config?.headers?.Authorization);
         const isAuthRequest = requestConfig?.url?.includes("/auth/") ?? false;
 

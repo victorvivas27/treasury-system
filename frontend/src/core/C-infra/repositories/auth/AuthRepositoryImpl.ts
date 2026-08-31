@@ -2,7 +2,7 @@ import type { LoginPayload, LoginResponse } from "@/core/A-domain/entities/auth/
 import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
 import type { IAuthRepository } from "@/core/A-domain/repository/auth/IAuthRepository";
 import { apiClient } from "@/core/D-config/api";
-import { AUTH_TOKEN_KEY } from "@/core/D-config/axiosInterceptor";
+import { getAccessToken } from "@/core/D-config/axiosInterceptor";
 
 export class AuthRepositoryImpl implements IAuthRepository {
   private readonly baseUrl = "/auth";
@@ -29,7 +29,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
   }
 
   async logout(): Promise<void> {
-    const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
+    const token = getAccessToken();
     await apiClient.post(`${this.baseUrl}/logout`, undefined, {
       // El cierre local no debe depender de la disponibilidad del servidor.
       timeout: 2500,

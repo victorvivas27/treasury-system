@@ -3,7 +3,13 @@ import { GetCurrentUserUseCase } from "@/core/B-application/use-cases/auth/GetCu
 import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
 import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
-import { AUTH_TOKEN_KEY, SESSION_EXPIRED_EVENT, SESSION_REFRESHED_EVENT } from "@/core/D-config/axiosInterceptor";
+import {
+  clearAccessToken,
+  getAccessToken,
+  SESSION_EXPIRED_EVENT,
+  SESSION_REFRESHED_EVENT,
+  setAccessToken,
+} from "@/core/D-config/axiosInterceptor";
 import { detachPushSubscription } from
   "@/core/C-infra/repositories/notification/detachPushSubscription";
 import { FiAlertCircle, FiX } from "react-icons/fi";
@@ -35,7 +41,6 @@ const AUTH_USER_KEY = "treasury.auth.user";
 const MANUAL_LOGOUT_KEY = "treasury.auth.manual-logout";
 
 const storedUser = () => {
-  if (!sessionStorage.getItem(AUTH_TOKEN_KEY)) return null;
   try {
     const value = JSON.parse(sessionStorage.getItem(AUTH_USER_KEY) ?? "null") as User | null;
     return value && typeof value.correo === "string" && typeof value.rol === "string" ? value : null;
@@ -61,8 +66,8 @@ const tokenExpiration = (token: string) => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState(() => sessionStorage.getItem(AUTH_TOKEN_KEY));
-  const [user, setUser] = useState<User | null>(storedUser);
+  const [token, setToken] = useState(() => getAccessToken());
+  const [user, setUser] = useState<User | null>(() => getAccessToken() ? storedUser() : null);
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
   const hadActiveSession = useRef(Boolean(token && user));
@@ -105,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearSession = useCallback(() => {
     hadActiveSession.current = false;
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    clearAccessToken();
     sessionStorage.removeItem(AUTH_USER_KEY);
     validatedToken.current = null;
     setToken(null);
@@ -135,7 +140,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!token || !user) return;
     const checkExpiration = () => {
-      const currentToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
+      const currentToken = getAccessToken();
       if (!currentToken) return;
       const expiration = tokenExpiration(currentToken);
       if (expiration !== null && expiration <= Date.now()) {
@@ -167,7 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       useCases.refresh()
         .then((response) => {
-          sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
+          setAccessToken(response.token);
           sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
           validatedToken.current = response.token;
           hadActiveSession.current = true;
@@ -175,7 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(response.user);
         })
         .catch((error: unknown) => {
-          if (isAuthenticationRejection(error) && !sessionStorage.getItem(AUTH_TOKEN_KEY)) clearSession();
+          if (isAuthenticationRejection(error) && !getAccessToken()) clearSession();
         })
         .finally(() => setLoading(false));
       return;
@@ -203,7 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await useCases.login.execute({ correo, password });
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
-      sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
+      setAccessToken(response.token);
       sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
       validatedToken.current = response.token;
       hadActiveSession.current = true;
@@ -217,7 +222,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
     localStorage.removeItem(MANUAL_LOGOUT_KEY);
-    sessionStorage.setItem(AUTH_TOKEN_KEY, response.token);
+    setAccessToken(response.token);
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
     validatedToken.current = response.token;
     hadActiveSession.current = true;

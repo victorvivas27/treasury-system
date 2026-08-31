@@ -4,9 +4,12 @@ import com.tesoreria.TesoreriaAppApplication;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.SecurityConfig;
 import com.tesoreria.user.core.constant.RoleEnum;
+import com.tesoreria.user.core.constant.UserTokenType;
 import com.tesoreria.user.infrastructure.adapter.in.web.controller.UserController;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
+import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserTokenEntity;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
+import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserTokenJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +22,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,9 +45,12 @@ class SecurityConfigTest {
     private UserDetailsService userDetailsService;
     @Autowired
     private UserJpaRepository userRepository;
+    @Autowired
+    private UserTokenJpaRepository tokenRepository;
 
     @BeforeEach
     void setUpUsers() {
+        tokenRepository.deleteAll();
         userRepository.deleteAll();
         createUser("USR-001", "user@mail.com", RoleEnum.USER);
         createUser("ADM-001", "admin@mail.com", RoleEnum.ADMIN);
@@ -80,6 +88,25 @@ class SecurityConfigTest {
                         org.hamcrest.Matchers.allOf(
                                 org.hamcrest.Matchers.containsString("default-src 'self'"),
                                 org.hamcrest.Matchers.containsString("img-src 'self' blob: data:"))));
+    }
+
+    @Test
+    void accessTokenConFamiliaRevocada_deberiaRequerirNuevaAutenticacion() throws Exception {
+        UserEntity admin = userRepository.findByCorreo("admin@mail.com").orElseThrow();
+        UUID familyId = UUID.randomUUID();
+        String token = jwtService.generateToken(userDetailsService.loadUserByUsername(admin.getCorreo()), familyId);
+        UserTokenEntity refresh = new UserTokenEntity();
+        refresh.setUserId(admin.getId());
+        refresh.setType(UserTokenType.REFRESH_TOKEN);
+        refresh.setTokenHash("b".repeat(64));
+        refresh.setTokenFamilyId(familyId);
+        refresh.setExpiresAt(LocalDateTime.now().plusDays(7));
+        refresh.setRevokedAt(LocalDateTime.now());
+        tokenRepository.save(refresh);
+
+        mockMvc.perform(get("/api/v1/auth/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

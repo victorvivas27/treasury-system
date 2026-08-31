@@ -1,5 +1,6 @@
 package com.tesoreria.user.config.security;
 
+import com.tesoreria.user.application.usecase.RefreshTokenService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,14 +24,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final TokenRevocationService revocationService;
+    private final RefreshTokenService refreshTokenService;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserDetailsService userDetailsService,
-            TokenRevocationService revocationService) {
+            TokenRevocationService revocationService,
+            RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.revocationService = revocationService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -54,6 +58,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             JwtService.ParsedToken parsedToken = jwtService.parseToken(token);
             String username = parsedToken.username();
             if (revocationService.isUserRevokedAfter(username, parsedToken.issuedAt())) {
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+            if (parsedToken.tokenFamilyId() != null
+                    && !refreshTokenService.isFamilyActive(parsedToken.tokenFamilyId())) {
                 SecurityContextHolder.clearContext();
                 filterChain.doFilter(request, response);
                 return;

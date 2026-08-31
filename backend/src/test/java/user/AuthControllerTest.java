@@ -4,6 +4,7 @@ import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.exception.GlobalExceptionHandler;
 import com.tesoreria.user.application.usecase.AuthService;
 import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
+import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.TokenRevocationService;
@@ -16,12 +17,17 @@ import com.tesoreria.user.infrastructure.adapter.in.web.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,20 +41,23 @@ class AuthControllerTest {
     private JwtService jwtService;
     private TokenRevocationService revocationService;
     private RegistrationRateLimiter registrationRateLimiter;
+    private RefreshTokenService refreshTokenService;
     private User user;
     private UserResponseDTO response;
 
     @BeforeEach
     void setUp() {
-        authService = org.mockito.Mockito.mock(AuthService.class);
-        userService = org.mockito.Mockito.mock(UserService.class);
-        mapper = org.mockito.Mockito.mock(UserMapper.class);
-        jwtService = org.mockito.Mockito.mock(JwtService.class);
-        revocationService = org.mockito.Mockito.mock(TokenRevocationService.class);
-        registrationRateLimiter = org.mockito.Mockito.mock(RegistrationRateLimiter.class);
+        authService = mock(AuthService.class);
+        userService = mock(UserService.class);
+        mapper = mock(UserMapper.class);
+        jwtService = mock(JwtService.class);
+        revocationService = mock(TokenRevocationService.class);
+        registrationRateLimiter = mock(RegistrationRateLimiter.class);
+        refreshTokenService = mock(RefreshTokenService.class);
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new AuthController(
-                        authService, userService, mapper, jwtService, revocationService, registrationRateLimiter))
+                        authService, userService, mapper, jwtService, revocationService, registrationRateLimiter,
+                        null, "", false, null, refreshTokenService, false, "Lax", "/tesoreria"))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         user = new User(
@@ -58,18 +67,31 @@ class AuthControllerTest {
                 1L, "USR-001", "VICTOR VIVAS", "admin@mail.com",
                 RoleEnum.ADMIN, true, true, null, null);
         when(mapper.toResponse(user)).thenReturn(response);
+        when(refreshTokenService.getExpirationSeconds()).thenReturn(604800L);
     }
 
     @Test
     void loginExitoso_deberiaRetornarJwt() throws Exception {
         when(authService.login("admin@mail.com", "Password1!")).thenReturn("jwt");
+        when(refreshTokenService.issue(eq("admin@mail.com"), any(), any()))
+                .thenReturn(new RefreshTokenService.IssuedTokens("access", "refresh", "csrf"));
         when(userService.findByCorreo("admin@mail.com")).thenReturn(user);
-        when(jwtService.getExpirationMs()).thenReturn(86_400_000L);
-        mockMvc.perform(post("/api/v1/auth/login")
+        when(jwtService.getExpirationMs()).thenReturn(900_000L);
+        var result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginBody()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("jwt"));
+                .andExpect(jsonPath("$.token").value("access"))
+                .andExpect(jsonPath("$.expiresIn").value(900))
+                .andReturn();
+        var cookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+        assertTrue(cookies.stream().anyMatch(value -> value.contains("treasury_refresh=refresh")
+                && value.contains("HttpOnly")
+                && value.contains("Path=/tesoreria/api/v1/auth")
+                && value.contains("SameSite=Lax")));
+        assertTrue(cookies.stream().anyMatch(value -> value.contains("treasury_csrf=csrf")
+                && !value.contains("HttpOnly")
+                && value.contains("Path=/")));
     }
 
     @Test
@@ -109,10 +131,52 @@ class AuthControllerTest {
     void logout_deberiaRetornar204() throws Exception {
         when(jwtService.extractExpiration("jwt")).thenReturn(new java.util.Date(System.currentTimeMillis() + 60_000));
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .header("Authorization", "Bearer jwt"))
+                        .header("Authorization", "Bearer jwt")
+                        .header("X-CSRF-Token", "csrf")
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_refresh", "refresh"))
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_csrf", "csrf")))
                 .andExpect(status().isNoContent());
-        org.mockito.Mockito.verify(revocationService)
-                .revoke(org.mockito.ArgumentMatchers.eq("jwt"), org.mockito.ArgumentMatchers.any());
+        verify(revocationService).revoke(eq("jwt"), any());
+        verify(refreshTokenService).revoke("refresh", "csrf");
+    }
+
+    @Test
+    void refresh_conCsrfValido_deberiaRotarCookies() throws Exception {
+        when(refreshTokenService.rotate("refresh", "csrf"))
+                .thenReturn(new RefreshTokenService.IssuedTokens("new-access", "new-refresh", "new-csrf"));
+        when(jwtService.extractUsername("new-access")).thenReturn("admin@mail.com");
+        when(jwtService.getExpirationMs()).thenReturn(900_000L);
+        when(userService.findByCorreo("admin@mail.com")).thenReturn(user);
+
+        var result = mockMvc.perform(post("/api/v1/auth/refresh")
+                        .header("X-CSRF-Token", "csrf")
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_refresh", "refresh"))
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_csrf", "csrf")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("new-access"))
+                .andReturn();
+        var cookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+        assertTrue(cookies.stream().anyMatch(value -> value.contains("treasury_refresh=new-refresh")));
+        assertTrue(cookies.stream().anyMatch(value -> value.contains("treasury_csrf=new-csrf")));
+    }
+
+    @Test
+    void refresh_sinCsrf_deberiaRechazar() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_refresh", "refresh")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors.csrf").exists());
+    }
+
+    @Test
+    void refresh_conCsrfDistintoALaCookie_deberiaRechazarSinRotar() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .header("X-CSRF-Token", "csrf-header")
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_refresh", "refresh"))
+                        .cookie(new jakarta.servlet.http.Cookie("treasury_csrf", "csrf-cookie")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors.csrf").exists());
+        verify(refreshTokenService, org.mockito.Mockito.never()).rotate(any(), any());
     }
 
     private String loginBody() {
