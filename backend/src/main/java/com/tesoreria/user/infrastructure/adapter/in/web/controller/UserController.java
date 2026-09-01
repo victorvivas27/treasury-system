@@ -158,7 +158,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<byte[]> profileImage(Authentication authentication) {
         var content = profileImages.read(authentication.getName());
-        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
+        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "private, max-age=31536000, immutable")
                 .contentType(MediaType.parseMediaType(content.contentType())).body(content.bytes());
     }
 

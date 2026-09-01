@@ -69,10 +69,11 @@ export const IncomesPage = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [managedCourse, setManagedCourse] = useState("");
+  const [managedCourseLoading, setManagedCourseLoading] = useState(canManage);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = Object.entries(filters).filter(([key, value]) =>
     !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
-  const initialLoading = loading && !hasLoaded;
+  const initialLoading = (loading && !hasLoaded) || managedCourseLoading;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -97,10 +98,16 @@ export const IncomesPage = () => {
   }, [load]);
 
   useEffect(() => {
+    if (!canManage) {
+      setManagedCourseLoading(false);
+      return;
+    }
+    setManagedCourseLoading(true);
     repository.getManagedCourse()
       .then(setManagedCourse)
-      .catch(() => setError("No fue posible cargar el curso administrado."));
-  }, []);
+      .catch(() => setError("No fue posible cargar el curso administrado."))
+      .finally(() => setManagedCourseLoading(false));
+  }, [canManage]);
 
   useEffect(() => {
     if (!detail) { setDocuments([]); return; }

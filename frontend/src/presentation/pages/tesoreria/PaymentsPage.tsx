@@ -55,6 +55,7 @@ export const PaymentsPage = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [filter, setFilter] = useState("");
   const [loadingMine, setLoadingMine] = useState(!admin);
+  const [loadingAdmin, setLoadingAdmin] = useState(admin);
   const [busy, setBusy] = useState(false);
   const [uploadingInstallmentId, setUploadingInstallmentId] = useState<number | null>(null);
   const [notice, setNotice] = useState("");
@@ -64,6 +65,7 @@ export const PaymentsPage = () => {
     setError("");
     try {
       if (admin) {
+        setLoadingAdmin(true);
         const [setting, review] = await Promise.all([
           apiClient.get<BankAccount>(`${base}/cuenta-bancaria`, { params: { year } }).then(r => r.data).catch(() => emptyBank(year)),
           apiClient.get<Review[]>(`${base}/revision`, { params: { year, status: filter || undefined } }).then(r => r.data).catch(() => []),
@@ -92,6 +94,7 @@ export const PaymentsPage = () => {
       setError("La cuenta bancaria está disponible, pero falta configurar la cuota anual de este año.");
     } finally {
       if (!admin) setLoadingMine(false);
+      if (admin) setLoadingAdmin(false);
     }
   }, [admin, filter, year]);
   useEffect(() => { void load(); }, [load]);
@@ -146,7 +149,7 @@ export const PaymentsPage = () => {
       <label>Año escolar <select value={year} onChange={event => setYear(Number(event.target.value))}>{[yearNow - 1, yearNow, yearNow + 1].map(value => <option key={value}>{value}</option>)}</select></label></header>
     {notice && <div className="payments-toast" role="status"><FiCheck />{notice}</div>}
     {error && <p className="payments-error">{error}</p>}
-    {admin ? <>
+    {admin ? loadingAdmin ? <AdminPaymentsSkeleton /> : <>
       <section className="payments-admin-grid">
         <form className="payment-panel bank-form" onSubmit={saveBank}><header><div><h2>Cuenta para transferencias</h2><p>Estos datos los verán los apoderados.</p></div><Link to="/tesoreria/cuotas">Configurar cuota anual <FiExternalLink /></Link></header>
           {[ ["Titular", "accountHolderName"], ["RUT", "accountHolderRut"], ["Banco", "bankName"], ["Tipo de cuenta", "accountType"], ["Número de cuenta", "accountNumber"], ["Correo", "email"] ].map(([label, key]) =>
@@ -200,3 +203,38 @@ export const PaymentsPage = () => {
     </> : bank.id && <section className="bank-only-state"><aside className="payment-panel payment-preview"><div className="payment-preview__glow" aria-hidden="true" /><header className="payment-preview__header"><span><FiCreditCard /></span><small>Datos del curso</small></header><div className="payment-preview__identity"><small>Datos para transferir</small><h3>{bank.accountHolderName}</h3><p>{bank.bankName} · {bank.accountType}</p></div><dl><dt>RUT</dt><dd>{bank.accountHolderRut}</dd><dt>Número de cuenta</dt><dd>{bank.accountNumber}</dd><dt>Correo</dt><dd>{bank.email}</dd></dl><button className="copy-all payment-preview__copy" onClick={() => copyBank(bank)}><FiClipboard /> Copiar todos los datos</button></aside><div className="payment-panel bank-only-state__message"><h2>Falta configurar la cuota anual</h2><p>Cuando Tesorería defina el monto y las fechas para {year}, podrás elegir tu modalidad y ver tus cuotas aquí.</p></div></section>}
   </main>;
 };
+
+const AdminPaymentsSkeleton = () => <div className="payments-skeleton" role="status"
+  aria-label="Cargando pagos">
+  <section className="payments-admin-grid">
+    <form className="payment-panel bank-form">
+      <header><div><Skeleton width="10rem" height="1.1rem" />
+        <Skeleton width="14rem" height=".7rem" /></div></header>
+      {[0, 1, 2, 3, 4, 5].map(item => <label key={item}>
+        <Skeleton width="4.5rem" height=".65rem" />
+        <Skeleton width="100%" height="2.5rem" />
+      </label>)}
+      <Skeleton width="10rem" height="2.4rem" />
+    </form>
+    <aside className="payment-panel payment-preview">
+      <Skeleton width="8rem" height=".65rem" />
+      <Skeleton width="12rem" height="1.25rem" />
+      <Skeleton width="9rem" height=".75rem" />
+      {[0, 1, 2].map(item => <Skeleton key={item} width="100%" height="2rem" />)}
+    </aside>
+  </section>
+  <section className="payment-panel review-panel">
+    <header><div><Skeleton width="8rem" height="1rem" />
+      <Skeleton width="12rem" height=".7rem" /></div>
+      <Skeleton width="9rem" height="2.2rem" /></header>
+    <div className="review-list">
+      {[0, 1, 2].map(item => <article key={item}>
+        <div><Skeleton width="8rem" height=".9rem" />
+          <Skeleton width="12rem" height=".65rem" /></div>
+        <Skeleton width="6rem" height="1rem" />
+        <Skeleton width="5rem" height="1.4rem" />
+        <Skeleton width="8rem" height="2rem" />
+      </article>)}
+    </div>
+  </section>
+</div>;
