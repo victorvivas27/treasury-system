@@ -4,6 +4,7 @@ import com.tesoreria.alumno.core.exception.AlumnoErrorCode;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.constant.ValidationConstants;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
@@ -14,6 +15,7 @@ public class Alumno {
     private String nombre;
     private String curso;
     private String observacion;
+    private LocalDate fechaNacimiento;
     private GeneroAlumno genero;
     private boolean activo;
     private LocalDateTime createdAt;
@@ -28,6 +30,7 @@ public class Alumno {
             String nombre,
             String curso,
             String observacion,
+            LocalDate fechaNacimiento,
             GeneroAlumno genero,
             boolean activo,
             LocalDateTime createdAt,
@@ -39,18 +42,19 @@ public class Alumno {
         setNombre(nombre);
         setCurso(curso);
         setObservacion(observacion);
+        this.fechaNacimiento = fechaNacimiento;
         this.genero = genero == null ? GeneroAlumno.OTROS : genero;
         this.activo = activo;
     }
 
     public Alumno(Long alumnoId, String codigo, String nombre, String curso,
                   LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this(alumnoId, codigo, nombre, curso, null, GeneroAlumno.OTROS, true, createdAt, updatedAt);
+        this(alumnoId, codigo, nombre, curso, null, null, GeneroAlumno.OTROS, true, createdAt, updatedAt);
     }
 
     public Alumno(Long alumnoId, String codigo, String nombre, String curso, String observacion,
                   LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this(alumnoId, codigo, nombre, curso, observacion, GeneroAlumno.OTROS, true, createdAt, updatedAt);
+        this(alumnoId, codigo, nombre, curso, observacion, null, GeneroAlumno.OTROS, true, createdAt, updatedAt);
     }
 
     public Long getAlumnoId() {
@@ -174,6 +178,14 @@ public class Alumno {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public GeneroAlumno getGenero() { return genero; }

@@ -31,6 +31,7 @@ export const ICONS = {
   dashboard: GrPieChart,
   usuarios: RxPerson,
   alumnos: PiStudent,
+  birthdays: BsCalendarEvent,
   apoderados: BsPerson,
   familia: MdFamilyRestroom,
   tesoreria: TbPigMoney,
@@ -51,6 +52,7 @@ export const SIDEBAR_LINKS = [
     links: [
       { label: "Usuarios", path: "/users", icon: ICONS.usuarios },
       { label: "Alumnos", path: "/students", icon: ICONS.alumnos },
+      { label: "Cumplea\u00f1os", path: "/birthdays", icon: ICONS.birthdays },
       { label: "Apoderados", path: "/parents", icon: ICONS.apoderados },
       { label: "Familia", path: "/family", icon: ICONS.familia },
       { label: "Gestión de Mejoras", path: "/admin/mejoras", icon: ICONS.improvements },

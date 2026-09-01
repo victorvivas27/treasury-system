@@ -60,6 +60,12 @@ const getAlumnoIdentifier = (alumno: AlumnoWithLegacyId): string | number => (
   alumno.codigo ?? alumno.alumnoId ?? alumno.id ?? ""
 );
 
+const formatBirthDate = (value?: string | null) => {
+  if (!value) return "Sin fecha";
+  const [year, month, day] = value.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : value;
+};
+
 export const AlumnosList: FC<AlumnosListProps> = ({
   alumnos,
   loading,
@@ -131,6 +137,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
           <col className="admin-col-primary" />
           <col className="admin-col-compact" />
           <col className="admin-col-compact" />
+          <col className="admin-col-compact" />
           <col className="admin-col-actions" />
         </colgroup>
         <thead>
@@ -138,6 +145,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
             <th className="alumnos-table__th">Estado</th>
             <th className="alumnos-table__th">Nombre</th>
             <th className="alumnos-table__th">Curso</th>
+            <th className="alumnos-table__th">Nacimiento</th>
             <th className="alumnos-table__th">Mensaje</th>
             <th className="alumnos-table__th">Acciones</th>
           </tr>
@@ -201,6 +209,16 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                             : <MdTransgender aria-hidden="true" />}
                       </span>
                     </span>
+                  )}
+                </td>
+
+                <td className="alumnos-table__td" data-label="Nacimiento">
+                  {loading ? (
+                    <div className="skeleton-block skeleton-input" />
+                  ) : empty ? (
+                    <span>&nbsp;</span>
+                  ) : (
+                    <span>{formatBirthDate(alumno.fechaNacimiento)}</span>
                   )}
                 </td>
 

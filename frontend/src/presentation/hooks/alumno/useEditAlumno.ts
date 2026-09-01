@@ -36,6 +36,7 @@ export const useEditAlumno = () => {
     nombre: "",
     curso: "",
     observacion: "",
+    fechaNacimiento: "",
     genero: "OTROS",
   });
 
@@ -77,6 +78,7 @@ export const useEditAlumno = () => {
         nombre: alumno.nombre,
         curso: alumno.curso,
         observacion: alumno.observacion ?? "",
+        fechaNacimiento: alumno.fechaNacimiento ?? "",
         genero: alumno.genero ?? "OTROS",
         ...("apoderadoId" in alumno ? { apoderadoId: alumno.apoderadoId } : {}),
       });

@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +45,7 @@ public class AlumnoServiceTest {
         mockAlumno.setNombre("JUAN PEREZ");
         mockAlumno.setCodigo("AL-3291DF6A");
         mockAlumno.setCurso("4A");
+        mockAlumno.setFechaNacimiento(LocalDate.of(2019, 9, 10));
         mockAlumno.setObservacion("Alérgico al maní");
     }
 
@@ -136,6 +138,7 @@ public class AlumnoServiceTest {
             when(repository.save(mockAlumno)).thenReturn(mockAlumno);
             Alumno resultado = service.update(mockAlumno);
             assertNotNull(resultado);
+            assertEquals(LocalDate.of(2019, 9, 10), resultado.getFechaNacimiento());
             assertEquals(mockAlumno, resultado);
             assertEquals("Alérgico al maní", resultado.getObservacion());
             verify(repository).save(mockAlumno);

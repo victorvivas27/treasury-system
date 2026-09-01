@@ -88,6 +88,7 @@ describe("AlumnosList Component", () => {
     expect(screen.getByText("Lista de Alumnos")).toBeInTheDocument();
     expect(screen.getByText("Nombre")).toBeInTheDocument();
     expect(screen.getByText("Curso")).toBeInTheDocument();
+    expect(screen.getByText("Nacimiento")).toBeInTheDocument();
     expect(screen.getByText("Mensaje")).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Código" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Ver código" })).toHaveLength(mockAlumnos.length);
@@ -169,8 +170,9 @@ describe("AlumnosList Component", () => {
       expect(nonEmptyCells[0]).toHaveAttribute("data-label", "Estado");
       expect(nonEmptyCells[1]).toHaveAttribute("data-label", "Nombre");
       expect(nonEmptyCells[2]).toHaveAttribute("data-label", "Curso");
-      expect(nonEmptyCells[3]).toHaveAttribute("data-label", "Mensaje");
-      expect(nonEmptyCells[4]).toHaveAttribute("data-label", "Acciones");
+      expect(nonEmptyCells[3]).toHaveAttribute("data-label", "Nacimiento");
+      expect(nonEmptyCells[4]).toHaveAttribute("data-label", "Mensaje");
+      expect(nonEmptyCells[5]).toHaveAttribute("data-label", "Acciones");
     }
   });
 
@@ -212,7 +214,7 @@ describe("AlumnosList Component", () => {
 
     const skeletons = container.querySelectorAll(".skeleton-block");
     // Solo los datos remotos tienen skeleton; la columna de acciones queda vacía.
-    expect(skeletons.length).toBe(pageSize * 3);
+    expect(skeletons.length).toBe(pageSize * 4);
   });
 
   it("[AlumnosList #10] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {

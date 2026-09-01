@@ -75,6 +75,27 @@ export const EditarAlumnoForm = () => {
         </div>
 
         <div className="form-group floating-group alumno-edit-form__group">
+          <SkeletonWrapper
+            isLoading={initialLoading}
+            className="skeleton-name"
+            height="48px"
+            width="100%">
+            <input
+              id="fecha_nacimiento_input"
+              name="fechaNacimiento"
+              type="date"
+              value={formData.fechaNacimiento ?? ""}
+              onChange={handleChange}
+              className={`form-input ${fieldErrors.fechaNacimiento ? 'input-error' : ''}`}
+            />
+          </SkeletonWrapper>
+          <label htmlFor="fecha_nacimiento_input" className="floating-label form-label">
+            Fecha de nacimiento
+          </label>
+          {fieldErrors.fechaNacimiento && <span className="error-message">{fieldErrors.fechaNacimiento}</span>}
+        </div>
+
+        <div className="form-group floating-group alumno-edit-form__group">
           <SkeletonWrapper isLoading={initialLoading} className="skeleton-name"
             height="48px" width="100%">
             <select id="genero_input" name="genero" value={formData.genero}

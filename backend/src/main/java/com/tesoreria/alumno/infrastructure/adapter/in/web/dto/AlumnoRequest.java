@@ -1,5 +1,6 @@
 package com.tesoreria.alumno.infrastructure.adapter.in.web.dto;
 
+import java.time.LocalDate;
 import java.util.Locale;
 import com.tesoreria.alumno.core.model.GeneroAlumno;
 
@@ -21,6 +22,7 @@ public class AlumnoRequest {
     // @Size(max = 50, message = "El curso no puede tener más de 50 caracteres")
     private String curso;
     private String observacion;
+    private LocalDate fechaNacimiento;
     private GeneroAlumno genero = GeneroAlumno.OTROS;
 
     public AlumnoRequest() {
@@ -58,6 +60,14 @@ public class AlumnoRequest {
 
     public void setObservacion(String observacion) {
         this.observacion = observacion;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public GeneroAlumno getGenero() { return genero; }

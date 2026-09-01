@@ -65,6 +65,23 @@ export const CrearAlumnoForm = () => {
         </div>
 
         <div className="form-group-alumno">
+          <input
+            id="fecha_nacimiento_input"
+            name="fechaNacimiento"
+            type="date"
+            value={formData.fechaNacimiento ?? ""}
+            onChange={handleChange}
+            className={`form-input-alumno ${fieldErrors.fechaNacimiento ? 'input-error-alumno' : ''}`}
+          />
+          <label htmlFor="fecha_nacimiento_input" className="floating-label-alumno form-label-alumno">
+            Fecha de nacimiento
+          </label>
+          {fieldErrors.fechaNacimiento && (
+            <span className="error-message-alumno">{fieldErrors.fechaNacimiento}</span>
+          )}
+        </div>
+
+        <div className="form-group-alumno">
           <select id="genero_input" name="genero" value={formData.genero}
             onChange={handleChange} className="form-input-alumno">
             <option value="MASCULINO">Masculino</option>

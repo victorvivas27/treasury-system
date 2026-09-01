@@ -4,6 +4,7 @@ export interface Alumno {
   nombre: string;
   curso: string;
   observacion?: string | null;
+  fechaNacimiento?: string | null;
   genero: "MASCULINO" | "FEMENINO" | "OTROS";
   activo: boolean;
 }
