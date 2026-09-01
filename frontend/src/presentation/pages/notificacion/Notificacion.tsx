@@ -15,7 +15,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { FiCheckCircle, FiEdit2, FiHelpCircle, FiRefreshCw, FiSend,
+import { FiCheckCircle, FiEdit2, FiHelpCircle, FiSend,
   FiMove, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
@@ -122,7 +122,13 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
     const isInitialPosition = initialScrollToBottom && renderedTimelineLength.current === 0;
     renderedTimelineLength.current = timeline.length;
     if (!hasNewItems && !isInitialPosition) return;
-    container.scrollTop = container.scrollHeight;
+    const frame = window.requestAnimationFrame(() => {
+      const current = timelineRef.current;
+      if (!current) return;
+      const hasOverflow = current.scrollHeight > current.clientHeight + 8;
+      current.scrollTop = hasOverflow ? current.scrollHeight : 0;
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [initialScrollToBottom, loaded, timeline.length]);
   useEffect(() => {
     const move = (event: PointerEvent) => {
@@ -172,9 +178,9 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
         onClick={() => setFloatingPosition(null)}>Volver a su lugar</button>}
     </div>}
     <div className="notification-conversation__content">
-      {loading && <p className="notification-conversation__state">Cargando conversación…</p>}
       <div ref={timelineRef}
         className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}>
+      {loading && timeline.length === 0 && <p className="notification-conversation__state">Cargando conversación…</p>}
       {timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         className={`notification-reply ${isAdminRole(item.message.authorRole) ? "is-admin" : "is-guardian"}`}>
@@ -233,7 +239,7 @@ const AdminNotificationCenter = () => {
   const { unreadCount: adminUnreadCount, loading: notificationsLoading,
     markAllRead: markAllAdminRead } = useNotifications();
   const { apoderados, loading, error, currentPage, nextPage, prevPage, hasPrevPage,
-    isLastPage, search, setSearch, refetch } = useApoderados({ pageSize: 20 });
+    isLastPage, search, setSearch } = useApoderados({ pageSize: 20 });
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -370,8 +376,6 @@ const AdminNotificationCenter = () => {
     <header className="page-header"><div><h1 className="page-header__title">Gestión de notificaciones</h1>
       <p className="page-header__subtitle">Selecciona apoderados y envía avisos desde un solo lugar.</p></div>
       <div className="page-header__actions">
-        <Button label="Actualizar" variant="secondary" icon={<FiRefreshCw />} iconPosition="left"
-          loading={loading} onClick={refetch} />
         <Button label="Crear notificación múltiple"
           icon={<IoNotificationsOutline />} iconPosition="left"
           disabled={!selectAll && selectedIds.size < 2}
@@ -419,9 +423,7 @@ const AdminNotificationCenter = () => {
     </details>
     <section className="sent-notifications">
       <header><div><h2>Notificaciones enviadas</h2>
-        <p>Revisa el mensaje, sus destinatarios y quién lo leyó.</p></div>
-        <Button label="Actualizar historial" variant="secondary" icon={<FiRefreshCw />}
-          iconPosition="left" loading={sentLoading} onClick={() => void loadSent()} /></header>
+        <p>Revisa el mensaje, sus destinatarios y quién lo leyó.</p></div></header>
       <div className="sent-notifications__list">
         {!sentLoading && !sentByRecipient.length && <div className="sent-notifications__empty"
           role="status">
@@ -586,15 +588,7 @@ const GuardianInbox = () => {
           <Button label="Cómo usar" variant="secondary" icon={<FiHelpCircle />} iconPosition="left"
             className="notifications-help-action"
             onClick={() => window.dispatchEvent(new Event(OPEN_NOTIFICATION_TOUR_EVENT))} />
-        </span>
-        <Button label="Actualizar" variant="secondary"
-        icon={<FiRefreshCw />} iconPosition="left"
-        className="notifications-header-action notifications-header-action--refresh"
-        loading={loading} onClick={() => void refresh()} />
-        <Button label="Marcar todas como leídas" disabled={!unreadCount}
-          icon={<FiCheckCircle />} iconPosition="left"
-          className="notifications-header-action notifications-header-action--read"
-          onClick={() => void markAllRead()} /></div></header>
+        </span></div></header>
     <section className="notifications-list" data-notification-tour="messages" aria-live="polite"
       aria-busy={loading}>
       {loading && notifications.length === 0 && <div className="notifications-loading" role="status"
