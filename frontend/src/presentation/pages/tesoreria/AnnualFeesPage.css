@@ -342,6 +342,11 @@
   color: var(--color-info) !important;
 }
 
+.payment-mode--personalizada {
+  background: color-mix(in srgb, #8b5a2b 18%, transparent);
+  color: #8b5a2b !important;
+}
+
 .fee-status {
   padding: .25rem .5rem;
   border-radius: 999px;
@@ -602,6 +607,10 @@
   --summary-color: #7c5ce7;
 }
 
+.treasury-summary-card--custom {
+  --summary-color: #8b5a2b;
+}
+
 .treasury-summary-card--pending {
   --summary-color: var(--color-warning);
 }
@@ -830,7 +839,7 @@
 
 .treasury-family-mode-controls {
   display: grid;
-  grid-template-columns: minmax(14rem, 25rem) minmax(8.5rem, 10rem);
+  grid-template-columns: minmax(14rem, 25rem) minmax(8.5rem, 10rem) minmax(8rem, 11rem);
   gap: .4rem .45rem;
   align-items: end;
 }

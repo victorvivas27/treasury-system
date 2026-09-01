@@ -7,6 +7,7 @@ import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
 import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -71,7 +72,10 @@ public class TreasuryService implements TreasuryUseCase {
     @Override
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
-    public FamilyFeePlan assignMode(int year, Long familyId, PaymentMode mode, String user) {
+    public FamilyFeePlan assignMode(int year, Long familyId, PaymentMode mode,
+                                    @Nullable BigDecimal customAmount,
+                                    @Nullable LocalDate customDueDate,
+                                    @Nullable String customConcept, String user) {
         if (familyId == null || familyId <= 0 || mode == null) {
             throw error(TreasuryErrorCode.INVALID, "Familia y modalidad son obligatorias");
         }
@@ -79,20 +83,33 @@ public class TreasuryService implements TreasuryUseCase {
         if (!config.allowedMode().allows(mode)) {
             throw error(TreasuryErrorCode.INVALID, "La modalidad no está permitida para este año");
         }
+        if (mode == PaymentMode.PERSONALIZADA) {
+            validateCustomFee(year, customAmount, customDueDate);
+        }
         FamilyFeePlan current = repository.findPlan(config.id(), familyId).orElse(null);
         if (current != null && repository.hasActivePaymentForPlan(current.id())) {
             throw error(TreasuryErrorCode.CONFLICT,
                     "Anula los pagos activos de la familia antes de cambiar su modalidad");
         }
-        if (current != null && current.mode() != mode) {
+        if (current != null && current.mode() != mode && mode != PaymentMode.PERSONALIZADA) {
             repository.deleteObligationsByPlan(current.id());
         }
         LocalDateTime now = LocalDateTime.now();
         FamilyFeePlan saved = repository.savePlan(new FamilyFeePlan(
                 current == null ? null : current.id(), config.id(), familyId, mode,
                 current == null ? now : current.createdAt(), now));
-        audit("ASIGNAR_MODALIDAD", "FAMILIA", String.valueOf(familyId), user, mode.name());
+        if (mode == PaymentMode.PERSONALIZADA) {
+            saveCustomObligation(saved.id(), customAmount, customDueDate, customConcept);
+        }
+        audit("ASIGNAR_MODALIDAD", "FAMILIA", String.valueOf(familyId), user,
+                mode == PaymentMode.PERSONALIZADA
+                        ? mode.name() + " por " + customAmount
+                        : mode.name());
         return saved;
+    }
+
+    public FamilyFeePlan assignMode(int year, Long familyId, PaymentMode mode, String user) {
+        return assignMode(year, familyId, mode, null, null, null, user);
     }
 
     @Override
@@ -133,7 +150,7 @@ public class TreasuryService implements TreasuryUseCase {
                 saveObligation(plan.id(), InstallmentType.ANUAL, "Cuota anual",
                         config.annualAmount(), config.annualDueDate());
                 generated++;
-            } else {
+            } else if (plan.mode() == PaymentMode.DOS_CUOTAS) {
                 BigDecimal first = config.annualAmount()
                         .divide(BigDecimal.valueOf(2), 0, RoundingMode.HALF_UP);
                 saveObligation(plan.id(), InstallmentType.PRIMERA, "Primera cuota",
@@ -651,6 +668,45 @@ public class TreasuryService implements TreasuryUseCase {
         LocalDateTime now = LocalDateTime.now();
         repository.saveObligation(new FeeObligation(null, planId, installment, concept, amount,
                 dueDate, ObligationStatus.PENDIENTE, now, now));
+    }
+
+    private void saveCustomObligation(Long planId, BigDecimal amount, LocalDate dueDate,
+                                      @Nullable String concept) {
+        BigDecimal normalizedAmount = amount.setScale(0, RoundingMode.UNNECESSARY);
+        String normalizedConcept = normalizeCustomConcept(concept);
+        List<FeeObligation> current = repository.findObligationsByPlan(planId);
+        FeeObligation annual = current.stream()
+                .filter(item -> item.installment() == InstallmentType.ANUAL)
+                .findFirst()
+                .orElse(null);
+        if (annual != null) {
+            repository.saveObligation(new FeeObligation(annual.id(), planId, InstallmentType.ANUAL,
+                    normalizedConcept, normalizedAmount, dueDate, ObligationStatus.PENDIENTE,
+                    annual.createdAt(), LocalDateTime.now()));
+            return;
+        }
+        if (!current.isEmpty()) {
+            repository.deleteObligationsByPlan(planId);
+        }
+        saveObligation(planId, InstallmentType.ANUAL, normalizedConcept, normalizedAmount, dueDate);
+    }
+
+    private void validateCustomFee(int year, @Nullable BigDecimal amount, @Nullable LocalDate dueDate) {
+        if (amount == null || amount.signum() <= 0 || amount.scale() > 0
+                || dueDate == null || dueDate.getYear() != year) {
+            throw error(TreasuryErrorCode.INVALID,
+                    "La cuota personalizada requiere monto entero positivo y vencimiento del año");
+        }
+    }
+
+    private String normalizeCustomConcept(@Nullable String concept) {
+        if (concept == null || concept.isBlank()) return "Cuota personalizada";
+        String normalized = concept.trim();
+        if (normalized.length() > 80) {
+            throw error(TreasuryErrorCode.INVALID,
+                    "El concepto de la cuota personalizada no puede tener más de 80 caracteres");
+        }
+        return normalized;
     }
 
     private FeeObligation obligation(Long id) {

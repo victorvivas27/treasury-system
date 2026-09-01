@@ -100,15 +100,15 @@ class AlumnoTest {
         }
 
         @Test
-        void deberiaFallarSiElCursoMayorDe4Caracteres() {
-            DomainException ex = assertThrows(DomainException.class, () -> a.setCurso("a".repeat(5)));
-            assertEquals("El curso no puede tener más de 4 caracteres", ex.getMessage());
+        void deberiaFallarSiElCursoMayorDe50Caracteres() {
+            DomainException ex = assertThrows(DomainException.class, () -> a.setCurso("a".repeat(51)));
+            assertEquals("El curso no puede tener más de 50 caracteres", ex.getMessage());
         }
 
         @Test
         void deberiaAceptarCursoValido() {
-            a.setCurso("4A");
-            assertEquals("4A", a.getCurso());
+            a.setCurso("1° A Básico");
+            assertEquals("1° A Básico", a.getCurso());
         }
 
         @Test

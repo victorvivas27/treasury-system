@@ -1,4 +1,4 @@
-import type { AnnualFeeConfigPayload, PaymentMode, TreasuryFilters,
+import type { AnnualFeeConfigPayload, AssignModePayload, TreasuryFilters,
   TreasuryReportType } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ContributionConfig, ContributionFilters,
   ContributionType } from "@/core/A-domain/entities/treasury/Treasury";
@@ -34,8 +34,9 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async listPlans(year: number) {
     return (await apiClient.get(`${this.baseUrl}/modalidades`, { params: { year } })).data;
   }
-  async assignMode(year: number, familyId: number, mode: PaymentMode) {
-    return (await apiClient.put(`${this.baseUrl}/modalidades/${familyId}`, { year, mode })).data;
+  async assignMode(year: number, familyId: number, payload: AssignModePayload) {
+    return (await apiClient.put(`${this.baseUrl}/modalidades/${familyId}`,
+      { year, ...payload })).data;
   }
   async removeFamilyPlan(year: number, familyId: number, reason: string) {
     await apiClient.post(`${this.baseUrl}/modalidades/${familyId}/anulacion`,

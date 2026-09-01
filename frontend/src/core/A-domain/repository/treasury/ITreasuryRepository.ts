@@ -1,6 +1,6 @@
 import type {
-  AllowedPaymentMode, AnnualFeeConfig, AnnualFeeConfigPayload, FamilyPlan,
-  FeeObligation, ObligationStatus, PaymentMode, TreasuryDashboard,
+  AllowedPaymentMode, AnnualFeeConfig, AnnualFeeConfigPayload, AssignModePayload, FamilyPlan,
+  FeeObligation, ObligationStatus, TreasuryDashboard,
   TreasuryFilters, TreasuryReport, TreasuryReportType,
   TreasuryProfile,
   ContributionConfig, ContributionFilters, ContributionSummary, ContributionType,
@@ -13,7 +13,7 @@ export interface ITreasuryRepository {
   listConfigs(): Promise<AnnualFeeConfig[]>;
   saveConfig(year: number, payload: AnnualFeeConfigPayload): Promise<AnnualFeeConfig>;
   listPlans(year: number): Promise<FamilyPlan[]>;
-  assignMode(year: number, familyId: number, mode: PaymentMode): Promise<FamilyPlan>;
+  assignMode(year: number, familyId: number, payload: AssignModePayload): Promise<FamilyPlan>;
   removeFamilyPlan(year: number, familyId: number, reason: string): Promise<void>;
   generate(year: number): Promise<number>;
   listObligations(year: number, filters?: TreasuryFilters): Promise<FeeObligation[]>;

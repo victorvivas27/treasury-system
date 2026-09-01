@@ -1,6 +1,7 @@
 package com.tesoreria.treasury.core.port.in;
 
 import com.tesoreria.treasury.core.model.*;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,7 +15,10 @@ public interface TreasuryUseCase {
 
     AnnualFeeConfig getConfig(int year);
 
-    FamilyFeePlan assignMode(int year, Long familyId, PaymentMode mode, String user);
+    FamilyFeePlan assignMode(int year, Long familyId, PaymentMode mode,
+                             @Nullable BigDecimal customAmount,
+                             @Nullable LocalDate customDueDate,
+                             @Nullable String customConcept, String user);
 
     void removeFamilyPlan(int year, Long familyId, String reason, String user);
 

@@ -21,7 +21,10 @@ public final class TreasuryDtos {
             @NotNull LocalDate secondDueDate) {
     }
 
-    public record ModeRequest(@Min(2000) int year, @NotNull PaymentMode mode) {
+    public record ModeRequest(@Min(2000) int year, @NotNull PaymentMode mode,
+                              @Positive BigDecimal customAmount,
+                              LocalDate customDueDate,
+                              @Size(max = 80) String customConcept) {
     }
 
     public record PaymentRequest(@NotNull LocalDate paymentDate, @Positive BigDecimal amount,

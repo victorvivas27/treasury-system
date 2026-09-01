@@ -86,7 +86,7 @@ public class TransferPaymentService {
     @Transactional
     public MyPaymentsView choosePlan(int year, PaymentMode mode, String email) {
         FamiliaEntity family = ownFamily(email);
-        treasury.assignMode(year, family.getFamiliaId(), mode, email);
+        treasury.assignMode(year, family.getFamiliaId(), mode, null, null, null, email);
         treasury.generateObligations(year, email);
         return myPayments(year, email);
     }

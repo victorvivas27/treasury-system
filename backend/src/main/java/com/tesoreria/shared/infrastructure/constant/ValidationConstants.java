@@ -11,6 +11,7 @@ public class ValidationConstants {
     public static final int LONGITUD_MAXIMA_CINCUENTA = 50;
     public static final int LONGITUD_MAXIMA_DOSCIENTOS = 200;
     public static final int LONGITUD_MAXIMA_CUATRO = 4;
+    public static final int LONGITUD_MAXIMA_CURSO = 50;
 
     private ValidationConstants() {
     }
