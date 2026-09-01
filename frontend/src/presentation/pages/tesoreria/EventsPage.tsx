@@ -51,6 +51,8 @@ export const EventsPage = () => {
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [managedCourse, setManagedCourse] = useState("");
+  const [managedCourseLoading, setManagedCourseLoading] = useState(true);
+  const initialLoading = (loading && !hasLoaded) || managedCourseLoading;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,9 +86,11 @@ export const EventsPage = () => {
   };
 
   useEffect(() => {
+    setManagedCourseLoading(true);
     repository.getManagedCourse()
       .then(setManagedCourse)
-      .catch(() => setFeedback("No fue posible cargar el curso administrado."));
+      .catch(() => setFeedback("No fue posible cargar el curso administrado."))
+      .finally(() => setManagedCourseLoading(false));
   }, []);
 
   useEffect(() => {
@@ -168,7 +172,7 @@ export const EventsPage = () => {
       </div>
       {feedback && <p className="events-feedback" role="status">{feedback}</p>}
 
-      {loading && !hasLoaded ? <EventsSkeleton /> : events.length === 0
+      {initialLoading ? <EventsSkeleton /> : events.length === 0
         ? <section className="events-empty"><FiCalendar /><h2>No hay eventos en {year}</h2>
             <p>Crea la edición anual y configura sus cursos y stands.</p></section>
         : <div className="events-layout">

@@ -273,6 +273,19 @@
   margin-top: .8rem;
 }
 
+.treasury-field-skeleton {
+  width: 100%;
+  min-height: 43px;
+  border-radius: var(--radius-md);
+}
+
+.treasury-button-skeleton {
+  width: min(100%, 16rem);
+  min-height: 42px;
+  border-radius: var(--radius-md);
+  align-self: end;
+}
+
 .treasury-plan-skeleton>div:first-child {
   width: 58%;
   gap: .45rem;
@@ -854,6 +867,10 @@
   align-self: end;
   justify-self: start;
   white-space: nowrap;
+}
+
+.treasury-family-mode-controls .treasury-button-skeleton {
+  grid-column: 1 / -1;
 }
 
 .treasury-family-mode-summary {

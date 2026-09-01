@@ -92,6 +92,7 @@ export const AnnualFeesPage = () => {
   const customModeInvalid = mode === "PERSONALIZADA"
     && (!customAmount || customAmount <= 0 || !customDueDate
       || customDueDate.slice(0, 4) !== String(fees.year));
+  const pageLoading = fees.dataLoading || fees.familiesLoading;
 
   const loadTransferProofs = useCallback(async () => {
     try {
@@ -216,7 +217,7 @@ export const AnnualFeesPage = () => {
     </header>
 
     <section className="treasury-dashboard" aria-label="Resumen de cuotas">
-      {fees.dataLoading ? ["Familias", "Cuota única", "Dos cuotas", "Personalizadas",
+      {pageLoading ? ["Familias", "Cuota única", "Dos cuotas", "Personalizadas",
         "Pendientes", "Recaudado", "Por recaudar"].map(label =>
         <article className="treasury-summary-card" key={label}>
           <div><span>{label}</span></div><div className="skeleton-block" />
@@ -257,36 +258,42 @@ export const AnnualFeesPage = () => {
         <h2>Modalidad por familia</h2>
         <div className="treasury-family-mode-layout">
           <div className="treasury-family-mode-controls">
-            <label>Familia<select value={familyId} disabled={fees.familiesLoading}
-              onChange={event => setFamilyId(Number(event.target.value))}>
-              <option value={0}>{fees.familiesLoading ? "Cargando familias..." : "Seleccionar familia"}</option>
-              {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
-                {family.apoderados?.find(item => item.relacion?.esPrincipal)?.nombre
-                  ?? "Sin apoderado principal"}
-              </option>)}
-            </select></label>
-            <label>Modalidad<select value={mode}
-              onChange={event => setMode(event.target.value as PaymentMode)}>
-              <option value="ANUAL">Cuota única</option>
-              <option value="DOS_CUOTAS">Dos cuotas</option>
-              <option value="PERSONALIZADA">Cuota personalizada</option>
-            </select></label>
-            {mode === "PERSONALIZADA" && <>
-              <label>Concepto<input value={customConcept}
-                onChange={event => setCustomConcept(event.target.value)}
-                maxLength={80} /></label>
-              <label>Monto<input type="number" min={1} step={1} value={customAmount || ""}
-                onChange={event => setCustomAmount(Number(event.target.value))} /></label>
-              <label>Vencimiento<input type="date" value={customDueDate}
-                onChange={event => setCustomDueDate(event.target.value)} /></label>
+            {pageLoading ? <>
+              <label>Familia<div className="skeleton-block treasury-field-skeleton" /></label>
+              <label>Modalidad<div className="skeleton-block treasury-field-skeleton" /></label>
+              <div className="skeleton-block treasury-button-skeleton" aria-hidden="true" />
+            </> : <>
+              <label>Familia<select value={familyId}
+                onChange={event => setFamilyId(Number(event.target.value))}>
+                <option value={0}>Seleccionar familia</option>
+                {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
+                  {family.apoderados?.find(item => item.relacion?.esPrincipal)?.nombre
+                    ?? "Sin apoderado principal"}
+                </option>)}
+              </select></label>
+              <label>Modalidad<select value={mode}
+                onChange={event => setMode(event.target.value as PaymentMode)}>
+                <option value="ANUAL">Cuota única</option>
+                <option value="DOS_CUOTAS">Dos cuotas</option>
+                <option value="PERSONALIZADA">Cuota personalizada</option>
+              </select></label>
+              {mode === "PERSONALIZADA" && <>
+                <label>Concepto<input value={customConcept}
+                  onChange={event => setCustomConcept(event.target.value)}
+                  maxLength={80} /></label>
+                <label>Monto<input type="number" min={1} step={1} value={customAmount || ""}
+                  onChange={event => setCustomAmount(Number(event.target.value))} /></label>
+                <label>Vencimiento<input type="date" value={customDueDate}
+                  onChange={event => setCustomDueDate(event.target.value)} /></label>
+              </>}
+              <Button label={mode === "PERSONALIZADA" ? "Crear cuota personalizada" : "Guardar y generar cuotas"}
+                loading={fees.loading}
+                disabled={!familyId || customModeInvalid} onClick={() => void assignMode()}
+                size="medium" />
             </>}
-            <Button label={mode === "PERSONALIZADA" ? "Crear cuota personalizada" : "Guardar y generar cuotas"}
-              loading={fees.loading}
-              disabled={!familyId || customModeInvalid} onClick={() => void assignMode()}
-              size="medium" />
           </div>
           <div className="treasury-family-mode-summary">
-            {fees.dataLoading
+            {pageLoading
               ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true" />
               : <p>{fees.plans.length} familias configuradas para {fees.year}.</p>}
             <p className="treasury-mode-help">
@@ -297,7 +304,7 @@ export const AnnualFeesPage = () => {
           </div>
         </div>
         <div className="treasury-plan-list" aria-label="Familias con modalidad configurada">
-          {fees.dataLoading
+          {pageLoading
             ? Array.from({ length: 2 }, (_, index) =>
               <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
                 <div className="treasury-plan-main"><div className="skeleton-block" />
@@ -330,7 +337,7 @@ export const AnnualFeesPage = () => {
                     })}>Quitar familia</button>
                 </div>
               </article>)}
-          {!fees.dataLoading && fees.plans.length > 0
+          {!pageLoading && fees.plans.length > 0
             && Array.from({ length: PLAN_PAGE_SIZE - visiblePlans.length }, (_, index) =>
               <article className="treasury-plan-placeholder" aria-hidden="true"
                 key={`empty-plan-${index}`}>
@@ -342,7 +349,7 @@ export const AnnualFeesPage = () => {
                 </div>
               </article>)}
         </div>
-        {!fees.dataLoading && planPages > 1 && <Pagination currentPage={planPage}
+        {!pageLoading && planPages > 1 && <Pagination currentPage={planPage}
           totalPages={planPages} hasPrevious={planPage > 1} hasNext={planPage < planPages}
           onPrevious={() => setPlanPage(page => page - 1)}
           onNext={() => setPlanPage(page => page + 1)}
@@ -387,7 +394,7 @@ export const AnnualFeesPage = () => {
       <div className="treasury-table-wrap"><table><thead><tr><th>Responsable</th><th>Curso</th>
         <th>Concepto</th><th>Vence</th><th>Fecha de pago</th><th>Monto</th><th>Estado</th>
         <th>Comprobante</th><th>Acción</th></tr></thead>
-        <tbody>{fees.dataLoading ? Array.from({ length: 8 }, (_, row) =>
+        <tbody>{pageLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
             {Array.from({ length: 8 }, (_, column) => <td key={column}>
               <div className="skeleton-block treasury-cell-skeleton" />
@@ -428,7 +435,7 @@ export const AnnualFeesPage = () => {
                 onClick={() => setAnnulmentId(item.id)} />}</td>
         </tr>)}</tbody></table></div>
       <div className="obligation-family-cards" aria-label="Obligaciones por familia">
-        {fees.dataLoading
+        {pageLoading
           ? Array.from({ length: 3 }, (_, index) => <article key={index} aria-hidden="true">
               <div className="skeleton-block dashboard-row-skeleton" />
               <div className="skeleton-block dashboard-row-skeleton" />
@@ -479,7 +486,7 @@ export const AnnualFeesPage = () => {
             </article>;
           })}
       </div>
-      {!fees.dataLoading && obligationPages > 1 && <Pagination
+      {!pageLoading && obligationPages > 1 && <Pagination
         currentPage={obligationPage}
         totalPages={obligationPages}
         hasPrevious={obligationPage > 1}
