@@ -3,7 +3,13 @@ import axios, { AxiosHeaders, type AxiosInstance } from "axios";
 export const SESSION_EXPIRED_EVENT = "treasury:session-expired";
 export const SESSION_REFRESHED_EVENT = "treasury:session-refreshed";
 const CSRF_COOKIE = "treasury_csrf";
+const CSRF_STORAGE_KEY = "treasury.auth.csrf";
 let accessToken: string | null = null;
+
+type RefreshResponse = {
+  token: string;
+  csrfToken?: string;
+};
 
 export const getAccessToken = () => accessToken;
 
@@ -16,12 +22,22 @@ export const clearAccessToken = (token?: string | null) => {
   accessToken = null;
 };
 
+export const setCsrfToken = (token?: string | null) => {
+  if (typeof sessionStorage === "undefined") return;
+  if (token) sessionStorage.setItem(CSRF_STORAGE_KEY, token);
+  else sessionStorage.removeItem(CSRF_STORAGE_KEY);
+};
+
+export const clearCsrfToken = () => setCsrfToken(null);
+
 const csrfToken = () => {
   if (typeof document === "undefined") return null;
   const cookie = document.cookie
     .split("; ")
     .find((value) => value.startsWith(`${CSRF_COOKIE}=`));
-  return cookie ? decodeURIComponent(cookie.slice(CSRF_COOKIE.length + 1)) : null;
+  if (cookie) return decodeURIComponent(cookie.slice(CSRF_COOKIE.length + 1));
+  if (typeof sessionStorage === "undefined") return null;
+  return sessionStorage.getItem(CSRF_STORAGE_KEY);
 };
 
 const requestToken = (authorization: unknown) => {
@@ -54,7 +70,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
 
   const refreshToken = () => {
     const csrf = csrfToken();
-    refreshPromise ??= axios.post<{ token: string }>(
+    refreshPromise ??= axios.post<RefreshResponse>(
       `${client.defaults.baseURL}/auth/refresh`,
       {},
       {
@@ -66,6 +82,7 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
       },
     ).then(({ data }) => {
       setAccessToken(data.token);
+      setCsrfToken(data.csrfToken);
       window.dispatchEvent(new CustomEvent(SESSION_REFRESHED_EVENT, { detail: data.token }));
       return data.token;
     }).finally(() => {

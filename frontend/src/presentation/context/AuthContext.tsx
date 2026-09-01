@@ -5,10 +5,12 @@ import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import {
   clearAccessToken,
+  clearCsrfToken,
   getAccessToken,
   SESSION_EXPIRED_EVENT,
   SESSION_REFRESHED_EVENT,
   setAccessToken,
+  setCsrfToken,
 } from "@/core/D-config/axiosInterceptor";
 import { detachPushSubscription } from
   "@/core/C-infra/repositories/notification/detachPushSubscription";
@@ -115,6 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearSession = useCallback(() => {
     hadActiveSession.current = false;
     clearAccessToken();
+    clearCsrfToken();
     sessionStorage.removeItem(AUTH_USER_KEY);
     clearProfileImageCache();
     validatedToken.current = null;
@@ -178,6 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       useCases.refresh()
         .then((response) => {
           setAccessToken(response.token);
+          setCsrfToken(response.csrfToken);
           sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
           prefetchUserProfileImage(response.user);
           validatedToken.current = response.token;
@@ -216,6 +220,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await useCases.login.execute({ correo, password });
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
       setAccessToken(response.token);
+      setCsrfToken(response.csrfToken);
       sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
       prefetchUserProfileImage(response.user);
       validatedToken.current = response.token;
@@ -231,6 +236,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
     localStorage.removeItem(MANUAL_LOGOUT_KEY);
     setAccessToken(response.token);
+    setCsrfToken(response.csrfToken);
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
     prefetchUserProfileImage(response.user);
     validatedToken.current = response.token;

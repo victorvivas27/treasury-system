@@ -6,5 +6,6 @@ public record LoginResponseDTO(
         String token,
         String tokenType,
         long expiresIn,
+        String csrfToken,
         UserResponseDTO user) {
 }

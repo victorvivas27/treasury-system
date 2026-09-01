@@ -9,6 +9,7 @@ export interface LoginResponse {
   token: string;
   tokenType: "Bearer";
   expiresIn: number;
+  csrfToken?: string;
   user: User;
 }
 

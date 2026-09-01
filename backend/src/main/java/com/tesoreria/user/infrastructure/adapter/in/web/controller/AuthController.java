@@ -130,6 +130,7 @@ public class AuthController {
                     issued.accessToken(),
                     "Bearer",
                     jwtService.getExpirationMs() / 1000,
+                    issued.csrfToken(),
                     user));
         } finally {
             if (measurement != null) loginPerformance.finish(measurement);
@@ -190,6 +191,7 @@ public class AuthController {
                 issued.accessToken(),
                 "Bearer",
                 jwtService.getExpirationMs() / 1000,
+                issued.csrfToken(),
                 mapper.toResponse(verifiedUser)));
     }
 
@@ -275,6 +277,7 @@ public class AuthController {
                 issued.accessToken(),
                 "Bearer",
                 jwtService.getExpirationMs() / 1000,
+                issued.csrfToken(),
                 mapper.toResponse(userService.findByCorreo(correo))));
     }
 

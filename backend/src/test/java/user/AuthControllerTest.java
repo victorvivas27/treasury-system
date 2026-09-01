@@ -83,6 +83,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("access"))
                 .andExpect(jsonPath("$.expiresIn").value(900))
+                .andExpect(jsonPath("$.csrfToken").value("csrf"))
                 .andReturn();
         var cookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
         assertTrue(cookies.stream().anyMatch(value -> value.contains("treasury_refresh=refresh")
@@ -154,6 +155,7 @@ class AuthControllerTest {
                         .cookie(new jakarta.servlet.http.Cookie("treasury_csrf", "csrf")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("new-access"))
+                .andExpect(jsonPath("$.csrfToken").value("new-csrf"))
                 .andReturn();
         var cookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
         assertTrue(cookies.stream().anyMatch(value -> value.contains("treasury_refresh=new-refresh")));
