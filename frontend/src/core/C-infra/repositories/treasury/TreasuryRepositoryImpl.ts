@@ -47,6 +47,11 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
       `${this.baseUrl}/obligaciones/generar/${year}`,
     )).data.generated;
   }
+  async annualFeesPage(year: number, filters: TreasuryFilters = {}) {
+    return (await apiClient.get(`${this.baseUrl}/cuotas/page`, {
+      params: { year, ...filters },
+    })).data;
+  }
   async listObligations(year: number, filters: TreasuryFilters = {}) {
     return (await apiClient.get(`${this.baseUrl}/obligaciones`, {
       params: { year, ...filters },

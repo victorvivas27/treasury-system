@@ -92,7 +92,7 @@ export const AnnualFeesPage = () => {
   const customModeInvalid = mode === "PERSONALIZADA"
     && (!customAmount || customAmount <= 0 || !customDueDate
       || customDueDate.slice(0, 4) !== String(fees.year));
-  const pageLoading = fees.dataLoading || fees.familiesLoading;
+  const pageLoading = fees.dataLoading;
 
   const loadTransferProofs = useCallback(async () => {
     try {
@@ -114,7 +114,10 @@ export const AnnualFeesPage = () => {
     setObligationPage(1);
   }, [fees.year]);
 
-  useEffect(() => { void loadTransferProofs(); }, [loadTransferProofs]);
+  useEffect(() => {
+    if (pageLoading) return;
+    void loadTransferProofs();
+  }, [loadTransferProofs, pageLoading]);
 
   useEffect(() => {
     if (currentConfig) {
@@ -266,9 +269,8 @@ export const AnnualFeesPage = () => {
               <label>Familia<select value={familyId}
                 onChange={event => setFamilyId(Number(event.target.value))}>
                 <option value={0}>Seleccionar familia</option>
-                {fees.families.map(family => <option key={family.familiaId} value={family.familiaId}>
-                  {family.apoderados?.find(item => item.relacion?.esPrincipal)?.nombre
-                    ?? "Sin apoderado principal"}
+                {fees.families.map(family => <option key={family.familyId} value={family.familyId}>
+                  {family.primaryGuardian || "Sin apoderado principal"}
                 </option>)}
               </select></label>
               <label>Modalidad<select value={mode}

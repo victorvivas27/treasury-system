@@ -116,6 +116,35 @@ public class TreasuryController {
                 .toList();
     }
 
+    @GetMapping("/cuotas/page")
+    public AnnualFeesPageResponse annualFeesPage(@RequestParam int year,
+                                                 @RequestParam(required = false) String course,
+                                                 @RequestParam(required = false) Long familyId,
+                                                 @RequestParam(required = false) PaymentMode mode,
+                                                 @RequestParam(required = false) ObligationStatus status) {
+        Map<Long, FamilyTreasuryData> familyData = treasuryFamilies();
+        List<FamilyFeePlan> plans = treasury.listPlans(year);
+        Map<Long, FamilyFeePlan> plansById = new HashMap<>();
+        plans.forEach(plan -> plansById.put(plan.id(), plan));
+        Map<Long, LocalDate> paymentDatesByObligation = treasury.listActivePayments(year).stream()
+                .collect(java.util.stream.Collectors.toMap(FeePayment::obligationId,
+                        FeePayment::paymentDate));
+        List<FeeObligation> allObligations = treasury.listObligations(year);
+        List<ObligationResponse> obligations = allObligations.stream()
+                .map(item -> obligation(item, plansById.get(item.planId()),
+                        paymentDatesByObligation.get(item.id()), familyData))
+                .filter(item -> course == null || item.course().equalsIgnoreCase(course))
+                .filter(item -> familyId == null || item.familyId().equals(familyId))
+                .filter(item -> mode == null || item.mode() == mode)
+                .filter(item -> status == null || item.status() == status)
+                .toList();
+        return new AnnualFeesPageResponse(
+                plans.stream().map(value -> plan(value, familyData.get(value.familyId()))).toList(),
+                obligations,
+                dashboard(plans, allObligations),
+                familyData.values().stream().map(this::familyOption).toList());
+    }
+
     @PostMapping("/obligaciones/{obligationId}/pagos")
     public ResponseEntity<FeePayment> pay(@PathVariable Long obligationId,
                                           @Valid @RequestBody PaymentRequest request, Principal principal) {
@@ -133,6 +162,21 @@ public class TreasuryController {
     @GetMapping("/dashboard")
     public TreasuryDashboard dashboard(@RequestParam int year) {
         return treasury.dashboard(year);
+    }
+
+    private TreasuryDashboard dashboard(List<FamilyFeePlan> plans, List<FeeObligation> obligations) {
+        BigDecimal collected = obligations.stream()
+                .filter(item -> item.status() == ObligationStatus.PAGADA)
+                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal pending = obligations.stream()
+                .filter(item -> item.status() != ObligationStatus.PAGADA)
+                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new TreasuryDashboard(plans.size(),
+                plans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
+                plans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
+                obligations.stream().filter(item -> item.status() != ObligationStatus.PAGADA).count(),
+                obligations.stream().filter(item -> item.status() == ObligationStatus.PAGADA).count(),
+                collected, pending);
     }
 
     @GetMapping("/dashboard/overview")
@@ -510,6 +554,12 @@ public class TreasuryController {
         return new FamilyData(family.familyCode(),
                 family.primaryGuardian() == null ? "Sin apoderado principal" : family.primaryGuardian(),
                 family.studentName(), family.course());
+    }
+
+    private FamilyOptionResponse familyOption(FamilyTreasuryData family) {
+        FamilyData data = familyData(family);
+        return new FamilyOptionResponse(family.familyId(), data.code(), data.primaryGuardian(),
+                data.studentName(), data.course());
     }
 
     private Map<String, FamilyContribution> contributionMap(int year) {

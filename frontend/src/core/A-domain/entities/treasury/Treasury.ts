@@ -32,6 +32,14 @@ export interface FamilyPlan {
   mode: PaymentMode;
 }
 
+export interface AnnualFeeFamilyOption {
+  familyId: number;
+  familyCode: string;
+  primaryGuardian: string;
+  studentName: string;
+  course: string;
+}
+
 export interface FeeObligation {
   id: number;
   familyId: number;
@@ -56,6 +64,13 @@ export interface TreasuryDashboard {
   paidObligations: number;
   collectedAmount: number;
   pendingAmount: number;
+}
+
+export interface AnnualFeesPageData {
+  plans: FamilyPlan[];
+  obligations: FeeObligation[];
+  dashboard: TreasuryDashboard;
+  families: AnnualFeeFamilyOption[];
 }
 
 export interface TreasuryDashboardOverview {

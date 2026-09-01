@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AnnualFeeConfig, AnnualFeeConfigPayload, AssignModePayload, FeeObligation,
+import type { AnnualFeeConfig, AnnualFeeConfigPayload, AnnualFeeFamilyOption, AssignModePayload, FeeObligation,
   FamilyPlan,
   TreasuryDashboard, TreasuryFilters } from "@/core/A-domain/entities/treasury/Treasury";
-import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
-import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
 
 const operationErrorMessage = (error: unknown) => {
   if (typeof error !== "object" || error === null || !("response" in error)) {
@@ -22,19 +20,17 @@ const operationErrorMessage = (error: unknown) => {
 
 export const useAnnualFees = () => {
   const [year, setYear] = useState(new Date().getFullYear());
-  const [families, setFamilies] = useState<FamiliaDetalle[]>([]);
+  const [families, setFamilies] = useState<AnnualFeeFamilyOption[]>([]);
   const [plans, setPlans] = useState<FamilyPlan[]>([]);
   const [obligations, setObligations] = useState<FeeObligation[]>([]);
   const [dashboard, setDashboard] = useState<TreasuryDashboard | null>(null);
   const [configs, setConfigs] = useState<AnnualFeeConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
-  const [familiesLoading, setFamiliesLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const useCases = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
-  const familyRepository = useMemo(() => new FamiliaRepositoryImpl(), []);
 
   const loadConfigs = useCallback(async () => {
     try {
@@ -44,33 +40,18 @@ export const useAnnualFees = () => {
     }
   }, [useCases]);
 
-  const loadFamilies = useCallback(async () => {
-    try {
-      const familyPage = await familyRepository.getAll(0, 500);
-      setFamilies(familyPage.content);
-    } catch {
-      setFamilies([]);
-      setError("No fue posible cargar las familias.");
-    } finally {
-      setFamiliesLoading(false);
-    }
-  }, [familyRepository]);
-
   const refresh = useCallback(async (filters: TreasuryFilters = {}, showSkeleton = false) => {
     setLoading(true);
     if (showSkeleton) setDataLoading(true);
     setError("");
     try {
-      const [currentPlans, currentObligations, currentDashboard] =
-        await Promise.all([
-          useCases.listPlans(year),
-          useCases.listObligations(year, filters),
-          useCases.dashboard(year),
-        ]);
-      setPlans(currentPlans);
-      setObligations(currentObligations);
-      setDashboard(currentDashboard);
+      const page = await useCases.annualFeesPage(year, filters);
+      setPlans(page.plans);
+      setObligations(page.obligations);
+      setDashboard(page.dashboard);
+      setFamilies(page.families);
     } catch {
+      setFamilies([]);
       setPlans([]);
       setObligations([]);
       setDashboard(null);
@@ -81,9 +62,11 @@ export const useAnnualFees = () => {
     }
   }, [useCases, year]);
 
-  useEffect(() => { void loadFamilies(); }, [loadFamilies]);
-  useEffect(() => { void loadConfigs(); }, [loadConfigs]);
   useEffect(() => { void refresh({}, true); }, [refresh]);
+  useEffect(() => {
+    if (dataLoading) return;
+    void loadConfigs();
+  }, [dataLoading, loadConfigs]);
 
   const execute = async (operation: () => Promise<unknown>, success: string) => {
     setLoading(true);
@@ -104,7 +87,7 @@ export const useAnnualFees = () => {
 
   return {
     year, setYear, families, plans, obligations, dashboard, configs, loading, dataLoading,
-    familiesLoading, message, error, actionError,
+    message, error, actionError,
     clearMessage: () => setMessage(""),
     clearActionError: () => setActionError(""),
     refresh,

@@ -48,6 +48,17 @@ public final class TreasuryDtos {
                                      ObligationStatus status) {
     }
 
+    public record FamilyOptionResponse(Long familyId, String familyCode,
+                                       String primaryGuardian, String studentName,
+                                       String course) {
+    }
+
+    public record AnnualFeesPageResponse(List<PlanResponse> plans,
+                                         List<ObligationResponse> obligations,
+                                         TreasuryDashboard dashboard,
+                                         List<FamilyOptionResponse> families) {
+    }
+
     public record ReportResponse(Long familyId, String familyCode, String primaryGuardian,
                                  String studentName,
                                  String course, PaymentMode mode, List<ObligationResponse> obligations) {
