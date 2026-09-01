@@ -1,5 +1,6 @@
 import type {
-  AllowedPaymentMode, AnnualFeeConfig, AnnualFeeConfigPayload, AssignModePayload, FamilyPlan,
+  AllowedPaymentMode, AnnualFeeConfig, AnnualFeeConfigPayload, AnnualFeesPageData,
+  AssignModePayload, FamilyPlan,
   FeeObligation, ObligationStatus, TreasuryDashboard,
   TreasuryFilters, TreasuryReport, TreasuryReportType,
   TreasuryProfile,
@@ -16,6 +17,7 @@ export interface ITreasuryRepository {
   assignMode(year: number, familyId: number, payload: AssignModePayload): Promise<FamilyPlan>;
   removeFamilyPlan(year: number, familyId: number, reason: string): Promise<void>;
   generate(year: number): Promise<number>;
+  annualFeesPage(year: number, filters?: TreasuryFilters): Promise<AnnualFeesPageData>;
   listObligations(year: number, filters?: TreasuryFilters): Promise<FeeObligation[]>;
   pay(obligationId: number, paymentDate: string, amount: number,
     observations?: string): Promise<void>;

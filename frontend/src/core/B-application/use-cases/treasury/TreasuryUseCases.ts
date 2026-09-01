@@ -20,6 +20,9 @@ export class TreasuryUseCases {
     return this.repository.removeFamilyPlan(year, familyId, reason);
   }
   generate(year: number) { return this.repository.generate(year); }
+  annualFeesPage(year: number, filters?: TreasuryFilters) {
+    return this.repository.annualFeesPage(year, filters);
+  }
   listObligations(year: number, filters?: TreasuryFilters) {
     return this.repository.listObligations(year, filters);
   }
