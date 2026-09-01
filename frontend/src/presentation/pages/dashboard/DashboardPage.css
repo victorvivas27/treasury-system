@@ -94,6 +94,22 @@
   .contribution-donut__chart{height:90px}
 }
 
+.dashboard-improvement-card{display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  margin:0 0 1rem;border:1px solid var(--border-color);border-radius:var(--radius-lg);
+  padding:.75rem .85rem;background:var(--color-surface);box-shadow:var(--shadow-card)}
+.dashboard-improvement-card>div{display:flex;align-items:center;gap:.65rem;min-width:0}
+.dashboard-improvement-card>div>span{display:grid;width:2.1rem;height:2.1rem;flex:0 0 auto;
+  place-items:center;border-radius:50%;background:var(--color-accent-soft);color:var(--color-accent)}
+.dashboard-improvement-card h2,.dashboard-improvement-card p{margin:0}
+.dashboard-improvement-card h2{font-size:.86rem}
+.dashboard-improvement-card p{color:var(--text-muted);font-size:.68rem}
+.dashboard-improvement-card button{min-height:34px;flex:0 0 auto;border:1px solid var(--color-accent);
+  border-radius:var(--radius-md);padding:.38rem .6rem;background:var(--color-accent);
+  color:var(--color-bg);font:inherit;font-size:.7rem;font-weight:750;cursor:pointer}
+.dashboard-improvement-card button:hover{filter:brightness(1.05)}
+@media(max-width:700px){.dashboard-improvement-card{align-items:stretch;flex-direction:column;
+  gap:.55rem;margin-bottom:.6rem;padding:.65rem}.dashboard-improvement-card button{width:100%}}
+
 /* Indicadores compactos y de ancho uniforme. */
 .dashboard-kpis{grid-template-columns:repeat(6,minmax(0,1fr));gap:.5rem}
 .dashboard-kpis article{min-width:0;gap:.12rem;padding:.58rem .68rem}

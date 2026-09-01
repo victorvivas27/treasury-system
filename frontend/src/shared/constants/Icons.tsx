@@ -8,7 +8,7 @@ import { BiExit } from "react-icons/bi";
 import { FcConferenceCall } from "react-icons/fc";
 import { TfiReload } from "react-icons/tfi";
 import { RiUserAddLine } from "react-icons/ri";
-import { MdOutlineDeleteOutline, MdFamilyRestroom } from "react-icons/md";
+import { MdOutlineDeleteOutline, MdFamilyRestroom, MdOutlineRateReview } from "react-icons/md";
 import { GrEdit } from "react-icons/gr";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { TiArrowBackOutline } from "react-icons/ti";
@@ -36,6 +36,7 @@ export const ICONS = {
   tesoreria: TbPigMoney,
   expand: IoChevronDownOutline,
   notifications: IoChatbubblesOutline,
+  improvements: MdOutlineRateReview,
   settings: IoSettingsOutline,
   logout: BiExit,
   edit: GrEdit,
@@ -52,6 +53,7 @@ export const SIDEBAR_LINKS = [
       { label: "Alumnos", path: "/students", icon: ICONS.alumnos },
       { label: "Apoderados", path: "/parents", icon: ICONS.apoderados },
       { label: "Familia", path: "/family", icon: ICONS.familia },
+      { label: "Gestión de Mejoras", path: "/admin/mejoras", icon: ICONS.improvements },
     ],
   },
   {

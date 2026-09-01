@@ -35,6 +35,7 @@ import { CoursePhotoManagementPage } from "../pages/community/CoursePhotoManagem
 import { BoardManagementPage } from "../pages/community/BoardManagementPage";
 import { PaymentsPage } from "../pages/tesoreria/PaymentsPage";
 import { AdministrationsPage } from "../pages/organization/AdministrationsPage";
+import { ImprovementAdminPage } from "../pages/improvement/ImprovementAdminPage";
 
 export const AppRouter = () => {
   return (
@@ -73,6 +74,7 @@ export const AppRouter = () => {
           <Route path="students" element={<AlumnoPage />} />
           <Route path="parents" element={<ApoderadoPage />} />
           <Route path="family" element={<FamiliaPage />} />
+          <Route path="admin/mejoras" element={<ImprovementAdminPage />} />
           <Route path="parents/new" element={< ApoderadoCrearFormPage/>} />
           <Route path="/parents/edit/:apoderadoId" element={<ApoderadoEditFormPage />} />
           <Route path="students/new" element={<AlumnoCrearFormPage />} />

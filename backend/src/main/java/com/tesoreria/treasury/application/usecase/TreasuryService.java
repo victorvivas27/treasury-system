@@ -27,6 +27,8 @@ public class TreasuryService implements TreasuryUseCase {
     private static final String INCOME_AUDIT_TYPE = "INGRESO";
     private static final String EXPENSE_AUDIT_TYPE = "EGRESO";
     private static final String CACHE_YEAR_KEY = "#year";
+    private static final int INTEGER_AMOUNT_SCALE = 0;
+    private static final int MAX_CUSTOM_CONCEPT_LENGTH = 80;
     private final TreasuryRepositoryOutPort repository;
 
     public TreasuryService(TreasuryRepositoryOutPort repository) {
@@ -692,7 +694,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     private void validateCustomFee(int year, @Nullable BigDecimal amount, @Nullable LocalDate dueDate) {
-        if (amount == null || amount.signum() <= 0 || amount.scale() > 0
+        if (amount == null || amount.signum() <= 0 || amount.scale() > INTEGER_AMOUNT_SCALE
                 || dueDate == null || dueDate.getYear() != year) {
             throw error(TreasuryErrorCode.INVALID,
                     "La cuota personalizada requiere monto entero positivo y vencimiento del año");
@@ -702,7 +704,7 @@ public class TreasuryService implements TreasuryUseCase {
     private String normalizeCustomConcept(@Nullable String concept) {
         if (concept == null || concept.isBlank()) return "Cuota personalizada";
         String normalized = concept.trim();
-        if (normalized.length() > 80) {
+        if (normalized.length() > MAX_CUSTOM_CONCEPT_LENGTH) {
             throw error(TreasuryErrorCode.INVALID,
                     "El concepto de la cuota personalizada no puede tener más de 80 caracteres");
         }

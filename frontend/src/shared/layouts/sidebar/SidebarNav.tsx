@@ -44,6 +44,7 @@ const ADMIN_PATHS = new Set([
   "/students",
   "/parents",
   "/family",
+  "/admin/mejoras",
 ]);
 
 
