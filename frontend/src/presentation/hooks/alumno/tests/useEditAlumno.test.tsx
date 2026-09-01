@@ -32,7 +32,7 @@ vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
 
 describe("useEditAlumno Hook", () => {
   const mockNavigate = vi.fn();
-  const mockAlumno = { nombre: "Juan", curso: "4A", observacion: "", genero: "OTROS" as const, apoderadoId: 1 };
+  const mockAlumno = { nombre: "Juan", curso: "4A", observacion: "", fechaNacimiento: "2015-04-12", genero: "OTROS" as const, apoderadoId: 1 };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -105,6 +105,7 @@ describe("useEditAlumno Hook", () => {
       nombre: "Carlos",
       curso: "5B",
       observacion: "",
+      fechaNacimiento: "2015-04-12",
       genero: "OTROS",
       apoderadoId: 8,
     });
@@ -196,6 +197,7 @@ describe("useEditAlumno Hook", () => {
     act(() => {
       result.current.handleChange({ target: { name: "nombre", value: "Maria" } } as any);
       result.current.handleChange({ target: { name: "curso", value: "5B" } } as any);
+      result.current.handleChange({ target: { name: "fechaNacimiento", value: "2014-09-20" } } as any);
       result.current.handleChange({ target: { name: "apoderadoId", value: "9" } } as any);
     });
     await act(async () => {
@@ -206,6 +208,7 @@ describe("useEditAlumno Hook", () => {
       nombre: "Maria",
       curso: "5B",
       observacion: "",
+      fechaNacimiento: "2014-09-20",
       genero: "OTROS",
       apoderadoId: 9,
     });

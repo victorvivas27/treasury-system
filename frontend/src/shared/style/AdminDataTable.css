@@ -42,6 +42,8 @@
   .admin-data-table--students td:nth-child(3),
   .admin-data-table--students th:nth-child(4),
   .admin-data-table--students td:nth-child(4),
+  .admin-data-table--students th:nth-child(5),
+  .admin-data-table--students td:nth-child(5),
   .admin-data-table--families th:nth-child(3),
   .admin-data-table--families td:nth-child(3) {
     white-space: nowrap;
@@ -71,7 +73,8 @@
   .admin-data-table--students .admin-col-status { width: 90px; }
   .admin-data-table--students .admin-col-primary { width: auto; }
   .admin-data-table--students col:nth-child(3) { width: 92px; }
-  .admin-data-table--students col:nth-child(4) { width: 84px; }
+  .admin-data-table--students col:nth-child(4) { width: 112px; }
+  .admin-data-table--students col:nth-child(5) { width: 84px; }
   .admin-data-table--students .admin-col-actions { width: 150px; }
 
   .admin-data-table--families .admin-col-status { width: 90px; }

@@ -67,6 +67,7 @@ textarea.form-input-alumno {
 }
 
 .form-input-alumno:focus+.floating-label-alumno,
+.form-input-alumno[type="date"]+.floating-label-alumno,
 .form-input-alumno:not(:placeholder-shown)+.floating-label-alumno {
   top: 0;
   transform: translateY(-100%) scale(0.9);

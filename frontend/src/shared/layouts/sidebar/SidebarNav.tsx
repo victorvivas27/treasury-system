@@ -42,6 +42,7 @@ interface SidebarNavProps {
 const ADMIN_PATHS = new Set([
   "/users",
   "/students",
+  "/birthdays",
   "/parents",
   "/family",
   "/admin/mejoras",

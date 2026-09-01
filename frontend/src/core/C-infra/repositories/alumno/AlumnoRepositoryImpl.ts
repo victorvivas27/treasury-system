@@ -6,6 +6,11 @@ import type {
 } from "@/core/A-domain/entities/alumno/Alumno";
 import type { IAlumnoRepository } from "@/core/A-domain/repository/alumno/IAlumnoRepository";
 
+const normalizeAlumnoPayload = <T extends Partial<Alumno>>(alumno: T): T => ({
+  ...alumno,
+  fechaNacimiento: alumno.fechaNacimiento || null,
+});
+
 export class AlumnoRepositoryImpl implements IAlumnoRepository {
   private readonly baseUrl = "/alumnos";
 
@@ -26,14 +31,14 @@ export class AlumnoRepositoryImpl implements IAlumnoRepository {
   }
 
   async create(alumno: CreateAlumnoDTO): Promise<Alumno> {
-    const response = await apiClient.post<Alumno>(this.baseUrl, alumno);
+    const response = await apiClient.post<Alumno>(this.baseUrl, normalizeAlumnoPayload(alumno));
     return response.data;
   }
 
   async updateByCodigo(codigo: string, alumno: Partial<Alumno>): Promise<Alumno> {
     const response = await apiClient.put<Alumno>(
       `${this.baseUrl}/${codigo}`,
-      alumno,
+      normalizeAlumnoPayload(alumno),
     );
     return response.data;
   }

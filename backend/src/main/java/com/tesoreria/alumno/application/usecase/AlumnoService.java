@@ -72,6 +72,7 @@ public class AlumnoService implements
         existing.setNombre(alumno.getNombre());
         existing.setCurso(alumno.getCurso());
         existing.setObservacion(alumno.getObservacion());
+        existing.setFechaNacimiento(alumno.getFechaNacimiento());
         existing.setGenero(alumno.getGenero());
         return repository.save(existing);
     }

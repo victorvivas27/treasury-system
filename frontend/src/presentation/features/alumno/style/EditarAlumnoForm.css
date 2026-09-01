@@ -76,6 +76,7 @@
 }
 
 .form-input:focus+.floating-label,
+.form-input[type="date"]+.floating-label,
 .form-input:not(:placeholder-shown)+.floating-label {
   top: 0;
   transform: translateY(-90%) scale(0.90);

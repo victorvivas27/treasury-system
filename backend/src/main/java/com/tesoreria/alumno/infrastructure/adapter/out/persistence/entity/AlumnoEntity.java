@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.UUID;
@@ -32,6 +33,9 @@ public final class AlumnoEntity extends TenantScopedEntity {
     @Column(length = 300)
     private String observacion;
 
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16, columnDefinition = "varchar(16) default 'OTROS'")
     private GeneroAlumno genero = GeneroAlumno.OTROS;
@@ -57,11 +61,17 @@ public final class AlumnoEntity extends TenantScopedEntity {
     }
 
     public AlumnoEntity(Long alumnoId, String codigo, String nombre, String curso, String observacion) {
+        this(alumnoId, codigo, nombre, curso, observacion, null);
+    }
+
+    public AlumnoEntity(Long alumnoId, String codigo, String nombre, String curso,
+                        String observacion, LocalDate fechaNacimiento) {
         this.alumnoId = alumnoId;
         this.codigo = codigo;
         this.nombre = nombre;
         this.curso = curso;
         this.observacion = observacion;
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     @PrePersist
@@ -116,6 +126,14 @@ public final class AlumnoEntity extends TenantScopedEntity {
 
     public void setObservacion(String observacion) {
         this.observacion = observacion;
+    }
+
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public GeneroAlumno getGenero() { return genero; }

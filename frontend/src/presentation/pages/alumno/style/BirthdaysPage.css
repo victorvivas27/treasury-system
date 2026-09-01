@@ -1,0 +1,52 @@
+.birthdays-page {
+  gap: .85rem;
+}
+
+.birthdays-page .birthday-section {
+  margin-top: .15rem;
+}
+
+.birthdays-page .birthday-section__grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.birthdays-page__error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  border: 1px solid color-mix(in srgb, var(--color-error) 28%, var(--border-color));
+  border-radius: 12px;
+  padding: .85rem;
+  background: color-mix(in srgb, var(--color-error) 8%, var(--color-surface));
+}
+
+.birthdays-page__error p {
+  margin: 0;
+  color: var(--text-main);
+  font-size: .84rem;
+}
+
+.birthdays-page__error button {
+  min-height: 36px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 35%, var(--border-color));
+  border-radius: 8px;
+  padding: .4rem .7rem;
+  background: var(--color-surface);
+  color: var(--color-error);
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .birthdays-page .birthday-section__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .birthdays-page__error {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

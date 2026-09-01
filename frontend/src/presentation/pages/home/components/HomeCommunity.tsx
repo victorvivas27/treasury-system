@@ -103,25 +103,11 @@ const StaffIcon = () => {
   </span>;
 };
 
-const HeartIcon = () => {
-  const { resolvedTheme } = useTheme();
-  const [animationData, setAnimationData] = useState<object>();
-  const reduceMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  useEffect(() => {
-    let active = true;
-    fetch("/icons/Heart.json").then(response => response.json() as Promise<object>)
-      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [resolvedTheme]);
-  return <span className="home-community__heart-icon" aria-hidden="true">
-    <Suspense fallback={<FiHeart />}>
-      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
-        loop={!reduceMotion} autoplay={!reduceMotion} /> : <FiHeart />}
-    </Suspense>
-  </span>;
-};
+const HeartIcon = () => (
+  <span className="home-community__heart-icon" aria-hidden="true">
+    <FiHeart />
+  </span>
+);
 
 export const HomeCommunity = () => {
   const [sections, setSections] = useState<AboutSection[]>([]);

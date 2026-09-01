@@ -39,6 +39,7 @@ describe("useCreateAlumno", () => {
       nombre: "",
       curso: "",
       observacion: "",
+      fechaNacimiento: "",
       genero: "OTROS",
       apoderadoId: 0,
     });
@@ -64,6 +65,7 @@ describe("useCreateAlumno", () => {
       nombre: "Juan",
       curso: "4A",
       observacion: "",
+      fechaNacimiento: "",
       genero: "OTROS",
       apoderadoId: 7,
     });
@@ -89,6 +91,7 @@ describe("useCreateAlumno", () => {
       nombre: "",
       curso: "",
       observacion: "",
+      fechaNacimiento: "",
       genero: "OTROS",
       apoderadoId: 0,
     });
@@ -146,6 +149,7 @@ describe("useCreateAlumno", () => {
     act(() => {
       result.current.handleChange({ target: { name: "nombre", value: "Maria" } } as any);
       result.current.handleChange({ target: { name: "curso", value: "5B" } } as any);
+      result.current.handleChange({ target: { name: "fechaNacimiento", value: "2015-04-12" } } as any);
       result.current.handleChange({ target: { name: "apoderadoId", value: "9" } } as any);
     });
 
@@ -159,6 +163,7 @@ describe("useCreateAlumno", () => {
       nombre: "Maria",
       curso: "5B",
       observacion: "",
+      fechaNacimiento: "2015-04-12",
       genero: "OTROS",
       apoderadoId: 9,
     });

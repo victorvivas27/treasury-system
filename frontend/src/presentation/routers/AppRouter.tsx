@@ -14,6 +14,7 @@ import { ApoderadoEditFormPage } from "../pages/apoderado/ApoderadoEditFormPage"
 import { ApoderadoCrearFormPage } from "../pages/apoderado/ApoderadoCreateFormPage";
 import { AlumnoCrearFormPage } from "../pages/alumno/AlumnoCrearFormPage";
 import { AlumnoEditFormPage } from "../pages/alumno/AlumnoEditFormPage";
+import { BirthdaysPage } from "../pages/alumno/BirthdaysPage";
 import { FamiliaPage } from "../pages/familia/FamiliaPage";
 import { FamiliaEditFormPage } from "../pages/familia/FamiliaEditFormPage";
 import { FamiliaCrearFormPage } from "../pages/familia/FamiliaCreateFormPage";
@@ -72,6 +73,7 @@ export const AppRouter = () => {
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />
           <Route path="students" element={<AlumnoPage />} />
+          <Route path="birthdays" element={<BirthdaysPage />} />
           <Route path="parents" element={<ApoderadoPage />} />
           <Route path="family" element={<FamiliaPage />} />
           <Route path="admin/mejoras" element={<ImprovementAdminPage />} />
