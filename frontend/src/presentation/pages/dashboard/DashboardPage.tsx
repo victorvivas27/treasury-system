@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
+import { IoBulbOutline } from "react-icons/io5";
 import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
@@ -20,6 +21,7 @@ import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
+import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvement/ImprovementCenterEvents";
 
 const repository = new TreasuryRepositoryImpl();
 const currentYear = new Date().getFullYear();
@@ -200,6 +202,16 @@ export const DashboardPage = () => {
           icon="paid" />
         <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)}
           icon="pending" />
+      </section>
+
+      <section className="dashboard-improvement-card" aria-label="Centro de Mejoras">
+        <div><span><IoBulbOutline aria-hidden="true" /></span>
+          <div><h2>¿Cómo podemos mejorar?</h2>
+            <p>Comparte una idea o cuéntanos qué podemos hacer más fácil.</p></div></div>
+        <button type="button"
+          onClick={() => window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT))}>
+          Enviar sugerencia
+        </button>
       </section>
 
       <section className="dashboard-charts">

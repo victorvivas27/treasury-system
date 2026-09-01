@@ -6,6 +6,7 @@ import { ManagedCourseBanner } from "./ManagedCourseBanner";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { AppTour } from "@/shared/ui/apptour/AppTour";
 import { HomeFooter } from "@/presentation/pages/home/components/HomeFooter";
+import { ImprovementCenter } from "@/presentation/components/improvement-center/ImprovementCenter";
 
 
 
@@ -27,6 +28,7 @@ const auth = useOptionalAuth();
         <HomeFooter reveal={false} />
       </section>
       {auth?.user && <AppTour user={auth.user} />}
+      {auth?.user && <ImprovementCenter />}
     </main>
   );
 };

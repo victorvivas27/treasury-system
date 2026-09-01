@@ -322,6 +322,59 @@
     visibility 0s linear var(--sidebar-motion-duration);
 }
 
+.sidebar-improvement-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2.25rem;
+  margin-top: var(--sm);
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--xl)) / 2);
+  gap: var(--sm);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition: color var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    background var(--sidebar-motion-duration) var(--sidebar-motion-easing);
+}
+
+.sidebar-improvement-button:hover,
+.sidebar-improvement-button:focus-visible {
+  color: var(--color-accent);
+  background: var(--color-hover);
+}
+
+.sidebar-improvement-button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.sidebar-improvement-button svg {
+  width: var(--xl);
+  height: var(--xl);
+  flex: 0 0 var(--xl);
+}
+
+.sidebar-improvement-button span {
+  max-width: 10rem;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    visibility 0s linear;
+}
+
+.sidebar--collapsed .sidebar-improvement-button span {
+  max-width: 0;
+  visibility: hidden;
+  opacity: 0;
+  transition: max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
+    visibility 0s linear var(--sidebar-motion-duration);
+}
+
 
 /* =========================================================
    14. DESKTOP
