@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AnnualFeeConfig, AnnualFeeConfigPayload, FeeObligation, FamilyPlan, PaymentMode,
+import type { AnnualFeeConfig, AnnualFeeConfigPayload, AssignModePayload, FeeObligation,
+  FamilyPlan,
   TreasuryDashboard, TreasuryFilters } from "@/core/A-domain/entities/treasury/Treasury";
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
@@ -113,11 +114,13 @@ export const useAnnualFees = () => {
       if (success) await loadConfigs();
       return success;
     },
-    assignMode: (familyId: number, mode: PaymentMode) =>
+    assignMode: (familyId: number, payload: AssignModePayload) =>
       execute(async () => {
-        await useCases.assignMode(year, familyId, mode);
-        await useCases.generate(year);
-      }, "Modalidad actualizada y obligaciones regeneradas."),
+        await useCases.assignMode(year, familyId, payload);
+        if (payload.mode !== "PERSONALIZADA") await useCases.generate(year);
+      }, payload.mode === "PERSONALIZADA"
+        ? "Cuota personalizada creada."
+        : "Modalidad actualizada y obligaciones regeneradas."),
     removeFamilyPlan: (familyId: number, reason: string) =>
       execute(() => useCases.removeFamilyPlan(year, familyId, reason),
         "La familia fue quitada de la cuota anual."),

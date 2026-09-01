@@ -108,6 +108,7 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     @Override
     public void deleteObligationsByPlan(Long planId) {
         obligations.deleteByPlanId(planId);
+        obligations.flush();
     }
 
     @Override

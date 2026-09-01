@@ -1,5 +1,5 @@
-export type PaymentMode = "ANUAL" | "DOS_CUOTAS";
-export type AllowedPaymentMode = PaymentMode | "AMBAS";
+export type PaymentMode = "ANUAL" | "DOS_CUOTAS" | "PERSONALIZADA";
+export type AllowedPaymentMode = Exclude<PaymentMode, "PERSONALIZADA"> | "AMBAS";
 export type ObligationStatus = "PENDIENTE" | "EN_REVISION" | "PAGADA";
 export type InstallmentType = "ANUAL" | "PRIMERA" | "SEGUNDA";
 
@@ -14,6 +14,13 @@ export interface AnnualFeeConfig {
 }
 
 export type AnnualFeeConfigPayload = Omit<AnnualFeeConfig, "id" | "year">;
+
+export interface AssignModePayload {
+  mode: PaymentMode;
+  customAmount?: number;
+  customDueDate?: string;
+  customConcept?: string;
+}
 
 export interface FamilyPlan {
   id: number;

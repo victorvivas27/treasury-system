@@ -22,8 +22,13 @@ const today = (() => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 })();
 const isOverdue = (status: string, dueDate: string) => status === "PENDIENTE" && dueDate < today;
+const modeLabel = (value: PaymentMode) => {
+  if (value === "ANUAL") return "Cuota única";
+  if (value === "DOS_CUOTAS") return "Dos cuotas";
+  return "Cuota personalizada";
+};
 const PLAN_PAGE_SIZE = 2;
-const OBLIGATION_FAMILY_PAGE_SIZE = 5;
+const OBLIGATION_PAGE_SIZE = 5;
 const transferBase = "/tesoreria/pagos-transferencia";
 type TransferProof = { id: number; installmentId: number; status: string;
   originalFileName: string | null; submittedAt: string | null; rejectionReason: string | null };
@@ -37,6 +42,9 @@ export const AnnualFeesPage = () => {
   const [secondDueDate, setSecondDueDate] = useState(`${fees.year}-07-15`);
   const [familyId, setFamilyId] = useState(0);
   const [mode, setMode] = useState<PaymentMode>("ANUAL");
+  const [customAmount, setCustomAmount] = useState(0);
+  const [customDueDate, setCustomDueDate] = useState(`${fees.year}-12-31`);
+  const [customConcept, setCustomConcept] = useState("Cuota personalizada");
   const [filters, setFilters] = useState<TreasuryFilters>({});
   const [payment, setPayment] = useState<{ id: number; amount: number; concept: string } | null>(null);
   const [paymentDate, setPaymentDate] = useState(today);
@@ -62,25 +70,28 @@ export const AnnualFeesPage = () => {
   ].filter(Boolean))].sort((first, second) => first.localeCompare(second, "es", {
     numeric: true,
   })), [fees.plans, fees.obligations]);
-  const obligationGroups = useMemo(() => [...fees.obligations.reduce((groups, obligation) => {
+  const obligationPages = Math.max(1,
+    Math.ceil(fees.obligations.length / OBLIGATION_PAGE_SIZE));
+  const visibleObligations = useMemo(() => fees.obligations.slice(
+    (obligationPage - 1) * OBLIGATION_PAGE_SIZE,
+    obligationPage * OBLIGATION_PAGE_SIZE), [fees.obligations, obligationPage]);
+  const visibleObligationGroups = useMemo(() => [...visibleObligations.reduce((groups, obligation) => {
     const current = groups.get(obligation.familyId) ?? [];
     current.push(obligation);
     groups.set(obligation.familyId, current);
     return groups;
-  }, new Map<number, typeof fees.obligations>()).values()], [fees.obligations]);
-  const obligationPages = Math.max(1,
-    Math.ceil(obligationGroups.length / OBLIGATION_FAMILY_PAGE_SIZE));
-  const visibleObligationGroups = useMemo(() => obligationGroups.slice(
-    (obligationPage - 1) * OBLIGATION_FAMILY_PAGE_SIZE,
-    obligationPage * OBLIGATION_FAMILY_PAGE_SIZE), [obligationGroups, obligationPage]);
-  const visibleObligations = useMemo(() => visibleObligationGroups.flat(),
-    [visibleObligationGroups]);
+  }, new Map<number, typeof fees.obligations>()).values()], [visibleObligations]);
   const proofsByInstallment = useMemo(() => {
     const values = new Map<number, TransferProof>();
     transferProofs.forEach(proof => { if (!values.has(proof.installmentId)) values.set(proof.installmentId, proof); });
     return values;
   }, [transferProofs]);
   const selectedProof = payment ? proofsByInstallment.get(payment.id) : undefined;
+  const customPlans = useMemo(() => fees.plans.filter(plan => plan.mode === "PERSONALIZADA").length,
+    [fees.plans]);
+  const customModeInvalid = mode === "PERSONALIZADA"
+    && (!customAmount || customAmount <= 0 || !customDueDate
+      || customDueDate.slice(0, 4) !== String(fees.year));
 
   const loadTransferProofs = useCallback(async () => {
     try {
@@ -111,6 +122,7 @@ export const AnnualFeesPage = () => {
       setAnnualDueDate(currentConfig.annualDueDate);
       setFirstDueDate(currentConfig.firstDueDate);
       setSecondDueDate(currentConfig.secondDueDate);
+      setCustomDueDate(`${fees.year}-12-31`);
       return;
     }
     setAmount(70000);
@@ -118,7 +130,24 @@ export const AnnualFeesPage = () => {
     setAnnualDueDate(`${fees.year}-04-15`);
     setFirstDueDate(`${fees.year}-04-15`);
     setSecondDueDate(`${fees.year}-07-15`);
+    setCustomDueDate(`${fees.year}-12-31`);
   }, [currentConfig, fees.year]);
+
+  const assignMode = async () => {
+    const success = await fees.assignMode(familyId, mode === "PERSONALIZADA"
+      ? {
+          mode,
+          customAmount,
+          customDueDate,
+          customConcept: customConcept.trim() || "Cuota personalizada",
+        }
+      : { mode });
+    if (success) {
+      setFamilyId(0);
+      setCustomAmount(0);
+      setCustomConcept("Cuota personalizada");
+    }
+  };
 
   const saveConfig = async (event: FormEvent) => {
     event.preventDefault();
@@ -187,8 +216,8 @@ export const AnnualFeesPage = () => {
     </header>
 
     <section className="treasury-dashboard" aria-label="Resumen de cuotas">
-      {fees.dataLoading ? ["Familias", "Cuota única", "Dos cuotas", "Pendientes",
-        "Recaudado", "Por recaudar"].map(label =>
+      {fees.dataLoading ? ["Familias", "Cuota única", "Dos cuotas", "Personalizadas",
+        "Pendientes", "Recaudado", "Por recaudar"].map(label =>
         <article className="treasury-summary-card" key={label}>
           <div><span>{label}</span></div><div className="skeleton-block" />
         </article>) : <>
@@ -203,6 +232,10 @@ export const AnnualFeesPage = () => {
         <article className="treasury-summary-card treasury-summary-card--installments">
           <div><span>Dos cuotas</span><i><FiLayers aria-hidden="true" /></i></div>
           <strong>{fees.dashboard?.twoInstallmentFamilies ?? 0}</strong>
+        </article>
+        <article className="treasury-summary-card treasury-summary-card--custom">
+          <div><span>Personalizadas</span><i><FiFileText aria-hidden="true" /></i></div>
+          <strong>{customPlans}</strong>
         </article>
         <article className="treasury-summary-card treasury-summary-card--pending">
           <div><span>Pendientes</span><i><FiClock aria-hidden="true" /></i></div>
@@ -236,12 +269,21 @@ export const AnnualFeesPage = () => {
               onChange={event => setMode(event.target.value as PaymentMode)}>
               <option value="ANUAL">Cuota única</option>
               <option value="DOS_CUOTAS">Dos cuotas</option>
+              <option value="PERSONALIZADA">Cuota personalizada</option>
             </select></label>
-            <Button label="Guardar y generar cuotas" loading={fees.loading}
-              disabled={!familyId} onClick={() => void fees.assignMode(familyId, mode)
-                .then(success => {
-                  if (success) setFamilyId(0);
-                })} size="medium" />
+            {mode === "PERSONALIZADA" && <>
+              <label>Concepto<input value={customConcept}
+                onChange={event => setCustomConcept(event.target.value)}
+                maxLength={80} /></label>
+              <label>Monto<input type="number" min={1} step={1} value={customAmount || ""}
+                onChange={event => setCustomAmount(Number(event.target.value))} /></label>
+              <label>Vencimiento<input type="date" value={customDueDate}
+                onChange={event => setCustomDueDate(event.target.value)} /></label>
+            </>}
+            <Button label={mode === "PERSONALIZADA" ? "Crear cuota personalizada" : "Guardar y generar cuotas"}
+              loading={fees.loading}
+              disabled={!familyId || customModeInvalid} onClick={() => void assignMode()}
+              size="medium" />
           </div>
           <div className="treasury-family-mode-summary">
             {fees.dataLoading
@@ -275,7 +317,7 @@ export const AnnualFeesPage = () => {
                 </div>
                 <div className="treasury-plan-actions">
                   <span className={`payment-mode payment-mode--${plan.mode.toLowerCase()}`}>
-                    {plan.mode === "ANUAL" ? "Cuota única" : "Dos cuotas"}
+                    {modeLabel(plan.mode)}
                   </span>
                   <button type="button" className="change-mode-button" onClick={() => {
                     setFamilyId(plan.familyId);
@@ -320,6 +362,7 @@ export const AnnualFeesPage = () => {
             mode: (event.target.value || undefined) as PaymentMode | undefined }))}>
             <option value="">Todas las modalidades</option><option value="ANUAL">Anual</option>
             <option value="DOS_CUOTAS">Dos cuotas</option>
+            <option value="PERSONALIZADA">Personalizada</option>
           </select>
           <select onChange={event => setFilters(current => ({ ...current,
             status: (event.target.value || undefined) as "PENDIENTE" | "PAGADA" | undefined }))}>
@@ -397,7 +440,7 @@ export const AnnualFeesPage = () => {
                 <div><strong>{family.primaryGuardian || "Sin apoderado principal"}</strong>
                   <span>{family.course}</span></div>
                 <span className={`payment-mode payment-mode--${family.mode.toLowerCase()}`}>
-                  {family.mode === "ANUAL" ? "Cuota única" : "Dos cuotas"}
+                  {modeLabel(family.mode)}
                 </span>
               </header>
               <div className="obligation-installments">

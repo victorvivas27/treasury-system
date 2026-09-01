@@ -6,6 +6,7 @@ public enum AllowedPaymentMode {
     AMBAS;
 
     public boolean allows(PaymentMode mode) {
+        if (mode == PaymentMode.PERSONALIZADA) return true;
         return this == AMBAS || name().equals(mode.name());
     }
 }

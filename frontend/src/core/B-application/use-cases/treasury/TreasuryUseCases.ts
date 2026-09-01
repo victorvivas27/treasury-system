@@ -1,4 +1,4 @@
-import type { AnnualFeeConfigPayload, PaymentMode, TreasuryFilters,
+import type { AnnualFeeConfigPayload, AssignModePayload, TreasuryFilters,
   TreasuryReportType } from "@/core/A-domain/entities/treasury/Treasury";
 import type { ITreasuryRepository } from "@/core/A-domain/repository/treasury/ITreasuryRepository";
 
@@ -13,8 +13,8 @@ export class TreasuryUseCases {
     return this.repository.saveConfig(year, payload);
   }
   listPlans(year: number) { return this.repository.listPlans(year); }
-  assignMode(year: number, familyId: number, mode: PaymentMode) {
-    return this.repository.assignMode(year, familyId, mode);
+  assignMode(year: number, familyId: number, payload: AssignModePayload) {
+    return this.repository.assignMode(year, familyId, payload);
   }
   removeFamilyPlan(year: number, familyId: number, reason: string) {
     return this.repository.removeFamilyPlan(year, familyId, reason);

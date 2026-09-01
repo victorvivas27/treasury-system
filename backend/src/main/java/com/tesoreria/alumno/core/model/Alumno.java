@@ -143,11 +143,11 @@ public class Alumno {
                     "El curso debe tener al menos 2 carácter");
         }
 
-        if (cursoNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CUATRO) {
+        if (cursoNormalizado.length() > ValidationConstants.LONGITUD_MAXIMA_CURSO) {
             throw new DomainException(
                     AlumnoErrorCode.CURSO_INVALIDO.getField(),
                     AlumnoErrorCode.CURSO_INVALIDO.getStatus(),
-                    "El curso no puede tener más de 4 caracteres");
+                    "El curso no puede tener más de 50 caracteres");
         }
 
         this.curso = cursoNormalizado;

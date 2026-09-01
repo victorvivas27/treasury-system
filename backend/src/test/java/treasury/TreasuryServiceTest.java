@@ -98,6 +98,54 @@ class TreasuryServiceTest {
     }
 
     @Test
+    void assignMode_deberiaCrearCuotaPersonalizadaConMontoManual() {
+        when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+        when(repository.findPlan(1L, 10L)).thenReturn(Optional.empty());
+        when(repository.savePlan(any())).thenReturn(new FamilyFeePlan(7L, 1L, 10L,
+                PaymentMode.PERSONALIZADA, LocalDateTime.now(), LocalDateTime.now()));
+        when(repository.findObligationsByPlan(7L)).thenReturn(List.of());
+
+        FamilyFeePlan result = service.assignMode(2026, 10L, PaymentMode.PERSONALIZADA,
+                new BigDecimal("25000"), LocalDate.of(2026, 9, 30),
+                "Cuota retorno septiembre", "admin@mail.com");
+
+        assertEquals(PaymentMode.PERSONALIZADA, result.mode());
+        verify(repository).saveObligation(argThat(item ->
+                item.planId().equals(7L)
+                        && item.installment() == InstallmentType.ANUAL
+                        && item.amount().equals(new BigDecimal("25000"))
+                        && item.concept().equals("Cuota retorno septiembre")
+                        && item.status() == ObligationStatus.PENDIENTE));
+    }
+
+    @Test
+    void assignMode_deberiaActualizarCuotaAnualExistenteAlPersonalizar() {
+        FamilyFeePlan annualPlan = new FamilyFeePlan(2L, 1L, 10L, PaymentMode.ANUAL,
+                LocalDateTime.now().minusDays(1), LocalDateTime.now().minusDays(1));
+        FeeObligation annualObligation = obligation(InstallmentType.ANUAL, ObligationStatus.PENDIENTE);
+        when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+        when(repository.findPlan(1L, 10L)).thenReturn(Optional.of(annualPlan));
+        when(repository.hasActivePaymentForPlan(2L)).thenReturn(false);
+        when(repository.savePlan(any())).thenReturn(new FamilyFeePlan(2L, 1L, 10L,
+                PaymentMode.PERSONALIZADA, annualPlan.createdAt(), LocalDateTime.now()));
+        when(repository.findObligationsByPlan(2L)).thenReturn(List.of(annualObligation));
+
+        service.assignMode(2026, 10L, PaymentMode.PERSONALIZADA,
+                new BigDecimal("35000"), LocalDate.of(2026, 12, 31),
+                "Cuota personalizada", "admin@mail.com");
+
+        verify(repository, never()).deleteObligationsByPlan(any());
+        verify(repository).saveObligation(argThat(item ->
+                item.id().equals(annualObligation.id())
+                        && item.planId().equals(2L)
+                        && item.installment() == InstallmentType.ANUAL
+                        && item.amount().equals(new BigDecimal("35000"))
+                        && item.concept().equals("Cuota personalizada")
+                        && item.dueDate().equals(LocalDate.of(2026, 12, 31))
+                        && item.status() == ObligationStatus.PENDIENTE));
+    }
+
+    @Test
     void removeFamilyPlan_deberiaQuitarFamiliaSinPagosActivos() {
         when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
         when(repository.findPlan(1L, 10L)).thenReturn(Optional.of(plan));

@@ -223,4 +223,23 @@ describe("TreasuryRepositoryImpl", () => {
     expect(apiClient.post).toHaveBeenCalledWith("/tesoreria/eventos/7/liquidacion/cancelar");
     expect(apiClient.delete).toHaveBeenCalledWith("/tesoreria/eventos/7");
   });
+
+  it("[Tesoreria repository #12] asigna cuota personalizada con monto manual", async () => {
+    vi.mocked(apiClient.put).mockResolvedValue({ data: { id: 9 } });
+
+    await repository.assignMode(2026, 12, {
+      mode: "PERSONALIZADA",
+      customAmount: 25000,
+      customDueDate: "2026-09-30",
+      customConcept: "Cuota retorno septiembre",
+    });
+
+    expect(apiClient.put).toHaveBeenCalledWith("/tesoreria/modalidades/12", {
+      year: 2026,
+      mode: "PERSONALIZADA",
+      customAmount: 25000,
+      customDueDate: "2026-09-30",
+      customConcept: "Cuota retorno septiembre",
+    });
+  });
 });

@@ -74,7 +74,9 @@ public class TreasuryController {
     public PlanResponse assignMode(@PathVariable Long familyId,
                                    @Valid @RequestBody ModeRequest request, Principal principal) {
         families.obtenerFamiliaPorId(familyId);
-        FamilyFeePlan saved = treasury.assignMode(request.year(), familyId, request.mode(), principal.getName());
+        FamilyFeePlan saved = treasury.assignMode(request.year(), familyId, request.mode(),
+                request.customAmount(), request.customDueDate(), request.customConcept(),
+                principal.getName());
         return plan(saved, treasuryFamilies().get(familyId));
     }
 
