@@ -5,6 +5,7 @@ import {
   configureAxiosInterceptors,
   getAccessToken,
   SESSION_EXPIRED_EVENT,
+  setCsrfToken,
   setAccessToken,
 } from "./axiosInterceptor";
 
@@ -126,7 +127,9 @@ describe("configureAxiosInterceptors", () => {
 
   it("renueva el token y repite una petición protegida antes de cerrar la sesión", async () => {
     setAccessToken("token-vigente");
-    vi.mocked(axios.post).mockResolvedValue({ data: { token: "token-renovado" } });
+    vi.mocked(axios.post).mockResolvedValue({
+      data: { token: "token-renovado", csrfToken: "csrf-renovado" },
+    });
     request.mockResolvedValue({ data: [] });
     const config = {
       url: "/tesoreria/stands",
@@ -136,6 +139,7 @@ describe("configureAxiosInterceptors", () => {
     await rejectResponse({ response: { status: 401 }, config });
 
     expect(getAccessToken()).toBe("token-renovado");
+    expect(sessionStorage.getItem("treasury.auth.csrf")).toBe("csrf-renovado");
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(config.headers.Authorization).toBe("Bearer token-renovado");
     expect(request).toHaveBeenCalledWith(config);
@@ -203,6 +207,14 @@ describe("configureAxiosInterceptors", () => {
 
     expect(refreshConfig).toMatchObject({ headers: { "X-CSRF-Token": "csrf-value" } });
     expect(logoutConfig).toMatchObject({ headers: { "X-CSRF-Token": "csrf-value" } });
+  });
+
+  it("envia CSRF desde sessionStorage cuando la cookie pertenece a otro dominio", async () => {
+    setCsrfToken("csrf-persistido");
+
+    const refreshConfig = await prepareRequest({ url: "/auth/refresh", headers: {} });
+
+    expect(refreshConfig).toMatchObject({ headers: { "X-CSRF-Token": "csrf-persistido" } });
   });
 
   it("comparte un solo refreshPromise para solicitudes concurrentes", async () => {
