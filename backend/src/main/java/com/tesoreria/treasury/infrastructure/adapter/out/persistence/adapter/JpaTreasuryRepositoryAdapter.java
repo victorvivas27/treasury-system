@@ -1,5 +1,6 @@
 package com.tesoreria.treasury.infrastructure.adapter.out.persistence.adapter;
 
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.*;
@@ -23,6 +24,7 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     private final FamilyContributionJpaRepository contributions;
     private final TreasuryExpenseJpaRepository expenses;
     private final TreasuryIncomeJpaRepository incomes;
+    private final DashboardPerformanceProbe performanceProbe;
 
     public JpaTreasuryRepositoryAdapter(AnnualFeeConfigJpaRepository configs,
                                         FamilyFeePlanJpaRepository plans, FeeObligationJpaRepository obligations,
@@ -30,7 +32,8 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
                                         ContributionConfigJpaRepository contributionConfigs,
                                         FamilyContributionJpaRepository contributions,
                                         TreasuryExpenseJpaRepository expenses,
-                                        TreasuryIncomeJpaRepository incomes) {
+                                        TreasuryIncomeJpaRepository incomes,
+                                        DashboardPerformanceProbe performanceProbe) {
         this.configs = configs;
         this.plans = plans;
         this.obligations = obligations;
@@ -40,6 +43,7 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
         this.contributions = contributions;
         this.expenses = expenses;
         this.incomes = incomes;
+        this.performanceProbe = performanceProbe;
     }
 
     @Override
@@ -49,7 +53,8 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public Optional<AnnualFeeConfig> findConfigByYear(int year) {
-        return configs.findByYear(year).map(this::config);
+        return performanceProbe.repository("treasury.findConfigByYear", () ->
+                configs.findByYear(year).map(this::config));
     }
 
     @Override
@@ -79,7 +84,8 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public List<FamilyFeePlan> findPlansByConfig(Long configId) {
-        return plans.findByConfigIdOrderByFamilyId(configId).stream().map(this::plan).toList();
+        return performanceProbe.repository("treasury.findPlansByConfig", () ->
+                plans.findByConfigIdOrderByFamilyId(configId).stream().map(this::plan).toList());
     }
 
     @Override
@@ -99,10 +105,13 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public List<FeeObligation> findObligationsByConfig(Long configId) {
-        List<Long> ids = plans.findByConfigIdOrderByFamilyId(configId).stream()
-                .map(FamilyFeePlanEntity::getId).toList();
+        List<Long> ids = performanceProbe.repository("treasury.findObligationPlanIds", () ->
+                plans.findByConfigIdOrderByFamilyId(configId).stream()
+                        .map(FamilyFeePlanEntity::getId).toList());
         if (ids.isEmpty()) return List.of();
-        return obligations.findByPlanIdInOrderByDueDate(ids).stream().map(this::obligation).toList();
+        return performanceProbe.repository("treasury.findObligationsByPlanIds", () ->
+                obligations.findByPlanIdInOrderByDueDate(ids).stream()
+                        .map(this::obligation).toList());
     }
 
     @Override
@@ -125,8 +134,9 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     public List<FeePayment> findActivePaymentsByObligationIds(
             List<Long> obligationIds) {
         if (obligationIds.isEmpty()) return List.of();
-        return payments.findByObligationIdInAndAnnulledFalse(obligationIds).stream()
-                .map(this::payment).toList();
+        return performanceProbe.repository("treasury.findActivePaymentsByObligationIds", () ->
+                payments.findByObligationIdInAndAnnulledFalse(obligationIds).stream()
+                        .map(this::payment).toList());
     }
 
     @Override
@@ -199,7 +209,8 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public List<FamilyContribution> findContributions(int year) {
-        return contributions.findBySchoolYear(year).stream().map(this::contribution).toList();
+        return performanceProbe.repository("treasury.findContributions", () ->
+                contributions.findBySchoolYear(year).stream().map(this::contribution).toList());
     }
 
     @Override
@@ -219,7 +230,8 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public List<TreasuryExpense> findExpenses(int year) {
-        return expenses.findBySchoolYear(year).stream().map(this::expense).toList();
+        return performanceProbe.repository("treasury.findExpenses", () ->
+                expenses.findBySchoolYear(year).stream().map(this::expense).toList());
     }
 
     @Override
@@ -239,7 +251,8 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public List<TreasuryIncome> findIncomes(int year) {
-        return incomes.findBySchoolYear(year).stream().map(this::income).toList();
+        return performanceProbe.repository("treasury.findIncomes", () ->
+                incomes.findBySchoolYear(year).stream().map(this::income).toList());
     }
 
     @Override
@@ -254,14 +267,16 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
 
     @Override
     public List<TreasuryAudit> findAudits(LocalDateTime from, LocalDateTime to) {
-        return audits.findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to)
-                .stream().map(this::audit).toList();
+        return performanceProbe.repository("treasury.findAudits", () ->
+                audits.findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to)
+                        .stream().map(this::audit).toList());
     }
 
     @Override
     public List<TreasuryAudit> findRecentAudits(LocalDateTime from, LocalDateTime to) {
-        return audits.findTop100ByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to)
-                .stream().map(this::audit).toList();
+        return performanceProbe.repository("treasury.findRecentAudits", () ->
+                audits.findTop100ByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to)
+                        .stream().map(this::audit).toList());
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.tesoreria.familia.infrastructure.adapter.out.persistence.mapper.Famil
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.repository.FamiliaJpaRepository;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +23,15 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
     private final FamiliaJpaRepository jpaRepository;
     private final FamiliaPersistenceMapper mapper;
     private final CurrentOrganizationService currentOrganization;
+    private final DashboardPerformanceProbe performanceProbe;
 
     public JpaFamiliaRepositoryAdapter(FamiliaJpaRepository jpaRepository,
-            FamiliaPersistenceMapper mapper, CurrentOrganizationService currentOrganization) {
+            FamiliaPersistenceMapper mapper, CurrentOrganizationService currentOrganization,
+            DashboardPerformanceProbe performanceProbe) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
         this.currentOrganization = currentOrganization;
+        this.performanceProbe = performanceProbe;
     }
 
     @Override
@@ -64,11 +68,12 @@ public class JpaFamiliaRepositoryAdapter implements FamiliaRepositoryOutPort {
     @Override
     @Transactional(readOnly = true)
     public List<FamilyTreasuryData> findTreasuryData() {
-        return jpaRepository.findTreasuryData(currentOrganization.getId()).stream()
-                .map(value -> new FamilyTreasuryData(value.getFamilyId(), value.getFamilyCode(),
-                        value.getStudentId(), value.getStudentName(), value.getCourse(),
-                        value.getPrimaryGuardian()))
-                .toList();
+        return performanceProbe.repository("familia.findTreasuryData", () ->
+                jpaRepository.findTreasuryData(currentOrganization.getId()).stream()
+                        .map(value -> new FamilyTreasuryData(value.getFamilyId(), value.getFamilyCode(),
+                                value.getStudentId(), value.getStudentName(), value.getCourse(),
+                                value.getPrimaryGuardian()))
+                        .toList());
     }
 
     @Override

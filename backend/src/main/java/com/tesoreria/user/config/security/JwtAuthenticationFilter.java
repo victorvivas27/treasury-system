@@ -1,5 +1,6 @@
 package com.tesoreria.user.config.security;
 
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -25,16 +26,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final TokenRevocationService revocationService;
     private final RefreshTokenService refreshTokenService;
+    private final DashboardPerformanceProbe performanceProbe;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserDetailsService userDetailsService,
             TokenRevocationService revocationService,
-            RefreshTokenService refreshTokenService) {
+            RefreshTokenService refreshTokenService,
+            DashboardPerformanceProbe performanceProbe) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.revocationService = revocationService;
         this.refreshTokenService = refreshTokenService;
+        this.performanceProbe = performanceProbe;
     }
 
     @Override
@@ -42,8 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
+        long authStartedAt = DashboardPerformanceProbe.now();
         String header = request.getHeader(SecurityConstants.AUTHORIZATION_HEADER);
         if (header == null || !header.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+            performanceProbe.phaseCurrent("auth", authStartedAt);
             filterChain.doFilter(request, response);
             return;
         }
@@ -52,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (revocationService.isRevoked(token)) {
                 SecurityContextHolder.clearContext();
+                performanceProbe.phaseCurrent("auth", authStartedAt);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -59,12 +66,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = parsedToken.username();
             if (revocationService.isUserRevokedAfter(username, parsedToken.issuedAt())) {
                 SecurityContextHolder.clearContext();
+                performanceProbe.phaseCurrent("auth", authStartedAt);
                 filterChain.doFilter(request, response);
                 return;
             }
             if (parsedToken.tokenFamilyId() != null
                     && !refreshTokenService.isFamilyActive(parsedToken.tokenFamilyId())) {
                 SecurityContextHolder.clearContext();
+                performanceProbe.phaseCurrent("auth", authStartedAt);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -86,6 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             SecurityContextHolder.clearContext();
         }
+        performanceProbe.phaseCurrent("auth", authStartedAt);
         filterChain.doFilter(request, response);
     }
 }

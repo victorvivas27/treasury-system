@@ -67,17 +67,63 @@ El cuello de botella demostrado en codigo fue doble:
 
 Existe instrumentacion en `DashboardPerformanceProbe`, activable con `app.instrumentation.dashboard=true`.
 
-Fases registradas actualmente por el controller:
+Con la evidencia de Firefox del 2026-09-02, el caso relevante es:
 
-- `dashboardOverview`
+- `GET /dashboard/overview?year=2026`
+- TTFB / Waiting: aproximadamente 1.49 s
+- Receiving: aproximadamente 8 ms
+
+Por lo tanto, la instrumentacion actual apunta a explicar tiempo de backend antes del primer byte, no descarga.
+
+Cada request instrumentada genera dos lineas:
+
+- `PERF`: endpoint, anio, tiempo total, fases de auth/controller/service/mapping/serializacion, llamadas de repositorio, total de statements/HQL y cache hit/miss.
+- `PERF_DETAIL`: adquisiciones de conexion y cada ejecucion JDBC individual con operacion, milisegundos y SQL normalizado.
+
+Fases esperadas para `dashboard/overview`:
+
+- `auth`
+- `connectionAcquire.probe`
+- `service.dashboardOverview`
+- `service.dashboardOverview.total`
+- `service.mapping.monthlyCashFlow`
+- `service.mapping.statuses`
+- `service.mapping.expenses`
+- `service.mapping.recentMovements`
+- `service.mapping.auditTrail`
+- `service.mapping.financialSummary`
+- `controller.courseComposition`
 - `listarFamilia`
 - `listPlans`
 - `listObligations`
-- total del endpoint
-- cantidad de SQL statements/HQL queries
-- hit/miss de cache
+- `controller.mapping.validQuotas`
+- `jsonSerialization`
+
+La lista `repositoryCalls` separa duracion por adapter y filas retornadas. La lista `sqlExecutions` separa cada `execute*` JDBC real. Si un `repositoryCall` es alto pero sus `sqlExecutions` son bajos, el tiempo esta en materializacion/mapping/fetch de filas o logica Java. Si `connectionAcquisitionsMs` es alto, el pico apunta a pool/conexion/Neon. Si `sqlExecutions` concentra el tiempo, el siguiente paso es `EXPLAIN ANALYZE` de ese SQL concreto.
 
 No se registraron tiempos reales de produccion en este cambio porque no se ejecutaron llamadas contra datos reales.
+
+## 5.1 Comparacion overview vs aportes/resumen
+
+El Dashboard dispara en paralelo:
+
+- `dashboard/overview?year=2026`
+- `aportes/resumen?year=2026`
+
+Ambos endpoints quedan instrumentados por el mismo filtro, incluyendo paths locales `/api/v1/...` y paths desplegados con prefijo `/tesoreria/api/v1/...`.
+
+Duplicacion esperada al comparar logs del mismo anio:
+
+- Ambos endpoints llaman a `familia.findTreasuryData`.
+- `dashboard/overview` consulta cuota anual, planes, obligaciones, pagos activos, ingresos, egresos, auditoria reciente y composicion de alumnos.
+- `aportes/resumen` consulta aportes familiares y vuelve a cargar familias para armar la base del resumen.
+- No comparten cache entre si: `treasuryDashboardOverview` y `contributionSummary` son caches separados de 1 minuto.
+
+Para detectar duplicacion real entre picos, comparar:
+
+- `repositoryCalls` por nombre y orden en ambas lineas `PERF`.
+- `sqlExecutions.sql` repetidos o equivalentes en ambas lineas `PERF_DETAIL`.
+- `connectionAcquisitionsMs` de ambas requests, porque al correr en paralelo pueden competir por pool/conexion aunque las queries no sean identicas.
 
 ## 6. Causa raiz
 
