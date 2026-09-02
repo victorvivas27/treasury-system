@@ -1,6 +1,7 @@
 package treasury;
 
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.application.usecase.TreasuryService;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
@@ -24,13 +25,15 @@ import static org.mockito.Mockito.*;
 class TreasuryServiceTest {
     @Mock
     private TreasuryRepositoryOutPort repository;
+    @Mock
+    private DashboardPerformanceProbe performanceProbe;
     private TreasuryService service;
     private AnnualFeeConfig config;
     private FamilyFeePlan plan;
 
     @BeforeEach
     void setUp() {
-        service = new TreasuryService(repository);
+        service = new TreasuryService(repository, performanceProbe);
         config = new AnnualFeeConfig(1L, 2026, new BigDecimal("70000"),
                 AllowedPaymentMode.AMBAS, LocalDate.of(2026, 4, 15),
                 LocalDate.of(2026, 4, 15), LocalDate.of(2026, 7, 15),

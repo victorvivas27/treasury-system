@@ -8,6 +8,7 @@ import com.tesoreria.alumno.infrastructure.adapter.out.persistence.mapper.Alumno
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -22,12 +23,15 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
 
     private final AlumnoJpaRepository jpaRepository;
     private final AlumnoPersistenceMapper persistenceMapper;
+    private final DashboardPerformanceProbe performanceProbe;
 
     public JpaAlumnoRepositoryAdapter(
             AlumnoJpaRepository jpaRepository,
-            AlumnoPersistenceMapper persistenceMapper) {
+            AlumnoPersistenceMapper persistenceMapper,
+            DashboardPerformanceProbe performanceProbe) {
         this.jpaRepository = jpaRepository;
         this.persistenceMapper = persistenceMapper;
+        this.performanceProbe = performanceProbe;
     }
 
     @Override
@@ -77,10 +81,12 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
 
     @Override
     public Map<GeneroAlumno, Long> countActiveByGender() {
-        Map<GeneroAlumno, Long> result = new EnumMap<>(GeneroAlumno.class);
-        jpaRepository.countActiveByGender()
-                .forEach(value -> result.put(value.getGender(), value.getTotal()));
-        return result;
+        return performanceProbe.repository("alumno.countActiveByGender", () -> {
+            Map<GeneroAlumno, Long> result = new EnumMap<>(GeneroAlumno.class);
+            jpaRepository.countActiveByGender()
+                    .forEach(value -> result.put(value.getGender(), value.getTotal()));
+            return result;
+        });
     }
 
     @Override

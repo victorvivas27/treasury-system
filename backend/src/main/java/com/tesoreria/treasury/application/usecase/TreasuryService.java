@@ -2,6 +2,7 @@ package com.tesoreria.treasury.application.usecase;
 
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.cache.CacheNames;
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
@@ -30,9 +31,12 @@ public class TreasuryService implements TreasuryUseCase {
     private static final int INTEGER_AMOUNT_SCALE = 0;
     private static final int MAX_CUSTOM_CONCEPT_LENGTH = 80;
     private final TreasuryRepositoryOutPort repository;
+    private final DashboardPerformanceProbe performanceProbe;
 
-    public TreasuryService(TreasuryRepositoryOutPort repository) {
+    public TreasuryService(TreasuryRepositoryOutPort repository,
+                           DashboardPerformanceProbe performanceProbe) {
         this.repository = repository;
+        this.performanceProbe = performanceProbe;
     }
 
     @Override
@@ -258,6 +262,7 @@ public class TreasuryService implements TreasuryUseCase {
     @Cacheable(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW,
             key = CACHE_YEAR_KEY, sync = true)
     public TreasuryDashboardOverview dashboardOverview(int year) {
+        long serviceStartedAt = DashboardPerformanceProbe.now();
         if (year < MIN_YEAR) {
             throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
         }
@@ -280,6 +285,7 @@ public class TreasuryService implements TreasuryUseCase {
         List<TreasuryIncome> incomes = repository.findIncomes(year);
         List<TreasuryExpense> expenses = repository.findExpenses(year);
 
+        long mappingStartedAt = DashboardPerformanceProbe.now();
         List<TreasuryDashboardOverview.MonthlyCashFlow> monthly = new java.util.ArrayList<>();
         for (int month = 1; month <= 12; month++) {
             final int currentMonth = month;
@@ -296,13 +302,17 @@ public class TreasuryService implements TreasuryUseCase {
                     .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
             monthly.add(new TreasuryDashboardOverview.MonthlyCashFlow(month, income, expense));
         }
+        performanceProbe.phaseCurrent("service.mapping.monthlyCashFlow", mappingStartedAt);
 
+        mappingStartedAt = DashboardPerformanceProbe.now();
         List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
                 new TreasuryDashboardOverview.StatusMetric("PAGADA", obligations.stream()
                         .filter(item -> item.status() == ObligationStatus.PAGADA).count()),
                 new TreasuryDashboardOverview.StatusMetric("PENDIENTE", obligations.stream()
                         .filter(item -> item.status() != ObligationStatus.PAGADA).count()));
+        performanceProbe.phaseCurrent("service.mapping.statuses", mappingStartedAt);
 
+        mappingStartedAt = DashboardPerformanceProbe.now();
         List<TreasuryDashboardOverview.CategoryMetric> categories = expenses.stream()
                 .filter(item -> item.status() == ExpenseStatus.ACTIVE)
                 .collect(java.util.stream.Collectors.groupingBy(TreasuryExpense::category,
@@ -322,7 +332,9 @@ public class TreasuryService implements TreasuryUseCase {
                 .sorted(java.util.Comparator.comparing(
                         TreasuryDashboardOverview.ExpenseMetric::amount).reversed())
                 .toList();
+        performanceProbe.phaseCurrent("service.mapping.expenses", mappingStartedAt);
 
+        mappingStartedAt = DashboardPerformanceProbe.now();
         var ordinaryMovements = java.util.stream.Stream.concat(
                 incomes.stream().filter(item -> item.status() == IncomeStatus.ACTIVE)
                         .map(item -> new TreasuryDashboardOverview.RecentMovement(
@@ -345,7 +357,9 @@ public class TreasuryService implements TreasuryUseCase {
                 .sorted(java.util.Comparator.comparing(
                         TreasuryDashboardOverview.RecentMovement::date).reversed())
                 .toList();
+        performanceProbe.phaseCurrent("service.mapping.recentMovements", mappingStartedAt);
 
+        mappingStartedAt = DashboardPerformanceProbe.now();
         List<TreasuryDashboardOverview.AuditEntry> auditTrail = repository.findRecentAudits(
                         LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay())
                 .stream()
@@ -353,8 +367,13 @@ public class TreasuryService implements TreasuryUseCase {
                         item.entityType(), item.entityId(), item.performedBy(), item.details(),
                         item.createdAt()))
                 .toList();
+        performanceProbe.phaseCurrent("service.mapping.auditTrail", mappingStartedAt);
 
-        return new TreasuryDashboardOverview(quotas, financialSummary(year, obligations, incomes, expenses), monthly, statuses,
+        mappingStartedAt = DashboardPerformanceProbe.now();
+        FinancialSummary finances = financialSummary(year, obligations, incomes, expenses);
+        performanceProbe.phaseCurrent("service.mapping.financialSummary", mappingStartedAt);
+        performanceProbe.phaseCurrent("service.dashboardOverview.total", serviceStartedAt);
+        return new TreasuryDashboardOverview(quotas, finances, monthly, statuses,
                 categories, expenseDetails, recent, auditTrail,
                 new TreasuryDashboardOverview.CourseComposition(0, 0, 0));
     }

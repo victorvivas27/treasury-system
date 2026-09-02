@@ -184,9 +184,11 @@ public class TreasuryController {
         DashboardPerformanceProbe.Measurement measurement = performanceProbe.start(year);
         try {
             long startedAt = DashboardPerformanceProbe.now();
-            TreasuryDashboardOverview overview = withCourseComposition(
-                    treasury.dashboardOverview(year));
-            performanceProbe.phase(measurement, "dashboardOverview", startedAt);
+            TreasuryDashboardOverview overview = treasury.dashboardOverview(year);
+            performanceProbe.phase(measurement, "service.dashboardOverview", startedAt);
+            startedAt = DashboardPerformanceProbe.now();
+            overview = withCourseComposition(overview);
+            performanceProbe.phase(measurement, "controller.courseComposition", startedAt);
             if (overview.quotas().totalFamilies() == 0) return overview;
 
             startedAt = DashboardPerformanceProbe.now();
@@ -203,6 +205,7 @@ public class TreasuryController {
                     .filter(item -> validPlanIds.contains(item.planId())).toList();
             performanceProbe.phase(measurement, "listObligations", startedAt);
 
+            startedAt = DashboardPerformanceProbe.now();
             long paid = validObligations.stream()
                     .filter(item -> item.status() == ObligationStatus.PAGADA).count();
             long pending = validObligations.stream()
@@ -224,6 +227,7 @@ public class TreasuryController {
             List<TreasuryDashboardOverview.StatusMetric> statuses = List.of(
                     new TreasuryDashboardOverview.StatusMetric("PAGADA", paid),
                     new TreasuryDashboardOverview.StatusMetric("PENDIENTE", pending));
+            performanceProbe.phase(measurement, "controller.mapping.validQuotas", startedAt);
             return new TreasuryDashboardOverview(quotas, finances, overview.monthlyCashFlow(), statuses,
                     overview.expensesByCategory(), overview.expensesByDescription(),
                     overview.recentMovements(), overview.auditTrail(), overview.courseComposition());
@@ -294,14 +298,23 @@ public class TreasuryController {
     @GetMapping("/aportes/resumen")
     @Cacheable(value = CacheNames.CONTRIBUTION_SUMMARY, key = "#year", sync = true)
     public ContributionSummaryResponse contributionSummary(@RequestParam int year) {
-        List<FamilyContributionResponse> items = contributions(
-                year, null, null, null, null, null);
-        long cepa = items.stream().filter(item -> isPaid(item.cepa())).count();
-        long solidarity = items.stream().filter(item -> isPaid(item.solidarity())).count();
-        long complete = items.stream()
-                .filter(item -> isPaid(item.cepa()) && isPaid(item.solidarity())).count();
-        return new ContributionSummaryResponse(items.size(), cepa, items.size() - cepa,
-                solidarity, items.size() - solidarity, complete, items.size() - complete);
+        DashboardPerformanceProbe.Measurement measurement = performanceProbe.start("aportes/resumen", year);
+        try {
+            long startedAt = DashboardPerformanceProbe.now();
+            List<FamilyContributionResponse> items = contributions(
+                    year, null, null, null, null, null);
+            performanceProbe.phase(measurement, "contributionSummary.contributions", startedAt);
+            startedAt = DashboardPerformanceProbe.now();
+            long cepa = items.stream().filter(item -> isPaid(item.cepa())).count();
+            long solidarity = items.stream().filter(item -> isPaid(item.solidarity())).count();
+            long complete = items.stream()
+                    .filter(item -> isPaid(item.cepa()) && isPaid(item.solidarity())).count();
+            performanceProbe.phase(measurement, "contributionSummary.mapping", startedAt);
+            return new ContributionSummaryResponse(items.size(), cepa, items.size() - cepa,
+                    solidarity, items.size() - solidarity, complete, items.size() - complete);
+        } finally {
+            performanceProbe.finish(measurement);
+        }
     }
 
     @PostMapping("/aportes/{familyId}/pagos")
