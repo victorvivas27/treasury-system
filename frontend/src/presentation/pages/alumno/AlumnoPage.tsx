@@ -11,8 +11,22 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
 import { useState } from "react";
 
+const STUDENTS_RETURN_PAGE_KEY = "students:returnPage";
+
+const consumeSavedPage = () => {
+  try {
+    const value = window.sessionStorage.getItem(STUDENTS_RETURN_PAGE_KEY);
+    window.sessionStorage.removeItem(STUDENTS_RETURN_PAGE_KEY);
+    const page = value ? Number(value) : 0;
+    return Number.isInteger(page) && page >= 0 ? page : 0;
+  } catch {
+    return 0;
+  }
+};
+
 export const AlumnoPage: FC = () => {
   const [statusAlert, setStatusAlert] = useState({ isOpen: false, message: "", type: "success" as "success" | "error" });
+  const [initialPage] = useState(consumeSavedPage);
   const {
     alumnos,
     loading,
@@ -27,11 +41,16 @@ export const AlumnoPage: FC = () => {
     isLastPage,
     search,
     setSearch,
-  } = useAlumnos();
+  } = useAlumnos({ initialPage });
 
   const navigate = useNavigate();
 
   const handleEdit = (codigo: string) => {
+    try {
+      window.sessionStorage.setItem(STUDENTS_RETURN_PAGE_KEY, String(currentPage));
+    } catch {
+      undefined;
+    }
     navigate(`/students/edit/${codigo}`);
   };
 

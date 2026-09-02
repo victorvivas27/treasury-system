@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -64,6 +65,14 @@ public class JpaAlumnoRepositoryAdapter implements AlumnoRepositoryOutPort {
                 pageEntity.getSize(),
                 pageEntity.getTotalElements(),
                 pageEntity.getTotalPages());
+    }
+
+    @Override
+    public List<Alumno> findBirthdays() {
+        return jpaRepository.findByActivoTrueAndFechaNacimientoIsNotNull()
+                .stream()
+                .map(persistenceMapper::toDomain)
+                .toList();
     }
 
     @Override

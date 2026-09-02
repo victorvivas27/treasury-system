@@ -9,10 +9,22 @@ import { useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
 
+const FAMILIES_RETURN_PAGE_KEY = "families:returnPage";
 
+const consumeSavedPage = () => {
+  try {
+    const value = window.sessionStorage.getItem(FAMILIES_RETURN_PAGE_KEY);
+    window.sessionStorage.removeItem(FAMILIES_RETURN_PAGE_KEY);
+    const page = value ? Number(value) : 0;
+    return Number.isInteger(page) && page >= 0 ? page : 0;
+  } catch {
+    return 0;
+  }
+};
 
 export const FamiliaPage: FC = () => {
   const [statusAlert, setStatusAlert] = useState({ isOpen: false, message: "", type: "success" as "success" | "error" });
+  const [initialPage] = useState(consumeSavedPage);
 
   const {
     familia,
@@ -28,9 +40,14 @@ export const FamiliaPage: FC = () => {
     isLastPage,
     search,
     setSearch,
-  } = useListFamilia();
+  } = useListFamilia({ initialPage });
 
   const handleEdit = (id: number) => {
+    try {
+      window.sessionStorage.setItem(FAMILIES_RETURN_PAGE_KEY, String(currentPage));
+    } catch {
+      undefined;
+    }
     navigate(`/family/edit/${id}`);
   };
 

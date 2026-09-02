@@ -8,6 +8,7 @@ vi.mock("@/core/D-config/api", () => ({
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
   },
 }));
@@ -43,6 +44,15 @@ describe("AlumnoRepositoryImpl", () => {
 
     expect(apiClient.get).toHaveBeenCalledWith(baseUrl, { params: { page: 0, size: 5 } });
     expect(result).toEqual(pageResponse);
+  });
+
+  it("getBirthdays retorna alumnos con cumpleanos", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({ data: [alumno] });
+
+    const result = await repository.getBirthdays();
+
+    expect(apiClient.get).toHaveBeenCalledWith(`${baseUrl}/cumpleanos`);
+    expect(result).toEqual([alumno]);
   });
 
   it("getById retorna un alumno", async () => {

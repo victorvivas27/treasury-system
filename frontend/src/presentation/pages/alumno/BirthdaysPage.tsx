@@ -6,8 +6,6 @@ import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
 import { useCallback, useEffect, useState } from "react";
 import "./style/BirthdaysPage.css";
 
-const PAGE_SIZE = 100;
-
 export const BirthdaysPage = () => {
   const [alumnos, setAlumnos] = useState<Alumno[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,22 +13,12 @@ export const BirthdaysPage = () => {
 
   const loadBirthdays = useCallback(async () => {
     const repository = new AlumnoRepositoryImpl();
-    const collected: Alumno[] = [];
-    let page = 0;
-    let totalPages = 1;
 
     try {
       setLoading(true);
       setError("");
 
-      while (page < totalPages) {
-        const response = await repository.getAll(page, PAGE_SIZE);
-        collected.push(...response.content);
-        totalPages = response.totalPages || 1;
-        page += 1;
-      }
-
-      setAlumnos(collected);
+      setAlumnos(await repository.getBirthdays());
     } catch {
       setError("No fue posible cargar los cumpleaños.");
     } finally {
@@ -46,9 +34,9 @@ export const BirthdaysPage = () => {
     <main className="page-container birthdays-page">
       <header className="page-header">
         <div className="page-header__content">
-          <h1 className="page-header__title">Cumpleaños</h1>
+          <h1 className="page-header__title">{"Cumplea\u00f1os"}</h1>
           <p className="page-header__subtitle">
-            Revisa todos los cumpleaños registrados y los próximos del curso.
+            {"Revisa todos los cumplea\u00f1os registrados y los pr\u00f3ximos del curso."}
           </p>
         </div>
 
