@@ -1,6 +1,7 @@
 package treasury;
 
 import com.tesoreria.shared.infrastructure.cache.CacheConfig;
+import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.config.TreasuryDomainConfig;
 import com.tesoreria.treasury.core.model.AllowedPaymentMode;
 import com.tesoreria.treasury.core.model.AnnualFeeConfig;
@@ -97,6 +98,11 @@ class TreasuryCacheIntegrationTest {
         @Bean
         TreasuryRepositoryOutPort treasuryRepository() {
             return mock(TreasuryRepositoryOutPort.class);
+        }
+
+        @Bean
+        DashboardPerformanceProbe dashboardPerformanceProbe() {
+            return mock(DashboardPerformanceProbe.class);
         }
     }
 }
