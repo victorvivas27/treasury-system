@@ -11,6 +11,7 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
+import { useManagedCourses } from "./useManagedCourses";
 
 
 export const useEditAlumno = () => {
@@ -39,6 +40,7 @@ export const useEditAlumno = () => {
     fechaNacimiento: "",
     genero: "OTROS",
   });
+  const { courses, loadingCourses, coursesError } = useManagedCourses(formData.curso);
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
@@ -155,6 +157,9 @@ export const useEditAlumno = () => {
     formData,
     loading,
     initialLoading,
+    loadingCourses,
+    courses,
+    coursesError,
     fieldErrors,
     modal,
     handleChange,

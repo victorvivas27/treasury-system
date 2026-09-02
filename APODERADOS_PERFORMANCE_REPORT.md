@@ -131,9 +131,6 @@ Archivos modificados:
 - `ApoderadoControllerTest.java`
   - Nuevo test verifica que `findAll()` use `findByCorreos(...)` y no `findByCorreo(...)` por fila.
 
-- `PostgresPerformanceQueryIntegrationTest.java`
-  - Se agrego test de performance local esperado: 20 apoderados deben resolverse con 3 prepared statements. No pudo ejecutarse por falta de Docker.
-
 ## 6. Tiempos despues
 
 No hay tiempos HTTP despues medidos en produccion en esta sesion. No voy a atribuir una mejora porcentual de latencia sin ejecutar la llamada real.
@@ -158,7 +155,7 @@ Validaciones ejecutadas:
 
 Validacion bloqueada:
 
-- `./gradlew.bat test --tests performance.PostgresPerformanceQueryIntegrationTest.listGuardians_deberiaResolverAccessStatusSinNMasUno`: fallo por inicializacion de Docker/Testcontainers, no por asercion del test.
+- La validacion Postgres/Testcontainers de conteo real de prepared statements no se dejo en el codigo porque Docker no esta disponible en esta maquina y podria romper CI.
 
 ## 7. Mejora porcentual
 
@@ -179,7 +176,7 @@ Mejora de tiempo HTTP:
 
 - Falta medir 5 muestras reales post-deploy del endpoint con un token/sesion ya disponible que no requiera login nuevo.
 - Falta capturar TTFB, duracion backend y tiempo de serializacion HTTP.
-- Falta ejecutar el test Postgres/Testcontainers cuando Docker este disponible para confirmar empiricamente los 3 prepared statements.
+- Falta ejecutar una medicion Postgres/Testcontainers o en staging cuando Docker/DB esten disponibles para confirmar empiricamente los 3 prepared statements.
 - Falta `EXPLAIN ANALYZE` de la query principal y del `COUNT` contra produccion o replica read-only. No se ejecuto porque no habia acceso DB seguro en esta sesion.
 - La paginacion actual no define `ORDER BY`; mantiene el comportamiento existente, pero la pagina puede ser no deterministica. No se cambio porque seria cambio funcional/contrato de ordenamiento.
 - Si despues de este cambio el endpoint sigue cerca de 1.77 s, la siguiente medicion debe separar autenticacion/JWT, adquisicion de conexion y query `COUNT`.

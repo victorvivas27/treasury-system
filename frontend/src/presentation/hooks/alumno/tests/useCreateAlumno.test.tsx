@@ -5,6 +5,8 @@ import { MemoryRouter, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateAlumno } from "../useCreateAlumno";
 
+const mockGetManagedCourseSettings = vi.hoisted(() => vi.fn());
+
 vi.mock("react-router-dom", async () => ({
   ...(await vi.importActual("react-router-dom")),
   useNavigate: vi.fn(),
@@ -24,12 +26,21 @@ vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
   }),
 }));
 
+vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
+  TreasuryRepositoryImpl: vi.fn().mockImplementation(function () {
+    return {
+      getManagedCourseSettings: mockGetManagedCourseSettings,
+    };
+  }),
+}));
+
 describe("useCreateAlumno", () => {
   const mockNavigate = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useNavigate as any).mockReturnValue(mockNavigate);
+    mockGetManagedCourseSettings.mockReturnValue(new Promise(() => {}));
   });
 
   it("[useCreateAlumno #01] Debe inicializar los estados con valores por defecto", () => {
@@ -307,5 +318,25 @@ describe("useCreateAlumno", () => {
       type: "error",
     });
     expect(result.current.loading).toBe(false);
+  });
+
+  it("[useCreateAlumno #14] Debe cargar cursos desde configuracion e historial", async () => {
+    mockGetManagedCourseSettings.mockResolvedValue({
+      course: "2A",
+      schoolYear: 2027,
+      history: [
+        { course: "2A", schoolYear: 2027 },
+        { course: "1A", schoolYear: 2026 },
+      ],
+    });
+    const { result } = renderHook(() => useCreateAlumno(), { wrapper: MemoryRouter });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.courses).toEqual(["2A", "1A"]);
+    expect(result.current.formData.curso).toBe("2A");
+    expect(result.current.loadingCourses).toBe(false);
   });
 });

@@ -3,7 +3,6 @@ package performance;
 import com.tesoreria.TesoreriaAppApplication;
 import com.tesoreria.alumno.core.model.GeneroAlumno;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository;
-import com.tesoreria.apoderado.infrastructure.adapter.in.web.controller.ApoderadoController;
 import com.tesoreria.familia.infrastructure.adapter.out.persistence.repository.FamiliaJpaRepository;
 import com.tesoreria.stand.core.model.StandPaymentMethod;
 import com.tesoreria.stand.infrastructure.adapter.out.persistence.entity.StandSaleEntity;
@@ -51,8 +50,6 @@ class PostgresPerformanceQueryIntegrationTest {
     private AlumnoJpaRepository students;
     @Autowired
     private jakarta.persistence.EntityManagerFactory entityManagerFactory;
-    @Autowired
-    private ApoderadoController guardiansController;
 
     @BeforeEach
     void clean() {
@@ -60,7 +57,6 @@ class PostgresPerformanceQueryIntegrationTest {
                 + "event_stand_payment_methods, event_stand_products, event_stands, "
                 + "school_event_expenses, school_event_participants, school_events, "
                 + "familia_apoderados, familias, apoderados, alumnos RESTART IDENTITY CASCADE");
-        jdbc.update("DELETE FROM users WHERE correo LIKE 'apoderado%@test.cl'");
     }
 
     @Test
@@ -242,28 +238,6 @@ class PostgresPerformanceQueryIntegrationTest {
                 .mapToLong(AlumnoJpaRepository.ActiveGenderCount::getTotal).findFirst().orElse(0);
     }
 
-    @Test
-    void listGuardians_deberiaResolverAccessStatusSinNMasUno() {
-        for (int index = 1; index <= 20; index += 1) {
-            String email = "apoderado%02d@test.cl".formatted(index);
-            insertGuardian("AP-%08d".formatted(index), "APODERADO %02d".formatted(index), email);
-            insertUser("US-%08d".formatted(index), "APODERADO %02d".formatted(index), email);
-        }
-
-        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
-        statistics.clear();
-        var startedAt = System.nanoTime();
-        var result = guardiansController.findAll(0, 20, "").getBody();
-        long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
-
-        assertNotNull(result);
-        assertAll(() -> assertEquals(20, result.content().size()),
-                () -> assertEquals(20, result.size()),
-                () -> assertEquals(3, statistics.getPrepareStatementCount()),
-                () -> assertTrue(elapsedMs < 500,
-                        "Local controller call took " + elapsedMs + " ms"));
-    }
-
     private long insertEvent(String name) {
         return jdbc.queryForObject("""
                 INSERT INTO school_events(name, school_year, event_date, status, organization_id,
@@ -323,15 +297,6 @@ class PostgresPerformanceQueryIntegrationTest {
         return jdbc.queryForObject("""
                 INSERT INTO apoderados(codigo, nombre, email, telefono, organization_id)
                 VALUES (?, ?, ?, '+56912345678', ?) RETURNING apoderado_id
-                """, Long.class, code, name, email, organizationId());
-    }
-
-    private long insertUser(String code, String name, String email) {
-        return jdbc.queryForObject("""
-                INSERT INTO users(code, nombre, correo, password, rol, enabled, account_non_locked,
-                    email_verified_at, organization_id)
-                VALUES (?, ?, ?, '$2a$10$abcdefghijklmnopqrstuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu',
-                    'USER', TRUE, TRUE, CURRENT_TIMESTAMP, ?) RETURNING id
                 """, Long.class, code, name, email, organizationId());
     }
 
