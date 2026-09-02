@@ -355,6 +355,7 @@
   width: var(--xl);
   height: var(--xl);
   flex: 0 0 var(--xl);
+  color: var(--color-accent);
 }
 
 .sidebar-improvement-button span {

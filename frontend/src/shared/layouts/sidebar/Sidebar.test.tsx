@@ -86,8 +86,9 @@ describe('Sidebar Component', () => {
     expect(activeLink).toHaveClass('active');
   });
 
-  it('[Sidebar #04.1] Oculta alumnos, apoderados y familia para rol USER', () => {
+  it('[Sidebar #04.1] Muestra cumpleaños y oculta secciones admin para rol USER', () => {
     renderWithRouter(<SidebarNav role="USER" onNavLinkClick={mockNavLinkClick} />);
+    expect(screen.getByRole('link', { name: /cumplea/i })).toHaveAttribute('href', '/birthdays');
     expect(screen.queryByRole('link', { name: /usuarios/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /alumnos/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /apoderados/i })).not.toBeInTheDocument();

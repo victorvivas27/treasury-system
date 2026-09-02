@@ -57,9 +57,9 @@
     white-space: nowrap;
   }
 
-  .admin-data-table--users .admin-col-status { width: 108px; }
-  .admin-data-table--users .admin-col-primary { width: calc((100% - 350px) * .48); }
-  .admin-data-table--users .admin-col-email { width: calc((100% - 350px) * .52); }
+  .admin-data-table--users .admin-col-status { width: 136px; }
+  .admin-data-table--users .admin-col-primary { width: calc((100% - 378px) * .48); }
+  .admin-data-table--users .admin-col-email { width: calc((100% - 378px) * .52); }
   .admin-data-table--users .admin-col-compact { width: 92px; }
   .admin-data-table--users .admin-col-actions { width: 150px; }
 

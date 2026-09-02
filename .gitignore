@@ -43,6 +43,10 @@ frontend/dist/
 frontend/build/
 frontend/coverage/
 frontend/demo-output/
+frontend/performance/reports/
+frontend/performance/screenshots/
+frontend/performance/test-results/
+frontend/performance/.auth/
 *.tsbuildinfo
 .eslintcache
 

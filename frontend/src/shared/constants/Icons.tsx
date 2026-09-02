@@ -2,6 +2,7 @@ import { RxPerson } from "react-icons/rx";
 import { PiStudent } from "react-icons/pi";
 import { BsPerson } from "react-icons/bs";
 import { TbPigMoney } from "react-icons/tb";
+import { FaBirthdayCake } from "react-icons/fa";
 import { GrPieChart } from "react-icons/gr";
 import { IoChatbubblesOutline, IoChevronDownOutline, IoSettingsOutline } from "react-icons/io5";
 import { BiExit } from "react-icons/bi";
@@ -31,7 +32,7 @@ export const ICONS = {
   dashboard: GrPieChart,
   usuarios: RxPerson,
   alumnos: PiStudent,
-  birthdays: BsCalendarEvent,
+  birthdays: FaBirthdayCake,
   apoderados: BsPerson,
   familia: MdFamilyRestroom,
   tesoreria: TbPigMoney,
@@ -50,11 +51,11 @@ export const SIDEBAR_LINKS = [
   {
     title: "Gestión de Personas",
     links: [
-      { label: "Usuarios", path: "/users", icon: ICONS.usuarios },
+      { label: "Apoderados", path: "/parents", icon: ICONS.apoderados },
       { label: "Alumnos", path: "/students", icon: ICONS.alumnos },
       { label: "Cumplea\u00f1os", path: "/birthdays", icon: ICONS.birthdays },
-      { label: "Apoderados", path: "/parents", icon: ICONS.apoderados },
       { label: "Familia", path: "/family", icon: ICONS.familia },
+      { label: "Usuarios", path: "/users", icon: ICONS.usuarios },
       { label: "Gestión de Mejoras", path: "/admin/mejoras", icon: ICONS.improvements },
     ],
   },

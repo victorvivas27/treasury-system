@@ -177,6 +177,16 @@ class SecurityConfigTest {
     }
 
     @Test
+    void usuario_deberiaPoderConsultarCumpleanosDeAlumnos() throws Exception {
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/alumnos/cumpleanos")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
     void dominiosEscolares_deberianPermitirAdministrador() throws Exception {
         String token = tokenFor("admin@mail.com");
         for (String path : List.of(

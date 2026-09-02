@@ -23,6 +23,11 @@
 .public-home > * { position: relative; z-index: 1; }
 .public-home__hero, .public-home__features,
 .public-home__footer, .home-community { width: min(1180px, calc(100% - 3rem)); margin-inline: auto; }
+.public-home__authenticated {
+  display: grid;
+  gap: clamp(8rem, 13vw, 12rem);
+  padding-top: 1rem;
+}
 
 [data-home-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 820ms var(--reveal-delay,0ms) ease-out, transform 820ms var(--reveal-delay,0ms) cubic-bezier(.22,1,.36,1); }
 [data-home-reveal].is-visible { opacity: 1; transform: translateY(0); }
@@ -34,6 +39,7 @@
 @media (max-width: 680px) {
   .public-home__hero, .public-home__features,
   .public-home__footer, .home-community { width: min(100% - 2rem, 1180px); }
+  .public-home__authenticated { gap: 5.75rem; padding-top: .5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

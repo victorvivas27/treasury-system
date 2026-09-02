@@ -35,10 +35,8 @@ export class NotificationRepositoryImpl {
   }
   async deleteSent(id: number): Promise<void> { await apiClient.delete(`/notifications/sent/${id}`); }
   async listReplies(deliveryId: number): Promise<NotificationReply[]> {
-    const replies = (await apiClient.get<NotificationReply[]>(
+    return (await apiClient.get<NotificationReply[]>(
       `/notifications/threads/${deliveryId}/messages`)).data;
-    window.dispatchEvent(new Event("notification-unread-changed"));
-    return replies;
   }
   async reply(deliveryId: number, message: string): Promise<NotificationReply> {
     return (await apiClient.post<NotificationReply>(

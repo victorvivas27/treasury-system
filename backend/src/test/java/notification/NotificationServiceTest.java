@@ -47,6 +47,29 @@ class NotificationServiceTest {
     }
 
     @Test
+    void sent_deberiaCargarDestinatariosEnUnaSolaConsulta() {
+        NotificationEntity first = notification(10L, "Primer aviso");
+        NotificationEntity second = notification(11L, "Segundo aviso");
+        UserEntity recipient = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserNotificationEntity firstDelivery = delivery(20L, first, recipient, false);
+        UserNotificationEntity secondDelivery = delivery(21L, second, recipient, true);
+        when(notifications.findByCreatedByCorreoOrderByCreatedAtDesc("admin@mail.com"))
+                .thenReturn(List.of(first, second));
+        when(deliveries.findByNotificationIdInWithUserOrderByNotificationAndUserName(
+                argThat(ids -> ids.containsAll(List.of(10L, 11L)) && ids.size() == 2)))
+                .thenReturn(List.of(firstDelivery, secondDelivery));
+
+        var result = service.sent("admin@mail.com");
+
+        assertEquals(2, result.size());
+        assertEquals(20L, result.get(0).recipients().get(0).deliveryId());
+        assertEquals(21L, result.get(1).recipients().get(0).deliveryId());
+        verify(deliveries).findByNotificationIdInWithUserOrderByNotificationAndUserName(
+                argThat(ids -> ids.containsAll(List.of(10L, 11L)) && ids.size() == 2));
+        verify(deliveries, never()).findByNotificationIdOrderByUserNombreAsc(anyLong());
+    }
+
+    @Test
     void reply_deberiaPermitirAlApoderadoResponderSuConversacion() {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
@@ -241,5 +264,24 @@ class NotificationServiceTest {
         user.setCorreo(email);
         user.setRol(role);
         return user;
+    }
+
+    private NotificationEntity notification(Long id, String title) {
+        NotificationEntity notification = mock(NotificationEntity.class);
+        when(notification.getId()).thenReturn(id);
+        when(notification.getTitle()).thenReturn(title);
+        when(notification.getMessage()).thenReturn("Mensaje");
+        when(notification.getType()).thenReturn("INFO");
+        return notification;
+    }
+
+    private UserNotificationEntity delivery(Long id, NotificationEntity notification,
+            UserEntity recipient, boolean read) {
+        UserNotificationEntity delivery = mock(UserNotificationEntity.class);
+        when(delivery.getId()).thenReturn(id);
+        when(delivery.getNotification()).thenReturn(notification);
+        when(delivery.getUser()).thenReturn(recipient);
+        when(delivery.isRead()).thenReturn(read);
+        return delivery;
     }
 }
