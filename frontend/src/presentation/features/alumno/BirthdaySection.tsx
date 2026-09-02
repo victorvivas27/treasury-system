@@ -54,11 +54,9 @@ const getCountdownLabel = (daysUntil: number) => {
   return `Faltan ${daysUntil} d\u00edas`;
 };
 
-const getTone = (daysUntil: number) => {
+const getTone = (daysUntil: number, index: number) => {
   if (daysUntil === 0) return "today";
-  if (daysUntil <= 7) return "soon";
-  if (daysUntil <= 30) return "near";
-  return "later";
+  return `tone-${(index % 10) + 1}`;
 };
 
 export const BirthdaySection = ({ alumnos, loading = false, today = new Date(), maxItems = 8 }: BirthdaySectionProps) => {
@@ -92,7 +90,7 @@ export const BirthdaySection = ({ alumnos, loading = false, today = new Date(), 
       ) : birthdays.length > 0 ? (
         <div className="birthday-section__grid">
           {birthdays.map(({ alumno, age, daysUntil, dateLabel }, index) => {
-            const tone = getTone(daysUntil);
+            const tone = getTone(daysUntil, index);
             return (
               <article
                 className={`birthday-card is-${tone} ${index === 0 ? "is-next" : ""}`}

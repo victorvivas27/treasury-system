@@ -82,16 +82,44 @@
   --birthday-color: #db2777;
 }
 
-.birthday-card.is-soon {
+.birthday-card.is-tone-1 {
   --birthday-color: #f59e0b;
 }
 
-.birthday-card.is-near {
+.birthday-card.is-tone-2 {
+  --birthday-color: #ef4444;
+}
+
+.birthday-card.is-tone-3 {
+  --birthday-color: #8b5cf6;
+}
+
+.birthday-card.is-tone-4 {
   --birthday-color: #0ea5e9;
 }
 
-.birthday-card.is-later {
+.birthday-card.is-tone-5 {
   --birthday-color: #14b8a6;
+}
+
+.birthday-card.is-tone-6 {
+  --birthday-color: #22c55e;
+}
+
+.birthday-card.is-tone-7 {
+  --birthday-color: #eab308;
+}
+
+.birthday-card.is-tone-8 {
+  --birthday-color: #f97316;
+}
+
+.birthday-card.is-tone-9 {
+  --birthday-color: #6366f1;
+}
+
+.birthday-card.is-tone-10 {
+  --birthday-color: #ec4899;
 }
 
 .birthday-card__icon {

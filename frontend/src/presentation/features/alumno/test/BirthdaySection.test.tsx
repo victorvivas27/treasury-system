@@ -41,7 +41,7 @@ describe("BirthdaySection", () => {
     expect(screen.getByText("Pr\u00f3ximos alumnos")).toBeInTheDocument();
     expect(screen.getByText("THEO VIVAS")).toBeInTheDocument();
     expect(screen.getByText("Hoy cumple")).toBeInTheDocument();
-    expect(screen.getByText("10-ene · 7 años")).toBeInTheDocument();
+    expect(screen.getByText("10-ene \u00b7 7 a\u00f1os")).toBeInTheDocument();
     expect(screen.getByText("MARTINA ROJAS")).toBeInTheDocument();
     expect(screen.getByText("Faltan 2 d\u00edas")).toBeInTheDocument();
     expect(screen.queryByText("ALUMNO SIN FECHA")).not.toBeInTheDocument();
@@ -51,5 +51,21 @@ describe("BirthdaySection", () => {
     render(<BirthdaySection alumnos={[]} today={new Date(2026, 0, 10)} />);
 
     expect(screen.getByText(/Agrega la fecha de nacimiento/i)).toBeInTheDocument();
+  });
+
+  it("usa una paleta amplia para evitar bloques de un solo color", () => {
+    const manyBirthdays = Array.from({ length: 12 }, (_, index) => ({
+      alumnoId: index + 10,
+      codigo: `AL-${index + 10}`,
+      nombre: `ALUMNO ${index + 1}`,
+      curso: "1A",
+      fechaNacimiento: `2016-02-${String(index + 1).padStart(2, "0")}`,
+      genero: "OTROS",
+      activo: true,
+    }));
+
+    const { container } = render(<BirthdaySection alumnos={manyBirthdays} today={new Date(2026, 0, 10)} maxItems={0} />);
+
+    expect(container.querySelector(".birthday-card.is-tone-10")).toBeInTheDocument();
   });
 });
