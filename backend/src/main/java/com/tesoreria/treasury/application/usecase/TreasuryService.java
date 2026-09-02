@@ -266,15 +266,17 @@ public class TreasuryService implements TreasuryUseCase {
                 ? List.of() : repository.findObligationsByConfig(config.id());
         List<FamilyFeePlan> plans = config == null
                 ? List.of() : repository.findPlansByConfig(config.id());
-        List<FeePayment> feePayments = repository.findActivePaymentsByObligationIds(
-                obligations.stream().map(FeeObligation::id).toList());
+        List<FeePayment> feePayments = obligations.isEmpty()
+                ? List.of()
+                : repository.findActivePaymentsByObligationIds(
+                        obligations.stream().map(FeeObligation::id).toList());
         Map<Long, FeeObligation> obligationsById = obligations.stream()
                 .collect(java.util.stream.Collectors.toMap(FeeObligation::id, item -> item));
         Map<Long, FamilyFeePlan> plansById = plans.stream()
                 .collect(java.util.stream.Collectors.toMap(FamilyFeePlan::id, item -> item));
         TreasuryDashboard quotas = config == null
                 ? new TreasuryDashboard(0, 0, 0, 0, 0, BigDecimal.ZERO, BigDecimal.ZERO)
-                : dashboard(year);
+                : dashboard(plans, obligations);
         List<TreasuryIncome> incomes = repository.findIncomes(year);
         List<TreasuryExpense> expenses = repository.findExpenses(year);
 
@@ -344,17 +346,32 @@ public class TreasuryService implements TreasuryUseCase {
                         TreasuryDashboardOverview.RecentMovement::date).reversed())
                 .toList();
 
-        List<TreasuryDashboardOverview.AuditEntry> auditTrail = repository.findAudits(
+        List<TreasuryDashboardOverview.AuditEntry> auditTrail = repository.findRecentAudits(
                         LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay())
-                .stream().limit(100)
+                .stream()
                 .map(item -> new TreasuryDashboardOverview.AuditEntry(item.id(), item.action(),
                         item.entityType(), item.entityId(), item.performedBy(), item.details(),
                         item.createdAt()))
                 .toList();
 
-        return new TreasuryDashboardOverview(quotas, financialSummary(year), monthly, statuses,
+        return new TreasuryDashboardOverview(quotas, financialSummary(year, obligations, incomes, expenses), monthly, statuses,
                 categories, expenseDetails, recent, auditTrail,
                 new TreasuryDashboardOverview.CourseComposition(0, 0, 0));
+    }
+
+    private TreasuryDashboard dashboard(List<FamilyFeePlan> plans, List<FeeObligation> obligations) {
+        BigDecimal collected = obligations.stream()
+                .filter(item -> item.status() == ObligationStatus.PAGADA)
+                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal pending = obligations.stream()
+                .filter(item -> item.status() != ObligationStatus.PAGADA)
+                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new TreasuryDashboard(plans.size(),
+                plans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
+                plans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
+                obligations.stream().filter(item -> item.status() != ObligationStatus.PAGADA).count(),
+                obligations.stream().filter(item -> item.status() == ObligationStatus.PAGADA).count(),
+                collected, pending);
     }
 
     @Override
@@ -564,6 +581,23 @@ public class TreasuryService implements TreasuryUseCase {
                 .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal totalIncome = feeIncome.add(otherIncome);
         BigDecimal totalExpenses = repository.findExpenses(year).stream()
+                .filter(item -> item.status() == ExpenseStatus.ACTIVE)
+                .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new FinancialSummary(year, feeIncome, otherIncome, totalIncome, totalExpenses,
+                totalIncome.subtract(totalExpenses));
+    }
+
+    private FinancialSummary financialSummary(int year, List<FeeObligation> obligations,
+                                              List<TreasuryIncome> incomes,
+                                              List<TreasuryExpense> expenses) {
+        BigDecimal feeIncome = obligations.stream()
+                .filter(item -> item.status() == ObligationStatus.PAGADA)
+                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal otherIncome = incomes.stream()
+                .filter(item -> item.status() == IncomeStatus.ACTIVE)
+                .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalIncome = feeIncome.add(otherIncome);
+        BigDecimal totalExpenses = expenses.stream()
                 .filter(item -> item.status() == ExpenseStatus.ACTIVE)
                 .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new FinancialSummary(year, feeIncome, otherIncome, totalIncome, totalExpenses,

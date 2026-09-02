@@ -83,6 +83,8 @@ public interface TreasuryRepositoryOutPort {
 
     List<TreasuryAudit> findAudits(LocalDateTime from, LocalDateTime to);
 
+    List<TreasuryAudit> findRecentAudits(LocalDateTime from, LocalDateTime to);
+
     void deleteAuditsByIds(List<Long> ids);
 
     void deleteFamilyTreasuryData(Long familyId);

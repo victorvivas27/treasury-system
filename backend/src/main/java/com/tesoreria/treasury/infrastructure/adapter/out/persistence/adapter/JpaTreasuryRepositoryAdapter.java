@@ -259,6 +259,12 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     }
 
     @Override
+    public List<TreasuryAudit> findRecentAudits(LocalDateTime from, LocalDateTime to) {
+        return audits.findTop100ByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to)
+                .stream().map(this::audit).toList();
+    }
+
+    @Override
     public void deleteAuditsByIds(List<Long> ids) {
         audits.deleteAllByIdInBatch(ids);
     }
