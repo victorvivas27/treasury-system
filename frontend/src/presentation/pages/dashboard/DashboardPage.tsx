@@ -6,7 +6,7 @@ import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
   Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart,
-  ResponsiveContainer, Tooltip,
+  ResponsiveContainer, Tooltip, YAxis,
 } from "recharts";
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
@@ -220,8 +220,8 @@ export const DashboardPage = () => {
           <div className="dashboard-chart dashboard-chart--axisless" aria-label="Evolución mensual">
             <div className="dashboard-chart__plot">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 38, right: isMobile ? 8 : 0,
-                bottom: 0, left: isMobile ? 8 : 0 }}>
+              <AreaChart data={monthly} margin={{ top: 38, right: isMobile ? 8 : 6,
+                bottom: 0, left: isMobile ? 8 : -22 }}>
                 <defs>
                   <linearGradient id="dashboardIncome" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.35} />
@@ -229,6 +229,9 @@ export const DashboardPage = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
+                {!isMobile && <YAxis width={70} tickFormatter={(value) => money.format(Number(value))}
+                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
+                  tickLine={false} axisLine={false} />}
                 <Tooltip cursor={{ stroke: "var(--color-accent)", strokeDasharray: "3 3" }}
                   position={{ x: isMobile ? 4 : 58, y: 2 }}
                   wrapperStyle={{ pointerEvents: "none" }}
@@ -241,9 +244,11 @@ export const DashboardPage = () => {
                       </span>)}
                     </div> : null} />
                 <Legend />
-                <Area name="Ingresos" dataKey="income" stroke="var(--color-success)"
+                <Area name="Ingresos" dataKey="income" type="monotone"
+                  stroke="var(--color-success)"
                   fill="url(#dashboardIncome)" />
-                <Area name="Egresos" dataKey="expense" stroke="var(--color-error)"
+                <Area name="Egresos" dataKey="expense" type="monotone"
+                  stroke="var(--color-error)"
                   fill="transparent" />
               </AreaChart>
             </ResponsiveContainer>
@@ -269,9 +274,7 @@ export const DashboardPage = () => {
                       nameKey="name" innerRadius="62%" outerRadius="88%" paddingAngle={3}>
                       {annualQuotaSummary.modalities.map(item =>
                         <Cell key={item.name} fill={item.color} />)}
-                    </Pie><Tooltip formatter={(value) => [`${value} familias`, ""]}
-                      contentStyle={{ background: "var(--color-elevated)",
-                        borderColor: "var(--border-color)" }} /></PieChart>
+                    </Pie></PieChart>
                   </ResponsiveContainer>
                   <div><strong>{data.quotas.totalFamilies}</strong><span>familias</span></div>
                 </div>
