@@ -215,7 +215,7 @@ export const DashboardPage = () => {
       </section>
 
       <section className="dashboard-charts">
-        <article className="dashboard-panel dashboard-panel--wide dashboard-panel--cashflow">
+        <article className="dashboard-panel dashboard-panel--cashflow">
           <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
           <div className="dashboard-chart dashboard-chart--axisless" aria-label="Evolución mensual">
             <div className="dashboard-chart__plot">
@@ -300,6 +300,21 @@ export const DashboardPage = () => {
             </div>}
         </article>
 
+        <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
+          <header><div><span>Aportes del curso</span>
+            <h2>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h2>
+            <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div></header>
+          {contributions && contributions.totalFamilies > 0
+            ? <div className="contribution-donuts">
+              <ContributionDonut title="Cuota CEPA"
+                paid={contributions.cepaPaid} pending={contributions.cepaPending} />
+              <ContributionDonut title="Fondo de Apoyo por Fallecimiento"
+                paid={contributions.solidarityPaid}
+                pending={contributions.solidarityPending} />
+            </div>
+            : <p className="dashboard-empty">No hay familias para calcular los aportes.</p>}
+        </article>
+
         <article className="dashboard-panel dashboard-panel--distribution">
           <header><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
             <p className="dashboard-panel__explanation">
@@ -320,23 +335,7 @@ export const DashboardPage = () => {
             </ol>}
         </article>
 
-        <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
-          <header><div><span>Aportes del curso</span>
-            <h2>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h2>
-            <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div></header>
-          {contributions && contributions.totalFamilies > 0
-            ? <div className="contribution-donuts">
-              <ContributionDonut title="Cuota CEPA"
-                paid={contributions.cepaPaid} pending={contributions.cepaPending} />
-              <ContributionDonut title="Fondo de Apoyo por Fallecimiento"
-                paid={contributions.solidarityPaid}
-                pending={contributions.solidarityPending} />
-            </div>
-            : <p className="dashboard-empty">No hay familias para calcular los aportes.</p>}
-        </article>
-      </section>
-
-      <section className="dashboard-panel dashboard-activity">
+        <section className="dashboard-panel dashboard-activity">
         <header><button className="dashboard-collapse-trigger" type="button"
           aria-expanded={activityOpen} aria-controls="dashboard-recent-activity"
           onClick={() => setActivityOpen(open => !open)}>
@@ -377,6 +376,7 @@ export const DashboardPage = () => {
             onNext={() => setActivityPage(page => page + 1)}
             ariaLabel="Paginación de actividad reciente" />}
         </div>}</div></div>
+        </section>
       </section>
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">

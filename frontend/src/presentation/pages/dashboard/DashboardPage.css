@@ -149,3 +149,5 @@
   .dashboard-audit .audit-actions button{min-width:0;min-height:32px;padding:.3rem .35rem;gap:.2rem;font-size:.58rem;line-height:1;white-space:nowrap}
   .dashboard-audit .audit-actions button svg{flex:0 0 auto;width:.9rem;height:.9rem}
 }
+
+.dashboard-charts>.dashboard-activity{margin-top:0}
