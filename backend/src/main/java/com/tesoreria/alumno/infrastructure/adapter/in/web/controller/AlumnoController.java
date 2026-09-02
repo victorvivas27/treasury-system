@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(ApiConstants.ALUMNOS)
 public class AlumnoController {
@@ -54,6 +56,14 @@ public class AlumnoController {
                 result.totalPages());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/cumpleanos")
+    public ResponseEntity<List<AlumnoResponse>> findBirthdays() {
+        return ResponseEntity.ok(alumnoService.findBirthdays()
+                .stream()
+                .map(mapper::toResponse)
+                .toList());
     }
 
     @GetMapping("/{codigo}")

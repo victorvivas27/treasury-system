@@ -35,8 +35,10 @@ describe("Alumno use cases", () => {
       getAll: vi.fn(),
       create: vi.fn(),
       getByCodigo: vi.fn(),
+      getBirthdays: vi.fn(),
       updateByCodigo: vi.fn(),
       deleteByCodigo: vi.fn(),
+      changeStatus: vi.fn(),
     };
   });
 

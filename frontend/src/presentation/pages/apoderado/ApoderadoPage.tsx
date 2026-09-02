@@ -13,11 +13,23 @@ import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 
+const GUARDIANS_RETURN_PAGE_KEY = "guardians:returnPage";
 
+const consumeSavedPage = () => {
+  try {
+    const value = window.sessionStorage.getItem(GUARDIANS_RETURN_PAGE_KEY);
+    window.sessionStorage.removeItem(GUARDIANS_RETURN_PAGE_KEY);
+    const page = value ? Number(value) : 0;
+    return Number.isInteger(page) && page >= 0 ? page : 0;
+  } catch {
+    return 0;
+  }
+};
 
 export const ApoderadoPage: FC = () => {
   const auth = useOptionalAuth();
   const token = auth?.token;
+  const [initialPage] = useState(consumeSavedPage);
   const [accessGuardian, setAccessGuardian] = useState<Apoderado | null>(null);
   const [enablingAccess, setEnablingAccess] = useState(false);
   const [accessAlert, setAccessAlert] = useState({
@@ -49,8 +61,13 @@ export const ApoderadoPage: FC = () => {
     isLastPage,
     search,
     setSearch,
-  } = useApoderados();
+  } = useApoderados({ initialPage });
   const handleEdit = (codigo: string) => {
+    try {
+      window.sessionStorage.setItem(GUARDIANS_RETURN_PAGE_KEY, String(currentPage));
+    } catch {
+      undefined;
+    }
     navigate(`/parents/edit/${codigo}`);
   };
 

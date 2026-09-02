@@ -15,6 +15,7 @@ import com.tesoreria.shared.domain.pagination.PageResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public class AlumnoService implements
@@ -51,6 +52,11 @@ public class AlumnoService implements
     @Override
     public PageResponse<Alumno> findAll(PageRequest pageRequest) {
         return repository.findAll(pageRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Alumno> findBirthdays() {
+        return repository.findBirthdays();
     }
 
     @Transactional(readOnly = true)

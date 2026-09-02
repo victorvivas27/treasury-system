@@ -20,6 +20,8 @@ public interface AlumnoJpaRepository extends JpaRepository<AlumnoEntity, Long> {
 
     Page<AlumnoEntity> findByNombreContainingIgnoreCase(String nombre, Pageable pageable);
 
+    List<AlumnoEntity> findByActivoTrueAndFechaNacimientoIsNotNull();
+
     @Query("select a.genero as gender, count(a) as total from AlumnoEntity a "
             + "where a.activo = true group by a.genero")
     List<ActiveGenderCount> countActiveByGender();

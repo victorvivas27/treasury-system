@@ -6,10 +6,16 @@ import type {
 } from "@/core/A-domain/entities/alumno/Alumno";
 import type { IAlumnoRepository } from "@/core/A-domain/repository/alumno/IAlumnoRepository";
 
-const normalizeAlumnoPayload = <T extends Partial<Alumno>>(alumno: T): T => ({
-  ...alumno,
-  fechaNacimiento: alumno.fechaNacimiento || null,
-});
+const normalizeAlumnoPayload = <T extends Partial<Alumno>>(alumno: T): T => {
+  if (!Object.prototype.hasOwnProperty.call(alumno, "fechaNacimiento")) {
+    return alumno;
+  }
+
+  return {
+    ...alumno,
+    fechaNacimiento: alumno.fechaNacimiento || null,
+  };
+};
 
 export class AlumnoRepositoryImpl implements IAlumnoRepository {
   private readonly baseUrl = "/alumnos";
@@ -18,6 +24,11 @@ export class AlumnoRepositoryImpl implements IAlumnoRepository {
     const response = await apiClient.get<PageResponse<Alumno>>(this.baseUrl, {
       params: { page, size, ...(search.trim() && { search: search.trim() }) }
     });
+    return response.data;
+  }
+
+  async getBirthdays(): Promise<Alumno[]> {
+    const response = await apiClient.get<Alumno[]>(`${this.baseUrl}/cumpleanos`);
     return response.data;
   }
 

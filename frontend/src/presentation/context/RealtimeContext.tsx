@@ -36,7 +36,7 @@ export const RealtimeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!auth?.token || !auth.isAuthenticated) return;
-    const client = new Client({ brokerURL: websocketUrl(), reconnectDelay: 5000,
+    const client = new Client({ brokerURL: websocketUrl(), reconnectDelay: 30000,
       connectHeaders: { Authorization: `Bearer ${auth.token}` },
       onConnect: () => {
         setConnected(true);

@@ -3,6 +3,8 @@ import type { Alumno, CreateAlumnoDTO, PageResponse } from "@/core/A-domain/enti
 export interface IAlumnoRepository {
   getAll(page: number, size: number, search?: string): Promise<PageResponse<Alumno>>;
 
+  getBirthdays(): Promise<Alumno[]>;
+
   create(alumno: CreateAlumnoDTO): Promise<Alumno>;
 
   getByCodigo(codigo: string): Promise<Alumno | null>;

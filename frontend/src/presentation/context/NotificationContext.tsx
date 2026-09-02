@@ -5,7 +5,7 @@ import { useOptionalAuth } from "./AuthContext";
 import { subscriptionPayload, syncAppBadge, urlBase64ToUint8Array } from
   "@/shared/pwa/appBadge";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState,
-  type ReactNode } from "react";
+  useRef, type ReactNode } from "react";
 
 interface NotificationContextValue {
   notifications: AppNotification[];
@@ -30,6 +30,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [pushStatus, setPushStatus] = useState<NotificationContextValue["pushStatus"]>("checking");
   const [pushLoading, setPushLoading] = useState(false);
+  const unreadCountLoading = useRef(false);
 
   const pushSupported = () => typeof window !== "undefined" && "serviceWorker" in navigator
     && "PushManager" in window && "Notification" in window;
@@ -59,16 +60,27 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     } finally { setLoading(false); }
   }, [auth?.isAuthenticated, repository]);
 
+  const refreshUnreadCount = useCallback(async () => {
+    if (!auth?.isAuthenticated || unreadCountLoading.current) return;
+    if (document.visibilityState !== "visible") return;
+    unreadCountLoading.current = true;
+    try {
+      setUnreadCount(await repository.unreadCount());
+    } catch {
+      undefined;
+    } finally {
+      unreadCountLoading.current = false;
+    }
+  }, [auth?.isAuthenticated, repository]);
+
   useEffect(() => {
     if (!auth?.isAuthenticated) {
       setNotifications([]); setUnreadCount(0); setLoading(false); return;
     }
     void refresh();
-    const timer = window.setInterval(() => void repository.unreadCount()
-      .then(setUnreadCount).catch(() => undefined), 10_000);
+    const timer = window.setInterval(() => void refreshUnreadCount(), 60_000);
     const visible = () => document.visibilityState === "visible" && void refresh();
-    const unreadChanged = () => void repository.unreadCount()
-      .then(setUnreadCount).catch(() => undefined);
+    const unreadChanged = () => void refreshUnreadCount();
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("notification-unread-changed", unreadChanged);
     window.addEventListener("notification-realtime-received", refresh);
@@ -78,7 +90,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       window.removeEventListener("notification-unread-changed", unreadChanged);
       window.removeEventListener("notification-realtime-received", refresh);
     };
-  }, [auth?.isAuthenticated, refresh, repository]);
+  }, [auth?.isAuthenticated, refresh, refreshUnreadCount]);
 
   useEffect(() => {
     void syncAppBadge(auth?.isAuthenticated ? unreadCount : 0);
