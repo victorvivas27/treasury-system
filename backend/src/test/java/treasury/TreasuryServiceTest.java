@@ -438,6 +438,29 @@ class TreasuryServiceTest {
                 () -> assertTrue(result.recentMovements().get(0).description().contains("Familia #10")));
     }
 
+    @Test
+    void dashboardOverview_deberiaEvitarLecturasDuplicadasDelMismoAnio() {
+        FeeObligation paid = obligation(InstallmentType.PRIMERA, ObligationStatus.PAGADA);
+        when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+        when(repository.findPlansByConfig(1L)).thenReturn(List.of(plan));
+        when(repository.findObligationsByConfig(1L)).thenReturn(List.of(paid));
+        when(repository.findActivePaymentsByObligationIds(List.of(3L))).thenReturn(List.of());
+        when(repository.findIncomes(2026)).thenReturn(List.of(income(IncomeStatus.ACTIVE)));
+        when(repository.findExpenses(2026)).thenReturn(List.of(expense(ExpenseStatus.ACTIVE)));
+        when(repository.findRecentAudits(any(), any())).thenReturn(List.of());
+
+        TreasuryDashboardOverview result = service.dashboardOverview(2026);
+
+        assertEquals(new BigDecimal("85000"), result.finances().totalIncome());
+        verify(repository, times(1)).findConfigByYear(2026);
+        verify(repository, times(1)).findPlansByConfig(1L);
+        verify(repository, times(1)).findObligationsByConfig(1L);
+        verify(repository, times(1)).findIncomes(2026);
+        verify(repository, times(1)).findExpenses(2026);
+        verify(repository, times(1)).findRecentAudits(any(), any());
+        verify(repository, never()).findAudits(any(), any());
+    }
+
     private FeeObligation obligation(InstallmentType installment, ObligationStatus status) {
         return new FeeObligation(3L, 2L, installment, "Cuota", new BigDecimal("35000"),
                 LocalDate.of(2026, 4, 15), status, LocalDateTime.now(), LocalDateTime.now());

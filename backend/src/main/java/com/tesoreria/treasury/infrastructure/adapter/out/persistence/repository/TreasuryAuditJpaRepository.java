@@ -11,4 +11,7 @@ public interface TreasuryAuditJpaRepository extends JpaRepository<TreasuryAuditE
 
     List<TreasuryAuditEntity> findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
             LocalDateTime from, LocalDateTime to);
+
+    List<TreasuryAuditEntity> findTop100ByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+            LocalDateTime from, LocalDateTime to);
 }
