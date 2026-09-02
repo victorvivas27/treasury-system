@@ -10,6 +10,7 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.User
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserTokenJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 
@@ -54,6 +55,12 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     @Override
     public Optional<User> findByCorreo(String correo) {
         return repository.findByCorreo(correo).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<User> findByCorreos(Collection<String> correos) {
+        if (correos == null || correos.isEmpty()) return List.of();
+        return repository.findByCorreoIn(correos).stream().map(mapper::toDomain).toList();
     }
 
     @Override

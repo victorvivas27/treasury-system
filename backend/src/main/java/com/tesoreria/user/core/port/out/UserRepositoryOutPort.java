@@ -5,6 +5,7 @@ import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public interface UserRepositoryOutPort {
     Optional<User> findByCodeAndOrganizationId(String code, Long organizationId);
 
     Optional<User> findByCorreo(String correo);
+    List<User> findByCorreos(Collection<String> correos);
 
     PageResponse<User> findAll(PageRequest request);
     PageResponse<User> findAllByOrganizationId(PageRequest request, Long organizationId);

@@ -18,6 +18,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping(ApiConstants.APODERADOS)
 public class ApoderadoController {
@@ -54,11 +58,17 @@ public class ApoderadoController {
         PageRequest pageRequest = new PageRequest(page, size, null, null, search);
 
         PageResponse<Apoderado> result = apoderadoService.findAll(pageRequest);
+        Map<String, User> usersByEmail = users.findByCorreos(result.content().stream()
+                        .map(Apoderado::getEmail)
+                        .toList())
+                .stream()
+                .collect(Collectors.toMap(User::getCorreo, Function.identity(),
+                        (first, second) -> first));
 
         PageResponse<ApoderadoResponse> response = new PageResponse<>(
                 result.content()
                         .stream()
-                        .map(this::response)
+                        .map(guardian -> response(guardian, usersByEmail))
                         .toList(),
                 result.page(),
                 result.size(),
@@ -105,6 +115,12 @@ public class ApoderadoController {
     private ApoderadoResponse response(Apoderado guardian) {
         String status = users.findByCorreo(guardian.getEmail())
                 .map(this::accessStatus).orElse("SIN_ACCESO");
+        return mapper.toResponse(guardian, status);
+    }
+
+    private ApoderadoResponse response(Apoderado guardian, Map<String, User> usersByEmail) {
+        User user = usersByEmail.get(guardian.getEmail());
+        String status = user == null ? "SIN_ACCESO" : accessStatus(user);
         return mapper.toResponse(guardian, status);
     }
 
