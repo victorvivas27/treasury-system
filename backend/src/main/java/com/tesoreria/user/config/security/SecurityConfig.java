@@ -95,6 +95,8 @@ public class SecurityConfig {
                         .hasAnyRole("SUPER_ADMIN", "ADMIN")
                         .requestMatchers("/api/v1/improvements/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/alumnos/cumpleanos")
+                        .hasAnyRole("ADMIN", "USER")
                         .requestMatchers(
                                 "/api/v1/alumnos/**",
                                 "/api/v1/apoderados/**",

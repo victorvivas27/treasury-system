@@ -26,6 +26,9 @@ const icons: Record<AboutIcon, typeof FiUsers> = {
   AWARD: FiAward, COMPASS: FiCompass, GIFT: FiGift, MUSIC: FiMusic, SUN: FiSun,
 };
 const Lottie = lazy(() => import("lottie-react").then(module => ({ default: module.Lottie })));
+const heartAnimationRequest = typeof window === "undefined"
+  ? undefined
+  : fetch("/icons/Heart.json").then(response => response.json() as Promise<object>);
 
 const lottieColor = (value: string) => {
   const normalized = value.trim();
@@ -65,8 +68,6 @@ const themedCommunityAnimation = (animation: object) => {
 const CameraV3Icon = () => {
   const { resolvedTheme } = useTheme();
   const [animationData, setAnimationData] = useState<object>();
-  const reduceMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   useEffect(() => {
     let active = true;
     fetch("/icons/Camera%20V3.json").then(response => response.json() as Promise<object>)
@@ -77,7 +78,7 @@ const CameraV3Icon = () => {
   return <span className="home-community__camera-icon" aria-hidden="true">
     <Suspense fallback={<img src="/icons/Camera%20V3.svg" alt="" />}>
       {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
-        loop={!reduceMotion} autoplay={!reduceMotion} />
+        loop autoplay />
         : <img src="/icons/Camera%20V3.svg" alt="" />}
     </Suspense>
   </span>;
@@ -86,8 +87,6 @@ const CameraV3Icon = () => {
 const StaffIcon = () => {
   const { resolvedTheme } = useTheme();
   const [animationData, setAnimationData] = useState<object>();
-  const reduceMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   useEffect(() => {
     let active = true;
     fetch("/icons/Staff.json").then(response => response.json() as Promise<object>)
@@ -98,16 +97,29 @@ const StaffIcon = () => {
   return <span className="home-community__staff-icon" aria-hidden="true">
     <Suspense fallback={<FiUsers />}>
       {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.8}
-        loop={!reduceMotion} autoplay={!reduceMotion} /> : <FiUsers />}
+        loop autoplay /> : <FiUsers />}
     </Suspense>
   </span>;
 };
 
-const HeartIcon = () => (
-  <span className="home-community__heart-icon" aria-hidden="true">
-    <FiHeart />
-  </span>
-);
+const HeartIcon = () => {
+  const { resolvedTheme } = useTheme();
+  const [animationData, setAnimationData] = useState<object>();
+  useEffect(() => {
+    let active = true;
+    if (!heartAnimationRequest) return () => { active = false; };
+    heartAnimationRequest
+      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [resolvedTheme]);
+  return <span className="home-community__heart-icon" aria-hidden="true">
+    <Suspense fallback={null}>
+      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
+        loop autoplay /> : null}
+    </Suspense>
+  </span>;
+};
 
 export const HomeCommunity = () => {
   const [sections, setSections] = useState<AboutSection[]>([]);

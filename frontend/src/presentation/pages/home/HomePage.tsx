@@ -19,7 +19,7 @@ export const HomePage = () => {
     <div className="public-home">
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
-      <main>
+      <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
         {isAuthenticated ? <>
           <HomeInstallGuide />
           <HomeCommunity />

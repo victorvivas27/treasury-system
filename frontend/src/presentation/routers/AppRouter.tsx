@@ -58,6 +58,7 @@ export const AppRouter = () => {
           <Route path="treasury" element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="notifications" element={<Notificacion />} />
+          <Route path="birthdays" element={<BirthdaysPage />} />
           <Route path="tesoreria/stands" element={<StandManagementPage />} />
           <Route path="tesoreria/ingresos" element={<IncomesPage />} />
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
@@ -73,7 +74,6 @@ export const AppRouter = () => {
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />
           <Route path="users" element={<User />} />
           <Route path="students" element={<AlumnoPage />} />
-          <Route path="birthdays" element={<BirthdaysPage />} />
           <Route path="parents" element={<ApoderadoPage />} />
           <Route path="family" element={<FamiliaPage />} />
           <Route path="admin/mejoras" element={<ImprovementAdminPage />} />

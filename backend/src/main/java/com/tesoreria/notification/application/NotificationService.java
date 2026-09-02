@@ -87,18 +87,28 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<SentNotificationResponse> sent(String creatorEmail) {
-        return notifications.findByCreatedByCorreoOrderByCreatedAtDesc(creatorEmail).stream()
-                .map(notification -> new SentNotificationResponse(notification.getId(),
-                        notification.getTitle(), notification.getMessage(), notification.getType(),
-                        notification.getCreatedAt(), deliveries
-                                .findByNotificationIdOrderByUserNombreAsc(notification.getId()).stream()
-                                .map(row -> new SentNotificationResponse.RecipientStatus(
-                                        row.getId(), row.getUser().getId(), row.getUser().getNombre(),
-                                        row.getUser().getCorreo(), row.isRead(), row.getReadAt(),
-                                        row.getUser().getProfileImageType().name(),
-                                        row.getUser().getProfileImageUrl()))
-                                .toList()))
-                .toList();
+        List<NotificationEntity> sentNotifications = notifications
+                .findByCreatedByCorreoOrderByCreatedAtDesc(creatorEmail);
+        if (sentNotifications.isEmpty()) return List.of();
+        Map<Long, List<UserNotificationEntity>> recipientsByNotification = new LinkedHashMap<>();
+        sentNotifications.forEach(notification ->
+                recipientsByNotification.put(notification.getId(), new ArrayList<>()));
+        deliveries.findByNotificationIdInWithUserOrderByNotificationAndUserName(
+                recipientsByNotification.keySet()).forEach(row ->
+                        recipientsByNotification.get(row.getNotification().getId()).add(row));
+
+        return sentNotifications.stream().map(notification -> new SentNotificationResponse(
+                notification.getId(), notification.getTitle(), notification.getMessage(),
+                notification.getType(), notification.getCreatedAt(),
+                recipientsByNotification.getOrDefault(notification.getId(), List.of()).stream()
+                        .map(row -> {
+                            UserEntity recipient = row.getUser();
+                            return new SentNotificationResponse.RecipientStatus(
+                                    row.getId(), recipient.getId(), recipient.getNombre(),
+                                    recipient.getCorreo(), row.isRead(), row.getReadAt(),
+                                    recipient.getProfileImageType().name(),
+                                    recipient.getProfileImageUrl());
+                        }).toList())).toList();
     }
 
     @Transactional
