@@ -6,6 +6,8 @@ import com.tesoreria.apoderado.infrastructure.adapter.in.web.dto.ApoderadoReques
 import com.tesoreria.apoderado.infrastructure.adapter.in.web.dto.ApoderadoResponse;
 import com.tesoreria.apoderado.infrastructure.adapter.in.web.controller.ApoderadoController;
 import com.tesoreria.apoderado.infrastructure.adapter.in.web.mapper.ApoderadoMapper;
+import com.tesoreria.shared.domain.pagination.PageRequest;
+import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
@@ -18,8 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,8 +88,33 @@ class ApoderadoControllerTest {
         assertEquals("INVITACION_PENDIENTE", result.getBody().accessStatus());
     }
 
+    @Test
+    void findAll_deberiaResolverEstadosDeAccesoEnUnaConsultaBatch() {
+        Apoderado secondGuardian = new Apoderado(2L, "AP-DEF67890", "Apoderado Dos",
+                "user@mail.com", "+56987654321", null, true, null, null);
+        PageRequest request = new PageRequest(0, 20, null, null, "");
+        when(apoderadoService.findAll(request)).thenReturn(new PageResponse<>(
+                List.of(guardian, secondGuardian), 0, 20, 2, 1));
+        when(users.findByCorreos(argThat(emails ->
+                emails.containsAll(List.of(EMAIL, "user@mail.com")) && emails.size() == 2)))
+                .thenReturn(List.of(user(RoleEnum.ADMIN), user(RoleEnum.USER)));
+
+        ResponseEntity<PageResponse<ApoderadoResponse>> result = controller.findAll(0, 20, "");
+
+        assertEquals(2, result.getBody().content().size());
+        assertEquals("ACTIVO", result.getBody().content().get(0).accessStatus());
+        assertEquals("INVITACION_PENDIENTE", result.getBody().content().get(1).accessStatus());
+        verify(users).findByCorreos(argThat(emails ->
+                emails.containsAll(List.of(EMAIL, "user@mail.com")) && emails.size() == 2));
+        verify(users, never()).findByCorreo(anyString());
+    }
+
     private User user(RoleEnum role) {
-        return new User(1L, "US-ABC12345", "Administrador Colegio", EMAIL,
+        return user(role, role == RoleEnum.ADMIN ? EMAIL : "user@mail.com");
+    }
+
+    private User user(RoleEnum role, String email) {
+        return new User(1L, "US-ABC12345", "Administrador Colegio", email,
                 "Password1!", role, true, true, null, null, null);
     }
 }

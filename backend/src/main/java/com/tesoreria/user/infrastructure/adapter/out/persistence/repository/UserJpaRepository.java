@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByCodeAndOrganizationId(String code, Long organizationId);
 
     Optional<UserEntity> findByCorreo(String correo);
+    List<UserEntity> findByCorreoIn(Collection<String> correos);
 
     boolean existsByCode(String code);
 
