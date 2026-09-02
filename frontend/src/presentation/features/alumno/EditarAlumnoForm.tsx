@@ -11,6 +11,9 @@ export const EditarAlumnoForm = () => {
     formData,
     loading,
     initialLoading,
+    courses = [],
+    loadingCourses = false,
+    coursesError = "",
     fieldErrors,
     modal,
     handleChange,
@@ -61,17 +64,26 @@ export const EditarAlumnoForm = () => {
             className="skeleton-name"
             height="48px"
             width="100%">
-            <input
+            <select
               id="curso_input"
               name="curso"
               value={formData.curso}
               onChange={handleChange}
-              placeholder="4A"
+              disabled={initialLoading || loadingCourses || Boolean(coursesError)}
               className={`form-input ${fieldErrors.curso ? 'input-error' : ''}`}
-            />
+            >
+              <option value="">
+                {loadingCourses ? "Cargando cursos..." : coursesError || "Seleccionar curso"}
+              </option>
+              {courses.map((course) => (
+                <option key={course} value={course}>{course}</option>
+              ))}
+            </select>
           </SkeletonWrapper>
           <label htmlFor="curso_input" className="floating-label form-label">Curso</label>
-          {fieldErrors.curso && <span className="error-message">{fieldErrors.curso}</span>}
+          {(fieldErrors.curso || coursesError) && (
+            <span className="error-message">{fieldErrors.curso || coursesError}</span>
+          )}
         </div>
 
         <div className="form-group floating-group alumno-edit-form__group">

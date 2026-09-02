@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEditAlumno } from "../useEditAlumno";
 import { act, renderHook } from "@testing-library/react";
 
+const mockGetManagedCourseSettings = vi.hoisted(() => vi.fn());
+
 vi.mock("react-router-dom", async () => ({
   ...(await vi.importActual("react-router-dom")),
   useNavigate: vi.fn(),
@@ -30,6 +32,14 @@ vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
   }),
 }));
 
+vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
+  TreasuryRepositoryImpl: vi.fn().mockImplementation(function () {
+    return {
+      getManagedCourseSettings: mockGetManagedCourseSettings,
+    };
+  }),
+}));
+
 describe("useEditAlumno Hook", () => {
   const mockNavigate = vi.fn();
   const mockAlumno = { nombre: "Juan", curso: "4A", observacion: "", fechaNacimiento: "2015-04-12", genero: "OTROS" as const, apoderadoId: 1 };
@@ -40,6 +50,7 @@ describe("useEditAlumno Hook", () => {
     (useNavigate as any).mockReturnValue(mockNavigate);
     (useParams as any).mockReturnValue({ id: "1" });
     mockGetUseCase.execute.mockResolvedValue(mockAlumno);
+    mockGetManagedCourseSettings.mockReturnValue(new Promise(() => {}));
   });
 
   afterEach(() => {
@@ -278,5 +289,25 @@ describe("useEditAlumno Hook", () => {
 
     expect(result.current.loadError).toEqual({ message: "ID de alumno no válido" });
     expect(result.current.initialLoading).toBe(false);
+  });
+
+  it("[useEditAlumno #13] Debe exponer cursos configurados y conservar el curso actual del alumno", async () => {
+    mockGetManagedCourseSettings.mockResolvedValue({
+      course: "2A",
+      schoolYear: 2027,
+      history: [
+        { course: "2A", schoolYear: 2027 },
+        { course: "1A", schoolYear: 2026 },
+      ],
+    });
+    const { result } = renderHook(() => useEditAlumno(), { wrapper: MemoryRouter });
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(result.current.courses).toEqual(["2A", "1A", "4A"]);
+    expect(result.current.loadingCourses).toBe(false);
+    expect(result.current.coursesError).toBe("");
   });
 });

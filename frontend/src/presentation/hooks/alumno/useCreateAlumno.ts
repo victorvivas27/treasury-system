@@ -1,13 +1,12 @@
 import { CreateAlumnoUseCase } from "@/core/B-application/use-cases/alumno/create/CreateAlumnoUseCase";
 import type { CreateAlumnoDTO } from "@/core/A-domain/entities/alumno/Alumno";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
-import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import axios from "axios";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useManagedCourses } from "./useManagedCourses";
 
 export const useCreateAlumno = () => {
-
   const navigate = useNavigate();
   const initialFormState: CreateAlumnoDTO & { apoderadoId?: number } = {
     nombre: "",
@@ -21,11 +20,8 @@ export const useCreateAlumno = () => {
   const [formData, setFormData] = useState<CreateAlumnoDTO & { apoderadoId?: number }>({
     ...initialFormState,
   });
-
   const [loading, setLoading] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(true);
-  const [courses, setCourses] = useState<string[]>([]);
-  const [coursesError, setCoursesError] = useState("");
+  const { courses, loadingCourses, coursesError } = useManagedCourses();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
     isOpen: false,
@@ -34,45 +30,13 @@ export const useCreateAlumno = () => {
   });
 
   useEffect(() => {
-    let active = true;
-    const repository = new TreasuryRepositoryImpl();
-
-    const applyManagedCourse = (course: string) => {
-      const normalized = course.trim().toUpperCase();
-      if (!active || !normalized) return;
-      setCourses([normalized]);
-      setFormData((current) => ({
-        ...current,
-        curso: current.curso || normalized,
-      }));
-      setCoursesError("");
-    };
-
-    repository.getManagedCourse()
-      .then(applyManagedCourse)
-      .catch(() => {
-        if (active) setCoursesError("No fue posible cargar los cursos de Administración");
-      })
-      .finally(() => {
-        if (active) setLoadingCourses(false);
-      });
-
-    const handleManagedCourseChange = (event: Event) => {
-      const detail = (event as CustomEvent<string | { course: string }>).detail;
-      applyManagedCourse(typeof detail === "string" ? detail : detail.course);
-    };
-    window.addEventListener("managed-course-changed", handleManagedCourseChange);
-
-    return () => {
-      active = false;
-      window.removeEventListener("managed-course-changed", handleManagedCourseChange);
-    };
-  }, []);
+    if (formData.curso || courses.length === 0) return;
+    setFormData((current) => ({ ...current, curso: current.curso || courses[0] }));
+  }, [courses, formData.curso]);
 
   const showAlert = (message: string, type: "success" | "error") => {
     setModal({ isOpen: true, message, type });
   };
-
 
   const closeModal = () => {
     setModal((prev) => ({ ...prev, isOpen: false }));
