@@ -6,5 +6,7 @@ import java.util.Optional;
 
 public interface NotificationJpaRepository extends JpaRepository<NotificationEntity, Long> {
     List<NotificationEntity> findByCreatedByCorreoOrderByCreatedAtDesc(String correo);
+    List<NotificationEntity> findByCreatedByIdOrderByCreatedAtDesc(Long createdById);
     Optional<NotificationEntity> findByIdAndCreatedByCorreo(Long id, String correo);
+    Optional<NotificationEntity> findByIdAndCreatedById(Long id, Long createdById);
 }

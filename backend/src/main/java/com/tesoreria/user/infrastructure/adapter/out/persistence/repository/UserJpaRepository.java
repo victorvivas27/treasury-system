@@ -16,11 +16,16 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByCodeAndOrganizationId(String code, Long organizationId);
 
     Optional<UserEntity> findByCorreo(String correo);
+    Optional<UserEntity> findFirstByCorreoOrderByIdAsc(String correo);
+    Optional<UserEntity> findByCorreoAndOrganizationId(String correo, Long organizationId);
+    List<UserEntity> findAllByCorreoOrderByIdAsc(String correo);
     List<UserEntity> findByCorreoIn(Collection<String> correos);
+    List<UserEntity> findByCorreoInAndOrganizationId(Collection<String> correos, Long organizationId);
 
     boolean existsByCode(String code);
 
     boolean existsByCorreo(String correo);
+    boolean existsByCorreoAndOrganizationId(String correo, Long organizationId);
 
     long countByRol(RoleEnum rol);
     long countByRolAndOrganizationId(RoleEnum rol, Long organizationId);

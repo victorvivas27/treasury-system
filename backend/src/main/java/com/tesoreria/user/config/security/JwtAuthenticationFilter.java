@@ -1,6 +1,7 @@
 package com.tesoreria.user.config.security;
 
 import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
+import com.tesoreria.user.application.usecase.CustomUserDetailsService;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,14 +23,14 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
     private final TokenRevocationService revocationService;
     private final RefreshTokenService refreshTokenService;
     private final DashboardPerformanceProbe performanceProbe;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
-            UserDetailsService userDetailsService,
+            CustomUserDetailsService userDetailsService,
             TokenRevocationService revocationService,
             RefreshTokenService refreshTokenService,
             DashboardPerformanceProbe performanceProbe) {
@@ -78,7 +78,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = parsedToken.userId() == null
+                        ? userDetailsService.loadUserByUsername(username)
+                        : userDetailsService.loadUserById(parsedToken.userId());
                 if (jwtService.isTokenValid(parsedToken, userDetails)) {
                     var authentication = new UsernamePasswordAuthenticationToken(
                             userDetails,

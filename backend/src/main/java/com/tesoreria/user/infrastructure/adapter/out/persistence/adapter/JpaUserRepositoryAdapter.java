@@ -54,13 +54,31 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
 
     @Override
     public Optional<User> findByCorreo(String correo) {
-        return repository.findByCorreo(correo).map(mapper::toDomain);
+        return repository.findFirstByCorreoOrderByIdAsc(correo).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<User> findByCorreoAndOrganizationId(String correo, Long organizationId) {
+        return repository.findByCorreoAndOrganizationId(correo, organizationId).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<User> findAllByCorreo(String correo) {
+        return repository.findAllByCorreoOrderByIdAsc(correo).stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public List<User> findByCorreos(Collection<String> correos) {
         if (correos == null || correos.isEmpty()) return List.of();
         return repository.findByCorreoIn(correos).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<User> findByCorreosAndOrganizationId(Collection<String> correos, Long organizationId) {
+        if (correos == null || correos.isEmpty()) return List.of();
+        return repository.findByCorreoInAndOrganizationId(correos, organizationId).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override
@@ -99,6 +117,11 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     @Override
     public boolean existsByCorreo(String correo) {
         return repository.existsByCorreo(correo);
+    }
+
+    @Override
+    public boolean existsByCorreoAndOrganizationId(String correo, Long organizationId) {
+        return repository.existsByCorreoAndOrganizationId(correo, organizationId);
     }
 
     @Override

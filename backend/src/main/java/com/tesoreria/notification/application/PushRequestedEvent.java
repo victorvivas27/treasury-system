@@ -3,4 +3,9 @@ package com.tesoreria.notification.application;
 import java.util.List;
 
 public record PushRequestedEvent(String tag, String title, String message, String path,
-                                 List<String> recipientEmails) { }
+                                 List<String> recipientEmails, List<Long> recipientUserIds) {
+    public PushRequestedEvent(String tag, String title, String message, String path,
+            List<String> recipientEmails) {
+        this(tag, title, message, path, recipientEmails, List.of());
+    }
+}

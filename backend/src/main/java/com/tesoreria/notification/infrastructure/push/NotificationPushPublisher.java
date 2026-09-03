@@ -7,6 +7,7 @@ import com.tesoreria.notification.application.PushRequestedEvent;
 import com.tesoreria.notification.config.WebPushProperties;
 import com.tesoreria.notification.infrastructure.persistence.WebPushSubscriptionEntity;
 import com.tesoreria.notification.infrastructure.persistence.WebPushSubscriptionJpaRepository;
+import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -38,15 +39,16 @@ public class NotificationPushPublisher {
     @Async("pushTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void publish(PushRequestedEvent event) {
-        if (!properties.configured() || event.recipientEmails().isEmpty()) return;
+        if (!properties.configured() || event.recipientUserIds().isEmpty()) return;
         List<WebPushSubscriptionEntity> targets = subscriptions
-                .findByUserCorreoIn(new LinkedHashSet<>(event.recipientEmails()));
+                .findByUserIdIn(new LinkedHashSet<>(event.recipientUserIds()));
         if (targets.isEmpty()) return;
-        Map<String, Long> unreadByEmail = new HashMap<>();
+        Map<Long, Long> unreadByUserId = new HashMap<>();
         List<WebPushSubscriptionEntity> expired = new ArrayList<>();
         for (WebPushSubscriptionEntity subscription : targets) {
-            String email = subscription.getUser().getCorreo();
-            long unread = unreadByEmail.computeIfAbsent(email, notifications::unreadCount);
+            UserEntity user = subscription.getUser();
+            long unread = unreadByUserId.computeIfAbsent(user.getId(),
+                    notifications::unreadCount);
             String payload = payload(event, unread);
             try {
                 if (sender.send(subscription, payload) == WebPushSender.SendResult.EXPIRED) {
@@ -55,7 +57,7 @@ public class NotificationPushPublisher {
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("Se interrumpió el envío Web Push para {}", email);
+                    LOGGER.warn("Se interrumpió el envío Web Push para {}", user.getCorreo());
                 }
                 break;
             } catch (Exception exception) {

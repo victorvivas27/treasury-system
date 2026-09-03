@@ -14,6 +14,13 @@ export interface Organization {
   updatedAt: string;
 }
 
+export interface OrganizationLoginOption {
+  id: number;
+  name: string;
+  slug: string;
+  type: OrganizationType;
+}
+
 export interface OrganizationAdmin {
   id: number;
   name: string;

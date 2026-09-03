@@ -56,14 +56,25 @@ public class RefreshTokenService {
     }
 
     @Transactional
+    public IssuedTokens issueForUserId(Long userId, String userAgent, String ipAddress) {
+        var user = userRepository.findById(userId).orElseThrow(this::invalidToken);
+        return issue(user, UUID.randomUUID(), userAgent, ipAddress);
+    }
+
+    @Transactional
     public IssuedTokens issue(String correo, String userAgent, String ipAddress) {
         return issue(correo, UUID.randomUUID(), userAgent, ipAddress);
     }
 
     private IssuedTokens issue(String correo, UUID tokenFamilyId, String userAgent, String ipAddress) {
-        var user = userRepository.findByCorreo(correo.toLowerCase(java.util.Locale.ROOT))
+        var user = userRepository.findFirstByCorreoOrderByIdAsc(correo.toLowerCase(java.util.Locale.ROOT))
                 .orElseThrow(this::invalidToken);
-        UserDetails details = userDetailsService.loadUserByUsername(user.getCorreo());
+        return issue(user, tokenFamilyId, userAgent, ipAddress);
+    }
+
+    private IssuedTokens issue(com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity user,
+                               UUID tokenFamilyId, String userAgent, String ipAddress) {
+        UserDetails details = userDetailsService.loadUserById(user.getId());
         String refreshToken = randomToken();
         String csrfToken = randomToken();
         UserTokenEntity entity = new UserTokenEntity();
@@ -100,7 +111,7 @@ public class RefreshTokenService {
         current.setLastUsedAt(now);
         tokenRepository.save(current);
         var user = userRepository.findById(current.getUserId()).orElseThrow(this::invalidToken);
-        return issue(user.getCorreo(), tokenFamilyId, current.getUserAgent(), current.getIpAddress());
+        return issue(user, tokenFamilyId, current.getUserAgent(), current.getIpAddress());
     }
 
     @Transactional

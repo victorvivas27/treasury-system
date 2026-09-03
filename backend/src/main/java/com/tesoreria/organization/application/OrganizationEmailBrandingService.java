@@ -16,6 +16,7 @@ public class OrganizationEmailBrandingService {
     public OrganizationEmailBranding find(Long organizationId) {
         if (organizationId == null) return null;
         return organizations.findById(organizationId)
+                .filter(value -> !DefaultOrganizationProvider.DEFAULT_SLUG.equals(value.getSlug()))
                 .map(value -> new OrganizationEmailBranding(
                         value.getSenderName() == null ? value.getName() : value.getSenderName(),
                         value.getReplyToEmail()))

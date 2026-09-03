@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
+import type { LoginOrganizationOption } from "@/core/A-domain/entities/auth/Auth";
 import { Button } from "@/shared/ui/button/Button";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { RxEyeClosed } from "react-icons/rx";
@@ -42,6 +43,8 @@ const loginErrorMessage = (error: unknown) => {
 export const LoginPage = () => {
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
+  const [organizationOptions, setOrganizationOptions] = useState<LoginOrganizationOption[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -60,13 +63,24 @@ export const LoginPage = () => {
     if (!PASSWORD_PATTERN.test(password)) {
       validationErrors.password = "Use 8 caracteres, mayúscula, minúscula, número y especial";
     }
+    if (organizationOptions.length > 0 && !organizationId) {
+      validationErrors.organization = "Seleccione un curso";
+    }
     setFieldErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
       setSubmitting(true);
       loginPerformance.start();
-      await login(correo.trim(), password);
+      const response = await login(correo.trim(), password,
+        organizationId ? Number(organizationId) : undefined);
+      if (response.requiresOrganizationSelection) {
+        const options = response.organizationOptions ?? [];
+        setOrganizationOptions(options);
+        setOrganizationId(options[0]?.id ? String(options[0].id) : "");
+        setError(null);
+        return;
+      }
       loginPerformance.mark("response");
       const requestedDestination = (location.state as { from?: string } | null)?.from;
       const destination = requestedDestination && requestedDestination !== "/login"
@@ -97,6 +111,33 @@ export const LoginPage = () => {
         <p className="form-page-header__subtitle">Accede a Tesorería Escolar</p>
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
+        {organizationOptions.length > 0 && (
+          <div className="form-group">
+            <span className="login-input-wrapper">
+              <select
+                id="login-organization"
+                className={`form-input login-organization-select ${fieldErrors.organization ? "input-error" : ""}`}
+                value={organizationId}
+                onChange={(event) => {
+                  setOrganizationId(event.target.value);
+                  setFieldErrors((current) => ({ ...current, organization: "" }));
+                }}
+                aria-invalid={Boolean(fieldErrors.organization)}
+                aria-describedby={fieldErrors.organization ? "login-organization-error" : undefined}
+                required
+              >
+                {organizationOptions.map((organization) => (
+                  <option key={organization.id} value={organization.id}>
+                    {organization.slug === "default" ? "Administración general" : organization.name}
+                  </option>
+                ))}
+              </select>
+            </span>
+            {fieldErrors.organization && (
+              <span id="login-organization-error" className="error-message">{fieldErrors.organization}</span>
+            )}
+          </div>
+        )}
         <div className="form-group">
           <span className="login-input-wrapper login-floating-field">
             <input
@@ -107,8 +148,10 @@ export const LoginPage = () => {
               autoComplete="email"
               value={correo}
               onChange={(event) => {
-                setCorreo(event.target.value);
-                setFieldErrors((current) => ({ ...current, correo: "" }));
+              setCorreo(event.target.value);
+              setOrganizationOptions([]);
+              setOrganizationId("");
+              setFieldErrors((current) => ({ ...current, correo: "" }));
               }}
               aria-invalid={Boolean(fieldErrors.correo)}
               aria-describedby={fieldErrors.correo ? "login-correo-error" : undefined}
@@ -131,8 +174,10 @@ export const LoginPage = () => {
               autoComplete="current-password"
               value={password}
               onChange={(event) => {
-                setPassword(event.target.value);
-                setFieldErrors((current) => ({ ...current, password: "" }));
+              setPassword(event.target.value);
+              setOrganizationOptions([]);
+              setOrganizationId("");
+              setFieldErrors((current) => ({ ...current, password: "" }));
               }}
               aria-invalid={Boolean(fieldErrors.password)}
               aria-describedby={fieldErrors.password ? "login-password-error" : undefined}

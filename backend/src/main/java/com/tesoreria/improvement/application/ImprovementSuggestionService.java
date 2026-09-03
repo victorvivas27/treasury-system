@@ -2,6 +2,7 @@ package com.tesoreria.improvement.application;
 
 import com.tesoreria.improvement.infrastructure.persistence.*;
 import com.tesoreria.improvement.infrastructure.web.*;
+import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
 import com.tesoreria.shared.domain.exception.DomainException;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -380,6 +382,13 @@ public class ImprovementSuggestionService {
     }
 
     private UserEntity currentUser(String email) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
+            return users.findById(tenantUser.getUserId()).orElseThrow(() ->
+                    new DomainException(UserErrorCode.NOT_FOUND.getField(),
+                            UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));
+        }
         return users.findByCorreo(email).orElseThrow(() ->
                 new DomainException(UserErrorCode.NOT_FOUND.getField(),
                         UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));

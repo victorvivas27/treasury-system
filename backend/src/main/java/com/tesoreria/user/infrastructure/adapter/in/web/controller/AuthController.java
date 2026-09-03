@@ -8,6 +8,8 @@ import com.tesoreria.user.application.usecase.AuthService;
 import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
+import com.tesoreria.organization.config.TenantUserDetails;
+import com.tesoreria.organization.application.OrganizationService;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.SecurityConstants;
 import com.tesoreria.user.config.security.TokenRevocationService;
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.List;
 
 @RestController
 @RequestMapping(ApiConstants.AUTH)
@@ -51,6 +54,7 @@ public class AuthController {
     private final boolean allowLocalBootstrapWithoutKey;
     private final LoginPerformanceProbe loginPerformance;
     private final RefreshTokenService refreshTokenService;
+    private final OrganizationService organizationService;
     private final boolean refreshCookieSecure;
     private final String refreshCookieSameSite;
     private final String authCookiePath;
@@ -71,6 +75,7 @@ public class AuthController {
             @Value("${app.bootstrap.allow-local-without-key:false}") boolean allowLocalBootstrapWithoutKey,
             LoginPerformanceProbe loginPerformance,
             RefreshTokenService refreshTokenService,
+            OrganizationService organizationService,
             @Value("${app.refresh-token.cookie-secure:true}") boolean refreshCookieSecure,
             @Value("${app.refresh-token.cookie-same-site:Lax}") String refreshCookieSameSite,
             @Value("${server.servlet.context-path:}") String contextPath) {
@@ -85,6 +90,7 @@ public class AuthController {
         this.allowLocalBootstrapWithoutKey = allowLocalBootstrapWithoutKey;
         this.loginPerformance = loginPerformance;
         this.refreshTokenService = refreshTokenService;
+        this.organizationService = organizationService;
         this.refreshCookieSecure = refreshCookieSecure;
         this.refreshCookieSameSite = refreshCookieSameSite;
         this.authCookiePath = normalizeCookiePath(contextPath);
@@ -98,7 +104,7 @@ public class AuthController {
             TokenRevocationService revocationService,
             RegistrationRateLimiter registrationRateLimiter) {
         this(authService, userService, mapper, jwtService, revocationService,
-                registrationRateLimiter, null, "", false, null, null, false, "Lax", "");
+                registrationRateLimiter, null, "", false, null, null, null, false, "Lax", "");
     }
 
     @Operation(summary = "Iniciar sesión")
@@ -115,14 +121,19 @@ public class AuthController {
                 ? null : loginPerformance.start();
         try {
             long startedAt = LoginPerformanceProbe.now();
-            String authenticatedToken = authService.login(request.correo(), request.password());
+            AuthService.LoginResult login = authService.login(
+                    request.correo(), request.password(), request.organizationId());
+            if (login.requiresOrganizationSelection()) {
+                return ResponseEntity.ok(new LoginResponseDTO(
+                        null, "Bearer", 0, null, null, true, loginOrganizationOptions(login)));
+            }
             RefreshTokenService.IssuedTokens issued = refreshTokenService == null
-                    ? new RefreshTokenService.IssuedTokens(authenticatedToken, null)
-                    : refreshTokenService.issue(request.correo(),
+                    ? new RefreshTokenService.IssuedTokens(login.accessToken(), null)
+                    : refreshTokenService.issueForUserId(login.userId(),
                     httpRequest.getHeader("User-Agent"), clientIp(httpRequest));
             if (measurement != null) loginPerformance.phase(measurement, "authenticateAndJwt", startedAt);
             startedAt = LoginPerformanceProbe.now();
-            UserResponseDTO user = mapper.toResponse(userService.findByCorreo(request.correo()));
+            UserResponseDTO user = mapper.toResponse(userService.findByIdForAuthentication(login.userId()));
             if (measurement != null) loginPerformance.phase(measurement, "findUserAndMap", startedAt);
             ResponseEntity.BodyBuilder response = ResponseEntity.ok();
             addSessionCookies(response, issued);
@@ -180,10 +191,10 @@ public class AuthController {
             @Valid @RequestBody TokenRequestDTO request,
             HttpServletRequest httpRequest) {
         User verifiedUser = accountRecoveryService.verifyEmail(request.token());
-        String token = authService.issueTokenForVerifiedEmail(verifiedUser.getCorreo());
+        String token = authService.issueTokenForUserId(verifiedUser.getId());
         RefreshTokenService.IssuedTokens issued = refreshTokenService == null
                 ? new RefreshTokenService.IssuedTokens(token, null)
-                : refreshTokenService.issue(verifiedUser.getCorreo(),
+                : refreshTokenService.issueForUserId(verifiedUser.getId(),
                 httpRequest.getHeader("User-Agent"), clientIp(httpRequest));
         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
         addSessionCookies(response, issued);
@@ -199,14 +210,17 @@ public class AuthController {
     public ResponseEntity<MessageResponseDTO> resendVerification(
             @Valid @RequestBody EmailRequestDTO request) {
         return ResponseEntity.ok(new MessageResponseDTO(
-                accountRecoveryService.resendVerification(request.email())));
+                accountRecoveryService.resendVerification(request.email(), request.organizationId())));
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<MessageResponseDTO> forgotPassword(
             @Valid @RequestBody EmailRequestDTO request) {
+        var result = accountRecoveryService.requestPasswordReset(request.email(), request.organizationId());
         return ResponseEntity.ok(new MessageResponseDTO(
-                accountRecoveryService.forgotPassword(request.email())));
+                result.message(),
+                result.requiresOrganizationSelection(),
+                recoveryOrganizationOptions(result.organizationIds())));
     }
 
     @PostMapping("/reset-password")
@@ -221,8 +235,13 @@ public class AuthController {
     public ResponseEntity<MessageResponseDTO> changePassword(
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequestDTO request) {
-        accountRecoveryService.changePassword(
-                authentication.getName(), request.currentPassword(), request.newPassword());
+        if (authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
+            accountRecoveryService.changePassword(
+                    tenantUser.getUserId(), request.currentPassword(), request.newPassword());
+        } else {
+            accountRecoveryService.changePassword(
+                    authentication.getName(), request.currentPassword(), request.newPassword());
+        }
         return ResponseEntity.ok(new MessageResponseDTO("Contraseña actualizada correctamente."));
     }
 
@@ -230,7 +249,7 @@ public class AuthController {
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserResponseDTO> me(Authentication authentication) {
-        return ResponseEntity.ok(mapper.toResponse(userService.findByCorreo(authentication.getName())));
+        return ResponseEntity.ok(mapper.toResponse(authenticatedUser(authentication)));
     }
 
     @Operation(summary = "Cerrar sesión")
@@ -269,7 +288,7 @@ public class AuthController {
         }
         RefreshTokenService.IssuedTokens issued = refreshTokenService.rotate(
                 refreshToken, csrfFromRequest(refreshToken, csrfHeader, csrfCookie));
-        String correo = jwtService.extractUsername(issued.accessToken());
+        JwtService.ParsedToken parsedToken = jwtService.parseToken(issued.accessToken());
         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
         addSessionCookies(response, issued);
         return response
@@ -278,7 +297,46 @@ public class AuthController {
                 "Bearer",
                 jwtService.getExpirationMs() / 1000,
                 issued.csrfToken(),
-                mapper.toResponse(userService.findByCorreo(correo))));
+                mapper.toResponse(parsedToken.userId() == null
+                        ? userService.findByCorreo(parsedToken.username())
+                        : userService.findByIdForAuthentication(parsedToken.userId()))));
+    }
+
+    private User authenticatedUser(Authentication authentication) {
+        if (authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
+            return userService.findById(tenantUser.getUserId());
+        }
+        return userService.findByCorreo(authentication.getName());
+    }
+
+    private List<LoginOrganizationOptionDTO> loginOrganizationOptions(AuthService.LoginResult login) {
+        return login.organizationChoices().stream()
+                .map(choice -> {
+                    if (choice.organizationId() == null || organizationService == null) {
+                        return new LoginOrganizationOptionDTO(choice.organizationId(), "Administración general");
+                    }
+                    var organization = organizationService.requireActive(choice.organizationId());
+                    return new LoginOrganizationOptionDTO(organization.getId(), displayName(organization));
+                })
+                .toList();
+    }
+
+    private List<LoginOrganizationOptionDTO> recoveryOrganizationOptions(List<Long> organizationIds) {
+        return organizationIds.stream()
+                .map(organizationId -> {
+                    if (organizationId == null || organizationService == null) {
+                        return new LoginOrganizationOptionDTO(organizationId, "Administración general");
+                    }
+                    var organization = organizationService.requireActive(organizationId);
+                    return new LoginOrganizationOptionDTO(organization.getId(), displayName(organization));
+                })
+                .toList();
+    }
+
+    private String displayName(com.tesoreria.organization.infrastructure.persistence.OrganizationEntity value) {
+        return value.getCourseName() == null || value.getCourseName().isBlank()
+                ? value.getName()
+                : value.getCourseName();
     }
 
     private ResponseCookie refreshCookie(String value, long maxAge) {

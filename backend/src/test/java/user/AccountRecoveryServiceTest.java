@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -57,7 +58,7 @@ class AccountRecoveryServiceTest {
         when(user.getId()).thenReturn(7L);
         when(user.getCorreo()).thenReturn("user@example.com");
         when(user.getNombre()).thenReturn("User");
-        when(users.findByCorreo("user@example.com")).thenReturn(Optional.of(user));
+        when(users.findAllByCorreo("user@example.com")).thenReturn(List.of(user));
         when(email.sendPasswordResetEmail(anyString(), anyString(), anyString()))
                 .thenReturn(true);
 
@@ -105,7 +106,7 @@ class AccountRecoveryServiceTest {
                 "https://app.example", currentOrganization, brandingService);
         when(currentOrganization.getId()).thenReturn(4L);
         when(brandingService.find(4L)).thenReturn(branding);
-        when(users.findByCorreo("apoderado@example.com")).thenReturn(Optional.empty());
+        when(users.findByCorreoAndOrganizationId("apoderado@example.com", 4L)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$mockedBcryptHash");
         when(users.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), eq(branding)))

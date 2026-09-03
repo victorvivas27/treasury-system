@@ -77,9 +77,11 @@ public class JwtService {
 
     public ParsedToken parseToken(String token) {
         Claims claims = parseClaims(token);
+        Number userId = claims.get("userId", Number.class);
         Number organizationId = claims.get("organizationId", Number.class);
         String tokenFamilyId = claims.get("tokenFamilyId", String.class);
         return new ParsedToken(claims.getSubject(), claims.getIssuedAt(), claims.getExpiration(),
+                userId == null ? null : userId.longValue(),
                 organizationId == null ? null : organizationId.longValue(),
                 tokenFamilyId == null ? null : UUID.fromString(tokenFamilyId));
     }
@@ -134,10 +136,11 @@ public class JwtService {
             String username,
             Date issuedAt,
             Date expiresAt,
+            Long userId,
             Long organizationId,
             UUID tokenFamilyId) {
         public ParsedToken(String username, Date issuedAt, Date expiresAt) {
-            this(username, issuedAt, expiresAt, null, null);
+            this(username, issuedAt, expiresAt, null, null, null);
         }
     }
 }

@@ -48,12 +48,14 @@ class NotificationServiceTest {
 
     @Test
     void sent_deberiaCargarDestinatariosEnUnaSolaConsulta() {
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         NotificationEntity first = notification(10L, "Primer aviso");
         NotificationEntity second = notification(11L, "Segundo aviso");
         UserEntity recipient = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         UserNotificationEntity firstDelivery = delivery(20L, first, recipient, false);
         UserNotificationEntity secondDelivery = delivery(21L, second, recipient, true);
-        when(notifications.findByCreatedByCorreoOrderByCreatedAtDesc("admin@mail.com"))
+        when(users.findByCorreo("admin@mail.com")).thenReturn(Optional.of(admin));
+        when(notifications.findByCreatedByIdOrderByCreatedAtDesc(1L))
                 .thenReturn(List.of(first, second));
         when(deliveries.findByNotificationIdInWithUserOrderByNotificationAndUserName(
                 argThat(ids -> ids.containsAll(List.of(10L, 11L)) && ids.size() == 2)))
@@ -196,9 +198,11 @@ class NotificationServiceTest {
 
     @Test
     void deleteSent_deberiaEliminarMensajesEntregasYNotificacionEnOrden() {
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         NotificationEntity notification = mock(NotificationEntity.class);
         when(notification.getId()).thenReturn(18L);
-        when(notifications.findByIdAndCreatedByCorreo(18L, "admin@mail.com"))
+        when(users.findByCorreo("admin@mail.com")).thenReturn(Optional.of(admin));
+        when(notifications.findByIdAndCreatedById(18L, 1L))
                 .thenReturn(Optional.of(notification));
 
         service.deleteSent(18L, "admin@mail.com");

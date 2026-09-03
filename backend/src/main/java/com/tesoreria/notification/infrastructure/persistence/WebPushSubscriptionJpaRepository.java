@@ -10,7 +10,11 @@ public interface WebPushSubscriptionJpaRepository
         extends JpaRepository<WebPushSubscriptionEntity, Long> {
     Optional<WebPushSubscriptionEntity> findByEndpoint(String endpoint);
     void deleteByEndpointAndUserCorreo(String endpoint, String correo);
+    void deleteByEndpointAndUserId(String endpoint, Long userId);
 
     @EntityGraph(attributePaths = "user")
     List<WebPushSubscriptionEntity> findByUserCorreoIn(Collection<String> correos);
+
+    @EntityGraph(attributePaths = "user")
+    List<WebPushSubscriptionEntity> findByUserIdIn(Collection<Long> userIds);
 }

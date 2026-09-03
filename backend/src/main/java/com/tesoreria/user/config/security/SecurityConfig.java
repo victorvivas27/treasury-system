@@ -52,6 +52,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/forgot-password",
                                 "/api/v1/auth/reset-password")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/organizations/login-options")
+                        .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .hasRole("ADMIN")
                         .requestMatchers("/api/v1/organizations/**").hasRole("SUPER_ADMIN")

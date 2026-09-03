@@ -60,7 +60,8 @@ class UserServiceTest {
 
         @Test
         void create_deberiaRechazarCorreoDuplicado() {
-            when(repository.existsByCorreo(user.getCorreo())).thenReturn(true);
+            when(repository.existsByCorreoAndOrganizationId(user.getCorreo(), user.getOrganizationId()))
+                    .thenReturn(true);
             assertThrows(EmailAlreadyExistsException.class, () -> service.create(user));
             verify(repository, never()).save(user);
         }
@@ -124,7 +125,8 @@ class UserServiceTest {
             User changes = user(null, "admin@mail.com", RoleEnum.USER);
             String currentPassword = user.getPassword();
             when(repository.findById(1L)).thenReturn(Optional.of(user));
-            when(repository.findByCorreo(changes.getCorreo())).thenReturn(Optional.of(user));
+            when(repository.findByCorreoAndOrganizationId(
+                    changes.getCorreo(), user.getOrganizationId())).thenReturn(Optional.of(user));
             when(repository.save(user)).thenReturn(user);
 
             User result = service.update(1L, changes, user.getCorreo());

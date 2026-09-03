@@ -38,4 +38,5 @@ public interface NotificationReplyJpaRepository extends JpaRepository<Notificati
             + "or reply.delivery.notification.createdBy.id = :userId)")
     List<NotificationReplyEntity> findUnreadReceived(@Param("userId") Long userId);
     Optional<NotificationReplyEntity> findByIdAndAuthorCorreo(Long id, String correo);
+    Optional<NotificationReplyEntity> findByIdAndAuthorId(Long id, Long authorId);
 }
