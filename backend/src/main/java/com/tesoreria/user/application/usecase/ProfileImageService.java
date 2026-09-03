@@ -1,12 +1,14 @@
 package com.tesoreria.user.application.usecase;
 
 import com.tesoreria.organization.application.CurrentOrganizationService;
+import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.treasury.core.port.out.FileStorageService;
 import com.tesoreria.user.core.constant.ProfileImageType;
 import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -103,6 +105,12 @@ public class ProfileImageService {
     }
 
     private User find(String email) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
+            return users.findById(tenantUser.getUserId()).orElseThrow(() ->
+                    new DomainException("user", HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        }
         return users.findByCorreo(email).orElseThrow(() ->
                 new DomainException("user", HttpStatus.NOT_FOUND, "Usuario no encontrado"));
     }

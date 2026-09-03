@@ -9,6 +9,7 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.shared.infrastructure.web.EstadoActivoRequest;
+import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
@@ -30,16 +31,19 @@ public class ApoderadoController {
     private final ApoderadoMapper mapper;
     private final UserRepositoryOutPort users;
     private final AccountRecoveryService accountRecovery;
+    private final CurrentOrganizationService currentOrganization;
 
     public ApoderadoController(
             ApoderadoService apoderadoService,
             ApoderadoMapper mapper,
             UserRepositoryOutPort users,
-            AccountRecoveryService accountRecovery) {
+            AccountRecoveryService accountRecovery,
+            CurrentOrganizationService currentOrganization) {
         this.apoderadoService = apoderadoService;
         this.mapper = mapper;
         this.users = users;
         this.accountRecovery = accountRecovery;
+        this.currentOrganization = currentOrganization;
     }
 
     @PostMapping
@@ -58,9 +62,9 @@ public class ApoderadoController {
         PageRequest pageRequest = new PageRequest(page, size, null, null, search);
 
         PageResponse<Apoderado> result = apoderadoService.findAll(pageRequest);
-        Map<String, User> usersByEmail = users.findByCorreos(result.content().stream()
+        Map<String, User> usersByEmail = users.findByCorreosAndOrganizationId(result.content().stream()
                         .map(Apoderado::getEmail)
-                        .toList())
+                        .toList(), currentOrganization.getId())
                 .stream()
                 .collect(Collectors.toMap(User::getCorreo, Function.identity(),
                         (first, second) -> first));
@@ -113,7 +117,7 @@ public class ApoderadoController {
     }
 
     private ApoderadoResponse response(Apoderado guardian) {
-        String status = users.findByCorreo(guardian.getEmail())
+        String status = users.findByCorreoAndOrganizationId(guardian.getEmail(), currentOrganization.getId())
                 .map(this::accessStatus).orElse("SIN_ACCESO");
         return mapper.toResponse(guardian, status);
     }

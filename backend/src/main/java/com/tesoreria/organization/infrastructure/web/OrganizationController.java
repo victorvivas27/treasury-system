@@ -29,6 +29,16 @@ public class OrganizationController {
         return organizations.findAll().stream().map(this::response).toList();
     }
 
+    @GetMapping("/login-options")
+    @PreAuthorize("permitAll()")
+    public List<OrganizationLoginOptionResponse> loginOptions() {
+        return organizations.findAll().stream()
+                .filter(OrganizationEntity::isActive)
+                .map(value -> new OrganizationLoginOptionResponse(
+                        value.getId(), displayName(value), value.getSlug(), value.getType().name()))
+                .toList();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrganizationResponse create(@Valid @RequestBody OrganizationRequest request) {
@@ -93,5 +103,11 @@ public class OrganizationController {
                 value.getType(), value.isActive(), value.getCourseName(), value.getSchoolYear(),
                 value.getSenderName(), value.getReplyToEmail(),
                 value.getCreatedAt(), value.getUpdatedAt());
+    }
+
+    private String displayName(OrganizationEntity value) {
+        return value.getCourseName() == null || value.getCourseName().isBlank()
+                ? value.getName()
+                : value.getCourseName();
     }
 }

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
-import type { LoginResponse } from "@/core/A-domain/entities/auth/Auth";
+import type { LoginOrganizationOption, LoginResponse } from "@/core/A-domain/entities/auth/Auth";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
+import { RxEyeClosed } from "react-icons/rx";
+import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
 import "./AccountFlowPages.css";
 
@@ -125,6 +127,8 @@ export const ForgotPasswordPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
+  const [organizationOptions, setOrganizationOptions] = useState<LoginOrganizationOption[]>([]);
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -135,7 +139,18 @@ export const ForgotPasswordPage = () => {
     setMessage("");
     requestingRef.current = true;
     setLoading(true);
-    try { setSuccessMessage(await repository.forgotPassword(email)); }
+    try {
+      const response = await repository.forgotPassword(
+        email, organizationId ? Number(organizationId) : undefined);
+      if (response.requiresOrganizationSelection) {
+        const options = response.organizationOptions ?? [];
+        setOrganizationOptions(options);
+        setOrganizationId(options[0]?.id ? String(options[0].id) : "");
+        setMessage("");
+        return;
+      }
+      setSuccessMessage(response.message);
+    }
     catch { setMessage("No fue posible procesar la solicitud. Intenta más tarde."); }
     finally {
       requestingRef.current = false;
@@ -146,7 +161,22 @@ export const ForgotPasswordPage = () => {
   return <>
     <Shell title="Olvidé mi contraseña" message={message}>
       <form onSubmit={submit}>
-        <label>Correo<input type="email" value={email} onChange={e => setEmail(e.target.value)}
+        {organizationOptions.length > 0 && (
+          <label>Curso
+            <select value={organizationId} onChange={e => setOrganizationId(e.target.value)} required>
+              {organizationOptions.map((organization) => (
+                <option key={organization.id} value={organization.id}>
+                  {organization.slug === "default" ? "Administración general" : organization.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label>Correo<input type="email" value={email} onChange={e => {
+          setEmail(e.target.value);
+          setOrganizationOptions([]);
+          setOrganizationId("");
+        }}
           placeholder="Ej: nombre@correo.cl" autoComplete="email" required /></label>
         <Button type="submit" label="Enviar instrucciones" loading={loading}
           onClick={() => {}} size="large" className="auth-flow__action" />
@@ -164,6 +194,7 @@ export const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const token = params.get("token") ?? "";
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -192,9 +223,22 @@ export const ResetPasswordPage = () => {
     <Shell title="Crear nueva contraseña" message={message}>
       <form onSubmit={submit}>
         <input type="hidden" name="recoveryToken" value={token} />
-        <label>Nueva contraseña<input type="password" value={password}
-          onChange={e => setPassword(e.target.value)} placeholder="Ej: ClaveSegura1!"
-          autoComplete="new-password" required /></label>
+        <label>Nueva contraseña
+          <span className="auth-flow__password-field">
+            <input type={showPassword ? "text" : "password"} value={password}
+              onChange={e => setPassword(e.target.value)} placeholder="Ej: ClaveSegura1!"
+              autoComplete="new-password" required />
+            <button
+              className="auth-flow__password-toggle"
+              type="button"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword(visible => !visible)}
+            >
+              {showPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
+            </button>
+          </span>
+        </label>
         <Button type="submit" label="Actualizar contraseña" loading={loading}
           onClick={() => {}} size="large" className="auth-flow__action" />
       </form>

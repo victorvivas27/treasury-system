@@ -19,7 +19,10 @@ public interface UserRepositoryOutPort {
     Optional<User> findByCodeAndOrganizationId(String code, Long organizationId);
 
     Optional<User> findByCorreo(String correo);
+    Optional<User> findByCorreoAndOrganizationId(String correo, Long organizationId);
+    List<User> findAllByCorreo(String correo);
     List<User> findByCorreos(Collection<String> correos);
+    List<User> findByCorreosAndOrganizationId(Collection<String> correos, Long organizationId);
 
     PageResponse<User> findAll(PageRequest request);
     PageResponse<User> findAllByOrganizationId(PageRequest request, Long organizationId);
@@ -27,6 +30,7 @@ public interface UserRepositoryOutPort {
     boolean existsByCode(String code);
 
     boolean existsByCorreo(String correo);
+    boolean existsByCorreoAndOrganizationId(String correo, Long organizationId);
 
     long countByRol(RoleEnum rol);
     long countByRolAndOrganizationId(RoleEnum rol, Long organizationId);

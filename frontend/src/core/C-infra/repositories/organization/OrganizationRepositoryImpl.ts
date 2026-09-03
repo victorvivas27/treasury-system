@@ -4,6 +4,7 @@ import type {
   DeleteOrganizationPayload,
   Organization,
   OrganizationAdmin,
+  OrganizationLoginOption,
   OrganizationCoursePayload,
   OrganizationEmailPayload,
 } from "@/core/A-domain/entities/organization/Organization";
@@ -14,6 +15,10 @@ export class OrganizationRepositoryImpl {
 
   async getAll(): Promise<Organization[]> {
     return (await apiClient.get<Organization[]>(this.baseUrl)).data;
+  }
+
+  async getLoginOptions(): Promise<OrganizationLoginOption[]> {
+    return (await apiClient.get<OrganizationLoginOption[]>(`${this.baseUrl}/login-options`)).data;
   }
 
   async create(payload: CreateOrganizationPayload): Promise<Organization> {

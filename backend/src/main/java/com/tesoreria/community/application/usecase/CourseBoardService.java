@@ -34,7 +34,8 @@ public class CourseBoardService {
                 .map(member -> {
             var parent = apoderados.findById(member.getApoderadoId()).orElseThrow(
                     () -> error(HttpStatus.NOT_FOUND, "Apoderado de la directiva no encontrado"));
-            var user = users.findByCorreo(parent.getEmail()).orElse(null);
+            var user = users.findByCorreoAndOrganizationId(
+                    parent.getEmail(), parent.getOrganizationId()).orElse(null);
             return new MemberView(member.getId(), member.getElectionYear(), member.getRole(),
                     member.getPositionNumber(), parent.getCodigo(), parent.getNombre(), parent.getEmail(),
                     user == null ? "INITIALS" : user.getProfileImageType().name(),

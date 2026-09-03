@@ -1,4 +1,5 @@
 import type { User } from "@/core/A-domain/entities/user/User";
+import type { LoginResponse } from "@/core/A-domain/entities/auth/Auth";
 import { GetCurrentUserUseCase } from "@/core/B-application/use-cases/auth/GetCurrentUserUseCase";
 import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
 import { LogoutUseCase } from "@/core/B-application/use-cases/auth/LogoutUseCase";
@@ -36,7 +37,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (correo: string, password: string) => Promise<void>;
+  login: (correo: string, password: string, organizationId?: number) => Promise<LoginResponse>;
   establishSession: (response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => void;
   logout: () => Promise<void>;
   syncUser: (updatedUser: User) => void;
@@ -180,6 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       useCases.refresh()
         .then((response) => {
+          if (!response.token || !response.user) throw new Error("Respuesta de sesión inválida");
           setAccessToken(response.token);
           setCsrfToken(response.csrfToken);
           sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
@@ -214,10 +216,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => setLoading(false));
   }, [token, useCases, clearSession]);
 
-  const login = async (correo: string, password: string) => {
+  const login = async (correo: string, password: string, organizationId?: number) => {
     setLoading(true);
     try {
-      const response = await useCases.login.execute({ correo, password });
+      const response = await useCases.login.execute({ correo, password, organizationId });
+      if (response.requiresOrganizationSelection) return response;
+      if (!response.token || !response.user) throw new Error("Respuesta de login inválida");
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
       setAccessToken(response.token);
       setCsrfToken(response.csrfToken);
@@ -228,12 +232,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSessionExpired(false);
       setToken(response.token);
       setUser(response.user);
+      return response;
     } finally {
       setLoading(false);
     }
   };
 
   const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
+    if (!response.token || !response.user) throw new Error("Respuesta de sesión inválida");
     localStorage.removeItem(MANUAL_LOGOUT_KEY);
     setAccessToken(response.token);
     setCsrfToken(response.csrfToken);

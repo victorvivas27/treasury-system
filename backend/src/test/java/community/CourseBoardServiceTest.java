@@ -41,7 +41,7 @@ class CourseBoardServiceTest {
             return List.of(member);
         });
         when(parents.findById(7L)).thenReturn(Optional.of(parent));
-        when(users.findByCorreo("ana@correo.cl")).thenReturn(Optional.empty());
+        when(users.findByCorreoAndOrganizationId("ana@correo.cl", null)).thenReturn(Optional.empty());
         var result = service.assign(year, "presidente", 1, "AP-12345678");
         assertAll(() -> assertEquals("Ana Pérez", result.nombre()),
                 () -> assertEquals("INITIALS", result.profileImageType()));
@@ -75,7 +75,7 @@ class CourseBoardServiceTest {
         when(members.findAllByElectionYearOrderByRoleAscPositionNumberAsc(year))
                 .thenReturn(List.of(pastoral, treasurer, president));
         when(parents.findById(7L)).thenReturn(Optional.of(parent));
-        when(users.findByCorreo("ana@correo.cl")).thenReturn(Optional.empty());
+        when(users.findByCorreoAndOrganizationId("ana@correo.cl", null)).thenReturn(Optional.empty());
         assertEquals(List.of("PRESIDENTE", "TESORERO", "PASTORAL"),
                 service.list(year).stream().map(CourseBoardService.MemberView::role).toList());
     }

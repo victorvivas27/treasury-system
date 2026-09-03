@@ -2,6 +2,9 @@ package user;
 
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.exception.GlobalExceptionHandler;
+import com.tesoreria.organization.application.OrganizationService;
+import com.tesoreria.organization.core.model.OrganizationType;
+import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.user.application.usecase.AuthService;
 import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
@@ -42,6 +45,7 @@ class AuthControllerTest {
     private TokenRevocationService revocationService;
     private RegistrationRateLimiter registrationRateLimiter;
     private RefreshTokenService refreshTokenService;
+    private OrganizationService organizationService;
     private User user;
     private UserResponseDTO response;
 
@@ -54,10 +58,12 @@ class AuthControllerTest {
         revocationService = mock(TokenRevocationService.class);
         registrationRateLimiter = mock(RegistrationRateLimiter.class);
         refreshTokenService = mock(RefreshTokenService.class);
+        organizationService = mock(OrganizationService.class);
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new AuthController(
                         authService, userService, mapper, jwtService, revocationService, registrationRateLimiter,
-                        null, "", false, null, refreshTokenService, false, "Lax", "/tesoreria"))
+                        null, "", false, null, refreshTokenService, organizationService,
+                        false, "Lax", "/tesoreria"))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         user = new User(
@@ -72,10 +78,11 @@ class AuthControllerTest {
 
     @Test
     void loginExitoso_deberiaRetornarJwt() throws Exception {
-        when(authService.login("admin@mail.com", "Password1!")).thenReturn("jwt");
-        when(refreshTokenService.issue(eq("admin@mail.com"), any(), any()))
+        when(authService.login("admin@mail.com", "Password1!", null))
+                .thenReturn(new AuthService.LoginResult("jwt", 1L));
+        when(refreshTokenService.issueForUserId(eq(1L), any(), any()))
                 .thenReturn(new RefreshTokenService.IssuedTokens("access", "refresh", "csrf"));
-        when(userService.findByCorreo("admin@mail.com")).thenReturn(user);
+        when(userService.findByIdForAuthentication(1L)).thenReturn(user);
         when(jwtService.getExpirationMs()).thenReturn(900_000L);
         var result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,7 +104,7 @@ class AuthControllerTest {
 
     @Test
     void loginFallido_deberiaRetornar401() throws Exception {
-        when(authService.login("admin@mail.com", "Password1!"))
+        when(authService.login("admin@mail.com", "Password1!", null))
                 .thenThrow(new DomainException(
                         UserErrorCode.INVALID_CREDENTIALS.getField(),
                         UserErrorCode.INVALID_CREDENTIALS.getStatus(),
@@ -107,6 +114,28 @@ class AuthControllerTest {
                         .content(loginBody()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errors.auth").exists());
+    }
+
+    @Test
+    void loginConCorreoEnDosCursos_deberiaPedirSeleccionDeCurso() throws Exception {
+        OrganizationEntity first = organization(4L, "3B");
+        OrganizationEntity second = organization(5L, "1A");
+        when(authService.login("admin@mail.com", "Password1!", null))
+                .thenReturn(new AuthService.LoginResult(null, null, java.util.List.of(
+                        new AuthService.LoginOrganizationChoice(4L),
+                        new AuthService.LoginOrganizationChoice(5L))));
+        when(organizationService.requireActive(4L)).thenReturn(first);
+        when(organizationService.requireActive(5L)).thenReturn(second);
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginBody()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requiresOrganizationSelection").value(true))
+                .andExpect(jsonPath("$.organizationOptions[0].id").value(4))
+                .andExpect(jsonPath("$.organizationOptions[0].name").value("3B"))
+                .andExpect(jsonPath("$.organizationOptions[1].id").value(5))
+                .andExpect(jsonPath("$.token").doesNotExist());
     }
 
     @Test
@@ -145,9 +174,10 @@ class AuthControllerTest {
     void refresh_conCsrfValido_deberiaRotarCookies() throws Exception {
         when(refreshTokenService.rotate("refresh", "csrf"))
                 .thenReturn(new RefreshTokenService.IssuedTokens("new-access", "new-refresh", "new-csrf"));
-        when(jwtService.extractUsername("new-access")).thenReturn("admin@mail.com");
+        when(jwtService.parseToken("new-access")).thenReturn(new JwtService.ParsedToken(
+                "admin@mail.com", new java.util.Date(), new java.util.Date(), 1L, 3L, null));
         when(jwtService.getExpirationMs()).thenReturn(900_000L);
-        when(userService.findByCorreo("admin@mail.com")).thenReturn(user);
+        when(userService.findByIdForAuthentication(1L)).thenReturn(user);
 
         var result = mockMvc.perform(post("/api/v1/auth/refresh")
                         .header("X-CSRF-Token", "csrf")
@@ -194,5 +224,16 @@ class AuthControllerTest {
                   "rol":"ADMIN"
                 }
                 """;
+    }
+
+    private OrganizationEntity organization(Long id, String name) {
+        OrganizationEntity organization = new OrganizationEntity();
+        organization.setId(id);
+        organization.setName(name);
+        organization.setSlug(name.toLowerCase(java.util.Locale.ROOT));
+        organization.setType(OrganizationType.COURSE);
+        organization.setActive(true);
+        organization.setSchoolYear(2026);
+        return organization;
     }
 }

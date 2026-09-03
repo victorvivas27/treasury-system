@@ -4,6 +4,7 @@ import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.Apo
 import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
 import com.tesoreria.notification.infrastructure.persistence.*;
 import com.tesoreria.notification.infrastructure.web.*;
+import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.exception.UserErrorCode;
@@ -11,6 +12,7 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEnti
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -65,9 +67,11 @@ public class NotificationService {
         }).toList();
         deliveries.saveAll(rows);
         List<String> recipientEmails = recipients.stream().map(UserEntity::getCorreo).toList();
+        List<Long> recipientUserIds = recipients.stream().map(UserEntity::getId).toList();
         events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipientEmails));
         events.publishEvent(new PushRequestedEvent("notification-" + saved.getId(),
-                saved.getTitle(), saved.getMessage(), NOTIFICATIONS_PATH, recipientEmails));
+                saved.getTitle(), saved.getMessage(), NOTIFICATIONS_PATH,
+                recipientEmails, recipientUserIds));
         return rows.size();
     }
 
@@ -81,14 +85,20 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public long unreadCount(String email) {
         UserEntity user = currentUser(email);
-        long notificationCount = deliveries.countByUserIdAndReadFalseAndVisibleTrue(user.getId());
-        return notificationCount + replyRepository.countUnreadReceived(user.getId());
+        return unreadCount(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public long unreadCount(Long userId) {
+        long notificationCount = deliveries.countByUserIdAndReadFalseAndVisibleTrue(userId);
+        return notificationCount + replyRepository.countUnreadReceived(userId);
     }
 
     @Transactional(readOnly = true)
     public List<SentNotificationResponse> sent(String creatorEmail) {
+        UserEntity creator = currentUser(creatorEmail);
         List<NotificationEntity> sentNotifications = notifications
-                .findByCreatedByCorreoOrderByCreatedAtDesc(creatorEmail);
+                .findByCreatedByIdOrderByCreatedAtDesc(creator.getId());
         if (sentNotifications.isEmpty()) return List.of();
         Map<Long, List<UserNotificationEntity>> recipientsByNotification = new LinkedHashMap<>();
         sentNotifications.forEach(notification ->
@@ -145,7 +155,8 @@ public class NotificationService {
 
     @Transactional
     public void deleteSent(Long id, String creatorEmail) {
-        NotificationEntity notification = notifications.findByIdAndCreatedByCorreo(id, creatorEmail)
+        UserEntity creator = currentUser(creatorEmail);
+        NotificationEntity notification = notifications.findByIdAndCreatedById(id, creator.getId())
                 .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación enviada no encontrada"));
         replyRepository.deleteAllByNotificationId(notification.getId());
@@ -187,7 +198,7 @@ public class NotificationService {
         String recipientEmail = otherParticipantEmail(delivery, author);
         events.publishEvent(new PushRequestedEvent("reply-" + saved.getId(),
                 "Nuevo mensaje de " + author.getNombre(), saved.getMessage(), NOTIFICATIONS_PATH,
-                List.of(recipientEmail)));
+                List.of(recipientEmail), List.of(otherParticipantId(delivery, author))));
         return replyResponse(saved);
     }
 
@@ -205,7 +216,7 @@ public class NotificationService {
         String recipientEmail = otherParticipantEmail(delivery, author);
         events.publishEvent(new PushRequestedEvent("reply-" + reply.getId(),
                 "Nuevo mensaje de " + author.getNombre(), reply.getMessage(), NOTIFICATIONS_PATH,
-                List.of(recipientEmail)));
+                List.of(recipientEmail), List.of(otherParticipantId(delivery, author))));
         return new RealtimeReply(deliveryId, saved, recipientEmail);
     }
 
@@ -242,7 +253,7 @@ public class NotificationService {
                 List.of(admin.getCorreo())));
         events.publishEvent(new PushRequestedEvent("reply-" + reply.getId(),
                 "Nuevo mensaje de " + guardian.getNombre(), reply.getMessage(), NOTIFICATIONS_PATH,
-                List.of(admin.getCorreo())));
+                List.of(admin.getCorreo()), List.of(admin.getId())));
         return new RealtimeReply(savedDelivery.getId(), savedReply, admin.getCorreo());
     }
 
@@ -298,7 +309,8 @@ public class NotificationService {
     }
 
     private NotificationReplyEntity ownEditableReply(Long id, String email) {
-        NotificationReplyEntity reply = replyRepository.findByIdAndAuthorCorreo(id, email)
+        UserEntity author = currentUser(email);
+        NotificationReplyEntity reply = replyRepository.findByIdAndAuthorId(id, author.getId())
                 .orElseThrow(() -> error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
         if (reply.getCreatedAt().plusMinutes(MESSAGE_EDIT_MINUTES).isBefore(LocalDateTime.now()))
             throw error(MESSAGE_FIELD, HttpStatus.CONFLICT,
@@ -324,6 +336,12 @@ public class NotificationService {
                 ? delivery.getUser().getCorreo() : creator.getCorreo();
     }
 
+    private Long otherParticipantId(UserNotificationEntity delivery, UserEntity author) {
+        UserEntity creator = delivery.getNotification().getCreatedBy();
+        return author.getId().equals(creator.getId())
+                ? delivery.getUser().getId() : creator.getId();
+    }
+
     private NotificationReplyResponse replyResponse(NotificationReplyEntity reply) {
         UserEntity author = reply.getAuthor();
         return new NotificationReplyResponse(reply.getId(), author.getId(),
@@ -334,7 +352,8 @@ public class NotificationService {
 
     private List<UserEntity> resolveRecipients(NotificationRequest request, Long organizationId) {
         if (request.sendToAll()) return guardians.findAll().stream()
-                .map(guardian -> users.findByCorreo(guardian.getEmail()).orElse(null))
+                .map(guardian -> users.findByCorreoAndOrganizationId(
+                        guardian.getEmail(), organizationId).orElse(null))
                 .filter(Objects::nonNull)
                 .filter(user -> Objects.equals(organizationId, user.getOrganizationId()))
                 .filter(user -> user.getRol() == RoleEnum.USER)
@@ -343,7 +362,8 @@ public class NotificationService {
         List<ApoderadoEntity> selected = guardians.findAllById(new LinkedHashSet<>(request.recipientIds()));
         if (selected.size() != new HashSet<>(request.recipientIds()).size())
             throw error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST, "Uno o más apoderados no existen");
-        List<UserEntity> resolved = selected.stream().map(guardian -> users.findByCorreo(guardian.getEmail())
+        List<UserEntity> resolved = selected.stream().map(guardian -> users
+                .findByCorreoAndOrganizationId(guardian.getEmail(), organizationId)
                 .orElseThrow(() -> error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST,
                         "El apoderado " + guardian.getNombre() + " todavía no tiene acceso"))).toList();
         if (resolved.stream().anyMatch(user -> !Objects.equals(organizationId, user.getOrganizationId())))
@@ -354,6 +374,13 @@ public class NotificationService {
     }
 
     private UserEntity currentUser(String email) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
+            return users.findById(tenantUser.getUserId()).orElseThrow(() ->
+                    new DomainException(UserErrorCode.NOT_FOUND.getField(),
+                            UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));
+        }
         return users.findByCorreo(email).orElseThrow(() ->
                 new DomainException(UserErrorCode.NOT_FOUND.getField(),
                         UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));

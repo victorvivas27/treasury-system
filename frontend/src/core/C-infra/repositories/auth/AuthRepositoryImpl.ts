@@ -1,4 +1,4 @@
-import type { LoginPayload, LoginResponse } from "@/core/A-domain/entities/auth/Auth";
+import type { AuthMessageResponse, LoginPayload, LoginResponse } from "@/core/A-domain/entities/auth/Auth";
 import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
 import type { IAuthRepository } from "@/core/A-domain/repository/auth/IAuthRepository";
 import { apiClient } from "@/core/D-config/api";
@@ -42,14 +42,16 @@ export class AuthRepositoryImpl implements IAuthRepository {
     return (await apiClient.post<LoginResponse>(`${this.baseUrl}/verify-email`, { token })).data;
   }
 
-  async resendVerification(email: string): Promise<string> {
-    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/resend-verification`, { email }))
+  async resendVerification(email: string, organizationId?: number): Promise<string> {
+    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/resend-verification`,
+      { email, organizationId }))
       .data.message;
   }
 
-  async forgotPassword(email: string): Promise<string> {
-    return (await apiClient.post<{ message: string }>(`${this.baseUrl}/forgot-password`, { email }))
-      .data.message;
+  async forgotPassword(email: string, organizationId?: number): Promise<AuthMessageResponse> {
+    return (await apiClient.post<AuthMessageResponse>(`${this.baseUrl}/forgot-password`,
+      { email, organizationId }))
+      .data;
   }
 
   async resetPassword(token: string, newPassword: string): Promise<string> {

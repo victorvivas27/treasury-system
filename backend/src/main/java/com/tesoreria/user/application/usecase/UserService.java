@@ -49,7 +49,7 @@ public class UserService implements UserUseCase {
         } else if (user.getOrganizationId() == null && defaultOrganization != null) {
             user.setOrganizationId(defaultOrganization.getId());
         }
-        if (repository.existsByCorreo(user.getCorreo())) {
+        if (repository.existsByCorreoAndOrganizationId(user.getCorreo(), user.getOrganizationId())) {
             throw new EmailAlreadyExistsException(user.getCorreo());
         }
         if (user.getCode() == null) {
@@ -84,6 +84,11 @@ public class UserService implements UserUseCase {
                 .orElseThrow(() -> new UserNotFoundException("Usuario con ID " + id + NOT_FOUND_SUFFIX));
     }
 
+    public User findByIdForAuthentication(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario con ID " + id + NOT_FOUND_SUFFIX));
+    }
+
     @Override
     public User findByCode(String code) {
         return (currentOrganization == null || currentOrganization.isSuperAdmin()
@@ -100,13 +105,14 @@ public class UserService implements UserUseCase {
     }
 
     public User findByCorreoInCurrentOrganization(String correo) {
-        User user = findByCorreo(correo);
-        if (currentOrganization != null && !currentOrganization.isSuperAdmin()
-                && user.getOrganizationId() != null
-                && !currentOrganization.getId().equals(user.getOrganizationId())) {
-            throw new UserNotFoundException("Usuario con correo " + correo + NOT_FOUND_SUFFIX);
+        if (currentOrganization != null && !currentOrganization.isSuperAdmin()) {
+            Long organizationId = currentOrganization.getId();
+            return repository.findByCorreoAndOrganizationId(
+                            correo.toLowerCase(Locale.ROOT), organizationId)
+                    .orElseThrow(() -> new UserNotFoundException(
+                            "Usuario con correo " + correo + NOT_FOUND_SUFFIX));
         }
-        return user;
+        return findByCorreo(correo);
     }
 
     @Override
@@ -124,7 +130,7 @@ public class UserService implements UserUseCase {
     @Transactional
     public User update(Long id, User changes, String authenticatedEmail) {
         User existing = findById(id);
-        repository.findByCorreo(changes.getCorreo())
+        repository.findByCorreoAndOrganizationId(changes.getCorreo(), existing.getOrganizationId())
                 .filter(other -> !other.getId().equals(id))
                 .ifPresent(other -> {
                     throw new EmailAlreadyExistsException(changes.getCorreo());

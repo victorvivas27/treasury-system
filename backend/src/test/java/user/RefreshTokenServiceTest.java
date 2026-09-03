@@ -49,8 +49,8 @@ class RefreshTokenServiceTest {
 
     @Test
     void issue_guardaHashYEntregaTokens() {
-        when(userRepository.findByCorreo("admin@mail.com")).thenReturn(Optional.of(user));
-        when(userDetailsService.loadUserByUsername("admin@mail.com")).thenReturn(details);
+        when(userRepository.findFirstByCorreoOrderByIdAsc("admin@mail.com")).thenReturn(Optional.of(user));
+        when(userDetailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(eq(details), any(UUID.class))).thenReturn("access");
 
         RefreshTokenService.IssuedTokens issued = service.issue("ADMIN@MAIL.COM");
@@ -75,8 +75,7 @@ class RefreshTokenServiceTest {
         when(tokenRepository.findByTokenHashAndType(anyString(), eq(UserTokenType.REFRESH_TOKEN)))
                 .thenReturn(Optional.of(current));
         when(userRepository.findById(7L)).thenReturn(Optional.of(user));
-        when(userRepository.findByCorreo("admin@mail.com")).thenReturn(Optional.of(user));
-        when(userDetailsService.loadUserByUsername("admin@mail.com")).thenReturn(details);
+        when(userDetailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(eq(details), any(UUID.class))).thenReturn("new-access");
 
         RefreshTokenService.IssuedTokens issued = service.rotate("old-refresh");

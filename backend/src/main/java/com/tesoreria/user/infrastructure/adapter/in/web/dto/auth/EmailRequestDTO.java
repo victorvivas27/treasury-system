@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record EmailRequestDTO(
         @NotBlank(message = "El correo es obligatorio")
-        @Email(message = "El correo debe tener un formato válido")
-        String email) {
+        @Email(message = "El correo debe tener un formato valido")
+        String email,
+        Long organizationId) {
 }

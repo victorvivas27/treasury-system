@@ -8,6 +8,7 @@ import com.tesoreria.apoderado.infrastructure.adapter.in.web.controller.Apoderad
 import com.tesoreria.apoderado.infrastructure.adapter.in.web.mapper.ApoderadoMapper;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
+import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
@@ -25,9 +26,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ApoderadoControllerTest {
@@ -41,6 +44,8 @@ class ApoderadoControllerTest {
     private UserRepositoryOutPort users;
     @Mock
     private AccountRecoveryService accountRecovery;
+    @Mock
+    private CurrentOrganizationService currentOrganization;
 
     private ApoderadoController controller;
     private Apoderado guardian;
@@ -48,7 +53,8 @@ class ApoderadoControllerTest {
     @BeforeEach
     void setUp() {
         controller = new ApoderadoController(
-                apoderadoService, new ApoderadoMapper(), users, accountRecovery);
+                apoderadoService, new ApoderadoMapper(), users, accountRecovery, currentOrganization);
+        lenient().when(currentOrganization.getId()).thenReturn(4L);
         guardian = new Apoderado(1L, CODE, "Administrador Colegio", EMAIL,
                 "+56912345678", null, true, null, null);
     }
@@ -56,7 +62,7 @@ class ApoderadoControllerTest {
     @Test
     void findByCodigo_deberiaMostrarActivoCuandoElApoderadoYaEsAdminHabilitado() {
         when(apoderadoService.findByCodigo(CODE)).thenReturn(guardian);
-        when(users.findByCorreo(EMAIL)).thenReturn(Optional.of(user(RoleEnum.ADMIN)));
+        when(users.findByCorreoAndOrganizationId(EMAIL, 4L)).thenReturn(Optional.of(user(RoleEnum.ADMIN)));
 
         ResponseEntity<ApoderadoResponse> result = controller.findByCodigo(CODE);
 
@@ -71,7 +77,7 @@ class ApoderadoControllerTest {
         request.setTelefono("+56912345678");
         when(apoderadoService.create(org.mockito.ArgumentMatchers.any(Apoderado.class)))
                 .thenReturn(guardian);
-        when(users.findByCorreo(EMAIL)).thenReturn(Optional.of(user(RoleEnum.ADMIN)));
+        when(users.findByCorreoAndOrganizationId(EMAIL, 4L)).thenReturn(Optional.of(user(RoleEnum.ADMIN)));
 
         ResponseEntity<ApoderadoResponse> result = controller.create(request);
 
@@ -81,7 +87,7 @@ class ApoderadoControllerTest {
     @Test
     void findByCodigo_deberiaMantenerPendienteUnUsuarioComunSinVerificar() {
         when(apoderadoService.findByCodigo(CODE)).thenReturn(guardian);
-        when(users.findByCorreo(EMAIL)).thenReturn(Optional.of(user(RoleEnum.USER)));
+        when(users.findByCorreoAndOrganizationId(EMAIL, 4L)).thenReturn(Optional.of(user(RoleEnum.USER)));
 
         ResponseEntity<ApoderadoResponse> result = controller.findByCodigo(CODE);
 
@@ -95,8 +101,8 @@ class ApoderadoControllerTest {
         PageRequest request = new PageRequest(0, 20, null, null, "");
         when(apoderadoService.findAll(request)).thenReturn(new PageResponse<>(
                 List.of(guardian, secondGuardian), 0, 20, 2, 1));
-        when(users.findByCorreos(argThat(emails ->
-                emails.containsAll(List.of(EMAIL, "user@mail.com")) && emails.size() == 2)))
+        when(users.findByCorreosAndOrganizationId(argThat(emails ->
+                emails.containsAll(List.of(EMAIL, "user@mail.com")) && emails.size() == 2), eq(4L)))
                 .thenReturn(List.of(user(RoleEnum.ADMIN), user(RoleEnum.USER)));
 
         ResponseEntity<PageResponse<ApoderadoResponse>> result = controller.findAll(0, 20, "");
@@ -104,8 +110,8 @@ class ApoderadoControllerTest {
         assertEquals(2, result.getBody().content().size());
         assertEquals("ACTIVO", result.getBody().content().get(0).accessStatus());
         assertEquals("INVITACION_PENDIENTE", result.getBody().content().get(1).accessStatus());
-        verify(users).findByCorreos(argThat(emails ->
-                emails.containsAll(List.of(EMAIL, "user@mail.com")) && emails.size() == 2));
+        verify(users).findByCorreosAndOrganizationId(argThat(emails ->
+                emails.containsAll(List.of(EMAIL, "user@mail.com")) && emails.size() == 2), eq(4L));
         verify(users, never()).findByCorreo(anyString());
     }
 

@@ -25,7 +25,9 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -81,7 +83,11 @@ public class AccountRecoveryService {
 
     @Transactional
     public User register(User user) {
-        if (users.existsByCorreo(user.getCorreo())) throw new EmailAlreadyExistsException(user.getCorreo());
+        Long organizationId = currentOrganization == null ? null : currentOrganization.getId();
+        user.setOrganizationId(organizationId);
+        if (users.existsByCorreoAndOrganizationId(user.getCorreo(), organizationId)) {
+            throw new EmailAlreadyExistsException(user.getCorreo());
+        }
         User.validateRawPassword(user.getPassword());
         if (user.getCode() == null) {
             user.setCode("USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
@@ -99,7 +105,7 @@ public class AccountRecoveryService {
     public User inviteGuardian(String name, String address) {
         String normalized = normalize(address);
         Long organizationId = currentOrganization == null ? null : currentOrganization.getId();
-        User user = users.findByCorreo(normalized).orElseGet(() -> {
+        User user = users.findByCorreoAndOrganizationId(normalized, organizationId).orElseGet(() -> {
             String temporaryPassword = "Tmp!" + UUID.randomUUID() + "aA1";
             User invited = new User(null,
                     "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT),
@@ -110,11 +116,7 @@ public class AccountRecoveryService {
             invited.setOrganizationId(organizationId);
             return users.save(invited);
         });
-        if (organizationId != null && user.getOrganizationId() != null
-                && !organizationId.equals(user.getOrganizationId())) {
-            throw new DomainException("email", org.springframework.http.HttpStatus.CONFLICT,
-                    "El correo ya pertenece a otra administración");
-        }
+
         if (organizationId != null && user.getOrganizationId() == null) {
             user.setOrganizationId(organizationId);
             user = users.save(user);
@@ -141,9 +143,15 @@ public class AccountRecoveryService {
 
     @Transactional
     public String resendVerification(String address) {
+        return resendVerification(address, currentOrganization == null ? null : currentOrganization.getId());
+    }
+
+    @Transactional
+    public String resendVerification(String address, Long organizationId) {
         String normalized = normalize(address);
         rateLimiter.checkAndRecord("verification", normalized);
-        users.findByCorreo(normalized).filter(user -> user.getEmailVerifiedAt() == null).ifPresent(user -> {
+        findForPublicEmailFlow(normalized, organizationId)
+                .filter(user -> user.getEmailVerifiedAt() == null).ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
             requireDelivery(sendVerification(user,
                     frontendUrl + "/verificar-correo?token=" + rawToken));
@@ -153,14 +161,32 @@ public class AccountRecoveryService {
 
     @Transactional
     public String forgotPassword(String address) {
+        return forgotPassword(address, currentOrganization == null ? null : currentOrganization.getId());
+    }
+
+    @Transactional
+    public String forgotPassword(String address, Long organizationId) {
+        return requestPasswordReset(address, organizationId).message();
+    }
+
+    @Transactional
+    public PasswordResetRequestResult requestPasswordReset(String address, Long organizationId) {
         String normalized = normalize(address);
-        rateLimiter.checkAndRecord("password-reset", normalized);
-        users.findByCorreo(normalized).ifPresent(user -> {
+        if (organizationId == null) {
+            List<User> matches = users.findAllByCorreo(normalized);
+            if (matches.size() > 1) {
+                return new PasswordResetRequestResult(GENERIC_RESET, true,
+                        matches.stream().map(User::getOrganizationId).toList());
+            }
+        }
+        rateLimiter.checkAndRecord("password-reset",
+                normalized + (organizationId == null ? "" : ":" + organizationId));
+        findForPublicEmailFlow(normalized, organizationId).ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
             requireDelivery(sendPasswordReset(user,
                     frontendUrl + "/restablecer-password?token=" + rawToken));
         });
-        return GENERIC_RESET;
+        return new PasswordResetRequestResult(GENERIC_RESET, false, List.of());
     }
 
     @Transactional
@@ -202,6 +228,24 @@ public class AccountRecoveryService {
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = users.findById(userId).orElseThrow(this::invalidToken);
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new DomainException(UserErrorCode.INVALID_CREDENTIALS.getField(),
+                    UserErrorCode.INVALID_CREDENTIALS.getStatus(), "La contraseÃ±a actual no es correcta");
+        }
+        User.validateRawPassword(newPassword);
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new DomainException(UserErrorCode.PASSWORD_INVALID.getField(),
+                    UserErrorCode.PASSWORD_INVALID.getStatus(), "La nueva contraseÃ±a debe ser diferente");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        users.save(user);
+        revocationService.revokeAllForUser(user.getCorreo());
+        requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
+    }
+
     private boolean sendVerification(User user, String link) {
         if (emailBranding == null) {
             return email.sendVerificationEmail(user.getCorreo(), user.getNombre(), link);
@@ -224,6 +268,14 @@ public class AccountRecoveryService {
         }
         return email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), changedAt,
                 emailBranding.find(user.getOrganizationId()));
+    }
+
+    private Optional<User> findForPublicEmailFlow(String emailAddress, Long organizationId) {
+        if (organizationId != null) {
+            return users.findByCorreoAndOrganizationId(emailAddress, organizationId);
+        }
+        List<User> matches = users.findAllByCorreo(emailAddress);
+        return matches.size() == 1 ? Optional.of(matches.get(0)) : Optional.empty();
     }
 
     private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting) {
@@ -291,5 +343,11 @@ public class AccountRecoveryService {
     private void requireDelivery(boolean delivered) {
         if (!delivered) throw new DomainException(UserErrorCode.EMAIL_DELIVERY.getField(),
                 UserErrorCode.EMAIL_DELIVERY.getStatus(), "No fue posible enviar el correo. Intenta nuevamente.");
+    }
+
+    public record PasswordResetRequestResult(
+            String message,
+            boolean requiresOrganizationSelection,
+            List<Long> organizationIds) {
     }
 }

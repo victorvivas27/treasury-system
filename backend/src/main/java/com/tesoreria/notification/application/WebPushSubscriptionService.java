@@ -4,11 +4,13 @@ import com.tesoreria.notification.config.WebPushProperties;
 import com.tesoreria.notification.infrastructure.persistence.WebPushSubscriptionEntity;
 import com.tesoreria.notification.infrastructure.persistence.WebPushSubscriptionJpaRepository;
 import com.tesoreria.notification.infrastructure.web.WebPushSubscriptionRequest;
+import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.net.URI;
@@ -37,9 +39,7 @@ public class WebPushSubscriptionService {
         if (!properties.configured()) throw new DomainException("push", HttpStatus.SERVICE_UNAVAILABLE,
                 "Las notificaciones del dispositivo todavía no están configuradas");
         validateEndpoint(request.endpoint());
-        UserEntity user = users.findByCorreo(email).orElseThrow(() ->
-                new DomainException(UserErrorCode.NOT_FOUND.getField(),
-                        UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));
+        UserEntity user = currentUser(email);
         LocalDateTime now = LocalDateTime.now();
         WebPushSubscriptionEntity subscription = subscriptions.findByEndpoint(request.endpoint())
                 .orElseGet(() -> {
@@ -57,7 +57,7 @@ public class WebPushSubscriptionService {
 
     @Transactional
     public void unsubscribe(String endpoint, String email) {
-        subscriptions.deleteByEndpointAndUserCorreo(endpoint, email);
+        subscriptions.deleteByEndpointAndUserId(endpoint, currentUser(email).getId());
     }
 
     private void validateEndpoint(String value) {
@@ -69,6 +69,20 @@ public class WebPushSubscriptionService {
             throw new DomainException("endpoint", HttpStatus.BAD_REQUEST,
                     "La suscripción push no contiene un endpoint HTTPS válido", exception);
         }
+    }
+
+    private UserEntity currentUser(String email) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
+            return users.findById(tenantUser.getUserId()).orElseThrow(() -> notFound());
+        }
+        return users.findByCorreo(email).orElseThrow(this::notFound);
+    }
+
+    private DomainException notFound() {
+        return new DomainException(UserErrorCode.NOT_FOUND.getField(),
+                UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado");
     }
 
     public record WebPushAvailability(boolean enabled, String publicKey) { }
