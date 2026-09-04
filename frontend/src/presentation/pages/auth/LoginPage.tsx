@@ -52,6 +52,7 @@ export const LoginPage = () => {
   const { login, token, loading: sessionLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const hasOrganizationOptions = organizationOptions.length > 0;
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -105,39 +106,14 @@ export const LoginPage = () => {
 
   return (
     <main className="form-page-container">
-      <header className="form-page-header">
+      <header className="form-page-header login-page-header">
         <BrandLogo className="login-brand-logo" />
-        <h1 className="form-page-header__title">Iniciar sesión</h1>
-        <p className="form-page-header__subtitle">Accede a Tesorería Escolar</p>
+        <div className="login-page-header__copy">
+          <h1 className="form-page-header__title">Iniciar sesión</h1>
+          <p className="form-page-header__subtitle">Accede a Tesorería Escolar</p>
+        </div>
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
-        {organizationOptions.length > 0 && (
-          <div className="form-group">
-            <span className="login-input-wrapper">
-              <select
-                id="login-organization"
-                className={`form-input login-organization-select ${fieldErrors.organization ? "input-error" : ""}`}
-                value={organizationId}
-                onChange={(event) => {
-                  setOrganizationId(event.target.value);
-                  setFieldErrors((current) => ({ ...current, organization: "" }));
-                }}
-                aria-invalid={Boolean(fieldErrors.organization)}
-                aria-describedby={fieldErrors.organization ? "login-organization-error" : undefined}
-                required
-              >
-                {organizationOptions.map((organization) => (
-                  <option key={organization.id} value={organization.id}>
-                    {organization.slug === "default" ? "Administración general" : organization.name}
-                  </option>
-                ))}
-              </select>
-            </span>
-            {fieldErrors.organization && (
-              <span id="login-organization-error" className="error-message">{fieldErrors.organization}</span>
-            )}
-          </div>
-        )}
         <div className="form-group">
           <span className="login-input-wrapper login-floating-field">
             <input
@@ -197,6 +173,41 @@ export const LoginPage = () => {
           </span>
           {fieldErrors.password && (
             <span id="login-password-error" className="error-message">{fieldErrors.password}</span>
+          )}
+        </div>
+        <div
+          className={`login-organization-slot ${hasOrganizationOptions ? "is-visible" : ""}`}
+          aria-hidden={!hasOrganizationOptions}
+        >
+          {hasOrganizationOptions && (
+            <div className="form-group login-organization-group">
+              <label className="login-organization-label" htmlFor="login-organization">
+                Selecciona el curso
+              </label>
+              <span className="login-input-wrapper">
+                <select
+                  id="login-organization"
+                  className={`form-input login-organization-select ${fieldErrors.organization ? "input-error" : ""}`}
+                  value={organizationId}
+                  onChange={(event) => {
+                    setOrganizationId(event.target.value);
+                    setFieldErrors((current) => ({ ...current, organization: "" }));
+                  }}
+                  aria-invalid={Boolean(fieldErrors.organization)}
+                  aria-describedby={fieldErrors.organization ? "login-organization-error" : undefined}
+                  required
+                >
+                  {organizationOptions.map((organization) => (
+                    <option key={organization.id} value={organization.id}>
+                      {organization.slug === "default" ? "Administración general" : organization.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
+              {fieldErrors.organization && (
+                <span id="login-organization-error" className="error-message">{fieldErrors.organization}</span>
+              )}
+            </div>
           )}
         </div>
         <p
