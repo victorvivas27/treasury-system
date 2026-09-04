@@ -48,21 +48,21 @@ export const CoursePhotoManagementPage = () => {
 
   return <section className="course-photo-admin">
     <header><span>Administración de la Home</span><h1>Fotos del curso</h1>
-      <p>Publica hasta tres recuerdos para la galería de “Nuestros momentos”.</p></header>
+      <p>Publica recuerdos para la galería de “Nuestros momentos”.</p></header>
     <section className="course-photo-admin__upload">
-      <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{photos.length} de 3 espacios utilizados</p></div>
+      <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{photos.length} fotos publicadas</p></div>
       <input value={caption} maxLength={160} placeholder="Descripción breve (opcional)"
-        onChange={event => setCaption(event.target.value)} disabled={photos.length >= 3} />
-      <label className={photos.length >= 3 || uploading ? "is-disabled" : ""}><FiUpload />
+        onChange={event => setCaption(event.target.value)} disabled={uploading} />
+      <label className={uploading ? "is-disabled" : ""}><FiUpload />
         {uploading ? "Subiendo…" : "Seleccionar imagen"}<input type="file" accept="image/jpeg,image/png,image/webp"
-          disabled={photos.length >= 3 || uploading} onChange={event => { void upload(event.target.files?.[0]); event.target.value = ""; }} /></label>
+          disabled={uploading} onChange={event => { void upload(event.target.files?.[0]); event.target.value = ""; }} /></label>
     </section>
     <div className="course-photo-admin__grid">
       {photos.map(photo => <article key={photo.id}>
         <img src={photoUrls[photo.id]} alt={photo.caption || "Foto del curso"} />
         <label>Descripción<input maxLength={160} value={photo.caption ?? ""}
           onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, caption: event.target.value } : item))} /></label>
-        <label>Posición<input type="number" min={0} max={2} value={photo.displayOrder}
+        <label>Posición<input type="number" min={0} value={photo.displayOrder}
           onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, displayOrder: Number(event.target.value) } : item))} /></label>
         <footer><button onClick={() => void save(photo)}><FiSave /> Guardar</button>
           <button className="is-danger" onClick={() => setDeletePhoto(photo)}><FiTrash2 /> Eliminar</button></footer>
