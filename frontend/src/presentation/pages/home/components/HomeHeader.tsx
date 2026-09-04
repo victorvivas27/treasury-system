@@ -441,7 +441,7 @@ export const HomeHeader = ({
               <BrandLogo
                 className="public-home__system-access-logo"
                 alt=""
-                src="/icono-gestion-curso.png"
+                src="/icono-gestion-curso.webp"
               />
 
               <span>Gestion del curso</span>

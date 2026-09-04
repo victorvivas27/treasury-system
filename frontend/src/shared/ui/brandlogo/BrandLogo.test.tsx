@@ -12,9 +12,9 @@ describe("BrandLogo", () => {
     expect(container.querySelector(".brand-logo-skeleton")).not.toBeInTheDocument();
   });
   it("permite usar un recurso alternativo", () => {
-    render(<BrandLogo src="/icono-gestion-curso.png" alt="Gestion del curso" />);
+    render(<BrandLogo src="/icono-gestion-curso.webp" alt="Gestion del curso" />);
 
     expect(screen.getByRole("img", { name: "Gestion del curso" }))
-      .toHaveAttribute("src", "/icono-gestion-curso.png");
+      .toHaveAttribute("src", "/icono-gestion-curso.webp");
   });
 });
