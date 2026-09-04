@@ -7,6 +7,7 @@ import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
+import { profileAvatars } from "virtual:avatar-catalog";
 import { FiBookOpen, FiCheck, FiClock, FiEdit2, FiHeart, FiPhone, FiUpload,
   FiUser, FiUsers, FiX } from "react-icons/fi";
 import "./ProfilePage.css";
@@ -25,8 +26,6 @@ const shortDate = new Intl.DateTimeFormat("es-CL", {
 const PROFILE_CACHE_TTL_MS = 60_000;
 type ProfileCacheEntry = { data: TreasuryProfile; expiresAt: number };
 const profileCache = new Map<string, ProfileCacheEntry>();
-const PROFILE_AVATARS = Array.from({ length: 6 }, (_, index) =>
-  `/avatars/avatar-${String(index + 1).padStart(2, "0")}.png`);
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
 
 export const clearProfileCache = () => profileCache.clear();
@@ -335,7 +334,7 @@ export const ProfilePage = () => {
             <small>Selecciona un avatar, sube una imagen o usa tus iniciales.</small>
           </div>
           <div><strong>Avatares</strong><div className="profile-avatar-gallery">
-            {PROFILE_AVATARS.map((avatar, index) => <ProfileAvatarOption key={avatar}
+            {profileAvatars.map((avatar, index) => <ProfileAvatarOption key={avatar}
               avatar={avatar} index={index} disabled={savingPhoto}
               onSelect={() => void applyPhoto(() => users.selectAvatar(avatar))} />)}
           </div></div>

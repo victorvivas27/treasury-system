@@ -4,12 +4,53 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import path from 'path'
+import fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const avatarCatalogModuleId = 'virtual:avatar-catalog'
+const resolvedAvatarCatalogModuleId = `\0${avatarCatalogModuleId}`
+const avatarFilePattern = /\.(avif|gif|jpe?g|png|svg|webp)$/i
+
+const readAvatarCatalog = () => {
+  const avatarsDir = path.resolve(__dirname, 'public', 'avatars')
+  let avatars: string[] = []
+  try {
+    avatars = fs.readdirSync(avatarsDir, { withFileTypes: true })
+      .filter(entry => entry.isFile() && avatarFilePattern.test(entry.name))
+      .map(entry => `/avatars/${entry.name}`)
+      .sort((first, second) => first.localeCompare(second, 'es'))
+  } catch {
+    avatars = []
+  }
+  return `export const profileAvatars = ${JSON.stringify(avatars)};\nexport default profileAvatars;\n`
+}
+
+const avatarCatalogPlugin = () => ({
+  name: 'avatar-catalog',
+  resolveId(id: string) {
+    if (id === avatarCatalogModuleId) return resolvedAvatarCatalogModuleId
+    return null
+  },
+  load(id: string) {
+    if (id === resolvedAvatarCatalogModuleId) return readAvatarCatalog()
+    return null
+  },
+  configureServer(server: import('vite').ViteDevServer) {
+    const avatarsDir = path.resolve(__dirname, 'public', 'avatars')
+    if (fs.existsSync(avatarsDir)) server.watcher.add(avatarsDir)
+    server.watcher.on('all', (_event, changedPath) => {
+      if (!changedPath.startsWith(avatarsDir)) return
+      const module = server.moduleGraph.getModuleById(resolvedAvatarCatalogModuleId)
+      if (module) server.moduleGraph.invalidateModule(module)
+      server.ws.send({ type: 'full-reload' })
+    })
+  },
+})
 
 export default defineConfig({
   plugins: [
+    avatarCatalogPlugin(),
     react(),
     {
       name: 'non-blocking-app-styles',

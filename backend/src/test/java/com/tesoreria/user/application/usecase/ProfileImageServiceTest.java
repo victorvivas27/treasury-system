@@ -39,9 +39,9 @@ class ProfileImageServiceTest {
 
     @Test
     void selectsOnlyCatalogAvatar() {
-        User result = service.selectAvatar("user@test.cl", "/avatars/avatar-01.png");
+        User result = service.selectAvatar("user@test.cl", "/avatars/avatar-tesorero.avif");
         assertEquals(ProfileImageType.PREDEFINED_AVATAR, result.getProfileImageType());
-        assertEquals("/avatars/avatar-01.png", result.getProfileImageUrl());
+        assertEquals("/avatars/avatar-tesorero.avif", result.getProfileImageUrl());
         assertThrows(DomainException.class,
                 () -> service.selectAvatar("user@test.cl", "/avatars/../../secret.png"));
     }

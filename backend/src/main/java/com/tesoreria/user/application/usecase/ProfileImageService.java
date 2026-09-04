@@ -13,14 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class ProfileImageService {
     private static final long MAX_SIZE = 5L * 1024 * 1024;
-    private static final Set<String> AVATARS = Set.of(
-            "/avatars/avatar-01.png", "/avatars/avatar-02.png", "/avatars/avatar-03.png",
-            "/avatars/avatar-04.png", "/avatars/avatar-05.png", "/avatars/avatar-06.png");
+    private static final Pattern AVATAR_PATH = Pattern.compile(
+            "^/avatars/[^/\\\\]+\\.(?i:avif|gif|jpe?g|png|svg|webp)$");
     private static final Map<String, String> EXTENSIONS = Map.of(
             "image/jpeg", "jpg", "image/png", "png", "image/webp", "webp");
     private final UserRepositoryOutPort users;
@@ -39,7 +38,8 @@ public class ProfileImageService {
     }
 
     public User selectAvatar(String email, String avatar) {
-        if (!AVATARS.contains(avatar)) throw invalid("El avatar seleccionado no pertenece al cat\u00e1logo");
+        if (avatar == null || !AVATAR_PATH.matcher(avatar).matches())
+            throw invalid("El avatar seleccionado no pertenece al cat\u00e1logo");
         User user = find(email);
         String previous = customKey(user);
         user.setProfileImageType(ProfileImageType.PREDEFINED_AVATAR);
