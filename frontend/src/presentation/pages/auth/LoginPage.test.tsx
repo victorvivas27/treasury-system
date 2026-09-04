@@ -161,4 +161,36 @@ describe("LoginPage", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("[LoginPage #08] muestra la selección de curso después de la contraseña", async () => {
+    const login = vi.fn().mockResolvedValue({
+      token: null,
+      tokenType: "Bearer",
+      expiresIn: 0,
+      user: null,
+      requiresOrganizationSelection: true,
+      organizationOptions: [
+        { id: 4, name: "4A", slug: "4a" },
+        { id: 5, name: "5A", slug: "5a" },
+      ],
+    });
+    vi.mocked(useAuth).mockReturnValue({
+      login,
+      loading: false,
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Correo"), {
+      target: { value: "user@mail.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Contraseña"), {
+      target: { value: "Password1!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+
+    const password = screen.getByLabelText("Contraseña");
+    const courseSelect = await screen.findByLabelText("Selecciona el curso");
+    expect(courseSelect.compareDocumentPosition(password)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+    expect(courseSelect).toHaveValue("4");
+  });
 });
