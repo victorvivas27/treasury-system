@@ -49,13 +49,12 @@ class CoursePhotoServiceTest {
     }
 
     @Test
-    void uploadDeberiaLimitarGaleriaYTamanio() {
+    void uploadDeberiaPermitirMasDeTresFotosYLimitarTamanio() {
         when(photos.count()).thenReturn(3L);
-        ResponseStatusException full = assertThrows(ResponseStatusException.class,
-                () -> service.upload(png(), null));
-        assertEquals(HttpStatus.CONFLICT, full.getStatusCode());
+        when(photos.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        var fourth = service.upload(png(), null);
+        assertEquals(3, fourth.displayOrder());
 
-        when(photos.count()).thenReturn(0L);
         MockMultipartFile large = new MockMultipartFile("file", "foto.png", "image/png",
                 new byte[10 * 1024 * 1024 + 1]);
         ResponseStatusException oversized = assertThrows(ResponseStatusException.class,
@@ -65,7 +64,6 @@ class CoursePhotoServiceTest {
 
     @Test
     void uploadDeberiaRechazarArchivosInvalidos() {
-        when(photos.count()).thenReturn(0L);
         assertAll(
                 () -> assertThrows(ResponseStatusException.class, () -> service.upload(null, null)),
                 () -> assertThrows(ResponseStatusException.class, () -> service.upload(
@@ -92,7 +90,7 @@ class CoursePhotoServiceTest {
         assertEquals(1, service.list().size());
         var updated = service.update(1L, " Nueva descripción ", 9);
         assertAll(() -> assertEquals("Nueva descripción", updated.caption()),
-                () -> assertEquals(2, updated.displayOrder()));
+                () -> assertEquals(9, updated.displayOrder()));
     }
 
     @Test
@@ -114,7 +112,6 @@ class CoursePhotoServiceTest {
         when(photos.findById(9L)).thenReturn(Optional.empty());
         assertEquals(HttpStatus.NOT_FOUND, assertThrows(ResponseStatusException.class,
                 () -> service.update(9L, null, 0)).getStatusCode());
-        when(photos.count()).thenReturn(0L);
         when(storageProvider.getIfAvailable()).thenReturn(null);
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, assertThrows(ResponseStatusException.class,
                 () -> service.upload(png(), null)).getStatusCode());

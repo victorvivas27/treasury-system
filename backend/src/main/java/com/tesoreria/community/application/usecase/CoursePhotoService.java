@@ -15,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class CoursePhotoService {
-    private static final int MAX_PHOTOS = 3;
     private static final int MAX_CAPTION_LENGTH = 160;
     private static final int MAX_FILENAME_LENGTH = 255;
     private static final Map<String, String> TYPES = Map.of(
@@ -38,7 +37,6 @@ public class CoursePhotoService {
 
     @Transactional
     public PhotoView upload(MultipartFile file, String caption) {
-        if (photos.count() >= MAX_PHOTOS) throw error(HttpStatus.CONFLICT, "La galería admite un máximo de 3 fotos");
         ValidatedImage image = validate(file);
         FileStorageService storage = storage();
         String objectName = "comunidad/fotos/%s.%s".formatted(UUID.randomUUID(), image.extension());
@@ -59,7 +57,7 @@ public class CoursePhotoService {
     public PhotoView update(Long id, String caption, Integer displayOrder) {
         CoursePhotoEntity photo = find(id);
         photo.setCaption(normalizeCaption(caption));
-        if (displayOrder != null) photo.setDisplayOrder(Math.max(0, Math.min(2, displayOrder)));
+        if (displayOrder != null) photo.setDisplayOrder(Math.max(0, displayOrder));
         return view(photos.save(photo));
     }
 
