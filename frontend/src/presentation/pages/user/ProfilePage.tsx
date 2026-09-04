@@ -38,6 +38,7 @@ const ProfileAvatarOption = ({ avatar, index, disabled, onSelect }: {
     className={loaded ? "is-loaded" : "is-loading"} onClick={onSelect}>
     {!loaded && <span className="profile-avatar-option-skeleton" aria-hidden="true" />}
     <img className={loaded ? "is-loaded" : ""} src={avatar} alt=""
+      width="56" height="56" loading="lazy" decoding="async" fetchPriority="low"
       onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} />
   </button>;
 };
