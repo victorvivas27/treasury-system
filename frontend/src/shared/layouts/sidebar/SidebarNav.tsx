@@ -47,6 +47,14 @@ const ADMIN_PATHS = new Set([
   "/admin/mejoras",
 ]);
 
+const MANAGEMENT_PATHS = new Set([
+  "/parents",
+  "/students",
+  "/family",
+  "/users",
+  "/admin/mejoras",
+]);
+
 
 const USER_TREASURY_PATHS = new Set([
   "/tesoreria/ingresos",
@@ -75,6 +83,11 @@ export const SidebarNav = ({
     setIsTreasuryOpen,
   ] = useState(false);
 
+  const [
+    isManagementOpen,
+    setIsManagementOpen,
+  ] = useState(false);
+
 
   /* =========================================================
      LINKS VISIBLES DE TESORERÍA
@@ -86,6 +99,29 @@ export const SidebarNav = ({
       : TREASURY_LINKS.filter((link) =>
           USER_TREASURY_PATHS.has(link.path),
         );
+
+  const visibleMainLinks = SIDEBAR_LINKS.flatMap((section) =>
+    section.links.filter(
+      (link) =>
+        !MANAGEMENT_PATHS.has(link.path) &&
+        (
+          isAdminRole(currentRole) ||
+          !ADMIN_PATHS.has(link.path)
+        ),
+    ),
+  );
+
+  const visibleManagementLinks = SIDEBAR_LINKS.flatMap((section) =>
+    section.links.filter(
+      (link) =>
+        MANAGEMENT_PATHS.has(link.path) &&
+        isAdminRole(currentRole),
+    ),
+  );
+
+  const isManagementActive = visibleManagementLinks.some((link) =>
+    location.pathname.startsWith(link.path),
+  );
 
 
   /* =========================================================
@@ -102,13 +138,14 @@ export const SidebarNav = ({
      ========================================================= */
 
   useEffect(() => {
-    if (!isTreasuryOpen) {
+    if (!isTreasuryOpen && !isManagementOpen) {
       return;
     }
 
     const timer = window.setTimeout(
       () => {
         setIsTreasuryOpen(false);
+        setIsManagementOpen(false);
       },
       TREASURY_MENU_AUTO_CLOSE_MS,
     );
@@ -116,7 +153,7 @@ export const SidebarNav = ({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [isTreasuryOpen]);
+  }, [isTreasuryOpen, isManagementOpen]);
 
 
   /* =========================================================
@@ -125,6 +162,11 @@ export const SidebarNav = ({
 
   const handleTreasuryLinkClick = () => {
     setIsTreasuryOpen(false);
+  };
+
+  const handleManagementLinkClick = () => {
+    setIsManagementOpen(false);
+    handleClick();
   };
 
 
@@ -148,46 +190,145 @@ export const SidebarNav = ({
             LINKS PRINCIPALES
             =================================================== */}
 
-        {SIDEBAR_LINKS.map((section) => (
+        <li className="sidebar-nav-section">
+          <ul>
+            {visibleMainLinks.map((link) => {
+              const Icon = link.icon;
+
+              return (
+                <li key={link.path}>
+                  <NavLink
+                    to={link.path}
+                    data-tour-path={link.path}
+                    className={({ isActive }) =>
+                      [
+                        "sidebar-nav-link-item",
+                        isActive && "active",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")
+                    }
+                    onClick={handleClick}
+                  >
+                    <Icon
+                      className="sidebar-nav-icon"
+                      aria-hidden="true"
+                    />
+
+                    <span className="sidebar-nav-label">
+                      {link.label}
+                    </span>
+
+                    <Tooltip
+                      content={link.label}
+                      position="right"
+                      className="sidebar-icon-tooltip"
+                    />
+                  </NavLink>
+                </li>
+              );
+            })}
+          </ul>
+        </li>
+
+        {visibleManagementLinks.length > 0 && (
           <li
-            key={section.title}
-            className="sidebar-nav-section"
+            className="
+              sidebar-nav-section
+              sidebar-nav-section--management
+            "
           >
-            <ul>
-              {section.links
-                .filter(
-                  (link) =>
-                    isAdminRole(currentRole) ||
-                    !ADMIN_PATHS.has(link.path),
-                )
-                .map((link) => {
-                  const Icon = link.icon;
+            <button
+              type="button"
+              className={[
+                "sidebar-nav-link-item",
+                "sidebar-nav-parent",
+                isManagementActive && "active",
+                isManagementOpen && "is-open",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              data-tour="management"
+              aria-expanded={isManagementOpen}
+              aria-controls="management-submenu"
+              onClick={() => {
+                setIsManagementOpen((open) => !open);
+                setIsTreasuryOpen(false);
+              }}
+            >
+              <span
+                className="sidebar-treasury-icon-wrap"
+                aria-hidden="true"
+              >
+                <ICONS.crearFamilia
+                  className="sidebar-nav-icon"
+                />
+
+                {isManagementOpen && (
+                  <svg
+                    className="sidebar-treasury-timer"
+                    viewBox="0 0 48 48"
+                  >
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="22"
+                      pathLength="100"
+                    />
+                  </svg>
+                )}
+              </span>
+
+              <span className="sidebar-nav-label">
+                Gestión
+              </span>
+
+              <ICONS.expand
+                className={[
+                  "sidebar-nav-chevron",
+                  isManagementOpen && "is-open",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                aria-hidden="true"
+              />
+
+              <Tooltip
+                content="Gestión"
+                position="right"
+                className="sidebar-icon-tooltip"
+              />
+            </button>
+
+            {isManagementOpen && (
+              <ul
+                id="management-submenu"
+                className="sidebar-submenu"
+              >
+                {visibleManagementLinks.map((link) => {
+                  const ManagementIcon = link.icon;
 
                   return (
                     <li key={link.path}>
                       <NavLink
                         to={link.path}
                         data-tour-path={link.path}
-                        className={({
-                          isActive,
-                        }) =>
+                        className={({ isActive }) =>
                           [
-                            "sidebar-nav-link-item",
+                            "sidebar-submenu-link",
                             isActive && "active",
                           ]
                             .filter(Boolean)
                             .join(" ")
                         }
-                        onClick={handleClick}
+                        onClick={handleManagementLinkClick}
                       >
-                        <Icon
-                          className="sidebar-nav-icon"
+                        <ManagementIcon
+                          className="sidebar-submenu-icon"
                           aria-hidden="true"
                         />
 
-                        <span className="sidebar-nav-label">
-                          {link.label}
-                        </span>
+                        <span>{link.label}</span>
 
                         <Tooltip
                           content={link.label}
@@ -198,9 +339,10 @@ export const SidebarNav = ({
                     </li>
                   );
                 })}
-            </ul>
+              </ul>
+            )}
           </li>
-        ))}
+        )}
 
 
         {/* ===================================================
@@ -236,11 +378,12 @@ export const SidebarNav = ({
               data-tour="treasury"
               aria-expanded={isTreasuryOpen}
               aria-controls="treasury-submenu"
-              onClick={() =>
+              onClick={() => {
                 setIsTreasuryOpen(
                   (open) => !open,
-                )
-              }
+                );
+                setIsManagementOpen(false);
+              }}
             >
               {/* =============================================
                   ICONO TESORERÍA

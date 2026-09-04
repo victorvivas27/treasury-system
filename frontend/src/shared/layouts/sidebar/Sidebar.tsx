@@ -20,7 +20,7 @@ export const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, isLocked, onToggleSid
         onToggleSidebar={onToggleSidebar}
       />
       <SidebarNav onNavLinkClick={onNavLinkClick}/>
-      <SidebarFooter isSidebarOpen={isSidebarOpen} onNavLinkClick={onNavLinkClick} />
+      <SidebarFooter onNavLinkClick={onNavLinkClick} />
     </aside>
   );
 };
