@@ -73,6 +73,7 @@ describe('Sidebar Component', () => {
     renderWithRouter(
       <SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />,
     );
+    fireEvent.click(screen.getByRole('button', { name: /gesti/i }));
     SIDEBAR_LINKS.flatMap(section => section.links).forEach((link) => {
       const anchor = screen.getByRole('link', { name: new RegExp(link.label, 'i') });
       expect(anchor).toHaveAttribute('href', link.path);
@@ -80,9 +81,10 @@ describe('Sidebar Component', () => {
   });
 
   it('[Sidebar #04] Aplica la clase "active" al enlace de la ruta actual', () => {
-    const primeraRuta = SIDEBAR_LINKS[0].links[0].path;
-    renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />, { route: primeraRuta });
-    const activeLink = screen.getByRole('link', { name: new RegExp(SIDEBAR_LINKS[0].links[0].label, 'i') });
+    const dashboardLink = SIDEBAR_LINKS.flatMap(section => section.links)
+      .find(link => link.path === '/dashboard')!;
+    renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />, { route: dashboardLink.path });
+    const activeLink = screen.getByRole('link', { name: new RegExp(dashboardLink.label, 'i') });
     expect(activeLink).toHaveClass('active');
   });
 
@@ -96,7 +98,7 @@ describe('Sidebar Component', () => {
   });
 
   it('[Sidebar #05] Verifica las rutas del Footer y la información del usuario', () => {
-    renderWithRouter(<SidebarFooter isSidebarOpen={true} />);
+    renderWithRouter(<SidebarFooter />);
     SIDEBAR_FOOTER_LINKS.forEach((link) => {
       const anchor = screen.getByRole('link', { name: new RegExp(link.label, 'i') });
       expect(anchor).toHaveAttribute('href', link.path);
@@ -111,47 +113,31 @@ describe('Sidebar Component', () => {
 
   it('[Sidebar #06] Aplica la clase "active" en el footer cuando la ruta coincide', () => {
     const testLink = SIDEBAR_FOOTER_LINKS[0];
-    renderWithRouter(<SidebarFooter isSidebarOpen={true} />, { route: testLink.path });
+    renderWithRouter(<SidebarFooter />, { route: testLink.path });
     const activeLink = screen.getByRole('link', { name: new RegExp(testLink.label, 'i') });
     expect(activeLink).toHaveClass('active');
   });
 
-  it('[Sidebar #07] muestra el indicador y ejecuta logout después de dos segundos', async () => {
-    vi.useFakeTimers();
-    const logout = vi.fn().mockResolvedValue(undefined);
-    renderWithRouter(<SidebarFooter isSidebarOpen={true} onLogout={logout} />);
-
-    fireEvent.click(screen.getByTestId('sidebar-logout-btn'));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByTestId('sidebar-logout-btn')).not.toBeDisabled();
-    expect(screen.getByTestId('sidebar-logout-btn')).toHaveClass('sidebar-logout-progress');
-    expect(logout).not.toHaveBeenCalled();
-
-    await act(async () => vi.advanceTimersByTimeAsync(2000));
-    expect(logout).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
-  });
-
-  it('[Sidebar #07.1] cancela el cierre de sesión con un segundo clic', async () => {
-    vi.useFakeTimers();
-    const logout = vi.fn().mockResolvedValue(undefined);
-    renderWithRouter(<SidebarFooter isSidebarOpen={true} onLogout={logout} />);
-
-    const button = screen.getByTestId('sidebar-logout-btn');
-    fireEvent.click(button);
-    fireEvent.click(button);
-
-    expect(button).not.toHaveClass('sidebar-logout-progress');
-    await act(async () => vi.advanceTimersByTimeAsync(2000));
-    expect(logout).not.toHaveBeenCalled();
-    vi.useRealTimers();
-  });
-
   it('[Sidebar #08] Ejecuta onNavLinkClick al hacer clic en un enlace', () => {
     renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />);
-    const enlace = screen.getByRole('link', { name: new RegExp(SIDEBAR_LINKS[0].links[0].label, 'i') });
+    const dashboardLink = SIDEBAR_LINKS.flatMap(section => section.links)
+      .find(link => link.path === '/dashboard')!;
+    const enlace = screen.getByRole('link', { name: new RegExp(dashboardLink.label, 'i') });
     fireEvent.click(enlace);
     expect(mockNavLinkClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('[Sidebar #08.0] Agrupa enlaces administrativos en GestiÃ³n', () => {
+    renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />);
+
+    expect(screen.queryByRole('link', { name: /apoderados/i })).not.toBeInTheDocument();
+    const managementButton = screen.getByRole('button', { name: /gesti/i });
+    expect(managementButton).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(managementButton);
+    expect(managementButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: /apoderados/i })).toHaveAttribute('href', '/parents');
+    expect(screen.getByRole('link', { name: /usuarios/i })).toHaveAttribute('href', '/users');
   });
 
   it('[Sidebar #08.2] Expande Tesorería y muestra todas sus secciones al administrador', () => {

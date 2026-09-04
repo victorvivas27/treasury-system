@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { TreasuryProfile } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
@@ -9,7 +10,7 @@ import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { profileAvatars } from "virtual:avatar-catalog";
 import { FiBookOpen, FiCheck, FiClock, FiEdit2, FiHeart, FiPhone, FiUpload,
-  FiUser, FiUsers, FiX } from "react-icons/fi";
+  FiLogOut, FiUser, FiUsers, FiX } from "react-icons/fi";
 import "./ProfilePage.css";
 
 const money = new Intl.NumberFormat("es-CL", {
@@ -24,6 +25,8 @@ const shortDate = new Intl.DateTimeFormat("es-CL", {
 });
 
 const PROFILE_CACHE_TTL_MS = 60_000;
+const LOGOUT_COUNTDOWN_MS = 3000;
+const LOGOUT_PROGRESS_INTERVAL_MS = 50;
 type ProfileCacheEntry = { data: TreasuryProfile; expiresAt: number };
 const profileCache = new Map<string, ProfileCacheEntry>();
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
@@ -54,7 +57,8 @@ const loadCachedProfile = async (key: string, load: () => Promise<TreasuryProfil
 };
 
 export const ProfilePage = () => {
-  const { user, syncUser } = useAuth();
+  const { user, syncUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.nombre ?? "");
   const [nameError, setNameError] = useState("");
@@ -67,6 +71,11 @@ export const ProfilePage = () => {
   const [familyLoading, setFamilyLoading] = useState(true);
   const [familyError, setFamilyError] = useState("");
   const [reloadProfile, setReloadProfile] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const [logoutProgress, setLogoutProgress] = useState(0);
+  const logoutTimer = useRef<number | undefined>(undefined);
+  const logoutProgressTimer = useRef<number | undefined>(undefined);
   const treasury = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
   const users = useMemo(() => new UserRepositoryImpl(), []);
 
@@ -127,6 +136,56 @@ export const ProfilePage = () => {
     }
     void applyPhoto(() => users.uploadProfileImage(file, setPhotoProgress));
   };
+
+  const clearLogoutTimers = () => {
+    if (logoutTimer.current !== undefined) {
+      window.clearTimeout(logoutTimer.current);
+      logoutTimer.current = undefined;
+    }
+    if (logoutProgressTimer.current !== undefined) {
+      window.clearInterval(logoutProgressTimer.current);
+      logoutProgressTimer.current = undefined;
+    }
+  };
+
+  const cancelLogout = () => {
+    if (loggingOut) return;
+    clearLogoutTimers();
+    setLogoutPending(false);
+    setLogoutProgress(0);
+  };
+
+  const executeLogout = async () => {
+    clearLogoutTimers();
+    setLogoutPending(false);
+    setLogoutProgress(100);
+    setLoggingOut(true);
+    try {
+      await logout();
+      navigate("/", { replace: true });
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  const handleLogout = () => {
+    if (loggingOut) return;
+    if (logoutPending) {
+      cancelLogout();
+      return;
+    }
+    setLogoutPending(true);
+    setLogoutProgress(0);
+    logoutProgressTimer.current = window.setInterval(() => {
+      setLogoutProgress(current =>
+        Math.min(100, current + (LOGOUT_PROGRESS_INTERVAL_MS / LOGOUT_COUNTDOWN_MS) * 100));
+    }, LOGOUT_PROGRESS_INTERVAL_MS);
+    logoutTimer.current = window.setTimeout(() => {
+      void executeLogout();
+    }, LOGOUT_COUNTDOWN_MS);
+  };
+
+  useEffect(() => () => clearLogoutTimers(), []);
 
   useEffect(() => {
     let active = true;
@@ -191,9 +250,18 @@ export const ProfilePage = () => {
 
       <section className="profile-real-data" aria-label="Datos de la cuenta">
         <div><span>Tu espacio personal</span><h2>Estado de la cuenta</h2></div>
-        <strong className={`profile-account-status ${user?.enabled ? "is-active" : "is-inactive"}`}>
-          {user?.enabled ? <FiCheck /> : <FiX />}{user?.enabled ? "Activa" : "Inactiva"}
-        </strong>
+        <div className="profile-account-actions">
+          <strong className={`profile-account-status ${user?.enabled ? "is-active" : "is-inactive"}`}>
+            {user?.enabled ? <FiCheck /> : <FiX />}{user?.enabled ? "Activa" : "Inactiva"}
+          </strong>
+          <button type="button" className={`profile-logout-button ${logoutPending ? "is-counting" : ""}`}
+            disabled={loggingOut} onClick={handleLogout}>
+            <span className="profile-logout-button__progress"
+              style={{ width: `${logoutProgress}%` }} aria-hidden="true" />
+            <FiLogOut aria-hidden="true" />
+            <span>{loggingOut ? "Cerrando..." : logoutPending ? "Cancelar cierre" : "Cerrar sesión"}</span>
+          </button>
+        </div>
       </section>
 
       {familyLoading && <section className="profile-real-data profile-family-data profile-family-skeleton"
