@@ -51,8 +51,11 @@ export const CoursePhotoManagementPage = () => {
       <p>Publica recuerdos para la galería de “Nuestros momentos”.</p></header>
     <section className="course-photo-admin__upload">
       <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{photos.length} fotos publicadas</p></div>
-      <input value={caption} maxLength={160} placeholder="Descripción breve (opcional)"
-        onChange={event => setCaption(event.target.value)} disabled={uploading} />
+      <label className="course-photo-admin__caption-field">
+        <input value={caption} maxLength={160} placeholder="Descripción breve (opcional)"
+          onChange={event => setCaption(event.target.value)} disabled={uploading} />
+        <small>{caption.length}/160 caracteres</small>
+      </label>
       <label className={uploading ? "is-disabled" : ""}><FiUpload />
         {uploading ? "Subiendo…" : "Seleccionar imagen"}<input type="file" accept="image/jpeg,image/png,image/webp"
           disabled={uploading} onChange={event => { void upload(event.target.files?.[0]); event.target.value = ""; }} /></label>
@@ -61,7 +64,8 @@ export const CoursePhotoManagementPage = () => {
       {photos.map(photo => <article key={photo.id}>
         <img src={photoUrls[photo.id]} alt={photo.caption || "Foto del curso"} />
         <label>Descripción<input maxLength={160} value={photo.caption ?? ""}
-          onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, caption: event.target.value } : item))} /></label>
+          onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, caption: event.target.value } : item))} />
+          <small>{(photo.caption ?? "").length}/160 caracteres</small></label>
         <label>Posición<input type="number" min={0} value={photo.displayOrder}
           onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, displayOrder: Number(event.target.value) } : item))} /></label>
         <footer><button onClick={() => void save(photo)}><FiSave /> Guardar</button>
