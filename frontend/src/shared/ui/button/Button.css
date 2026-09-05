@@ -8,16 +8,16 @@
 
   color: var(--color-accent);
 
-  margin: 0.2em;
+  margin: var(--space-0-2em);
 
   background-color: transparent;
-  border: 1px solid var(--color-accent);
+  border: var(--stroke-1px) solid var(--color-accent);
 
   transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease,
-    color 150ms ease;
+    background-color var(--duration-150ms) var(--easing-ease),
+    border-color var(--duration-150ms) var(--easing-ease),
+    transform var(--duration-150ms) var(--easing-ease),
+    color var(--duration-150ms) var(--easing-ease);
 }
 
 .base-button:hover {
@@ -31,8 +31,8 @@
 }
 
 .base-button:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--stroke-2px) solid var(--focus-ring);
+  outline-offset: var(--stroke-2px);
 }
 
 .base-button:focus-visible:hover {
@@ -42,7 +42,7 @@
 
 .base-button:disabled,
 .base-button.is-loading {
-  opacity: 0.6;
+  opacity: var(--opacity-0-6);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -57,10 +57,10 @@
   color: var(--color-bg);
 
   transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease;
+    background-color var(--duration-150ms) var(--easing-ease),
+    color var(--duration-150ms) var(--easing-ease),
+    border-color var(--duration-150ms) var(--easing-ease),
+    transform var(--duration-150ms) var(--easing-ease);
 }
 
 .button-primary:hover {
@@ -75,8 +75,8 @@
 }
 
 .button-primary:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--stroke-2px) solid var(--focus-ring);
+  outline-offset: var(--stroke-2px);
 }
 
 .button-primary:focus-visible:hover {
@@ -88,7 +88,7 @@
 .button-primary .button-icon--left > svg,
 .button-primary .button-icon--right > svg {
   color: var(--color-bg);
-  transition: color 150ms ease;
+  transition: color var(--duration-150ms) var(--easing-ease);
 }
 
 .button-primary:hover .button-label,
@@ -108,10 +108,10 @@
   border-color: var(--color-accent);
 
   transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease;
+    background-color var(--duration-150ms) var(--easing-ease),
+    color var(--duration-150ms) var(--easing-ease),
+    border-color var(--duration-150ms) var(--easing-ease),
+    transform var(--duration-150ms) var(--easing-ease);
 }
 
 .button-secondary:hover {
@@ -125,13 +125,13 @@
 }
 
 .button-secondary:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--stroke-2px) solid var(--focus-ring);
+  outline-offset: var(--stroke-2px);
 }
 
 .button-secondary:disabled,
 .button-secondary.is-loading {
-  opacity: 0.6;
+  opacity: var(--opacity-0-6);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -140,7 +140,7 @@
 .button-secondary .button-icon--left > svg,
 .button-secondary .button-icon--right > svg {
   color: var(--color-accent);
-  transition: color 150ms ease;
+  transition: color var(--duration-150ms) var(--easing-ease);
 }
 
 .button-secondary:hover .button-label,
@@ -156,20 +156,20 @@
 
 .button-danger {
   background-color: var(--color-danger);
-  color: #fff;
+  color: var(--palette-white-2);
   border-color: var(--color-danger);
 
   transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease;
+    background-color var(--duration-150ms) var(--easing-ease),
+    color var(--duration-150ms) var(--easing-ease),
+    border-color var(--duration-150ms) var(--easing-ease),
+    transform var(--duration-150ms) var(--easing-ease);
 }
 
 .button-danger:hover {
   background-color: var(--color-danger);
   border-color: var(--color-danger);
-  color: #fff;
+  color: var(--palette-white-2);
 }
 
 .button-danger:active {
@@ -179,13 +179,13 @@
 }
 
 .button-danger:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--stroke-2px) solid var(--focus-ring);
+  outline-offset: var(--stroke-2px);
 }
 
 .button-danger:disabled,
 .button-danger.is-loading {
-  opacity: 0.6;
+  opacity: var(--opacity-0-6);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -193,14 +193,14 @@
 .button-danger .button-label,
 .button-danger .button-icon--left > svg,
 .button-danger .button-icon--right > svg {
-  color: #fff;
-  transition: color 150ms ease;
+  color: var(--palette-white-2);
+  transition: color var(--duration-150ms) var(--easing-ease);
 }
 
 .button-danger:hover .button-label,
 .button-danger:hover .button-icon--left > svg,
 .button-danger:hover .button-icon--right > svg {
-  color: #fff;
+  color: var(--palette-white-2);
 }
 
 
@@ -214,7 +214,7 @@
 
 .button-icon--left > svg,
 .button-icon--right > svg {
-  transition: transform 150ms ease;
+  transition: transform var(--duration-150ms) var(--easing-ease);
 }
 
 .button-primary:hover .button-icon--left > svg,
@@ -223,7 +223,7 @@
 .button-secondary:hover .button-icon--right > svg,
 .button-danger:hover .button-icon--left > svg,
 .button-danger:hover .button-icon--right > svg {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(var(--motion-distance-negative-2px)) scale(1.05);
 }
 
 .button-primary:active .button-icon--left > svg,
@@ -232,7 +232,7 @@
 .button-secondary:active .button-icon--right > svg,
 .button-danger:active .button-icon--left > svg,
 .button-danger:active .button-icon--right > svg {
-  transform: translateY(1px) scale(0.95);
+  transform: translateY(var(--motion-distance-1px)) scale(0.95);
 }
 
 
@@ -241,25 +241,25 @@
    ========================================================= */
 
 .size-none {
-  padding: 5px;
+  padding: var(--space-5px);
 }
 
 .size-small {
-  padding: 0.4rem 0.9rem;
+  padding: var(--space-0-4rem) var(--space-0-9rem);
   font-size: var(--xs);
-  min-height: 32px;
+  min-height: var(--size-32px);
 }
 
 .size-medium {
-  padding: 0.6rem 1.1rem;
+  padding: var(--space-0-6rem) var(--space-1-1rem);
   font-size: var(--sm);
-  min-height: 38px;
+  min-height: var(--size-38px);
 }
 
 .size-large {
-  padding: 0.7rem 1.2rem;
+  padding: var(--space-0-7rem) var(--space-1-2rem);
   font-size: var(--md);
-  min-height: 44px;
+  min-height: var(--size-44px);
 }
 
 
@@ -272,7 +272,7 @@
   align-items: center;
   justify-content: center;
 
-  gap: 0.3rem;
+  gap: var(--space-0-3rem);
 }
 
 
@@ -291,8 +291,8 @@
 .button-icon > svg {
   display: block;
 
-  width: 1.5em;
-  height: 1.5em;
+  width: var(--size-1-5em);
+  height: var(--size-1-5em);
 }
 
 
@@ -303,14 +303,14 @@
 .button-loader {
   display: block;
 
-  width: 1.1em;
-  height: 1.1em;
+  width: var(--size-1-1em);
+  height: var(--size-1-1em);
 
-  border: 2px solid currentColor;
+  border: var(--stroke-2px) solid currentColor;
   border-right-color: transparent;
-  border-radius: 50%;
+  border-radius: var(--radius-50percent);
 
-  animation: spin 1s linear infinite;
+  animation: spin var(--duration-1000ms) var(--easing-linear) infinite;
 }
 
 @keyframes spin {
@@ -341,44 +341,44 @@
   }
 
   .base-button.mobile-compact-header-action {
-    min-height: 28px !important;
+    min-height: var(--size-28px) !important;
 
-    padding: 0.2rem 0.55rem !important;
+    padding: var(--space-0-2rem) var(--space-0-55rem) !important;
 
-    font-size: 0.65rem !important;
+    font-size: var(--font-size-0-65rem) !important;
   }
 
   .base-button.mobile-compact-header-action .button-icon > svg {
-    width: 0.8rem;
-    height: 0.8rem;
+    width: var(--size-0-8rem);
+    height: var(--size-0-8rem);
   }
 
   .size-small {
-    padding: 0.2rem 0.6rem;
+    padding: var(--space-0-2rem) var(--space-0-6rem);
 
-    font-size: 0.7rem;
+    font-size: var(--font-size-0-7rem);
 
-    min-height: 28px;
+    min-height: var(--size-28px);
   }
 
   .size-medium {
-    padding: 0.3rem 0.8rem;
+    padding: var(--space-0-3rem) var(--space-0-8rem);
 
-    font-size: 0.75rem;
+    font-size: var(--font-size-0-75rem);
 
-    min-height: 32px;
+    min-height: var(--size-32px);
   }
 
   .size-large {
-    padding: 0.4rem 1rem;
+    padding: var(--space-0-4rem) var(--space-1rem);
 
-    font-size: 0.8rem;
+    font-size: var(--font-size-0-8rem);
 
-    min-height: 36px;
+    min-height: var(--size-36px);
   }
 
   .button-icon > svg {
-    width: 1em;
-    height: 1em;
+    width: var(--size-1em);
+    height: var(--size-1em);
   }
 }

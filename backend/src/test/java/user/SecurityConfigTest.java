@@ -47,14 +47,68 @@ class SecurityConfigTest {
     private UserJpaRepository userRepository;
     @Autowired
     private UserTokenJpaRepository tokenRepository;
+    @Autowired
+    private com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository organizations;
 
     @BeforeEach
     void setUpUsers() {
         tokenRepository.deleteAll();
         userRepository.deleteAll();
+        userRepository.flush();
         createUser("USR-001", "user@mail.com", RoleEnum.USER);
         createUser("ADM-001", "admin@mail.com", RoleEnum.ADMIN);
         createUser("SAD-001", "superadmin@mail.com", RoleEnum.SUPER_ADMIN);
+    }
+
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void notificaciones_deberiaPermitirAlApoderadoIniciarYResponderConAdminYSuperAdmin() throws Exception {
+        var organization = new com.tesoreria.organization.infrastructure.persistence.OrganizationEntity();
+        organization.setSlug("default");
+        organization.setName("Curso de prueba");
+        organization.setSchoolYear(2026);
+        organization.setType(com.tesoreria.organization.core.model.OrganizationType.COURSE);
+        organization.setActive(true);
+        Long organizationId = organizations.saveAndFlush(organization).getId();
+        List<UserEntity> participants = userRepository.findAll();
+        participants.forEach(user -> {
+            user.setOrganizationId(organizationId);
+            user.setEmailVerifiedAt(LocalDateTime.now());
+        });
+        userRepository.saveAllAndFlush(participants);
+        String token = tokenFor("user@mail.com");
+
+        mockMvc.perform(get("/api/v1/notifications/treasury/contact")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("admin@mail.com"));
+        var started = mockMvc.perform(post("/api/v1/notifications/treasury/messages")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"Consulta del apoderado\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.reply.authorRole").value("USER"))
+                .andReturn();
+        Number deliveryId = com.jayway.jsonpath.JsonPath.read(
+                started.getResponse().getContentAsString(), "$.deliveryId");
+        String messagesPath = "/api/v1/notifications/threads/" + deliveryId + "/messages";
+
+        mockMvc.perform(post(messagesPath)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"Segundo mensaje\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("Segundo mensaje"));
+        mockMvc.perform(get("/api/v1/notifications/sent")
+                        .header("Authorization", "Bearer " + tokenFor("admin@mail.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].recipients[0].email").value("user@mail.com"));
+        mockMvc.perform(post(messagesPath)
+                        .header("Authorization", "Bearer " + tokenFor("superadmin@mail.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"Sin acceso a este hilo\"}"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

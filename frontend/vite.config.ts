@@ -12,6 +12,34 @@ const avatarCatalogModuleId = 'virtual:avatar-catalog'
 const resolvedAvatarCatalogModuleId = `\0${avatarCatalogModuleId}`
 const avatarFilePattern = /\.(avif|gif|jpe?g|png|svg|webp)$/i
 
+// Derive the first-paint CSS from the same source as the application styles.
+// The rest of the stylesheet can keep loading without blocking the boot screen.
+const readCriticalStyles = () => {
+  const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/global.css'), 'utf8')
+  const boot = css.match(/\/\* critical-boot:start[^]*?\*\/([^]*?)\/\* critical-boot:end \*\//)?.[1]
+  if (!boot) throw new Error('Missing critical boot styles in global.css')
+
+  const roots = [...css.matchAll(/^(:root(?:\[data-theme="light"\])?) \{([^]*?)^\}/gm)]
+    .map(([, selector, body]) => ({
+      selector,
+      declarations: [...body.matchAll(/^\s*(--[\w-]+):\s*([^;]+);/gm)]
+        .map(([, name, value]) => ({ name, value })),
+    }))
+  const required = new Set([...boot.matchAll(/var\((--[\w-]+)/g)].map(match => match[1]))
+  for (const name of required) {
+    const definitions = roots.flatMap(root => root.declarations.filter(declaration => declaration.name === name))
+    if (!definitions.length) throw new Error(`Missing boot style variable: ${name}`)
+    for (const { value } of definitions) {
+      for (const match of value.matchAll(/var\((--[\w-]+)/g)) required.add(match[1])
+    }
+  }
+  const variables = roots.map(({ selector, declarations }) => {
+    const selected = declarations.filter(({ name }) => required.has(name))
+    return selected.length ? `${selector}{${selected.map(({ name, value }) => `${name}:${value};`).join('')}}` : ''
+  }).join('\n')
+  return `<style data-critical-styles>${variables}\n${boot}</style>`
+}
+
 const readAvatarCatalog = () => {
   const avatarsDir = path.resolve(__dirname, 'public', 'avatars')
   let avatars: string[] = []
@@ -58,7 +86,7 @@ export default defineConfig({
       transformIndexHtml: {
         order: 'post',
         handler(html) {
-          return html.replace(
+          return html.replace('<meta name="app-critical-styles" />', readCriticalStyles()).replace(
             /<link rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g,
             (_, href: string) => `<link rel="preload" as="style" href="${href}" data-app-styles onload="this.onload=null;this.rel='stylesheet';document.documentElement.dataset.appStyles='ready';window.dispatchEvent(new Event('app:styles-ready'))"><noscript><link rel="stylesheet" href="${href}"></noscript>`,
           )

@@ -1,32 +1,32 @@
 .expense-summary-skeleton {
-  min-height: 105px;
+  min-height: var(--size-105px);
 }
 
-.expense-summary-skeleton .skeleton-block:nth-child(1) { width: 58%; height: .8rem; }
-.expense-summary-skeleton .skeleton-block:nth-child(2) { width: 76%; height: 1.8rem; }
-.expense-summary-skeleton .skeleton-block:nth-child(3) { width: 68%; height: .7rem; }
+.expense-summary-skeleton .skeleton-block:nth-child(1) { width: 58%; height: var(--size-0-8rem); }
+.expense-summary-skeleton .skeleton-block:nth-child(2) { width: 76%; height: var(--size-1-8rem); }
+.expense-summary-skeleton .skeleton-block:nth-child(3) { width: 68%; height: var(--size-0-7rem); }
 
 .expense-card--skeleton {
   border-color: var(--border-color);
 }
 
-.expense-card--skeleton header .skeleton-block:first-child { width: 30%; height: .85rem; }
-.expense-card--skeleton header .skeleton-block:last-child { width: 20%; height: 1.4rem; }
+.expense-card--skeleton header .skeleton-block:first-child { width: 30%; height: var(--size-0-85rem); }
+.expense-card--skeleton header .skeleton-block:last-child { width: 20%; height: var(--size-1-4rem); }
 .expense-card--skeleton > header + .skeleton-block {
   width: 72%;
-  height: 1.1rem;
-  margin-top: 1rem;
+  height: var(--size-1-1rem);
+  margin-top: var(--space-1rem);
 }
 .expense-card--skeleton > header + .skeleton-block + .skeleton-block {
   width: 48%;
-  height: 1.45rem;
-  margin-top: .5rem;
+  height: var(--size-1-45rem);
+  margin-top: var(--space-0-5rem);
 }
 
 .expense-details-skeleton {
   display: grid;
-  gap: .55rem;
-  margin: 1rem 0;
+  gap: var(--space-0-55rem);
+  margin: var(--space-1rem) 0;
 }
 
-.expense-details-skeleton .skeleton-block { height: .8rem; }
+.expense-details-skeleton .skeleton-block { height: var(--size-0-8rem); }

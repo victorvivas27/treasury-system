@@ -1,63 +1,63 @@
 .main-layout {
-  margin-top: 2.5rem;
+  margin-top: var(--space-2-5rem);
   width: 94%;
   margin-left: auto;
 }
 
 .main-content {
   display: flex;
-  min-height: calc(100dvh - 2.5rem);
+  min-height: calc(var(--size-100dvh) - var(--size-2-5rem));
   flex-direction: column;
   min-width: 0;
 }
 
 .system-home-footer {
-  width: min(100% - 2rem, 1180px);
-  height: 152px;
-  min-height: 152px;
-  flex: 0 0 152px;
+  width: min(100% - var(--size-2rem), var(--size-1180px));
+  height: var(--size-152px);
+  min-height: var(--size-152px);
+  flex: 0 0 var(--size-152px);
   box-sizing: border-box;
   margin: auto auto 0;
 }
 
 .system-home-footer .public-home__footer-content {
-  width: min(100%, 820px);
+  width: min(100%, var(--size-820px));
   margin-inline: auto;
   grid-template-areas: "brand signature" "copyright signature";
-  grid-template-columns: minmax(190px, .75fr) minmax(360px, 1.25fr);
-  gap: .25rem 1.2rem;
-  padding: .75rem .9rem;
-  border: 1px solid rgba(14, 235, 205, .18);
-  border-radius: .8rem;
-  background: linear-gradient(135deg, rgba(14, 235, 205, .055), rgba(59, 130, 246, .035));
+  grid-template-columns: minmax(var(--size-190px), .75fr) minmax(var(--size-360px), 1.25fr);
+  gap: var(--space-0-25rem) var(--space-1-2rem);
+  padding: var(--space-0-75rem) var(--space-0-9rem);
+  border: var(--stroke-1px) solid var(--palette-rgba-14-235-205--18);
+  border-radius: var(--radius-0-8rem);
+  background: linear-gradient(135deg, var(--palette-rgba-14-235-205--055), var(--palette-rgba-59-130-246--035));
   box-sizing: border-box;
 }
 
 .system-home-footer .public-home__footer-brand {
   grid-area: brand;
-  gap: .2rem;
+  gap: var(--space-0-2rem);
 }
 
 .system-home-footer .public-home__footer-brand .public-home__brand {
-  gap: .45rem;
-  font-size: .9rem;
+  gap: var(--space-0-45rem);
+  font-size: var(--font-size-0-9rem);
 }
 
 .system-home-footer .public-home__footer-brand .public-home__brand img {
-  width: 34px;
-  height: 34px;
+  width: var(--size-34px);
+  height: var(--size-34px);
 }
 
 .system-home-footer .public-home__footer-brand p {
-  font-size: .64rem;
+  font-size: var(--font-size-0-64rem);
 }
 
 .system-home-footer .public-home__signature {
   grid-area: signature;
   width: 100%;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: .2rem .7rem;
-  padding: .35rem;
+  gap: var(--space-0-2rem) var(--space-0-7rem);
+  padding: var(--space-0-35rem);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -65,45 +65,45 @@
 }
 
 .system-home-footer .public-home__signature-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: .65rem;
-  font-size: .95rem;
+  width: var(--size-36px);
+  height: var(--size-36px);
+  border-radius: var(--radius-0-65rem);
+  font-size: var(--font-size-0-95rem);
 }
 
 .system-home-footer .public-home__signature-stage {
   min-width: 0;
-  min-height: 48px;
+  min-height: var(--size-48px);
 }
 
 .system-home-footer .public-home__signature-code {
-  font-size: .55rem;
-  line-height: 1.25;
+  font-size: var(--font-size-0-55rem);
+  line-height: var(--leading-1-25);
 }
 
 .system-home-footer .public-home__signature-rendered {
-  gap: .15rem;
+  gap: var(--space-0-15rem);
 }
 
 .system-home-footer .public-home__signature-copy small {
-  font-size: .58rem;
+  font-size: var(--font-size-0-58rem);
 }
 
 .system-home-footer .public-home__signature-copy strong {
-  font-size: .82rem;
+  font-size: var(--font-size-0-82rem);
 }
 
 .system-home-footer .public-home__signature-links {
-  gap: .15rem .65rem;
+  gap: var(--space-0-15rem) var(--space-0-65rem);
 }
 
 .system-home-footer .public-home__signature-links a {
-  font-size: .6rem;
+  font-size: var(--font-size-0-6rem);
 }
 
 .system-home-footer .public-home__copyright {
   grid-area: copyright;
-  font-size: .56rem;
+  font-size: var(--font-size-0-56rem);
   text-align: left;
   white-space: nowrap;
 }
@@ -112,101 +112,101 @@
   .main-layout {
     width: 100%;
     margin-left: 0;
-    padding-left: 3.5rem;
+    padding-left: var(--space-3-5rem);
   }
 
   .main-layout:has(.main-content.sidebar-collapsed) {
-    padding-left: 3.5rem;
+    padding-left: var(--space-3-5rem);
   }
 }
 
 @media (min-width: 1101px) {
   .system-home-footer {
-    height: 184px;
-    min-height: 184px;
-    flex-basis: 184px;
+    height: var(--size-184px);
+    min-height: var(--size-184px);
+    flex-basis: var(--size-184px);
   }
 
   .system-home-footer .public-home__footer-content {
-    width: min(100%, 1080px);
+    width: min(100%, var(--size-1080px));
     grid-template-areas: "brand signature copyright";
-    grid-template-columns: minmax(200px, .8fr) minmax(400px, 1.5fr) minmax(170px, .7fr);
-    gap: 1.75rem;
-    padding: 1.1rem 1.4rem;
-    border-radius: 1rem;
+    grid-template-columns: minmax(var(--size-200px), .8fr) minmax(var(--size-400px), 1.5fr) minmax(var(--size-170px), .7fr);
+    gap: var(--space-1-75rem);
+    padding: var(--space-1-1rem) var(--space-1-4rem);
+    border-radius: var(--radius-1rem);
   }
 
   .system-home-footer .public-home__footer-brand {
-    gap: .4rem;
+    gap: var(--space-0-4rem);
   }
 
   .system-home-footer .public-home__footer-brand .public-home__brand {
-    gap: .6rem;
-    font-size: 1rem;
+    gap: var(--space-0-6rem);
+    font-size: var(--font-size-1rem);
   }
 
   .system-home-footer .public-home__footer-brand .public-home__brand img {
-    width: 42px;
-    height: 42px;
+    width: var(--size-42px);
+    height: var(--size-42px);
   }
 
   .system-home-footer .public-home__footer-brand p {
-    font-size: .72rem;
+    font-size: var(--font-size-0-72rem);
   }
 
   .system-home-footer .public-home__signature {
-    gap: .3rem .8rem;
-    padding: .65rem .75rem;
-    border: 1px solid rgba(14, 235, 205, .2);
-    border-radius: .85rem;
-    background: rgba(14, 235, 205, .035);
+    gap: var(--space-0-3rem) var(--space-0-8rem);
+    padding: var(--space-0-65rem) var(--space-0-75rem);
+    border: var(--stroke-1px) solid var(--palette-rgba-14-235-205--2-2);
+    border-radius: var(--radius-0-85rem);
+    background: var(--palette-rgba-14-235-205--035);
   }
 
   .system-home-footer .public-home__signature-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 1.05rem;
+    width: var(--size-42px);
+    height: var(--size-42px);
+    font-size: var(--font-size-1-05rem);
   }
 
   .system-home-footer .public-home__signature-stage {
-    min-height: 52px;
+    min-height: var(--size-52px);
   }
 
   .system-home-footer .public-home__signature-code {
-    font-size: .6rem;
-    line-height: 1.3;
+    font-size: var(--font-size-0-6rem);
+    line-height: var(--leading-1-3);
   }
 
   .system-home-footer .public-home__signature-copy small {
-    font-size: .64rem;
+    font-size: var(--font-size-0-64rem);
   }
 
   .system-home-footer .public-home__signature-copy strong {
-    font-size: .92rem;
+    font-size: var(--font-size-0-92rem);
   }
 
   .system-home-footer .public-home__signature-links a {
-    font-size: .66rem;
+    font-size: var(--font-size-0-66rem);
   }
 
   .system-home-footer .public-home__copyright {
-    font-size: .64rem;
+    font-size: var(--font-size-0-64rem);
     text-align: right;
   }
 }
 
 @media (min-width: 681px) and (max-width: 1100px) {
   .system-home-footer {
-    height: 152px;
-    min-height: 152px;
-    flex-basis: 152px;
+    height: var(--size-152px);
+    min-height: var(--size-152px);
+    flex-basis: var(--size-152px);
   }
 }
 
 @media (max-width: 768px) {
   .main-layout {
-    width: calc(100% - 3.5rem);
-    margin-left: 3.5rem;
+    width: calc(100% - var(--size-3-5rem));
+    margin-left: var(--space-3-5rem);
     margin-right: 0;
   }
 
@@ -216,78 +216,78 @@
   }
 
   .public-home__footer.system-home-footer {
-    height: 132px;
-    min-height: 132px;
-    flex-basis: 132px;
+    height: var(--size-132px);
+    min-height: var(--size-132px);
+    flex-basis: var(--size-132px);
     padding-bottom: 0;
   }
 
   .system-home-footer .public-home__footer-content {
-    width: min(100%, 310px);
+    width: min(100%, var(--size-310px));
     grid-template-areas: "brand copyright" "signature signature";
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: .25rem .45rem;
-    padding: .35rem .45rem;
+    gap: var(--space-0-25rem) var(--space-0-45rem);
+    padding: var(--space-0-35rem) var(--space-0-45rem);
   }
 
   .system-home-footer .public-home__footer-brand {
-    gap: .08rem;
+    gap: var(--space-0-08rem);
   }
 
   .system-home-footer .public-home__footer-brand .public-home__brand {
-    gap: .3rem;
-    font-size: .72rem;
+    gap: var(--space-0-3rem);
+    font-size: var(--font-size-0-72rem);
   }
 
   .system-home-footer .public-home__footer-brand .public-home__brand img {
-    width: 26px;
-    height: 26px;
+    width: var(--size-26px);
+    height: var(--size-26px);
   }
 
   .system-home-footer .public-home__signature {
-    gap: .15rem .5rem;
-    padding: .2rem;
+    gap: var(--space-0-15rem) var(--space-0-5rem);
+    padding: var(--space-0-2rem);
   }
 
   .system-home-footer .public-home__signature-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: .5rem;
-    font-size: .78rem;
+    width: var(--size-28px);
+    height: var(--size-28px);
+    border-radius: var(--radius-0-5rem);
+    font-size: var(--font-size-0-78rem);
   }
 
   .system-home-footer .public-home__signature-stage {
-    min-height: 36px;
+    min-height: var(--size-36px);
   }
 
   .system-home-footer .public-home__signature-code {
-    font-size: .46rem;
-    line-height: 1.15;
+    font-size: var(--font-size-0-46rem);
+    line-height: var(--leading-1-15);
   }
 
   .system-home-footer .public-home__signature-rendered {
-    gap: .08rem;
+    gap: var(--space-0-08rem);
   }
 
   .system-home-footer .public-home__signature-copy small {
-    font-size: .48rem;
+    font-size: var(--font-size-0-48rem);
   }
 
   .system-home-footer .public-home__signature-copy strong {
-    font-size: .68rem;
+    font-size: var(--font-size-0-68rem);
   }
 
   .system-home-footer .public-home__signature-links {
-    gap: .08rem .45rem;
+    gap: var(--space-0-08rem) var(--space-0-45rem);
   }
 
   .system-home-footer .public-home__signature-links a {
-    font-size: .49rem;
+    font-size: var(--font-size-0-49rem);
   }
 
   .system-home-footer .public-home__copyright {
     align-self: center;
-    font-size: .42rem;
+    font-size: var(--font-size-0-42rem);
     text-align: right;
   }
 

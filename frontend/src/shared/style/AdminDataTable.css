@@ -9,16 +9,16 @@
 .admin-data-table th,
 .admin-data-table td {
   box-sizing: border-box;
-  height: 56px;
-  padding: .45rem .55rem;
+  height: var(--size-56px);
+  padding: var(--space-0-45rem) var(--space-0-55rem);
   vertical-align: middle;
 }
 
 .admin-data-table th {
   color: var(--color-text-secondary);
-  font-size: .64rem;
-  font-weight: 600;
-  line-height: 1.1;
+  font-size: var(--font-size-0-64rem);
+  font-weight: var(--font-weight-600);
+  line-height: var(--leading-1-1);
   white-space: nowrap;
 }
 
@@ -57,43 +57,43 @@
     white-space: nowrap;
   }
 
-  .admin-data-table--users .admin-col-status { width: 136px; }
-  .admin-data-table--users .admin-col-primary { width: calc((100% - 378px) * .48); }
-  .admin-data-table--users .admin-col-email { width: calc((100% - 378px) * .52); }
-  .admin-data-table--users .admin-col-compact { width: 92px; }
-  .admin-data-table--users .admin-col-actions { width: 150px; }
+  .admin-data-table--users .admin-col-status { width: var(--size-136px); }
+  .admin-data-table--users .admin-col-primary { width: calc((100% - var(--size-378px)) * .48); }
+  .admin-data-table--users .admin-col-email { width: calc((100% - var(--size-378px)) * .52); }
+  .admin-data-table--users .admin-col-compact { width: var(--size-92px); }
+  .admin-data-table--users .admin-col-actions { width: var(--size-150px); }
 
-  .admin-data-table--guardians .admin-col-status { width: 90px; }
-  .admin-data-table--guardians .admin-col-primary { width: calc((100% - 538px) * .48); }
-  .admin-data-table--guardians .admin-col-email { width: calc((100% - 538px) * .52); }
-  .admin-data-table--guardians col:nth-child(4) { width: 105px; }
-  .admin-data-table--guardians col:nth-child(5) { width: 125px; }
-  .admin-data-table--guardians .admin-col-actions { width: 218px; }
+  .admin-data-table--guardians .admin-col-status { width: var(--size-90px); }
+  .admin-data-table--guardians .admin-col-primary { width: calc((100% - var(--size-538px)) * .48); }
+  .admin-data-table--guardians .admin-col-email { width: calc((100% - var(--size-538px)) * .52); }
+  .admin-data-table--guardians col:nth-child(4) { width: var(--size-105px); }
+  .admin-data-table--guardians col:nth-child(5) { width: var(--size-125px); }
+  .admin-data-table--guardians .admin-col-actions { width: var(--size-218px); }
 
-  .admin-data-table--students .admin-col-status { width: 90px; }
+  .admin-data-table--students .admin-col-status { width: var(--size-90px); }
   .admin-data-table--students .admin-col-primary { width: auto; }
-  .admin-data-table--students col:nth-child(3) { width: 92px; }
-  .admin-data-table--students col:nth-child(4) { width: 112px; }
-  .admin-data-table--students col:nth-child(5) { width: 84px; }
-  .admin-data-table--students .admin-col-actions { width: 150px; }
+  .admin-data-table--students col:nth-child(3) { width: var(--size-92px); }
+  .admin-data-table--students col:nth-child(4) { width: var(--size-112px); }
+  .admin-data-table--students col:nth-child(5) { width: var(--size-84px); }
+  .admin-data-table--students .admin-col-actions { width: var(--size-150px); }
 
-  .admin-data-table--families .admin-col-status { width: 90px; }
-  .admin-data-table--families .admin-col-primary { width: calc((100% - 332px) * .32); }
-  .admin-data-table--families .admin-col-compact { width: 92px; }
-  .admin-data-table--families .admin-col-flex { width: calc((100% - 332px) * .34); }
-  .admin-data-table--families .admin-col-actions { width: 150px; }
+  .admin-data-table--families .admin-col-status { width: var(--size-90px); }
+  .admin-data-table--families .admin-col-primary { width: calc((100% - var(--size-332px)) * .32); }
+  .admin-data-table--families .admin-col-compact { width: var(--size-92px); }
+  .admin-data-table--families .admin-col-flex { width: calc((100% - var(--size-332px)) * .34); }
+  .admin-data-table--families .admin-col-actions { width: var(--size-150px); }
 }
 
 .admin-data-table .status-toggle-cell {
   flex-direction: row;
   width: auto;
-  gap: .4rem;
+  gap: var(--space-0-4rem);
 }
 
 .admin-status-label {
   color: var(--color-text-muted);
-  font-size: .62rem;
-  font-weight: 650;
+  font-size: var(--font-size-0-62rem);
+  font-weight: var(--font-weight-650);
   white-space: nowrap;
 }
 
@@ -104,18 +104,18 @@
   max-width: 100%;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
+  gap: var(--space-0-5rem);
 }
 
 .admin-data-table .admin-table-actions .base-button,
 .admin-data-table [class$="__td--actions"] .base-button {
   width: auto;
   min-width: 0;
-  height: 28px;
-  min-height: 28px;
+  height: var(--size-28px);
+  min-height: var(--size-28px);
   margin: 0;
-  padding: .2rem .45rem;
-  font-size: .58rem;
+  padding: var(--space-0-2rem) var(--space-0-45rem);
+  font-size: var(--font-size-0-58rem);
   white-space: nowrap;
 }
 
@@ -133,7 +133,7 @@
 .admin-data-table .familia-table__student {
   display: flex;
   align-items: center;
-  gap: .375rem;
+  gap: var(--space-0-375rem);
   min-width: 0;
   white-space: nowrap;
 }
@@ -163,6 +163,6 @@
     display: flex;
     width: 100%;
     justify-content: flex-end;
-    gap: .5rem;
+    gap: var(--space-0-5rem);
   }
 }

@@ -111,7 +111,7 @@ export const DashboardPage = () => {
       totalObligations: quotas.paidObligations + quotas.pendingObligations,
       modalities: [
         { name: "Cuota única", value: quotas.annualFamilies, color: "var(--color-accent)" },
-        { name: "Dos cuotas", value: quotas.twoInstallmentFamilies, color: "#8b5cf6" },
+        { name: "Dos cuotas", value: quotas.twoInstallmentFamilies, color: "var(--palette-violet)" },
       ],
     };
   }, [data]);

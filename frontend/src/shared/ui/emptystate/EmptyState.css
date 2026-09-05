@@ -3,43 +3,43 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
-  padding: 2rem;
-  border-radius: 16px;
+  min-height: var(--size-300px);
+  padding: var(--space-2rem);
+  border-radius: var(--radius-16px);
   text-align: center;
 }
 
 .empty-state__icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.6;
+  font-size: var(--font-size-3rem);
+  margin-bottom: var(--space-1rem);
+  opacity: var(--opacity-0-6);
 }
 
 .empty-state__title {
   color: var(--color-text-main);
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-1-125rem);
+  font-weight: var(--font-weight-600);
+  margin-bottom: var(--space-0-5rem);
 }
 
 .empty-state__message {
   color: var(--color-text-muted);
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
+  font-size: var(--font-size-0-875rem);
+  margin-bottom: var(--space-1-5rem);
 }
 
 .empty-state__button {
-  padding: 0.5rem 1rem;
+  padding: var(--space-0-5rem) var(--space-1rem);
   background-color: var(--color-accent);
   color: var(--color-bg);
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: var(--radius-8px);
+  font-weight: var(--font-weight-600);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-200ms) var(--easing-ease);
 }
 
 .empty-state__button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  opacity: var(--opacity-0-9);
+  transform: translateY(var(--motion-distance-negative-1px));
 }

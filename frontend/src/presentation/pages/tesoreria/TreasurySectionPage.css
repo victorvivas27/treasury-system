@@ -1,15 +1,15 @@
 .treasury-page {
-  width: min(100%, 1180px);
-  min-height: calc(100vh - 5rem);
+  width: min(100%, var(--size-1180px));
+  min-height: calc(var(--size-100vh) - var(--size-5rem));
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem);
+  padding: clamp(var(--space-1rem), var(--space-3vw), var(--space-2rem));
 }
 
 .treasury-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-0-5rem);
+  margin-bottom: var(--space-1-5rem);
   color: var(--text-muted);
   font-size: var(--sm);
 }
@@ -19,36 +19,36 @@
 }
 
 .treasury-page__header {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-1-5rem);
 }
 
 .treasury-page__eyebrow {
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--space-0-35rem);
   color: var(--color-accent);
-  font-weight: 700;
+  font-weight: var(--font-weight-700);
 }
 
 .treasury-page__header h1 {
   margin: 0;
   color: var(--text-main);
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-size: clamp(var(--font-size-1-8rem), var(--font-size-4vw), var(--font-size-2-5rem));
 }
 
 .treasury-page__header p:last-child {
-  margin-top: 0.65rem;
+  margin-top: var(--space-0-65rem);
   color: var(--text-muted);
 }
 
 .treasury-page__content {
-  min-height: 260px;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border: 1px solid var(--border-color);
+  min-height: var(--size-260px);
+  padding: clamp(var(--space-1-25rem), var(--space-3vw), var(--space-2rem));
+  border: var(--stroke-1px) solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
 
 .treasury-page__content h2 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-0-75rem);
   color: var(--text-main);
 }
 

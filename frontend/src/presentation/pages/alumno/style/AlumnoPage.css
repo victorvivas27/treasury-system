@@ -1,23 +1,23 @@
 .page-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  border-radius: 16px;
-  padding: 1.5rem;
+  gap: var(--space-0-5rem);
+  border-radius: var(--radius-16px);
+  padding: var(--space-1-5rem);
   width: 98%;
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn var(--duration-400ms) var(--easing-ease-out);
 }
 
 .page-header__actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-0-75rem);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(var(--motion-distance-10px));
   }
 
   to {
@@ -30,20 +30,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
+  gap: var(--space-1rem);
   flex-wrap: wrap;
 }
 
 .page-header__title {
   color: var(--color-text-main);
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
+  font-size: var(--font-size-1-5rem);
+  font-weight: var(--font-weight-700);
+  margin: 0 0 var(--space-0-5rem) 0;
 }
 
 .page-header__subtitle {
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: var(--font-size-1rem);
 }
 
 @media (max-width: 768px) {
@@ -58,19 +58,19 @@
   }
 
   .alumnos-page .page-header {
-    gap: .45rem;
+    gap: var(--space-0-45rem);
   }
 
   .alumnos-page .page-header__title {
-    margin-bottom: .1rem;
-    font-size: 1.15rem;
+    margin-bottom: var(--space-0-1rem);
+    font-size: var(--font-size-1-15rem);
   }
 
   .alumnos-page .page-header__subtitle {
-    font-size: .75rem;
-    line-height: 1.35;
+    font-size: var(--font-size-0-75rem);
+    line-height: var(--leading-1-35);
   }
 
   .page-header__actions { width: 100%; flex-wrap: wrap; }
-  .page-header__actions .base-button { flex: 1 1 9rem; margin: 0; }
+  .page-header__actions .base-button { flex: 1 1 var(--size-9rem); margin: 0; }
 }

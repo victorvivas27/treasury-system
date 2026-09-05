@@ -4,5 +4,6 @@ import java.time.LocalDateTime;
 
 public record NotificationReplyResponse(Long id, Long authorId, String authorName,
         String authorRole, String authorProfileImageType, String authorProfileImageUrl,
-        String message, LocalDateTime createdAt) {
+        String message, LocalDateTime createdAt, boolean read, LocalDateTime readAt,
+        LocalDateTime updatedAt) {
 }

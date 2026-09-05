@@ -1,17 +1,17 @@
 .alumnos-container {
   background-color: var(--color-surface);
-  border-radius: 16px;
+  border-radius: var(--radius-16px);
   padding: var(--sm);
 }
 
 .alumnos-header {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: var(--stroke-1px) solid var(--border-color);
 }
 
 .alumnos-header__title {
   color: var(--color-accent);
-  margin: .25rem 0 .4rem;
-  font-size: .95rem;
+  margin: var(--space-0-25rem) 0 var(--space-0-4rem);
+  font-size: var(--font-size-0-95rem);
 }
 
 .alumnos-table {
@@ -23,13 +23,13 @@
 .alumnos-table__th {
   font-size: var(--sm);
   text-transform: uppercase;
-  border-bottom: 1px solid var(--divider);
+  border-bottom: var(--stroke-1px) solid var(--divider);
   text-align: center;
 }
 
 .alumnos-table__row--data {
-  border-bottom: 1px solid var(--divider);
-  height: 44px;
+  border-bottom: var(--stroke-1px) solid var(--divider);
+  height: var(--size-44px);
 }
 
 .alumnos-table__td {
@@ -41,35 +41,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .45rem;
+  gap: var(--space-0-45rem);
 }
 
 .alumnos-table__gender {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
-  font-size: 1.65rem;
+  width: var(--size-28px);
+  height: var(--size-28px);
+  flex: 0 0 var(--size-28px);
+  font-size: var(--font-size-1-65rem);
   color: var(--color-text-muted);
 }
 
 .alumnos-table__gender.is-masculino {
-  color: #2563eb;
+  color: var(--palette-2563eb);
 }
 
 .alumnos-table__gender.is-femenino {
-  color: #db2777;
+  color: var(--palette-pink-deep);
 }
 
 .alumnos-table__gender.is-otros {
-  color: #7c3aed;
-  font-size: 1.3rem;
+  color: var(--palette-7c3aed);
+  font-size: var(--font-size-1-3rem);
 }
 
 .alumnos-table__text {
-  padding: .45rem .65rem;
-  line-height: 1.3;
+  padding: var(--space-0-45rem) var(--space-0-65rem);
+  line-height: var(--leading-1-3);
   overflow-wrap: anywhere;
   white-space: normal;
 }
@@ -77,7 +77,7 @@
 .alumnos-table__person {
   display: flex;
   align-items: center;
-  gap: .375rem;
+  gap: var(--space-0-375rem);
   min-width: 0;
   white-space: nowrap;
 }
@@ -96,15 +96,15 @@
 .alumnos-table__observation-button {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: var(--size-32px);
+  height: var(--size-32px);
   padding: 0;
-  border: 1px solid var(--border-color);
-  border-radius: 50%;
+  border: var(--stroke-1px) solid var(--border-color);
+  border-radius: var(--radius-50percent);
   background: var(--color-surface);
   color: var(--color-accent);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: var(--font-size-1rem);
 }
 
 .alumnos-table__observation-button:hover,
@@ -116,7 +116,7 @@
 
 .alumnos-table__no-observation {
   color: var(--color-text-muted);
-  font-size: .7rem;
+  font-size: var(--font-size-0-7rem);
 }
 
 .alumnos-table__td--actions {
@@ -131,17 +131,17 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 28px;
+  height: var(--size-28px);
   min-width: 0;
-  min-height: 28px;
-  padding: .2rem .25rem;
+  min-height: var(--size-28px);
+  padding: var(--space-0-2rem) var(--space-0-25rem);
   margin: 0;
-  font-size: .58rem;
+  font-size: var(--font-size-0-58rem);
 }
 
 .alumnos-table__icon-button .button-icon svg {
-  width: .8rem;
-  height: .8rem;
+  width: var(--size-0-8rem);
+  height: var(--size-0-8rem);
 }
 
 .skeleton-row {
@@ -153,13 +153,13 @@
 
 .skeleton-block {
   height: var(--md);
-  border-radius: 4px;
+  border-radius: var(--radius-4px);
   background: linear-gradient(90deg,
       var(--color-surface) 0%,
       var(--divider) 50%,
       var(--color-surface) 100%);
   background-size: 200% 100%;
-  animation: skeletonShine 1.5s infinite linear;
+  animation: skeletonShine var(--duration-1500ms) infinite var(--easing-linear);
 }
 
 .skeleton-input {
@@ -184,11 +184,11 @@
 
   .alumnos-table__icon-button {
     width: 100%;
-    height: 28px;
+    height: var(--size-28px);
     min-width: 0;
-    min-height: 28px;
-    padding: .25rem;
-    font-size: .58rem;
+    min-height: var(--size-28px);
+    padding: var(--space-0-25rem);
+    font-size: var(--font-size-0-58rem);
   }
 
   .alumnos-page .page-content {
@@ -204,25 +204,25 @@
   }
 
   .alumnos-page .alumnos-table tbody {
-    padding: .65rem .5rem .5rem;
+    padding: var(--space-0-65rem) var(--space-0-5rem) var(--space-0-5rem);
   }
 
   .alumnos-page .alumnos-table tbody > tr {
-    padding: .45rem .6rem;
+    padding: var(--space-0-45rem) var(--space-0-6rem);
   }
 
   .alumnos-page .alumnos-table tbody > tr > td:not([data-label="Acciones"]) {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    min-height: 26px;
-    padding: .2rem .1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--divider) 65%, transparent);
-    font-size: .78rem;
-    line-height: 1.25;
+    grid-template-columns: var(--size-4-5rem) minmax(0, 1fr);
+    min-height: var(--size-26px);
+    padding: var(--space-0-2rem) var(--space-0-1rem);
+    border-bottom: var(--stroke-1px) solid color-mix(in srgb, var(--divider) 65%, transparent);
+    font-size: var(--font-size-0-78rem);
+    line-height: var(--leading-1-25);
   }
 
   .alumnos-page .alumnos-table tbody > tr > td:not([data-label="Acciones"])::before {
     color: var(--color-accent);
-    font-size: .62rem;
+    font-size: var(--font-size-0-62rem);
   }
 
   .alumnos-page .alumnos-table tbody > tr > td:last-child:not([data-label="Acciones"]) {
@@ -230,8 +230,8 @@
   }
 
   .alumnos-page .alumnos-table tbody > tr > td[data-label="Acciones"] {
-    margin-top: .2rem;
+    margin-top: var(--space-0-2rem);
     border-top: 0;
-    padding-top: .45rem;
+    padding-top: var(--space-0-45rem);
   }
 }

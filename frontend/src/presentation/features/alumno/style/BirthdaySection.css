@@ -1,46 +1,46 @@
 .birthday-section {
   display: grid;
-  gap: .75rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  border-radius: 16px;
-  padding: .85rem;
+  gap: var(--space-0-75rem);
+  border: var(--stroke-1px) solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-radius: var(--radius-16px);
+  padding: var(--space-0-85rem);
   background:
-    linear-gradient(135deg, color-mix(in srgb, #f59e0b 10%, var(--color-surface)), transparent 46%),
-    linear-gradient(315deg, color-mix(in srgb, #0ea5e9 9%, var(--color-surface)), var(--color-surface) 58%);
+    linear-gradient(135deg, color-mix(in srgb, var(--palette-amber) 10%, var(--color-surface)), transparent 46%),
+    linear-gradient(315deg, color-mix(in srgb, var(--palette-cyan) 9%, var(--color-surface)), var(--color-surface) 58%);
 }
 
 .birthday-section__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-1rem);
 }
 
 .birthday-section__header span {
   color: var(--color-accent);
-  font-size: .68rem;
-  font-weight: 800;
+  font-size: var(--font-size-0-68rem);
+  font-weight: var(--font-weight-800);
   text-transform: uppercase;
 }
 
 .birthday-section__header h2 {
-  margin: .08rem 0 0;
+  margin: var(--space-0-08rem) 0 0;
   color: var(--text-main);
-  font-size: 1rem;
-  line-height: 1.15;
+  font-size: var(--font-size-1rem);
+  line-height: var(--leading-1-15);
 }
 
 .birthday-section__header > svg {
   flex: 0 0 auto;
-  width: 2rem;
-  height: 2rem;
-  color: #db2777;
+  width: var(--size-2rem);
+  height: var(--size-2rem);
+  color: var(--palette-pink-deep);
 }
 
 .birthday-section__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
-  gap: .65rem;
+  grid-template-columns: repeat(auto-fit, minmax(var(--size-175px), 1fr));
+  gap: var(--space-0-65rem);
   align-items: stretch;
 }
 
@@ -48,25 +48,25 @@
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: .6rem;
-  min-height: 118px;
+  gap: var(--space-0-6rem);
+  min-height: var(--size-118px);
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--birthday-color) 28%, var(--border-color));
-  border-radius: 18px 8px 18px 8px;
-  padding: .72rem;
+  border: var(--stroke-1px) solid color-mix(in srgb, var(--birthday-color) 28%, var(--border-color));
+  border-radius: var(--radius-18px) var(--radius-8px) var(--radius-18px) var(--radius-8px);
+  padding: var(--space-0-72rem);
   background: color-mix(in srgb, var(--birthday-color) 10%, var(--color-bg));
-  box-shadow: 0 12px 30px rgb(0 0 0 / 8%);
+  box-shadow: var(--shadow-birthday-card);
   transform: scale(var(--birthday-scale, 1));
   transform-origin: center;
-  transition: transform .2s ease, border-color .2s ease, background-color .2s ease;
+  transition: transform var(--duration-200ms) var(--easing-ease), border-color var(--duration-200ms) var(--easing-ease), background-color var(--duration-200ms) var(--easing-ease);
 }
 
 .birthday-card::before {
   position: absolute;
-  top: -1px;
-  right: -1px;
-  width: 2.35rem;
-  height: 2.35rem;
+  top: var(--offset-negative-1px);
+  right: var(--offset-negative-1px);
+  width: var(--size-2-35rem);
+  height: var(--size-2-35rem);
   background:
     linear-gradient(
       135deg,
@@ -74,16 +74,16 @@
       color-mix(in srgb, var(--birthday-color) 42%, var(--color-surface)) 50% 100%
     );
   content: "";
-  opacity: .75;
+  opacity: var(--opacity-0-75);
 }
 
 .birthday-card::after {
   position: absolute;
-  right: -.9rem;
-  bottom: -.9rem;
-  width: 4.2rem;
-  height: 4.2rem;
-  border-radius: 1.4rem .45rem 1.4rem .45rem;
+  right: var(--offset-negative-0-9rem);
+  bottom: var(--offset-negative-0-9rem);
+  width: var(--size-4-2rem);
+  height: var(--size-4-2rem);
+  border-radius: var(--radius-1-4rem) var(--radius-0-45rem) var(--radius-1-4rem) var(--radius-0-45rem);
   background: color-mix(in srgb, var(--birthday-color) 18%, transparent);
   content: "";
   transform: rotate(14deg);
@@ -91,65 +91,65 @@
 
 .birthday-card.is-next {
   --birthday-scale: 1.03;
-  min-height: 132px;
-  border-radius: 22px 8px 22px 8px;
+  min-height: var(--size-132px);
+  border-radius: var(--radius-22px) var(--radius-8px) var(--radius-22px) var(--radius-8px);
 }
 
 .birthday-card.is-today {
-  --birthday-color: #db2777;
+  --birthday-color: var(--palette-pink-deep);
 }
 
 .birthday-card.is-tone-1 {
-  --birthday-color: #f59e0b;
+  --birthday-color: var(--palette-amber);
 }
 
 .birthday-card.is-tone-2 {
-  --birthday-color: #ef4444;
+  --birthday-color: var(--palette-red);
 }
 
 .birthday-card.is-tone-3 {
-  --birthday-color: #8b5cf6;
+  --birthday-color: var(--palette-violet);
 }
 
 .birthday-card.is-tone-4 {
-  --birthday-color: #0ea5e9;
+  --birthday-color: var(--palette-cyan);
 }
 
 .birthday-card.is-tone-5 {
-  --birthday-color: #14b8a6;
+  --birthday-color: var(--palette-teal);
 }
 
 .birthday-card.is-tone-6 {
-  --birthday-color: #22c55e;
+  --birthday-color: var(--palette-green);
 }
 
 .birthday-card.is-tone-7 {
-  --birthday-color: #eab308;
+  --birthday-color: var(--palette-yellow);
 }
 
 .birthday-card.is-tone-8 {
-  --birthday-color: #f97316;
+  --birthday-color: var(--palette-orange);
 }
 
 .birthday-card.is-tone-9 {
-  --birthday-color: #6366f1;
+  --birthday-color: var(--palette-indigo);
 }
 
 .birthday-card.is-tone-10 {
-  --birthday-color: #ec4899;
+  --birthday-color: var(--palette-pink);
 }
 
 .birthday-card__icon {
   position: relative;
   z-index: 1;
   display: grid;
-  width: 2.35rem;
-  height: 2.35rem;
+  width: var(--size-2-35rem);
+  height: var(--size-2-35rem);
   place-items: center;
-  border-radius: 14px 6px 14px 6px;
+  border-radius: var(--radius-14px) var(--radius-6px) var(--radius-14px) var(--radius-6px);
   background: color-mix(in srgb, var(--birthday-color) 18%, var(--color-surface));
   color: var(--birthday-color);
-  font-size: 1.15rem;
+  font-size: var(--font-size-1-15rem);
 }
 
 .birthday-card__body {
@@ -160,23 +160,23 @@
 
 .birthday-card__body span {
   color: var(--birthday-color);
-  font-size: .64rem;
-  font-weight: 850;
+  font-size: var(--font-size-0-64rem);
+  font-weight: var(--font-weight-850);
   text-transform: uppercase;
 }
 
 .birthday-card__body h3 {
-  margin: .1rem 0 .16rem;
+  margin: var(--space-0-1rem) 0 var(--space-0-16rem);
   color: var(--text-main);
-  font-size: .86rem;
-  line-height: 1.18;
+  font-size: var(--font-size-0-86rem);
+  line-height: var(--leading-1-18);
   overflow-wrap: anywhere;
 }
 
 .birthday-card__body p {
   margin: 0;
   color: var(--text-muted);
-  font-size: .72rem;
+  font-size: var(--font-size-0-72rem);
   text-transform: capitalize;
 }
 
@@ -187,21 +187,21 @@
   align-self: end;
   width: max-content;
   max-width: 100%;
-  border-radius: 999px;
-  padding: .34rem .55rem;
+  border-radius: var(--radius-999px);
+  padding: var(--space-0-34rem) var(--space-0-55rem);
   background: color-mix(in srgb, var(--birthday-color) 18%, var(--color-surface));
   color: var(--birthday-color);
-  font-size: .7rem;
+  font-size: var(--font-size-0-7rem);
   line-height: 1;
 }
 
 .birthday-section__empty {
   margin: 0;
-  border: 1px dashed color-mix(in srgb, var(--border-color) 80%, transparent);
-  border-radius: 12px;
-  padding: .85rem;
+  border: var(--stroke-1px) dashed color-mix(in srgb, var(--border-color) 80%, transparent);
+  border-radius: var(--radius-12px);
+  padding: var(--space-0-85rem);
   color: var(--text-muted);
-  font-size: .82rem;
+  font-size: var(--font-size-0-82rem);
 }
 
 .birthday-card--loading {
@@ -213,17 +213,17 @@
 .birthday-card--loading span,
 .birthday-card--loading strong {
   display: block;
-  min-height: .85rem;
-  border-radius: 999px;
+  min-height: var(--size-0-85rem);
+  border-radius: var(--radius-999px);
   background: linear-gradient(90deg, var(--color-surface) 0%, var(--divider) 50%, var(--color-surface) 100%);
   background-size: 200% 100%;
-  animation: birthdaySkeleton 1.2s infinite linear;
+  animation: birthdaySkeleton var(--duration-1200ms) infinite var(--easing-linear);
 }
 
 .birthday-card--loading div {
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 12px;
+  width: var(--size-2-35rem);
+  height: var(--size-2-35rem);
+  border-radius: var(--radius-12px);
 }
 
 .birthday-card--loading strong {
@@ -238,7 +238,7 @@
 
 @media (max-width: 640px) {
   .birthday-section {
-    padding: .7rem;
+    padding: var(--space-0-7rem);
   }
 
   .birthday-section__grid {
@@ -247,7 +247,7 @@
 
   .birthday-card,
   .birthday-card.is-next {
-    min-height: 106px;
+    min-height: var(--size-106px);
     transform: none;
   }
 }

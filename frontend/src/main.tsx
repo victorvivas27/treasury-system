@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from '@/presentation/App'
-import '@/shared/style/global.css'
 import '@/shared/style/ResponsiveDataList.css'
 import '@/shared/ui/skeleton/Skeleton.css'
 
@@ -17,12 +16,10 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
       const cover = document.createElement('div')
       cover.setAttribute('role', 'status')
       cover.setAttribute('aria-label', 'Actualizando Tesorería Escolar')
-      cover.style.cssText = [
-        'position:fixed', 'inset:0', 'z-index:2147483647', 'display:grid',
-        'place-items:center', `background:${document.documentElement.dataset.theme === 'light'
-          ? '#eef1f4' : '#0a0f1a'}`, 'color:#38bdf8',
-      ].join(';')
-      cover.innerHTML = '<span style="width:42px;height:42px;border:3px solid rgba(56,189,248,.2);border-top-color:#38bdf8;border-radius:50%;animation:boot-spin 1s linear infinite"></span>'
+      cover.className = 'app-reload-cover'
+      const spinner = document.createElement('span')
+      spinner.className = 'app-reload-cover__spinner'
+      cover.appendChild(spinner)
       document.body.appendChild(cover)
       requestAnimationFrame(() => requestAnimationFrame(() => window.location.reload()))
     }

@@ -1,0 +1,39 @@
+.message-edit-modal {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  width: min(var(--size-320px), calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: var(--space-0-75rem);
+  border: var(--stroke-1px) solid var(--color-border);
+  border-radius: var(--radius-14px);
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-elevated);
+}
+.message-edit-modal::backdrop { background: var(--overlay); }
+.message-edit-modal form { display: grid; gap: var(--space-0-5rem); }
+.message-edit-modal header { display: flex; align-items: center; gap: var(--space-0-5rem); }
+.message-edit-modal header svg { color: var(--color-primary); }
+.message-edit-modal h2 { margin: 0; font-size: var(--font-size-0-95rem); }
+.message-edit-modal__field { display: grid; gap: var(--space-0-25rem); font-size: var(--font-size-0-8rem); }
+.message-edit-modal textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--size-120px);
+  padding: var(--space-0-5rem);
+  resize: vertical;
+  border: var(--stroke-1px) solid var(--color-border);
+  border-radius: var(--radius-9px);
+  background: var(--color-background);
+  color: var(--color-text-main);
+  font: inherit;
+  line-height: 1.5;
+}
+.message-edit-modal textarea:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.message-edit-modal__count { justify-self: end; font-size: var(--font-size-0-7rem); color: var(--color-text-muted); }
+.message-edit-modal__error { margin: 0; color: var(--color-danger); font-size: var(--font-size-0-8rem); }
+.message-edit-modal footer { display: flex; justify-content: flex-end; gap: var(--space-0-5rem); }

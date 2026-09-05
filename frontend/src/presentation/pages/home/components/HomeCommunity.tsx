@@ -185,7 +185,7 @@ export const HomeCommunity = () => {
           <p>Este espacio reúne la información del curso y facilita una comunicación clara entre
             las familias y su directiva.</p></div></article> : sections.map((section, index) => {
           const Icon = icons[section.icon] ?? FiUsers;
-          return <article key={section.id} style={{ "--card-delay": `${index * 170}ms` } as CSSProperties}
+          return <article key={section.id} style={{ "--card-delay": `calc(${index} * var(--stagger-community))` } as CSSProperties}
             data-card-number={String(index + 1).padStart(2, "0")}
             className={`home-community__about-card is-${section.accentColor.toLowerCase()} ${section.featured ? "is-featured" : ""}`}>
             <span className="home-community__card-icon"><Icon aria-hidden="true" /></span>
@@ -291,7 +291,7 @@ export const HomeCommunity = () => {
           const roleLabel = `${boardLabels[slot.role]}${slot.role === "PASTORAL" ? ` ${slot.position}` : ""}`;
           return <article key={`${slot.role}-${slot.position}`}
             className={`is-${slot.role.toLowerCase()}`}
-            style={{ "--board-delay": `${index * 120}ms` } as CSSProperties}>
+            style={{ "--board-delay": `calc(${index} * var(--stagger-board))` } as CSSProperties}>
             {member ? <UserAvatar className="home-community__board-avatar"
               customImageUserId={member.userId ?? undefined} user={{ nombre: member.nombre,
                 profileImageType: member.profileImageType, profileImageUrl: member.profileImageUrl }} />

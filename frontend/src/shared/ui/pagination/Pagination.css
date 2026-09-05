@@ -2,40 +2,40 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .3rem;
+  gap: var(--space-0-3rem);
   width: fit-content;
-  margin-top: .5rem;
+  margin-top: var(--space-0-5rem);
   margin-right: auto;
   margin-left: auto;
 }
 
 .pagination .no-highlight {
-  min-width: 5.5rem;
-  padding: .25rem .5rem;
-  border-radius: 999px;
+  min-width: var(--size-5-5rem);
+  padding: var(--space-0-25rem) var(--space-0-5rem);
+  border-radius: var(--radius-999px);
   background: var(--color-accent-soft);
   color: var(--color-accent);
-  font-size: .65rem;
-  font-weight: 700;
+  font-size: var(--font-size-0-65rem);
+  font-weight: var(--font-weight-700);
   text-align: center;
   white-space: nowrap;
 }
 
 .pagination .base-button {
-  min-height: 28px;
+  min-height: var(--size-28px);
   margin: 0;
-  padding: .25rem .55rem;
-  border-radius: 999px;
+  padding: var(--space-0-25rem) var(--space-0-55rem);
+  border-radius: var(--radius-999px);
   background: var(--color-hover);
   color: var(--text-main);
-  font-size: .65rem;
-  font-weight: 600;
+  font-size: var(--font-size-0-65rem);
+  font-weight: var(--font-weight-600);
 }
 
 .pagination .base-button:disabled {
   border-color: transparent;
   background: transparent;
-  opacity: .4;
+  opacity: var(--opacity-0-4);
 }
 
 @media (max-width: 480px) {
@@ -45,11 +45,11 @@
 
   .pagination .base-button {
     width: auto;
-    padding-inline: .4rem;
+    padding-inline: var(--space-0-4rem);
   }
 
   .pagination .no-highlight {
-    min-width: 5rem;
-    padding-inline: .35rem;
+    min-width: var(--size-5rem);
+    padding-inline: var(--space-0-35rem);
   }
 }

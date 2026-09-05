@@ -127,7 +127,10 @@ public class NotificationService {
                 id, currentUser(email).getId())
                 .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación no encontrada"));
-        if (!row.isRead()) { row.setRead(true); row.setReadAt(LocalDateTime.now()); }
+        if (!row.isRead()) {
+            row.setRead(true); row.setReadAt(LocalDateTime.now());
+            publishDeliveryRead(row);
+        }
         return response(deliveries.save(row));
     }
 
@@ -136,10 +139,14 @@ public class NotificationService {
         UserEntity user = currentUser(email);
         List<UserNotificationEntity> rows = deliveries.findByUserIdAndReadFalseAndVisibleTrue(user.getId());
         LocalDateTime now = LocalDateTime.now();
-        rows.forEach(row -> { row.setRead(true); row.setReadAt(now); });
+        rows.forEach(row -> {
+            row.setRead(true); row.setReadAt(now); publishDeliveryRead(row);
+        });
         deliveries.saveAll(rows);
         List<NotificationReplyEntity> unreadReplies = replyRepository.findUnreadReceived(user.getId());
-        unreadReplies.forEach(reply -> { reply.setRead(true); reply.setReadAt(now); });
+        unreadReplies.forEach(reply -> {
+            reply.setRead(true); reply.setReadAt(now); publishReplyRead(reply, user);
+        });
         replyRepository.saveAll(unreadReplies);
     }
 
@@ -177,7 +184,9 @@ public class NotificationService {
                 .filter(reply -> !reply.isRead()
                         && !reply.getAuthor().getId().equals(user.getId()))
                 .toList();
-        receivedUnread.forEach(reply -> { reply.setRead(true); reply.setReadAt(now); });
+        receivedUnread.forEach(reply -> {
+            reply.setRead(true); reply.setReadAt(now); publishReplyRead(reply, user);
+        });
         replyRepository.saveAll(receivedUnread);
         return conversation.stream()
                 .map(this::replyResponse).toList();
@@ -199,7 +208,10 @@ public class NotificationService {
         events.publishEvent(new PushRequestedEvent("reply-" + saved.getId(),
                 "Nuevo mensaje de " + author.getNombre(), saved.getMessage(), NOTIFICATIONS_PATH,
                 List.of(recipientEmail), List.of(otherParticipantId(delivery, author))));
-        return replyResponse(saved);
+        NotificationReplyResponse response = replyResponse(saved);
+        events.publishEvent(new NotificationReplyCreatedEvent(
+                new RealtimeReply(deliveryId, response, recipientEmail), author.getCorreo()));
+        return response;
     }
 
     @Transactional
@@ -269,10 +281,13 @@ public class NotificationService {
     }
 
     private UserEntity soleTreasuryAdmin(Long organizationId) {
-        List<UserEntity> admins = organizationId == null
+        List<UserEntity> candidates = organizationId == null
                 ? users.findByRolOrderByIdAsc(RoleEnum.ADMIN)
                 : users.findByRolInAndOrganizationIdOrderByIdAsc(
                         List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), organizationId);
+        List<UserEntity> admins = candidates.stream()
+                .filter(user -> user.getRol() == RoleEnum.ADMIN).toList();
+        if (admins.isEmpty()) admins = candidates;
         if (admins.size() != EXPECTED_ADMIN_COUNT)
             throw error("recipient", HttpStatus.CONFLICT,
                     "No existe una cuenta única de Tesorería disponible");
@@ -284,7 +299,12 @@ public class NotificationService {
         NotificationReplyEntity reply = ownEditableReply(id, email);
         reply.setMessage(request.message().trim());
         reply.setUpdatedAt(LocalDateTime.now());
-        return replyResponse(replyRepository.save(reply));
+        NotificationReplyResponse updated = replyResponse(replyRepository.save(reply));
+        UserNotificationEntity delivery = reply.getDelivery();
+        UserEntity author = reply.getAuthor();
+        events.publishEvent(new NotificationReplyUpdatedEvent(new RealtimeReply(delivery.getId(),
+                updated, otherParticipantEmail(delivery, author)), author.getCorreo()));
+        return updated;
     }
 
     @Transactional
@@ -347,7 +367,18 @@ public class NotificationService {
         return new NotificationReplyResponse(reply.getId(), author.getId(),
                 author.getNombre(), author.getRol().name(), author.getProfileImageType().name(),
                 author.getProfileImageUrl(),
-                reply.getMessage(), reply.getCreatedAt());
+                reply.getMessage(), reply.getCreatedAt(), reply.isRead(), reply.getReadAt(), reply.getUpdatedAt());
+    }
+
+    private void publishReplyRead(NotificationReplyEntity reply, UserEntity reader) {
+        events.publishEvent(new NotificationReadEvent(List.of(reply.getId()), List.of(),
+                reply.getReadAt(), List.of(reply.getAuthor().getCorreo(), reader.getCorreo())));
+    }
+
+    private void publishDeliveryRead(UserNotificationEntity delivery) {
+        events.publishEvent(new NotificationReadEvent(List.of(), List.of(delivery.getId()),
+                delivery.getReadAt(), List.of(delivery.getNotification().getCreatedBy().getCorreo(),
+                        delivery.getUser().getCorreo())));
     }
 
     private List<UserEntity> resolveRecipients(NotificationRequest request, Long organizationId) {

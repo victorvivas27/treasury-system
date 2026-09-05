@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem 1rem;
+  padding: var(--space-2rem) var(--space-1rem);
 }
 
 
@@ -12,13 +12,13 @@
 .animated-icons {
   /* border: 1px solid red; */ /* Puedes quitarlo ya */
   position: relative;
-  width: 120px;
-  height: 110px;
+  width: var(--size-120px);
+  height: var(--size-110px);
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: visible;
-  margin-bottom: 30px;
+  margin-bottom: var(--space-30px);
 }
 
 /* icono */
@@ -29,15 +29,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: var(--space-0-35rem);
   opacity: 0;
-  animation: treasurySmooth 5.8s infinite ease-in-out;
+  animation: treasurySmooth var(--duration-5800ms) infinite var(--easing-ease-in-out);
 }
 
 /* icono visual */
 .icon svg {
-  width: 3rem;
-  height: 3rem;
+  width: var(--size-3rem);
+  height: var(--size-3rem);
 }
 
 /* colores */
@@ -46,8 +46,8 @@
 }
 
 .icon-transfer svg {
-  width: 3.15rem;
-  height: 3.15rem;
+  width: var(--size-3-15rem);
+  height: var(--size-3-15rem);
 }
 
 .icon-piggy svg {
@@ -60,19 +60,19 @@
 
 /* delays */
 .icon-money {
-  animation-delay: 0s;
+  animation-delay: var(--duration-0ms);
 }
 
 .icon-transfer{
-  animation-delay: 1.45s;
+  animation-delay: var(--duration-1450ms);
 }
 
 .icon-piggy{
-  animation-delay: 2.9s;
+  animation-delay: var(--duration-2900ms);
 }
 
 .icon-banck {
-  animation-delay: 4.35s;
+  animation-delay: var(--duration-4350ms);
 }
 
 /* animación FINAL */
@@ -81,7 +81,7 @@
   /* inicio oculto */
   0% {
     opacity: 0;
-    transform: translateY(8px) scale(0.94);
+    transform: translateY(var(--motion-distance-8px)) scale(0.94);
   }
 
   /* entrada */
@@ -128,13 +128,13 @@
   /* salida suave */
   34% {
     opacity: 0;
-    transform: translateY(-6px) scale(0.95);
+    transform: translateY(var(--motion-distance-negative-6px)) scale(0.95);
   }
 
   /* resto oculto */
   100% {
     opacity: 0;
-    transform: translateY(-6px) scale(0.95);
+    transform: translateY(var(--motion-distance-negative-6px)) scale(0.95);
   }
 }
 
@@ -142,7 +142,7 @@
 
 .rotating-text {
   position: absolute;
-  bottom: -1px;
+  bottom: var(--offset-negative-1px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -154,19 +154,19 @@
   margin: 0;
   white-space: nowrap;
   color: var(--color-text-muted);
-  font-size: 0.9rem;
-  font-weight: bold;
+  font-size: var(--font-size-0-9rem);
+  font-weight: var(--font-weight-bold);
   overflow: hidden;
-  border-right: 3px solid var(--color-success);
-  width: calc(var(--chars) * 1.05ch);
+  border-right: var(--stroke-3px) solid var(--color-success);
+  width: calc(var(--chars) * var(--size-1-05ch));
   animation:
-    typing 4s steps(var(--chars)) infinite,
-    blink 0.5s step-end infinite;
+    typing var(--duration-4000ms) steps(var(--chars)) infinite,
+    blink var(--duration-500ms) step-end infinite;
 }
 
 @keyframes typing {
   0% { width: 0; }
-  50%, 85% { width: calc(var(--chars) * 1.05ch); }
+  50%, 85% { width: calc(var(--chars) * var(--size-1-05ch)); }
   100% { width: 0; }
 }
 

@@ -1,7 +1,7 @@
 .alumno-edit-form.form-card {
   background-color: var(--color-surface);
   padding: var(--sm);
-  border-radius: 12px;
+  border-radius: var(--radius-12px);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--sm);
@@ -16,11 +16,11 @@
   width: var(--wh-100);
   padding: var(--md);
   background: var(--color-bg);
-  border: 1px solid var(--border-color);
+  border: var(--stroke-1px) solid var(--border-color);
   border-radius: var(--sm);
   color: var(--text-main);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration-200ms);
 }
 
 .form-input:focus {
@@ -29,7 +29,7 @@
 
 .form-input::placeholder {
   color: transparent;
-  transition: color 0.3s ease;
+  transition: color var(--duration-300ms) var(--easing-ease);
 }
 
 .form-input:focus::placeholder {
@@ -43,13 +43,13 @@
 .error-message {
   color: var(--color-error);
   font-size: var(--xs);
-  animation: fadeIn 0.2s ease-in;
+  animation: fadeIn var(--duration-200ms) var(--easing-ease-in);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(var(--motion-distance-negative-5px));
   }
 
   to {
@@ -65,14 +65,14 @@
 
 .floating-label {
   position: absolute;
-  left: 12px;
+  left: var(--offset-12px);
   top: 40%;
   transform: translateY(-65%);
   color: var(--color-text-muted);
   pointer-events: none;
-  transition: all 0.2s ease-out;
+  transition: all var(--duration-200ms) var(--easing-ease-out);
   background: transparent;
-  padding: 0 4px;
+  padding: 0 var(--space-4px);
 }
 
 .form-input:focus+.floating-label,
@@ -96,52 +96,52 @@
 
 @media (max-width: 640px) {
   .alumno-edit-page .form-page-header {
-    margin-bottom: .45rem;
+    margin-bottom: var(--space-0-45rem);
   }
 
   .alumno-edit-page .form-page-header__title {
-    margin-bottom: .1rem;
-    font-size: 1.15rem;
+    margin-bottom: var(--space-0-1rem);
+    font-size: var(--font-size-1-15rem);
   }
 
   .alumno-edit-page .form-page-header__subtitle {
     margin-bottom: 0;
-    font-size: .75rem;
-    line-height: 1.35;
+    font-size: var(--font-size-0-75rem);
+    line-height: var(--leading-1-35);
   }
 
   .alumno-edit-form.form-card {
     grid-template-columns: 1fr;
-    gap: .25rem;
-    padding: .65rem;
+    gap: var(--space-0-25rem);
+    padding: var(--space-0-65rem);
   }
 
   .alumno-edit-form__group.form-group {
     min-width: 0;
-    margin: .25rem .35rem;
-    padding-bottom: 18px;
+    margin: var(--space-0-25rem) var(--space-0-35rem);
+    padding-bottom: var(--space-18px);
   }
 
   .alumno-edit-form__group .form-input {
-    min-height: 44px;
-    padding: .7rem .8rem;
+    min-height: var(--size-44px);
+    padding: var(--space-0-7rem) var(--space-0-8rem);
   }
 
   .alumno-edit-form__actions.form-actions {
     grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .5rem;
-    margin: .15rem .35rem 0;
+    gap: var(--space-0-5rem);
+    margin: var(--space-0-15rem) var(--space-0-35rem) 0;
   }
 
   .alumno-edit-form__actions .base-button {
     width: 100%;
     min-width: 0;
-    min-height: 40px;
+    min-height: var(--size-40px);
     margin: 0;
-    padding-inline: .4rem;
-    font-size: .7rem;
+    padding-inline: var(--space-0-4rem);
+    font-size: var(--font-size-0-7rem);
   }
 
   .alumno-edit-form__actions .button-content,
@@ -151,7 +151,7 @@
   }
 
   .alumno-edit-form__actions .button-content {
-    gap: .2rem;
+    gap: var(--space-0-2rem);
   }
 
   .alumno-edit-form__group .error-message {
@@ -162,6 +162,6 @@
 .alumno-edit-form__group--wide { grid-column: 1 / -1; }
 
 .alumno-edit-form__textarea {
-  min-height: 72px;
+  min-height: var(--size-72px);
   resize: vertical;
 }
