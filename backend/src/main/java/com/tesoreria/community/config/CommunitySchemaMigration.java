@@ -21,7 +21,7 @@ public class CommunitySchemaMigration implements ApplicationRunner {
                 + "storage_object_name VARCHAR(500) NOT NULL UNIQUE, content_type VARCHAR(80) NOT NULL, "
                 + "caption VARCHAR(160), display_order INTEGER NOT NULL DEFAULT 0, created_at TIMESTAMP NOT NULL)");
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS course_board_members ("
-                + "id BIGSERIAL PRIMARY KEY, election_year INTEGER NOT NULL, role VARCHAR(20) NOT NULL, "
+                + "id BIGSERIAL PRIMARY KEY, election_year INTEGER NOT NULL, role VARCHAR(32) NOT NULL, "
                 + "position_number INTEGER NOT NULL DEFAULT 1, apoderado_id BIGINT NOT NULL, "
                 + "CONSTRAINT fk_board_apoderado FOREIGN KEY (apoderado_id) REFERENCES apoderados(apoderado_id), "
                 + "CONSTRAINT uq_board_position UNIQUE (election_year, role, position_number), "

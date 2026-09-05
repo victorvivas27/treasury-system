@@ -1,4 +1,4 @@
-export type BoardRole = "PRESIDENTE" | "VICEPRESIDENTE" | "SECRETARIA" | "TESORERO" | "PASTORAL";
+export type BoardRole = "PRESIDENTE" | "VICEPRESIDENTE" | "SECRETARIA" | "TESORERO" | "PASTORAL" | "COORDINADOR_DEPORTIVO";
 
 export interface BoardMember {
   id: number;

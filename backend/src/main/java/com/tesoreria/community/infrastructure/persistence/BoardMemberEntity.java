@@ -15,7 +15,7 @@ public class BoardMemberEntity extends TenantScopedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "election_year", nullable = false) private Integer electionYear;
-    @Column(nullable = false, length = 20) private String role;
+    @Column(nullable = false, length = 32) private String role;
     @Column(name = "position_number", nullable = false) private Integer positionNumber;
     @Column(name = "apoderado_id", nullable = false) private Long apoderadoId;
 

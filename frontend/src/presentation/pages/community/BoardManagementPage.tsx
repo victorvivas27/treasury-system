@@ -14,6 +14,7 @@ const slots: { role: BoardRole; position: number; label: string }[] = [
   { role: "TESORERO", position: 1, label: "Tesorero/a" },
   { role: "PASTORAL", position: 1, label: "Pastoral 1" },
   { role: "PASTORAL", position: 2, label: "Pastoral 2" },
+  { role: "COORDINADOR_DEPORTIVO", position: 1, label: "Coordinador/a deportivo/a" },
 ];
 const parentsRepository = new ApoderadoRepositoryImpl();
 
