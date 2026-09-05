@@ -13,9 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class CourseBoardService {
     private static final String PASTORAL = "PASTORAL";
-    private static final Set<String> ROLES = Set.of("PRESIDENTE", "VICEPRESIDENTE", "SECRETARIA", "TESORERO", PASTORAL);
     private static final List<String> ROLE_ORDER = List.of(
-            "PRESIDENTE", "VICEPRESIDENTE", "SECRETARIA", "TESORERO", PASTORAL);
+            "PRESIDENTE", "VICEPRESIDENTE", "SECRETARIA", "TESORERO", PASTORAL, "COORDINADOR_DEPORTIVO");
+    private static final Set<String> ROLES = Set.copyOf(ROLE_ORDER);
     private final BoardMemberJpaRepository members;
     private final ApoderadoJpaRepository apoderados;
     private final UserJpaRepository users;

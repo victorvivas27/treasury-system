@@ -9,6 +9,8 @@ import java.time.Year;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -28,21 +30,24 @@ class CourseBoardServiceTest {
 
     @BeforeEach void setUp() { service = new CourseBoardService(members, parents, users); }
 
-    @Test void assignDeberiaCrearCargoConDatosDelApoderado() {
+    @ParameterizedTest
+    @ValueSource(strings = {"PRESIDENTE", "COORDINADOR_DEPORTIVO"})
+    void assignDeberiaCrearCargoConDatosDelApoderado(String role) {
         ApoderadoEntity parent = parent();
         when(parents.findByCodigo("AP-12345678")).thenReturn(Optional.of(parent));
-        when(members.findByElectionYearAndRoleAndPositionNumber(year, "PRESIDENTE", 1))
+        when(members.findByElectionYearAndRoleAndPositionNumber(year, role, 1))
                 .thenReturn(Optional.empty());
         when(members.existsByElectionYearAndApoderadoId(year, 7L)).thenReturn(false);
         when(members.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(members.findAllByElectionYearOrderByRoleAscPositionNumberAsc(year)).thenAnswer(invocation -> {
             BoardMemberEntity member = new BoardMemberEntity(); member.setElectionYear(year);
-            member.setRole("PRESIDENTE"); member.setPositionNumber(1); member.setApoderadoId(7L);
+            member.setRole(role); member.setPositionNumber(1); member.setApoderadoId(7L);
             return List.of(member);
         });
         when(parents.findById(7L)).thenReturn(Optional.of(parent));
         when(users.findByCorreoAndOrganizationId("ana@correo.cl", null)).thenReturn(Optional.empty());
-        var result = service.assign(year, "presidente", 1, "AP-12345678");
+        var result = service.assign(year, role.toLowerCase(Locale.ROOT), 1, "AP-12345678");
+        assertEquals(role, result.role());
         assertAll(() -> assertEquals("Ana Pérez", result.nombre()),
                 () -> assertEquals("INITIALS", result.profileImageType()));
         verify(members).save(any(BoardMemberEntity.class));
@@ -67,16 +72,23 @@ class CourseBoardServiceTest {
                 () -> service.delete(9L)).getStatusCode());
     }
 
+    @Test void assignDeberiaRechazarSegundoCoordinadorDeportivo() {
+        assertEquals(HttpStatus.BAD_REQUEST, assertThrows(ResponseStatusException.class,
+                () -> service.assign(year, "COORDINADOR_DEPORTIVO", 2, "AP-12345678")).getStatusCode());
+        verifyNoInteractions(members, parents, users);
+    }
+
     @Test void listDeberiaOrdenarPorJerarquiaDelCargo() {
         ApoderadoEntity parent = parent();
         BoardMemberEntity pastoral = member("PASTORAL", 1);
         BoardMemberEntity treasurer = member("TESORERO", 1);
         BoardMemberEntity president = member("PRESIDENTE", 1);
+        BoardMemberEntity sportsCoordinator = member("COORDINADOR_DEPORTIVO", 1);
         when(members.findAllByElectionYearOrderByRoleAscPositionNumberAsc(year))
-                .thenReturn(List.of(pastoral, treasurer, president));
+                .thenReturn(List.of(sportsCoordinator, pastoral, treasurer, president));
         when(parents.findById(7L)).thenReturn(Optional.of(parent));
         when(users.findByCorreoAndOrganizationId("ana@correo.cl", null)).thenReturn(Optional.empty());
-        assertEquals(List.of("PRESIDENTE", "TESORERO", "PASTORAL"),
+        assertEquals(List.of("PRESIDENTE", "TESORERO", "PASTORAL", "COORDINADOR_DEPORTIVO"),
                 service.list(year).stream().map(CourseBoardService.MemberView::role).toList());
     }
 

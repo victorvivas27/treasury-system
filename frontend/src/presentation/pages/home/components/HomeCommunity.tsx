@@ -13,11 +13,13 @@ import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeCommunity.css";
 
 const boardLabels = { PRESIDENTE: "Presidente/a", VICEPRESIDENTE: "Vicepresidente/a",
-  SECRETARIA: "Secretario/a", TESORERO: "Tesorero/a", PASTORAL: "Pastoral" } as const;
+  SECRETARIA: "Secretario/a", TESORERO: "Tesorero/a", PASTORAL: "Pastoral",
+  COORDINADOR_DEPORTIVO: "Coordinador/a deportivo/a" } as const;
 const boardSlots = [
   { role: "PRESIDENTE", position: 1 }, { role: "VICEPRESIDENTE", position: 1 },
   { role: "SECRETARIA", position: 1 }, { role: "TESORERO", position: 1 },
   { role: "PASTORAL", position: 1 }, { role: "PASTORAL", position: 2 },
+  { role: "COORDINADOR_DEPORTIVO", position: 1 },
 ] as const;
 const about = new AboutSectionUseCases(new AboutSectionRepositoryImpl());
 const icons: Record<AboutIcon, typeof FiUsers> = {
