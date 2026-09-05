@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiSave, FiTrash2, FiUsers } from "react-icons/fi";
+import { FiLoader, FiSave, FiTrash2, FiUsers } from "react-icons/fi";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import type { BoardMember, BoardRole } from "@/core/A-domain/entities/community/BoardMember";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
@@ -23,6 +23,7 @@ export const BoardManagementPage = () => {
   const [members, setMembers] = useState<BoardMember[]>([]);
   const [parents, setParents] = useState<Apoderado[]>([]);
   const [selection, setSelection] = useState<Record<string, string>>({});
+  const [pending, setPending] = useState<{ key: string; action: "save" | "remove" } | null>(null);
   const [message, setMessage] = useState(""); const [error, setError] = useState("");
   const load = useCallback(async () => {
     try {
@@ -34,33 +35,48 @@ export const BoardManagementPage = () => {
   useEffect(() => { void load(); }, [load]);
   const assignedCodes = useMemo(() => new Set(members.map(item => item.apoderadoCodigo)), [members]);
   const save = async (role: BoardRole, position: number) => {
+    if (pending) return;
     const key = `${role}-${position}`; const code = selection[key];
     if (!code) { setError("Selecciona un apoderado para el cargo."); return; }
-    try { await courseBoard.assign(role, position, code, year); setMessage("Directiva actualizada."); await load(); }
+    setPending({ key, action: "save" });
+    try { await courseBoard.assign(role, position, code, year); await load(); setMessage("Directiva actualizada."); }
     catch { setError("No fue posible asignar el cargo. El apoderado puede estar asignado en otro cargo."); }
+    finally { setPending(null); }
   };
   const remove = async (member?: BoardMember) => {
-    if (!member) return;
-    try { await courseBoard.delete(member.id); setMessage("Integrante quitado de la directiva."); await load(); }
+    if (!member || pending) return;
+    setPending({ key: `${member.role}-${member.positionNumber}`, action: "remove" });
+    try { await courseBoard.delete(member.id); await load(); setMessage("Integrante quitado de la directiva."); }
     catch { setError("No fue posible quitar al integrante."); }
+    finally { setPending(null); }
   };
   return <section className="board-admin">
     <header><span>Administración de la Home</span><h1>Directiva del curso</h1>
       <p>Selecciona los representantes del año {year} desde la lista de apoderados.</p></header>
     <div className="board-admin__grid">{slots.map(slot => {
       const key = `${slot.role}-${slot.position}`;
+      const saving = pending?.key === key && pending.action === "save";
+      const removing = pending?.key === key && pending.action === "remove";
       const member = members.find(item => item.role === slot.role && item.positionNumber === slot.position);
       return <article key={key}><FiUsers aria-hidden="true" /><div><h2>{slot.label}</h2>
         <p>{member ? `${member.nombre} · ${member.email}` : "Cargo sin asignar"}</p></div>
-        <select aria-label={`Apoderado para ${slot.label}`} value={selection[key] ?? ""}
+        <select aria-label={`Apoderado para ${slot.label}`} value={selection[key] ?? ""} disabled={Boolean(pending)}
           onChange={event => setSelection(current => ({ ...current, [key]: event.target.value }))}>
           <option value="">Seleccionar apoderado</option>
           {parents.map(parent => <option key={parent.codigo} value={parent.codigo}
             disabled={assignedCodes.has(parent.codigo) && parent.codigo !== member?.apoderadoCodigo}>
             {parent.nombre} — {parent.email}</option>)}</select>
-        <footer><button type="button" onClick={() => void save(slot.role, slot.position)}><FiSave /> Guardar</button>
-          {member && <button type="button" className="is-danger" onClick={() => void remove(member)}>
-            <FiTrash2 /> Quitar</button>}</footer></article>;
+        <footer><button type="button" disabled={Boolean(pending)} aria-busy={saving}
+          onClick={() => void save(slot.role, slot.position)}>
+          {saving ? <FiLoader className="board-admin__spinner" aria-hidden="true" /> : <FiSave aria-hidden="true" />}
+          {saving ? "Guardando…" : "Guardar"}</button>
+          {member && <button type="button" className="is-danger" disabled={Boolean(pending)} aria-busy={removing}
+            onClick={() => void remove(member)}>
+            {removing ? <FiLoader className="board-admin__spinner" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
+            {removing ? "Quitando…" : "Quitar"}</button>}</footer>
+        {pending?.key === key && <p className="board-admin__status" role="status">
+          {saving ? "Guardando asignación, espera un momento…" : "Quitando integrante, espera un momento…"}
+        </p>}</article>;
     })}</div>
     <ModalAlert isOpen={Boolean(message)} type="success" variant="toast" autoCloseTime={3000}
       message={message} onClose={() => setMessage("")} />
