@@ -1,7 +1,7 @@
 .form-card-apoderado {
   background-color: var(--color-surface);
   padding: var(--xl);
-  border-radius: 12px;
+  border-radius: var(--radius-12px);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--md);
@@ -11,21 +11,21 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-4px);
   margin: var(--md);
-  padding-bottom: 24px;
+  padding-bottom: var(--space-24px);
 }
 
 .form-input-apoderado {
   width: var(--wh-100);
-  min-height: 48px;
+  min-height: var(--size-48px);
   padding: var(--md);
   background: var(--color-bg);
-  border: 1px solid var(--border-color);
+  border: var(--stroke-1px) solid var(--border-color);
   border-radius: var(--sm);
   color: var(--text-main);
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--duration-200ms) var(--easing-ease), box-shadow var(--duration-200ms) var(--easing-ease);
 }
 
 .form-input-apoderado:hover {
@@ -34,53 +34,51 @@
 
 .form-input-apoderado:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb,
-   var(--color-accent) 20%, transparent
-   );
+  box-shadow: var(--shadow-form-input-alumno-focus);
 }
 
 textarea.form-input-apoderado {
-  min-height: 120px;
+  min-height: var(--size-120px);
   resize: vertical;
-  line-height: 1.5;
+  line-height: var(--leading-1-5);
 }
 
 .apoderado-observaciones {
   grid-column: 1 / -1;
   margin: 0 var(--md);
-  border: 1px solid var(--border-color);
+  border: var(--stroke-1px) solid var(--border-color);
   border-radius: var(--sm);
   background: var(--color-bg);
 }
 
 .apoderado-observaciones summary {
-  padding: .75rem 1rem;
+  padding: var(--space-0-75rem) var(--space-1rem);
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: var(--font-weight-600);
   cursor: pointer;
 }
 
 .apoderado-observaciones summary span {
   color: var(--color-text-muted);
   font-size: var(--xs);
-  font-weight: 400;
+  font-weight: var(--font-weight-400);
 }
 
 .apoderado-observaciones__content {
   margin: 0;
-  padding: .25rem 1rem 1rem;
+  padding: var(--space-0-25rem) var(--space-1rem) var(--space-1rem);
 }
 
 .floating-label-apoderado {
   position: absolute;
-  left: 12px;
-  top: 24px;
+  left: var(--offset-12px);
+  top: var(--offset-24px);
   transform: translateY(-50%);
   color: var(--color-text-muted);
   pointer-events: none;
-  transition: all 0.2s ease-out;
+  transition: all var(--duration-200ms) var(--easing-ease-out);
   background: transparent;
-  padding: 0 4px;
+  padding: 0 var(--space-4px);
   font-size: var(--sm);
 }
 
@@ -104,25 +102,25 @@ textarea.form-input-apoderado {
 }
 
 .telefono-label-apoderado {
-  margin-bottom: 2px;
+  margin-bottom: var(--space-2px);
 }
 
 .telefono-control-apoderado {
   display: grid;
-  grid-template-columns: minmax(8.5rem, auto) auto 1fr;
+  grid-template-columns: minmax(var(--size-8-5rem), auto) auto 1fr;
   align-items: center;
-  min-height: 48px;
+  min-height: var(--size-48px);
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: var(--stroke-1px) solid var(--border-color);
   border-radius: var(--sm);
   background: var(--color-bg);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--duration-200ms) var(--easing-ease), box-shadow var(--duration-200ms) var(--easing-ease);
 }
 
 .telefono-control-apoderado:focus-within {
   border-color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-bg) 92%, white 8%);
-  box-shadow: 0 0 0 3px rgb(148 163 184 / 18%);
+  background: color-mix(in srgb, var(--color-bg) 92%, var(--palette-white) 8%);
+  box-shadow: var(--shadow-telefono-control-apoderado-focus-within);
 }
 
 .telefono-control-apoderado.input-error-apoderado {
@@ -132,7 +130,7 @@ textarea.form-input-apoderado {
 .telefono-country-apoderado,
 .telefono-number-apoderado {
   min-width: 0;
-  min-height: 46px;
+  min-height: var(--size-46px);
   border: 0;
   background: transparent;
   color: var(--text-main);
@@ -150,23 +148,23 @@ textarea.form-input-apoderado {
 }
 
 .telefono-country-apoderado {
-  max-width: 11rem;
-  padding: 0 .55rem;
+  max-width: var(--size-11rem);
+  padding: 0 var(--space-0-55rem);
   cursor: pointer;
 }
 
 .telefono-prefix-apoderado {
-  padding-left: .7rem;
+  padding-left: var(--space-0-7rem);
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: var(--font-weight-600);
 }
 
 .telefono-number-apoderado {
   width: 100%;
-  padding: 0 .7rem 0 .35rem;
+  padding: 0 var(--space-0-7rem) 0 var(--space-0-35rem);
   caret-color: transparent;
-  font-family: ui-monospace, "Cascadia Mono", monospace;
-  letter-spacing: .08em;
+  font-family: var(--font-family-mono-ui);
+  letter-spacing: var(--tracking-0-08em);
 }
 
 .telefono-number-apoderado::placeholder {
@@ -181,14 +179,14 @@ textarea.form-input-apoderado {
 .telefono-mask-apoderado {
   position: absolute;
   top: 50%;
-  left: .35rem;
+  left: var(--offset-0-35rem);
   z-index: 0;
   transform: translateY(-50%);
   color: var(--color-text-muted);
-  font-family: ui-monospace, "Cascadia Mono", monospace;
-  letter-spacing: .08em;
+  font-family: var(--font-family-mono-ui);
+  letter-spacing: var(--tracking-0-08em);
   pointer-events: none;
-  opacity: .65;
+  opacity: var(--opacity-0-65);
 }
 
 .telefono-mask-apoderado span {
@@ -208,15 +206,15 @@ textarea.form-input-apoderado {
 .error-message-apoderado {
   position: absolute;
   right: 0;
-  bottom: 2px;
+  bottom: var(--offset-2px);
   left: 0;
   overflow: hidden;
   color: var(--color-error);
   font-size: var(--xs);
-  line-height: 1.2;
+  line-height: var(--leading-1-2);
   text-overflow: ellipsis;
   white-space: nowrap;
-  animation: fadeIn 0.2s ease-in;
+  animation: fadeIn var(--duration-200ms) var(--easing-ease-in);
 }
 
 .form-actions-apoderado {
@@ -230,7 +228,7 @@ textarea.form-input-apoderado {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(var(--motion-distance-negative-4px));
   }
 
   to {
@@ -241,70 +239,70 @@ textarea.form-input-apoderado {
 
 @media (max-width: 640px) {
   .apoderado-create-page .form-page-header {
-    margin-bottom: .45rem;
+    margin-bottom: var(--space-0-45rem);
   }
 
   .apoderado-create-page .form-page-header__title {
-    margin-bottom: .1rem;
-    font-size: 1.15rem;
+    margin-bottom: var(--space-0-1rem);
+    font-size: var(--font-size-1-15rem);
   }
 
   .apoderado-create-page .form-page-header__subtitle {
     margin-bottom: 0;
-    font-size: .75rem;
-    line-height: 1.35;
+    font-size: var(--font-size-0-75rem);
+    line-height: var(--leading-1-35);
   }
 
   .form-card-apoderado {
     grid-template-columns: 1fr;
-    gap: .25rem;
-    padding: .65rem;
+    gap: var(--space-0-25rem);
+    padding: var(--space-0-65rem);
   }
 
   .form-group-apoderado {
-    margin: .25rem .35rem;
-    padding-bottom: 18px;
+    margin: var(--space-0-25rem) var(--space-0-35rem);
+    padding-bottom: var(--space-18px);
   }
 
   .form-input-apoderado {
-    min-height: 44px;
-    padding: .7rem .8rem;
+    min-height: var(--size-44px);
+    padding: var(--space-0-7rem) var(--space-0-8rem);
   }
 
   .telefono-control-apoderado {
-    grid-template-columns: 5.25rem auto 1fr;
-    min-height: 44px;
+    grid-template-columns: var(--size-5-25rem) auto 1fr;
+    min-height: var(--size-44px);
   }
 
   .telefono-country-apoderado {
-    width: 5.25rem;
-    padding-inline: .35rem;
+    width: var(--size-5-25rem);
+    padding-inline: var(--space-0-35rem);
   }
 
   textarea.form-input-apoderado {
-    min-height: 82px;
+    min-height: var(--size-82px);
   }
 
   .apoderado-observaciones {
-    margin: .25rem .35rem;
+    margin: var(--space-0-25rem) var(--space-0-35rem);
   }
 
   .form-actions-apoderado {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .5rem;
-    margin: .15rem .35rem 0;
+    gap: var(--space-0-5rem);
+    margin: var(--space-0-15rem) var(--space-0-35rem) 0;
   }
 
   .form-actions-apoderado .base-button {
     width: 100%;
-    min-height: 40px;
+    min-height: var(--size-40px);
     margin: 0;
   }
 
   .form-actions-apoderado__create-button {
-    padding-inline: .35rem;
-    font-size: .68rem;
+    padding-inline: var(--space-0-35rem);
+    font-size: var(--font-size-0-68rem);
   }
 
   .form-actions-apoderado__create-button .button-content,
@@ -314,7 +312,7 @@ textarea.form-input-apoderado {
   }
 
   .form-actions-apoderado__create-button .button-content {
-    gap: .15rem;
+    gap: var(--space-0-15rem);
   }
 
   .form-actions-apoderado__create-button .button-icon {

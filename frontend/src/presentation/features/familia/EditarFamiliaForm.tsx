@@ -213,7 +213,7 @@ export const EditarFamiliaForm = () => {
             onClick={handleSubmit}
             loading={loading}
             label={loading ? "Actualizando..." : "Actualizar"}
-            icon={<FAMILIA_ICONS.save style={{ margin: "3px" }} />}
+            icon={<FAMILIA_ICONS.save style={{ margin: "var(--space-3px)" }} />}
           />
 
           <Button

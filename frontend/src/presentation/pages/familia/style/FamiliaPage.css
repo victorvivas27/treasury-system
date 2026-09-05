@@ -1,63 +1,63 @@
 .familia-page {
   width: 100%;
-  padding: 24px;
+  padding: var(--space-24px);
 }
 
 .familia-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: var(--space-16px);
+  margin-bottom: var(--space-20px);
 }
 
 .familia-header__title {
   margin: 0;
-  font-size: 28px;
+  font-size: var(--font-size-28px);
   color: var(--text-main);
 }
 
 .familia-header__subtitle {
-  margin: 6px 0 0;
+  margin: var(--space-6px) 0 0;
   color: var(--text-muted);
 }
 
 .familia-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(var(--size-280px), var(--size-360px)) minmax(0, 1fr);
+  gap: var(--space-20px);
   align-items: start;
 }
 
 .familia-form,
 .familia-list {
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: var(--stroke-1px) solid var(--border-color);
+  border-radius: var(--radius-8px);
   background: var(--color-surface);
-  padding: 18px;
+  padding: var(--space-18px);
 }
 
 .familia-section-title {
-  margin: 0 0 16px;
-  font-size: 18px;
+  margin: 0 0 var(--space-16px);
+  font-size: var(--font-size-18px);
   color: var(--text-main);
 }
 
 .familia-field {
   display: grid;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: var(--space-6px);
+  margin-bottom: var(--space-14px);
   color: var(--text-main);
-  font-size: 14px;
+  font-size: var(--font-size-14px);
 }
 
 .familia-field input,
 .familia-field select,
 .familia-field textarea {
   width: 100%;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 10px 12px;
+  border: var(--stroke-1px) solid var(--border-color);
+  border-radius: var(--radius-6px);
+  padding: var(--space-10px) var(--space-12px);
   font: inherit;
   background: var(--color-input);
   color: var(--text-main);
@@ -71,8 +71,8 @@
 .familia-check {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: var(--space-10px);
+  margin-bottom: var(--space-14px);
   color: var(--text-main);
 }
 
@@ -81,12 +81,12 @@
 .familia-pagination {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-10px);
 }
 
 .familia-message {
-  margin: 10px 0;
-  font-size: 14px;
+  margin: var(--space-10px) 0;
+  font-size: var(--font-size-14px);
 }
 
 .familia-message--success {
@@ -105,28 +105,28 @@
 
 .familia-table th,
 .familia-table td {
-  border-bottom: 1px solid var(--border-color);
-  padding: 12px 10px;
+  border-bottom: var(--stroke-1px) solid var(--border-color);
+  padding: var(--space-12px) var(--space-10px);
   text-align: left;
   vertical-align: top;
 }
 
 .familia-table th {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--font-size-13px);
   text-transform: uppercase;
 }
 
 .familia-table td span {
   display: block;
-  margin-top: 4px;
+  margin-top: var(--space-4px);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--font-size-13px);
 }
 
 .familia-pagination {
   justify-content: flex-end;
-  margin-top: 14px;
+  margin-top: var(--space-14px);
 }
 
 @media (max-width: 900px) {
@@ -146,5 +146,5 @@
   .familia-header { align-items: stretch; }
   .familia-header .base-button { width: 100%; margin: 0; }
   .familia-actions, .familia-pagination { flex-wrap: wrap; }
-  .familia-actions .base-button { flex: 1 1 8rem; margin: 0; }
+  .familia-actions .base-button { flex: 1 1 var(--size-8rem); margin: 0; }
 }

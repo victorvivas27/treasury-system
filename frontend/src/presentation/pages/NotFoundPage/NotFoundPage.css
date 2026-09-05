@@ -4,22 +4,22 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 100vh;
+  height: var(--size-100vh);
   font-family: var(--font-main);
 }
 .not-found-title {
-  font-size: 6rem;
+  font-size: var(--font-size-6rem);
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: var(--opacity-0-5);
 }
 .not-found-subtitle {
-  font-size: 1.5rem;
+  font-size: var(--font-size-1-5rem);
   color: var(--color-text-main);
-  margin: 10px 0;
+  margin: var(--space-10px) 0;
 }
 .not-found-text {
   color: var(--color-text-muted);
-  margin-bottom: 30px;
-  max-width: 400px;
+  margin-bottom: var(--space-30px);
+  max-width: var(--size-400px);
 }
 

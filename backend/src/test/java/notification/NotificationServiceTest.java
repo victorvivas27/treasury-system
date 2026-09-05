@@ -2,6 +2,9 @@ package notification;
 
 import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
 import com.tesoreria.notification.application.NotificationService;
+import com.tesoreria.notification.application.NotificationReplyCreatedEvent;
+import com.tesoreria.notification.application.NotificationReadEvent;
+import com.tesoreria.notification.application.NotificationReplyUpdatedEvent;
 import com.tesoreria.notification.infrastructure.persistence.*;
 import com.tesoreria.notification.infrastructure.web.NotificationReplyRequest;
 import com.tesoreria.shared.domain.exception.DomainException;
@@ -10,6 +13,8 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEnti
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -89,6 +94,13 @@ class NotificationServiceTest {
 
         assertEquals("Recibido", response.message());
         assertEquals("USER", response.authorRole());
+        ArgumentCaptor<NotificationReplyCreatedEvent> created = ArgumentCaptor.forClass(
+                NotificationReplyCreatedEvent.class);
+        verify(events).publishEvent(created.capture());
+        assertEquals(12L, created.getValue().message().deliveryId());
+        assertEquals(admin.getCorreo(), created.getValue().message().recipientEmail());
+        assertEquals(guardian.getCorreo(), created.getValue().authorEmail());
+        assertEquals(response, created.getValue().message().reply());
         ArgumentCaptor<NotificationReplyEntity> saved = ArgumentCaptor.forClass(
                 NotificationReplyEntity.class);
         verify(replies).save(saved.capture());
@@ -139,6 +151,59 @@ class NotificationServiceTest {
         verify(notifications).save(any(NotificationEntity.class));
         verify(deliveries).save(any(UserNotificationEntity.class));
         verify(replies).save(any(NotificationReplyEntity.class));
+    }
+
+    @Test
+    void startTreasuryConversation_deberiaElegirAdminDelCursoAunqueExistaSuperAdmin() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        guardian.setOrganizationId(10L);
+        UserEntity admin = user(2L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        UserEntity superAdmin = user(1L, "Super admin", "super@mail.com", RoleEnum.SUPER_ADMIN);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(users.findByRolInAndOrganizationIdOrderByIdAsc(
+                List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), 10L))
+                .thenReturn(List.of(superAdmin, admin));
+        when(notifications.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(deliveries.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertEquals(admin.getId(), service.treasuryContact(guardian.getCorreo()).id());
+        var result = service.startTreasuryConversation(
+                new NotificationReplyRequest("Necesito ayuda"), guardian.getCorreo());
+
+        assertEquals(admin.getCorreo(), result.recipientEmail());
+        assertEquals("Necesito ayuda", result.reply().message());
+        ArgumentCaptor<NotificationEntity> saved = ArgumentCaptor.forClass(NotificationEntity.class);
+        verify(notifications).save(saved.capture());
+        assertSame(admin, saved.getValue().getCreatedBy());
+        verify(users, never()).findByRolOrderByIdAsc(any());
+    }
+
+    @Test
+    void treasuryContact_deberiaUsarSuperAdminCuandoEsElUnicoResponsableDelCurso() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        guardian.setOrganizationId(10L);
+        UserEntity superAdmin = user(1L, "Tesorero", "super@mail.com", RoleEnum.SUPER_ADMIN);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(users.findByRolInAndOrganizationIdOrderByIdAsc(
+                List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), 10L)).thenReturn(List.of(superAdmin));
+
+        assertEquals(superAdmin.getId(), service.treasuryContact(guardian.getCorreo()).id());
+    }
+
+    @Test
+    void startTreasuryConversation_deberiaRechazarCursoSinResponsableSinGuardarMensajes() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        guardian.setOrganizationId(10L);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(users.findByRolInAndOrganizationIdOrderByIdAsc(
+                List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), 10L)).thenReturn(List.of());
+
+        assertThrows(DomainException.class, () -> service.startTreasuryConversation(
+                new NotificationReplyRequest("Mensaje"), guardian.getCorreo()));
+
+        verifyNoInteractions(notifications, deliveries, replies, events);
+        verify(users, never()).findByRolOrderByIdAsc(any());
     }
 
     @Test
@@ -194,6 +259,109 @@ class NotificationServiceTest {
 
         verify(users, never()).findByRolOrderByIdAsc(any());
         verify(users, never()).findByRolInAndOrganizationIdOrderByIdAsc(any(), any());
+    }
+
+    @Test
+    void editReply_deberiaPublicarElTextoActualizadoSinPerderSuLectura() {
+        UserEntity author = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        NotificationEntity notification = new NotificationEntity();
+        notification.setCreatedBy(admin);
+        UserNotificationEntity delivery = spy(new UserNotificationEntity());
+        doReturn(20L).when(delivery).getId();
+        delivery.setNotification(notification);
+        delivery.setUser(author);
+        NotificationReplyEntity reply = spy(new NotificationReplyEntity());
+        doReturn(91L).when(reply).getId();
+        reply.setDelivery(delivery);
+        reply.setAuthor(author);
+        reply.setCreatedAt(java.time.LocalDateTime.now().minusMinutes(1));
+        reply.setRead(true);
+        reply.setReadAt(java.time.LocalDateTime.now());
+        when(users.findByCorreo(author.getCorreo())).thenReturn(Optional.of(author));
+        when(replies.findByIdAndAuthorId(91L, 7L)).thenReturn(Optional.of(reply));
+        when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var updated = service.editReply(91L, new NotificationReplyRequest("  Texto editado  "),
+                author.getCorreo());
+
+        assertEquals("Texto editado", updated.message());
+        assertTrue(updated.read());
+        assertEquals(reply.getReadAt(), updated.readAt());
+        assertNotNull(updated.updatedAt());
+        var event = ArgumentCaptor.forClass(NotificationReplyUpdatedEvent.class);
+        verify(events).publishEvent(event.capture());
+        assertEquals(updated, event.getValue().message().reply());
+        assertEquals(20L, event.getValue().message().deliveryId());
+        assertEquals(admin.getCorreo(), event.getValue().message().recipientEmail());
+        assertEquals(author.getCorreo(), event.getValue().authorEmail());
+        verifyNoMoreInteractions(events);
+    }
+
+    @Test
+    void markRead_deberiaNotificarLaLecturaDeLaNotificacionAlRemitente() {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        NotificationEntity notification = new NotificationEntity();
+        notification.setCreatedBy(admin);
+        UserNotificationEntity delivery = spy(new UserNotificationEntity());
+        doReturn(20L).when(delivery).getId();
+        delivery.setNotification(notification);
+        delivery.setUser(guardian);
+        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        when(deliveries.findByIdAndUserIdAndVisibleTrue(20L, 7L)).thenReturn(Optional.of(delivery));
+        when(deliveries.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertTrue(service.markRead(20L, guardian.getCorreo()).read());
+        var receipt = ArgumentCaptor.forClass(NotificationReadEvent.class);
+        verify(events).publishEvent(receipt.capture());
+        assertEquals(List.of(20L), receipt.getValue().readDeliveryIds());
+        assertEquals(List.of(admin.getCorreo(), guardian.getCorreo()), receipt.getValue().recipientEmails());
+        assertNotNull(receipt.getValue().readAt());
+        service.markRead(20L, guardian.getCorreo());
+        verify(events, times(1)).publishEvent(any(NotificationReadEvent.class));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = RoleEnum.class, names = { "ADMIN", "USER" })
+    void replies_deberiaConfirmarSoloMensajesRecibidosYNoRepetirLaLectura(RoleEnum readerRole) {
+        UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
+        UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
+        UserEntity reader = readerRole == RoleEnum.ADMIN ? admin : guardian;
+        UserEntity sender = readerRole == RoleEnum.ADMIN ? guardian : admin;
+        NotificationEntity notification = new NotificationEntity();
+        notification.setCreatedBy(admin);
+        UserNotificationEntity delivery = new UserNotificationEntity();
+        delivery.setNotification(notification);
+        delivery.setUser(guardian);
+        NotificationReplyEntity incoming = spy(new NotificationReplyEntity());
+        doReturn(91L).when(incoming).getId();
+        incoming.setAuthor(sender);
+        incoming.setMessage("Mensaje recibido");
+        NotificationReplyEntity own = new NotificationReplyEntity();
+        own.setAuthor(reader);
+        own.setMessage("Mensaje propio");
+        when(users.findByCorreo(reader.getCorreo())).thenReturn(Optional.of(reader));
+        if (readerRole == RoleEnum.ADMIN) {
+            when(deliveries.findByIdAndNotificationCreatedById(20L, reader.getId()))
+                    .thenReturn(Optional.of(delivery));
+        } else {
+            when(deliveries.findByIdAndUserId(20L, reader.getId())).thenReturn(Optional.of(delivery));
+        }
+        when(replies.findConversation(7L, 1L, reader.getId())).thenReturn(List.of(incoming, own));
+
+        var result = service.replies(20L, reader.getCorreo());
+
+        assertTrue(result.get(0).read());
+        assertNotNull(result.get(0).readAt());
+        assertFalse(result.get(1).read());
+        assertNull(result.get(1).readAt());
+        var receipt = ArgumentCaptor.forClass(NotificationReadEvent.class);
+        verify(events).publishEvent(receipt.capture());
+        assertEquals(List.of(91L), receipt.getValue().readMessageIds());
+        assertEquals(List.of(sender.getCorreo(), reader.getCorreo()), receipt.getValue().recipientEmails());
+        service.replies(20L, reader.getCorreo());
+        verify(events, times(1)).publishEvent(any(NotificationReadEvent.class));
     }
 
     @Test

@@ -1,6 +1,9 @@
-/* =========================================
-   🌙 THEME DARK - CONFIGURACIÓN GLOBAL
-   ========================================= */
+/* PERSONALIZACIÓN GLOBAL
+ * 1. Colores de tema: :root y :root[data-theme="light"].
+ * 2. Valores compartidos: espaciado, texto, dimensiones y efectos.
+ * Los sufijos numéricos describen el valor inicial: cambiar el valor, no el nombre.
+ * Guía de uso: ./README.md
+ */
 :root {
   /* 1. IDENTIDAD Y ESTADOS */
   --color-primary: #1E3A5F;
@@ -28,6 +31,8 @@
   /* 3. TEXTOS */
   --text-main: #E5E7EB;
   --text-muted: #9CA3AF;
+  --text-boot: #f8fafc;
+  --text-boot-muted: #94a3b8;
 
   /* 4. LÍNEAS */
   --border-color: #858688;
@@ -90,6 +95,8 @@
   --color-accent-soft: rgba(8, 127, 116, 0.12);
   --text-main: #25282c;
   --text-muted: #62676d;
+  --text-boot: #172033;
+  --text-boot-muted: #64748b;
   --border-color: #cbd1d7;
   --divider: #d5d9de;
   --focus-ring: rgba(8, 127, 116, 0.34);
@@ -107,6 +114,1179 @@
   --color-info-soft: rgba(36, 102, 177, 0.1);
 }
 
+:root {
+  /* Ajuste compacto de mensajes y avatares de Notificaciones. */
+  --notification-message-scale: 1.08;
+  --notification-avatar-scale: 1.15;
+
+  /* Colores decorativos fijos (los colores de tema están arriba) */
+  --palette-0a0f1a: #0a0f1a;
+  --palette-00a2ff: #00a2ff;
+  --palette-4f46e5: #4f46e5;
+  --palette-5b4fd4: #5b4fd4;
+  --palette-7c3aed: #7c3aed;
+  --palette-7c5ce7: #7c5ce7;
+  --palette-8b5a2b: #8b5a2b;
+  --palette-25d366: #25d366;
+  --palette-28a745: #28a745;
+  --palette-60a5fa: #60a5fa;
+  --palette-087f74: #087f74;
+  --palette-94a3b8: #94a3b8;
+  --palette-141d2b: #141d2b;
+  --palette-312e81: #312e81;
+  --palette-392a7c: #392a7c;
+  --palette-2466b1: #2466b1;
+  --palette-2563eb: #2563eb;
+  --palette-4338a8: #4338a8;
+  --palette-4338ca: #4338ca;
+  --palette-6482a4: #6482a4;
+  --palette-6557d8: #6557d8;
+  --palette-7255d9: #7255d9;
+  --palette-7357dc: #7357dc;
+  --palette-16803a: #16803a;
+  --palette-061512: #061512;
+  --palette-64748b: #64748b;
+  --palette-071512: #071512;
+  --palette-292463: #292463;
+  --palette-amber: #f59e0b;
+  --palette-b45309: #b45309;
+  --palette-black: #000;
+  --palette-blue: #3b82f6;
+  --palette-c7d2fe: #c7d2fe;
+  --palette-c5221f: #c5221f;
+  --palette-coral: #fb7185;
+  --palette-cyan: #0ea5e9;
+  --palette-d06b32: #d06b32;
+  --palette-d92d20: #d92d20;
+  --palette-d97706: #d97706;
+  --palette-e2e8f0: #e2e8f0;
+  --palette-eef1f4: #eef1f4;
+  --palette-ff4d4d: #ff4d4d;
+  --palette-green: #22c55e;
+  --palette-indigo: #6366f1;
+  --palette-lime: #84cc16;
+  --palette-orange: #f97316;
+  --palette-pink: #ec4899;
+  --palette-pink-deep: #db2777;
+  --palette-red: #ef4444;
+  --palette-rgb-0-0-0-8: rgb(0 0 0 / 8%);
+  --palette-rgb-0-0-0-9: rgb(0 0 0 / 9%);
+  --palette-rgb-0-0-0-10: rgb(0 0 0 / 10%);
+  --palette-rgb-0-0-0-12: rgb(0 0 0 / 12%);
+  --palette-rgb-0-0-0-18: rgb(0 0 0 / 18%);
+  --palette-rgb-0-0-0-48: rgb(0 0 0 / 48%);
+  --palette-rgb-0-0-0-58: rgb(0 0 0 / 58%);
+  --palette-rgb-0-0-0-62: rgb(0 0 0 / 62%);
+  --palette-rgb-2-8-23-72: rgb(2 8 23 / 72%);
+  --palette-rgb-4-9-16-10: rgb(4 9 16 / 10%);
+  --palette-rgb-6-12-22-96: rgb(6 12 22 / 96%);
+  --palette-rgb-8-15-26-98: rgb(8 15 26 / 98%);
+  --palette-rgb-10-18-30-98: rgb(10 18 30 / 98%);
+  --palette-rgb-139-132-255-35: rgb(139 132 255 / 35%);
+  --palette-rgb-226-232-240-86: rgb(226 232 240 / 86%);
+  --palette-rgb-255-255-255-10: rgb(255 255 255 / 10%);
+  --palette-rgb-255-255-255-11: rgb(255 255 255 / 11%);
+  --palette-rgb-255-255-255-14: rgb(255 255 255 / 14%);
+  --palette-rgb-255-255-255-18: rgb(255 255 255 / 18%);
+  --palette-rgb-255-255-255-23: rgb(255 255 255 / 23%);
+  --palette-rgb-255-255-255-35: rgb(255 255 255 / 35%);
+  --palette-rgb-255-255-255-55: rgb(255 255 255 / 55%);
+  --palette-rgb-255-255-255-72: rgb(255 255 255 / 72%);
+  --palette-rgba-0-0-0--75: rgba(0,0,0,.75);
+  --palette-rgba-10-15-26--6: rgba(10,15,26,.6);
+  --palette-rgba-10-15-26--62: rgba(10,15,26,.62);
+  --palette-rgba-14-165-233--07: rgba(14,165,233,.07);
+  --palette-rgba-14-235-205--1: rgba(14,235,205,.1);
+  --palette-rgba-14-235-205--2: rgba(14,235,205,.2);
+  --palette-rgba-14-235-205--2-2: rgba(14, 235, 205, .2);
+  --palette-rgba-14-235-205--05: rgba(14,235,205,.05);
+  --palette-rgba-14-235-205--5: rgba(14,235,205,.5);
+  --palette-rgba-14-235-205--07: rgba(14,235,205,.07);
+  --palette-rgba-14-235-205--08: rgba(14,235,205,.08);
+  --palette-rgba-14-235-205--12: rgba(14,235,205,.12);
+  --palette-rgba-14-235-205--18: rgba(14, 235, 205, .18);
+  --palette-rgba-14-235-205--22: rgba(14,235,205,.22);
+  --palette-rgba-14-235-205--25: rgba(14,235,205,.25);
+  --palette-rgba-14-235-205--35: rgba(14,235,205,.35);
+  --palette-rgba-14-235-205--035: rgba(14, 235, 205, .035);
+  --palette-rgba-14-235-205--48: rgba(14,235,205,.48);
+  --palette-rgba-14-235-205--055: rgba(14, 235, 205, .055);
+  --palette-rgba-14-235-205-0-35: rgba(14, 235, 205, 0.35);
+  --palette-rgba-17-24-39--9: rgba(17,24,39,.9);
+  --palette-rgba-17-24-39--62: rgba(17,24,39,.62);
+  --palette-rgba-17-24-39--72: rgba(17, 24, 39, .72);
+  --palette-rgba-20-18-70--24: rgba(20,18,70,.24);
+  --palette-rgba-31-41-55--7: rgba(31,41,55,.7);
+  --palette-rgba-34-197-94--1: rgba(34,197,94,.1);
+  --palette-rgba-34-197-94--3: rgba(34,197,94,.3);
+  --palette-rgba-34-197-94--5: rgba(34,197,94,.5);
+  --palette-rgba-34-197-94--06: rgba(34,197,94,.06);
+  --palette-rgba-34-197-94--12: rgba(34,197,94,.12);
+  --palette-rgba-34-197-94--13: rgba(34,197,94,.13);
+  --palette-rgba-34-197-94--25: rgba(34,197,94,.25);
+  --palette-rgba-34-197-94--35: rgba(34,197,94,.35);
+  --palette-rgba-34-197-94--45: rgba(34,197,94,.45);
+  --palette-rgba-37-99-235--2: rgba(37,99,235,.2);
+  --palette-rgba-37-99-235--32: rgba(37,99,235,.32);
+  --palette-rgba-56-189-248--2: rgba(56,189,248,.2);
+  --palette-rgba-56-189-248--16: rgba(56,189,248,.16);
+  --palette-rgba-59-130-246--06: rgba(59,130,246,.06);
+  --palette-rgba-59-130-246--035: rgba(59, 130, 246, .035);
+  --palette-rgba-96-165-250--18: rgba(96,165,250,.18);
+  --palette-rgba-129-140-248--28: rgba(129,140,248,.28);
+  --palette-rgba-156-163-175--2: rgba(156,163,175,.2);
+  --palette-rgba-156-163-175--12: rgba(156,163,175,.12);
+  --palette-rgba-156-163-175--13: rgba(156,163,175,.13);
+  --palette-rgba-156-163-175--14: rgba(156,163,175,.14);
+  --palette-rgba-156-163-175--16: rgba(156,163,175,.16);
+  --palette-rgba-156-163-175--18: rgba(156,163,175,.18);
+  --palette-rgba-239-68-68--1: rgba(239,68,68,.1);
+  --palette-rgba-239-68-68--5: rgba(239,68,68,.5);
+  --palette-rgba-239-68-68--12: rgba(239,68,68,.12);
+  --palette-rgba-239-68-68--13: rgba(239,68,68,.13);
+  --palette-rgba-239-68-68--24: rgba(239,68,68,.24);
+  --palette-rgba-245-158-11--1: rgba(245,158,11,.1);
+  --palette-rgba-245-158-11--3: rgba(245,158,11,.3);
+  --palette-rgba-255-255-255--1: rgba(255,255,255,.1);
+  --palette-rgba-255-255-255--12: rgba(255,255,255,.12);
+  --palette-rgba-255-255-255--13: rgba(255,255,255,.13);
+  --palette-rgba-255-255-255--14: rgba(255,255,255,.14);
+  --palette-rgba-255-255-255--15: rgba(255,255,255,.15);
+  --palette-rgba-255-255-255--18: rgba(255,255,255,.18);
+  --palette-sky: #38bdf8;
+  --palette-slate-50: #f8fafc;
+  --palette-slate-900: #111827;
+  --palette-slate-deep: #172033;
+  --palette-teal: #14b8a6;
+  --palette-turquoise: #0eebcd;
+  --palette-violet: #8b5cf6;
+  --palette-white: white;
+  --palette-white-2: #fff;
+  --palette-yellow: #eab308;
+
+  /* Espaciados: márgenes, rellenos y separaciones */
+  --space-0-1rem: 0.1rem;
+  --space-0-2em: 0.2em;
+  --space-0-2rem: 0.2rem;
+  --space-0-3rem: 0.3rem;
+  --space-0-4rem: 0.4rem;
+  --space-0-5rem: 0.5rem;
+  --space-0-6rem: 0.6rem;
+  --space-0-7rem: 0.7rem;
+  --space-0-8rem: 0.8rem;
+  --space-0-9rem: 0.9rem;
+  --space-0-12rem: 0.12rem;
+  --space-0-18rem: 0.18rem;
+  --space-0-22rem: 0.22rem;
+  --space-0-25rem: 0.25rem;
+  --space-0-35rem: 0.35rem;
+  --space-0-38rem: 0.38rem;
+  --space-0-45rem: 0.45rem;
+  --space-0-48rem: 0.48rem;
+  --space-0-55rem: 0.55rem;
+  --space-0-65rem: 0.65rem;
+  --space-0-75rem: 0.75rem;
+  --space-1-1rem: 1.1rem;
+  --space-1-2rem: 1.2rem;
+  --space-1-2vh: 1.2vh;
+  --space-1-4rem: 1.4rem;
+  --space-1-5rem: 1.5rem;
+  --space-1-6rem: 1.6rem;
+  --space-1-8rem: 1.8rem;
+  --space-1-8vh: 1.8vh;
+  --space-1-8vw: 1.8vw;
+  --space-1-9rem: 1.9rem;
+  --space-1-15rem: 1.15rem;
+  --space-1-25rem: 1.25rem;
+  --space-1-35rem: 1.35rem;
+  --space-1-45rem: 1.45rem;
+  --space-1-75rem: 1.75rem;
+  --space-1rem: 1rem;
+  --space-1vh: 1vh;
+  --space-2-3rem: 2.3rem;
+  --space-2-5rem: 2.5rem;
+  --space-2-6rem: 2.6rem;
+  --space-2-8rem: 2.8rem;
+  --space-2-25rem: 2.25rem;
+  --space-2px: 2px;
+  --space-0-02rem: 0.02rem;
+  --space-2rem: 2rem;
+  --space-2vh: 2vh;
+  --space-2vw: 2vw;
+  --space-3-5rem: 3.5rem;
+  --space-3px: 3px;
+  --space-0-03rem: 0.03rem;
+  --space-3rem: 3rem;
+  --space-3vw: 3vw;
+  --space-4-25rem: 4.25rem;
+  --space-4-75rem: 4.75rem;
+  --space-4px: 4px;
+  --space-4rem: 4rem;
+  --space-4vw: 4vw;
+  --space-5-75rem: 5.75rem;
+  --space-5px: 5px;
+  --space-0-05rem: 0.05rem;
+  --space-5rem: 5rem;
+  --space-6px: 6px;
+  --space-0-06rem: 0.06rem;
+  --space-6rem: 6rem;
+  --space-7rem: 7rem;
+  --space-7vw: 7vw;
+  --space-8px: 8px;
+  --space-0-08rem: 0.08rem;
+  --space-8rem: 8rem;
+  --space-9px: 9px;
+  --space-10px: 10px;
+  --space-11rem: 11rem;
+  --space-12px: 12px;
+  --space-12rem: 12rem;
+  --space-12vw: 12vw;
+  --space-13vw: 13vw;
+  --space-0-14em: 0.14em;
+  --space-14px: 14px;
+  --space-0-14rem: 0.14rem;
+  --space-15px: 15px;
+  --space-0-15rem: 0.15rem;
+  --space-16px: 16px;
+  --space-0-16rem: 0.16rem;
+  --space-18px: 18px;
+  --space-20px: 20px;
+  --space-24px: 24px;
+  --space-0-24rem: 0.24rem;
+  --space-0-28rem: 0.28rem;
+  --space-30px: 30px;
+  --space-32px: 32px;
+  --space-0-32rem: 0.32rem;
+  --space-0-34rem: 0.34rem;
+  --space-0-36rem: 0.36rem;
+  --space-42px: 42px;
+  --space-0-42rem: 0.42rem;
+  --space-0-44rem: 0.44rem;
+  --space-48px: 48px;
+  --space-0-52rem: 0.52rem;
+  --space-0-58rem: 0.58rem;
+  --space-0-62rem: 0.62rem;
+  --space-0-68rem: 0.68rem;
+  --space-0-72rem: 0.72rem;
+  --space-0-78rem: 0.78rem;
+  --space-0-85rem: 0.85rem;
+  --space-0-95rem: 0.95rem;
+  --space-0-375rem: 0.375rem;
+  --space-1180px: 1180px;
+  --space-negative-0-2rem: -0.2rem;
+  --space-negative-0-5rem: -0.5rem;
+
+  /* Tamaños de texto */
+  --font-size-0-7rem: 0.7rem;
+  --font-size-0-8rem: 0.8rem;
+  --font-size-0-9rem: 0.9rem;
+  --font-size-0-52rem: 0.52rem;
+  --font-size-0-55rem: 0.55rem;
+  --font-size-0-56rem: 0.56rem;
+  --font-size-0-58rem: 0.58rem;
+  --font-size-0-65rem: 0.65rem;
+  --font-size-0-68rem: 0.68rem;
+  --font-size-0-72rem: 0.72rem;
+  --font-size-0-75rem: 0.75rem;
+  --font-size-0-78rem: 0.78rem;
+  --font-size-0-82rem: 0.82rem;
+  --font-size-0-84rem: 0.84rem;
+  --font-size-0-85rem: 0.85rem;
+  --font-size-0-92em: 0.92em;
+  --font-size-0-92rem: 0.92rem;
+  --font-size-0-95rem: 0.95rem;
+  --font-size-0-875rem: 0.875rem;
+  --font-size-1-1rem: 1.1rem;
+  --font-size-1-2rem: 1.2rem;
+  --font-size-1-3rem: 1.3rem;
+  --font-size-1-4rem: 1.4rem;
+  --font-size-1-5rem: 1.5rem;
+  --font-size-1-05rem: 1.05rem;
+  --font-size-1-5vh: 1.5vh;
+  --font-size-1-6rem: 1.6rem;
+  --font-size-1-6vw: 1.6vw;
+  --font-size-1-7rem: 1.7rem;
+  --font-size-1-08rem: 1.08rem;
+  --font-size-1-8rem: 1.8rem;
+  --font-size-1-8vw: 1.8vw;
+  --font-size-1-15rem: 1.15rem;
+  --font-size-1-25rem: 1.25rem;
+  --font-size-1-25vh: 1.25vh;
+  --font-size-1-35rem: 1.35rem;
+  --font-size-1-42rem: 1.42rem;
+  --font-size-1-45rem: 1.45rem;
+  --font-size-1-55rem: 1.55rem;
+  --font-size-1-65rem: 1.65rem;
+  --font-size-1-75rem: 1.75rem;
+  --font-size-1-125rem: 1.125rem;
+  --font-size-1rem: 1rem;
+  --font-size-2-2rem: 2.2rem;
+  --font-size-2-3rem: 2.3rem;
+  --font-size-2-3vw: 2.3vw;
+  --font-size-2-4rem: 2.4rem;
+  --font-size-2-4vw: 2.4vw;
+  --font-size-2-5rem: 2.5rem;
+  --font-size-2-7rem: 2.7rem;
+  --font-size-2-8vw: 2.8vw;
+  --font-size-2-15rem: 2.15rem;
+  --font-size-2-35rem: 2.35rem;
+  --font-size-2-45rem: 2.45rem;
+  --font-size-2rem: 2rem;
+  --font-size-2vw: 2vw;
+  --font-size-3rem: 3rem;
+  --font-size-0-3rem: 0.3rem;
+  --font-size-3vw: 3vw;
+  --font-size-4-2rem: 4.2rem;
+  --font-size-4vw: 4vw;
+  --font-size-5-7vw: 5.7vw;
+  --font-size-0-5rem: 0.5rem;
+  --font-size-5rem: 5rem;
+  --font-size-0-6rem: 0.6rem;
+  --font-size-6rem: 6rem;
+  --font-size-8-5rem: 8.5rem;
+  --font-size-8px: 8px;
+  --font-size-9vw: 9vw;
+  --font-size-13px: 13px;
+  --font-size-14px: 14px;
+  --font-size-16px: 16px;
+  --font-size-18px: 18px;
+  --font-size-20px: 20px;
+  --font-size-28px: 28px;
+  --font-size-0-36rem: 0.36rem;
+  --font-size-0-39rem: 0.39rem;
+  --font-size-0-42rem: 0.42rem;
+  --font-size-0-43rem: 0.43rem;
+  --font-size-0-45rem: 0.45rem;
+  --font-size-0-46rem: 0.46rem;
+  --font-size-0-47rem: 0.47rem;
+  --font-size-0-48rem: 0.48rem;
+  --font-size-0-49rem: 0.49rem;
+  --font-size-0-53rem: 0.53rem;
+  --font-size-0-54rem: 0.54rem;
+  --font-size-0-57rem: 0.57rem;
+  --font-size-0-59rem: 0.59rem;
+  --font-size-0-61rem: 0.61rem;
+  --font-size-0-62rem: 0.62rem;
+  --font-size-0-63rem: 0.63rem;
+  --font-size-0-64rem: 0.64rem;
+  --font-size-0-66rem: 0.66rem;
+  --font-size-0-67rem: 0.67rem;
+  --font-size-0-69rem: 0.69rem;
+  --font-size-0-73rem: 0.73rem;
+  --font-size-0-74rem: 0.74rem;
+  --font-size-0-76rem: 0.76rem;
+  --font-size-0-86rem: 0.86rem;
+  --font-size-0-88rem: 0.88rem;
+  --font-size-0-93rem: 0.93rem;
+  --font-size-0-96rem: 0.96rem;
+  --font-size-0-98rem: 0.98rem;
+
+  /* Pesos de texto */
+  --font-weight-400: 400;
+  --font-weight-500: 500;
+  --font-weight-550: 550;
+  --font-weight-600: 600;
+  --font-weight-650: 650;
+  --font-weight-700: 700;
+  --font-weight-750: 750;
+  --font-weight-800: 800;
+  --font-weight-850: 850;
+  --font-weight-900: 900;
+  --font-weight-bold: bold;
+
+  /* Fuentes adicionales */
+  --font-family-mono-ui: ui-monospace, "Cascadia Mono", monospace;
+  --font-family-serif: Georgia,"Times New Roman",serif;
+  --font-family-code: "Cascadia Code","Fira Code",Consolas,monospace;
+  --font-family-monospace: monospace;
+  --font-family-loader: Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  /* Alturas de línea */
+  --leading-1-1: 1.1;
+  --leading-1-2: 1.2;
+  --leading-1-3: 1.3;
+  --leading-1-4: 1.4;
+  --leading-1-04: 1.04;
+  --leading-1-5: 1.5;
+  --leading-1-05: 1.05;
+  --leading-1-7: 1.7;
+  --leading-1-12: 1.12;
+  --leading-1-15: 1.15;
+  --leading-1-16: 1.16;
+  --leading-1-18: 1.18;
+  --leading-1-22: 1.22;
+  --leading-1-25: 1.25;
+  --leading-1-28: 1.28;
+  --leading-1-32: 1.32;
+  --leading-1-34: 1.34;
+  --leading-1-35: 1.35;
+  --leading-1-38: 1.38;
+  --leading-1-45: 1.45;
+  --leading-1-55: 1.55;
+  --leading-1-65: 1.65;
+  --leading-1-75: 1.75;
+  --leading-13px: 13px;
+  --leading-16px: 16px;
+  --leading-18px: 18px;
+  --leading-0-65: 0.65;
+
+  /* Espaciado entre letras */
+  --tracking-0-04em: 0.04em;
+  --tracking-0-08em: 0.08em;
+  --tracking-0-01em: 0.01em;
+  --tracking-0-1em: 0.1em;
+  --tracking-0-2em: 0.2em;
+  --tracking-0-02em: 0.02em;
+  --tracking-0-05em: 0.05em;
+  --tracking-0-005em: 0.005em;
+  --tracking-0-06em: 0.06em;
+  --tracking-0-07em: 0.07em;
+  --tracking-0-09em: 0.09em;
+  --tracking-0-13em: 0.13em;
+  --tracking-0-14em: 0.14em;
+  --tracking-0-015em: 0.015em;
+  --tracking-0-16em: 0.16em;
+  --tracking-0-025em: 0.025em;
+  --tracking-0-035em: 0.035em;
+  --tracking-0-055em: 0.055em;
+  --tracking-negative-0-04em: -0.04em;
+  --tracking-negative-0-025em: -0.025em;
+  --tracking-negative-0-035em: -0.035em;
+  --tracking-negative-0-045em: -0.045em;
+  --tracking-negative-0-055em: -0.055em;
+  --tracking-negative-0-02em: -0.02em;
+
+  /* Esquinas */
+  --radius-0-7rem: 0.7rem;
+  --radius-0-8rem: 0.8rem;
+  --radius-0-35rem: 0.35rem;
+  --radius-0-65rem: 0.65rem;
+  --radius-0-75rem: 0.75rem;
+  --radius-1-1rem: 1.1rem;
+  --radius-1-2rem: 1.2rem;
+  --radius-1-4rem: 1.4rem;
+  --radius-1-25rem: 1.25rem;
+  --radius-1-35rem: 1.35rem;
+  --radius-1rem: 1rem;
+  --radius-3px: 3px;
+  --radius-0-3rem: 0.3rem;
+  --radius-4px: 4px;
+  --radius-0-4rem: 0.4rem;
+  --radius-5px: 5px;
+  --radius-0-5rem: 0.5rem;
+  --radius-6px: 6px;
+  --radius-0-6rem: 0.6rem;
+  --radius-7px: 7px;
+  --radius-8px: 8px;
+  --radius-9px: 9px;
+  --radius-0-9rem: 0.9rem;
+  --radius-10px: 10px;
+  --radius-12px: 12px;
+  --radius-13px: 13px;
+  --radius-14px: 14px;
+  --radius-15px: 15px;
+  --radius-16px: 16px;
+  --radius-17px: 17px;
+  --radius-18px: 18px;
+  --radius-20px: 20px;
+  --radius-22px: 22px;
+  --radius-35percent: 35%;
+  --radius-40percent: 40%;
+  --radius-42percent: 42%;
+  --radius-0-45rem: 0.45rem;
+  --radius-48percent: 48%;
+  --radius-0-48rem: 0.48rem;
+  --radius-50percent: 50%;
+  --radius-0-55rem: 0.55rem;
+  --radius-58percent: 58%;
+  --radius-65percent: 65%;
+  --radius-0-85rem: 0.85rem;
+  --radius-99px: 99px;
+  --radius-999px: 999px;
+
+  /* Grosores y desplazamientos de bordes */
+  --stroke-1px: 1px;
+  --stroke-2px: 2px;
+  --stroke-3px: 3px;
+  --stroke-4px: 4px;
+  --stroke-5px: 5px;
+  --stroke-9px: 9px;
+  --stroke-11px: 11px;
+  --stroke-12px: 12px;
+  --stroke-14px: 14px;
+  --stroke-16px: 16px;
+  --stroke-17px: 17px;
+  --stroke-negative-2px: -2px;
+
+  /* Dimensiones de elementos */
+  --size-0-8rem: 0.8rem;
+  --size-1-1em: 1.1em;
+  --size-1-1rem: 1.1rem;
+  --size-1-2rem: 1.2rem;
+  --size-1-3rem: 1.3rem;
+  --size-1-4rem: 1.4rem;
+  --size-1-05ch: 1.05ch;
+  --size-1-5em: 1.5em;
+  --size-1-5rem: 1.5rem;
+  --size-1-05rem: 1.05rem;
+  --size-1-6rem: 1.6rem;
+  --size-1-7rem: 1.7rem;
+  --size-1-8rem: 1.8rem;
+  --size-1-15rem: 1.15rem;
+  --size-1-22rem: 1.22rem;
+  --size-1-25rem: 1.25rem;
+  --size-1-35rem: 1.35rem;
+  --size-1-45rem: 1.45rem;
+  --size-1-55rem: 1.55rem;
+  --size-1-65rem: 1.65rem;
+  --size-1-75rem: 1.75rem;
+  --size-1-85rem: 1.85rem;
+  --size-1em: 1em;
+  --size-1px: 1px;
+  --size-1rem: 1rem;
+  --size-2-1rem: 2.1rem;
+  --size-2-2rem: 2.2rem;
+  --size-2-3rem: 2.3rem;
+  --size-2-4em: 2.4em;
+  --size-2-5rem: 2.5rem;
+  --size-2-6rem: 2.6rem;
+  --size-2-7rem: 2.7rem;
+  --size-2-8rem: 2.8rem;
+  --size-2-15rem: 2.15rem;
+  --size-2-25rem: 2.25rem;
+  --size-2-35rem: 2.35rem;
+  --size-2-55rem: 2.55rem;
+  --size-2-65rem: 2.65rem;
+  --size-2-75rem: 2.75rem;
+  --size-2-85rem: 2.85rem;
+  --size-2px: 2px;
+  --size-2rem: 2rem;
+  --size-0-2rem: 0.2rem;
+  --size-3-1rem: 3.1rem;
+  --size-3-2rem: 3.2rem;
+  --size-3-5rem: 3.5rem;
+  --size-3-7rem: 3.7rem;
+  --size-3-15rem: 3.15rem;
+  --size-3-25rem: 3.25rem;
+  --size-3-35rem: 3.35rem;
+  --size-3-55rem: 3.55rem;
+  --size-3-65rem: 3.65rem;
+  --size-3px: 3px;
+  --size-3rem: 3rem;
+  --size-0-3rem: 0.3rem;
+  --size-4-2rem: 4.2rem;
+  --size-4-5rem: 4.5rem;
+  --size-4-6rem: 4.6rem;
+  --size-4-9rem: 4.9rem;
+  --size-4-25rem: 4.25rem;
+  --size-4-35rem: 4.35rem;
+  --size-4px: 4px;
+  --size-0-4rem: 0.4rem;
+  --size-4rem: 4rem;
+  --size-5-2rem: 5.2rem;
+  --size-5-4rem: 5.4rem;
+  --size-5-5rem: 5.5rem;
+  --size-5-25rem: 5.25rem;
+  --size-5px: 5px;
+  --size-5rem: 5rem;
+  --size-0-5rem: 0.5rem;
+  --size-6-2rem: 6.2rem;
+  --size-6-4rem: 6.4rem;
+  --size-6-8rem: 6.8rem;
+  --size-6px: 6px;
+  --size-6rem: 6rem;
+  --size-0-6rem: 0.6rem;
+  --size-7-1rem: 7.1rem;
+  --size-7-4rem: 7.4rem;
+  --size-7px: 7px;
+  --size-0-7rem: 0.7rem;
+  --size-7rem: 7rem;
+  --size-8-2rem: 8.2rem;
+  --size-8-5rem: 8.5rem;
+  --size-8px: 8px;
+  --size-8rem: 8rem;
+  --size-9-5rem: 9.5rem;
+  --size-9-6rem: 9.6rem;
+  --size-0-9em: 0.9em;
+  --size-9rem: 9rem;
+  --size-0-9rem: 0.9rem;
+  --size-10px: 10px;
+  --size-10rem: 10rem;
+  --size-11-5rem: 11.5rem;
+  --size-11rem: 11rem;
+  --size-12px: 12px;
+  --size-12rem: 12rem;
+  --size-13rem: 13rem;
+  --size-14px: 14px;
+  --size-14rem: 14rem;
+  --size-15px: 15px;
+  --size-15rem: 15rem;
+  --size-16px: 16px;
+  --size-16rem: 16rem;
+  --size-17px: 17px;
+  --size-17rem: 17rem;
+  --size-18px: 18px;
+  --size-18rem: 18rem;
+  --size-19px: 19px;
+  --size-19rem: 19rem;
+  --size-20px: 20px;
+  --size-20rem: 20rem;
+  --size-21px: 21px;
+  --size-22px: 22px;
+  --size-22rem: 22rem;
+  --size-0-22rem: 0.22rem;
+  --size-23px: 23px;
+  --size-24px: 24px;
+  --size-24rem: 24rem;
+  --size-25px: 25px;
+  --size-0-25rem: 0.25rem;
+  --size-25rem: 25rem;
+  --size-26px: 26px;
+  --size-26rem: 26rem;
+  --size-27px: 27px;
+  --size-28px: 28px;
+  --size-28rem: 28rem;
+  --size-28vw: 28vw;
+  --size-30px: 30px;
+  --size-30rem: 30rem;
+  --size-32px: 32px;
+  --size-0-32rem: 0.32rem;
+  --size-34px: 34px;
+  --size-0-34rem: 0.34rem;
+  --size-34rem: 34rem;
+  --size-0-35rem: 0.35rem;
+  --size-36px: 36px;
+  --size-37vw: 37vw;
+  --size-38px: 38px;
+  --size-0-38rem: 0.38rem;
+  --size-38rem: 38rem;
+  --size-40px: 40px;
+  --size-42dvh: 42dvh;
+  --size-42px: 42px;
+  --size-0-42rem: 0.42rem;
+  --size-42rem: 42rem;
+  --size-43px: 43px;
+  --size-44px: 44px;
+  --size-45dvh: 45dvh;
+  --size-0-45rem: 0.45rem;
+  --size-46px: 46px;
+  --size-48px: 48px;
+  --size-0-48rem: 0.48rem;
+  --size-50px: 50px;
+  --size-50vw: 50vw;
+  --size-52px: 52px;
+  --size-52vw: 52vw;
+  --size-0-55rem: 0.55rem;
+  --size-55vw: 55vw;
+  --size-56px: 56px;
+  --size-58px: 58px;
+  --size-0-58rem: 0.58rem;
+  --size-58rem: 58rem;
+  --size-62px: 62px;
+  --size-0-62rem: 0.62rem;
+  --size-64px: 64px;
+  --size-64rem: 64rem;
+  --size-65px: 65px;
+  --size-0-65rem: 0.65rem;
+  --size-68px: 68px;
+  --size-0-68rem: 0.68rem;
+  --size-70px: 70px;
+  --size-72px: 72px;
+  --size-72rem: 72rem;
+  --size-0-72rem: 0.72rem;
+  --size-72vw: 72vw;
+  --size-74px: 74px;
+  --size-0-75rem: 0.75rem;
+  --size-76px: 76px;
+  --size-78px: 78px;
+  --size-0-78rem: 0.78rem;
+  --size-80px: 80px;
+  --size-80rem: 80rem;
+  --size-82px: 82px;
+  --size-0-82rem: 0.82rem;
+  --size-84px: 84px;
+  --size-0-85rem: 0.85rem;
+  --size-86px: 86px;
+  --size-0-88rem: 0.88rem;
+  --size-90px: 90px;
+  --size-92px: 92px;
+  --size-0-95rem: 0.95rem;
+  --size-96px: 96px;
+  --size-100dvh: 100dvh;
+  --size-100vh: 100vh;
+  --size-100vw: 100vw;
+  --size-105px: 105px;
+  --size-106px: 106px;
+  --size-108px: 108px;
+  --size-110px: 110px;
+  --size-112px: 112px;
+  --size-118px: 118px;
+  --size-120px: 120px;
+  --size-125px: 125px;
+  --size-130px: 130px;
+  --size-132px: 132px;
+  --size-136px: 136px;
+  --size-145px: 145px;
+  --size-150px: 150px;
+  --size-152px: 152px;
+  --size-155px: 155px;
+  --size-164px: 164px;
+  --size-170px: 170px;
+  --size-175px: 175px;
+  --size-0-175rem: 0.175rem;
+  --size-180px: 180px;
+  --size-184px: 184px;
+  --size-190px: 190px;
+  --size-200px: 200px;
+  --size-210px: 210px;
+  --size-218px: 218px;
+  --size-220px: 220px;
+  --size-230px: 230px;
+  --size-235px: 235px;
+  --size-240px: 240px;
+  --size-250px: 250px;
+  --size-260px: 260px;
+  --size-270px: 270px;
+  --size-280px: 280px;
+  --size-285px: 285px;
+  --size-290px: 290px;
+  --size-300px: 300px;
+  --size-310px: 310px;
+  --size-320px: 320px;
+  --size-324px: 324px;
+  --size-330px: 330px;
+  --size-332px: 332px;
+  --size-350px: 350px;
+  --size-360px: 360px;
+  --size-378px: 378px;
+  --size-380px: 380px;
+  --size-400px: 400px;
+  --size-410px: 410px;
+  --size-420px: 420px;
+  --size-430px: 430px;
+  --size-480px: 480px;
+  --size-500px: 500px;
+  --size-520px: 520px;
+  --size-538px: 538px;
+  --size-560px: 560px;
+  --size-600px: 600px;
+  --size-620px: 620px;
+  --size-640px: 640px;
+  --size-700px: 700px;
+  --size-720px: 720px;
+  --size-760px: 760px;
+  --size-820px: 820px;
+  --size-900px: 900px;
+  --size-920px: 920px;
+  --size-1080px: 1080px;
+  --size-1100px: 1100px;
+  --size-1180px: 1180px;
+  --size-1240px: 1240px;
+  --size-1280px: 1280px;
+  --size-negative-0-05em: -0.05em;
+
+  /* Desplazamientos de posición */
+  --offset-0-5rem: 0.5rem;
+  --offset-0-25rem: 0.25rem;
+  --offset-0-45rem: 0.45rem;
+  --offset-0-75rem: 0.75rem;
+  --offset-1-4rem: 1.4rem;
+  --offset-1-15rem: 1.15rem;
+  --offset-1-25rem: 1.25rem;
+  --offset-1rem: 1rem;
+  --offset-0-1rem: 0.1rem;
+  --offset-2px: 2px;
+  --offset-0-2rem: 0.2rem;
+  --offset-3px: 3px;
+  --offset-4px: 4px;
+  --offset-0-4rem: 0.4rem;
+  --offset-0-6rem: 0.6rem;
+  --offset-0-7rem: 0.7rem;
+  --offset-8px: 8px;
+  --offset-0-8rem: 0.8rem;
+  --offset-0-08rem: 0.08rem;
+  --offset-8rem: 8rem;
+  --offset-12px: 12px;
+  --offset-13px: 13px;
+  --offset-14px: 14px;
+  --offset-15px: 15px;
+  --offset-0-15rem: 0.15rem;
+  --offset-16px: 16px;
+  --offset-18px: 18px;
+  --offset-22px: 22px;
+  --offset-23px: 23px;
+  --offset-24px: 24px;
+  --offset-27px: 27px;
+  --offset-0-35rem: 0.35rem;
+  --offset-38px: 38px;
+  --offset-48rem: 48rem;
+  --offset-0-55rem: 0.55rem;
+  --offset-0-58rem: 0.58rem;
+  --offset-0-65rem: 0.65rem;
+  --offset-0-275rem: 0.275rem;
+  --offset-negative-0-9rem: -0.9rem;
+  --offset-negative-0-15rem: -0.15rem;
+  --offset-negative-0-31rem: -0.31rem;
+  --offset-negative-0-45rem: -0.45rem;
+  --offset-negative-1-1rem: -1.1rem;
+  --offset-negative-1px: -1px;
+  --offset-negative-2-4rem: -2.4rem;
+  --offset-negative-2-8rem: -2.8rem;
+  --offset-negative-2px: -2px;
+  --offset-negative-3-2rem: -3.2rem;
+  --offset-negative-3px: -3px;
+  --offset-negative-3rem: -3rem;
+  --offset-negative-4rem: -4rem;
+  --offset-negative-4vh: -4vh;
+  --offset-negative-5px: -5px;
+  --offset-negative-5rem: -5rem;
+  --offset-negative-6rem: -6rem;
+  --offset-negative-7rem: -7rem;
+  --offset-negative-8px: -8px;
+  --offset-negative-10px: -10px;
+  --offset-negative-12px: -12px;
+  --offset-negative-12rem: -12rem;
+  --offset-negative-15px: -15px;
+  --offset-negative-15rem: -15rem;
+  --offset-negative-18px: -18px;
+  --offset-negative-25px: -25px;
+
+  /* Sombras */
+  --shadow-0: 0 0 0 0 rgba(217, 45, 32, 0.4);
+  --shadow-20: 0 0 0 5px rgba(217, 45, 32, 0);
+  --shadow-administration-admin-panel-form: 0 24px 70px rgb(0 0 0 / 35%);
+  --shadow-administration-form-input-focus: 0 0 0 3px var(--color-accent-soft);
+  --shadow-app-tour-card: 0 24px 70px rgb(0 0 0 / 45%);
+  --shadow-app-tour-spotlight: 0 0 0 9999px rgb(2 8 23 / 76%),0 0 0 6px color-mix(in srgb,var(--color-accent) 18%,transparent),0 12px 35px rgb(0 0 0 / 30%);
+  --shadow-auth-flow-action: 0 4px 12px rgb(0 0 0 / 14%);
+  --shadow-auth-flow-action-hover-not-disabled: 0 6px 16px rgb(0 0 0 / 20%);
+  --shadow-auth-flow-success-icon: 0 10px 30px color-mix(in srgb, var(--color-success) 18%, transparent);
+  --shadow-birthday-card: 0 12px 30px rgb(0 0 0 / 8%);
+  --shadow-button-back--animated: 0 8px 24px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  --shadow-button-back--animated-hover: 0 10px 30px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  --shadow-compact-select-menu: 0 8px 20px rgb(0 0 0 / 18%);
+  --shadow-contribution-card: 0 6px 18px rgba(0,0,0,.11);
+  --shadow-contribution-modal: 0 24px 60px rgba(0,0,0,.4);
+  --shadow-dashboard-activity-tbody-tr: 0 3px 10px rgb(0 0 0 / 5%);
+  --shadow-event-list-button-active: inset 3px 0 var(--color-accent);
+  --shadow-expandable-search-input-focus: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
+  --shadow-expense-card: 0 12px 25px rgba(0,0,0,.15);
+  --shadow-expense-form-modal: 0 30px 80px rgba(0,0,0,.5);
+  --shadow-expenses-page--expense-filter-backdrop--expenses-filters: -12px 8px 35px rgb(0 0 0 / 24%);
+  --shadow-expenses-page-not--incomes-page--expense-card: 0 6px 18px rgb(0 0 0 / 10%);
+  --shadow-familia-field-input-focus: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  --shadow-familia-list: 0 4px 18px rgb(0 0 0 / 5%);
+  --shadow-familia-parentesco-menu: 0 8px 20px rgb(0 0 0 / 14%);
+  --shadow-form-input-alumno-focus: 0 0 0 2px color-mix(in srgb,
+   var(--color-accent) 20%, transparent
+   );
+  --shadow-home-community-board-arrow: 0 7px 18px rgb(0 0 0 / 12%);
+  --shadow-home-community-board-article: 0 10px 26px rgb(0 0 0 / 8%),inset 0 1px 0 color-mix(in srgb,#fff 34%,transparent);
+  --shadow-home-community-board-article-hover: 0 14px 34px rgb(0 0 0 / 9%),inset 0 1px 0 color-mix(in srgb,#fff 34%,transparent);
+  --shadow-home-community-camera-icon: 0 12px 30px color-mix(in srgb,var(--color-accent) 12%,rgb(0 0 0 / 8%));
+  --shadow-home-community-carousel-arrow: 0 8px 24px rgb(0 0 0 / 14%);
+  --shadow-home-community-photo-gallery-figure: 0 16px 42px rgb(0 0 0 / 10%);
+  --shadow-home-community-photo-gallery-figure-is-active: 0 24px 58px rgb(0 0 0 / 18%);
+  --shadow-home-community-staff-icon: 0 9px 22px color-mix(in srgb,var(--color-accent) 12%,rgb(0 0 0 / 8%));
+  --shadow-input-autofill: 0 0 0 1000px var(--color-bg) inset;
+  --shadow-installment-card--proof-upload: 0 7px 18px rgba(79,70,229,.22);
+  --shadow-installment-card--proof-upload-hover: 0 9px 22px rgba(79,70,229,.32);
+  --shadow-modal-container--toast: 0 6px 20px rgb(0 0 0 / 16%);
+  --shadow-notification-card-is-unread: 0 4px 18px color-mix(in srgb, var(--color-accent) 18%, transparent);
+  --shadow-notification-conversation-is-floating: 0 16px 42px rgb(0 0 0 / 28%);
+  --shadow-notification-recipient-summary-chevron: 0 1px 3px color-mix(in srgb, #000 10%, transparent);
+  --shadow-notifications-inbox--notification-card: 0 2px 8px color-mix(in srgb, #000 9%, transparent);
+  --shadow-obligation-installments-section-is-overdue: inset 3px 0 0 var(--color-error);
+  --shadow-payment-hero: 0 18px 42px rgba(49,46,129,.25);
+  --shadow-payment-hero-before: 0 0 0 2.5rem rgba(255,255,255,.035),0 0 0 5rem rgba(255,255,255,.025);
+  --shadow-payment-preview: 0 18px 42px color-mix(in srgb,var(--color-accent) 14%,transparent);
+  --shadow-payment-preview-after: 0 0 0 1.8rem color-mix(in srgb,var(--color-accent) 5%,transparent),0 0 0 3.6rem color-mix(in srgb,var(--color-accent) 4%,transparent);
+  --shadow-payment-preview-copy: 0 8px 20px color-mix(in srgb,var(--color-accent) 25%,transparent);
+  --shadow-payment-preview-copy-not-disabled-hover: 0 11px 25px color-mix(in srgb,var(--color-accent) 32%,transparent);
+  --shadow-payment-preview-header-span: inset 0 1px rgba(255,255,255,.3);
+  --shadow-payment-progress: inset 0 1px rgba(255,255,255,.08);
+  --shadow-profile-card--profile-real-data: 0 10px 30px rgb(0 0 0 / 7%);
+  --shadow-profile-contribution-status: 0 7px 18px rgb(0 0 0 / 5%);
+  --shadow-profile-edit-modal: 0 24px 70px rgb(0 0 0 / 38%);
+  --shadow-profile-identity: 0 18px 42px rgb(45 38 125 / 25%);
+  --shadow-profile-identity--profile-avatar: 0 12px 28px rgb(17 13 64 / 28%);
+  --shadow-profile-identity-after: 0 0 0 2.8rem rgb(255 255 255 / 4%), 0 0 0 5.6rem rgb(255 255 255 / 3%);
+  --shadow-profile-payment-status: 0 8px 22px rgb(0 0 0 / 5%);
+  --shadow-profile-photo-progress-track-span: 0 0 9px color-mix(in srgb, var(--color-accent) 42%, transparent);
+  --shadow-public-home-feature-grid-article-hover: 0 20px 50px rgba(0,0,0,.18);
+  --shadow-public-home-header: 0 8px 24px rgb(0 0 0 / 8%);
+  --shadow-public-home-nav-is-authenticated: 0 18px 42px
+      rgb(0 0 0 / 18%);
+  --shadow-public-home-nav-is-authenticated-a-is-active: inset 0 -2px 0
+    var(--color-accent);
+  --shadow-public-home-nav-is-authenticated-a-is-active-2: inset 3px 0 0
+      var(--color-accent);
+  --shadow-public-home-preview: 0 35px 90px rgba(0,0,0,.38);
+  --shadow-public-home-preview-hover: 0 48px 110px rgba(0,0,0,.46);
+  --shadow-public-home-signature: 0 14px 40px rgba(0,0,0,.14);
+  --shadow-public-home-signature-hover: 0 20px 48px rgba(14,235,205,.1);
+  --shadow-sent-notification--important-open: 0 0 0 2px color-mix(in srgb, #d97706 34%, transparent),
+    0 6px 18px color-mix(in srgb, #000 20%, transparent);
+  --shadow-sent-notification--urgent-open: 0 0 0 2px color-mix(in srgb, #d92d20 36%, transparent),
+    0 6px 18px color-mix(in srgb, #000 20%, transparent);
+  --shadow-sent-notification-detail: 0 12px 22px color-mix(in srgb, #000 20%, transparent);
+  --shadow-sent-notification-open: 0 0 0 2px color-mix(in srgb, var(--color-accent) 32%, transparent),
+    0 6px 18px color-mix(in srgb, #000 20%, transparent);
+  --shadow-sent-user-group-messages--sent-notification: 0 2px 7px color-mix(in srgb, #000 8%, transparent);
+  --shadow-sidebar: 8px 0 28px rgb(2 6 23 / 18%);
+  --shadow-sidebar-btn-arrow: 0 8px 20px color-mix(in srgb,
+      var(--color-primary) 30%,
+      transparent),
+    inset 0 1px 0 rgb(255 255 255 / 28%);
+  --shadow-sidebar-btn-arrow-hover: 0 10px 26px color-mix(in srgb,
+      var(--color-primary) 44%,
+      transparent),
+    inset 0 1px 0 rgb(255 255 255 / 34%);
+  --shadow-sidebar-btn-arrow-is-pinned: 0 8px 22px color-mix(in srgb,
+      var(--color-warning) 30%,
+      transparent),
+    inset 0 1px 0 rgb(255 255 255 / 32%);
+  --shadow-sidebar-footer-link-active: inset 3px 0 0 var(--color-accent);
+  --shadow-sidebar-icon-tooltip: 0 4px 12px rgb(2 6 23 / 20%);
+  --shadow-sidebar-nav-link-item-active: inset 3px 0 0
+    var(--color-accent);
+  --shadow-sidebar-sidebar--collapsed: 1px 0 10px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  --shadow-sidebar-submenu: 0 16px 40px
+    rgb(0 0 0 / 32%),
+    inset 0 1px 0
+    rgb(255 255 255 / 18%);
+  --shadow-stand-page--stand-quantity-picker-button-is-selected: 0 3px 9px color-mix(in srgb,var(--color-accent) 24%,transparent);
+  --shadow-stand-presentation-sale-picker-button-is-selected: 0 0 0 1px var(--color-accent);
+  --shadow-stand-quantity-picker-div: inset 0 1px 2px rgb(0 0 0 / 5%);
+  --shadow-status-toggle-button-control: inset 0 1px 2px rgb(15 23 42 / 14%);
+  --shadow-status-toggle-button-thumb: 0 1px 3px rgb(15 23 42 / 30%);
+  --shadow-telefono-control-apoderado-focus-within: 0 0 0 3px rgb(148 163 184 / 18%);
+  --shadow-to: 0 0 0 3px var(--color-accent-soft), 0 18px 45px rgba(14, 235, 205, .12);
+  --shadow-ui-tooltip: 0 10px 30px rgb(2 6 23 / 28%),
+    0 3px 10px color-mix(in srgb, var(--color-accent) 24%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 13%);
+  --shadow-usuarios-role-is-admin: 0 2px 8px color-mix(in srgb, var(--color-accent) 14%, transparent);
+
+  /* Separación temporal entre elementos animados. */
+  --stagger-features: 180ms;
+  --stagger-community: 170ms;
+  --stagger-board: 120ms;
+  --stagger-messages: 70ms;
+
+  /* Duraciones */
+  --duration-200ms: 200ms;
+  --duration-300ms: 300ms;
+  --duration-400ms: 400ms;
+  --duration-500ms: 500ms;
+  --duration-250ms: 250ms;
+  --duration-0ms: 0ms;
+  --duration-1100ms: 1100ms;
+  --duration-1200ms: 1200ms;
+  --duration-1400ms: 1400ms;
+  --duration-1500ms: 1500ms;
+  --duration-1800ms: 1800ms;
+  --duration-1150ms: 1150ms;
+  --duration-1250ms: 1250ms;
+  --duration-1450ms: 1450ms;
+  --duration-1ms: 1ms;
+  --duration-0-01ms: 0.01ms;
+  --duration-1000ms: 1000ms;
+  --duration-2200ms: 2200ms;
+  --duration-2400ms: 2400ms;
+  --duration-2500ms: 2500ms;
+  --duration-2900ms: 2900ms;
+  --duration-2000ms: 2000ms;
+  --duration-3200ms: 3200ms;
+  --duration-3800ms: 3800ms;
+  --duration-4350ms: 4350ms;
+  --duration-4000ms: 4000ms;
+  --duration-5500ms: 5500ms;
+  --duration-5800ms: 5800ms;
+  --duration-6000ms: 6000ms;
+  --duration-700ms: 700ms;
+  --duration-800ms: 800ms;
+  --duration-10000ms: 10000ms;
+  --duration-12000ms: 12000ms;
+  --duration-120ms: 120ms;
+  --duration-140ms: 140ms;
+  --duration-15000ms: 15000ms;
+  --duration-150ms: 150ms;
+  --duration-160ms: 160ms;
+  --duration-180ms: 180ms;
+  --duration-220ms: 220ms;
+  --duration-240ms: 240ms;
+  --duration-280ms: 280ms;
+  --duration-320ms: 320ms;
+  --duration-350ms: 350ms;
+  --duration-380ms: 380ms;
+  --duration-550ms: 550ms;
+  --duration-620ms: 620ms;
+  --duration-750ms: 750ms;
+  --duration-80ms: 80ms;
+  --duration-100ms: 100ms;
+  --duration-260ms: 260ms;
+  --duration-360ms: 360ms;
+  --duration-420ms: 420ms;
+  --duration-450ms: 450ms;
+  --duration-520ms: 520ms;
+  --duration-560ms: 560ms;
+  --duration-650ms: 650ms;
+  --duration-760ms: 760ms;
+  --duration-820ms: 820ms;
+  --duration-850ms: 850ms;
+  --duration-900ms: 900ms;
+  --duration-950ms: 950ms;
+  --duration-1350ms: 1350ms;
+  --duration-1600ms: 1600ms;
+
+  /* Curvas de transición */
+  --easing-cubic-bezier--2--8--2-1: cubic-bezier(.2,.8,.2,1);
+  --easing-cubic-bezier--2--8--2-1-2: cubic-bezier(.2, .8, .2, 1);
+  --easing-cubic-bezier--16-1--3-1: cubic-bezier(.16,1,.3,1);
+  --easing-cubic-bezier--22-1--36-1: cubic-bezier(.22,1,.36,1);
+  --easing-cubic-bezier--22-1--36-1-2: cubic-bezier(.22, 1, .36, 1);
+  --easing-cubic-bezier--55--15--45--85: cubic-bezier(.55,.15,.45,.85);
+  --easing-cubic-bezier-0-2-0-8-0-2-1: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --easing-cubic-bezier-0-22-1-0-36-1: cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
+  --easing-cubic-bezier-0-22-1-0-36-1-2: cubic-bezier(0.22, 1, 0.36, 1);
+  --easing-cubic-bezier-0-34-1-56-0-64-1: cubic-bezier(
+        0.34,
+        1.56,
+        0.64,
+        1
+      );
+  --easing-cubic-bezier-0-34-1-56-0-64-1-2: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-ease: ease;
+  --easing-ease-in: ease-in;
+  --easing-ease-in-out: ease-in-out;
+  --easing-ease-out: ease-out;
+  --easing-linear: linear;
+
+  /* Distancias de animación */
+  --motion-distance-0-5rem: 0.5rem;
+  --motion-distance-1px: 1px;
+  --motion-distance-2px: 2px;
+  --motion-distance-0-2rem: 0.2rem;
+  --motion-distance-4px: 4px;
+  --motion-distance-5px: 5px;
+  --motion-distance-5rem: 5rem;
+  --motion-distance-8px: 8px;
+  --motion-distance-10px: 10px;
+  --motion-distance-16px: 16px;
+  --motion-distance-18px: 18px;
+  --motion-distance-20px: 20px;
+  --motion-distance-22px: 22px;
+  --motion-distance-24px: 24px;
+  --motion-distance-28px: 28px;
+  --motion-distance-34px: 34px;
+  --motion-distance-negative-0-5rem: -0.5rem;
+  --motion-distance-negative-0-65rem: -0.65rem;
+  --motion-distance-negative-1px: -1px;
+  --motion-distance-negative-2px: -2px;
+  --motion-distance-negative-4px: -4px;
+  --motion-distance-negative-4rem: -4rem;
+  --motion-distance-negative-4vh: -4vh;
+  --motion-distance-negative-5px: -5px;
+  --motion-distance-negative-6px: -6px;
+  --motion-distance-negative-6vh: -6vh;
+  --motion-distance-negative-7px: -7px;
+  --motion-distance-negative-8px: -8px;
+  --motion-distance-negative-12px: -12px;
+  --motion-distance-negative-18px: -18px;
+  --motion-distance-negative-42px: -42px;
+
+  /* Dimensiones de efectos */
+  --effect-size-1px: 1px;
+  --effect-size-2px: 2px;
+  --effect-size-3px: 3px;
+  --effect-size-4px: 4px;
+  --effect-size-5px: 5px;
+  --effect-size-6px: 6px;
+  --effect-size-7px: 7px;
+  --effect-size-8px: 8px;
+  --effect-size-9px: 9px;
+  --effect-size-10px: 10px;
+  --effect-size-12px: 12px;
+  --effect-size-14px: 14px;
+  --effect-size-16px: 16px;
+  --effect-size-18px: 18px;
+  --effect-size-22px: 22px;
+  --effect-size-24px: 24px;
+  --effect-size-28px: 28px;
+  --effect-size-30px: 30px;
+  --effect-size-32px: 32px;
+  --effect-size-36px: 36px;
+  --effect-size-38px: 38px;
+  --effect-size-45px: 45px;
+  --effect-size-48px: 48px;
+  --effect-size-55px: 55px;
+  --effect-size-90px: 90px;
+
+  /* Opacidades */
+  --opacity-0-5: 0.5;
+  --opacity-0-6: 0.6;
+  --opacity-0-7: 0.7;
+  --opacity-0-8: 0.8;
+  --opacity-0-9: 0.9;
+  --opacity-0-35: 0.35;
+  --opacity-0-86: 0.86;
+  --opacity-0-3: 0.3;
+  --opacity-0-4: 0.4;
+  --opacity-0-12: 0.12;
+  --opacity-0-25: 0.25;
+  --opacity-0-42: 0.42;
+  --opacity-0-45: 0.45;
+  --opacity-0-55: 0.55;
+  --opacity-0-58: 0.58;
+  --opacity-0-62: 0.62;
+  --opacity-0-65: 0.65;
+  --opacity-0-66: 0.66;
+  --opacity-0-68: 0.68;
+  --opacity-0-72: 0.72;
+  --opacity-0-75: 0.75;
+  --opacity-0-78: 0.78;
+}
+
+/* critical-boot:start — Vite incluye estas reglas y sus variables en el HTML. */
+
+    html,body,#root{min-width:100%;min-height:100%;margin:0;background:var(--color-bg);color:var(--text-boot)}
+    html{background-color:var(--color-bg);color-scheme:dark}
+    html[data-theme="light"],html[data-theme="light"] body,html[data-theme="light"] #root{background:var(--color-bg);color:var(--text-boot)}
+    html[data-theme="light"]{color-scheme:light}
+
+
+    body{min-height:var(--size-100vh);min-height:var(--size-100dvh)}
+    #root{min-height:var(--size-100vh);min-height:var(--size-100dvh)}
+    #app-boot-loader{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:var(--color-bg);color:var(--text-boot);font-family:var(--font-family-loader);transition:opacity var(--duration-380ms) var(--easing-ease),visibility var(--duration-380ms) var(--easing-ease)}
+    [data-theme="light"] #app-boot-loader{background:var(--color-bg);color:var(--text-boot)}
+    #app-boot-loader::before{content:"";position:absolute;width:min(var(--size-72vw),var(--size-520px));aspect-ratio:1;border-radius:var(--radius-50percent);background:radial-gradient(circle,var(--palette-rgba-37-99-235--2),var(--palette-rgba-14-165-233--07) 42%,transparent 70%);filter:blur(var(--effect-size-8px));animation:boot-breathe var(--duration-2400ms) var(--easing-ease-in-out) infinite}
+    .boot-loader__content{position:relative;display:grid;justify-items:center;gap:var(--space-18px);padding:var(--space-32px);text-align:center}
+    .boot-loader__mark{position:relative;display:grid;width:var(--size-106px);height:var(--size-106px);place-items:center}
+    .boot-loader__ring{position:absolute;inset:0;border:var(--stroke-2px) solid var(--palette-rgba-56-189-248--16);border-top-color:var(--palette-sky);border-right-color:var(--palette-2563eb);border-radius:var(--radius-50percent);animation:boot-spin var(--duration-1150ms) var(--easing-cubic-bezier--55--15--45--85) infinite}
+    .boot-loader__ring::after{content:"";position:absolute;inset:var(--offset-8px);border:var(--stroke-1px) solid var(--palette-rgba-96-165-250--18);border-bottom-color:var(--palette-60a5fa);border-radius:var(--radius-50percent);animation:boot-spin var(--duration-1800ms) var(--easing-linear) infinite reverse}
+    .boot-loader__logo{width:var(--size-68px);height:var(--size-68px);border-radius:var(--radius-20px);object-fit:cover;filter:drop-shadow(0 var(--effect-size-10px) var(--effect-size-24px) var(--palette-rgba-37-99-235--32))}
+    .boot-loader__title{margin:0;font-size:clamp(var(--font-size-1-15rem),var(--font-size-4vw),var(--font-size-1-42rem));font-weight:var(--font-weight-750);letter-spacing:var(--tracking-negative-0-025em)}
+    .boot-loader__status{display:flex;align-items:center;gap:var(--space-9px);margin:0;color:var(--text-boot-muted);font-size:var(--font-size-0-82rem);font-weight:var(--font-weight-550);letter-spacing:var(--tracking-0-02em)}
+    [data-theme="light"] .boot-loader__status{color:var(--text-boot-muted)}
+    .boot-loader__dots{display:inline-flex;gap:var(--space-4px)}
+    .boot-loader__dots i{width:var(--size-4px);height:var(--size-4px);border-radius:var(--radius-50percent);background:var(--palette-sky);animation:boot-dot var(--duration-1100ms) var(--easing-ease-in-out) infinite}
+    .boot-loader__dots i:nth-child(2){animation-delay:var(--duration-140ms)}.boot-loader__dots i:nth-child(3){animation-delay:var(--duration-280ms)}
+    #app-boot-loader.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
+    @keyframes boot-spin{to{transform:rotate(360deg)}}
+    @keyframes boot-breathe{50%{transform:scale(1.08);opacity:var(--opacity-0-78)}}
+    @keyframes boot-dot{0%,70%,100%{transform:translateY(0);opacity:var(--opacity-0-35)}35%{transform:translateY(var(--motion-distance-negative-4px));opacity:1}}
+    @media (prefers-reduced-motion:reduce){#app-boot-loader::before,.boot-loader__ring,.boot-loader__ring::after,.boot-loader__dots i{animation:none}#app-boot-loader{transition-duration:var(--duration-120ms)}}
+
+.app-reload-cover { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; background: var(--color-bg); color: var(--palette-sky); }
+.app-reload-cover__spinner { width: var(--size-42px); height: var(--size-42px); border: var(--stroke-3px) solid var(--palette-rgba-56-189-248--2); border-top-color: var(--palette-sky); border-radius: var(--radius-50percent); animation: boot-spin var(--duration-1000ms) var(--easing-linear) infinite; }
+
+/* critical-boot:end */
+
 /* =========================================
    RESET & BASE
    ========================================= */
@@ -118,7 +1298,7 @@
 
 html {
   /* No uses spacing-md aquí para no confundir. 16px es el estándar. */
-  font-size: 16px;
+  font-size: var(--font-size-16px);
   scroll-behavior: smooth;
   background: var(--color-bg);
 }
@@ -129,7 +1309,7 @@ body {
   text-rendering: optimizeLegibility;
   background-color: var(--color-bg);
   color: var(--text-main);
-  line-height: 1.5;
+  line-height: var(--leading-1-5);
   overflow-x: hidden;
 
 }
@@ -139,8 +1319,8 @@ body {
    🎨 MEJORAS DE UI (SCROLLBAR & TEXT)
    ========================================= */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: var(--size-6px);
+  height: var(--size-6px);
 }
 
 ::-webkit-scrollbar-track {
@@ -160,9 +1340,9 @@ body {
 h1,
 h2,
 h3 {
-  font-weight: 600;
+  font-weight: var(--font-weight-600);
   color: var(--text-main);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-negative-0-02em);
 }
 
 /* Helper para ocultar texto largo en tablas */
@@ -185,9 +1365,9 @@ input,
 select,
 textarea {
   transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    border-color 150ms ease;
+    background-color var(--duration-150ms) var(--easing-ease),
+    color var(--duration-150ms) var(--easing-ease),
+    border-color var(--duration-150ms) var(--easing-ease);
 }
 
 input,
@@ -214,7 +1394,7 @@ input:-webkit-autofill:active,
 select:-webkit-autofill:active,
 textarea:-webkit-autofill:active {
   background-color: var(--color-bg);
-  box-shadow: 0 0 0 1000px var(--color-bg) inset;
+  box-shadow: var(--shadow-input-autofill);
   caret-color: var(--text-main);
   -webkit-text-fill-color: var(--text-main);
 }
@@ -224,18 +1404,18 @@ textarea:-webkit-autofill:active {
   input,
   select,
   textarea {
-    font-size: 16px;
+    font-size: var(--font-size-16px);
   }
 }
 
 ::placeholder {
   color: var(--text-muted);
-  opacity: 0.86;
+  opacity: var(--opacity-0-86);
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--stroke-3px) solid var(--focus-ring);
+  outline-offset: var(--stroke-2px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -284,13 +1464,13 @@ button {
   .form-group > .error-message {
     position: static;
     display: block;
-    min-height: 16px;
-    margin-top: 4px;
+    min-height: var(--size-16px);
+    margin-top: var(--space-4px);
     white-space: normal;
   }
 
   .form-group {
-    padding-bottom: 4px;
+    padding-bottom: var(--space-4px);
   }
 }
 
@@ -305,30 +1485,30 @@ a {
 /* Reserva estable para validaciones: evita saltos de layout al mostrar errores. */
 .form-group {
   position: relative;
-  padding-bottom: 24px;
+  padding-bottom: var(--space-24px);
 }
 
 .form-group > .error-message {
   position: absolute;
   right: 0;
-  bottom: 2px;
+  bottom: var(--offset-2px);
   left: 0;
   overflow: hidden;
   color: var(--color-error);
   font-size: var(--xs);
-  line-height: 16px;
+  line-height: var(--leading-16px);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .form-group > .error-message:not(:empty) {
-  animation: validationMessageIn 160ms ease-out;
+  animation: validationMessageIn var(--duration-160ms) var(--easing-ease-out);
 }
 
 @keyframes validationMessageIn {
   from {
     opacity: 0;
-    transform: translateY(-2px);
+    transform: translateY(var(--motion-distance-negative-2px));
   }
   to {
     opacity: 1;

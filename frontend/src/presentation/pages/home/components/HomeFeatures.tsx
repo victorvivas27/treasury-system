@@ -21,7 +21,7 @@ export const HomeFeatures = () => (
     <div className="public-home__feature-grid">
       {features.map(({ icon: Icon, title, description }, index) => (
         <article key={title} data-home-reveal data-home-card
-          style={{ "--reveal-delay": `${index * 180}ms` } as CSSProperties}>
+          style={{ "--reveal-delay": `calc(${index} * var(--stagger-features))` } as CSSProperties}>
           <span className="public-home__feature-icon"><Icon aria-hidden="true" /></span>
           <h3>{title}</h3>
           <p>{description}</p>

@@ -15,26 +15,47 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { FiCheckCircle, FiEdit2, FiHelpCircle, FiSend,
-  FiMove, FiTrash2, FiUsers, FiXCircle } from "react-icons/fi";
+import { FiEdit2, FiHelpCircle, FiSend,
+  FiMove, FiTrash2, FiUsers } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { IoNotificationsOutline } from "react-icons/io5";
-import { MdDoneAll } from "react-icons/md";
+import { MdDone, MdDoneAll } from "react-icons/md";
 import "./Notificacion.css";
 import { NotificationTour, OPEN_NOTIFICATION_TOUR_EVENT } from "./NotificationTour";
 import { useRealtime } from "@/presentation/context/RealtimeContext";
+import { MessageEditModal } from "./MessageEditModal";
 
 const labels = { INFO: "Informativa", IMPORTANT: "Importante", URGENT: "Urgente" };
 
-const NotificationConversation = ({ deliveryId, repository, isAdmin, notificationItems,
+const MessageReadStatus = ({ read }: { read: boolean }) =>
+  <span className={`message-read-status ${read ? "is-read" : "is-pending"}`}
+    role="img" aria-label={read ? "Leído" : "Sin leer"}
+    title={read ? "El destinatario leyó este mensaje" : "El destinatario aún no ha leído este mensaje"}>
+    {read ? <MdDoneAll aria-hidden="true" /> : <MdDone aria-hidden="true" />}
+  </span>;
+
+const NotificationLoading = ({ label = "Cargando mensajes" }: { label?: string }) =>
+  <div className="notifications-loading" role="status" aria-label={label}>
+    <p className="notification-conversation__state">{label}…</p>
+    {[0, 1, 2].map(item => <article className="notification-message-skeleton" key={item}
+      aria-hidden="true">
+      <span className="notification-message-skeleton__avatar" />
+      <div><span className="notification-message-skeleton__meta" />
+        <span className="notification-message-skeleton__title" />
+        <span className="notification-message-skeleton__line" />
+        <span className="notification-message-skeleton__line is-short" /></div>
+    </article>)}
+  </div>;
+
+const NotificationConversation = ({ deliveryId, deliveryIds, repository, isAdmin, notificationItems,
   active = true, initialScrollToBottom = false }: {
-  deliveryId: number; repository: NotificationRepositoryImpl; isAdmin: boolean;
+  deliveryId: number; deliveryIds: number[]; repository: NotificationRepositoryImpl; isAdmin: boolean;
   notificationItems: Array<{ id: string; createdAt: string; content: ReactNode }>;
   active?: boolean;
   initialScrollToBottom?: boolean;
 }) => {
-  const { connected, sendNotificationReply, subscribeMessages, registerActiveThread } = useRealtime();
+  const { subscribeMessages, registerActiveThread } = useRealtime();
   const auth = useOptionalAuth();
   const [messages, setMessages] = useState<NotificationReply[]>([]);
   const [draft, setDraft] = useState("");
@@ -43,10 +64,20 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState("");
+  const [editAnchor, setEditAnchor] = useState<HTMLElement | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
+  const sendingRef = useRef(false);
+  const readReceipts = useRef(new Map<number, string>());
+  const messageUpdates = useRef(new Map<number, NotificationReply>());
+  const withReadReceipt = useCallback((message: NotificationReply) => {
+    const update = messageUpdates.current.get(message.id);
+    const value = update && new Date(update.updatedAt ?? update.createdAt).getTime()
+      > new Date(message.updatedAt ?? message.createdAt).getTime() ? update : message;
+    const readAt = readReceipts.current.get(message.id) ?? (message.read ? message.readAt : null);
+    return readAt ? { ...value, read: true, readAt } : value;
+  }, []);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const [floatingPosition, setFloatingPosition] = useState<{
     left: number; top: number; width: number;
@@ -56,11 +87,21 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
     if (loadingRef.current) return;
     loadingRef.current = true;
     setLoading(true); setError("");
-    try { setMessages(await repository.listReplies(deliveryId)); setLoaded(true); }
+    try {
+      const received = await repository.listReplies(deliveryId);
+      setMessages(received.map(withReadReceipt)); setLoaded(true);
+    }
     catch { setError("No fue posible cargar la conversación."); }
     finally { loadingRef.current = false; setLoading(false); }
-  }, [deliveryId, repository]);
-  useEffect(() => { if (active && !loaded) void load(); }, [active, loaded, load]);
+  }, [deliveryId, repository, withReadReceipt]);
+  useEffect(() => {
+    const refreshVisible = () => {
+      if (active && document.visibilityState === "visible") void load();
+    };
+    refreshVisible();
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => document.removeEventListener("visibilitychange", refreshVisible);
+  }, [active, load]);
   useEffect(() => {
     let unregister: () => void = () => undefined;
     const syncActiveThread = () => {
@@ -73,36 +114,50 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
     return () => { document.removeEventListener("visibilitychange", syncActiveThread); unregister(); };
   }, [active, deliveryId, registerActiveThread]);
   useEffect(() => subscribeMessages(event => {
+    if (event.updatedReply && event.deliveryId !== undefined && deliveryIds.includes(event.deliveryId)) {
+      const updated = withReadReceipt(event.updatedReply);
+      messageUpdates.current.set(updated.id, updated);
+      setMessages(current => current.map(item => item.id === updated.id ? updated : item));
+      return;
+    }
+    if (event.readMessageIds?.length) {
+      const ids = new Set(event.readMessageIds);
+      if (event.readAt) ids.forEach(id => readReceipts.current.set(id, event.readAt!));
+      setMessages(current => current.map(item => ids.has(item.id)
+        ? { ...item, read: true, readAt: event.readAt ?? item.readAt } : item));
+      return;
+    }
     if (event.deletedMessageId !== undefined) {
       setMessages(current => current.filter(item => item.id !== event.deletedMessageId));
       return;
     }
-    if (event.deliveryId !== deliveryId || !event.reply) return;
-    const reply = event.reply;
+    if (event.deliveryId === undefined || !deliveryIds.includes(event.deliveryId) || !event.reply) return;
+    const reply = withReadReceipt(event.reply);
     setMessages(current => current.some(item => item.id === reply.id)
       ? current : [...current, reply]);
-    setLoaded(true);
-    if (active && reply.authorId !== auth?.user?.id) {
-      void repository.listReplies(deliveryId).then(setMessages);
+    if (active && document.visibilityState === "visible" && reply.authorId !== auth?.user?.id) {
+      void repository.listReplies(deliveryId).then(received => setMessages(received.map(withReadReceipt)))
+        .catch(() => setError("No fue posible actualizar la lectura del mensaje."));
     }
-  }), [active, auth?.user?.id, deliveryId, repository, subscribeMessages]);
-  const submit = () => {
+  }), [active, auth?.user?.id, deliveryId, deliveryIds, repository, subscribeMessages, withReadReceipt]);
+  const submit = async () => {
     const message = draft.trim();
-    if (!message || sending) return;
+    if (!message || sendingRef.current) return;
+    sendingRef.current = true;
     setSending(true); setError("");
     try {
-      sendNotificationReply(deliveryId, message);
-      setDraft("");
-    } catch { setError("No fue posible enviar la respuesta."); }
-    finally { setSending(false); }
+      const saved = withReadReceipt(await repository.reply(deliveryId, message));
+      setMessages(current => current.some(item => item.id === saved.id) ? current : [...current, saved]);
+      setDraft(current => current.trim() === message ? "" : current);
+    } catch { setError("No se pudo enviar el mensaje. Tu texto se conservó; vuelve a intentarlo."); }
+    finally { sendingRef.current = false; setSending(false); }
   };
-  const editMessage = async () => {
-    if (editingId === null || !editingText.trim()) return;
-    try {
-      const updated = await repository.editReply(editingId, editingText.trim());
-      setMessages(current => current.map(item => item.id === updated.id ? updated : item));
-      setEditingId(null); setEditingText("");
-    } catch { setError("El mensaje ya no puede editarse."); }
+  const editMessage = async (text: string) => {
+    if (editingId === null) return;
+    const updated = withReadReceipt(await repository.editReply(editingId, text));
+    messageUpdates.current.set(updated.id, updated);
+    setMessages(current => current.map(item => item.id === updated.id ? updated : item));
+    setEditingId(null);
   };
   const deleteMessage = async (id: number) => {
     try {
@@ -169,6 +224,7 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
   const floatingStyle: CSSProperties | undefined = floatingPosition ? {
     left: floatingPosition.left, top: floatingPosition.top, width: floatingPosition.width,
   } : undefined;
+  const initialLoading = !loaded && !error;
   const panel = <div ref={panelRef}
     className={`notification-conversation ${floatingPosition ? "is-floating" : ""}`}
     style={floatingStyle}>
@@ -178,10 +234,10 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
         onClick={() => setFloatingPosition(null)}>Volver a su lugar</button>}
     </div>}
     <div className="notification-conversation__content">
-      <div ref={timelineRef}
-        className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}>
-      {loading && timeline.length === 0 && <p className="notification-conversation__state">Cargando conversación…</p>}
-      {timeline.map(item => item.kind === "notification" ? <div key={item.id}
+      <div ref={timelineRef} aria-busy={initialLoading}
+        className={`notification-conversation__messages ${!initialLoading ? "is-ready" : ""} ${isAdmin ? "sent-user-group__messages" : ""}`}>
+      {initialLoading && <NotificationLoading label="Cargando conversación" />}
+      {!initialLoading && timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         className={`notification-reply ${isAdminRole(item.message.authorRole) ? "is-admin" : "is-guardian"}`}>
         <header><span className="notification-reply__author">
@@ -195,59 +251,60 @@ const NotificationConversation = ({ deliveryId, repository, isAdmin, notificatio
           <time dateTime={item.message.createdAt}>{new Date(item.message.createdAt).toLocaleString("es-CL", {
             day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
           })}</time></header>
-        {editingId === item.message.id ? <form className="notification-reply__edit"
-          onSubmit={event => { event.preventDefault(); void editMessage(); }}>
-          <textarea maxLength={2000} value={editingText}
-            onChange={event => setEditingText(event.target.value)} aria-label="Editar mensaje" />
-          <button type="submit">Guardar</button>
-          <button type="button" onClick={() => setEditingId(null)}>Cancelar</button>
-        </form> : <p>{item.message.message}</p>}
-        {auth?.user?.id === item.message.authorId && editingId !== item.message.id
+        <p>{item.message.message}</p>
+        <div className="notification-reply__receipt"><MessageReadStatus read={item.message.read} /></div>
+        {auth?.user?.id === item.message.authorId
           && <footer className="notification-reply__actions">
             {Date.now() - new Date(item.message.createdAt).getTime() <= 15 * 60 * 1000
-              && <button type="button" onClick={() => { setEditingId(item.message.id);
-                setEditingText(item.message.message); }}><FiEdit2 /> Editar</button>}
+              && <button type="button" onClick={event => { setEditingId(item.message.id);
+                setEditAnchor(event.currentTarget.closest("article")); }}><FiEdit2 /> Editar</button>}
             <button type="button" onClick={() => void deleteMessage(item.message.id)}>
               <FiTrash2 /> Eliminar</button>
           </footer>}
       </article>)}
       </div>
       {error && <p className="notification-conversation__error">{error}</p>}
+      {error && !loaded && <button type="button" disabled={loading} onClick={() => void load()}>
+        Reintentar carga de conversación</button>}
       <form className="notification-reply-form" onSubmit={event => {
         event.preventDefault(); void submit();
       }}>
-        <textarea aria-label={isAdmin ? "Responder al apoderado" : "Responder a administración"}
+        <textarea disabled={initialLoading || sending} aria-label={isAdmin ? "Responder al apoderado" : "Responder a administración"}
           placeholder={isAdmin ? "Escribe una respuesta al apoderado…" : "Escribe una respuesta a administración…"}
           maxLength={2000} rows={2} value={draft}
           onChange={event => setDraft(event.target.value)} />
-        <button type="submit" disabled={!connected || !draft.trim() || sending}><FiSend />
+        <button type="submit" disabled={initialLoading || !draft.trim() || sending}><FiSend />
           {sending ? "Enviando…" : "Responder"}</button>
       </form>
     </div>
   </div>;
-  return floatingPosition ? createPortal(panel, document.body) : panel;
+  const editedMessage = messages.find(message => message.id === editingId);
+  return <>
+    {floatingPosition ? createPortal(panel, document.body) : panel}
+    {editedMessage && <MessageEditModal key={editedMessage.id} message={editedMessage.message}
+      anchor={editAnchor} onSave={editMessage} onClose={() => setEditingId(null)} />}
+  </>;
 };
 
 export const Notificacion = () => {
   const auth = useOptionalAuth();
   if (!auth?.user) return null;
   if (isAdminRole(auth.user.rol)) return <AdminNotificationCenter key={auth.user.id} />;
-  return <><GuardianInbox /><NotificationTour user={auth.user} /></>;
+  return <><GuardianInbox key={auth.user.id} /><NotificationTour user={auth.user} /></>;
 };
 
 const AdminNotificationCenter = () => {
-  const { unreadCount: adminUnreadCount, loading: notificationsLoading,
-    markAllRead: markAllAdminRead } = useNotifications();
   const { apoderados, loading, error, currentPage, nextPage, prevPage, hasPrevPage,
     isLastPage, search, setSearch } = useApoderados({ pageSize: 20 });
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const [form, setForm] = useState({ title: "", message: "", type: "INFO" as NotificationType });
+  const [form, setForm] = useState({ message: "", type: "INFO" as NotificationType });
   const [alert, setAlert] = useState({ open: false, message: "", type: "success" as "success" | "error" });
   const [sent, setSent] = useState<SentNotification[]>([]);
   const [sentLoading, setSentLoading] = useState(true);
+  const [sentError, setSentError] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [recipientsOpen, setRecipientsOpen] = useState(false);
   const [openThreads, setOpenThreads] = useState<Set<number>>(new Set());
@@ -259,7 +316,6 @@ const AdminNotificationCenter = () => {
     offsetX: number; offsetY: number; element: HTMLElement;
   } | null>(null);
   const suppressContactClick = useRef<number | null>(null);
-  const adminAutoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const sentByRecipient = useMemo(() => {
     const groups = new Map<number, {
@@ -278,22 +334,17 @@ const AdminNotificationCenter = () => {
     }));
     return [...groups.values()].sort((first, second) => first.name.localeCompare(second.name, "es"));
   }, [sent]);
-  const loadSent = useCallback(async () => {
-    setSentLoading(true);
+  const loadSent = useCallback(async (showLoading = true) => {
+    if (showLoading) setSentLoading(true);
+    setSentError(false);
     try { setSent(await repository.listSent()); }
-    catch { setSent([]); }
+    catch { setSentError(true); }
     finally { setSentLoading(false); }
   }, [repository]);
 
   useEffect(() => { void loadSent(); }, [loadSent]);
   useEffect(() => {
-    if (!notificationsLoading && adminUnreadCount > 0 && !adminAutoReadRequested.current) {
-      adminAutoReadRequested.current = true;
-      void markAllAdminRead();
-    }
-  }, [adminUnreadCount, markAllAdminRead, notificationsLoading]);
-  useEffect(() => {
-    const refreshSent = () => { void loadSent(); };
+    const refreshSent = () => { void loadSent(false); };
     window.addEventListener("notification-realtime-received", refreshSent);
     return () => window.removeEventListener("notification-realtime-received", refreshSent);
   }, [loadSent]);
@@ -339,20 +390,15 @@ const AdminNotificationCenter = () => {
   const toggle = (id: number, checked: boolean) => setSelectedIds(current => {
     const next = new Set(current); if (checked) next.add(id); else next.delete(id); return next;
   });
-  const composeForOne = (id: number) => {
-    setSelectAll(false);
-    setSelectedIds(new Set([id]));
-    setComposerOpen(true);
-  };
   const send = async () => {
-    if (!form.title.trim() || !form.message.trim() || (!selectAll && !selectedIds.size)) return;
+    if (!form.message.trim() || (!selectAll && !selectedIds.size)) return;
     setSending(true);
     try {
       const count = await repository.send({ ...form,
-        title: form.title.trim(), message: form.message.trim(), recipientIds: [...selectedIds],
+        title: "Mensaje de Tesorería", message: form.message.trim(), recipientIds: [...selectedIds],
         sendToAll: selectAll });
       setComposerOpen(false); setSelectedIds(new Set()); setSelectAll(false);
-      setForm({ title: "", message: "", type: "INFO" });
+      setForm({ message: "", type: "INFO" });
       await loadSent();
       setAlert({ open: true, message: `Notificación enviada a ${count} apoderado(s).`, type: "success" });
     } catch {
@@ -376,9 +422,9 @@ const AdminNotificationCenter = () => {
     <header className="page-header"><div><h1 className="page-header__title">Gestión de notificaciones</h1>
       <p className="page-header__subtitle">Selecciona apoderados y envía avisos desde un solo lugar.</p></div>
       <div className="page-header__actions">
-        <Button label="Crear notificación múltiple"
+        <Button label="Crear notificación"
           icon={<IoNotificationsOutline />} iconPosition="left"
-          disabled={!selectAll && selectedIds.size < 2}
+          disabled={!selectAll && selectedIds.size === 0}
           onClick={() => setComposerOpen(true)} />
       </div></header>
     <details className="notification-recipient-panel" open={recipientsOpen}
@@ -408,11 +454,6 @@ const AdminNotificationCenter = () => {
           <em className={`guardian-access guardian-access--${(apoderado.accessStatus ?? "SIN_ACCESO").toLowerCase()}`}>
             {apoderado.accessStatus === "ACTIVO" ? "Activo" : apoderado.accessStatus === "INVITACION_PENDIENTE"
               ? "Pendiente" : "Sin acceso"}</em>
-          {!selectAll && selectedIds.has(apoderado.apoderadoId) &&
-            <button type="button" className="notification-recipient__compose"
-              onClick={event => { event.preventDefault(); composeForOne(apoderado.apoderadoId); }}>
-              <IoNotificationsOutline aria-hidden="true" /> Crear notificación
-            </button>}
         </article>)}
         {!loading && !apoderados.length && <p className="notifications-empty">No hay apoderados.</p>}
       </div>
@@ -424,8 +465,13 @@ const AdminNotificationCenter = () => {
     <section className="sent-notifications">
       <header><div><h2>Notificaciones enviadas</h2>
         <p>Revisa el mensaje, sus destinatarios y quién lo leyó.</p></div></header>
-      <div className="sent-notifications__list">
-        {!sentLoading && !sentByRecipient.length && <div className="sent-notifications__empty"
+      <div className="sent-notifications__list" aria-busy={sentLoading}>
+        {sentLoading && !sentByRecipient.length && <NotificationLoading />}
+        {sentError && <div role="alert" className="notification-conversation__error">
+          No fue posible cargar los mensajes.
+          <button type="button" onClick={() => void loadSent()}>Reintentar carga de mensajes</button>
+        </div>}
+        {!sentLoading && !sentError && !sentByRecipient.length && <div className="sent-notifications__empty"
           role="status">
           <div className="sent-notifications__empty-recipient" aria-hidden="true">
             <span className="sent-notifications__empty-avatar"><FiUsers /></span>
@@ -463,10 +509,9 @@ const AdminNotificationCenter = () => {
               if (suppressContactClick.current !== group.userId) return;
               event.preventDefault(); event.stopPropagation(); suppressContactClick.current = null;
             }}><UserAvatar className="sent-user-group__avatar" fallbackName={group.name}
-            user={{ nombre: group.name,
-              profileImageType: group.profileImageType === "PREDEFINED_AVATAR"
-                ? "PREDEFINED_AVATAR" : "INITIALS",
-              profileImageUrl: group.profileImageUrl }} /><span><strong>{group.name}</strong>
+            user={{ nombre: group.name, profileImageType: group.profileImageType,
+              profileImageUrl: group.profileImageUrl }}
+            customImageUserId={group.userId} /><span><strong>{group.name}</strong>
             <small>{group.email}</small></span><em>{group.messages.length}
               {group.messages.length === 1 ? " mensaje" : " mensajes"}</em>
             {floatingContact?.userId === group.userId
@@ -477,6 +522,7 @@ const AdminNotificationCenter = () => {
               : <FcExpand aria-hidden="true" />}</summary>
           {group.messages.length > 0 && <NotificationConversation
             deliveryId={group.messages[group.messages.length - 1].deliveryId}
+            deliveryIds={group.messages.map(item => item.deliveryId)}
             repository={repository} isAdmin
             active={openThreads.has(group.messages[group.messages.length - 1].deliveryId)}
             notificationItems={group.messages.map(({
@@ -484,32 +530,22 @@ const AdminNotificationCenter = () => {
               createdAt: item.createdAt, content: <article
               className={`sent-notification chat-bubble chat-bubble--outgoing sent-notification--${
                 item.type.toLowerCase()}`}>
-              <header className="sent-notification__message-header">
-                <IoNotificationsOutline aria-hidden="true" /><span>
-                <span className="sent-notification__meta-row">
-                  <small className="sent-notification__recipients"><b>Para:</b> {group.name}</small>
-                  <span className="sent-notification__message-label"><MdDoneAll aria-hidden="true" />
-                    <span>Mensaje enviado</span></span>
-                </span>
-                <strong>{item.title}</strong>
-                <small>{new Date(item.createdAt).toLocaleString("es-CL", {
+              <div className="sent-notification__body">
+                <p>{item.message}</p>
+              </div>
+              <footer className="sent-notification__message-footer">
+                <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("es-CL", {
                   day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit",
                   minute: "2-digit", hour12: false,
-                })}</small></span>
-                <em className={`sent-notification__read-status ${read ? "is-read" : "is-pending"}`}>
-                  {read ? <FiCheckCircle aria-hidden="true" /> : <FiXCircle aria-hidden="true" />}
-                  {read ? "Leída" : "Pendiente"}
-                </em>
+                })}</time>
+                <MessageReadStatus read={read} />
                 <button type="button" className="notification-delete-action"
                   disabled={deletingId !== null}
                   aria-label={`Eliminar notificación ${item.title}`} title="Eliminar para todos"
                   onClick={() => void deleteSent(item.id)}>
                   <FiTrash2 aria-hidden="true" />
                 </button>
-              </header>
-              <div className="sent-notification__body">
-                <p>{item.message}</p>
-              </div>
+              </footer>
             </article> }))} />}
         </details>)}
       </div>
@@ -520,11 +556,9 @@ const AdminNotificationCenter = () => {
         : `${selectedIds.size} destinatario(s) seleccionado(s).`}
       confirmLabel="Enviar" isLoading={sending} compact
       confirmIcon={<FiSend />}
-      confirmDisabled={!form.title.trim() || !form.message.trim()}
+      confirmDisabled={!form.message.trim()}
       onCancel={() => setComposerOpen(false)} onConfirm={() => void send()}>
       <div className="notification-form">
-        <label>Título<input maxLength={120} value={form.title}
-          onChange={event => setForm(value => ({ ...value, title: event.target.value }))} /></label>
         <label><span className="notification-form__field-heading"><span>Mensaje</span>
           <small aria-live="polite">{form.message.length}/2000</small></span>
           <textarea maxLength={2000} rows={5} value={form.message}
@@ -553,22 +587,25 @@ const GuardianInbox = () => {
     profileImageUrl: string | null;
   } | null>(null);
   const [startingConversation, setStartingConversation] = useState(false);
+  const [contactLoading, setContactLoading] = useState(true);
   const [startError, setStartError] = useState("");
   const firstMessageRef = useRef<HTMLTextAreaElement>(null);
-  const autoReadRequested = useRef(false);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
   useEffect(() => {
-    if (!loading && unreadCount > 0 && !autoReadRequested.current) {
-      autoReadRequested.current = true;
+    if (!loading && unreadCount > 0 && document.visibilityState === "visible") {
       void markAllRead();
     }
   }, [loading, markAllRead, unreadCount]);
   useEffect(() => {
-    if (treasuryContact) return;
-    void repository.treasuryContact().then(setTreasuryContact).catch(() => setStartError(
-      "No fue posible cargar el contacto de Tesorería."));
-  }, [repository, treasuryContact]);
+    let active = true;
+    void repository.treasuryContact()
+      .then(contact => { if (active) setTreasuryContact(contact); })
+      .catch(() => { if (active) setStartError("No fue posible cargar el contacto de Tesorería."); })
+      .finally(() => { if (active) setContactLoading(false); });
+    return () => { active = false; };
+  }, [repository]);
+  const inboxLoading = loading || (notifications.length === 0 && contactLoading);
   const startConversation = async () => {
     const message = firstMessage.trim();
     if (!message || startingConversation) return;
@@ -590,19 +627,9 @@ const GuardianInbox = () => {
             onClick={() => window.dispatchEvent(new Event(OPEN_NOTIFICATION_TOUR_EVENT))} />
         </span></div></header>
     <section className="notifications-list" data-notification-tour="messages" aria-live="polite"
-      aria-busy={loading}>
-      {loading && notifications.length === 0 && <div className="notifications-loading" role="status"
-        aria-label="Cargando mensajes">
-        {[0, 1, 2].map(item => <article className="notification-message-skeleton" key={item}
-          aria-hidden="true">
-          <span className="notification-message-skeleton__avatar" />
-          <div><span className="notification-message-skeleton__meta" />
-            <span className="notification-message-skeleton__title" />
-            <span className="notification-message-skeleton__line" />
-            <span className="notification-message-skeleton__line is-short" /></div>
-        </article>)}
-      </div>}
-      {!loading && notifications.length === 0 && <div className="notifications-empty-conversation">
+      aria-busy={inboxLoading}>
+      {inboxLoading && notifications.length === 0 && <NotificationLoading />}
+      {!inboxLoading && notifications.length === 0 && <div className="notifications-empty-conversation">
         <section className="notifications-empty-conversation__contact-section">
           <h2>Contactos</h2>
           <div className="notifications-empty-conversation__contacts"
@@ -643,12 +670,12 @@ const GuardianInbox = () => {
       {orderedNotifications.length > 0 && <NotificationConversation
         key={orderedNotifications[orderedNotifications.length - 1].id}
         deliveryId={orderedNotifications[orderedNotifications.length - 1].id}
+        deliveryIds={orderedNotifications.map(item => item.id)}
         repository={repository} isAdmin={false} initialScrollToBottom
-        notificationItems={orderedNotifications.map((item, index) => ({ id: `notification-${item.id}`,
+        notificationItems={orderedNotifications.map(item => ({ id: `notification-${item.id}`,
           createdAt: item.createdAt, content: <article
         className={`notification-card chat-bubble chat-bubble--incoming notification-card--${item.type.toLowerCase()} ${
           item.read ? "is-read" : "is-unread"}`}
-        style={{ "--message-delay": `${Math.min(index, 8) * 70}ms` } as CSSProperties}
         onClick={() => !item.read && void markRead(item.id)}>
         <span className="notification-card__icon"><IoNotificationsOutline aria-hidden="true" /></span>
         <div className="notification-card__content">
@@ -658,7 +685,7 @@ const GuardianInbox = () => {
                 aria-label="Marcar como leída" onClick={event => {
                   event.stopPropagation(); void markRead(item.id);
                 }}>Marcar como leído</button>}
-              {item.read && <MdDoneAll aria-label="Leída" />}
+              <MessageReadStatus read={item.read} />
             </span>
           </span><time dateTime={item.createdAt}>
             {new Date(item.createdAt).toLocaleString("es-CL", {
@@ -672,7 +699,7 @@ const GuardianInbox = () => {
               customImageUserId={item.senderId} />
             <span><b>De:</b> {item.senderName}</span>
           </div>
-          <h2>{item.title}</h2><p>{item.message}</p>
+          <p>{item.message}</p>
         </div>
         <button type="button" className="notification-delete-action"
           aria-label={`Eliminar notificación ${item.title}`} title="Eliminar de mi vista"

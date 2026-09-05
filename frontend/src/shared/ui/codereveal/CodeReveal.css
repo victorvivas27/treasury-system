@@ -1,11 +1,11 @@
 .code-reveal__button {
   display: inline-grid;
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
+  width: var(--size-24px);
+  height: var(--size-24px);
   place-items: center;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 32%, var(--divider));
+  border: var(--stroke-1px) solid color-mix(in srgb, var(--color-accent) 32%, var(--divider));
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
   color: var(--color-accent);
@@ -13,15 +13,15 @@
 }
 .code-reveal__button:hover,
 .code-reveal__button:focus-visible { border-color: var(--color-accent); outline: none; }
-.code-reveal__button svg { width: .8rem; height: .8rem; }
+.code-reveal__button svg { width: var(--size-0-8rem); height: var(--size-0-8rem); }
 
 .code-reveal__popover {
   position: fixed;
   z-index: 1300;
-  width: 220px;
-  max-width: calc(100vw - 16px);
-  padding: .65rem;
-  border: 1px solid var(--divider);
+  width: var(--size-220px);
+  max-width: calc(var(--size-100vw) - var(--size-16px));
+  padding: var(--space-0-65rem);
+  border: var(--stroke-1px) solid var(--divider);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
@@ -32,30 +32,30 @@
 .code-reveal__copy { display: flex; align-items: center; }
 .code-reveal__popover header { justify-content: space-between; }
 .code-reveal__popover header button {
-  padding: .1rem;
+  padding: var(--space-0-1rem);
   border: 0;
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
 }
-.code-reveal__values { display: grid; gap: .35rem; margin: .55rem 0; }
-.code-reveal__values > span { display: grid; gap: .08rem; }
+.code-reveal__values { display: grid; gap: var(--space-0-35rem); margin: var(--space-0-55rem) 0; }
+.code-reveal__values > span { display: grid; gap: var(--space-0-08rem); }
 .code-reveal__values small {
   color: var(--color-text-muted);
-  font-size: .58rem;
-  font-weight: 650;
+  font-size: var(--font-size-0-58rem);
+  font-weight: var(--font-weight-650);
   text-transform: uppercase;
 }
-.code-reveal__values strong { font-size: .75rem; overflow-wrap: anywhere; }
+.code-reveal__values strong { font-size: var(--font-size-0-75rem); overflow-wrap: anywhere; }
 .code-reveal__copy {
-  gap: .3rem;
+  gap: var(--space-0-3rem);
   width: auto;
   min-width: 0;
-  padding: .3rem .55rem;
+  padding: var(--space-0-3rem) var(--space-0-55rem);
   border: 0;
   border-radius: var(--radius-sm);
   background: var(--color-accent);
   color: var(--color-primary);
   cursor: pointer;
-  font-size: .66rem;
+  font-size: var(--font-size-0-66rem);
 }

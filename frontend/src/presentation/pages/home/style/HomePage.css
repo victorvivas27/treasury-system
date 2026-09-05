@@ -1,8 +1,8 @@
 .public-home {
   position: relative;
-  min-height: 100vh;
+  min-height: var(--size-100vh);
   overflow: clip;
-  background: radial-gradient(circle at 76% 12%, rgba(14,235,205,.1), transparent 24rem), var(--color-bg);
+  background: radial-gradient(circle at 76% 12%, var(--palette-rgba-14-235-205--1), transparent var(--size-24rem)), var(--color-bg);
   color: var(--text-main);
 }
 
@@ -10,39 +10,39 @@
 .public-home::after {
   position: absolute;
   z-index: 0;
-  width: 28rem;
-  height: 28rem;
-  border-radius: 50%;
+  width: var(--size-28rem);
+  height: var(--size-28rem);
+  border-radius: var(--radius-50percent);
   content: "";
-  filter: blur(90px);
-  opacity: .12;
+  filter: blur(var(--effect-size-90px));
+  opacity: var(--opacity-0-12);
   pointer-events: none;
 }
-.public-home::before { top: 8rem; right: -12rem; background: var(--color-accent); animation: home-orbit 12s ease-in-out infinite alternate; }
-.public-home::after { top: 48rem; left: -15rem; background: #3b82f6; animation: home-orbit 15s ease-in-out 1.5s infinite alternate-reverse; }
+.public-home::before { top: var(--offset-8rem); right: var(--offset-negative-12rem); background: var(--color-accent); animation: home-orbit var(--duration-12000ms) var(--easing-ease-in-out) infinite alternate; }
+.public-home::after { top: var(--offset-48rem); left: var(--offset-negative-15rem); background: var(--palette-blue); animation: home-orbit var(--duration-15000ms) var(--easing-ease-in-out) var(--duration-1500ms) infinite alternate-reverse; }
 .public-home > * { position: relative; z-index: 1; }
 .public-home__hero, .public-home__features,
-.public-home__footer, .home-community { width: min(1180px, calc(100% - 3rem)); margin-inline: auto; }
+.public-home__footer, .home-community { width: min(var(--size-1180px), calc(100% - var(--size-3rem))); margin-inline: auto; }
 .public-home__authenticated {
   display: grid;
-  gap: clamp(8rem, 13vw, 12rem);
-  padding-top: 1rem;
+  gap: clamp(var(--space-8rem), var(--space-13vw), var(--space-12rem));
+  padding-top: var(--space-1rem);
 }
 
-[data-home-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 820ms var(--reveal-delay,0ms) ease-out, transform 820ms var(--reveal-delay,0ms) cubic-bezier(.22,1,.36,1); }
+[data-home-reveal] { opacity: 0; transform: translateY(var(--motion-distance-18px)); transition: opacity var(--duration-820ms) var(--reveal-delay,var(--duration-0ms)) var(--easing-ease-out), transform var(--duration-820ms) var(--reveal-delay,var(--duration-0ms)) var(--easing-cubic-bezier--22-1--36-1); }
 [data-home-reveal].is-visible { opacity: 1; transform: translateY(0); }
-[data-home-card] { opacity: 0; filter: brightness(.72) saturate(.8); transform: none; transition: opacity 1600ms var(--reveal-delay,0ms) cubic-bezier(.22,1,.36,1), filter 1800ms var(--reveal-delay,0ms) cubic-bezier(.22,1,.36,1); }
+[data-home-card] { opacity: 0; filter: brightness(.72) saturate(.8); transform: none; transition: opacity var(--duration-1600ms) var(--reveal-delay,var(--duration-0ms)) var(--easing-cubic-bezier--22-1--36-1), filter var(--duration-1800ms) var(--reveal-delay,var(--duration-0ms)) var(--easing-cubic-bezier--22-1--36-1); }
 [data-home-card].is-visible { opacity: 1; filter: brightness(1) saturate(1); }
 
-@keyframes home-orbit { from { transform: translate3d(0,0,0) scale(.9); } to { transform: translate3d(-4rem,5rem,0) scale(1.12); } }
+@keyframes home-orbit { from { transform: translate3d(0,0,0) scale(.9); } to { transform: translate3d(var(--motion-distance-negative-4rem),var(--motion-distance-5rem),0) scale(1.12); } }
 
 @media (max-width: 680px) {
   .public-home__hero, .public-home__features,
-  .public-home__footer, .home-community { width: min(100% - 2rem, 1180px); }
-  .public-home__authenticated { gap: 5.75rem; padding-top: .5rem; }
+  .public-home__footer, .home-community { width: min(100% - var(--size-2rem), var(--size-1180px)); }
+  .public-home__authenticated { gap: var(--space-5-75rem); padding-top: var(--space-0-5rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .public-home *, .public-home::before, .public-home::after { animation: none !important; transition-duration: .01ms !important; }
+  .public-home *, .public-home::before, .public-home::after { animation: none !important; transition-duration: var(--duration-0-01ms) !important; }
   [data-home-reveal], [data-home-card] { opacity: 1; filter: none; transform: none; }
 }

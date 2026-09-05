@@ -1,24 +1,24 @@
 .button-back {
-  margin-right: 8px;
+  margin-right: var(--space-8px);
 }
 
 .button-back--animated {
-  min-height: 44px;
-  padding: .45rem 1rem .45rem .55rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 36%, var(--border-color));
-  border-radius: 999px;
+  min-height: var(--size-44px);
+  padding: var(--space-0-45rem) var(--space-1rem) var(--space-0-45rem) var(--space-0-55rem);
+  border: var(--stroke-1px) solid color-mix(in srgb, var(--color-accent) 36%, var(--border-color));
+  border-radius: var(--radius-999px);
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)),
     color-mix(in srgb, var(--color-info) 9%, var(--color-surface)));
   color: var(--text-main);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 14%, transparent);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  box-shadow: var(--shadow-button-back--animated);
+  transition: border-color var(--duration-180ms) var(--easing-ease), box-shadow var(--duration-180ms) var(--easing-ease), transform var(--duration-180ms) var(--easing-ease);
 }
 
 .button-back--animated:hover {
   border-color: color-mix(in srgb, var(--color-accent) 68%, var(--border-color));
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-accent) 22%, transparent);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-button-back--animated-hover);
+  transform: translateY(var(--motion-distance-negative-1px));
 }
 
 .button-back--animated:active {
@@ -26,33 +26,33 @@
 }
 
 .button-back--animated:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
-  outline-offset: 3px;
+  outline: var(--stroke-3px) solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  outline-offset: var(--stroke-3px);
 }
 
 .button-back__animation {
   display: grid;
-  width: 2rem;
-  height: 2rem;
+  width: var(--size-2rem);
+  height: var(--size-2rem);
   place-items: center;
-  border-radius: 50%;
+  border-radius: var(--radius-50percent);
   background: color-mix(in srgb, var(--color-accent) 18%, transparent);
   overflow: hidden;
 }
 
 .button-back--animated .button-icon svg,
 .button-back__animation > div {
-  width: 2rem !important;
-  height: 2rem !important;
+  width: var(--size-2rem) !important;
+  height: var(--size-2rem) !important;
 }
 
 .button-back--animated .button-content {
-  gap: .55rem;
+  gap: var(--space-0-55rem);
 }
 
 .button-back--animated .button-label {
-  font-weight: 700;
-  letter-spacing: .01em;
+  font-weight: var(--font-weight-700);
+  letter-spacing: var(--tracking-0-01em);
 }
 
 @media (prefers-reduced-motion: reduce) {

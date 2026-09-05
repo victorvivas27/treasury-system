@@ -44,9 +44,12 @@ export interface NotificationReply {
   id: number;
   authorId: number;
   authorName: string;
-  authorRole: "ADMIN" | "USER";
+  authorRole: "SUPER_ADMIN" | "ADMIN" | "USER";
+  updatedAt: string | null;
   authorProfileImageType: "INITIALS" | "PREDEFINED_AVATAR" | "CUSTOM_IMAGE";
   authorProfileImageUrl: string | null;
   message: string;
   createdAt: string;
+  read: boolean;
+  readAt: string | null;
 }

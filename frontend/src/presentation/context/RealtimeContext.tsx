@@ -8,7 +8,11 @@ import { useOptionalAuth } from "./AuthContext";
 export interface NotificationReplyEvent {
   deliveryId?: number;
   reply?: NotificationReply;
+  updatedReply?: NotificationReply;
   deletedMessageId?: number;
+  readMessageIds?: number[];
+  readDeliveryIds?: number[];
+  readAt?: string;
 }
 type MessageHandler = (message: NotificationReplyEvent) => void;
 interface RealtimeValue {
@@ -43,6 +47,12 @@ export const RealtimeProvider = ({ children }: { children: ReactNode }) => {
         client.subscribe("/user/queue/messages", (frame: IMessage) => {
           const event = JSON.parse(frame.body) as NotificationReplyEvent;
           handlers.current.forEach(handler => handler(event));
+          if (event.readMessageIds || event.readDeliveryIds) {
+            window.dispatchEvent(new Event("notification-unread-changed"));
+            if (event.readDeliveryIds?.length) {
+              window.dispatchEvent(new Event("notification-realtime-received"));
+            }
+          }
         });
         client.subscribe("/user/queue/notifications", (frame: IMessage) => {
           const event = JSON.parse(frame.body) as Partial<NotificationReplyEvent>;

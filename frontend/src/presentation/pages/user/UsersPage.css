@@ -51,7 +51,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
-  gap: .35rem;
+  gap: var(--space-0-35rem);
   min-width: 0;
   padding-bottom: var(--sm);
 }
@@ -59,18 +59,18 @@
 .users-page .user-form__account-status .checkbox-label {
   display: inline-flex;
   align-items: center;
-  gap: .2rem;
+  gap: var(--space-0-2rem);
   min-width: 0;
   margin: 0;
-  font-size: .68rem;
-  line-height: 1.1;
+  font-size: var(--font-size-0-68rem);
+  line-height: var(--leading-1-1);
   white-space: normal;
 }
 
 .users-page .user-form__account-status input[type="checkbox"] {
-  flex: 0 0 12px;
-  width: 12px;
-  height: 12px;
+  flex: 0 0 var(--size-12px);
+  width: var(--size-12px);
+  height: var(--size-12px);
   margin: 0;
 }
 
@@ -87,53 +87,53 @@
     margin-left: 0;
   }
   .users-page .usuarios-table tbody {
-    padding: .65rem .5rem .5rem;
+    padding: var(--space-0-65rem) var(--space-0-5rem) var(--space-0-5rem);
   }
   .users-page .usuarios-table tbody > tr {
-    padding: .45rem .6rem;
+    padding: var(--space-0-45rem) var(--space-0-6rem);
   }
   .users-page .usuarios-table tbody > tr > td:not([data-label="Acciones"]) {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    min-height: 26px;
-    padding: .2rem .1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--divider) 65%, transparent);
-    line-height: 1.25;
+    grid-template-columns: var(--size-4-5rem) minmax(0, 1fr);
+    min-height: var(--size-26px);
+    padding: var(--space-0-2rem) var(--space-0-1rem);
+    border-bottom: var(--stroke-1px) solid color-mix(in srgb, var(--divider) 65%, transparent);
+    line-height: var(--leading-1-25);
   }
   .users-page .usuarios-table tbody > tr > td:not([data-label="Acciones"])::before {
     color: var(--color-accent);
-    font-size: .62rem;
+    font-size: var(--font-size-0-62rem);
   }
   .users-page .usuarios-table tbody > tr > td:last-child:not([data-label="Acciones"]) {
     border-bottom: 0;
   }
   .users-page .usuarios-table tbody > tr > td[data-label="Acciones"] {
-    margin-top: .2rem;
+    margin-top: var(--space-0-2rem);
     border-top: 0;
-    padding-top: .45rem;
+    padding-top: var(--space-0-45rem);
   }
   .users-page-header {
     align-items: stretch;
     flex-direction: column;
-    gap: .45rem;
+    gap: var(--space-0-45rem);
   }
   .users-page-header h1 {
-    margin-bottom: .1rem;
-    font-size: 1.15rem;
+    margin-bottom: var(--space-0-1rem);
+    font-size: var(--font-size-1-15rem);
   }
   .users-page-header p {
-    font-size: .75rem;
-    line-height: 1.35;
+    font-size: var(--font-size-0-75rem);
+    line-height: var(--leading-1-35);
   }
   .users-page-header .base-button {
     flex: 1 1 0;
     min-width: 0;
-    min-height: 32px;
+    min-height: var(--size-32px);
     margin: 0;
   }
   .users-page-header__actions {
     width: 100%;
     flex-wrap: nowrap;
-    gap: .75rem;
+    gap: var(--space-0-75rem);
   }
 
   .users-page .user-form .form-actions {
@@ -142,42 +142,42 @@
   }
 
   .users-page .user-form__account-status {
-    gap: .25rem;
+    gap: var(--space-0-25rem);
   }
 }
 
 @media (max-width: 640px) {
   .users-page .user-form--edit {
     grid-template-columns: minmax(0, 1fr);
-    gap: .25rem;
-    padding: .65rem;
+    gap: var(--space-0-25rem);
+    padding: var(--space-0-65rem);
   }
 
   .users-page .user-form--edit .form-group {
     min-width: 0;
-    padding-bottom: 18px;
+    padding-bottom: var(--space-18px);
   }
 
   .users-page .user-form--edit .form-input {
-    min-height: 44px;
-    padding: .7rem .8rem;
+    min-height: var(--size-44px);
+    padding: var(--space-0-7rem) var(--space-0-8rem);
   }
 
   .users-page .user-form--edit .user-form__account-status {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: .15rem 0 .45rem;
+    padding: var(--space-0-15rem) 0 var(--space-0-45rem);
   }
 
   .users-page .user-form--edit .form-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .5rem;
+    gap: var(--space-0-5rem);
   }
 
   .users-page .user-form--edit .form-actions .base-button {
     min-width: 0;
-    min-height: 40px;
-    padding-inline: .35rem;
-    font-size: .68rem;
+    min-height: var(--size-40px);
+    padding-inline: var(--space-0-35rem);
+    font-size: var(--font-size-0-68rem);
   }
 
   .users-page .user-form--edit .form-actions .button-content,
@@ -187,6 +187,6 @@
   }
 
   .users-page .user-form--edit .form-actions .button-content {
-    gap: .15rem;
+    gap: var(--space-0-15rem);
   }
 }
