@@ -1,3 +1,4 @@
+import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -14,8 +15,6 @@ import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "./PasswordVisibility.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-
 const loginErrorMessage = (error: unknown) => {
   if (!axios.isAxiosError(error)) {
     return "Correo o contraseña inválidos";
@@ -53,7 +52,6 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const hasOrganizationOptions = organizationOptions.length > 0;
-
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
@@ -156,7 +154,10 @@ export const LoginPage = () => {
               setFieldErrors((current) => ({ ...current, password: "" }));
               }}
               aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={fieldErrors.password ? "login-password-error" : undefined}
+              aria-describedby={[
+                "login-password-guidance",
+                fieldErrors.password && "login-password-error",
+              ].filter(Boolean).join(" ") || undefined}
               required
             />
             <label htmlFor="login-password" className="login-floating-label">Contraseña</label>
@@ -176,8 +177,7 @@ export const LoginPage = () => {
           )}
         </div>
         <div
-          className={`login-organization-slot ${hasOrganizationOptions ? "is-visible" : ""}`}
-          aria-hidden={!hasOrganizationOptions}
+          className="login-organization-slot is-visible"
         >
           {hasOrganizationOptions && (
             <div className="form-group login-organization-group">
@@ -209,6 +209,7 @@ export const LoginPage = () => {
               )}
             </div>
           )}
+          <PasswordStrength id="login-password-guidance" password={password} />
         </div>
         <p
           className={`form-submit-message ${error ? "is-visible" : ""}`}

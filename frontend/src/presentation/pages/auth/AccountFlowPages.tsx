@@ -1,3 +1,4 @@
+import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
@@ -11,7 +12,6 @@ import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
 import "./AccountFlowPages.css";
 
-const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const VERIFICATION_CHANNEL = "treasury-email-verification";
 type VerificationMessage =
   | { type: "verified"; requestId: string; session: LoginResponse }
@@ -32,8 +32,10 @@ const Shell = ({ title, message, children }: {
 }) => (
   <main className="auth-flow">
     <section className="auth-flow__card">
-      <BrandLogo className="auth-flow__logo" />
-      <h1>{title}</h1>
+      <header className="auth-flow__header">
+        <BrandLogo className="auth-flow__logo" />
+        <h1>{title}</h1>
+      </header>
       {message && <p role="status">{message}</p>}
       {children}
     </section>
@@ -46,6 +48,7 @@ export const CheckEmailPage = () => {
   const navigate = useNavigate();
   const { establishSession } = useAuth();
   const email = (location.state as { email?: string } | null)?.email ?? "";
+  const organizationId = (location.state as { organizationId?: number } | null)?.organizationId;
   const [message, setMessage] = useState("Enviamos un enlace de activación. Revisa también tu carpeta de spam.");
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -62,7 +65,7 @@ export const CheckEmailPage = () => {
   const resend = async () => {
     if (!email) return;
     setLoading(true);
-    try { setMessage(await repository.resendVerification(email)); }
+    try { setMessage(await repository.resendVerification(email, organizationId)); }
     catch { setMessage("Espera un momento antes de solicitar otro correo."); }
     finally { setLoading(false); }
   };
@@ -194,6 +197,9 @@ export const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const token = params.get("token") ?? "";
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmError, setConfirmError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [passwordUpdated, setPasswordUpdated] = useState(false);
@@ -206,6 +212,9 @@ export const ResetPasswordPage = () => {
     if (!token) { setMessage("El enlace no es válido."); return; }
     if (!PASSWORD_PATTERN.test(password)) {
       setMessage("Usa 8 caracteres, mayúscula, minúscula, número y símbolo."); return;
+    }
+    if (!confirmPassword || password !== confirmPassword) {
+      setConfirmError("Las contraseñas deben coincidir"); return;
     }
     submittingRef.current = true;
     setLoading(true);
@@ -223,10 +232,13 @@ export const ResetPasswordPage = () => {
     <Shell title="Crear nueva contraseña" message={message}>
       <form onSubmit={submit}>
         <input type="hidden" name="recoveryToken" value={token} />
+        <div className="auth-flow__password-row">
+        <div className="auth-flow__password-inputs">
         <label>Nueva contraseña
           <span className="auth-flow__password-field">
             <input type={showPassword ? "text" : "password"} value={password}
-              onChange={e => setPassword(e.target.value)} placeholder="Ej: ClaveSegura1!"
+              onChange={e => { setPassword(e.target.value); setConfirmError(""); }} placeholder="Ej: ClaveSegura1!"
+              aria-describedby="reset-password-guidance"
               autoComplete="new-password" required />
             <button
               className="auth-flow__password-toggle"
@@ -239,6 +251,29 @@ export const ResetPasswordPage = () => {
             </button>
           </span>
         </label>
+        <label htmlFor="reset-confirm-password">Repite tu contraseña
+          <span className="auth-flow__password-field">
+          <input id="reset-confirm-password" type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword} autoComplete="new-password" required
+            placeholder="Repite tu contraseña"
+            onChange={e => { setConfirmPassword(e.target.value); setConfirmError(""); }}
+            aria-invalid={Boolean(confirmError)}
+            aria-describedby={confirmError ? "reset-confirm-password-error" : undefined} />
+          <button
+            className="auth-flow__password-toggle"
+            type="button"
+            aria-label={showConfirmPassword ? "Ocultar contraseña repetida" : "Mostrar contraseña repetida"}
+            aria-pressed={showConfirmPassword}
+            onClick={() => setShowConfirmPassword((visible) => !visible)}
+          >
+            {showConfirmPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
+          </button>
+          </span>
+        </label>
+        {confirmError && <span id="reset-confirm-password-error" className="error-message" role="alert">{confirmError}</span>}
+        </div>
+        <PasswordStrength id="reset-password-guidance" password={password} />
+        </div>
         <Button type="submit" label="Actualizar contraseña" loading={loading}
           onClick={() => {}} size="large" className="auth-flow__action" />
       </form>

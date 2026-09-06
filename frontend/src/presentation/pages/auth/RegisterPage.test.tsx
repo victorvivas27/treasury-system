@@ -4,6 +4,16 @@ import { describe, expect, it, vi } from "vitest";
 import { RegisterPage } from "./RegisterPage";
 
 const registerMock = vi.fn();
+vi.mock("@/core/C-infra/repositories/organization/OrganizationRepositoryImpl", () => ({
+  OrganizationRepositoryImpl: class {
+    getLoginOptions = vi.fn().mockResolvedValue([
+      { id: 1, name: "Curso anterior", type: "LEGACY", slug: "default" },
+      { id: 2, name: "Colegio", type: "SCHOOL", slug: "colegio" },
+      { id: 4, name: "4A", type: "COURSE" },
+      { id: 5, name: "5A", type: "COURSE" },
+    ]);
+  },
+}));
 
 vi.mock("@/core/C-infra/repositories/auth/AuthRepositoryImpl", () => ({
   AuthRepositoryImpl: vi.fn().mockImplementation(function () {
@@ -12,7 +22,8 @@ vi.mock("@/core/C-infra/repositories/auth/AuthRepositoryImpl", () => ({
 }));
 
 describe("RegisterPage", () => {
-  it("[RegisterPage #01] registra y solicita revisar el correo", async () => {
+  it.each([1, 5])("[RegisterPage #01] registra en el curso %s y solicita revisar el correo", async (courseId) => {
+    registerMock.mockClear();
     registerMock.mockResolvedValue({});
     render(
       <MemoryRouter initialEntries={["/register"]}>
@@ -26,9 +37,17 @@ describe("RegisterPage", () => {
     fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Ana Pérez" } });
     fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "ana@mail.com" } });
     fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Password1!" } });
+    fireEvent.change(screen.getByLabelText("Repite tu contraseña"), { target: { value: "Password1!" } });
+    await screen.findByRole("option", { name: "5A" });
+    expect(screen.getByRole("option", { name: "Curso anterior" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Colegio" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    expect(registerMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Selecciona un curso para crear tu cuenta.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Selecciona tu curso"), { target: { value: String(courseId) } });
     fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
-    await waitFor(() => expect(registerMock).toHaveBeenCalled());
+    await waitFor(() => expect(registerMock).toHaveBeenCalledWith(expect.objectContaining({ organizationId: courseId })));
     expect(await screen.findByRole("heading", { name: "Revisa tu correo" })).toBeInTheDocument();
   });
 

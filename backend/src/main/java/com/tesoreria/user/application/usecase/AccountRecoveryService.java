@@ -83,7 +83,11 @@ public class AccountRecoveryService {
 
     @Transactional
     public User register(User user) {
-        Long organizationId = currentOrganization == null ? null : currentOrganization.getId();
+        Long organizationId = user.getOrganizationId();
+        if (organizationId == null) {
+            throw new DomainException("organizationId", org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Seleccione un curso");
+        }
         user.setOrganizationId(organizationId);
         if (users.existsByCorreoAndOrganizationId(user.getCorreo(), organizationId)) {
             throw new EmailAlreadyExistsException(user.getCorreo());

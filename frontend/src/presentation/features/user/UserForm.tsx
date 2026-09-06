@@ -1,3 +1,4 @@
+import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import type { UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
@@ -7,6 +8,7 @@ import { FiLock, FiMail, FiSave, FiUser, FiX } from "react-icons/fi";
 import "@/presentation/pages/auth/PasswordVisibility.css";
 
 interface UserFormProps {
+  children?: ReactNode;
   initialData?: Partial<UserPayload>;
   loading?: boolean;
   submitLabel?: string;
@@ -18,11 +20,11 @@ interface UserFormProps {
   showFieldIcons?: boolean;
 }
 
-const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
 
 export const UserForm = ({
+  children,
   initialData,
   loading = false,
   submitLabel = "Guardar usuario",
@@ -43,6 +45,8 @@ export const UserForm = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
@@ -54,6 +58,7 @@ export const UserForm = ({
     setErrors((previous) => {
       const next = { ...previous };
       delete next[name];
+      if (name === "password") delete next.confirmPassword;
       return next;
     });
   };
@@ -68,6 +73,9 @@ export const UserForm = ({
     }
     if (!initialData && !PASSWORD_PATTERN.test(formData.password ?? "")) {
       next.password = "Use 8 caracteres, mayúscula, minúscula, número y especial";
+    }
+    if (!initialData && (!confirmPassword || confirmPassword !== formData.password)) {
+      next.confirmPassword = "Las contraseñas deben coincidir";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -114,7 +122,9 @@ export const UserForm = ({
         {errors.correo && <span className="error-message">{errors.correo}</span>}
       </div>
 
+      {children}
       {!initialData && <div className="form-group user-form__password-group">
+        <div className="user-form__password-input">
         <span className="password-input-wrapper login-floating-field">
           {showFieldIcons && <FiLock className="login-field-icon" aria-hidden="true" />}
           <input
@@ -123,6 +133,7 @@ export const UserForm = ({
             name="password"
             type={showPassword ? "text" : "password"}
             placeholder="Ej.: ClaveSegura1!"
+            aria-describedby="user-password-guidance"
             autoComplete="new-password"
             value={formData.password ?? ""}
             onChange={handleChange}
@@ -139,6 +150,37 @@ export const UserForm = ({
           </button>
         </span>
         {errors.password && <span className="error-message">{errors.password}</span>}
+        <span className="password-input-wrapper login-floating-field">
+          {showFieldIcons && <FiLock className="login-field-icon" aria-hidden="true" />}
+          <input
+            id="user-form-confirm-password"
+            className={`form-input password-input ${errors.confirmPassword ? "input-error" : ""}`}
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Repite tu contraseña"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(event) => {
+              setConfirmPassword(event.target.value);
+              setErrors((current) => ({ ...current, confirmPassword: "" }));
+            }}
+            aria-invalid={Boolean(errors.confirmPassword)}
+            aria-describedby={errors.confirmPassword ? "user-confirm-password-error" : undefined}
+            required
+          />
+          <label htmlFor="user-form-confirm-password" className="login-floating-label">Repite tu contraseña</label>
+          <button
+            className={`password-visibility-button ${showFieldIcons ? "login-password-visibility" : ""}`}
+            type="button"
+            aria-label={showConfirmPassword ? "Ocultar contraseña repetida" : "Mostrar contraseña repetida"}
+            aria-pressed={showConfirmPassword}
+            onClick={() => setShowConfirmPassword((visible) => !visible)}
+          >
+            {showConfirmPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
+          </button>
+        </span>
+        {errors.confirmPassword && <span id="user-confirm-password-error" className="error-message" role="alert">{errors.confirmPassword}</span>}
+        </div>
+        <PasswordStrength id="user-password-guidance" password={formData.password ?? ""} />
       </div>}
 
       {showRole && (

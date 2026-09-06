@@ -17,7 +17,7 @@ describe("UserForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Guardar usuario" }));
     expect(screen.getByText(/entre 3 y 100/i)).toBeInTheDocument();
     expect(screen.getByText(/correo válido/i)).toBeInTheDocument();
-    expect(screen.getByText(/mayúscula/i)).toBeInTheDocument();
+    expect(screen.getByText(/Use 8 caracteres, mayúscula/i)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -27,6 +27,11 @@ describe("UserForm", () => {
     fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Victor Vivas" } });
     fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "user@mail.com" } });
     fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Password1!" } });
+    fireEvent.change(screen.getByLabelText("Repite tu contraseña"), { target: { value: "Different1!" } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar usuario" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Las contraseñas deben coincidir");
+    expect(onSubmit).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText("Repite tu contraseña"), { target: { value: "Password1!" } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar usuario" }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       nombre: "Victor Vivas",

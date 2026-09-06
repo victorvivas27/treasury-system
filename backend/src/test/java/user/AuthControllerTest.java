@@ -6,6 +6,7 @@ import com.tesoreria.organization.application.OrganizationService;
 import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.user.application.usecase.AuthService;
+import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
@@ -40,6 +41,7 @@ class AuthControllerTest {
     private MockMvc mockMvc;
     private AuthService authService;
     private UserService userService;
+    private AccountRecoveryService accountRecoveryService;
     private UserMapper mapper;
     private JwtService jwtService;
     private TokenRevocationService revocationService;
@@ -53,6 +55,7 @@ class AuthControllerTest {
     void setUp() {
         authService = mock(AuthService.class);
         userService = mock(UserService.class);
+        accountRecoveryService = mock(AccountRecoveryService.class);
         mapper = mock(UserMapper.class);
         jwtService = mock(JwtService.class);
         revocationService = mock(TokenRevocationService.class);
@@ -62,7 +65,7 @@ class AuthControllerTest {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new AuthController(
                         authService, userService, mapper, jwtService, revocationService, registrationRateLimiter,
-                        null, "", false, null, refreshTokenService, organizationService,
+                        accountRecoveryService, "", false, null, refreshTokenService, organizationService,
                         false, "Lax", "/tesoreria"))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -141,11 +144,56 @@ class AuthControllerTest {
     @Test
     void register_deberiaRetornar201() throws Exception {
         when(mapper.toDomain(any())).thenReturn(user);
-        when(userService.create(user)).thenReturn(user);
+        when(organizationService.requireActive(4L)).thenReturn(organization(4L, "4A"));
+        when(accountRecoveryService.register(user)).thenReturn(user);
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerBody()))
                 .andExpect(status().isCreated());
+        verify(accountRecoveryService).register(org.mockito.ArgumentMatchers.argThat(value ->
+                Long.valueOf(4L).equals(value.getOrganizationId()) && value.getRol() == RoleEnum.USER
+                        && !value.getEnabled()));
+    }
+
+    @Test
+    void register_requiereCurso() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody().replace("\"organizationId\":4,", "")))
+                .andExpect(status().isBadRequest());
+        org.mockito.Mockito.verifyNoInteractions(accountRecoveryService);
+    }
+
+    @Test
+    void register_rechazaCursoInactivo() throws Exception {
+        when(organizationService.requireActive(4L)).thenThrow(new DomainException("organization",
+                org.springframework.http.HttpStatus.CONFLICT, "La organización está desactivada"));
+        mockMvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody())).andExpect(status().isConflict());
+        org.mockito.Mockito.verifyNoInteractions(accountRecoveryService);
+    }
+
+    @Test
+    void register_permiteCursoPredeterminadoLegacy() throws Exception {
+        OrganizationEntity legacy = organization(4L, "Curso anterior");
+        legacy.setType(OrganizationType.LEGACY);
+        legacy.setSlug("default");
+        when(organizationService.requireActive(4L)).thenReturn(legacy);
+        when(mapper.toDomain(any())).thenReturn(user);
+        when(accountRecoveryService.register(user)).thenReturn(user);
+        mockMvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody())).andExpect(status().isCreated());
+        verify(accountRecoveryService).register(org.mockito.ArgumentMatchers.argThat(value ->
+                Long.valueOf(4L).equals(value.getOrganizationId()) && value.getRol() == RoleEnum.USER));
+    }
+
+    @Test
+    void register_rechazaAdministracionGeneral() throws Exception {
+        OrganizationEntity legacy = organization(4L, "General");
+        legacy.setType(OrganizationType.LEGACY);
+        when(organizationService.requireActive(4L)).thenReturn(legacy);
+        mockMvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody())).andExpect(status().isBadRequest());
+        org.mockito.Mockito.verifyNoInteractions(accountRecoveryService);
     }
 
     @Test
@@ -219,6 +267,7 @@ class AuthControllerTest {
         return """
                 {
                   "nombre":"Victor Vivas",
+                  "organizationId":4,
                   "correo":"admin@mail.com",
                   "password":"Password1!",
                   "rol":"ADMIN"
