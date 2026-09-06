@@ -10,6 +10,8 @@ import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
 import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.organization.application.OrganizationService;
+import com.tesoreria.organization.application.DefaultOrganizationProvider;
+import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.SecurityConstants;
 import com.tesoreria.user.config.security.TokenRevocationService;
@@ -154,13 +156,18 @@ public class AuthController {
             @Valid @RequestBody RegisterRequestDTO request,
             HttpServletRequest httpRequest) {
         registrationRateLimiter.checkAndRecord(httpRequest.getRemoteAddr());
+        var organization = organizationService.requireActive(request.getOrganizationId());
+        boolean legacyCourse = organization.getType() == OrganizationType.LEGACY
+                && DefaultOrganizationProvider.DEFAULT_SLUG.equals(organization.getSlug());
+        if (organization.getType() != OrganizationType.COURSE && !legacyCourse) {
+            throw new DomainException("organizationId", HttpStatus.BAD_REQUEST, "Seleccione un curso válido");
+        }
         User newUser = mapper.toDomain(request);
+        newUser.setOrganizationId(organization.getId());
         newUser.setRol(RoleEnum.USER);
         newUser.setEnabled(false);
         newUser.setAccountNonLocked(true);
-        User registered = accountRecoveryService == null
-                ? userService.create(newUser)
-                : accountRecoveryService.register(newUser);
+        User registered = accountRecoveryService.register(newUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(registered));
     }
 

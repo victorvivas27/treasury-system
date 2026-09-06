@@ -2,6 +2,9 @@
 .auth-flow__card { width: min(100%, var(--size-480px)); display: grid; gap: var(--space-20px); padding: var(--space-32px); text-align: center;
   background: var(--color-surface); border: var(--stroke-1px) solid var(--border-color); border-radius: var(--radius-lg); }
 .auth-flow__logo { width: var(--size-80px); height: var(--size-80px); object-fit: contain; margin: auto; }
+.auth-flow__header { display: flex; align-items: center; gap: var(--sm); text-align: left; }
+.auth-flow__header .auth-flow__logo { flex-shrink: 0; margin: 0; }
+.auth-flow__header h1 { min-width: 0; margin: 0; font-size: 1.5rem; line-height: 1.25; }
 .auth-flow__success-icon { display: grid; width: var(--size-72px); height: var(--size-72px); place-items: center; margin: 0 auto;
   border: var(--stroke-1px) solid color-mix(in srgb, var(--color-success) 35%, transparent); border-radius: var(--radius-50percent);
   background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success);
@@ -13,6 +16,16 @@
   border: var(--stroke-1px) solid var(--border-color); border-radius: var(--radius-md); }
 .auth-flow__card input::placeholder { color: var(--text-muted); opacity: var(--opacity-0-8); }
 .auth-flow__password-field { position: relative; display: block; width: 100%; }
+.auth-flow__password-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+  align-items: center;
+  gap: var(--sm);
+}
+.auth-flow__password-row > .password-strength { justify-self: end; }
+.auth-flow__password-row .password-strength__summary strong { display: block; }
+.auth-flow__password-row > label { min-width: 0; }
+.auth-flow__password-inputs { min-width: 0; display: grid; gap: var(--sm); }
 .auth-flow__password-field input { padding-right: var(--space-48px); }
 .auth-flow__password-toggle {
   position: absolute;
@@ -51,6 +64,12 @@
 }
 
 @media (max-width: 480px) {
+  .auth-flow__header .auth-flow__logo { width: var(--size-48px, 48px); height: var(--size-48px, 48px); }
+  .auth-flow__header h1 { font-size: 1.125rem; }
   .auth-flow { align-items: start; padding: var(--space-12px); }
   .auth-flow__card { gap: var(--space-16px); padding: var(--space-20px) var(--space-16px); }
+  .auth-flow__password-row { grid-template-columns: minmax(0, 1fr); gap: var(--md); }
+  .auth-flow__password-row > .password-strength { justify-self: stretch; }
+  .auth-flow__password-row .password-strength__summary strong { display: inline; }
+  .auth-flow__password-inputs input { min-width: 0; font-size: var(--font-size-1rem); }
 }

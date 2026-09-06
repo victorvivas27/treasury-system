@@ -53,6 +53,28 @@ class AccountRecoveryServiceTest {
     }
 
     @Test
+    void register_conservaElCursoElegidoEnLugarDelPredeterminado() {
+        CurrentOrganizationService current = mock(CurrentOrganizationService.class);
+        service = new AccountRecoveryService(users, tokens, email, passwordEncoder,
+                rateLimiter, revocationService, "https://app.example", current, null);
+        User user = new User();
+        user.setOrganizationId(5L);
+        user.setNombre("Ana Perez");
+        user.setCorreo("ana@example.com");
+        user.setPassword("Password1!");
+        when(passwordEncoder.encode("Password1!")).thenReturn("$2a$encoded");
+        when(users.save(user)).thenAnswer(invocation -> { user.setId(9L); return user; });
+        when(email.sendVerificationEmail(anyString(), anyString(), anyString())).thenReturn(true);
+
+        User saved = service.register(user);
+
+        assertEquals(5L, saved.getOrganizationId());
+        verify(users).existsByCorreoAndOrganizationId("ana@example.com", 5L);
+        verifyNoInteractions(current);
+        verify(tokens).save(any(UserTokenEntity.class));
+    }
+
+    @Test
     void forgotPassword_deberiaConservarCodigosAnteriores() {
         User user = org.mockito.Mockito.mock(User.class);
         when(user.getId()).thenReturn(7L);

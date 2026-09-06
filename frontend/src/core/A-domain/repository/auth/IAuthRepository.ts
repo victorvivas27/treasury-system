@@ -1,9 +1,9 @@
 import type { AuthMessageResponse, LoginPayload, LoginResponse } from "@/core/A-domain/entities/auth/Auth";
-import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
+import type { User, RegisterPayload } from "@/core/A-domain/entities/user/User";
 
 export interface IAuthRepository {
   login(payload: LoginPayload): Promise<LoginResponse>;
-  register(payload: UserPayload): Promise<User>;
+  register(payload: RegisterPayload): Promise<User>;
   me(): Promise<User>;
   refresh(): Promise<LoginResponse>;
   logout(): Promise<void>;

@@ -1,5 +1,5 @@
 import type { AuthMessageResponse, LoginPayload, LoginResponse } from "@/core/A-domain/entities/auth/Auth";
-import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
+import type { User, RegisterPayload } from "@/core/A-domain/entities/user/User";
 import type { IAuthRepository } from "@/core/A-domain/repository/auth/IAuthRepository";
 import { apiClient } from "@/core/D-config/api";
 import { getAccessToken } from "@/core/D-config/axiosInterceptor";
@@ -14,7 +14,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
     })).data;
   }
 
-  async register(payload: UserPayload): Promise<User> {
+  async register(payload: RegisterPayload): Promise<User> {
     return (await apiClient.post<User>(`${this.baseUrl}/register`, payload)).data;
   }
 
