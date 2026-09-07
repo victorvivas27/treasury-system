@@ -202,11 +202,7 @@ export const DashboardPage = () => {
             </span>}
           </div>
         </article>
-        <article className="dashboard-birthday-card" aria-label="Próximo cumpleaños">
-          <h2><Link className="dashboard-card-link" to="/birthdays"
-            aria-label="Ver todos los cumpleaños">Próximo cumpleaños</Link></h2>
-          <NextBirthday />
-        </article>
+        <NextBirthday />
         </div>
         <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
           featured negative={data.finances.availableBalance < 0}
