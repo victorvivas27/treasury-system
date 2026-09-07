@@ -1,6 +1,11 @@
 name: Versioning CI
 
 on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
   pull_request:
     branches: [dev, main]
   push:
@@ -15,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
@@ -23,4 +31,6 @@ jobs:
       - name: Validate versions, configuration, workflows and release scenarios
         env:
           RELEASE_TOOLS_DIR: ${{ runner.temp }}/release-tools
-        run: node scripts/test-versioning.cjs
+        run: |
+          node scripts/test-versioning.cjs
+          node --test scripts/test-auto-release.cjs
