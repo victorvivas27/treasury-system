@@ -234,3 +234,4 @@ Las tres colecciones han sido validadas completamente con autenticación adminis
 - [Frontend](frontend/FRONTEND.md)
 - [Backend](backend/BACKEND.md)
 - [Neon y Cloud Run](backend/NEON_DEPLOYMENT.md)
+- [Versionamiento SemVer, Conventional Commits y Release PR](docs/VERSIONING.md)
