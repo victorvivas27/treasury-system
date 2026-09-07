@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiActivity, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
-import { IoBulbOutline, IoHeartOutline } from "react-icons/io5";
+import { IoBulbOutline } from "react-icons/io5";
 import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
@@ -24,6 +24,7 @@ import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvement/ImprovementCenterEvents";
 import { EventProfitCards } from "./EventProfitCards";
 import { NextBirthday } from "./NextBirthday";
+import { BoardMessage } from "./BoardMessage";
 
 const repository = new TreasuryRepositoryImpl();
 const currentYear = new Date().getFullYear();
@@ -381,18 +382,7 @@ export const DashboardPage = () => {
         </article>
       </section>
 
-      <section className="dashboard-board-message" aria-labelledby="dashboard-board-message-title">
-        <div className="dashboard-board-message__icon" aria-hidden="true"><IoHeartOutline /></div>
-        <div className="dashboard-board-message__content">
-          <span className="dashboard-board-message__eyebrow">De parte de la directiva</span>
-          <h2 id="dashboard-board-message-title">Juntos hacemos crecer los buenos momentos.</h2>
-          <p>Detrás de cada actividad hay familias que aportan tiempo, ideas y cariño.
-            Gracias por hacer equipo y ayudarnos a crear recuerdos que nuestros niños y niñas
-            llevarán siempre consigo.</p>
-          <footer><span className="dashboard-board-message__signature">Con cariño,<strong>La directiva del curso</strong></span>
-            <span className="dashboard-board-message__closing">Cada familia cuenta. Cada gesto suma.</span></footer>
-        </div>
-      </section>
+      <BoardMessage />
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
         <header><button className="dashboard-collapse-trigger" type="button"

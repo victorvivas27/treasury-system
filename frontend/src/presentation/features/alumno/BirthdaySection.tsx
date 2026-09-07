@@ -100,7 +100,6 @@ export const BirthdaySection = ({ alumnos, loading = false, today = new Date(), 
                   {tone === "today" || index === 0 ? <FiStar aria-hidden="true" /> : <FiCalendar aria-hidden="true" />}
                 </div>
                 <div className="birthday-card__body">
-                  <span>{alumno.curso}</span>
                   <h3>{alumno.nombre}</h3>
                   <p>{dateLabel} · {age} años</p>
                 </div>
