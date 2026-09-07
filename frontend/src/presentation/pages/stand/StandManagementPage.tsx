@@ -3,9 +3,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
 import {
   FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiCreditCard, FiDollarSign, FiEdit2, FiPercent, FiPlus,
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
-  FiTrendingUp, FiMaximize2,
+  FiTrendingUp, FiMaximize2, FiDownload,
 } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
+import { useSearchParams } from "react-router-dom";
 import type { SchoolEvent, SchoolEventOption } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
   Stand, StandPaymentMethod, StandProduct, StandSale, StandSalePayload, StandSummary,
@@ -21,6 +22,7 @@ import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import { useAuth } from "@/presentation/context/AuthContext";
 import pizzaEquivalentImage from "@/assets/stand/pizza-equivalent-optimized.png";
 import { loadStandPanelData, type StandPanelTab } from "./standPanelData";
+import { printStandSalesReport } from "./standSalesReport";
 import "./StandManagementPage.css";
 
 const eventsRepository = new TreasuryRepositoryImpl();
@@ -118,7 +120,13 @@ const StandPanelSkeleton = ({ tab }: { tab: Tab }) => <section
 export const StandManagementPage = () => {
   const { user } = useAuth();
   const readOnly = user?.rol === "USER";
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [searchParams] = useSearchParams();
+  const requestedEventId = Number(searchParams.get("eventId"));
+  const [year, setYear] = useState(() => {
+    const requestedYear = Number(searchParams.get("year"));
+    return Number.isInteger(requestedYear) && requestedYear >= 2026 && requestedYear <= 2035
+      ? requestedYear : new Date().getFullYear();
+  });
   const [events, setEvents] = useState<Array<SchoolEvent | SchoolEventOption>>([]);
   const [eventId, setEventId] = useState(0);
   const [standList, setStandList] = useState<Stand[]>([]);
@@ -126,7 +134,8 @@ export const StandManagementPage = () => {
   const [products, setProducts] = useState<StandProduct[]>([]);
   const [sales, setSales] = useState<StandSale[]>([]);
   const [summary, setSummary] = useState<StandSummary>();
-  const [tab, setTab] = useState<Tab>(readOnly ? "summary" : "products");
+  const [tab, setTab] = useState<Tab>(readOnly || searchParams.get("tab") === "summary"
+    ? "summary" : "products");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [closeSummary, setCloseSummary] = useState<StandSummary>();
@@ -148,14 +157,15 @@ export const StandManagementPage = () => {
         ? await eventsRepository.listEventOptions(year)
         : await eventsRepository.listEvents(year);
       setEvents(data);
-      setEventId(current => data.some(item => item.id === current) ? current : (data[0]?.id ?? 0));
+      setEventId(current => data.some(item => item.id === current) ? current
+        : (data.find(item => item.id === requestedEventId)?.id ?? data[0]?.id ?? 0));
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible cargar los eventos."));
     } finally {
       setHasLoadedEvents(true);
       setLoading(false);
     }
-  }, [year, readOnly]);
+  }, [year, readOnly, requestedEventId]);
 
   const loadStands = useCallback(async () => {
     if (!eventId) {
@@ -266,42 +276,44 @@ export const StandManagementPage = () => {
   };
 
   return <main className="stand-page">
-    <details className="stand-page__overview">
-      <summary>
-        <span><strong>Ventas del stand</strong><small>Configuración, año escolar y evento</small></span>
-        <span className="stand-page__overview-action">Ver opciones <FcExpand /></span>
-      </summary>
-      <div className="stand-page__overview-content">
-        <header className="stand-page__header">
-          <div><h1>Ventas del stand</h1>
-            <p>{readOnly ? "Consulta el resumen de ventas y recaudación de cada stand."
-              : "Configura productos, registra compras y controla la caja en tiempo real."}</p></div>
-          {!readOnly && <div className="stand-page__header-actions">
-            <button onClick={click => {
-              setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
-                Math.min(320, window.innerWidth - 24), 430));
-              setCreating(true);
-            }} disabled={!eventId}>
-              <FiPlus /> Crear stand</button>
-            <button className="is-reload" onClick={() => void loadStands()}>
-              <FiRefreshCw /> Recargar</button>
-          </div>}
-        </header>
-
-        <section className="stand-page__filters" aria-label="Selección de evento">
-          <label>Año escolar<input type="number" value={year}
-            onChange={event => setYear(Number(event.target.value))} /></label>
-          <label>Evento<select value={eventId}
-            onChange={event => setEventId(Number(event.target.value))}>
-            {events.length === 0 && <option value={0}>No hay eventos</option>}
-            {events.map(item => <option key={item.id} value={item.id}>
-              {item.name} · {item.eventDate}
-            </option>)}
-          </select></label>
-        </section>
+    <header className="stand-page__header">
+      <div><h1>Ventas del stand</h1>
+        <p>{readOnly ? "Consulta las ventas y la recaudación de cada stand."
+          : "Administra los productos, las ventas y la caja de tu stand."}</p></div>
+    </header>
+    <section className="stand-event-navigation" aria-label="Selección de año y evento">
+      <div className="stand-year-card">
+        <span>Año escolar</span>
+        <div>
+          <button type="button" aria-label="Año anterior" disabled={year <= 2026 || loading}
+            onClick={() => { setSelected(undefined); setStandList([]); setEventId(0); setYear(value => value - 1); }}>‹</button>
+          <strong aria-live="polite">{year}</strong>
+          <button type="button" aria-label="Año siguiente" disabled={year >= 2035 || loading}
+            onClick={() => { setSelected(undefined); setStandList([]); setEventId(0); setYear(value => value + 1); }}>›</button>
+        </div>
       </div>
-    </details>
-
+      <nav className="stand-event-cards" aria-label="Eventos del año">
+        {loading ? <p role="status">Cargando eventos…</p> : events.length === 0
+          ? <p>No hay eventos en {year}.</p> : events.map(item => <button type="button"
+            key={item.id} aria-pressed={eventId === item.id}
+            className={eventId === item.id ? "is-active" : ""}
+            onClick={() => {
+              if (eventId === item.id) return;
+              setSelected(undefined); setStandList([]); setEventId(item.id);
+            }}>
+            <span>{eventId === item.id ? "Evento seleccionado" : "Ver evento"}</span>{" "}
+            <strong>{item.name}</strong>{" "}
+            <small>{new Date(`${item.eventDate}T12:00:00`).toLocaleDateString("es-CL", {
+              day: "numeric", month: "long", year: "numeric",
+            })}</small>
+            {selected?.eventId === item.id && <span className="stand-event-card__stand">
+              <span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
+                {statusLabels[selected.status]}</span>{" "}
+              <b>{selected.name}</b>
+            </span>}
+          </button>)}
+      </nav>
+    </section>
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
     {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton readOnly={readOnly} />
       : events.length === 0 ? <section className="stand-page__empty">
@@ -352,9 +364,7 @@ export const StandManagementPage = () => {
           ? "is-refreshing" : ""}`} aria-busy={operationalLoading}>
           <details className="stand-workspace__overview">
             <summary>
-              <span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
-                {statusLabels[selected.status]}</span>
-              <strong>{selected.name}</strong>
+              <strong>Datos del stand</strong>
               <span className="stand-workspace__overview-action">Administrar <FcExpand /></span>
             </summary>
             <header className="stand-workspace__header">
@@ -362,6 +372,15 @@ export const StandManagementPage = () => {
               <p>{selected.responsible} · {selected.date} · {selected.startTime.slice(0, 5)}
                 –{selected.endTime.slice(0, 5)}</p></div>
             {!readOnly && <div className="stand-workspace__actions">
+              <button type="button" onClick={click => {
+                setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
+                  Math.min(320, window.innerWidth - 24), 430));
+                setCreating(true);
+              }}><FiPlus /> Crear stand</button>
+              <button type="button" className="secondary" onClick={async () => {
+                await loadStands();
+                await loadOperationalData();
+              }} disabled={operationalLoading}><FiRefreshCw /> Recargar</button>
               {selected.status !== "CLOSED" &&
                 <button className="secondary" onClick={click => {
                   setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
@@ -727,6 +746,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
   const [editingSale, setEditingSale] = useState(false);
   const [showReasonAlert, setShowReasonAlert] = useState(false);
   const [historyPage, setHistoryPage] = useState(0);
+  const [reportError, setReportError] = useState("");
   const [saleQueue, setSaleQueue] = useState<QueuedSale[]>([]);
   const processingQueue = useRef(false);
   const salesPerPage = 3;
@@ -970,6 +990,15 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         <small>Más recientes primero · {sales.length} registros</small></span>
         <span className="stand-recent-sales__action">Ver historial <FcExpand /></span>
       </summary>
+      <div className="stand-history-export">
+        <button type="button" disabled={sales.length === 0} onClick={() => {
+          setReportError("");
+          try { printStandSalesReport(stand, sales); }
+          catch (error) { setReportError(error instanceof Error ? error.message : "No fue posible preparar el PDF."); }
+        }}><FiDownload aria-hidden="true" /> Guardar en PDF</button>
+        <small>Incluye todo el historial de ventas.</small>
+        {reportError && <p role="alert">{reportError}</p>}
+      </div>
       <div className="stand-sales-page">
         {visibleSales.map(sale => <article key={sale.id}
           className={sale.status === "CANCELLED" ? "is-cancelled" : ""}>

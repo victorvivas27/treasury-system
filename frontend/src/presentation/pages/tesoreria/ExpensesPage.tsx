@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiAlertTriangle, FiArrowLeft, FiBriefcase, FiCalendar, FiCheck, FiClock,
   FiCreditCard, FiDollarSign, FiDownload, FiEdit3, FiEye, FiFilePlus, FiFileText, FiFilter, FiLogIn,
   FiLoader, FiLogOut, FiMessageSquare, FiMinusCircle, FiPlus, FiRefreshCw, FiSave,
@@ -42,7 +43,11 @@ const initialForm = (year: number): ExpensePayload => ({
 export const ExpensesPage = () => {
   const { user } = useAuth();
   const canManage = isAdminRole(user?.rol);
-  const [year, setYear] = useState(2026);
+  const [searchParams] = useSearchParams();
+  const [year, setYear] = useState(() => {
+    const requestedYear = Number(searchParams.get("year"));
+    return years.includes(requestedYear) ? requestedYear : 2026;
+  });
   const [items, setItems] = useState<TreasuryExpense[]>([]);
   const [summary, setSummary] = useState(emptySummary);
   const [filters, setFilters] = useState<ExpenseFilters>({

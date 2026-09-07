@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiTrash2, FiUsers } from "react-icons/fi";
-import { IoBulbOutline } from "react-icons/io5";
+import { FiActivity, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
+import { IoBulbOutline, IoHeartOutline } from "react-icons/io5";
 import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
-  Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart,
+  Line, LineChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, YAxis,
 } from "recharts";
 import type { ContributionSummary,
@@ -22,6 +22,8 @@ import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvement/ImprovementCenterEvents";
+import { EventProfitCards } from "./EventProfitCards";
+import { NextBirthday } from "./NextBirthday";
 
 const repository = new TreasuryRepositoryImpl();
 const currentYear = new Date().getFullYear();
@@ -50,7 +52,7 @@ export const DashboardPage = () => {
   const [cleanupError, setCleanupError] = useState("");
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
-  const [activityOpen, setActivityOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(true);
   const [auditOpen, setAuditOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.innerWidth <= 700);
@@ -147,10 +149,15 @@ export const DashboardPage = () => {
     return next;
   });
 
-  return <main className="business-dashboard">
+  return <main className="business-dashboard business-dashboard--compact">
     <header className="business-dashboard__header">
-      <div><h1>Dashboard</h1>
-        <p>Estado financiero y actividad real del curso.</p></div>
+      <div><h1>{user?.nombre ? `Hola, ${user.nombre.trim().split(/\s+/)[0]}` : "Dashboard"}</h1>
+        <p>Tu curso, sus finanzas y su actividad en un solo lugar.</p></div>
+      <div className="dashboard-header-actions">
+      <button type="button" className="dashboard-suggestion-button"
+        onClick={() => window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT))}>
+        <IoBulbOutline aria-hidden="true" /> Sugerencias
+      </button>
       <div className="dashboard-year-select">
         <span>Año escolar</span>
         <button type="button" aria-label="Año escolar" aria-haspopup="listbox"
@@ -165,7 +172,7 @@ export const DashboardPage = () => {
               setYearOpen(false);
             }}>{item}</button>)}
         </div>}
-      </div>
+      </div></div>
     </header>
 
     {error && !loading && <FeedbackState message={error} onRefresh={() => void load()} />}
@@ -173,11 +180,17 @@ export const DashboardPage = () => {
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <Kpi label="Familias activas" value={String(data.quotas.totalFamilies)}
           icon="families" description={`Registradas para ${year}`} />
-        <article className="dashboard-gender-card">
+        <div className="dashboard-course-cards">
+        <article className="dashboard-gender-card" aria-label="Composición del curso">
           <header>
-            <span>Composición del curso</span>
-            <strong>{genderCounts.masculino + genderCounts.femenino + genderCounts.otros}</strong>
+            <i className="dashboard-gender-card__icon"><FiUsers aria-hidden="true" /></i>
+            <div><span>Composición del curso</span>
+              <small>Alumnos activos</small></div>
           </header>
+          <div className="dashboard-gender-card__total">
+            <strong>{genderCounts.masculino + genderCounts.femenino + genderCounts.otros}</strong>
+            <small>en total</small>
+          </div>
           <div className="dashboard-gender-card__items">
             <span className="is-boy"><MdBoy aria-hidden="true" />
               <b>{genderCounts.masculino}</b><small>Niños</small></span>
@@ -188,46 +201,35 @@ export const DashboardPage = () => {
               <b>{genderCounts.otros}</b><small>Otros</small>
             </span>}
           </div>
-          <small className="dashboard-gender-card__note">Solo alumnos activos</small>
         </article>
+        <article className="dashboard-birthday-card" aria-label="Próximo cumpleaños">
+          <h2><Link className="dashboard-card-link" to="/birthdays"
+            aria-label="Ver todos los cumpleaños">Próximo cumpleaños</Link></h2>
+          <NextBirthday />
+        </article>
+        </div>
         <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
           featured negative={data.finances.availableBalance < 0}
           positive={data.finances.availableBalance >= 0}
           description="Ingresos totales menos egresos" />
         <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)}
-          positive direction="in" />
+          positive direction="in" to={`/tesoreria/ingresos?year=${year}`} />
         <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)}
-          negative direction="out" />
+          negative direction="out" to={`/tesoreria/gastos?year=${year}`} />
         <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)}
           icon="paid" />
         <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)}
           icon="pending" />
       </section>
 
-      <section className="dashboard-improvement-card" aria-label="Centro de Mejoras">
-        <div><span><IoBulbOutline aria-hidden="true" /></span>
-          <div><h2>¿Cómo podemos mejorar?</h2>
-            <p>Comparte una idea o cuéntanos qué podemos hacer más fácil.</p></div></div>
-        <button type="button"
-          onClick={() => window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT))}>
-          Enviar sugerencia
-        </button>
-      </section>
-
       <section className="dashboard-charts">
         <article className="dashboard-panel dashboard-panel--cashflow">
-          <header><div><span>Flujo mensual</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
+          <header><i className="dashboard-panel-icon"><FiTrendingUp aria-hidden="true" /></i><div><span>Flujo mensual · {year}</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
           <div className="dashboard-chart dashboard-chart--axisless" aria-label="Evolución mensual">
             <div className="dashboard-chart__plot">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthly} margin={{ top: 38, right: isMobile ? 8 : 6,
+              <LineChart data={monthly} margin={{ top: 30, right: isMobile ? 8 : 6,
                 bottom: 0, left: isMobile ? 8 : -22 }}>
-                <defs>
-                  <linearGradient id="dashboardIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
                 {!isMobile && <YAxis width={70} tickFormatter={(value) => money.format(Number(value))}
                   tick={{ fill: "var(--text-muted)", fontSize: 10 }}
@@ -244,13 +246,15 @@ export const DashboardPage = () => {
                       </span>)}
                     </div> : null} />
                 <Legend />
-                <Area name="Ingresos" dataKey="income" type="monotone"
-                  stroke="var(--color-success)"
-                  fill="url(#dashboardIncome)" />
-                <Area name="Egresos" dataKey="expense" type="monotone"
-                  stroke="var(--color-error)"
-                  fill="transparent" />
-              </AreaChart>
+                <Line name="Ingresos" dataKey="income" type="monotone"
+                  stroke="var(--color-success)" strokeWidth={2.5}
+                  dot={{ r: 2, fill: "var(--color-success)", strokeWidth: 0 }}
+                  activeDot={{ r: 5, stroke: "var(--color-surface)", strokeWidth: 2 }} />
+                <Line name="Egresos" dataKey="expense" type="monotone"
+                  stroke="var(--color-error)" strokeWidth={2} strokeDasharray="5 3"
+                  dot={{ r: 2, fill: "var(--color-error)", strokeWidth: 0 }}
+                  activeDot={{ r: 5, stroke: "var(--color-surface)", strokeWidth: 2 }} />
+              </LineChart>
             </ResponsiveContainer>
             </div>
             <div className="dashboard-chart__months" aria-hidden="true">
@@ -260,7 +264,7 @@ export const DashboardPage = () => {
         </article>
 
         <article className="dashboard-panel dashboard-panel--annual">
-          <header><div><span>Cuota anual</span><h2>Modalidad y avance de recaudación</h2>
+          <header><i className="dashboard-panel-icon"><FiPieChart aria-hidden="true" /></i><div><span>Cuota anual</span><h2>Modalidad y avance de recaudación</h2>
             <p className="dashboard-panel__explanation">
               Modalidades por familia y dinero recaudado durante {year}.
             </p></div></header>
@@ -304,7 +308,7 @@ export const DashboardPage = () => {
         </article>
 
         <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
-          <header><div><span>Aportes del curso</span>
+          <header><i className="dashboard-panel-icon"><FiUsers aria-hidden="true" /></i><div><span>Aportes del curso</span>
             <h2>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h2>
             <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div></header>
           {contributions && contributions.totalFamilies > 0
@@ -319,7 +323,7 @@ export const DashboardPage = () => {
         </article>
 
         <article className="dashboard-panel dashboard-panel--distribution">
-          <header><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
+          <header><i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
             <p className="dashboard-panel__explanation">
               Descripción del gasto; la categoría se muestra como contexto.
             </p></div></header>
@@ -342,7 +346,7 @@ export const DashboardPage = () => {
         <header><button className="dashboard-collapse-trigger" type="button"
           aria-expanded={activityOpen} aria-controls="dashboard-recent-activity"
           onClick={() => setActivityOpen(open => !open)}>
-          <div><span>Últimos registros</span><h2>Actividad reciente</h2></div>
+          <i className="dashboard-panel-icon"><FiActivity aria-hidden="true" /></i><div><span>Últimos registros</span><h2>Actividad reciente</h2></div>
           <FcExpand className={activityOpen ? "is-open" : ""} aria-hidden="true" />
         </button></header>
         <div id="dashboard-recent-activity"
@@ -350,28 +354,22 @@ export const DashboardPage = () => {
           aria-hidden={!activityOpen} inert={!activityOpen}>
           <div>
         {data.recentMovements.length === 0 ? <p className="dashboard-empty">
-          No hay movimientos registrados para {year}.</p> : <div className="dashboard-table-wrap">
-          <table><thead><tr><th>Tipo</th><th>Descripción</th><th>Fecha</th>
-            <th>Estado</th><th>Monto</th><th>Detalle</th></tr></thead>
-            <tbody>{visibleMovements.map(item => <tr key={`${item.type}-${item.id}`}>
-              <td className="activity-card__type"><span className={`movement-type movement-type--${item.type.toLowerCase()}`}>
+          No hay movimientos registrados para {year}.</p> : <div>
+          <ul className="dashboard-movement-list">{visibleMovements.map(item => <li key={`${item.type}-${item.id}`}>
+              <i className={`dashboard-movement-icon ${item.type === "EGRESO" ? "is-negative" : "is-positive"}`}>
+                {item.type === "EGRESO" ? <FiLogOut aria-hidden="true" /> : <FiLogIn aria-hidden="true" />}
+              </i>
+              <div className="dashboard-movement-copy"><strong>{item.description}</strong><small>
                 {item.type === "INGRESO" ? "Ingreso" :
-                  item.type === "CUOTA" ? "Cuota" : "Egreso"}</span></td>
-              <td className="activity-card__description">{item.description}</td>
-              <td className="activity-card__date" data-label="Fecha">{new Date(`${item.date}T00:00:00`)
-                .toLocaleDateString("es-CL")}</td>
-              <td className="activity-card__status" data-label="Estado">
-                {item.status === "ACTIVE" ? "Activo" : "Anulado"}</td>
-              <td className={`activity-card__amount ${item.type !== "EGRESO" ? "is-positive" : "is-negative"}`}>
-                {item.type !== "EGRESO" ? "+" : "-"}{money.format(item.amount)}</td>
-              <td className="activity-card__detail"><Link to={item.type === "CUOTA" ? "/tesoreria/cuotas"
+                  item.type === "CUOTA" ? "Cuota" : "Egreso"}</small>
+                {item.status !== "ACTIVE" && <small className="is-negative">Anulado</small>}</div>
+              <div className="dashboard-movement-amount"><strong className={item.type !== "EGRESO" ? "is-positive" : "is-negative"}>
+                {item.type !== "EGRESO" ? "+" : "-"}{money.format(item.amount)}</strong>
+                <small>{new Date(`${item.date}T00:00:00`).toLocaleDateString("es-CL")}</small></div>
+              <Link to={item.type === "CUOTA" ? "/tesoreria/cuotas"
                 : item.type === "INGRESO" ? "/tesoreria/ingresos"
-                : "/tesoreria/gastos"}>Abrir</Link></td>
-            </tr>)}
-            {Array.from({ length: ACTIVITY_PAGE_SIZE - visibleMovements.length },
-              (_, index) => <tr className="dashboard-empty-row" aria-hidden="true"
-                key={`empty-${index}`}><td colSpan={6}>&nbsp;</td></tr>)}
-            </tbody></table>
+                : "/tesoreria/gastos"}>Abrir</Link>
+            </li>)}</ul>
           {activityPages > 1 && <Pagination currentPage={activityPage}
             totalPages={activityPages} hasPrevious={activityPage > 1}
             hasNext={activityPage < activityPages}
@@ -380,6 +378,24 @@ export const DashboardPage = () => {
             ariaLabel="Paginación de actividad reciente" />}
         </div>}</div></div>
         </section>
+        <article className="dashboard-panel dashboard-panel--event-profits">
+          <header><i className="dashboard-panel-icon"><FiDollarSign aria-hidden="true" /></i>
+            <div><span>Fiesta de la Familia</span><h2>Ganancias de eventos</h2></div></header>
+          <EventProfitCards key={year} year={year} />
+        </article>
+      </section>
+
+      <section className="dashboard-board-message" aria-labelledby="dashboard-board-message-title">
+        <div className="dashboard-board-message__icon" aria-hidden="true"><IoHeartOutline /></div>
+        <div className="dashboard-board-message__content">
+          <span className="dashboard-board-message__eyebrow">De parte de la directiva</span>
+          <h2 id="dashboard-board-message-title">Juntos hacemos crecer los buenos momentos.</h2>
+          <p>Detrás de cada actividad hay familias que aportan tiempo, ideas y cariño.
+            Gracias por hacer equipo y ayudarnos a crear recuerdos que nuestros niños y niñas
+            llevarán siempre consigo.</p>
+          <footer><span className="dashboard-board-message__signature">Con cariño,<strong>La directiva del curso</strong></span>
+            <span className="dashboard-board-message__closing">Cada familia cuenta. Cada gesto suma.</span></footer>
+        </div>
       </section>
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
@@ -429,9 +445,6 @@ export const DashboardPage = () => {
             <td className="audit-card__date" data-label="Fecha">
               {new Date(item.createdAt).toLocaleString("es-CL")}</td>
           </tr>)}
-          {Array.from({ length: AUDIT_PAGE_SIZE - visibleAudits.length },
-            (_, index) => <tr className="dashboard-empty-row" aria-hidden="true"
-              key={`empty-audit-${index}`}><td colSpan={6}>&nbsp;</td></tr>)}
           </tbody></table>
           {auditPages > 1 && <Pagination currentPage={auditPage} totalPages={auditPages}
             hasPrevious={auditPage > 1} hasNext={auditPage < auditPages}
@@ -455,14 +468,16 @@ export const DashboardPage = () => {
 };
 
 const Kpi = ({ label, value, positive = false, negative = false, direction, featured,
-  description, icon }: {
+  description, icon, to }: {
   label: string; value: string; positive?: boolean; negative?: boolean;
   direction?: "in" | "out"; featured?: boolean; description?: string;
   icon?: "paid" | "pending" | "families";
+  to?: string;
 }) => <article className={`${featured ? "dashboard-kpi--featured" : ""} ${
   direction ? `dashboard-kpi--${direction}` : ""} ${icon ? `dashboard-kpi--${icon}` : ""}`}>
   <div className="dashboard-kpi__header">
-    <span className="dashboard-kpi__label">{label}</span>
+    <span className="dashboard-kpi__label">{to
+      ? <Link className="dashboard-card-link" to={to}>{label}</Link> : label}</span>
     {featured && <i><FiDollarSign aria-hidden="true" /></i>}
     {direction === "in" && <i><FiLogIn aria-hidden="true" /></i>}
     {direction === "out" && <i><FiLogOut aria-hidden="true" /></i>}
@@ -491,8 +506,9 @@ const ContributionDonut = ({ title, paid, pending }: {
     <h3>{title}</h3>
     <div className="contribution-donut__chart">
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart><Pie data={chartData} dataKey="value" nameKey="name" innerRadius="52%"
-          outerRadius="78%" paddingAngle={2}>
+        <PieChart margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
+          <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="67%"
+          outerRadius="96%" paddingAngle={2}>
           {chartData.map(item => <Cell key={item.name} fill={item.color} />)}
         </Pie>
         </PieChart>

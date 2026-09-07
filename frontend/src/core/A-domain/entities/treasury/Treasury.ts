@@ -369,6 +369,13 @@ export interface SchoolEventOption {
   eventDate: string;
 }
 
+export interface EventProfit {
+  id: number;
+  name: string;
+  eventDate: string;
+  netProfit: number;
+}
+
 export interface EventSettlement {
   grossRevenue: number;
   commonExpenses: number;

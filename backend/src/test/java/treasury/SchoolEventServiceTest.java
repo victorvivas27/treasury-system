@@ -317,6 +317,119 @@ class SchoolEventServiceTest {
         assertThrows(DomainException.class, () -> service.confirm(10L, "user"));
     }
 
+    @Test
+    void corregirCursoConMovimientos_deberiaConservarGastosYPermitirConfirmar() {
+        when(events.findById(10L)).thenReturn(Optional.of(event));
+        when(managedCourse.get()).thenReturn("1° A BÁSICO");
+        event.setGrossRevenue(new BigDecimal("9000"));
+        service.addExpense(10L, expense("Ingredientes", "3000", EventExpenseType.COURSE,
+                "1° Básico"), "tesorero");
+        service.addExpense(10L, expense("Anulado", "1000", EventExpenseType.COURSE,
+                "1° Básico"), "tesorero");
+        service.cancelExpense(10L, event.getExpenses().get(1).getKey(), "Duplicado", "tesorero");
+        service.calculate(10L);
+        assertThrows(DomainException.class, () -> service.confirm(10L, "tesorero"));
+
+        service.update(10L, event.getName(), 2026, event.getEventDate(), null, null, null,
+                correctedParticipants());
+
+        assertAll(
+                () -> assertEquals(new BigDecimal("9000"), event.getGrossRevenue()),
+                () -> assertTrue(event.getExpenses().stream()
+                        .allMatch(expense -> "1° A BÁSICO".equals(expense.getCourse()))),
+                () -> assertEquals(EventExpenseStatus.CANCELLED, event.getExpenses().get(1).getStatus()),
+                () -> assertNull(event.getRemainder()),
+                () -> assertTrue(event.getParticipants().stream().allMatch(participant ->
+                        participant.getGrossShare() == null && participant.getOwnExpenses() == null
+                                && participant.getNetProfit() == null
+                                && participant.getTransferStatus() == EventTransferStatus.PENDING)));
+        TreasuryIncome income = mock(TreasuryIncome.class);
+        when(income.id()).thenReturn(99L);
+        when(treasury.createIncome(anyInt(), anyString(), any(), any(), any(), anyString(), any(),
+                isNull(), anyString(), isNull(), anyString(), anyString())).thenReturn(income);
+
+        service.confirm(10L, "tesorero");
+        service.confirm(10L, "tesorero");
+
+        assertTrue(event.isSettlementConfirmed());
+        verify(treasury).createIncome(eq(2026), anyString(), eq(new BigDecimal("2000")), any(),
+                eq(IncomeCategory.EVENT), eq("EVENT_PROFIT"), eq(IncomePaymentMethod.TRANSFER),
+                isNull(), eq("1° A BÁSICO"), isNull(), anyString(), eq("tesorero"));
+    }
+
+    @Test
+    void corregirCurso_deberiaRechazarEventoConfirmado() {
+        when(events.findById(10L)).thenReturn(Optional.of(event));
+        event.setSettlementConfirmed(true);
+
+        assertThrows(DomainException.class, () -> service.update(10L, event.getName(), 2026,
+                event.getEventDate(), null, null, null, correctedParticipants()));
+
+        verify(events, never()).save(any());
+        assertEquals("1° Básico", event.getParticipants().get(0).getCourse());
+    }
+
+    @Test
+    void corregirCursosConMovimientos_deberiaRechazarCambiosAmbiguos() {
+        when(events.findById(10L)).thenReturn(Optional.of(event));
+        event.setGrossRevenue(BigDecimal.TEN);
+        var requested = new ArrayList<>(correctedParticipants());
+        requested.set(1, new SchoolEventService.ParticipantInput("2° A BÁSICO", "Hamburguesas",
+                null, null, null, null));
+
+        assertThrows(DomainException.class, () -> service.update(10L, event.getName(), 2026,
+                event.getEventDate(), null, null, null, requested));
+
+        verify(events, never()).save(any());
+        assertEquals("1° Básico", event.getParticipants().get(0).getCourse());
+    }
+
+    @Test
+    void ganancias_deberiaMostrarSoloEventosConfirmadosYLaParteTransferidaAlCurso() {
+        event.setStatus(EventStatus.CERRADO);
+        event.setSettlementConfirmed(true);
+        event.getParticipants().get(0).setTransferIncomeId(99L);
+        event.getParticipants().get(0).setNetProfit(new BigDecimal("125000"));
+        event.getParticipants().get(1).setNetProfit(new BigDecimal("125000"));
+        SchoolEventEntity second = new SchoolEventEntity();
+        second.setId(11L);
+        second.setName("Fiesta — Juegos");
+        second.setStatus(EventStatus.CERRADO);
+        second.setSettlementConfirmed(true);
+        second.setEventDate(LocalDate.of(2026, 9, 16));
+        var received = participant("1° A BÁSICO", "Juegos");
+        received.setTransferIncomeId(100L);
+        received.setNetProfit(new BigDecimal("86000"));
+        second.setParticipants(List.of(received));
+        SchoolEventEntity pending = new SchoolEventEntity();
+        pending.setStatus(EventStatus.CERRADO);
+        SchoolEventEntity cancelled = new SchoolEventEntity();
+        cancelled.setStatus(EventStatus.CANCELADO);
+        cancelled.setSettlementConfirmed(true);
+        SchoolEventEntity draft = new SchoolEventEntity();
+        draft.setStatus(EventStatus.BORRADOR);
+        when(events.findBySchoolYearOrderByEventDateDesc(2026))
+                .thenReturn(List.of(second, event, pending, cancelled, draft));
+
+        var profits = service.confirmedProfits(2026);
+
+        assertEquals(List.of(
+                new SchoolEventService.EventProfit(11L, second.getName(), second.getEventDate(),
+                        new BigDecimal("86000")),
+                new SchoolEventService.EventProfit(10L, event.getName(), event.getEventDate(),
+                        new BigDecimal("125000"))), profits);
+        assertTrue(service.confirmedProfits(2027).isEmpty());
+        assertThrows(DomainException.class, () -> service.confirmedProfits(1999));
+        verifyNoInteractions(treasury);
+    }
+
+    private List<SchoolEventService.ParticipantInput> correctedParticipants() {
+        return List.of(
+                new SchoolEventService.ParticipantInput("1° A BÁSICO", "Hamburguesas", null, null, null, null),
+                new SchoolEventService.ParticipantInput("2° Básico", "Hamburguesas", null, null, null, null),
+                new SchoolEventService.ParticipantInput("3° Básico", "Hamburguesas", null, null, null, null));
+    }
+
     private SchoolEventParticipantEmbeddable participant(String course, String stand) {
         SchoolEventParticipantEmbeddable value = new SchoolEventParticipantEmbeddable();
         value.setCourse(course);
