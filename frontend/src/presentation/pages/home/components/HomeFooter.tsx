@@ -36,7 +36,7 @@ export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
         </span>
       </span>
     </address>
-    <span className="public-home__copyright">© {new Date().getFullYear()} Tesorería Escolar</span>
+    <span className="public-home__copyright">© {new Date().getFullYear()} Tesorería Escolar · v{__APP_VERSION__}</span>
     </div>
   </footer>
 );
