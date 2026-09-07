@@ -990,15 +990,6 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         <small>Más recientes primero · {sales.length} registros</small></span>
         <span className="stand-recent-sales__action">Ver historial <FcExpand /></span>
       </summary>
-      <div className="stand-history-export">
-        <button type="button" disabled={sales.length === 0} onClick={() => {
-          setReportError("");
-          try { printStandSalesReport(stand, sales); }
-          catch (error) { setReportError(error instanceof Error ? error.message : "No fue posible preparar el PDF."); }
-        }}><FiDownload aria-hidden="true" /> Guardar en PDF</button>
-        <small>Incluye todo el historial de ventas.</small>
-        {reportError && <p role="alert">{reportError}</p>}
-      </div>
       <div className="stand-sales-page">
         {visibleSales.map(sale => <article key={sale.id}
           className={sale.status === "CANCELLED" ? "is-cancelled" : ""}>
@@ -1030,6 +1021,15 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
         <button type="button" disabled={historyPage + 1 >= totalHistoryPages}
           onClick={() => setHistoryPage(page => page + 1)}>Siguiente</button>
       </nav>}
+      <div className="stand-history-export">
+        <button type="button" disabled={sales.length === 0}
+          title="Guardar todo el historial de ventas en PDF" onClick={() => {
+          setReportError("");
+          try { printStandSalesReport(stand, sales); }
+          catch (error) { setReportError(error instanceof Error ? error.message : "No fue posible preparar el PDF."); }
+        }}><FiDownload aria-hidden="true" /> Guardar en PDF</button>
+        {reportError && <p role="alert">{reportError}</p>}
+      </div>
     </details>
     </div>
     {saleQueue.length > 0 && <aside className="stand-sale-queue"

@@ -1,8 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { render as renderComponent, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextBirthday } from "./NextBirthday";
 
 const { getBirthdays } = vi.hoisted(() => ({ getBirthdays: vi.fn() }));
+const render = (component: ReactElement) => renderComponent(<MemoryRouter>{component}</MemoryRouter>);
 vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
   AlumnoRepositoryImpl: vi.fn().mockImplementation(function () { return { getBirthdays }; }),
 }));
@@ -21,6 +24,8 @@ describe("NextBirthday", () => {
     render(<NextBirthday today={new Date(2026, 11, 30)} />);
     expect(await screen.findByText("Ana")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Próximo cumple: Ana · 2 de enero");
+    expect(screen.getByRole("heading")).toHaveTextContent("Próximo cumpleaños");
+    expect(screen.queryByText(/Muy feliz cumpleaños/)).not.toBeInTheDocument();
     expect(screen.queryByText("Luis")).not.toBeInTheDocument();
   });
 
@@ -31,7 +36,18 @@ describe("NextBirthday", () => {
     ]);
     render(<NextBirthday today={new Date(2026, 8, 7)} />);
     expect(await screen.findByText("Ana, Luis")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Hoy cumple: Ana, Luis");
+    expect(screen.getByRole("status")).toHaveTextContent("Hoy cumplen años: Ana, Luis. ¡Muy feliz cumpleaños!");
+    expect(screen.getByRole("heading")).toHaveTextContent("¡Hoy celebramos!");
+    expect(screen.queryByText(/Próximo/)).not.toBeInTheDocument();
+  });
+
+  it("saluda en singular cuando un alumno cumple hoy", async () => {
+    getBirthdays.mockResolvedValue([
+      { nombre: "Ana", activo: true, fechaNacimiento: "2016-09-07" },
+    ]);
+    render(<NextBirthday today={new Date(2026, 8, 7, 23, 59)} />);
+    expect(await screen.findByText("Ana")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Hoy cumple años: Ana. ¡Muy feliz cumpleaños!");
   });
 
   it("muestra el estado sin fechas registradas", async () => {
