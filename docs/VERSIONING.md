@@ -76,9 +76,9 @@ archivos, commits ni horas. Entre cambios acumulados gana MAJOR > MINOR > PATCH.
 ## PR, squash y conservación de la intención
 
 Flujo: branch → commits → push → PR → revisión/CI → merge a main → Release PR
-→ revisión humana → merge del Release PR → tag y GitHub Release.
+→ CI del Release PR → merge automático → tag y GitHub Release.
 Push a una rama u abrir un PR no incrementa la versión. Se pueden acumular fixes;
-si entra un feat antes de aprobar la release, Release Please recalcula MINOR.
+si entra un feat antes de liberar la release, Release Please recalcula MINOR.
 
 GitHub permite merge, squash y rebase. En la auditoría, squash usaba
 `COMMIT_OR_PR_TITLE` + `COMMIT_MESSAGES`: un único commit puede aportar el título,
@@ -104,24 +104,38 @@ el historial antiguo. No se usa `release-as`, que forzaría versiones posteriore
 
 Integrar esta implementación con un mensaje semántico, por ejemplo
 `feat(ci): incorpora versionamiento automático`. El workflow en main abre el
-primer Release PR para `1.0.0`. Revisar y hacer merge publica `v1.0.0`; las siguientes
+primer Release PR para `1.0.0`. Cuando pasan los controles, el bot lo integra y publica `v1.0.0`; las siguientes
 releases se generan automáticamente con el mismo flujo. No crear el tag inicial
 manualmente ni eliminar/reemplazar tags existentes. `CHANGELOG.md` parte sin una
 entrada de publicación ficticia y será actualizado por Release Please.
 
-`release-please.yml` usa permisos contents/pull-requests/issues write para crear
-PR, etiquetas, tags y releases; los workflows de validación solo necesitan lectura.
-Su concurrencia evita carreras y workflow_dispatch permite reintentar en main.
-GitHub tenía habilitada la creación de PR por Actions en la auditoría.
+La release no requiere aprobación humana adicional. `release-please.yml` prepara
+el PR y ejecuta directamente los workflows reutilizables sobre su SHA exacto:
 
-Por defecto se usa GITHUB_TOKEN. Los PR creados/actualizados con ese token **no
-disparan otros workflows**. Para ejecutar los checks, una persona puede cerrar y
-reabrir el Release PR después de su última actualización, sin hacer merge antes
-de que pasen. Alternativamente configurar el secret opcional `RELEASE_PLEASE_TOKEN`
-con un token de bot limitado a este repositorio (contents, pull requests e issues:
-write), para que los eventos del bot disparen CI. No agregar el valor al YAML.
-No hacer auto-merge. Al hacer merge una persona, el push a main dispara los
-despliegues existentes. No se depende de un evento `release` generado por el bot.
+- Frontend: instalación con lockfile congelado, lint, tests con cobertura y build/TypeScript.
+- Backend: compilación, tests y verificación de cobertura JaCoCo, como en Backend CI.
+- Versionamiento: schema, YAML, escenarios SemVer y sincronización de versiones.
+
+Solo si todos pasan se integra el PR por squash. Antes del merge se comprueba
+que main no haya cambiado y que el PR siga abierto, pertenezca a este repositorio,
+tenga la rama de Release Please y la etiqueta `autorelease: pending`. La API
+recibe el SHA validado y rechaza un head modificado. No se usa force ni bypass de
+protecciones. Si main cambia, el siguiente push encolado vuelve a preparar y validar
+la release. Un fallo deja el PR abierto y permite reintentar con workflow_dispatch.
+
+Se usa únicamente GITHUB_TOKEN; no hace falta un PAT ni cerrar/reabrir PRs. Como
+los eventos del bot no activan otros workflows, el mismo flujo llama a los checks,
+publica la release después del merge y despacha los despliegues y reportes existentes.
+Estos dispatch también funcionan con GITHUB_TOKEN. Los despliegues mantienen sus
+permisos, secretos y reglas del environment production. No se espera otro push del bot.
+
+Los jobs de validación solo tienen contents read y checkout sin credenciales
+persistidas. Preparación/publicación tienen contents/pull-requests/issues write;
+el job que despacha workflows tiene actions write. La concurrencia serializa releases.
+GitHub ya permite crear PR con Actions. Si un ruleset exige aprobación humana o
+checks externos adicionales, GitHub rechazará el merge hasta que la política sea
+compatible con releases automáticas; este workflow no altera esas protecciones.
+La revisión de los PR funcionales sigue siendo independiente de la publicación.
 
 ## Validación reproducible
 
@@ -130,6 +144,7 @@ despliegues existentes. No se depende de un evento `release` generado por el bot
 npm.cmd install --prefix "$env:TEMP/release-tools" --no-audit --no-fund --ignore-scripts release-please@17.3.0 ajv@8 yaml@2
 $env:RELEASE_TOOLS_DIR = "$env:TEMP/release-tools"
 node scripts/test-versioning.cjs
+node --test scripts/test-auto-release.cjs
 node scripts/check-version.cjs
 ```
 

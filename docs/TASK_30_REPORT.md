@@ -1,5 +1,12 @@
 # Informe de tarea 30
 
+> Actualización posterior: el usuario solicitó publicación automática. El flujo
+> actual ejecuta frontend CI, backend CI y Versioning CI sobre el SHA del Release
+> PR, hace merge solo tras aprobar esos controles y publica/despacha despliegues
+> con GITHUB_TOKEN. No requiere revisión manual del Release PR ni PAT. Las notas
+> de aprobación manual al final de este informe describen la entrega inicial y
+> quedan sustituidas por [el flujo actual](VERSIONING.md#primera-release-y-operación-de-actions).
+
 Implementación local del 7 de septiembre de 2026. La publicación oficial queda
 pendiente de integrar los cambios en main y aprobar el primer Release PR.
 
