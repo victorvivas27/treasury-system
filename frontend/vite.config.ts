@@ -77,6 +77,9 @@ const avatarCatalogPlugin = () => ({
 })
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')).version),
+  },
   plugins: [
     avatarCatalogPlugin(),
     react(),

@@ -1,0 +1,26 @@
+name: Versioning CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-versioning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install isolated validation tools
+        run: npm install --prefix "$RUNNER_TEMP/release-tools" --no-audit --no-fund --ignore-scripts release-please@17.3.0 ajv@8 yaml@2
+      - name: Validate versions, configuration, workflows and release scenarios
+        env:
+          RELEASE_TOOLS_DIR: ${{ runner.temp }}/release-tools
+        run: node scripts/test-versioning.cjs
