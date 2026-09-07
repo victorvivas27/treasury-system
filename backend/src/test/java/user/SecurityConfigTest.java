@@ -196,6 +196,22 @@ class SecurityConfigTest {
     }
 
     @Test
+    void gananciasEventos_deberiaPermitirResumenAutenticadoSinAbrirLaAdministracion() throws Exception {
+        String path = "/api/v1/tesoreria/eventos/ganancias";
+        mockMvc.perform(get(path).param("year", "2026"))
+                .andExpect(status().isUnauthorized());
+        for (String email : List.of("user@mail.com", "admin@mail.com")) {
+            mockMvc.perform(get(path).param("year", "2026")
+                            .header("Authorization", "Bearer " + tokenFor(email)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json("[]"));
+        }
+        mockMvc.perform(get("/api/v1/tesoreria/eventos").param("year", "2026")
+                        .header("Authorization", "Bearer " + tokenFor("user@mail.com")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void usuario_noDeberiaPoderModificarIngresosNiEgresos() throws Exception {
         String token = tokenFor("user@mail.com");
 

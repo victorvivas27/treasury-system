@@ -70,6 +70,7 @@ public class SecurityConfig {
                                 "/api/v1/tesoreria/dashboard/overview",
                                 "/api/v1/tesoreria/eventos/curso-administrado",
                                 "/api/v1/tesoreria/eventos/consulta",
+                                "/api/v1/tesoreria/eventos/ganancias",
                                 "/api/v1/tesoreria/stands",
                                 "/api/v1/tesoreria/stands/{id}/resumen",
                                 "/api/v1/tesoreria/configuracion-general/curso",

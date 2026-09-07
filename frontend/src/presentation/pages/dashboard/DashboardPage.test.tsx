@@ -3,14 +3,20 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardPage } from "./DashboardPage";
 
-const { dashboardOverview, contributionSummary, currentUser } = vi.hoisted(() => ({
-  dashboardOverview: vi.fn(), contributionSummary: vi.fn(),
+vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
+  AlumnoRepositoryImpl: vi.fn().mockImplementation(function () {
+    return { getBirthdays: vi.fn().mockResolvedValue([]) };
+  }),
+}));
+
+const { dashboardOverview, contributionSummary, eventProfits, currentUser } = vi.hoisted(() => ({
+  dashboardOverview: vi.fn(), contributionSummary: vi.fn(), eventProfits: vi.fn(),
   currentUser: { rol: "ADMIN" },
 }));
 
 vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
   TreasuryRepositoryImpl: vi.fn().mockImplementation(function () {
-    return { dashboardOverview, contributionSummary };
+    return { dashboardOverview, contributionSummary, eventProfits };
   }),
 }));
 
@@ -47,6 +53,7 @@ const overview = {
 describe("DashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    eventProfits.mockResolvedValue([]);
     currentUser.rol = "ADMIN";
   });
 
@@ -63,6 +70,13 @@ describe("DashboardPage", () => {
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
     expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
+    const selectedYear = screen.getByRole("button", { name: "Año escolar" }).textContent;
+    expect(screen.getByRole("link", { name: "Ingresos totales" })).toHaveAttribute("href",
+      `/tesoreria/ingresos?year=${selectedYear}`);
+    expect(screen.getByRole("link", { name: "Egresos activos" })).toHaveAttribute("href",
+      `/tesoreria/gastos?year=${selectedYear}`);
+    expect(screen.queryByRole("link", { name: "Ingresos", exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Egresos", exact: true })).not.toBeInTheDocument();
     const cepaCard = screen.getByRole("heading", { name: "Cuota CEPA" }).closest("article");
     const solidarityCard = screen.getByRole("heading",
       { name: "Fondo de Apoyo por Fallecimiento" }).closest("article");
@@ -72,7 +86,8 @@ describe("DashboardPage", () => {
     expect(cepaCard).toHaveTextContent("Pagadas3 familias75%");
     expect(cepaCard).toHaveTextContent("Pendientes1 familias25%");
     expect(cepaCard?.querySelector(".recharts-tooltip-wrapper")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Últimos registros Actividad reciente/i }));
+    expect(screen.getByRole("button", { name: /Últimos registros Actividad reciente/i }))
+      .toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("link", { name: "Abrir" }))
       .toHaveAttribute("href", "/tesoreria/ingresos");
   });
@@ -145,7 +160,6 @@ describe("DashboardPage", () => {
 
     await waitFor(() => expect(screen.getByText("Movimiento 1")).toBeInTheDocument());
     expect(screen.queryByText("Movimiento 6")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Últimos registros Actividad reciente/i }));
     fireEvent.click(screen.getByRole("button", { name: "Siguiente ▶" }));
     expect(screen.getByText("Movimiento 6")).toBeInTheDocument();
     expect(screen.getByText("Cuota")).toBeInTheDocument();

@@ -54,6 +54,22 @@ public class SchoolEventService {
                 .orElseThrow(() -> error(TreasuryErrorCode.NOT_FOUND, "Evento no encontrado"));
     }
 
+    @Transactional(readOnly = true)
+    public List<EventProfit> confirmedProfits(int year) {
+        return list(year).stream()
+                .filter(event -> event.getStatus() == EventStatus.CERRADO && event.isSettlementConfirmed())
+                .map(event -> new EventProfit(event.getId(), event.getName(), event.getEventDate(),
+                        event.getParticipants().stream()
+                                .filter(participant -> participant.getTransferIncomeId() != null)
+                                .map(SchoolEventParticipantEmbeddable::getNetProfit)
+                                .filter(Objects::nonNull)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)))
+                .toList();
+    }
+
+    public record EventProfit(Long id, String name, LocalDate eventDate, BigDecimal netProfit) {
+    }
+
     @Transactional
     public SchoolEventEntity create(String name, int year, LocalDate date, String description,
                                     EventStatus status, String observations, List<ParticipantInput> participants) {
@@ -81,17 +97,9 @@ public class SchoolEventService {
         SchoolEventEntity event = editable(id);
         validateEvent(name, year, date, participants);
         ensureNameAvailable(name, id);
-        if (event.getGrossRevenue() != null || !event.getExpenses().isEmpty()) {
-            List<String> currentCourses = event.getParticipants().stream()
-                    .map(item -> item.getCourse().toUpperCase(Locale.ROOT)).sorted().toList();
-            List<String> requestedCourses = participants.stream()
-                    .map(ParticipantInput::course).map(value -> value.trim().toUpperCase(Locale.ROOT))
-                    .sorted().toList();
-            if (!currentCourses.equals(requestedCourses)) {
-                throw error(TreasuryErrorCode.CONFLICT,
-                        "No puedes cambiar los cursos después de registrar movimientos");
-            }
-        }
+        List<SchoolEventParticipantEmbeddable> requested = participants.stream()
+                .map(this::participant).collect(Collectors.toCollection(ArrayList::new));
+        boolean coursesChanged = reconcileCourses(event, requested);
         event.setName(name.trim());
         event.setSchoolYear(year);
         event.setEventDate(date);
@@ -101,11 +109,10 @@ public class SchoolEventService {
         Map<String, SchoolEventParticipantEmbeddable> current = new HashMap<>();
         event.getParticipants().forEach(item ->
                 current.put(item.getCourse().toUpperCase(Locale.ROOT), item));
-        event.setParticipants(participants.stream().map(input -> {
-            SchoolEventParticipantEmbeddable changed = participant(input);
+        event.setParticipants(requested.stream().map(changed -> {
             SchoolEventParticipantEmbeddable previous =
                     current.get(changed.getCourse().toUpperCase(Locale.ROOT));
-            if (previous != null) {
+            if (previous != null && !coursesChanged) {
                 changed.setGrossShare(previous.getGrossShare());
                 changed.setOwnExpenses(previous.getOwnExpenses());
                 changed.setNetProfit(previous.getNetProfit());
@@ -114,8 +121,34 @@ public class SchoolEventService {
             }
             return changed;
         }).collect(Collectors.toCollection(ArrayList::new)));
+        if (coursesChanged) event.setRemainder(null);
         event.setUpdatedAt(LocalDateTime.now());
         return events.save(event);
+    }
+
+    private boolean reconcileCourses(SchoolEventEntity event,
+                                     List<SchoolEventParticipantEmbeddable> requested) {
+        Set<String> currentCourses = event.getParticipants().stream()
+                .map(item -> item.getCourse().toUpperCase(Locale.ROOT)).collect(Collectors.toSet());
+        Set<String> requestedCourses = requested.stream()
+                .map(SchoolEventParticipantEmbeddable::getCourse).collect(Collectors.toSet());
+        if (currentCourses.equals(requestedCourses)) return false;
+        if (event.getGrossRevenue() != null || !event.getExpenses().isEmpty()) {
+            List<String> removed = currentCourses.stream()
+                    .filter(course -> !requestedCourses.contains(course)).toList();
+            List<String> added = requestedCourses.stream()
+                    .filter(course -> !currentCourses.contains(course)).toList();
+            if (removed.size() != 1 || added.size() != 1) {
+                throw error(TreasuryErrorCode.CONFLICT,
+                        "Con movimientos registrados, corrige el nombre de un curso a la vez, "
+                                + "sin agregar ni quitar participantes");
+            }
+            // Preserve the association of active, donated and cancelled expenses when correcting a name.
+            event.getExpenses().stream()
+                    .filter(expense -> removed.get(0).equalsIgnoreCase(expense.getCourse()))
+                    .forEach(expense -> expense.setCourse(added.get(0)));
+        }
+        return true;
     }
 
     @Transactional

@@ -40,6 +40,11 @@ public class SchoolEventController {
                 .toList();
     }
 
+    @GetMapping("/ganancias")
+    public List<SchoolEventService.EventProfit> profits(@RequestParam int year) {
+        return service.confirmedProfits(year);
+    }
+
     @GetMapping
     public List<EventResponse> list(@RequestParam int year) {
         return service.list(year).stream().map(this::response).toList();
