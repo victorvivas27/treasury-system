@@ -17,6 +17,10 @@ export class TreasuryRepositoryImpl implements ITreasuryRepository {
   async listConfigs() {
     return (await apiClient.get(`${this.baseUrl}/configuraciones`)).data;
   }
+  async getConfig(year: number) {
+    return (await apiClient.get<import("@/core/A-domain/entities/treasury/Treasury").AnnualFeeConfig>(
+      `${this.baseUrl}/configuraciones/${year}`)).data;
+  }
   async getManagedCourse(): Promise<string> {
     return (await this.getManagedCourseSettings()).course;
   }

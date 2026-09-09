@@ -510,7 +510,7 @@ export const AnnualFeesPage = () => {
           onChange={event => setAmount(Number(event.target.value))} /></label>
         <label>Modalidades permitidas<select value={allowedMode}
           onChange={event => setAllowedMode(event.target.value as AllowedPaymentMode)}>
-          <option value="AMBAS">Ambas</option><option value="ANUAL">Cuota única</option>
+          <option value="AMBAS">Ambas (elige el apoderado)</option><option value="ANUAL">Cuota única</option>
           <option value="DOS_CUOTAS">Dos cuotas</option>
         </select></label>
         <label>Vencimiento cuota única<input type="date" value={annualDueDate}

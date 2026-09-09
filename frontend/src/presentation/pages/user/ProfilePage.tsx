@@ -351,7 +351,7 @@ export const ProfilePage = () => {
         {paymentMode && <div className={`profile-payment-status ${familyProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
           <i className="profile-payment-icon"><FiBookOpen /></i>
           <div>
-            <span>Cuota del curso · {paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
+            <span>Cuota del curso · {paymentMode === "PERSONALIZADA" ? "Cuota personalizada" : paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
             <strong>{familyProfile.obligations.length === 0
               ? "Modalidad asignada"
               : pending.length === 0 ? "Al día"

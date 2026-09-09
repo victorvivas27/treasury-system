@@ -31,7 +31,7 @@
   padding: clamp(var(--space-0-2rem), var(--space-1vh), var(--xs)) 0;
   gap: 0;
 
-  color: var(--text-main);
+  color: var(--sidebar-text);
 
   transition:
     color var(--duration-200ms) var(--easing-ease),
@@ -45,11 +45,11 @@
 }
 
 .sidebar-footer-link.active .sidebar-footer-text {
-  color: var(--color-accent);
+  color: var(--icon-accent);
 }
 
 .sidebar-footer-link.active .sidebar-footer-icon {
-  color: var(--color-warning);
+  color: var(--sidebar-icon-active);
 }
 
 
@@ -64,7 +64,7 @@
   place-items: center;
 
   width: var(--sidebar-collapsed-width);
-  height: var(--lg);
+  height: var(--sidebar-icon-size);
 
   flex: 0 0 var(--sidebar-collapsed-width);
 }
@@ -72,15 +72,15 @@
 .sidebar-footer-icon {
   display: block;
 
-  width: var(--lg);
-  height: var(--lg);
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
 
-  min-width: var(--lg);
-  height: var(--lg);
+  min-width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
 
-  flex: 0 0 var(--lg);
+  flex: 0 0 var(--sidebar-icon-size);
 
-  color: var(--color-accent);
+  color: var(--sidebar-icon);
 }
 
 .sidebar-footer-chat-motion {

@@ -149,6 +149,31 @@ class TreasuryServiceTest {
     }
 
     @Test
+    void assignMode_deberiaAgregarCuotaPersonalizadaCuandoLaFamiliaYaPago() {
+        FeeObligation paidObligation = obligation(InstallmentType.ANUAL, ObligationStatus.PAGADA);
+        when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+        when(repository.findPlan(1L, 10L)).thenReturn(Optional.of(plan));
+        when(repository.findObligationsByPlan(2L)).thenReturn(List.of(paidObligation));
+        when(repository.hasActivePaymentForPlan(2L)).thenReturn(true);
+        when(repository.savePlan(any())).thenReturn(new FamilyFeePlan(2L, 1L, 10L,
+                PaymentMode.PERSONALIZADA, plan.createdAt(), LocalDateTime.now()));
+
+        service.assignMode(2026, 10L, PaymentMode.PERSONALIZADA,
+                new BigDecimal("18000"), LocalDate.of(2026, 10, 31),
+                "Cuota paseo", "admin@mail.com");
+
+        verify(repository, never()).deleteObligationsByPlan(any());
+        verify(repository).saveObligation(argThat(item ->
+                item.id() == null
+                        && item.planId().equals(2L)
+                        && item.installment() == InstallmentType.ANUAL
+                        && item.amount().equals(new BigDecimal("18000"))
+                        && item.concept().equals("Cuota paseo")
+                        && item.dueDate().equals(LocalDate.of(2026, 10, 31))
+                        && item.status() == ObligationStatus.PENDIENTE));
+    }
+
+    @Test
     void removeFamilyPlan_deberiaQuitarFamiliaSinPagosActivos() {
         when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
         when(repository.findPlan(1L, 10L)).thenReturn(Optional.of(plan));

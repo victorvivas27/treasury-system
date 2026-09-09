@@ -2,6 +2,8 @@
 .sidebar {
   --sidebar-expanded-width: var(--size-13rem);
   --sidebar-collapsed-width: var(--size-3-5rem);
+  --sidebar-icon-size: 1.5rem;
+  --sidebar-parent-icon-frame: 3.15rem;
   --sidebar-motion-duration: var(--duration-520ms);
   --sidebar-motion-easing: var(--easing-cubic-bezier-0-22-1-0-36-1-2);
 

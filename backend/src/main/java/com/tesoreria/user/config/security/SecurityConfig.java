@@ -74,6 +74,7 @@ public class SecurityConfig {
                                 "/api/v1/tesoreria/stands",
                                 "/api/v1/tesoreria/stands/{id}/resumen",
                                 "/api/v1/tesoreria/configuracion-general/curso",
+                                "/api/v1/tesoreria/configuraciones/{year}",
                                 "/api/v1/tesoreria/perfil",
                                 "/api/v1/tesoreria/aportes/resumen",
                                 "/api/v1/tesoreria/ingresos",
@@ -88,6 +89,11 @@ public class SecurityConfig {
                                 "/api/v1/tesoreria/pagos-transferencia/mi-plan",
                                 "/api/v1/tesoreria/pagos-transferencia/mis-cuotas/*/comprobante")
                         .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/tesoreria/pagos/mercado-pago/webhook").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tesoreria/pagos/mercado-pago/disponibilidad")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/tesoreria/pagos/mercado-pago/cuotas/*/checkout",
+                                "/api/v1/tesoreria/pagos/mercado-pago/retorno").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/tesoreria/**")
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/notifications")

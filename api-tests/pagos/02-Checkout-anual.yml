@@ -1,0 +1,20 @@
+info:
+  name: Checkout de cuota propia (anual, primera o segunda)
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: "{{Url_Base}}/tesoreria/pagos/mercado-pago/cuotas/{{MP_Obligation_Id}}/checkout"
+  headers:
+    - name: Authorization
+      value: "Bearer {{userToken}}"
+  auth: inherit
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Preferencia creada con monto del servidor", () => {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().preferenceId).to.be.a("string");
+          expect(res.getBody().checkoutUrl).to.match(/^https:\/\/www\.mercadopago\.(cl|com)\//);
+        });

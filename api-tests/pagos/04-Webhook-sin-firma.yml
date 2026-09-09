@@ -1,0 +1,14 @@
+info:
+  name: Rechazar webhook sin firma
+  type: http
+  seq: 4
+http:
+  method: POST
+  url: "{{Url_Base}}/tesoreria/pagos/mercado-pago/webhook?data.id={{MP_Payment_Id}}"
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Sin firma no se procesa el pago", () => {
+          expect(res.getStatus()).to.equal(401);
+        });

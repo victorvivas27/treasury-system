@@ -143,6 +143,39 @@ class TransferPaymentServiceTest {
     }
 
     @Test
+    void guardianCanAttachProofToAnAlreadyPaidMercadoPagoInstallment() {
+        ApoderadoEntity guardian = new ApoderadoEntity(5L, "AP-5", "Tutor", "tutor@test.cl", "+56911111111", null);
+        FamiliaEntity family = new FamiliaEntity(19L, 7L, "FAM-19", null, null, null, null);
+        AlumnoEntity student = new AlumnoEntity(7L, "AL-7", "Theo Perez", "4A");
+        FamilyFeePlanEntity plan = plan(21L, 19L, 3L);
+        FeeObligationEntity obligation = obligation(33L, 21L, ObligationStatus.PAGADA);
+        GenericPaymentEntity payment = payment(PaymentStatus.PAID); payment.setInstallmentId(33L);
+        payment.setPaymentMethod(PaymentMethod.MERCADO_PAGO);
+        AnnualFeeConfigEntity config = new AnnualFeeConfigEntity(); config.setId(3L); config.setYear(2026);
+        when(storageProvider.getIfAvailable()).thenReturn(storage); setUp();
+        when(guardians.findByEmail("tutor@test.cl")).thenReturn(Optional.of(guardian));
+        when(families.findByGuardianId(5L)).thenReturn(Optional.of(family));
+        when(obligations.findById(33L)).thenReturn(Optional.of(obligation));
+        when(plans.findById(21L)).thenReturn(Optional.of(plan));
+        when(payments.findFirstByInstallmentIdAndStatusOrderByCreatedAtDesc(33L, PaymentStatus.PAID))
+                .thenReturn(Optional.of(payment));
+        when(transfers.findByPaymentId(9L)).thenReturn(Optional.empty());
+        when(students.findById(7L)).thenReturn(Optional.of(student));
+        when(feeConfigs.findById(3L)).thenReturn(Optional.of(config));
+        when(transfers.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.submitProof(33L, pdf(), "tutor@test.cl");
+
+        assertEquals(PaymentStatus.PAID, result.status());
+        assertEquals("comprobante.pdf", result.originalFileName());
+        assertEquals(ObligationStatus.PAGADA, obligation.getStatus());
+        verify(payments, never()).saveAndFlush(any());
+        verify(obligations, never()).save(any());
+        verify(storage).upload(matches("tesorerias/2026/transferencias/Theo-19/cuota-33/.+\\.pdf"),
+                any(byte[].class), eq("application/pdf"));
+    }
+
+    @Test
     void approvesProofUsingThePaymentDateSelectedByTheAdmin() {
         GenericPaymentEntity payment = payment(PaymentStatus.PROOF_SUBMITTED);
         BankTransferPaymentEntity transfer = transfer();
@@ -250,6 +283,77 @@ class TransferPaymentServiceTest {
         assertEquals(PaymentMode.DOS_CUOTAS, result.selectedMode());
         assertEquals(BigDecimal.valueOf(30_000), result.paidAmount());
         assertEquals(2, result.installments().size());
+    }
+
+    @Test
+    void guardianCannotChoosePersonalizedMode() {
+        mockGuardian();
+        var exception = assertThrows(DomainException.class,
+                () -> service.choosePlan(2026, PaymentMode.PERSONALIZADA, "tutor@test.cl"));
+        assertEquals(400, exception.getStatus().value());
+        verifyNoInteractions(treasury);
+    }
+
+    @Test
+    void guardianCannotReplaceAnAdminPersonalizedPlan() {
+        mockGuardian();
+        when(treasury.getConfig(2026)).thenReturn(config());
+        var current = plan(21L, 19L, 3L);
+        current.setMode(PaymentMode.PERSONALIZADA);
+        when(plans.findByConfigIdAndFamilyId(3L, 19L)).thenReturn(Optional.of(current));
+        var exception = assertThrows(DomainException.class,
+                () -> service.choosePlan(2026, PaymentMode.ANUAL, "tutor@test.cl"));
+        assertEquals(409, exception.getStatus().value());
+        verify(treasury, never()).assignMode(anyInt(), anyLong(), any(), any(), any(), any(), anyString());
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(PaymentStatus.class)
+    void guardianCannotSwitchPlansWithPaymentHistory(PaymentStatus status) {
+        mockGuardian();
+        when(treasury.getConfig(2026)).thenReturn(config());
+        when(plans.findByConfigIdAndFamilyId(3L, 19L)).thenReturn(Optional.of(plan(21L, 19L, 3L)));
+        when(obligations.findByPlanIdOrderByDueDate(21L)).thenReturn(List.of(obligation(33L, 21L, ObligationStatus.PENDIENTE)));
+        when(payments.findByInstallmentIdIn(List.of(33L))).thenReturn(List.of(payment(status)));
+        var exception = assertThrows(DomainException.class,
+                () -> service.choosePlan(2026, PaymentMode.ANUAL, "tutor@test.cl"));
+        assertEquals(409, exception.getStatus().value());
+        verify(treasury, never()).assignMode(anyInt(), anyLong(), any(), any(), any(), any(), anyString());
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(value = PaymentMode.class, names = {"ANUAL", "DOS_CUOTAS"})
+    void guardianCanChooseAStandardPlan(PaymentMode mode) {
+        mockGuardian();
+        when(treasury.getConfig(2026)).thenReturn(config());
+        var current = plan(21L, 19L, 3L);
+        current.setMode(mode);
+        when(plans.findByConfigIdAndFamilyId(3L, 19L)).thenReturn(Optional.empty(), Optional.of(current));
+        var result = service.choosePlan(2026, mode, "tutor@test.cl");
+        assertEquals(mode, result.selectedMode());
+        verify(treasury).assignMode(2026, 19L, mode, null, null, null, "tutor@test.cl");
+        verify(treasury).generateObligations(2026, "tutor@test.cl");
+    }
+
+    @Test
+    void personalizedTotalUsesAssignedObligations() {
+        mockGuardian();
+        when(treasury.getConfig(2026)).thenReturn(config());
+        var current = plan(21L, 19L, 3L);
+        current.setMode(PaymentMode.PERSONALIZADA);
+        when(plans.findByConfigIdAndFamilyId(3L, 19L)).thenReturn(Optional.of(current));
+        when(obligations.findByPlanIdOrderByDueDate(21L)).thenReturn(List.of(obligation(33L, 21L, ObligationStatus.PAGADA)));
+        var result = service.myPayments(2026, "tutor@test.cl");
+        assertEquals(BigDecimal.valueOf(30_000), result.totalAmount());
+        assertEquals(BigDecimal.valueOf(60_000), result.annualAmount());
+        assertEquals(result.totalAmount(), result.paidAmount());
+    }
+
+    private void mockGuardian() {
+        when(guardians.findByEmail("tutor@test.cl")).thenReturn(Optional.of(
+                new ApoderadoEntity(5L, "AP-5", "Tutor", "tutor@test.cl", "+56911111111", null)));
+        when(families.findByGuardianId(5L)).thenReturn(Optional.of(
+                new FamiliaEntity(19L, 7L, "FAM-19", null, null, null, null)));
     }
 
     @Test

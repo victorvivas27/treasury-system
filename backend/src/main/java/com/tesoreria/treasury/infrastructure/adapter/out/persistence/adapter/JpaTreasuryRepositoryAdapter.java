@@ -99,6 +99,11 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     }
 
     @Override
+    public void lockObligation(Long obligationId) {
+        obligations.findLockedById(obligationId);
+    }
+
+    @Override
     public List<FeeObligation> findObligationsByPlan(Long planId) {
         return obligations.findByPlanIdOrderByDueDate(planId).stream().map(this::obligation).toList();
     }
