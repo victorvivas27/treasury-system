@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/victorvivas27/treasury-system/compare/v1.0.0...v1.1.0) (2026-09-09)
+
+
+### Features
+
+* Integrate Mercado Pago payment gateway ([432ff81](https://github.com/victorvivas27/treasury-system/commit/432ff811fa65c448bc8b65ec73bd53a01b43f9b5))
+* Integrate Mercado Pago payment gateway ([d0d5eff](https://github.com/victorvivas27/treasury-system/commit/d0d5eff5606ffac183b96279f6fe873bae684b23))
+
 ## 1.0.0 (2026-09-07)
 
 
