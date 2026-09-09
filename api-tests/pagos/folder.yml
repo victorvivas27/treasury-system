@@ -1,0 +1,6 @@
+info:
+  name: Pagos - Mercado Pago
+  seq: 6
+
+auth:
+  mode: inherit

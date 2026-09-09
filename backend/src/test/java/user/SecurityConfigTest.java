@@ -37,6 +37,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @TestPropertySource(properties = "app.storage.gcs.enabled=false")
 class SecurityConfigTest {
+    @Test
+    void corsPreflight_deberiaPermitirLoginDesdeTryCloudflare() throws Exception {
+        String origin = "https://scratch-assessed-choir-removing.trycloudflare.com";
+
+        mockMvc.perform(options("/api/v1/auth/login")
+                        .header("Origin", origin)
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", origin));
+    }
+
+    @Test
+    void mercadoPagoRequiresSessionAndAllowsGuardianEndpoints() throws Exception {
+        String base = "/api/v1/tesoreria/pagos/mercado-pago";
+        mockMvc.perform(post(base + "/cuotas/1/checkout")).andExpect(status().isUnauthorized());
+        mockMvc.perform(post(base + "/retorno").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"paymentId\":\"42\"}")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get(base + "/disponibilidad").header("Authorization", "Bearer " + tokenFor("user@mail.com")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.enabled").value(false));
+        mockMvc.perform(post(base + "/cuotas/1/checkout").header("Authorization", "Bearer " + tokenFor("user@mail.com")))
+                .andExpect(status().isServiceUnavailable());
+        // Public callback reaches signature/configuration validation, without opening the other payment endpoints.
+        mockMvc.perform(post(base + "/webhook").param("data.id", "42"))
+                .andExpect(status().isServiceUnavailable());
+    }
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -366,6 +392,27 @@ class SecurityConfigTest {
 
         mockMvc.perform(get("/api/v1/tesoreria/configuraciones?year=2026")
                         .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void cuotaAnual_deberiaPermitirLecturaAlApoderadoSinPermitirCambios() throws Exception {
+        String path = "/api/v1/tesoreria/configuraciones/2026";
+        String config = """
+                {"annualAmount":70000,"allowedMode":"AMBAS","annualDueDate":"2026-04-15",
+                 "firstDueDate":"2026-04-15","secondDueDate":"2026-07-15"}
+                """;
+        mockMvc.perform(put(path).header("Authorization", "Bearer " + tokenFor("admin@mail.com"))
+                        .contentType(MediaType.APPLICATION_JSON).content(config))
+                .andExpect(status().isOk());
+        mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+        String guardianToken = tokenFor("user@mail.com");
+        mockMvc.perform(get(path).header("Authorization", "Bearer " + guardianToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.annualAmount").value(70000))
+                .andExpect(jsonPath("$.year").value(2026));
+        mockMvc.perform(put(path).header("Authorization", "Bearer " + guardianToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(config))
                 .andExpect(status().isForbidden());
     }
 

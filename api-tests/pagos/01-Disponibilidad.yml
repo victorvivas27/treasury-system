@@ -1,0 +1,19 @@
+info:
+  name: Disponibilidad para la organizacion actual
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{Url_Base}}/tesoreria/pagos/mercado-pago/disponibilidad"
+  headers:
+    - name: Authorization
+      value: "Bearer {{userToken}}"
+  auth: inherit
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Disponibilidad autenticada", () => {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().enabled).to.be.a("boolean");
+        });

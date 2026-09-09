@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TreasuryRepositoryOutPort {
+    void lockObligation(Long obligationId);
     AnnualFeeConfig saveConfig(AnnualFeeConfig config);
 
     Optional<AnnualFeeConfig> findConfigByYear(int year);

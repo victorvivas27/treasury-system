@@ -37,7 +37,7 @@
         var(--palette-white)),
       var(--color-primary));
 
-  color: var(--palette-white-2);
+  color: var(--icon-on-accent);
 
   box-shadow:
     var(--shadow-sidebar-btn-arrow);
@@ -218,7 +218,7 @@
   margin-top:
     calc(var(--md) + var(--space-2-5rem));
 
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--xl)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--sidebar-icon-size)) / 2);
 
   gap: var(--sm);
 
@@ -246,10 +246,10 @@
 .sidebar-brand-icon {
   display: block;
 
-  width: var(--xl);
-  height: var(--xl);
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
 
-  flex: 0 0 var(--xl);
+  flex: 0 0 var(--sidebar-icon-size);
 
   object-fit: contain;
 }
@@ -293,7 +293,7 @@
  */
 
 .sidebar--collapsed .sidebar-brand-header {
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--xl)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--sidebar-icon-size)) / 2);
 }
 
 
@@ -319,11 +319,11 @@
   width: 100%;
   min-height: var(--size-2-25rem);
   margin-top: var(--sm);
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--xl)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--sidebar-icon-size)) / 2);
   gap: var(--sm);
   border: 0;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--sidebar-text);
   font: inherit;
   font-weight: var(--font-weight-650);
   cursor: pointer;
@@ -333,7 +333,7 @@
 
 .sidebar-improvement-button:hover,
 .sidebar-improvement-button:focus-visible {
-  color: var(--color-accent);
+  color: var(--icon-accent);
   background: var(--color-hover);
 }
 
@@ -343,10 +343,10 @@
 }
 
 .sidebar-improvement-button svg {
-  width: var(--xl);
-  height: var(--xl);
-  flex: 0 0 var(--xl);
-  color: var(--color-accent);
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+  flex: 0 0 var(--sidebar-icon-size);
+  color: var(--sidebar-icon);
 }
 
 .sidebar-improvement-button span {
@@ -374,7 +374,6 @@
 
 @media (min-width: 1024px) {
   .sidebar-brand-name {
-    color:
-      var(--text-main);
+    color: var(--text-main);
   }
 }

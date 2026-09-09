@@ -31,7 +31,7 @@
 .empty-state__button {
   padding: var(--space-0-5rem) var(--space-1rem);
   background-color: var(--color-accent);
-  color: var(--color-bg);
+  color: var(--text-on-accent);
   border: none;
   border-radius: var(--radius-8px);
   font-weight: var(--font-weight-600);

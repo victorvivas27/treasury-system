@@ -7,6 +7,11 @@ export const ProtectedRoute = () => {
 
   if (loading) return null;
   if (!isAuthenticated) {
+    const paymentReturn = location.pathname === "/tesoreria/pagos"
+      && new URLSearchParams(location.search).get("mp_return") === "1";
+    if (paymentReturn) {
+      return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+    }
     return <Navigate to="/" replace state={{ from: location.pathname, sessionEnded: true }} />;
   }
   return <Outlet />;

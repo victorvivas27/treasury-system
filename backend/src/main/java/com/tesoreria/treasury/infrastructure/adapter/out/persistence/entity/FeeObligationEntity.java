@@ -14,8 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "fee_obligations",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"plan_id", "installment"}))
+@Table(name = "fee_obligations")
 @Getter
 @Setter
 @NoArgsConstructor
