@@ -54,7 +54,7 @@
 
 .button-primary {
   background-color: var(--color-accent);
-  color: var(--color-bg);
+  color: var(--text-on-accent);
 
   transition:
     background-color var(--duration-150ms) var(--easing-ease),
@@ -87,14 +87,14 @@
 .button-primary .button-label,
 .button-primary .button-icon--left > svg,
 .button-primary .button-icon--right > svg {
-  color: var(--color-bg);
+  color: var(--text-on-accent);
   transition: color var(--duration-150ms) var(--easing-ease);
 }
 
 .button-primary:hover .button-label,
 .button-primary:hover .button-icon--left > svg,
 .button-primary:hover .button-icon--right > svg {
-  color: var(--color-bg);
+  color: var(--text-on-accent);
 }
 
 

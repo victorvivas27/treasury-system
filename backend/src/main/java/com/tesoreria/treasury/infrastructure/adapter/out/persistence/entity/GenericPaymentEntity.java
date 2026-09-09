@@ -24,6 +24,10 @@ public class GenericPaymentEntity extends TenantScopedEntity {
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 30) private PaymentStatus status;
     @Column(name = "paid_at") private LocalDateTime paidAt;
     @Column(name = "external_reference", length = 150) private String externalReference;
+    @Column(name = "checkout_preference_id") private String checkoutPreferenceId;
+    @Column(name = "checkout_url", length = 1000) private String checkoutUrl;
+    @Column(name = "provider_payment_id") private String providerPaymentId;
+    @Column(name = "provider_status", length = 50) private String providerStatus;
     @Column(name = "created_at", nullable = false) private LocalDateTime createdAt;
     @Column(name = "updated_at", nullable = false) private LocalDateTime updatedAt;
 }

@@ -130,12 +130,12 @@
 .modal-confirm-footer .base-button.button-primary {
   border-color: var(--color-accent);
   background-color: var(--color-accent);
-  color: var(--color-bg);
+  color: var(--text-on-accent);
 }
 
 .modal-confirm-footer .base-button.button-primary .button-label,
 .modal-confirm-footer .base-button.button-primary .button-icon > svg {
-  color: var(--color-bg);
+  color: var(--text-on-accent);
 }
 
 .modal-confirm-footer .base-button.button-secondary {

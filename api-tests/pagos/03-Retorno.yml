@@ -1,0 +1,23 @@
+info:
+  name: Conciliar pago propio desde Mercado Pago
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{Url_Base}}/tesoreria/pagos/mercado-pago/retorno"
+  headers:
+    - name: Authorization
+      value: "Bearer {{userToken}}"
+  body:
+    type: json
+    data: |-
+      { "paymentId": "{{MP_Payment_Id}}" }
+  auth: inherit
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Estado verificado por el servidor", () => {
+          expect(res.getStatus()).to.equal(200);
+          expect(["PAID", "PENDING"]).to.include(res.getBody().status);
+        });

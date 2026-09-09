@@ -130,12 +130,12 @@
 
 .modal-header-success .modal-icon {
   background: var(--color-success);
-  color: var(--color-background);
+  color: var(--text-on-accent);
 }
 
 .modal-header-error .modal-icon {
   background: var(--color-error);
-  color: var(--color-bg);
+  color: var(--text-on-accent);
 }
 
 .modal-title {

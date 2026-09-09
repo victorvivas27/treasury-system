@@ -93,7 +93,13 @@ public class TreasuryService implements TreasuryUseCase {
             validateCustomFee(year, customAmount, customDueDate);
         }
         FamilyFeePlan current = repository.findPlan(config.id(), familyId).orElse(null);
-        if (current != null && repository.hasActivePaymentForPlan(current.id())) {
+        List<FeeObligation> currentObligations = current == null
+                ? List.of()
+                : repository.findObligationsByPlan(current.id());
+        boolean addingCustomAfterPaidPlan = mode == PaymentMode.PERSONALIZADA
+                && !currentObligations.isEmpty()
+                && currentObligations.stream().allMatch(item -> item.status() == ObligationStatus.PAGADA);
+        if (current != null && repository.hasActivePaymentForPlan(current.id()) && !addingCustomAfterPaidPlan) {
             throw error(TreasuryErrorCode.CONFLICT,
                     "Anula los pagos activos de la familia antes de cambiar su modalidad");
         }
@@ -188,6 +194,7 @@ public class TreasuryService implements TreasuryUseCase {
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
     public FeePayment registerPayment(Long obligationId, LocalDate date, BigDecimal amount,
                                       String user, String observations) {
+        repository.lockObligation(obligationId);
         FeeObligation obligation = obligation(obligationId);
         if (obligation.status() == ObligationStatus.PAGADA
                 || repository.findActivePayment(obligationId).isPresent()) {
@@ -731,7 +738,8 @@ public class TreasuryService implements TreasuryUseCase {
         String normalizedConcept = normalizeCustomConcept(concept);
         List<FeeObligation> current = repository.findObligationsByPlan(planId);
         FeeObligation annual = current.stream()
-                .filter(item -> item.installment() == InstallmentType.ANUAL)
+                .filter(item -> item.installment() == InstallmentType.ANUAL
+                        && item.status() != ObligationStatus.PAGADA)
                 .findFirst()
                 .orElse(null);
         if (annual != null) {
@@ -740,7 +748,7 @@ public class TreasuryService implements TreasuryUseCase {
                     annual.createdAt(), LocalDateTime.now()));
             return;
         }
-        if (!current.isEmpty()) {
+        if (!current.isEmpty() && current.stream().noneMatch(item -> item.status() == ObligationStatus.PAGADA)) {
             repository.deleteObligationsByPlan(planId);
         }
         saveObligation(planId, InstallmentType.ANUAL, normalizedConcept, normalizedAmount, dueDate);

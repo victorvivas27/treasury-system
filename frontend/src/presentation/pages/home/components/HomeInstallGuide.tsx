@@ -14,23 +14,17 @@ export const HomeInstallGuide = () => {
     }
 
     let character = 0;
-    let deleting = false;
     let timer = 0;
 
     const animateTitle = () => {
-      character += deleting ? -1 : 1;
+      character += 1;
       setVisibleTitle(installTitle.slice(0, character));
 
-      let delay = deleting ? 35 : 70;
-      if (character === installTitle.length) {
-        deleting = true;
-        delay = 1400;
-      } else if (character === 0) {
-        deleting = false;
-        delay = 450;
+      if (character >= installTitle.length) {
+        return;
       }
 
-      timer = window.setTimeout(animateTitle, delay);
+      timer = window.setTimeout(animateTitle, 70);
     };
 
     timer = window.setTimeout(animateTitle, 350);
