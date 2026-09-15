@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/victorvivas27/treasury-system/compare/v1.1.0...v1.2.0) (2026-09-15)
+
+
+### Features
+
+* agrega variables de entorno para integración con Mercado Pago ([72bc844](https://github.com/victorvivas27/treasury-system/commit/72bc8449dd8a01a1a82f3b292ac50b32a430f87b))
+* agrega variables de entorno para integración con Mercado Pago ([d53ce1a](https://github.com/victorvivas27/treasury-system/commit/d53ce1a799f81cbe1b837791c5ef68e01cacd224))
+
 ## [1.1.0](https://github.com/victorvivas27/treasury-system/compare/v1.0.0...v1.1.0) (2026-09-09)
 
 
