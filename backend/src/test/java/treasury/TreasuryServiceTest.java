@@ -199,6 +199,44 @@ class TreasuryServiceTest {
     }
 
     @Test
+    void removeFamilyPlan_deberiaQuitarSoloCuotaPersonalizadaPendienteConPagoHistorico() {
+        FamilyFeePlan custom = new FamilyFeePlan(2L, 1L, 10L, PaymentMode.PERSONALIZADA,
+                plan.createdAt(), plan.updatedAt());
+        FeeObligation paidAnnual = obligationWithId(3L, InstallmentType.ANUAL, ObligationStatus.PAGADA);
+        FeeObligation pendingCustom = obligationWithId(4L, InstallmentType.ANUAL, ObligationStatus.PENDIENTE);
+        when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+        when(repository.findPlan(1L, 10L)).thenReturn(Optional.of(custom));
+        when(repository.hasActivePaymentForPlan(2L)).thenReturn(true);
+        when(repository.findObligationsByPlan(2L)).thenReturn(List.of(paidAnnual, pendingCustom));
+
+        service.removeFamilyPlan(2026, 10L, "Cuota duplicada", "admin@mail.com");
+
+        verify(repository).deleteObligation(4L);
+        verify(repository, never()).deleteObligation(3L);
+        verify(repository, never()).deletePlan(any());
+        verify(repository).savePlan(argThat(item -> item.id().equals(2L)
+                && item.mode() == PaymentMode.ANUAL));
+        verify(repository).saveAudit(argThat(
+                audit -> "QUITAR_CUOTA_PERSONALIZADA".equals(audit.action())));
+    }
+
+    @Test
+    void removeFamilyPlan_deberiaBloquearPersonalizadaYaPagada() {
+        FamilyFeePlan custom = new FamilyFeePlan(2L, 1L, 10L, PaymentMode.PERSONALIZADA,
+                plan.createdAt(), plan.updatedAt());
+        FeeObligation paidCustom = obligationWithId(4L, InstallmentType.ANUAL, ObligationStatus.PAGADA);
+        when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
+        when(repository.findPlan(1L, 10L)).thenReturn(Optional.of(custom));
+        when(repository.hasActivePaymentForPlan(2L)).thenReturn(true);
+        when(repository.findObligationsByPlan(2L)).thenReturn(List.of(paidCustom));
+
+        assertThrows(DomainException.class,
+                () -> service.removeFamilyPlan(2026, 10L, "Error", "admin@mail.com"));
+        verify(repository, never()).deleteObligation(any());
+        verify(repository, never()).savePlan(any());
+    }
+
+    @Test
     void generateObligations_deberiaCrearDosCuotasUnaSolaVez() {
         when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
         when(repository.findPlansByConfig(1L)).thenReturn(List.of(plan));
@@ -490,7 +528,11 @@ class TreasuryServiceTest {
     }
 
     private FeeObligation obligation(InstallmentType installment, ObligationStatus status) {
-        return new FeeObligation(3L, 2L, installment, "Cuota", new BigDecimal("35000"),
+        return obligationWithId(3L, installment, status);
+    }
+
+    private FeeObligation obligationWithId(Long id, InstallmentType installment, ObligationStatus status) {
+        return new FeeObligation(id, 2L, installment, "Cuota", new BigDecimal("35000"),
                 LocalDate.of(2026, 4, 15), status, LocalDateTime.now(), LocalDateTime.now());
     }
 

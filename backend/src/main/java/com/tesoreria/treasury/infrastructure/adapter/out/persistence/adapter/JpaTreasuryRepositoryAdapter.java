@@ -126,6 +126,12 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     }
 
     @Override
+    public void deleteObligation(Long id) {
+        obligations.deleteById(id);
+        obligations.flush();
+    }
+
+    @Override
     public FeePayment savePayment(FeePayment value) {
         return payment(payments.save(paymentEntity(value)));
     }

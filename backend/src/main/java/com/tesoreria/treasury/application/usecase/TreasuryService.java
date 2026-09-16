@@ -137,17 +137,44 @@ public class TreasuryService implements TreasuryUseCase {
         FamilyFeePlan plan = repository.findPlan(config.id(), familyId)
                 .orElseThrow(() -> error(TreasuryErrorCode.NOT_FOUND,
                         "La familia no está configurada en la cuota anual"));
-        if (repository.hasActivePaymentForPlan(plan.id())) {
-            throw error(TreasuryErrorCode.CONFLICT,
-                    "Anula todos los pagos activos antes de quitar la familia");
-        }
         if (reason == null || reason.isBlank()) {
             throw error(TreasuryErrorCode.INVALID, "El motivo es obligatorio");
+        }
+        if (repository.hasActivePaymentForPlan(plan.id())) {
+            if (plan.mode() == PaymentMode.PERSONALIZADA && removePendingCustomObligations(plan)) {
+                audit("QUITAR_CUOTA_PERSONALIZADA", "FAMILIA", String.valueOf(familyId), user,
+                        reason.trim());
+                return;
+            }
+            throw error(TreasuryErrorCode.CONFLICT,
+                    "Anula todos los pagos activos antes de quitar la familia");
         }
         repository.deletePaymentsByPlan(plan.id());
         repository.deleteObligationsByPlan(plan.id());
         repository.deletePlan(plan.id());
         audit("QUITAR_FAMILIA_CUOTA", "FAMILIA", String.valueOf(familyId), user, reason.trim());
+    }
+
+    private boolean removePendingCustomObligations(FamilyFeePlan plan) {
+        List<FeeObligation> obligations = repository.findObligationsByPlan(plan.id());
+        List<FeeObligation> pending = obligations.stream()
+                .filter(item -> item.status() != ObligationStatus.PAGADA)
+                .toList();
+        if (pending.isEmpty()) {
+            return false;
+        }
+        pending.forEach(item -> repository.deleteObligation(item.id()));
+        repository.savePlan(new FamilyFeePlan(plan.id(), plan.configId(), plan.familyId(),
+                inferPaidMode(obligations), plan.createdAt(), LocalDateTime.now()));
+        return true;
+    }
+
+    private PaymentMode inferPaidMode(List<FeeObligation> obligations) {
+        boolean split = obligations.stream()
+                .filter(item -> item.status() == ObligationStatus.PAGADA)
+                .map(FeeObligation::installment)
+                .anyMatch(item -> item == InstallmentType.PRIMERA || item == InstallmentType.SEGUNDA);
+        return split ? PaymentMode.DOS_CUOTAS : PaymentMode.ANUAL;
     }
 
     @Override
