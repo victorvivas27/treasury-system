@@ -34,6 +34,8 @@ public interface TreasuryRepositoryOutPort {
 
     void deleteObligationsByPlan(Long planId);
 
+    void deleteObligation(Long id);
+
     FeePayment savePayment(FeePayment payment);
 
     Optional<FeePayment> findActivePayment(Long obligationId);
