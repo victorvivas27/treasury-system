@@ -3,6 +3,8 @@ package com.tesoreria.treasury.infrastructure.adapter.out;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.treasury.config.MercadoPagoSettings;
 import com.tesoreria.treasury.core.port.out.MercadoPagoGateway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
@@ -21,6 +23,8 @@ import java.util.Map;
 
 @Component
 public class MercadoPagoHttpGateway implements MercadoPagoGateway {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MercadoPagoHttpGateway.class);
+    private static final int PROVIDER_ERROR_MAX_LENGTH = 500;
     private final MercadoPagoSettings settings;
     private final ObjectMapper mapper;
     private final HttpClient client;
@@ -52,8 +56,11 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
         if (!"https".equals(uri.getScheme())
                 || !java.util.Set.of("www.mercadopago.cl", "www.mercadopago.com").contains(uri.getHost())
                 || uri.getUserInfo() != null || uri.getPort() != -1 || response.path("id").asText().isBlank()
-                || !settings.collectorId().equals(response.path("collector_id").asText()))
+                || !settings.collectorId().equals(response.path("collector_id").asText())) {
+            LOGGER.warn("Mercado Pago preference rejected after provider response: host={}, collectorIdMatches={}",
+                    uri.getHost(), settings.collectorId().equals(response.path("collector_id").asText()));
             throw unavailable();
+        }
         return new Checkout(response.path("id").asText(), url);
     }
 
@@ -85,15 +92,29 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
                     .POST(HttpRequest.BodyPublishers.ofString(body));
         try {
             HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() < 200 || response.statusCode() >= 300)
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                LOGGER.warn("Mercado Pago request failed: path={}, status={}, body={}",
+                        path, response.statusCode(), summarizeProviderBody(response.body()));
                 throw unavailable();
+            }
             return mapper.readTree(response.body());
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
+            LOGGER.warn("Mercado Pago request interrupted: path={}", path);
             throw unavailable();
         } catch (IOException exception) {
+            LOGGER.warn("Mercado Pago request failed: path={}, error={}", path, exception.toString());
             throw unavailable();
         }
+    }
+
+    private String summarizeProviderBody(String body) {
+        if (body == null || body.isBlank())
+            return "<empty>";
+        String value = body.replaceAll("(?i)(access_token|token|authorization)\"?\\s*[:=]\\s*\"?[^\"]+", "$1=<redacted>")
+                .replaceAll("\\s+", " ").trim();
+        return value.length() <= PROVIDER_ERROR_MAX_LENGTH
+                ? value : value.substring(0, PROVIDER_ERROR_MAX_LENGTH) + "...";
     }
 
     private DomainException unavailable() {
