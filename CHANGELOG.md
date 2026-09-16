@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/victorvivas27/treasury-system/compare/v1.2.0...v1.3.0) (2026-09-16)
+
+
+### Features
+
+* agrega manejo de errores y logging en MercadoPagoHttpGateway ([1b2e1d7](https://github.com/victorvivas27/treasury-system/commit/1b2e1d7dd8e106b351ccae0551a368073e9b0679))
+* agrega manejo de errores y logging en MercadoPagoHttpGateway ([d30772a](https://github.com/victorvivas27/treasury-system/commit/d30772a06fd5f3cde043983eff14d7bc0bece18b))
+
 ## [1.2.0](https://github.com/victorvivas27/treasury-system/compare/v1.1.0...v1.2.0) (2026-09-15)
 
 
