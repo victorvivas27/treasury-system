@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/victorvivas27/treasury-system/compare/v1.3.0...v1.4.0) (2026-09-16)
+
+
+### Features
+
+* implementa eliminación de obligaciones personalizadas y mejora … ([63f6548](https://github.com/victorvivas27/treasury-system/commit/63f65482a426cd43f166e97915643e76b3972a68))
+* implementa eliminación de obligaciones personalizadas y mejora en el manejo de planes familiares ([3970780](https://github.com/victorvivas27/treasury-system/commit/39707805fd21a2c35d1bafbaf1f5c10a7917384b))
+
 ## [1.3.0](https://github.com/victorvivas27/treasury-system/compare/v1.2.0...v1.3.0) (2026-09-16)
 
 
