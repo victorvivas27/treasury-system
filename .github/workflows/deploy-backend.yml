@@ -1,12 +1,6 @@
 name: Deploy Backend to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/**"
-      - ".github/workflows/deploy-backend.yml"
   workflow_dispatch:
 
 permissions:
@@ -21,7 +15,6 @@ jobs:
   build-and-deploy:
     name: Build, publish and deploy backend
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout
