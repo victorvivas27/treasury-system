@@ -35,7 +35,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TesoreriaAppApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@TestPropertySource(properties = "app.storage.gcs.enabled=false")
+@TestPropertySource(properties = {
+        "app.storage.gcs.enabled=false",
+        "MERCADO_PAGO_ACCESS_TOKEN=",
+        "MERCADO_PAGO_WEBHOOK_SECRET=",
+        "MERCADO_PAGO_ORGANIZATION_ID=0",
+        "MERCADO_PAGO_COLLECTOR_ID=",
+        "MERCADO_PAGO_RETURN_URL=",
+        "MERCADO_PAGO_WEBHOOK_URL="
+})
 class SecurityConfigTest {
     @Test
     void corsPreflight_deberiaPermitirLoginDesdeTryCloudflare() throws Exception {

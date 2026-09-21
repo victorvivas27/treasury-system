@@ -5,10 +5,18 @@ const path = require('node:path');
 const { createRequire } = require('node:module');
 const tool = createRequire(path.join(process.env.RELEASE_TOOLS_DIR, 'package.json'));
 const yaml = tool('yaml');
-const workflow = yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows/release-please.yml'), 'utf8'));
+const workflow = yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows/06-release-please.yml'), 'utf8'));
+const productionWorkflows = ['07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml']
+  .map(file => [file, yaml.parse(fs.readFileSync(path.join(__dirname, `../.github/workflows/${file}`), 'utf8'))]);
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 const context = { repo: { owner: 'owner', repo: 'repo' } };
-const run = (script, github, env = {}, core = {}) => new AsyncFunction('github', 'context', 'process', 'core', script)(github, context, { env }, core);
+const run = (script, github, env = {}, core = {}) =>
+  new AsyncFunction('github', 'context', 'process', 'core', script)(
+    github,
+    context,
+    { env },
+    { info: () => {}, ...core },
+  );
 const mergeScript = workflow.jobs.publish.steps[0].with.script;
 const env = { RELEASE_BASE: 'base-sha', RELEASE_SHA: 'tested-sha', RELEASE_PR: '42' };
 const pr = () => ({ number: 42, state: 'open', draft: false, title: ' chore(main): release 1.0.0 ',
@@ -24,10 +32,10 @@ function fixture({ main = 'base-sha', candidate = pr(), merged = true } = {}) {
     },
   } } };
 }
-test('merge waits for all three CI workflows', () => {
-  assert.deepEqual(workflow.jobs.publish.needs, ['prepare', 'frontend', 'backend', 'versioning']);
+test('merge waits for all release validation workflows', () => {
+  assert.deepEqual(workflow.jobs.publish.needs, ['prepare', 'frontend', 'backend', 'versioning', 'bruno']);
   assert.equal(workflow.jobs.publish.if, undefined); // Default success() gate; no always() bypass.
-  for (const job of ['frontend', 'backend', 'versioning']) {
+  for (const job of ['frontend', 'backend', 'versioning', 'bruno']) {
     assert.equal(workflow.jobs[job].with.ref, '${{ needs.prepare.outputs.sha }}');
   }
 });
@@ -79,7 +87,16 @@ test('a release branch behind main cannot start validation', async () => {
 test('deployment dispatch preserves all existing release-dependent workflows', async () => {
   const calls = [];
   const github = { rest: { actions: { createWorkflowDispatch: async args => { calls.push(args); } } } };
-  await run(workflow.jobs.deploy.steps[0].with.script, github);
-  assert.deepEqual(calls.map(call => call.workflow_id), ['deploy-frontend.yml', 'deploy-backend.yml', 'reports-pages.yml']);
+  await run(workflow.jobs.deploy.steps[0].with.script, github, { RELEASE_REF: 'v1.0.0' });
+  assert.deepEqual(calls.map(call => call.workflow_id), ['07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml']);
   assert.ok(calls.every(call => call.ref === 'main'));
+  assert.ok(calls.every(call => call.inputs.release_ref === 'v1.0.0'));
+});
+
+test('production workflows are manual-only and serialize by service', () => {
+  for (const [file, candidate] of productionWorkflows) {
+    assert.ok(candidate.on.workflow_dispatch, file);
+    assert.equal(candidate.on.release, undefined, file);
+    assert.equal(candidate.concurrency['cancel-in-progress'], false, file);
+  }
 });

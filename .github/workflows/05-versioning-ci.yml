@@ -1,4 +1,4 @@
-name: Versioning CI
+name: 05-Versioning CI
 
 on:
   workflow_call:
@@ -8,15 +8,42 @@ on:
         type: string
   pull_request:
     branches: [dev, main]
+    paths:
+      - ".github/workflows/**"
+      - "scripts/check-version.cjs"
+      - "scripts/test-versioning.cjs"
+      - "scripts/test-auto-release.cjs"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "VERSION"
+      - "CHANGELOG.md"
+      - "frontend/package.json"
+      - "backend/build.gradle"
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - "scripts/check-version.cjs"
+      - "scripts/test-versioning.cjs"
+      - "scripts/test-auto-release.cjs"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "VERSION"
+      - "CHANGELOG.md"
+      - "frontend/package.json"
+      - "backend/build.gradle"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: versioning-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-versioning:
+    name: Validate release configuration
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

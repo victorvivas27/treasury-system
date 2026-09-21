@@ -40,8 +40,8 @@ tamaño del PR. El CHANGELOG se genera con el mismo motor que las notas de relea
 - `release-please-config.json`.
 - `.release-please-manifest.json`.
 - `CHANGELOG.md`.
-- `.github/workflows/release-please.yml`.
-- `.github/workflows/versioning-ci.yml`.
+- `.github/workflows/06-release-please.yml`.
+- `.github/workflows/05-versioning-ci.yml`.
 - `.github/pull_request_template.md`.
 - `scripts/check-version.cjs`.
 - `scripts/test-versioning.cjs`.
@@ -51,8 +51,8 @@ tamaño del PR. El CHANGELOG se genera con el mismo motor que las notas de relea
 ## Archivos modificados
 
 - `.commitlintrc.json`: configuración convencional base, tipos perf/build y reglas compatibles con descripciones en español.
-- `.github/workflows/commit-lint.yml`: commits y títulos de PR hacia dev/main.
-- `.github/workflows/backend-ci.yml`: validación de PR hacia main además de dev.
+- `.github/workflows/01-commit-lint.yml`: commits y títulos de PR hacia dev/main.
+- `.github/workflows/03-backend-ci.yml`: validación de PR hacia main además de dev.
 - `backend/build.gradle`: copia automática de la versión y marca del actualizador.
 - `frontend/package.json`: baseline 1.0.0.
 - `frontend/vite.config.ts`: inyección de versión durante el build.
