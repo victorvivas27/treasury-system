@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/victorvivas27/treasury-system/compare/v1.4.0...v1.5.0) (2026-09-21)
+
+
+### Features
+
+* elimina disparadores de push en flujos de trabajo de despliegue ([5cc90ba](https://github.com/victorvivas27/treasury-system/commit/5cc90bad49ca0ea0743baf61e65897133d979b4c))
+* elimina disparadores de push en flujos de trabajo de despliegue ([f2496fd](https://github.com/victorvivas27/treasury-system/commit/f2496fd822ffe7cc4ba595c0fd3d97ed327008be))
+
 ## [1.4.0](https://github.com/victorvivas27/treasury-system/compare/v1.3.0...v1.4.0) (2026-09-16)
 
 
