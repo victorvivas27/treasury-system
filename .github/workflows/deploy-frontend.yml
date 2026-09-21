@@ -1,11 +1,6 @@
 name: Deploy Frontend to Cloud Run
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/deploy-frontend.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +15,6 @@ jobs:
   build-and-deploy:
     name: Build, publish and deploy frontend
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout
