@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiActivity, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
 import { IoBulbOutline } from "react-icons/io5";
@@ -53,7 +53,7 @@ export const DashboardPage = () => {
   const [cleanupError, setCleanupError] = useState("");
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
-  const [activityOpen, setActivityOpen] = useState(true);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.innerWidth <= 700);
@@ -554,3 +554,4 @@ const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
           <div className="skeleton-block dashboard-row-skeleton" /></td>)}</tr>)}</tbody></table></div>
   </article>}
 </div>;
+
