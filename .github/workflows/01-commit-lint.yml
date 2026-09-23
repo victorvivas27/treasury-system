@@ -1,4 +1,4 @@
-name: Commit Validation
+name: 01-Commit Validation
 
 on:
   push:
@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
   pull-requests: read
+
+concurrency:
+  group: commit-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-commits:

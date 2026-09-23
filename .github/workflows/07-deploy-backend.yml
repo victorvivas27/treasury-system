@@ -1,7 +1,12 @@
-name: Deploy Backend to Cloud Run
+name: 07-Deploy Backend to Cloud Run
 
 on:
   workflow_dispatch:
+    inputs:
+      release_ref:
+        description: "Git ref, tag or SHA to deploy"
+        required: false
+        default: main
 
 permissions:
   contents: read
@@ -19,6 +24,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.release_ref || 'main' }}
+          persist-credentials: false
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -39,7 +47,7 @@ jobs:
       - name: Build backend image
         working-directory: backend
         env:
-          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.sha }}
+          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.event.inputs.release_ref || github.sha }}
         run: |
           docker build \
             --tag "$IMAGE_URI" \
@@ -47,7 +55,7 @@ jobs:
 
       - name: Publish backend image
         env:
-          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.sha }}
+          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.event.inputs.release_ref || github.sha }}
         run: |
           docker push "$IMAGE_URI"
 
@@ -58,7 +66,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           region: ${{ secrets.GCP_REGION }}
           service: ${{ secrets.CLOUD_RUN_BACKEND_SERVICE }}
-          image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.sha }}
+          image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.event.inputs.release_ref || github.sha }}
 
           flags: >-
             --service-account=${{ secrets.RUNTIME_SERVICE_ACCOUNT }}

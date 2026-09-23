@@ -1,4 +1,4 @@
-name: Backend CI
+name: 03-Backend CI
 
 on:
   workflow_call:
@@ -8,10 +8,21 @@ on:
         type: string
   push:
     branches: [dev]
-    paths: ['backend/**']
+    paths:
+      - "backend/**"
+      - ".github/workflows/03-backend-ci.yml"
   pull_request:
     branches: [dev, main]
-    paths: ['backend/**']
+    paths:
+      - "backend/**"
+      - ".github/workflows/03-backend-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -46,7 +57,7 @@ jobs:
       - name: Subir reporte de cobertura como artefacto
         uses: actions/upload-artifact@v7
         with:
-          name: jacoco-report
+          name: backend-jacoco-report-${{ github.run_id }}
           path: backend/build/reports/jacoco/test/html
           if-no-files-found: error
           retention-days: 1

@@ -109,7 +109,7 @@ releases se generan automáticamente con el mismo flujo. No crear el tag inicial
 manualmente ni eliminar/reemplazar tags existentes. `CHANGELOG.md` parte sin una
 entrada de publicación ficticia y será actualizado por Release Please.
 
-La release no requiere aprobación humana adicional. `release-please.yml` prepara
+La release no requiere aprobación humana adicional. `06-release-please.yml` prepara
 el PR y ejecuta directamente los workflows reutilizables sobre su SHA exacto:
 
 - Frontend: instalación con lockfile congelado, lint, tests con cobertura y build/TypeScript.
