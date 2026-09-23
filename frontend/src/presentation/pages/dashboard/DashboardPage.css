@@ -608,6 +608,14 @@
   white-space:nowrap;
 }
 
+.dashboard-birthday-card__status{
+  position:absolute;
+  width:var(--size-1px);
+  height:var(--size-1px);
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+}
+
 .dashboard-next-birthday{
   display:none;
 }

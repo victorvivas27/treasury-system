@@ -53,7 +53,7 @@ export const DashboardPage = () => {
   const [cleanupError, setCleanupError] = useState("");
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
-  const [activityOpen, setActivityOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(true);
   const [auditOpen, setAuditOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.innerWidth <= 700);
