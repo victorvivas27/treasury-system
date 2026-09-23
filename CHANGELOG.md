@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/victorvivas27/treasury-system/compare/v1.5.0...v1.6.0) (2026-09-23)
+
+
+### Features
+
+* mejora la visualización de cumpleaños en el Dashboard con mensajes de estado ([80669bf](https://github.com/victorvivas27/treasury-system/commit/80669bf7d956cc7253e80a205991d214a9261d99))
+
 ## [1.5.0](https://github.com/victorvivas27/treasury-system/compare/v1.4.0...v1.5.0) (2026-09-21)
 
 
