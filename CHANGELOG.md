@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/victorvivas27/treasury-system/compare/v1.6.0...v1.7.0) (2026-09-25)
+
+
+### Features
+
+* agrega funcionalidad para capturar el dashboard como imagen PNG ([76a5e8c](https://github.com/victorvivas27/treasury-system/commit/76a5e8cab944d6c6157fb9f6316432bbf325af90))
+* agrega funcionalidad para capturar el dashboard como imagen PNG ([b3c1c59](https://github.com/victorvivas27/treasury-system/commit/b3c1c594f3b98a82b90bc314f293c414b865753a))
+
 ## [1.6.0](https://github.com/victorvivas27/treasury-system/compare/v1.5.0...v1.6.0) (2026-09-23)
 
 
