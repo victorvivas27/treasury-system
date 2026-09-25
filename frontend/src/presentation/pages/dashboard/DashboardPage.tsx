@@ -1,6 +1,6 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiActivity, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
+import { FiActivity, FiCamera, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
 import { IoBulbOutline } from "react-icons/io5";
 import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
@@ -14,6 +14,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { expenseCategoryLabel } from "@/shared/constants/ExpenseConstants";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
+import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
@@ -25,6 +26,7 @@ import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvemen
 import { EventProfitCards } from "./EventProfitCards";
 import { NextBirthday } from "./NextBirthday";
 import { BoardMessage } from "./BoardMessage";
+import { buildDashboardCaptureFileName, captureElementAsPng } from "./captureElement";
 
 const repository = new TreasuryRepositoryImpl();
 const currentYear = new Date().getFullYear();
@@ -38,6 +40,7 @@ const monthName = (month: number) => new Intl.DateTimeFormat("es-CL", { month: "
   .format(new Date(2026, month - 1, 1)).replace(".", "");
 
 export const DashboardPage = () => {
+  const dashboardRef = useRef<HTMLElement | null>(null);
   const auth = useOptionalAuth();
   const user = auth?.user;
   const isAdmin = isAdminRole(user?.rol);
@@ -51,6 +54,8 @@ export const DashboardPage = () => {
   const [cleanup, setCleanup] = useState<"selected" | "all" | null>(null);
   const [cleanupMessage, setCleanupMessage] = useState("");
   const [cleanupError, setCleanupError] = useState("");
+  const [captureError, setCaptureError] = useState("");
+  const [capturing, setCapturing] = useState(false);
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
   const [activityOpen, setActivityOpen] = useState(true);
@@ -150,12 +155,34 @@ export const DashboardPage = () => {
     return next;
   });
 
-  return <main className="business-dashboard business-dashboard--compact">
+  const captureDashboard = useCallback(async () => {
+    if (capturing || !dashboardRef.current) return;
+    setCapturing(true);
+    setCaptureError("");
+    try {
+      await captureElementAsPng(dashboardRef.current, buildDashboardCaptureFileName());
+    } catch (captureError) {
+      console.error("No fue posible generar la captura del dashboard.", captureError);
+      setCaptureError("No fue posible generar la captura del dashboard.");
+    } finally {
+      setCapturing(false);
+    }
+  }, [capturing]);
+
+  return <main ref={dashboardRef} className="business-dashboard business-dashboard--compact">
     <header className="business-dashboard__header">
       <div><h1>{user?.nombre ? `Hola, ${user.nombre.trim().split(/\s+/)[0]}` : "Dashboard"}</h1>
         <p>Tu curso, sus finanzas y su actividad en un solo lugar.</p></div>
       <div className="dashboard-header-actions">
+      <span data-dashboard-capture-exclude="true">
+      <Button label={capturing ? "Capturando..." : "Capturar dashboard"}
+        className="dashboard-capture-button" icon={<FiCamera aria-hidden="true" />}
+        loading={capturing} disabled={loading || !data}
+        variant="secondary" size="small" ariaLabel="Capturar dashboard completo"
+        onClick={() => void captureDashboard()} />
+      </span>
       <button type="button" className="dashboard-suggestion-button"
+        data-dashboard-capture-exclude="true"
         onClick={() => window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT))}>
         <IoBulbOutline aria-hidden="true" /> Sugerencias
       </button>
@@ -450,6 +477,8 @@ export const DashboardPage = () => {
       message={cleanupMessage} onClose={() => setCleanupMessage("")} />
     <ModalAlert isOpen={Boolean(cleanupError)} type="error"
       message={cleanupError} onClose={() => setCleanupError("")} />
+    <ModalAlert isOpen={Boolean(captureError)} type="error"
+      message={captureError} onClose={() => setCaptureError("")} />
   </main>;
 };
 

@@ -18,6 +18,9 @@ importers:
       axios:
         specifier: ^1.19.0
         version: 1.19.0
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
       lottie-react:
         specifier: ^3.1.0
         version: 3.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -950,6 +953,9 @@ packages:
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
+
+  html-to-image@1.11.13:
+    resolution: {integrity: sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg==}
 
   https-proxy-agent@5.0.1:
     resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
@@ -2106,6 +2112,8 @@ snapshots:
       - '@noble/hashes'
 
   html-escaper@2.0.2: {}
+
+  html-to-image@1.11.13: {}
 
   https-proxy-agent@5.0.1:
     dependencies:
