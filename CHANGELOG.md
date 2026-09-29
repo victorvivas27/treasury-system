@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/victorvivas27/treasury-system/compare/v1.7.0...v1.8.0) (2026-09-29)
+
+
+### Features
+
+* agrega funcionalidad de flujo de caja y mejora en la visualizac… ([d902c57](https://github.com/victorvivas27/treasury-system/commit/d902c578aea2d862ffca01631b2491274699d67a))
+* agrega funcionalidad de flujo de caja y mejora en la visualización del dashboard ([34e0fa6](https://github.com/victorvivas27/treasury-system/commit/34e0fa6f8cbf92e0f915ff279b96844c6e341cbe))
+
 ## [1.7.0](https://github.com/victorvivas27/treasury-system/compare/v1.6.0...v1.7.0) (2026-09-25)
 
 
