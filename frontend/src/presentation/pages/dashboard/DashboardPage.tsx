@@ -5,8 +5,7 @@ import { IoBulbOutline } from "react-icons/io5";
 import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
-  Line, LineChart, CartesianGrid, Cell, Legend, Pie, PieChart,
-  ResponsiveContainer, Tooltip, YAxis,
+  CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
@@ -38,6 +37,40 @@ const ACTIVITY_PAGE_SIZE = 5;
 const AUDIT_PAGE_SIZE = 5;
 const monthName = (month: number) => new Intl.DateTimeFormat("es-CL", { month: "short" })
   .format(new Date(2026, month - 1, 1)).replace(".", "");
+const dayName = (date: Date) => new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "short" })
+  .format(date).replace(".", "");
+const dateKey = (date: Date) => {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+const addDays = (date: Date, days: number) => {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+};
+type CashflowPeriod = "7d" | "30d" | "6m" | "1y";
+const cashflowPeriods: Array<{ value: CashflowPeriod; label: string }> = [
+  { value: "7d", label: "7 días" },
+  { value: "30d", label: "30 días" },
+  { value: "6m", label: "6 meses" },
+  { value: "1y", label: "1 año" },
+];
+
+type CashflowPoint = {
+  key: string;
+  income: number;
+  expense: number;
+  incomePlot: number;
+  expensePlot: number;
+  name: string;
+  net: number;
+};
+
+type CashflowTooltipProps = {
+  active?: boolean;
+  label?: string | number;
+};
 
 export const DashboardPage = () => {
   const dashboardRef = useRef<HTMLElement | null>(null);
@@ -60,6 +93,7 @@ export const DashboardPage = () => {
   const [auditPage, setAuditPage] = useState(1);
   const [activityOpen, setActivityOpen] = useState(true);
   const [auditOpen, setAuditOpen] = useState(false);
+  const [cashflowPeriod, setCashflowPeriod] = useState<CashflowPeriod>("1y");
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.innerWidth <= 700);
 
@@ -97,9 +131,82 @@ export const DashboardPage = () => {
     if (!loading && data) requestAnimationFrame(() => loginPerformance.finish());
   }, [loading, data]);
 
-  const monthly = useMemo(() => data?.monthlyCashFlow.map(item => ({
-    ...item, name: monthName(item.month),
+  const monthly = useMemo<CashflowPoint[]>(() => data?.monthlyCashFlow.map(item => ({
+    key: `m-${item.month}`,
+    income: item.income,
+    expense: item.expense,
+    incomePlot: item.income,
+    expensePlot: item.expense,
+    name: monthName(item.month),
+    net: item.income - item.expense,
   })) ?? [], [data]);
+  const cashflowData = useMemo<CashflowPoint[]>(() => {
+    if (!data) return [];
+    if (cashflowPeriod === "6m") {
+      const endMonth = year === currentYear ? new Date().getMonth() + 1 : 12;
+      const startMonth = Math.max(1, endMonth - 5);
+      return monthly.filter((_, index) => {
+        const month = index + 1;
+        return month >= startMonth && month <= endMonth;
+      });
+    }
+    if (cashflowPeriod === "1y") return monthly;
+
+    const days = cashflowPeriod === "7d" ? 7 : 30;
+    const today = new Date();
+    const periodEnd = year === today.getFullYear() ? today : new Date(year, 11, 31);
+    const periodStart = addDays(periodEnd, -(days - 1));
+    const byDay = new Map<string, CashflowPoint>();
+
+    for (let offset = 0; offset < days; offset += 1) {
+      const date = addDays(periodStart, offset);
+      const key = dateKey(date);
+      byDay.set(key, {
+        key,
+        income: 0,
+        expense: 0,
+        incomePlot: 0,
+        expensePlot: 0,
+        name: dayName(date),
+        net: 0,
+      });
+    }
+
+    data.recentMovements.forEach(item => {
+      if (item.status !== "ACTIVE") return;
+      const movementDate = new Date(`${item.date}T00:00:00`);
+      if (movementDate < periodStart || movementDate > periodEnd) return;
+      const point = byDay.get(dateKey(movementDate));
+      if (!point) return;
+      if (item.type === "EGRESO") point.expense += item.amount;
+      else point.income += item.amount;
+    });
+
+    return Array.from(byDay.values()).map(point => ({
+      ...point,
+      incomePlot: point.income,
+      expensePlot: point.expense,
+      net: point.income - point.expense,
+    }));
+  }, [cashflowPeriod, data, monthly, year]);
+  const cashflowSummary = useMemo(() => {
+    const totalIncome = cashflowData.reduce((sum, item) => sum + item.income, 0);
+    const totalExpense = cashflowData.reduce((sum, item) => sum + item.expense, 0);
+    const bestPeriod = cashflowData.reduce<typeof cashflowData[number] | undefined>(
+      (best, item) => !best || item.net > best.net ? item : best, undefined);
+    return { totalIncome, totalExpense, net: totalIncome - totalExpense, bestPeriod };
+  }, [cashflowData]);
+  const cashflowPeriodLabel = cashflowPeriods.find(item => item.value === cashflowPeriod)?.label ?? "1 año";
+  const CashflowTooltip = useCallback(({ active, label }: CashflowTooltipProps) => {
+    if (!active) return null;
+    const point = cashflowData.find(item => item.name === label);
+    if (!point) return null;
+    return <div className="cashflow-hover-tooltip" role="status">
+      <strong>{point.name}</strong>
+      <span className="cashflow-hover-tooltip__income">Ingresos: <b>{money.format(point.income)}</b></span>
+      <span className="cashflow-hover-tooltip__expense">Egresos: <b>{money.format(point.expense)}</b></span>
+    </div>;
+  }, [cashflowData]);
   const genderCounts = data?.courseComposition ?? { masculino: 0, femenino: 0, otros: 0 };
   const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6).map(item => ({
     ...item, categoryName: expenseCategoryLabel(item.category),
@@ -248,41 +355,75 @@ export const DashboardPage = () => {
 
       <section className="dashboard-charts">
         <article className="dashboard-panel dashboard-panel--cashflow">
-          <header><i className="dashboard-panel-icon"><FiTrendingUp aria-hidden="true" /></i><div><span>Flujo mensual · {year}</span><h2>Ingresos extraordinarios y egresos</h2></div></header>
-          <div className="dashboard-chart dashboard-chart--axisless" aria-label="Evolución mensual">
-            <div className="dashboard-chart__plot">
+          <header><i className="dashboard-panel-icon"><FiTrendingUp aria-hidden="true" /></i><div><span>Flujo · {year}</span><h2>Ingresos y egresos en el tiempo</h2></div>
+            <div className="cashflow-periods" aria-label="Período del flujo">
+              {cashflowPeriods.map(item => <button key={item.value} type="button"
+                className={cashflowPeriod === item.value ? "is-active" : ""}
+                aria-pressed={cashflowPeriod === item.value}
+                onClick={() => setCashflowPeriod(item.value)}>{item.label}</button>)}
+            </div></header>
+          <div className="cashflow-summary" aria-label={`Resumen de flujo: ${cashflowPeriodLabel}`}>
+            <span><small>Ingresos</small><strong>{money.format(cashflowSummary.totalIncome)}</strong></span>
+            <span><small>Egresos</small><strong>{money.format(cashflowSummary.totalExpense)}</strong></span>
+            <span className={cashflowSummary.net < 0 ? "is-negative" : "is-positive"}>
+              <small>Balance</small><strong>{money.format(cashflowSummary.net)}</strong>
+            </span>
+          </div>
+          <div className="dashboard-chart dashboard-chart--axisless dashboard-chart--cashflow-split" aria-label="Evolución mensual">
+            <div className="cashflow-visual">
+            <div className="dashboard-chart__plot cashflow-plot cashflow-plot--income" aria-label="Ingresos en el tiempo">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthly} margin={{ top: 30, right: isMobile ? 8 : 6,
-                bottom: 0, left: isMobile ? 8 : -22 }}>
-                <CartesianGrid stroke="var(--divider)" strokeDasharray="3 3" />
-                {!isMobile && <YAxis width={70} tickFormatter={(value) => money.format(Number(value))}
+              <LineChart data={cashflowData} margin={{ top: 12, right: isMobile ? 10 : 14,
+                bottom: isMobile ? 2 : 4, left: isMobile ? 2 : -16 }}>
+                <CartesianGrid vertical={false} stroke="var(--divider)" strokeDasharray="2 10" />
+                <XAxis dataKey="name" tickLine={false} axisLine={false}
+                  interval={cashflowPeriod === "30d" ? isMobile ? 6 : 3 : isMobile ? 1 : 0}
+                  tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 11 }} />
+                {!isMobile && <YAxis width={70}
+                  tickFormatter={(value) => money.format(Number(value))}
                   tick={{ fill: "var(--text-muted)", fontSize: 10 }}
-                  tickLine={false} axisLine={false} />}
-                <Tooltip cursor={{ stroke: "var(--color-accent)", strokeDasharray: "3 3" }}
-                  position={{ x: isMobile ? 4 : 58, y: 2 }}
-                  wrapperStyle={{ pointerEvents: "none" }}
-                  content={({ active, payload, label }) => active && payload?.length ?
-                    <div className="cashflow-tooltip" role="status">
-                      <strong>{label}</strong>
-                      {payload.map(item => <span key={String(item.dataKey)}
-                        className={`cashflow-tooltip__${String(item.dataKey)}`}>
-                        {item.name}: <b>{money.format(Number(item.value))}</b>
-                      </span>)}
-                    </div> : null} />
-                <Legend />
-                <Line name="Ingresos" dataKey="income" type="monotone"
-                  stroke="var(--color-success)" strokeWidth={2.5}
-                  dot={{ r: 2, fill: "var(--color-success)", strokeWidth: 0 }}
-                  activeDot={{ r: 5, stroke: "var(--color-surface)", strokeWidth: 2 }} />
-                <Line name="Egresos" dataKey="expense" type="monotone"
-                  stroke="var(--color-error)" strokeWidth={2} strokeDasharray="5 3"
-                  dot={{ r: 2, fill: "var(--color-error)", strokeWidth: 0 }}
-                  activeDot={{ r: 5, stroke: "var(--color-surface)", strokeWidth: 2 }} />
+                  tickLine={false} axisLine={false} domain={[0, "dataMax"]} />}
+                <Tooltip filterNull={false} cursor={{ stroke: "var(--divider)", strokeDasharray: "4 6" }}
+                  wrapperStyle={{ pointerEvents: "none" }} content={<CashflowTooltip />} />
+                <Line className="cashflow-line cashflow-line--income" name="Ingresos"
+                  dataKey="incomePlot" type="monotone" stroke="var(--color-success)"
+                  strokeWidth={1.25} strokeDasharray="9 9"
+                  dot={{ r: isMobile ? 3.5 : 2.75, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
+                  activeDot={{ r: isMobile ? 5 : 4, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
+                  isAnimationActive={!isMobile} animationDuration={650}
+                  animationEasing="ease-out" strokeLinecap="round" strokeLinejoin="round" />
               </LineChart>
             </ResponsiveContainer>
             </div>
-            <div className="dashboard-chart__months" aria-hidden="true">
-              {monthly.map(item => <span key={item.name}>{item.name}</span>)}
+            <div className="dashboard-chart__plot cashflow-plot cashflow-plot--expense" aria-label="Egresos en el tiempo">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={cashflowData} margin={{ top: 8, right: isMobile ? 10 : 14,
+                bottom: isMobile ? 2 : 4, left: isMobile ? 2 : -16 }}>
+                <CartesianGrid vertical={false} stroke="var(--divider)" strokeDasharray="2 10" />
+                <XAxis dataKey="name" tickLine={false} axisLine={false}
+                  interval={cashflowPeriod === "30d" ? isMobile ? 6 : 3 : isMobile ? 1 : 0}
+                  tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 11 }} />
+                {!isMobile && <YAxis width={70}
+                  tickFormatter={(value) => money.format(Number(value))}
+                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
+                  tickLine={false} axisLine={false} domain={[0, "dataMax"]} />}
+                <Tooltip filterNull={false} cursor={{ stroke: "var(--divider)", strokeDasharray: "4 6" }}
+                  wrapperStyle={{ pointerEvents: "none" }} content={<CashflowTooltip />} />
+                <Line className="cashflow-line cashflow-line--expense" name="Egresos"
+                  dataKey="expensePlot" type="monotone" stroke="var(--color-error)"
+                  strokeWidth={1.25} strokeDasharray="4 9"
+                  dot={{ r: isMobile ? 3.5 : 2.75, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
+                  activeDot={{ r: isMobile ? 5 : 4, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
+                  isAnimationActive={!isMobile} animationDuration={650}
+                  animationEasing="ease-out" strokeLinecap="round" strokeLinejoin="round" />
+              </LineChart>
+            </ResponsiveContainer>
+            </div>
+            </div>
+            <div className="cashflow-legend" aria-label="Leyenda del flujo mensual">
+              <span className="cashflow-legend__income">Ingresos</span>
+              <span className="cashflow-legend__expense">Egresos</span>
+              {cashflowSummary.bestPeriod && <b>Mejor período: {cashflowSummary.bestPeriod.name}</b>}
             </div>
           </div>
         </article>
@@ -583,4 +724,3 @@ const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
           <div className="skeleton-block dashboard-row-skeleton" /></td>)}</tr>)}</tbody></table></div>
   </article>}
 </div>;
-
