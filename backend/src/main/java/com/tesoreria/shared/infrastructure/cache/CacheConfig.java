@@ -1,6 +1,7 @@
 package com.tesoreria.shared.infrastructure.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.tesoreria.organization.config.CurrentTenantIdentifierResolver;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -17,6 +18,11 @@ import java.util.List;
 public class CacheConfig {
     private static final long CONFIGURATION_CACHE_MAXIMUM_SIZE = 100;
     private static final long SUMMARY_CACHE_MAXIMUM_SIZE = 50;
+
+    @Bean
+    TenantCacheKeys tenantCacheKeys(CurrentTenantIdentifierResolver tenantResolver) {
+        return new TenantCacheKeys(tenantResolver);
+    }
 
     @Bean
     CacheManager cacheManager() {
@@ -37,7 +43,7 @@ public class CacheConfig {
     }
 
     private CaffeineCache cache(String name, Duration ttl, long maximumSize) {
-        return new CaffeineCache(name, Caffeine.newBuilder()
+        return new TenantCaffeineCache(name, Caffeine.newBuilder()
                 .expireAfterWrite(ttl)
                 .maximumSize(maximumSize)
                 .recordStats()

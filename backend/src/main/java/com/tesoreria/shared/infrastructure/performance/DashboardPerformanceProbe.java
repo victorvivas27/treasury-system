@@ -2,6 +2,7 @@ package com.tesoreria.shared.infrastructure.performance;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tesoreria.shared.infrastructure.cache.CacheNames;
+import com.tesoreria.shared.infrastructure.cache.TenantCacheKeys;
 import jakarta.persistence.EntityManagerFactory;
 import org.jspecify.annotations.Nullable;
 import org.hibernate.SessionFactory;
@@ -28,15 +29,18 @@ public class DashboardPerformanceProbe {
     private static final ThreadLocal<Measurement> CURRENT = new ThreadLocal<>();
     private final Statistics statistics;
     private final CacheManager cacheManager;
+    private final TenantCacheKeys cacheKeys;
     private final DataSource dataSource;
     private final boolean enabled;
 
     public DashboardPerformanceProbe(EntityManagerFactory entityManagerFactory,
                                      CacheManager cacheManager,
+                                     TenantCacheKeys cacheKeys,
                                      DataSource dataSource,
                                      @Value("${app.instrumentation.dashboard:false}") boolean enabled) {
         this.statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         this.cacheManager = cacheManager;
+        this.cacheKeys = cacheKeys;
         this.dataSource = dataSource;
         this.enabled = enabled;
         if (enabled) statistics.setStatisticsEnabled(true);
@@ -181,7 +185,7 @@ public class DashboardPerformanceProbe {
         org.springframework.cache.Cache springCache = cacheManager.getCache(cacheName(endpoint));
         if (springCache == null) return false;
         Object nativeCache = springCache.getNativeCache();
-        return nativeCache instanceof Cache<?, ?> caffeine && caffeine.asMap().containsKey(year);
+        return nativeCache instanceof Cache<?, ?> caffeine && caffeine.asMap().containsKey(cacheKeys.year(year));
     }
 
     private String cacheName(String endpoint) {

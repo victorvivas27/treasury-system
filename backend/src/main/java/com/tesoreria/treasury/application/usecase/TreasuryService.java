@@ -2,6 +2,7 @@ package com.tesoreria.treasury.application.usecase;
 
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.cache.CacheNames;
+import com.tesoreria.shared.infrastructure.cache.TenantCacheKeys;
 import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
@@ -27,7 +28,7 @@ public class TreasuryService implements TreasuryUseCase {
     private static final String INVALID_SCHOOL_YEAR_MESSAGE = "El año escolar es inválido";
     private static final String INCOME_AUDIT_TYPE = "INGRESO";
     private static final String EXPENSE_AUDIT_TYPE = "EGRESO";
-    private static final String CACHE_YEAR_KEY = "#year";
+    private static final String CACHE_YEAR_KEY = TenantCacheKeys.YEAR_KEY;
     private static final int INTEGER_AMOUNT_SCALE = 0;
     private static final int MAX_CUSTOM_CONCEPT_LENGTH = 80;
     private final TreasuryRepositoryOutPort repository;
@@ -42,7 +43,7 @@ public class TreasuryService implements TreasuryUseCase {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = CacheNames.ANNUAL_FEE_CONFIGURATIONS, allEntries = true),
+            @CacheEvict(value = CacheNames.ANNUAL_FEE_CONFIGURATIONS, key = TenantCacheKeys.ORGANIZATION_KEY),
             @CacheEvict(value = CacheNames.ANNUAL_FEE_CONFIGURATION_BY_YEAR, key = CACHE_YEAR_KEY),
             @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     })
@@ -61,7 +62,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     @Override
-    @Cacheable(value = CacheNames.ANNUAL_FEE_CONFIGURATIONS, key = "'all'", sync = true)
+    @Cacheable(value = CacheNames.ANNUAL_FEE_CONFIGURATIONS, key = TenantCacheKeys.ORGANIZATION_KEY, sync = true)
     public List<AnnualFeeConfig> listConfigs() {
         return repository.findAllConfigs();
     }
@@ -218,7 +219,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public FeePayment registerPayment(Long obligationId, LocalDate date, BigDecimal amount,
                                       String user, String observations) {
         repository.lockObligation(obligationId);
@@ -252,7 +253,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public FeePayment annulPayment(Long obligationId, String user, String reason) {
         FeePayment payment = repository.findActivePayment(obligationId)
                 .orElseThrow(() -> error(TreasuryErrorCode.NOT_FOUND,
@@ -448,8 +449,8 @@ public class TreasuryService implements TreasuryUseCase {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true),
-            @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, allEntries = true)
+            @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE),
+            @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     })
     public void deleteFamilyTreasuryData(Long familyId) {
         if (familyId == null || familyId <= 0) {
@@ -521,8 +522,8 @@ public class TreasuryService implements TreasuryUseCase {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, allEntries = true),
-            @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+            @CacheEvict(value = CacheNames.CONTRIBUTION_SUMMARY, key = TenantCacheKeys.ORGANIZATION_SCOPE),
+            @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     })
     public FamilyContribution cancelContribution(Long id, String reason, String user) {
         FamilyContribution current = repository.findContributionById(id)
@@ -575,7 +576,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public TreasuryExpense updateExpense(Long id, String description, BigDecimal amount,
                                          LocalDate expenseDate, ExpenseCategory category, ExpensePaymentMethod paymentMethod,
                                          String recipient, String receiptNumber, String notes, String correctionReason, String user) {
@@ -601,7 +602,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public TreasuryExpense cancelExpense(Long id, String reason, String user) {
         TreasuryExpense current = getExpense(id);
         if (current.status() != ExpenseStatus.ACTIVE) {
@@ -697,7 +698,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public TreasuryIncome updateIncome(Long id, String description, BigDecimal amount,
                                        LocalDate incomeDate, IncomeCategory category, String source,
                                        IncomePaymentMethod paymentMethod, String receiptNumber, String course,
@@ -724,7 +725,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public TreasuryIncome cancelIncome(Long id, String reason, String user) {
         TreasuryIncome current = getIncome(id);
         if (current.status() != IncomeStatus.ACTIVE) {
@@ -745,7 +746,7 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, allEntries = true)
+    @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public void deleteIncome(Long id) {
         getIncome(id);
         repository.deleteAudits(INCOME_AUDIT_TYPE, String.valueOf(id));
