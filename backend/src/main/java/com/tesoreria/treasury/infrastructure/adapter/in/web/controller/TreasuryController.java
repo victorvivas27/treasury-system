@@ -10,6 +10,7 @@ import com.tesoreria.familia.core.model.FamilyTreasuryData;
 import com.tesoreria.familia.core.port.in.GetFamiliaUseCase;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.cache.CacheNames;
+import com.tesoreria.shared.infrastructure.cache.TenantCacheKeys;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
@@ -296,7 +297,7 @@ public class TreasuryController {
     }
 
     @GetMapping("/aportes/resumen")
-    @Cacheable(value = CacheNames.CONTRIBUTION_SUMMARY, key = "#year", sync = true)
+    @Cacheable(value = CacheNames.CONTRIBUTION_SUMMARY, key = TenantCacheKeys.YEAR_KEY, sync = true)
     public ContributionSummaryResponse contributionSummary(@RequestParam int year) {
         DashboardPerformanceProbe.Measurement measurement = performanceProbe.start("aportes/resumen", year);
         try {

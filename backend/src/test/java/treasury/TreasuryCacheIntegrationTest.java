@@ -1,6 +1,8 @@
 package treasury;
 
 import com.tesoreria.shared.infrastructure.cache.CacheConfig;
+import com.tesoreria.organization.application.DefaultOrganizationProvider;
+import com.tesoreria.organization.config.CurrentTenantIdentifierResolver;
 import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe;
 import com.tesoreria.treasury.config.TreasuryDomainConfig;
 import com.tesoreria.treasury.core.model.AllowedPaymentMode;
@@ -95,6 +97,13 @@ class TreasuryCacheIntegrationTest {
     @Configuration
     @Import({CacheConfig.class, TreasuryDomainConfig.class})
     static class TestConfig {
+        @Bean
+        CurrentTenantIdentifierResolver tenantResolver() {
+            DefaultOrganizationProvider provider = mock(DefaultOrganizationProvider.class);
+            when(provider.getId()).thenReturn(1L);
+            return new CurrentTenantIdentifierResolver(provider);
+        }
+
         @Bean
         TreasuryRepositoryOutPort treasuryRepository() {
             return mock(TreasuryRepositoryOutPort.class);
