@@ -58,7 +58,14 @@ export const CoursePhotoManagementPage = () => {
       </label>
       <label className={uploading ? "is-disabled" : ""}><FiUpload />
         {uploading ? "Subiendo…" : "Seleccionar imagen"}<input type="file" accept="image/jpeg,image/png,image/webp"
+          aria-describedby="course-photo-upload-guide"
           disabled={uploading} onChange={event => { void upload(event.target.files?.[0]); event.target.value = ""; }} /></label>
+      <aside id="course-photo-upload-guide" className="course-photo-admin__upload-guide">
+        <strong>Guía de imagen para “Nuestros momentos”</strong>
+        <p>Proporción del espacio de la foto: <b>16:10</b>. Tamaños sugeridos: <b>1600 × 1000 px</b> o <b>1920 × 1200 px</b>. Formatos: JPG, PNG o WEBP.</p>
+        <p>En computador se muestra hasta aproximadamente 672 × 420 px; en celular ocupa el 88% del ancho del carrusel y mantiene la proporción 16:10.</p>
+        <p>Las fotos horizontales con otra proporción pueden recortarse en los bordes. Las verticales y cuadradas se muestran completas con fondo difuminado.</p>
+      </aside>
     </section>
     <div className="course-photo-admin__grid">
       {photos.map(photo => <article key={photo.id}>

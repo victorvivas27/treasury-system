@@ -14,11 +14,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TreasurySettingEntity {
+public class TreasurySettingEntity extends com.tesoreria.organization.infrastructure.persistence.TenantScopedEntity {
     @Id
     @Column(name = "setting_key", length = 80)
     private String key;
 
-    @Column(name = "setting_value", nullable = false, length = 120)
+    @Column(name = "setting_value", nullable = false, length = 500)
     private String value;
 }

@@ -218,7 +218,7 @@
   margin-top:
     calc(var(--md) + var(--space-2-5rem));
 
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--sidebar-icon-size)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--size-2-5rem)) / 2);
 
   gap: var(--sm);
 
@@ -235,21 +235,15 @@
    10. ICONO DEL BRAND
    ========================================================= */
 
-/*
- * MISMO TAMAÑO BASE:
- *
- * Header -> var(--xl)
- * Nav    -> var(--xl)
- * Footer -> var(--xl)
- */
+/* Mismo tamaño que el avatar del perfil del sidebar. */
 
 .sidebar-brand-icon {
   display: block;
 
-  width: var(--sidebar-icon-size);
-  height: var(--sidebar-icon-size);
+  width: var(--size-2-5rem);
+  height: var(--size-2-5rem);
 
-  flex: 0 0 var(--sidebar-icon-size);
+  flex: 0 0 var(--size-2-5rem);
 
   object-fit: contain;
 }
@@ -293,7 +287,7 @@
  */
 
 .sidebar--collapsed .sidebar-brand-header {
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--sidebar-icon-size)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - var(--size-2-5rem)) / 2);
 }
 
 
