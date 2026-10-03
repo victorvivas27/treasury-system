@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/victorvivas27/treasury-system/compare/v1.8.0...v1.9.0) (2026-10-03)
+
+
+### Features
+
+* agrega funcionalidad para gestionar y editar mensajes del table… ([3142ea2](https://github.com/victorvivas27/treasury-system/commit/3142ea2e4cf2f8e3521795331cc51ec33bdd18d3))
+* agrega funcionalidad para gestionar y editar mensajes del tablero en el dashboard ([2da7d4a](https://github.com/victorvivas27/treasury-system/commit/2da7d4a3983102ec49e5aeab132abeb99bc85527))
+
 ## [1.8.0](https://github.com/victorvivas27/treasury-system/compare/v1.7.0...v1.8.0) (2026-09-29)
 
 
