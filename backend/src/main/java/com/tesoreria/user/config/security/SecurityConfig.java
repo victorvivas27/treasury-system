@@ -94,6 +94,10 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/tesoreria/pagos/mercado-pago/cuotas/*/checkout",
                                 "/api/v1/tesoreria/pagos/mercado-pago/retorno").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tesoreria/configuracion-general/mensaje-directiva")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/tesoreria/configuracion-general/mensaje-directiva")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN")
                         .requestMatchers("/api/v1/tesoreria/**")
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/notifications")

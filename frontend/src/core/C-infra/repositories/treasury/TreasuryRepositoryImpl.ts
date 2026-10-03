@@ -10,9 +10,19 @@ import type { IncomeFilters, IncomePayload } from "@/core/A-domain/entities/trea
 import type { ITreasuryRepository } from "@/core/A-domain/repository/treasury/ITreasuryRepository";
 import { apiClient } from "@/core/D-config/api";
 import axios from "axios";
+import type { BoardMessageContent } from "@/core/A-domain/entities/treasury/BoardMessageContent";
 
 export class TreasuryRepositoryImpl implements ITreasuryRepository {
   private readonly baseUrl = "/tesoreria";
+
+  async getBoardMessage(): Promise<BoardMessageContent> {
+    return (await apiClient.get<BoardMessageContent>(
+      `${this.baseUrl}/configuracion-general/mensaje-directiva`)).data;
+  }
+  async saveBoardMessage(content: BoardMessageContent): Promise<BoardMessageContent> {
+    return (await apiClient.put<BoardMessageContent>(
+      `${this.baseUrl}/configuracion-general/mensaje-directiva`, content)).data;
+  }
 
   async listConfigs() {
     return (await apiClient.get(`${this.baseUrl}/configuraciones`)).data;

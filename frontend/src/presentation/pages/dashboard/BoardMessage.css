@@ -1,0 +1,57 @@
+.dashboard-board-message__content > p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.dashboard-board-message__eyebrow,
+.dashboard-board-message h2,
+.dashboard-board-message__signature { overflow-wrap: anywhere; }
+.dashboard-board-message__signature strong { white-space: pre-wrap; }
+.board-message-field { display: grid; gap: .4rem; }
+.board-message-field-help { color: var(--text-muted); font-size: .8rem; }
+.board-message-edit,
+.board-message-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .6rem .9rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--text-main);
+  font: inherit;
+  cursor: pointer;
+}
+.board-message-edit:hover,
+.board-message-modal button:hover { background: var(--color-hover); }
+.board-message-edit:disabled,
+.board-message-modal button:disabled { opacity: .6; cursor: default; }
+.board-message-modal {
+  position: fixed;
+  box-sizing: border-box;
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--text-main);
+  box-shadow: var(--shadow-card);
+}
+.board-message-modal::backdrop { background: rgb(0 0 0 / .5); }
+.board-message-modal form { display: grid; gap: .8rem; }
+.board-message-modal h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+.board-message-drag-handle { cursor: grab; touch-action: none; user-select: none; }
+.board-message-drag-handle:active { cursor: grabbing; }
+.board-message-modal textarea,
+.board-message-modal input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: .75rem;
+  resize: vertical;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  color: var(--text-main);
+  font: inherit;
+}
+.board-message-modal small { text-align: right; color: var(--text-muted); }
+.board-message-modal footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; }
+.board-message-modal button[type="submit"] { background: var(--color-primary); color: var(--icon-on-accent); }

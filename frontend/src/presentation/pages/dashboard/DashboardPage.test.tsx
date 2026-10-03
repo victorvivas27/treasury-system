@@ -16,7 +16,10 @@ const { dashboardOverview, contributionSummary, eventProfits, currentUser } = vi
 
 vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
   TreasuryRepositoryImpl: vi.fn().mockImplementation(function () {
-    return { dashboardOverview, contributionSummary, eventProfits };
+    return { dashboardOverview, contributionSummary, eventProfits,
+      getBoardMessage: vi.fn().mockResolvedValue({ heading: "De parte de la directiva",
+        title: "Gracias por hacer equipo.", message: "Mensaje de la directiva",
+        signature: "Con cariño,\nLa directiva del curso" }) };
   }),
 }));
 

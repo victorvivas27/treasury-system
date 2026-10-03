@@ -550,7 +550,7 @@ export const DashboardPage = () => {
         </article>
       </section>
 
-      <BoardMessage />
+      <BoardMessage isAdmin={isAdmin} />
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
         <header><button className="dashboard-collapse-trigger" type="button"
