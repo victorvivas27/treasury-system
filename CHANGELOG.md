@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0](https://github.com/victorvivas27/treasury-system/compare/v1.9.0...v1.10.0) (2026-10-04)
+
+
+### Features
+
+* Implement SA-02 invitation integration tests and PostgreSQL sup… ([9b6b8b5](https://github.com/victorvivas27/treasury-system/commit/9b6b8b5575fdadfa2d6dfee5864d421b9da23eb9))
+* Implement SA-02 invitation integration tests and PostgreSQL support ([5a30970](https://github.com/victorvivas27/treasury-system/commit/5a309700629b4dcb9d5845026f85cae72a00092e))
+
 ## [1.9.0](https://github.com/victorvivas27/treasury-system/compare/v1.8.0...v1.9.0) (2026-10-03)
 
 
