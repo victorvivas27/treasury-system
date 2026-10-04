@@ -18,6 +18,7 @@ interface UserFormProps {
   showRole?: boolean;
   showAccountStatus?: boolean;
   showFieldIcons?: boolean;
+  allowedRoles?: UserRole[];
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,12 +35,13 @@ export const UserForm = ({
   showRole = true,
   showAccountStatus = true,
   showFieldIcons = false,
+  allowedRoles = ["USER", "ADMIN"],
 }: UserFormProps) => {
   const [formData, setFormData] = useState<UserPayload>({
     nombre: initialData?.nombre ?? "",
     correo: initialData?.correo ?? "",
     password: "",
-    rol: initialData?.rol ?? "USER",
+    rol: initialData?.rol ?? allowedRoles[0],
     enabled: initialData?.enabled ?? true,
     accountNonLocked: initialData?.accountNonLocked ?? true,
   });
@@ -192,7 +194,7 @@ export const UserForm = ({
             value={formData.rol}
             onChange={handleChange}
           >
-            {(["USER", "ADMIN"] as UserRole[]).map((role) => (
+            {allowedRoles.map((role) => (
               <option key={role} value={role}>{role}</option>
             ))}
           </select>

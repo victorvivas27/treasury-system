@@ -379,6 +379,25 @@ class TransferPaymentServiceTest {
         assertEquals("transferencia.pdf", result.get(0).originalFileName());
     }
 
+    @Test
+    void ownFamilyStillAllowsOnlyTheGuardiansOwnObligation() {
+        mockGuardian();
+        FeeObligationEntity own = obligation(33L, 21L, ObligationStatus.PENDIENTE);
+        when(obligations.findById(33L)).thenReturn(Optional.of(own));
+        when(plans.findById(21L)).thenReturn(Optional.of(plan(21L, 19L, 3L)));
+        assertEquals(own, service.ownObligation(33L, "tutor@test.cl"));
+    }
+
+    @Test
+    void ownFamilyStillRejectsAnotherFamilysObligation() {
+        mockGuardian();
+        when(obligations.findById(33L)).thenReturn(Optional.of(obligation(33L, 21L, ObligationStatus.PENDIENTE)));
+        when(plans.findById(21L)).thenReturn(Optional.of(plan(21L, 999L, 3L)));
+        var rejected = assertThrows(com.tesoreria.shared.domain.exception.DomainException.class,
+                () -> service.ownObligation(33L, "tutor@test.cl"));
+        assertEquals(org.springframework.http.HttpStatus.FORBIDDEN, rejected.getStatus());
+    }
+
     private AnnualFeeConfig config() {
         return new AnnualFeeConfig(3L, 2026, BigDecimal.valueOf(60_000), AllowedPaymentMode.AMBAS,
                 LocalDate.of(2026, 4, 15), LocalDate.of(2026, 4, 15), LocalDate.of(2026, 7, 15),

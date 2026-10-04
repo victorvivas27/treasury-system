@@ -24,6 +24,8 @@ public class User {
     private Boolean enabled;
     private Boolean accountNonLocked;
     private LocalDateTime emailVerifiedAt;
+    private LocalDateTime invitationAcceptedAt;
+    private Long invitedGuardianId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String profileImageUrl;
@@ -151,6 +153,11 @@ public class User {
     public final void setRol(RoleEnum value) {
         rol = value == null ? RoleEnum.USER : value;
     }
+
+    public LocalDateTime getInvitationAcceptedAt() { return invitationAcceptedAt; }
+    public void setInvitationAcceptedAt(LocalDateTime value) { invitationAcceptedAt = value; }
+    public Long getInvitedGuardianId() { return invitedGuardianId; }
+    public void setInvitedGuardianId(Long value) { invitedGuardianId = value; }
 
     public Long getOrganizationId() { return organizationId; }
     public void setOrganizationId(Long value) { organizationId = value; }

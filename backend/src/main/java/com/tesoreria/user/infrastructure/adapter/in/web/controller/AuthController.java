@@ -5,13 +5,10 @@ import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.shared.infrastructure.performance.LoginPerformanceProbe;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.AuthService;
-import com.tesoreria.user.application.usecase.RegistrationRateLimiter;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
 import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.organization.application.OrganizationService;
-import com.tesoreria.organization.application.DefaultOrganizationProvider;
-import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.SecurityConstants;
 import com.tesoreria.user.config.security.TokenRevocationService;
@@ -50,7 +47,6 @@ public class AuthController {
     private final UserMapper mapper;
     private final JwtService jwtService;
     private final TokenRevocationService revocationService;
-    private final RegistrationRateLimiter registrationRateLimiter;
     private final AccountRecoveryService accountRecoveryService;
     private final String bootstrapAdminKey;
     private final boolean allowLocalBootstrapWithoutKey;
@@ -71,7 +67,6 @@ public class AuthController {
             UserMapper mapper,
             JwtService jwtService,
             TokenRevocationService revocationService,
-            RegistrationRateLimiter registrationRateLimiter,
             AccountRecoveryService accountRecoveryService,
             @Value("${app.bootstrap.admin-key:}") String bootstrapAdminKey,
             @Value("${app.bootstrap.allow-local-without-key:false}") boolean allowLocalBootstrapWithoutKey,
@@ -86,7 +81,6 @@ public class AuthController {
         this.mapper = mapper;
         this.jwtService = jwtService;
         this.revocationService = revocationService;
-        this.registrationRateLimiter = registrationRateLimiter;
         this.accountRecoveryService = accountRecoveryService;
         this.bootstrapAdminKey = bootstrapAdminKey;
         this.allowLocalBootstrapWithoutKey = allowLocalBootstrapWithoutKey;
@@ -103,10 +97,9 @@ public class AuthController {
             UserService userService,
             UserMapper mapper,
             JwtService jwtService,
-            TokenRevocationService revocationService,
-            RegistrationRateLimiter registrationRateLimiter) {
+            TokenRevocationService revocationService) {
         this(authService, userService, mapper, jwtService, revocationService,
-                registrationRateLimiter, null, "", false, null, null, null, false, "Lax", "");
+                null, "", false, null, null, null, false, "Lax", "");
     }
 
     @Operation(summary = "Iniciar sesión")
@@ -155,20 +148,8 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> register(
             @Valid @RequestBody RegisterRequestDTO request,
             HttpServletRequest httpRequest) {
-        registrationRateLimiter.checkAndRecord(httpRequest.getRemoteAddr());
-        var organization = organizationService.requireActive(request.getOrganizationId());
-        boolean legacyCourse = organization.getType() == OrganizationType.LEGACY
-                && DefaultOrganizationProvider.DEFAULT_SLUG.equals(organization.getSlug());
-        if (organization.getType() != OrganizationType.COURSE && !legacyCourse) {
-            throw new DomainException("organizationId", HttpStatus.BAD_REQUEST, "Seleccione un curso válido");
-        }
-        User newUser = mapper.toDomain(request);
-        newUser.setOrganizationId(organization.getId());
-        newUser.setRol(RoleEnum.USER);
-        newUser.setEnabled(false);
-        newUser.setAccountNonLocked(true);
-        User registered = accountRecoveryService.register(newUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(registered));
+        throw new DomainException("registration", HttpStatus.FORBIDDEN,
+                "El acceso se habilita exclusivamente mediante una invitación administrativa.");
     }
 
     @Operation(summary = "Inicializar el primer administrador")
@@ -194,23 +175,10 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<LoginResponseDTO> verifyEmail(
-            @Valid @RequestBody TokenRequestDTO request,
-            HttpServletRequest httpRequest) {
-        User verifiedUser = accountRecoveryService.verifyEmail(request.token());
-        String token = authService.issueTokenForUserId(verifiedUser.getId());
-        RefreshTokenService.IssuedTokens issued = refreshTokenService == null
-                ? new RefreshTokenService.IssuedTokens(token, null)
-                : refreshTokenService.issueForUserId(verifiedUser.getId(),
-                httpRequest.getHeader("User-Agent"), clientIp(httpRequest));
-        ResponseEntity.BodyBuilder response = ResponseEntity.ok();
-        addSessionCookies(response, issued);
-        return response.body(new LoginResponseDTO(
-                issued.accessToken(),
-                "Bearer",
-                jwtService.getExpirationMs() / 1000,
-                issued.csrfToken(),
-                mapper.toResponse(verifiedUser)));
+    public ResponseEntity<MessageResponseDTO> verifyEmail(@Valid @RequestBody TokenRequestDTO request) {
+        accountRecoveryService.verifyEmail(request.token());
+        return ResponseEntity.ok(new MessageResponseDTO(
+                "Correo verificado. El acceso requiere una invitación de la administración."));
     }
 
     @PostMapping("/resend-verification")

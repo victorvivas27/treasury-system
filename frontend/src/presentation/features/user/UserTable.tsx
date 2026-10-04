@@ -90,9 +90,10 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
                     <span className={`usuarios-status ${isActive ? "is-active" : "is-inactive"}`}>
                       {isActive ? "Activo" : "Inactivo"}
                     </span>
-                    {isAdmin && <StatusToggleButton active={user.enabled}
+                    {isAdmin && (user.rol !== "USER" || user.enabled) && <StatusToggleButton active={user.enabled}
                       entityLabel={`usuario ${user.nombre}`}
                       onToggle={() => onToggleStatus(user)} />}
+                    {isAdmin && user.rol === "USER" && !user.enabled && <span>Requiere invitación</span>}
                   </span>
                 </td>
                 <td className="usuarios-table__td usuarios-table__text" data-label="Nombre">
@@ -106,7 +107,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
                 </td>
                 <td className="usuarios-table__td" data-label="Rol">
                   <span className={`usuarios-role ${isAdminRole(user.rol) ? "is-admin" : "is-user"}`}>
-                    {isAdminRole(user.rol) ? "ADMIN" : "USUARIO"}
+                    {user.rol === "USER" ? "USUARIO" : user.rol}
                   </span>
                 </td>
                 {isAdmin && (

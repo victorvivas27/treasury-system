@@ -15,6 +15,20 @@ public class UserTokenEntity {
     private Long id;
     @Column(name = "user_id", nullable = false)
     private Long userId;
+    @Column(name = "guardian_id")
+    private Long guardianId;
+    @Column(name = "invitation_organization_id")
+    private Long invitationOrganizationId;
+    @Column(name = "invitation_email", length = 100)
+    private String invitationEmail;
+
+    public Long getGuardianId() { return guardianId; }
+    public void setGuardianId(Long value) { guardianId = value; }
+    public Long getInvitationOrganizationId() { return invitationOrganizationId; }
+    public void setInvitationOrganizationId(Long value) { invitationOrganizationId = value; }
+    public String getInvitationEmail() { return invitationEmail; }
+    public void setInvitationEmail(String value) { invitationEmail = value; }
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private UserTokenType type;

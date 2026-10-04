@@ -24,6 +24,11 @@ public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, L
     void deleteByUserIdAndType(Long userId, UserTokenType type);
 
     @Modifying
+    @Query("update UserTokenEntity t set t.usedAt = :usedAt "
+            + "where t.userId = :userId and t.type = :type and t.usedAt is null")
+    int markAllUsed(Long userId, UserTokenType type, LocalDateTime usedAt);
+
+    @Modifying
     @Query("""
             update UserTokenEntity t
             set t.revokedAt = :revokedAt

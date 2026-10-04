@@ -43,6 +43,7 @@ public class UserService implements UserUseCase {
     @Override
     @Transactional
     public User create(User user) {
+        if (user.getRol() == RoleEnum.USER) throw invitationRequired();
         assertSuperAdminRoleAllowed(user.getRol());
         if (currentOrganization != null && !currentOrganization.isSuperAdmin()) {
             user.setOrganizationId(currentOrganization.getId());
@@ -136,6 +137,10 @@ public class UserService implements UserUseCase {
                     throw new EmailAlreadyExistsException(changes.getCorreo());
                 });
 
+        if (existing.getRol() == RoleEnum.USER) {
+            if (!existing.getCorreo().equalsIgnoreCase(changes.getCorreo())) throw invitationRequired();
+            requireAuthorizedActivation(existing, Boolean.TRUE.equals(changes.getEnabled()));
+        }
         existing.setNombre(changes.getNombre());
         existing.setCorreo(changes.getCorreo());
         existing.setEnabled(changes.getEnabled());
@@ -159,6 +164,7 @@ public class UserService implements UserUseCase {
                 && adminCount(existing.getOrganizationId()) <= 1) {
             throw lastAdminError();
         }
+        if (role == RoleEnum.USER) throw invitationRequired();
         existing.setRol(role);
         return repository.save(existing);
     }
@@ -184,8 +190,20 @@ public class UserService implements UserUseCase {
                 && adminCount(user.getOrganizationId()) <= 1) {
             throw lastAdminError();
         }
+        requireAuthorizedActivation(user, activo);
         user.setEnabled(activo);
         return repository.save(user);
+    }
+
+    private void requireAuthorizedActivation(User user, boolean enabled) {
+        if (user.getRol() == RoleEnum.USER && enabled && !Boolean.TRUE.equals(user.getEnabled())) {
+            throw invitationRequired();
+        }
+    }
+
+    private DomainException invitationRequired() {
+        return new DomainException("invitation", org.springframework.http.HttpStatus.FORBIDDEN,
+                "Las cuentas de apoderados requieren ACCOUNT_INVITATION.");
     }
 
     private DomainException lastAdminError() {

@@ -1,5 +1,5 @@
 import type { AuthMessageResponse, LoginPayload, LoginResponse } from "@/core/A-domain/entities/auth/Auth";
-import type { User, RegisterPayload } from "@/core/A-domain/entities/user/User";
+import type { User } from "@/core/A-domain/entities/user/User";
 import type { IAuthRepository } from "@/core/A-domain/repository/auth/IAuthRepository";
 import { apiClient } from "@/core/D-config/api";
 import { getAccessToken } from "@/core/D-config/axiosInterceptor";
@@ -12,10 +12,6 @@ export class AuthRepositoryImpl implements IAuthRepository {
       // Cloud Run y la base de datos pueden necesitar unos segundos extra en el primer acceso.
       timeout: 30000,
     })).data;
-  }
-
-  async register(payload: RegisterPayload): Promise<User> {
-    return (await apiClient.post<User>(`${this.baseUrl}/register`, payload)).data;
   }
 
   async me(): Promise<User> {
@@ -38,8 +34,8 @@ export class AuthRepositoryImpl implements IAuthRepository {
     });
   }
 
-  async verifyEmail(token: string): Promise<LoginResponse> {
-    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/verify-email`, { token })).data;
+  async verifyEmail(token: string): Promise<AuthMessageResponse> {
+    return (await apiClient.post<AuthMessageResponse>(`${this.baseUrl}/verify-email`, { token })).data;
   }
 
   async resendVerification(email: string, organizationId?: number): Promise<string> {

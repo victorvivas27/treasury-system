@@ -1,11 +1,18 @@
 package com.tesoreria.user.application.usecase;
 
+import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
 import com.tesoreria.organization.application.CurrentOrganizationService;
+import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
+import com.tesoreria.organization.core.model.OrganizationType;
+import com.tesoreria.organization.config.TenantUserDetails;
+import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.ApoderadoEntity;
+import com.tesoreria.user.core.constant.RoleEnum;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.tesoreria.organization.application.OrganizationEmailBrandingService;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.user.config.security.TokenRevocationService;
 import com.tesoreria.user.core.constant.UserTokenType;
-import com.tesoreria.user.core.exception.EmailAlreadyExistsException;
 import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.port.out.EmailOutPort;
@@ -46,6 +53,8 @@ public class AccountRecoveryService {
     private final String frontendUrl;
     private final CurrentOrganizationService currentOrganization;
     private final OrganizationEmailBrandingService emailBranding;
+    private final ApoderadoJpaRepository guardians;
+    private final OrganizationJpaRepository organizations;
 
     @Autowired
     public AccountRecoveryService(
@@ -57,7 +66,8 @@ public class AccountRecoveryService {
             TokenRevocationService revocationService,
             @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
             CurrentOrganizationService currentOrganization,
-            OrganizationEmailBrandingService emailBranding) {
+            OrganizationEmailBrandingService emailBranding,
+            ApoderadoJpaRepository guardians, OrganizationJpaRepository organizations) {
         this.users = users;
         this.tokens = tokens;
         this.email = email;
@@ -67,6 +77,25 @@ public class AccountRecoveryService {
         this.frontendUrl = frontendUrl.replaceAll("/+$", "");
         this.currentOrganization = currentOrganization;
         this.emailBranding = emailBranding;
+        this.guardians = guardians;
+        this.organizations = organizations;
+    }
+
+    public AccountRecoveryService(UserRepositoryOutPort users, UserTokenJpaRepository tokens,
+            EmailOutPort email, PasswordEncoder passwordEncoder, AuthFlowRateLimiter rateLimiter,
+            TokenRevocationService revocationService, String frontendUrl,
+            CurrentOrganizationService currentOrganization, OrganizationEmailBrandingService emailBranding,
+            ApoderadoJpaRepository guardians) {
+        this(users, tokens, email, passwordEncoder, rateLimiter, revocationService,
+                frontendUrl, currentOrganization, emailBranding, guardians, null);
+    }
+
+    public AccountRecoveryService(UserRepositoryOutPort users, UserTokenJpaRepository tokens,
+            EmailOutPort email, PasswordEncoder passwordEncoder, AuthFlowRateLimiter rateLimiter,
+            TokenRevocationService revocationService, String frontendUrl,
+            CurrentOrganizationService currentOrganization, OrganizationEmailBrandingService emailBranding) {
+        this(users, tokens, email, passwordEncoder, rateLimiter, revocationService,
+                frontendUrl, currentOrganization, emailBranding, null, null);
     }
 
     public AccountRecoveryService(
@@ -83,54 +112,73 @@ public class AccountRecoveryService {
 
     @Transactional
     public User register(User user) {
-        Long organizationId = user.getOrganizationId();
-        if (organizationId == null) {
-            throw new DomainException("organizationId", org.springframework.http.HttpStatus.BAD_REQUEST,
-                    "Seleccione un curso");
-        }
-        user.setOrganizationId(organizationId);
-        if (users.existsByCorreoAndOrganizationId(user.getCorreo(), organizationId)) {
-            throw new EmailAlreadyExistsException(user.getCorreo());
-        }
-        User.validateRawPassword(user.getPassword());
-        if (user.getCode() == null) {
-            user.setCode("USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
-        }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEnabled(false);
-        User saved = users.save(user);
-        String rawToken = issue(saved.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
-        requireDelivery(sendVerification(saved,
-                frontendUrl + "/verificar-correo?token=" + rawToken));
-        return saved;
+        // Defense retained even though no registration can create an account.
+        requireCourseMembership(user);
+        throw new DomainException("registration", org.springframework.http.HttpStatus.FORBIDDEN,
+                "El acceso se habilita exclusivamente mediante una invitación administrativa.");
     }
 
     @Transactional
-    public User inviteGuardian(String name, String address) {
-        String normalized = normalize(address);
-        Long organizationId = currentOrganization == null ? null : currentOrganization.getId();
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public User inviteGuardian(Long guardianId) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getAuthorities().stream().noneMatch(a ->
+                        "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_SUPER_ADMIN".equals(a.getAuthority()))
+                || !(authentication.getPrincipal() instanceof TenantUserDetails principal)
+                || principal.getOrganizationId() == null) {
+            throw invitationDenied("La invitación requiere una sesión ADMIN o SUPER_ADMIN con un curso asignado.");
+        }
+        Long organizationId = principal.getOrganizationId();
+        User actor = users.findById(principal.getUserId()).orElseThrow(() ->
+                invitationDenied("La cuenta de la sesión ya no existe. Inicie sesión nuevamente."));
+        if (actor.getRol() != RoleEnum.ADMIN && actor.getRol() != RoleEnum.SUPER_ADMIN) {
+            throw invitationDenied("Esta sesión corresponde al rol " + actor.getRol()
+                    + ". La invitación requiere una cuenta ADMIN o SUPER_ADMIN.");
+        }
+        if (!organizationId.equals(actor.getOrganizationId())) {
+            throw invitationDenied("El curso de la sesión no coincide con el curso del administrador. "
+                    + "Inicie sesión nuevamente en el curso correspondiente.");
+        }
+        if (!Boolean.TRUE.equals(actor.getEnabled())) {
+            throw invitationDenied("La cuenta del administrador está deshabilitada.");
+        }
+        if (!Boolean.TRUE.equals(actor.getAccountNonLocked())) {
+            throw invitationDenied("La cuenta del administrador está bloqueada.");
+        }
+        requireActiveCourse(organizationId);
+        ApoderadoEntity guardian = guardians.lockInOrganization(guardianId, organizationId)
+                .filter(ApoderadoEntity::isActivo).orElseThrow(() -> invitationDenied(
+                        "El apoderado debe estar activo y registrado en el curso de la sesión."));
+        String normalized = normalize(guardian.getEmail());
         User user = users.findByCorreoAndOrganizationId(normalized, organizationId).orElseGet(() -> {
             String temporaryPassword = "Tmp!" + UUID.randomUUID() + "aA1";
             User invited = new User(null,
                     "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT),
-                    name, normalized, temporaryPassword,
-                    com.tesoreria.user.core.constant.RoleEnum.USER,
+                    guardian.getNombre(), normalized, temporaryPassword, RoleEnum.USER,
                     false, true, null, LocalDateTime.now(), LocalDateTime.now());
             invited.setPassword(passwordEncoder.encode(temporaryPassword));
             invited.setOrganizationId(organizationId);
+            invited.setInvitedGuardianId(guardianId);
             return users.save(invited);
         });
-
-        if (organizationId != null && user.getOrganizationId() == null) {
-            user.setOrganizationId(organizationId);
-            user = users.save(user);
+        requireCourseMembership(user);
+        if (user.getRol() != RoleEnum.USER) {
+            throw invitationDenied("El correo ya corresponde a una cuenta administrativa en este curso.");
         }
-        if (Boolean.TRUE.equals(user.getEnabled()) && user.getEmailVerifiedAt() != null) {
+        if (user.getInvitedGuardianId() != null && !guardianId.equals(user.getInvitedGuardianId())) {
+            throw invitationDenied("La cuenta de este curso está vinculada a otro registro de apoderado. "
+                    + "Revise el vínculo antes de emitir una nueva invitación.");
+        }
+        if (Boolean.TRUE.equals(user.getEnabled()) && user.getInvitationAcceptedAt() != null) {
             return user;
         }
-        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true);
+        user.setInvitedGuardianId(guardianId);
+        user.setEnabled(false);
+        user = users.save(user);
+        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true, guardian);
         requireDelivery(sendPasswordReset(user,
-                frontendUrl + "/restablecer-password?token=" + rawToken));
+                frontendUrl + "/aceptar-invitacion?token=" + rawToken));
         return user;
     }
 
@@ -138,8 +186,13 @@ public class AccountRecoveryService {
     public User verifyEmail(String rawToken) {
         UserTokenEntity token = validToken(rawToken, UserTokenType.EMAIL_VERIFICATION);
         User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
+        requireCourseMembership(user);
+        requireActiveCourse(user.getOrganizationId());
+        if (user.getRol() == RoleEnum.USER && user.getInvitationAcceptedAt() == null) {
+            throw membershipDenied();
+        }
         user.setEmailVerifiedAt(LocalDateTime.now());
-        user.setEnabled(true);
+        // Email verification proves mailbox control only, never course authorization.
         users.save(user);
         tokens.delete(token);
         return user;
@@ -155,7 +208,8 @@ public class AccountRecoveryService {
         String normalized = normalize(address);
         rateLimiter.checkAndRecord("verification", normalized);
         findForPublicEmailFlow(normalized, organizationId)
-                .filter(user -> user.getEmailVerifiedAt() == null).ifPresent(user -> {
+                .filter(user -> user.getEmailVerifiedAt() == null && user.getInvitationAcceptedAt() != null)
+                .ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
             requireDelivery(sendVerification(user,
                     frontendUrl + "/verificar-correo?token=" + rawToken));
@@ -185,7 +239,9 @@ public class AccountRecoveryService {
         }
         rateLimiter.checkAndRecord("password-reset",
                 normalized + (organizationId == null ? "" : ":" + organizationId));
-        findForPublicEmailFlow(normalized, organizationId).ifPresent(user -> {
+        findForPublicEmailFlow(normalized, organizationId)
+                .filter(user -> user.getRol() != RoleEnum.USER || Boolean.TRUE.equals(user.getEnabled()))
+                .ifPresent(user -> {
             String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
             requireDelivery(sendPasswordReset(user,
                     frontendUrl + "/restablecer-password?token=" + rawToken));
@@ -198,6 +254,11 @@ public class AccountRecoveryService {
         User.validateRawPassword(newPassword);
         UserTokenEntity token = validPasswordToken(rawToken);
         User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
+        if (token.getType() == UserTokenType.ACCOUNT_INVITATION) {
+            requireInvitationMembership(token, user);
+        } else if (user.getRol() == RoleEnum.USER && !Boolean.TRUE.equals(user.getEnabled())) {
+            throw membershipDenied();
+        }
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new DomainException(UserErrorCode.PASSWORD_INVALID.getField(),
                     UserErrorCode.PASSWORD_INVALID.getStatus(), "La nueva contraseña debe ser diferente");
@@ -205,11 +266,14 @@ public class AccountRecoveryService {
         user.setPassword(passwordEncoder.encode(newPassword));
         if (token.getType() == UserTokenType.ACCOUNT_INVITATION) {
             user.setEmailVerifiedAt(LocalDateTime.now());
+            user.setInvitationAcceptedAt(LocalDateTime.now());
             user.setEnabled(true);
             user.setAccountNonLocked(true);
         }
         users.save(user);
-        tokens.deleteByUserIdAndType(token.getUserId(), token.getType());
+        token.setUsedAt(LocalDateTime.now());
+        tokens.save(token);
+        tokens.markAllUsed(token.getUserId(), token.getType(), token.getUsedAt());
         revocationService.revokeAllForUser(user.getCorreo());
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
@@ -250,6 +314,55 @@ public class AccountRecoveryService {
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
+    private void requireActiveCourse(Long organizationId) {
+        if (organizations == null || organizationId == null) {
+            throw invitationDenied("La cuenta debe tener un curso asignado.");
+        }
+        var organization = organizations.findById(organizationId).orElseThrow(() ->
+                invitationDenied("El curso asignado a la cuenta ya no existe."));
+        if (!organization.isActive()) {
+            throw invitationDenied("El curso está inactivo. Active el curso antes de habilitar el acceso.");
+        }
+        if (organization.getType() != OrganizationType.COURSE
+                && !(organization.getType() == OrganizationType.LEGACY
+                && "default".equals(organization.getSlug()))) {
+            throw invitationDenied("La organización debe ser de tipo COURSE para habilitar acceso de apoderados.");
+        }
+    }
+
+    private void requireInvitationMembership(UserTokenEntity token, User user) {
+        requireCourseMembership(user);
+        requireActiveCourse(user.getOrganizationId());
+        if (token.getGuardianId() == null
+                || !token.getGuardianId().equals(user.getInvitedGuardianId())
+                || !user.getOrganizationId().equals(token.getInvitationOrganizationId())
+                || !normalize(user.getCorreo()).equals(token.getInvitationEmail())
+                || user.getRol() != RoleEnum.USER
+                || !Boolean.TRUE.equals(user.getAccountNonLocked())) throw membershipDenied();
+        ApoderadoEntity guardian = guardians.lockInOrganization(token.getGuardianId(),
+                token.getInvitationOrganizationId()).orElseThrow(this::membershipDenied);
+        if (!guardian.isActivo() || !normalize(guardian.getEmail()).equals(token.getInvitationEmail())) {
+            throw membershipDenied();
+        }
+    }
+
+    private DomainException membershipDenied() {
+        return new DomainException("membership", org.springframework.http.HttpStatus.FORBIDDEN,
+                "El acceso requiere una invitación administrativa y pertenencia vigente al curso.");
+    }
+
+    private DomainException invitationDenied(String message) {
+        return new DomainException("membership", org.springframework.http.HttpStatus.FORBIDDEN, message);
+    }
+
+    private void requireCourseMembership(User user) {
+        if (user.getOrganizationId() == null || guardians == null
+                || !guardians.existsActiveMember(normalize(user.getCorreo()), user.getOrganizationId())) {
+            throw new DomainException("membership", org.springframework.http.HttpStatus.FORBIDDEN,
+                    "El acceso requiere un apoderado activo registrado en el curso. Contacte a la administración.");
+        }
+    }
+
     private boolean sendVerification(User user, String link) {
         if (emailBranding == null) {
             return email.sendVerificationEmail(user.getCorreo(), user.getNombre(), link);
@@ -283,6 +396,11 @@ public class AccountRecoveryService {
     }
 
     private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting) {
+        return issue(userId, type, minutes, replaceExisting, null);
+    }
+
+    private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting,
+                         ApoderadoEntity guardian) {
         if (replaceExisting) {
             tokens.deleteByUserIdAndType(userId, type);
         }
@@ -294,6 +412,11 @@ public class AccountRecoveryService {
         token.setType(type);
         token.setTokenHash(hash(raw));
         token.setExpiresAt(LocalDateTime.now().plusMinutes(minutes));
+        if (guardian != null) {
+            token.setGuardianId(guardian.getApoderadoId());
+            token.setInvitationOrganizationId(guardian.getOrganizationId());
+            token.setInvitationEmail(normalize(guardian.getEmail()));
+        }
         tokens.save(token);
         return raw;
     }
@@ -302,7 +425,7 @@ public class AccountRecoveryService {
         if (rawToken == null || rawToken.isBlank()) throw invalidToken();
         UserTokenEntity token = tokens.findByTokenHashAndType(hash(rawToken), type)
                 .orElseThrow(this::invalidToken);
-        if (token.getUsedAt() != null) throw invalidToken();
+        if (token.getUsedAt() != null || token.getRevokedAt() != null) throw invalidToken();
         if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new DomainException(UserErrorCode.TOKEN_EXPIRED.getField(),
                     UserErrorCode.TOKEN_EXPIRED.getStatus(), "El enlace ha vencido");
@@ -318,7 +441,7 @@ public class AccountRecoveryService {
                 .or(() -> tokens.findByTokenHashAndType(
                         tokenHash, UserTokenType.ACCOUNT_INVITATION))
                 .orElseThrow(this::invalidToken);
-        if (token.getUsedAt() != null) throw invalidToken();
+        if (token.getUsedAt() != null || token.getRevokedAt() != null) throw invalidToken();
         if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new DomainException(UserErrorCode.TOKEN_EXPIRED.getField(),
                     UserErrorCode.TOKEN_EXPIRED.getStatus(), "El enlace ha vencido");

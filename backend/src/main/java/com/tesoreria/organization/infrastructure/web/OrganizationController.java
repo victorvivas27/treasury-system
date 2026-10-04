@@ -30,7 +30,6 @@ public class OrganizationController {
     }
 
     @GetMapping("/login-options")
-    @PreAuthorize("permitAll()")
     public List<OrganizationLoginOptionResponse> loginOptions() {
         return organizations.findAll().stream()
                 .filter(OrganizationEntity::isActive)

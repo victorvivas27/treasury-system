@@ -27,9 +27,6 @@ export interface UserPayload {
   accountNonLocked?: boolean;
 }
 
-export interface RegisterPayload extends UserPayload {
-  organizationId: number;
-}
 
 export interface PageResponse<T> {
   content: T[];

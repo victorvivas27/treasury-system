@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
-import { FiLock, FiLogIn, FiMail, FiUserPlus } from "react-icons/fi";
+import { FiLock, FiLogIn, FiMail } from "react-icons/fi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
@@ -227,15 +227,8 @@ export const LoginPage = () => {
             icon={<FiLogIn aria-hidden="true" />}
             size="medium"
           />
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate("/register")}
-            label="Registrarme"
-            icon={<FiUserPlus aria-hidden="true" />}
-            size="medium"
-          />
         </div>
+        <p>El acceso se habilita mediante una invitación enviada por la administración.</p>
         <Link className="auth-text-link" to="/olvide-password">¿Olvidaste tu contraseña?</Link>
       </form>
       <ButtonBack className="login-back-button" />

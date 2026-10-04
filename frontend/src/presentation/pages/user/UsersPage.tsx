@@ -108,7 +108,7 @@ export const UsersPage = () => {
       <header className="users-page-header">
         <div>
           <h1>Usuarios</h1>
-          <p>Administra accesos, roles y estado de las cuentas.</p>
+          <p>Administra accesos, roles y estado de las cuentas. El acceso de apoderados se habilita mediante invitación desde Apoderados.</p>
         </div>
         <div className="users-page-header__actions">
           <Button
@@ -136,7 +136,10 @@ export const UsersPage = () => {
       </header>
 
       {showForm && (
-        <UserForm loading={loading} onSubmit={handleCreate} onCancel={closeForm} />
+        <>
+          <p>Para habilitar apoderados, envía una invitación desde el módulo Apoderados. Aquí puedes crear cuentas administrativas.</p>
+          <UserForm loading={loading} onSubmit={handleCreate} onCancel={closeForm} allowedRoles={["ADMIN"]} />
+        </>
       )}
 
       {editingUser && (
@@ -147,6 +150,7 @@ export const UsersPage = () => {
           onSubmit={handleUpdate}
           onCancel={closeForm}
           showRole={false}
+          showAccountStatus={editingUser.rol !== "USER"}
         />
       )}
 
