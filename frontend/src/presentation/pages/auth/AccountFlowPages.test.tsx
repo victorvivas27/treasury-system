@@ -17,6 +17,21 @@ vi.mock("@/presentation/context/AuthContext", () => ({
 }));
 
 describe("VerifyEmailPage", () => {
+  it("acepta la invitación con token y credenciales sin pedir IDs de pertenencia", async () => {
+    resetPassword.mockClear();
+    resetPassword.mockResolvedValue("Cuenta habilitada");
+    render(<MemoryRouter initialEntries={["/aceptar-invitacion?token=invitation-test"]}>
+      <ResetPasswordPage invitation />
+    </MemoryRouter>);
+    expect(screen.getByRole("heading", { name: "Aceptar invitación" })).toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Nueva contraseña"), { target: { value: "Invited1!" } });
+    fireEvent.change(screen.getByLabelText("Repite tu contraseña"), { target: { value: "Invited1!" } });
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar contraseña" }));
+    await waitFor(() => expect(resetPassword).toHaveBeenCalledWith("invitation-test", "Invited1!"));
+    resetPassword.mockClear();
+  });
+
   it("exige contraseñas iguales antes de restablecer y permite corregirlas", async () => {
     resetPassword.mockResolvedValue(undefined);
     render(<MemoryRouter initialEntries={["/reset-password?token=recovery-test"]}>
@@ -33,9 +48,7 @@ describe("VerifyEmailPage", () => {
   });
 
   it("procesa una sola vez el token aunque StrictMode repita el efecto", async () => {
-    const session = { token: "jwt", tokenType: "Bearer", expiresIn: 3600,
-      user: { id: 1, nombre: "María", correo: "maria@mail.com", rol: "USER" } };
-    verifyEmail.mockResolvedValue(session);
+    verifyEmail.mockResolvedValue({ message: "Correo verificado sin activar acceso" });
 
     render(<StrictMode><MemoryRouter initialEntries={["/verificar-correo?token=abc123"]}>
       <Routes>
@@ -44,9 +57,9 @@ describe("VerifyEmailPage", () => {
       </Routes>
     </MemoryRouter></StrictMode>);
 
-    expect(await screen.findByText("Home autenticada")).toBeInTheDocument();
+    expect(await screen.findByText("Correo verificado sin activar acceso")).toBeInTheDocument();
     await waitFor(() => expect(verifyEmail).toHaveBeenCalledTimes(1));
     expect(verifyEmail).toHaveBeenCalledWith("abc123");
-    expect(establishSession).toHaveBeenCalledWith(session);
+    expect(establishSession).not.toHaveBeenCalled();
   });
 });

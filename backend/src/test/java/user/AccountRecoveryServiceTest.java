@@ -1,6 +1,8 @@
 package user;
 
 import com.tesoreria.organization.application.CurrentOrganizationService;
+import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
+import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.organization.application.OrganizationEmailBranding;
 import com.tesoreria.organization.application.OrganizationEmailBrandingService;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
@@ -29,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountRecoveryServiceTest {
@@ -45,33 +48,137 @@ class AccountRecoveryServiceTest {
     @Mock
     private TokenRevocationService revocationService;
     private AccountRecoveryService service;
+    @Mock
+    private ApoderadoJpaRepository guardians;
+    @Mock
+    private com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository organizations;
 
     @BeforeEach
     void setUp() {
         service = new AccountRecoveryService(users, tokens, email, passwordEncoder,
-                rateLimiter, revocationService, "https://app.example");
+                rateLimiter, revocationService, "https://app.example", null, null, guardians, organizations);
     }
 
     @Test
-    void register_conservaElCursoElegidoEnLugarDelPredeterminado() {
-        CurrentOrganizationService current = mock(CurrentOrganizationService.class);
-        service = new AccountRecoveryService(users, tokens, email, passwordEncoder,
-                rateLimiter, revocationService, "https://app.example", current, null);
+    void registerRejectsEvenAnExistingActiveGuardian() {
         User user = new User();
         user.setOrganizationId(5L);
-        user.setNombre("Ana Perez");
         user.setCorreo("ana@example.com");
+        when(guardians.existsActiveMember("ana@example.com", 5L)).thenReturn(true);
+        assertThrows(DomainException.class, () -> service.register(user));
+        verifyNoInteractions(users, tokens, email, passwordEncoder);
+    }
+
+    @Test
+    void register_rejectsOutsiderWithoutSavingOrSendingEmail() {
+        User user = new User();
+        user.setOrganizationId(5L);
+        user.setCorreo("outsider@example.com");
         user.setPassword("Password1!");
-        when(passwordEncoder.encode("Password1!")).thenReturn("$2a$encoded");
-        when(users.save(user)).thenAnswer(invocation -> { user.setId(9L); return user; });
-        when(email.sendVerificationEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
-        User saved = service.register(user);
+        assertThrows(DomainException.class, () -> service.register(user));
 
-        assertEquals(5L, saved.getOrganizationId());
-        verify(users).existsByCorreoAndOrganizationId("ana@example.com", 5L);
-        verifyNoInteractions(current);
-        verify(tokens).save(any(UserTokenEntity.class));
+        verify(guardians).existsActiveMember("outsider@example.com", 5L);
+        verifyNoInteractions(users, tokens, email, passwordEncoder);
+    }
+
+    @Test
+    void verifyEmail_rechecksMembershipBeforeActivatingOldToken() throws Exception {
+        User user = new User();
+        user.setOrganizationId(5L);
+        user.setCorreo("outsider@example.com");
+        user.setEnabled(false);
+        UserTokenEntity token = verificationToken("old-token");
+        when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.EMAIL_VERIFICATION))
+                .thenReturn(Optional.of(token));
+        when(users.findById(7L)).thenReturn(Optional.of(user));
+
+        assertThrows(DomainException.class, () -> service.verifyEmail("old-token"));
+
+        assertFalse(user.getEnabled());
+        assertNull(user.getEmailVerifiedAt());
+        verify(users, never()).save(any());
+        verify(tokens, never()).delete(any(UserTokenEntity.class));
+    }
+
+    @Test
+    void verifyEmailProvesMailboxWithoutActivatingPendingMember() throws Exception {
+        User user = new User();
+        user.setOrganizationId(5L);
+        user.setCorreo("ana@example.com");
+        user.setEnabled(false);
+        UserTokenEntity token = verificationToken("member-token");
+        when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.EMAIL_VERIFICATION))
+                .thenReturn(Optional.of(token));
+        when(users.findById(7L)).thenReturn(Optional.of(user));
+        when(guardians.existsActiveMember("ana@example.com", 5L)).thenReturn(true);
+        var organization = new com.tesoreria.organization.infrastructure.persistence.OrganizationEntity();
+        organization.setType(com.tesoreria.organization.core.model.OrganizationType.COURSE);
+        when(organizations.findById(5L)).thenReturn(Optional.of(organization));
+
+        user.setRol(com.tesoreria.user.core.constant.RoleEnum.USER);
+        assertThrows(DomainException.class, () -> service.verifyEmail("member-token"));
+        assertFalse(user.getEnabled());
+        assertNull(user.getEmailVerifiedAt());
+        verify(users, never()).save(any());
+    }
+
+    @Test
+    void verificationOfPreviouslyInvitedMailboxDoesNotReactivateDisabledUser() throws Exception {
+        User user = new User();
+        user.setOrganizationId(5L);
+        user.setCorreo("ana@example.com");
+        user.setRol(com.tesoreria.user.core.constant.RoleEnum.USER);
+        user.setEnabled(false);
+        user.setInvitationAcceptedAt(java.time.LocalDateTime.now().minusDays(1));
+        UserTokenEntity token = verificationToken("authorized-mailbox");
+        when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.EMAIL_VERIFICATION))
+                .thenReturn(Optional.of(token));
+        when(users.findById(7L)).thenReturn(Optional.of(user));
+        when(guardians.existsActiveMember("ana@example.com", 5L)).thenReturn(true);
+        var organization = new com.tesoreria.organization.infrastructure.persistence.OrganizationEntity();
+        organization.setType(com.tesoreria.organization.core.model.OrganizationType.COURSE);
+        when(organizations.findById(5L)).thenReturn(Optional.of(organization));
+
+        service.verifyEmail("authorized-mailbox");
+
+        assertFalse(user.getEnabled());
+        assertNotNull(user.getEmailVerifiedAt());
+        verify(tokens).delete(token);
+    }
+
+    @Test
+    void invitationCannotActivateRemovedGuardianOrChangePassword() throws Exception {
+        User user = new User();
+        user.setOrganizationId(5L);
+        user.setCorreo("removed@example.com");
+        user.setEnabled(false);
+        user.setPassword("Original1!");
+        UserTokenEntity token = verificationToken("invitation-token");
+        token.setType(UserTokenType.ACCOUNT_INVITATION);
+        when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.PASSWORD_RESET))
+                .thenReturn(Optional.empty());
+        when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.ACCOUNT_INVITATION))
+                .thenReturn(Optional.of(token));
+        when(users.findById(7L)).thenReturn(Optional.of(user));
+
+        assertThrows(DomainException.class,
+                () -> service.resetPassword("invitation-token", "Changed1!"));
+
+        assertFalse(user.getEnabled());
+        assertEquals("Original1!", user.getPassword());
+        verify(users, never()).save(any());
+        verifyNoInteractions(passwordEncoder, email, revocationService);
+    }
+
+    private UserTokenEntity verificationToken(String raw) throws Exception {
+        UserTokenEntity token = new UserTokenEntity();
+        token.setUserId(7L);
+        token.setType(UserTokenType.EMAIL_VERIFICATION);
+        token.setTokenHash(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(raw.getBytes(StandardCharsets.UTF_8))));
+        token.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(10));
+        return token;
     }
 
     @Test
@@ -113,31 +220,14 @@ class AccountRecoveryServiceTest {
 
         service.resetPassword(rawToken, "NuevaClave1!");
 
-        verify(tokens).deleteByUserIdAndType(7L, UserTokenType.PASSWORD_RESET);
+        verify(tokens).markAllUsed(eq(7L), eq(UserTokenType.PASSWORD_RESET), any());
         verify(user).setPassword("new-hash");
     }
 
     @Test
-    void inviteGuardian_deberiaAsociarOrganizacionYUsarSuRemitente() {
-        CurrentOrganizationService currentOrganization = mock(CurrentOrganizationService.class);
-        OrganizationEmailBrandingService brandingService = mock(OrganizationEmailBrandingService.class);
-        OrganizationEmailBranding branding =
-                new OrganizationEmailBranding("Curso 4A", "admin4a@colegio.cl");
-        AccountRecoveryService tenantService = new AccountRecoveryService(
-                users, tokens, email, passwordEncoder, rateLimiter, revocationService,
-                "https://app.example", currentOrganization, brandingService);
-        when(currentOrganization.getId()).thenReturn(4L);
-        when(brandingService.find(4L)).thenReturn(branding);
-        when(users.findByCorreoAndOrganizationId("apoderado@example.com", 4L)).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$mockedBcryptHash");
-        when(users.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), eq(branding)))
-                .thenReturn(true);
-
-        User invited = tenantService.inviteGuardian("Apoderado Curso", "apoderado@example.com");
-
-        assertEquals(4L, invited.getOrganizationId());
-        verify(email).sendPasswordResetEmail(eq("apoderado@example.com"),
-                eq("APODERADO CURSO"), contains("/restablecer-password?token="), eq(branding));
+    void inviteGuardianRequiresAuthenticatedAdministrativeActor() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        assertThrows(DomainException.class, () -> service.inviteGuardian(7L));
+        verifyNoInteractions(users, tokens, email, passwordEncoder, guardians);
     }
 }

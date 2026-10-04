@@ -15,7 +15,6 @@ import {
   FiLogOut,
   FiMenu,
   FiShield,
-  FiUserPlus,
   FiUsers,
   FiX,
 } from "react-icons/fi";
@@ -471,14 +470,6 @@ export const HomeHeader = ({
               <span>Iniciar sesión</span>
             </Link>
 
-            <Link
-              className="public-home__register"
-              to="/register"
-            >
-              <FiUserPlus aria-hidden="true" />
-
-              <span>Crear cuenta</span>
-            </Link>
           </>
         )}
       </nav>

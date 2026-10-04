@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn,
-  FiShield, FiUserPlus, FiUsers } from "react-icons/fi";
+  FiShield, FiUsers } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "../style/HomeHero.css";
@@ -58,12 +58,12 @@ export const HomeHero = ({ isAuthenticated = false }: { isAuthenticated?: boolea
         gastos del curso con total transparencia.
       </p>
       <div className="public-home__actions">
-        <Link className="public-home__primary-action" to={isAuthenticated ? "/dashboard" : "/register"}>
+        <Link className="public-home__primary-action" to={isAuthenticated ? "/dashboard" : "/login"}>
           {isAuthenticated ? <>
             <BrandLogo className="public-home__system-access-logo" alt="" src="/icono-gestion-curso.png" />
             <span>Gestion del curso</span>
           </> : <>
-          <FiUserPlus aria-hidden="true" /> Crear cuenta
+          <FiLogIn aria-hidden="true" /> Acceder al curso
           </>}
         </Link>
         {isAuthenticated ? <a className="public-home__secondary-action" href="#sobre-nosotros">

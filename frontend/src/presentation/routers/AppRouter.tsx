@@ -19,7 +19,6 @@ import { FamiliaPage } from "../pages/familia/FamiliaPage";
 import { FamiliaEditFormPage } from "../pages/familia/FamiliaEditFormPage";
 import { FamiliaCrearFormPage } from "../pages/familia/FamiliaCreateFormPage";
 import { LoginPage } from "../pages/auth/LoginPage";
-import { RegisterPage } from "../pages/auth/RegisterPage";
 import { CheckEmailPage, ForgotPasswordPage, PasswordUpdatedPage, ResetPasswordPage,
   VerifyEmailPage } from "../pages/auth/AccountFlowPages";
 import { ProtectedRoute } from "../components/ProtectedRoute";
@@ -44,7 +43,8 @@ export const AppRouter = () => {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/register" element={<Navigate to="/login" replace />} />
+      <Route path="/aceptar-invitacion" element={<ResetPasswordPage invitation />} />
       <Route path="/revisa-tu-correo" element={<CheckEmailPage />} />
       <Route path="/verificar-correo" element={<VerifyEmailPage />} />
       <Route path="/olvide-password" element={<ForgotPasswordPage />} />

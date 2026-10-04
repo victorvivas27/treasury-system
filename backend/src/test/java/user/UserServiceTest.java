@@ -47,7 +47,7 @@ class UserServiceTest {
     class CreateTests {
         @Test
         void create_deberiaGenerarCodigoEncriptarYGuardar() {
-            User newUser = user(null, "user@mail.com", RoleEnum.USER);
+            User newUser = user(null, "user@mail.com", RoleEnum.ADMIN);
             when(encoder.encode("Password1!")).thenReturn("$2a$hash");
             when(repository.save(newUser)).thenReturn(newUser);
 

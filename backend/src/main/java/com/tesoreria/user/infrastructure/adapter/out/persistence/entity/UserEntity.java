@@ -43,6 +43,10 @@ public class UserEntity {
 
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
+    @Column(name = "invitation_accepted_at")
+    private LocalDateTime invitationAcceptedAt;
+    @Column(name = "invited_guardian_id")
+    private Long invitedGuardianId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -117,6 +121,11 @@ public class UserEntity {
     public void setRol(RoleEnum rol) {
         this.rol = rol;
     }
+
+    public LocalDateTime getInvitationAcceptedAt() { return invitationAcceptedAt; }
+    public void setInvitationAcceptedAt(LocalDateTime value) { invitationAcceptedAt = value; }
+    public Long getInvitedGuardianId() { return invitedGuardianId; }
+    public void setInvitedGuardianId(Long value) { invitedGuardianId = value; }
 
     public Long getOrganizationId() { return organizationId; }
     public void setOrganizationId(Long value) { organizationId = value; }

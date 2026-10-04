@@ -9,23 +9,12 @@ vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("lottie-react", () => ({ Lottie: () => <span data-testid="back-animation" /> }));
 
 describe("LoginPage", () => {
-  it("[LoginPage #01] navega al registro desde el botón Registrarme", () => {
-    vi.mocked(useAuth).mockReturnValue({
-      login: vi.fn(),
-      loading: false,
-    } as unknown as ReturnType<typeof useAuth>);
-
-    render(
-      <MemoryRouter initialEntries={["/", "/login"]} initialIndex={1}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<h1>Registrar usuario</h1>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Registrarme" }));
-    expect(screen.getByRole("heading", { name: "Registrar usuario" })).toBeInTheDocument();
+  it("informa el alta por invitación sin ofrecer autoinscripción", () => {
+    vi.mocked(useAuth).mockReturnValue({ login: vi.fn(), loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    expect(screen.queryByRole("button", { name: "Registrarme" })).not.toBeInTheDocument();
+    expect(screen.getByText("El acceso se habilita mediante una invitación enviada por la administración."))
+      .toBeInTheDocument();
   });
 
   it("[LoginPage #02] muestra y oculta la contraseña", () => {

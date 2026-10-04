@@ -97,10 +97,11 @@ public class ApoderadoController {
         return ResponseEntity.ok(response(updated));
     }
 
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping("/{codigo}/habilitar-acceso")
     public ResponseEntity<ApoderadoResponse> enableAccess(@PathVariable String codigo) {
         Apoderado guardian = apoderadoService.findByCodigo(codigo);
-        accountRecovery.inviteGuardian(guardian.getNombre(), guardian.getEmail());
+        accountRecovery.inviteGuardian(guardian.getApoderadoId());
         return ResponseEntity.ok(response(guardian));
     }
 
