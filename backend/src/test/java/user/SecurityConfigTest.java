@@ -314,15 +314,12 @@ class SecurityConfigTest {
         UserEntity currentUser = userRepository.findByCorreo("user@mail.com").orElseThrow();
         String token = tokenFor(currentUser.getCorreo());
 
-        mockMvc.perform(put("/api/v1/users/{id}", currentUser.getId())
+        mockMvc.perform(put("/api/v1/users/{id}/profile", currentUser.getId())
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "nombre":"Nuevo Nombre",
-                                  "correo":"user@mail.com",
-                                  "enabled":true,
-                                  "accountNonLocked":true
+                                  "nombre":"Nuevo Nombre"
                                 }
                                 """))
                 .andExpect(status().isOk())

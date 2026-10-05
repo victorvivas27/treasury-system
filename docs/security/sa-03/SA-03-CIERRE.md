@@ -148,7 +148,7 @@ backend/src/test/java/user/
   SecurityConfigTest.java
   UserControllerTest.java
   UserServiceTest.java
-SA-03-CIERRE.md [nuevo]
+docs/security/sa-03/SA-03-CIERRE.md [nuevo]
 ```
 
 La fixture de seguridad ahora crea una organización real y verifica el email de USER, en lugar de depender de cuentas sin organización/no verificadas. La prueba SA-02 de actor deshabilitado pasa a esperar 401: se rechaza en autenticación antes de llegar a la autorización de invitación.

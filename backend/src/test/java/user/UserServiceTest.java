@@ -144,7 +144,8 @@ class UserServiceTest {
                     changes.getCorreo(), user.getOrganizationId())).thenReturn(Optional.of(user));
             when(repository.save(user)).thenReturn(user);
 
-            User result = service.update(1L, changes, user.getId());
+            User result = service.update(1L, new com.tesoreria.user.core.model.AdminUserUpdate(
+                    changes.getNombre(), changes.getCorreo(), null, null), user.getId());
 
             assertEquals(currentPassword, result.getPassword());
             verifyNoInteractions(encoder);

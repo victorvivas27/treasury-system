@@ -155,6 +155,8 @@ Las 15 pruebas de caché pasan. Cubren ambos órdenes de calentamiento A/B, las 
 
 ### SA-04 — El usuario puede reactivar y desbloquear su propia cuenta
 
+**Actualización 2026-10-05:** remediado en código y validado localmente; despliegue y verificación productiva pendientes. Ver [corrección y pruebas de SA-04](docs/security/sa-04/SA-04-CIERRE.md). La descripción siguiente conserva el hallazgo original de la auditoría.
+
 **Severidad ALTA · Confianza ALTA · Confirmada por HTTP local · P0.** Componente: usuarios/mass assignment.
 
 **Archivos y líneas:** [UserController.java](backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/UserController.java):96–105; [UserRequestDTO.java](backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/dto/UserRequestDTO.java):29–35; [UserService.java](backend/src/main/java/com/tesoreria/user/application/usecase/UserService.java):129–144.

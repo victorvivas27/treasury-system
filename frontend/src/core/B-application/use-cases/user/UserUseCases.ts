@@ -1,4 +1,4 @@
-import type { UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
+import type { AdminUserUpdatePayload, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import type { IUserRepository } from "@/core/A-domain/repository/user/IUserRepository";
 
 export class ListUsersUseCase {
@@ -26,7 +26,7 @@ export class UpdateUserUseCase {
   constructor(repository: IUserRepository) {
     this.repository = repository;
   }
-  execute(id: number, payload: UserPayload) {
+  execute(id: number, payload: AdminUserUpdatePayload) {
     return this.repository.update(id, payload);
   }
 }

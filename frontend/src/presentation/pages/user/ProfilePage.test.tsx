@@ -13,7 +13,7 @@ vi.mock("@/core/B-application/use-cases/treasury/TreasuryUseCases", () => ({
   TreasuryUseCases: class { profile = profile; },
 }));
 vi.mock("@/core/C-infra/repositories/user/UserRepositoryImpl", () => ({
-  UserRepositoryImpl: class { update = updateUser; },
+  UserRepositoryImpl: class { updateSelfProfile = updateUser; },
 }));
 
 const baseProfile = {
@@ -136,8 +136,7 @@ describe("ProfilePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
 
     await waitFor(() => expect(updateUser).toHaveBeenCalledWith(1, {
-      nombre: "Juan Andrés Díaz", correo: "juandiaz@mail.com", rol: "USER",
-      enabled: true, accountNonLocked: true,
+      nombre: "Juan Andrés Díaz",
     }));
     expect(syncUser).toHaveBeenCalledWith(updated);
   });

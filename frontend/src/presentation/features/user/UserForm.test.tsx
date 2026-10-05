@@ -81,4 +81,12 @@ describe("UserForm", () => {
       password: expect.anything(),
     })));
   });
+
+  it("omite roles y estados ocultos al editar un usuario", async () => {
+    const onSubmit = vi.fn();
+    render(<UserForm initialData={{ nombre: "Victor Vivas", correo: "user@mail.com", rol: "USER",
+      enabled: false, accountNonLocked: false }} showRole={false} showAccountStatus={false} onSubmit={onSubmit} />);
+    fireEvent.click(screen.getByRole("button", { name: "Guardar usuario" }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ nombre: "Victor Vivas", correo: "user@mail.com" }));
+  });
 });

@@ -79,13 +79,26 @@ class UserControllerTest {
 
     @Test
     void update_deberiaRetornarUsuarioActualizado() throws Exception {
-        when(mapper.toUpdateDomain(any())).thenReturn(user);
-        when(service.update(1L, user, 2L)).thenReturn(user);
+        when(service.update(org.mockito.ArgumentMatchers.eq(1L), any(), org.mockito.ArgumentMatchers.eq(2L)))
+                .thenReturn(user);
         mockMvc.perform(put("/api/v1/users/1")
                         .principal(new UsernamePasswordAuthenticationToken(new com.tesoreria.organization.config.TenantUserDetails(2L, 1L, "admin@mail.com", "x", RoleEnum.ADMIN, true, true), null, java.util.List.of()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void selfProfile_deberiaPasarSoloNombreEIdentidadAlServicio() throws Exception {
+        when(service.updateSelfProfile(1L, "Nuevo Nombre", 1L)).thenReturn(user);
+        mockMvc.perform(put("/api/v1/users/1/profile")
+                        .principal(new UsernamePasswordAuthenticationToken(new com.tesoreria.organization.config.TenantUserDetails(
+                                1L, 1L, "user@mail.com", "x", RoleEnum.USER, true, true), null, java.util.List.of()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Nuevo Nombre\",\"enabled\":true,\"accountNonLocked\":true,\"rol\":\"ADMIN\"}"))
+                .andExpect(status().isOk());
+        verify(service).updateSelfProfile(1L, "Nuevo Nombre", 1L);
+        org.mockito.Mockito.verify(service, org.mockito.Mockito.never()).update(any(), any(), any());
     }
 
     @Test

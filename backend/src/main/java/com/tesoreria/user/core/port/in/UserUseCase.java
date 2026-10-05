@@ -4,6 +4,7 @@ import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.core.model.User;
+import com.tesoreria.user.core.model.AdminUserUpdate;
 
 public interface UserUseCase {
     User create(User user);
@@ -16,7 +17,9 @@ public interface UserUseCase {
 
     PageResponse<User> findAll(PageRequest request);
 
-    User update(Long id, User changes, Long authenticatedUserId);
+    User update(Long id, AdminUserUpdate changes, Long authenticatedUserId);
+
+    User updateSelfProfile(Long id, String nombre, Long authenticatedUserId);
 
     User changeRole(Long id, RoleEnum role, Long authenticatedUserId);
 

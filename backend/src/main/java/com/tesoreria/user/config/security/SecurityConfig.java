@@ -115,7 +115,7 @@ public class SecurityConfig {
                                 "/api/v1/apoderados/**",
                                 "/api/v1/familias/**")
                         .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}/profile")
                         .hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/me/**")
                         .hasAnyRole("ADMIN", "USER")

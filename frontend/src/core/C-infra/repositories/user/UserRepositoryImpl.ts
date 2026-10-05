@@ -1,4 +1,4 @@
-import type { PageResponse, User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
+import type { AdminUserUpdatePayload, SelfProfileUpdatePayload, PageResponse, User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import type { IUserRepository } from "@/core/A-domain/repository/user/IUserRepository";
 import { apiClient } from "@/core/D-config/api";
 
@@ -28,8 +28,16 @@ export class UserRepositoryImpl implements IUserRepository {
     return (await apiClient.post<User>(this.baseUrl, payload)).data;
   }
 
-  async update(id: number, payload: UserPayload): Promise<User> {
-    return (await apiClient.put<User>(`${this.baseUrl}/${id}`, payload)).data;
+  async update(id: number, payload: AdminUserUpdatePayload): Promise<User> {
+    const { nombre, correo, enabled, accountNonLocked } = payload;
+    return (await apiClient.put<User>(`${this.baseUrl}/${id}`, {
+      nombre, correo, ...(enabled !== undefined && { enabled }),
+      ...(accountNonLocked !== undefined && { accountNonLocked }),
+    })).data;
+  }
+
+  async updateSelfProfile(id: number, payload: SelfProfileUpdatePayload): Promise<User> {
+    return (await apiClient.put<User>(`${this.baseUrl}/${id}/profile`, { nombre: payload.nombre })).data;
   }
 
   async changeRole(id: number, rol: UserRole): Promise<User> {
