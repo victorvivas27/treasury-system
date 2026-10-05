@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class TokenRevocationService {
     private final ConcurrentHashMap<String, Instant> revokedTokens = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Instant> revokedUsers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Instant> revokedUsers = new ConcurrentHashMap<>();
 
     public void revoke(String token, Date expiresAt) {
         removeExpired();
@@ -28,12 +28,13 @@ public class TokenRevocationService {
         return true;
     }
 
-    public void revokeAllForUser(String username) {
-        revokedUsers.put(username.toLowerCase(java.util.Locale.ROOT), Instant.now());
+    public void revokeAllForUser(Long userId) {
+        revokedUsers.put(userId, Instant.now());
     }
 
-    public boolean isUserRevokedAfter(String username, Date issuedAt) {
-        Instant revokedAt = revokedUsers.get(username.toLowerCase(java.util.Locale.ROOT));
+    public boolean isUserRevokedAfter(Long userId, Date issuedAt) {
+        if (userId == null || issuedAt == null) return true;
+        Instant revokedAt = revokedUsers.get(userId);
         return revokedAt != null && !issuedAt.toInstant().isAfter(revokedAt);
     }
 

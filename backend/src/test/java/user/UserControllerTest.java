@@ -71,7 +71,7 @@ class UserControllerTest {
     void findByIdCodeAndEmail_deberianRetornarUsuario() throws Exception {
         when(service.findById(1L)).thenReturn(user);
         when(service.findByCode("USR-001")).thenReturn(user);
-        when(service.findByCorreo("user@mail.com")).thenReturn(user);
+        when(service.findByCorreoInCurrentOrganization("user@mail.com")).thenReturn(user);
         mockMvc.perform(get("/api/v1/users/1")).andExpect(status().isOk());
         mockMvc.perform(get("/api/v1/users/code/USR-001")).andExpect(status().isOk());
         mockMvc.perform(get("/api/v1/users/email/user@mail.com")).andExpect(status().isOk());
@@ -80,9 +80,9 @@ class UserControllerTest {
     @Test
     void update_deberiaRetornarUsuarioActualizado() throws Exception {
         when(mapper.toUpdateDomain(any())).thenReturn(user);
-        when(service.update(1L, user, "admin@mail.com")).thenReturn(user);
+        when(service.update(1L, user, 2L)).thenReturn(user);
         mockMvc.perform(put("/api/v1/users/1")
-                        .principal(new UsernamePasswordAuthenticationToken("admin@mail.com", null))
+                        .principal(new UsernamePasswordAuthenticationToken(new com.tesoreria.organization.config.TenantUserDetails(2L, 1L, "admin@mail.com", "x", RoleEnum.ADMIN, true, true), null, java.util.List.of()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest()))
                 .andExpect(status().isOk());
@@ -90,9 +90,9 @@ class UserControllerTest {
 
     @Test
     void changeRole_deberiaRetornarUsuarioActualizado() throws Exception {
-        when(service.changeRole(1L, RoleEnum.ADMIN, "admin@mail.com")).thenReturn(user);
+        when(service.changeRole(1L, RoleEnum.ADMIN, 2L)).thenReturn(user);
         mockMvc.perform(patch("/api/v1/users/1/rol")
-                        .principal(new UsernamePasswordAuthenticationToken("admin@mail.com", null))
+                        .principal(new UsernamePasswordAuthenticationToken(new com.tesoreria.organization.config.TenantUserDetails(2L, 1L, "admin@mail.com", "x", RoleEnum.ADMIN, true, true), null, java.util.List.of()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"rol\":\"ADMIN\"}"))
                 .andExpect(status().isOk());

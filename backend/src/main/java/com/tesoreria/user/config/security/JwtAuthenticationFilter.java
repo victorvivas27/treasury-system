@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import org.springframework.security.core.AuthenticationException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -64,7 +65,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             JwtService.ParsedToken parsedToken = jwtService.parseToken(token);
             String username = parsedToken.username();
-            if (revocationService.isUserRevokedAfter(username, parsedToken.issuedAt())) {
+            if (parsedToken.userId() == null
+                    || revocationService.isUserRevokedAfter(parsedToken.userId(), parsedToken.issuedAt())) {
                 SecurityContextHolder.clearContext();
                 performanceProbe.phaseCurrent("auth", authStartedAt);
                 filterChain.doFilter(request, response);
@@ -78,9 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = parsedToken.userId() == null
-                        ? userDetailsService.loadUserByUsername(username)
-                        : userDetailsService.loadUserById(parsedToken.userId());
+                UserDetails userDetails = userDetailsService.loadUserById(parsedToken.userId());
                 if (jwtService.isTokenValid(parsedToken, userDetails)) {
                     var authentication = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
-        } catch (JwtException | IllegalArgumentException exception) {
+        } catch (JwtException | IllegalArgumentException | AuthenticationException exception) {
             if (LOGGER.isWarnEnabled()) {
                 LOGGER.warn("JWT rechazado en {} {}: {}", request.getMethod(),
                         request.getRequestURI(), exception.getClass().getSimpleName());

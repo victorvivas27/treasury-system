@@ -6,7 +6,8 @@ import jakarta.validation.Valid;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import java.security.Principal;
+import org.springframework.security.core.Authentication;
+import com.tesoreria.user.config.security.AccountIdentity;
 
 @Controller
 public class NotificationWebSocketController {
@@ -17,13 +18,14 @@ public class NotificationWebSocketController {
     }
 
     @MessageMapping("/notifications.reply")
-    public void reply(@Valid NotificationMessageRequest request, Principal principal) {
+    public void reply(@Valid NotificationMessageRequest request, Authentication principal) {
+        Long actorUserId = AccountIdentity.userId(principal);
         RealtimeReply saved = service.realtimeReply(request.deliveryId(),
-                new NotificationReplyRequest(request.message()), principal.getName());
+                new NotificationReplyRequest(request.message()), actorUserId);
         NotificationReplyEvent event = new NotificationReplyEvent(saved.deliveryId(), saved.reply());
-        messaging.convertAndSendToUser(saved.recipientEmail(), "/queue/messages", event);
-        messaging.convertAndSendToUser(principal.getName(), "/queue/messages", event);
-        messaging.convertAndSendToUser(saved.recipientEmail(), "/queue/notifications", event);
+        messaging.convertAndSendToUser(String.valueOf(saved.recipientUserId()), "/queue/messages", event);
+        messaging.convertAndSendToUser(String.valueOf(actorUserId), "/queue/messages", event);
+        messaging.convertAndSendToUser(String.valueOf(saved.recipientUserId()), "/queue/notifications", event);
     }
 
     public record NotificationReplyEvent(Long deliveryId, NotificationReplyResponse reply) { }

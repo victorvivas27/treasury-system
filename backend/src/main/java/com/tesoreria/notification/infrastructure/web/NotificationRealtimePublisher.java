@@ -18,7 +18,7 @@ public class NotificationRealtimePublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void notificationCreated(NotificationCreatedEvent event) {
-        event.recipientEmails().forEach(email -> messaging.convertAndSendToUser(email,
+        event.recipientUserIds().forEach(userId -> messaging.convertAndSendToUser(String.valueOf(userId),
                 "/queue/notifications", event));
     }
 
@@ -27,17 +27,17 @@ public class NotificationRealtimePublisher {
         var saved = event.message();
         var message = new NotificationWebSocketController.NotificationReplyEvent(
                 saved.deliveryId(), saved.reply());
-        messaging.convertAndSendToUser(saved.recipientEmail(), MESSAGES_QUEUE, message);
-        messaging.convertAndSendToUser(event.authorEmail(), MESSAGES_QUEUE, message);
-        messaging.convertAndSendToUser(saved.recipientEmail(), "/queue/notifications", message);
+        messaging.convertAndSendToUser(String.valueOf(saved.recipientUserId()), MESSAGES_QUEUE, message);
+        messaging.convertAndSendToUser(String.valueOf(event.authorUserId()), MESSAGES_QUEUE, message);
+        messaging.convertAndSendToUser(String.valueOf(saved.recipientUserId()), "/queue/notifications", message);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void replyUpdated(NotificationReplyUpdatedEvent event) {
         var saved = event.message();
         var message = new ReplyUpdatedMessage(saved.deliveryId(), saved.reply());
-        messaging.convertAndSendToUser(saved.recipientEmail(), MESSAGES_QUEUE, message);
-        messaging.convertAndSendToUser(event.authorEmail(), MESSAGES_QUEUE, message);
+        messaging.convertAndSendToUser(String.valueOf(saved.recipientUserId()), MESSAGES_QUEUE, message);
+        messaging.convertAndSendToUser(String.valueOf(event.authorUserId()), MESSAGES_QUEUE, message);
     }
 
     public record ReplyUpdatedMessage(Long deliveryId, NotificationReplyResponse updatedReply) { }
@@ -45,8 +45,8 @@ public class NotificationRealtimePublisher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void messagesRead(NotificationReadEvent event) {
         var receipt = new ReadReceipt(event.readMessageIds(), event.readDeliveryIds(), event.readAt());
-        event.recipientEmails().stream().distinct().forEach(email ->
-                messaging.convertAndSendToUser(email, MESSAGES_QUEUE, receipt));
+        event.recipientUserIds().stream().distinct().forEach(userId ->
+                messaging.convertAndSendToUser(String.valueOf(userId), MESSAGES_QUEUE, receipt));
     }
 
     public record ReadReceipt(java.util.List<Long> readMessageIds, java.util.List<Long> readDeliveryIds,
@@ -54,7 +54,7 @@ public class NotificationRealtimePublisher {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void replyDeleted(NotificationReplyDeletedEvent event) {
-        messaging.convertAndSendToUser(event.recipientEmail(), MESSAGES_QUEUE,
+        messaging.convertAndSendToUser(String.valueOf(event.recipientUserId()), MESSAGES_QUEUE,
                 new ReplyDeletedMessage(event.messageId()));
     }
 

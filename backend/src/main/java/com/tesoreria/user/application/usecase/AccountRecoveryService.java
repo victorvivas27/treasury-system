@@ -39,6 +39,7 @@ import java.util.UUID;
 
 @Service
 public class AccountRecoveryService {
+    private static final int UNIQUE_ACCOUNT_COUNT = 1;
     private static final String GENERIC_VERIFICATION =
             "Si el correo corresponde a una cuenta pendiente, recibirás un nuevo enlace de verificación.";
     private static final String GENERIC_RESET =
@@ -274,13 +275,15 @@ public class AccountRecoveryService {
         token.setUsedAt(LocalDateTime.now());
         tokens.save(token);
         tokens.markAllUsed(token.getUserId(), token.getType(), token.getUsedAt());
-        revocationService.revokeAllForUser(user.getCorreo());
+        revocationService.revokeAllForUser(user.getId());
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
     @Transactional
     public void changePassword(String address, String currentPassword, String newPassword) {
-        User user = users.findByCorreo(normalize(address)).orElseThrow(this::invalidToken);
+        var matches = users.findAllByCorreo(normalize(address));
+        if (matches.size() != UNIQUE_ACCOUNT_COUNT) throw invalidToken();
+        User user = matches.get(0);
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new DomainException(UserErrorCode.INVALID_CREDENTIALS.getField(),
                     UserErrorCode.INVALID_CREDENTIALS.getStatus(), "La contraseña actual no es correcta");
@@ -292,7 +295,7 @@ public class AccountRecoveryService {
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         users.save(user);
-        revocationService.revokeAllForUser(user.getCorreo());
+        revocationService.revokeAllForUser(user.getId());
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
@@ -310,7 +313,7 @@ public class AccountRecoveryService {
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         users.save(user);
-        revocationService.revokeAllForUser(user.getCorreo());
+        revocationService.revokeAllForUser(user.getId());
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 

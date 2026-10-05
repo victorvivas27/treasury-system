@@ -407,7 +407,7 @@ class SA02InvitationIntegrationTest {
         String authorization = bearer(adminA);
         jdbc.update("UPDATE users SET enabled = false WHERE id = ?", adminA.getId());
         mvc.perform(post(invitePath(guardianA)).header("Authorization", authorization))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         assertTrue(users.findByCorreoAndOrganizationId(guardianA.getEmail(), courseA).isEmpty());
     }
 
@@ -624,7 +624,7 @@ class SA02InvitationIntegrationTest {
         // Wait for a genuinely post-revocation token, without mocking security.
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
         String token = jwt.generateToken(details.loadUserById(account.getId()));
-        while (revocations.isUserRevokedAfter(account.getCorreo(), jwt.parseToken(token).issuedAt())) {
+        while (revocations.isUserRevokedAfter(account.getId(), jwt.parseToken(token).issuedAt())) {
             assertTrue(System.nanoTime() < deadline, "A new post-revocation token must become usable");
             Thread.sleep(50);
             token = jwt.generateToken(details.loadUserById(account.getId()));

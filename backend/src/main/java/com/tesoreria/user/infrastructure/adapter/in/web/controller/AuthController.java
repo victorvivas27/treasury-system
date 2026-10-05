@@ -1,5 +1,6 @@
 package com.tesoreria.user.infrastructure.adapter.in.web.controller;
 
+import com.tesoreria.user.config.security.AccountIdentity;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.shared.infrastructure.performance.LoginPerformanceProbe;
@@ -7,7 +8,6 @@ import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.AuthService;
 import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.UserService;
-import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.organization.application.OrganizationService;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.config.security.SecurityConstants;
@@ -210,13 +210,9 @@ public class AuthController {
     public ResponseEntity<MessageResponseDTO> changePassword(
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequestDTO request) {
-        if (authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
-            accountRecoveryService.changePassword(
-                    tenantUser.getUserId(), request.currentPassword(), request.newPassword());
-        } else {
-            accountRecoveryService.changePassword(
-                    authentication.getName(), request.currentPassword(), request.newPassword());
-        }
+        accountRecoveryService.changePassword(
+                AccountIdentity.userId(authentication),
+                request.currentPassword(), request.newPassword());
         return ResponseEntity.ok(new MessageResponseDTO("Contraseña actualizada correctamente."));
     }
 
@@ -272,16 +268,11 @@ public class AuthController {
                 "Bearer",
                 jwtService.getExpirationMs() / 1000,
                 issued.csrfToken(),
-                mapper.toResponse(parsedToken.userId() == null
-                        ? userService.findByCorreo(parsedToken.username())
-                        : userService.findByIdForAuthentication(parsedToken.userId()))));
+                mapper.toResponse(userService.findByIdForAuthentication(parsedToken.userId()))));
     }
 
     private User authenticatedUser(Authentication authentication) {
-        if (authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
-            return userService.findById(tenantUser.getUserId());
-        }
-        return userService.findByCorreo(authentication.getName());
+        return userService.findById(AccountIdentity.userId(authentication));
     }
 
     private List<LoginOrganizationOptionDTO> loginOrganizationOptions(AuthService.LoginResult login) {

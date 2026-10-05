@@ -107,8 +107,8 @@ class AuthServiceTest {
 
     @Test
     void refreshShouldRenewValidToken() {
-        when(jwtService.extractUsername("old")).thenReturn("admin@mail.com");
-        when(detailsService.loadUserByUsername("admin@mail.com")).thenReturn(details);
+        when(jwtService.parseToken("old")).thenReturn(new JwtService.ParsedToken("admin@mail.com", new java.util.Date(), new java.util.Date(), 7L, 4L, null));
+        when(detailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.isTokenValid("old", details)).thenReturn(true);
         when(jwtService.generateToken(details)).thenReturn("new");
 
@@ -117,8 +117,8 @@ class AuthServiceTest {
 
     @Test
     void refreshShouldRejectInvalidToken() {
-        when(jwtService.extractUsername("old")).thenReturn("admin@mail.com");
-        when(detailsService.loadUserByUsername("admin@mail.com")).thenReturn(details);
+        when(jwtService.parseToken("old")).thenReturn(new JwtService.ParsedToken("admin@mail.com", new java.util.Date(), new java.util.Date(), 7L, 4L, null));
+        when(detailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.isTokenValid("old", details)).thenReturn(false);
 
         assertThrows(DomainException.class, () -> service.refresh("old"));

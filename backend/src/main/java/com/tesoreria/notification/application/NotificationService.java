@@ -1,5 +1,6 @@
 package com.tesoreria.notification.application;
 
+import org.springframework.security.access.AccessDeniedException;
 import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.ApoderadoEntity;
 import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
 import com.tesoreria.notification.infrastructure.persistence.*;
@@ -47,7 +48,7 @@ public class NotificationService {
 
     @Transactional
     public int send(NotificationRequest request, String creatorEmail) {
-        UserEntity creator = currentUser(creatorEmail);
+        UserEntity creator = currentUser();
         List<UserEntity> recipients = resolveRecipients(request, creator.getOrganizationId());
         if (recipients.isEmpty()) throw error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST,
                 "Debes seleccionar al menos un apoderado con acceso");
@@ -68,7 +69,7 @@ public class NotificationService {
         deliveries.saveAll(rows);
         List<String> recipientEmails = recipients.stream().map(UserEntity::getCorreo).toList();
         List<Long> recipientUserIds = recipients.stream().map(UserEntity::getId).toList();
-        events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipientEmails));
+        events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipientUserIds));
         events.publishEvent(new PushRequestedEvent("notification-" + saved.getId(),
                 saved.getTitle(), saved.getMessage(), NOTIFICATIONS_PATH,
                 recipientEmails, recipientUserIds));
@@ -77,14 +78,14 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> mine(String email) {
-        Long id = currentUser(email).getId();
+        Long id = currentUser().getId();
         return deliveries.findByUserIdAndVisibleTrueOrderByCreatedAtDesc(id).stream()
                 .map(this::response).toList();
     }
 
     @Transactional(readOnly = true)
     public long unreadCount(String email) {
-        UserEntity user = currentUser(email);
+        UserEntity user = currentUser();
         return unreadCount(user.getId());
     }
 
@@ -96,7 +97,7 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<SentNotificationResponse> sent(String creatorEmail) {
-        UserEntity creator = currentUser(creatorEmail);
+        UserEntity creator = currentUser();
         List<NotificationEntity> sentNotifications = notifications
                 .findByCreatedByIdOrderByCreatedAtDesc(creator.getId());
         if (sentNotifications.isEmpty()) return List.of();
@@ -124,7 +125,7 @@ public class NotificationService {
     @Transactional
     public NotificationResponse markRead(Long id, String email) {
         UserNotificationEntity row = deliveries.findByIdAndUserIdAndVisibleTrue(
-                id, currentUser(email).getId())
+                id, currentUser().getId())
                 .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación no encontrada"));
         if (!row.isRead()) {
@@ -136,7 +137,7 @@ public class NotificationService {
 
     @Transactional
     public void markAllRead(String email) {
-        UserEntity user = currentUser(email);
+        UserEntity user = currentUser();
         List<UserNotificationEntity> rows = deliveries.findByUserIdAndReadFalseAndVisibleTrue(user.getId());
         LocalDateTime now = LocalDateTime.now();
         rows.forEach(row -> {
@@ -153,7 +154,7 @@ public class NotificationService {
     @Transactional
     public void deleteMine(Long id, String email) {
         UserNotificationEntity row = deliveries.findByIdAndUserIdAndVisibleTrue(
-                id, currentUser(email).getId())
+                id, currentUser().getId())
                 .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación no encontrada"));
         row.setVisible(false);
@@ -162,7 +163,7 @@ public class NotificationService {
 
     @Transactional
     public void deleteSent(Long id, String creatorEmail) {
-        UserEntity creator = currentUser(creatorEmail);
+        UserEntity creator = currentUser();
         NotificationEntity notification = notifications.findByIdAndCreatedById(id, creator.getId())
                 .orElseThrow(() -> error(NOTIFICATION_FIELD, HttpStatus.NOT_FOUND,
                         "Notificación enviada no encontrada"));
@@ -174,7 +175,7 @@ public class NotificationService {
 
     @Transactional
     public List<NotificationReplyResponse> replies(Long deliveryId, String email) {
-        UserEntity user = currentUser(email);
+        UserEntity user = currentUser();
         UserNotificationEntity delivery = accessibleDelivery(deliveryId, user);
         List<NotificationReplyEntity> conversation = replyRepository.findConversation(
                 delivery.getUser().getId(),
@@ -195,7 +196,7 @@ public class NotificationService {
     @Transactional
     public NotificationReplyResponse reply(Long deliveryId, NotificationReplyRequest request,
             String email) {
-        UserEntity author = currentUser(email);
+        UserEntity author = currentUser();
         UserNotificationEntity delivery = accessibleDelivery(deliveryId, author);
         NotificationReplyEntity reply = new NotificationReplyEntity();
         reply.setDelivery(delivery);
@@ -210,13 +211,13 @@ public class NotificationService {
                 List.of(recipientEmail), List.of(otherParticipantId(delivery, author))));
         NotificationReplyResponse response = replyResponse(saved);
         events.publishEvent(new NotificationReplyCreatedEvent(
-                new RealtimeReply(deliveryId, response, recipientEmail), author.getCorreo()));
+                new RealtimeReply(deliveryId, response, otherParticipantId(delivery, author)), author.getId()));
         return response;
     }
 
     @Transactional
-    public RealtimeReply realtimeReply(Long deliveryId, NotificationReplyRequest request, String email) {
-        UserEntity author = currentUser(email);
+    public RealtimeReply realtimeReply(Long deliveryId, NotificationReplyRequest request, Long actorUserId) {
+        UserEntity author = currentUserById(actorUserId);
         UserNotificationEntity delivery = accessibleDelivery(deliveryId, author);
         NotificationReplyEntity reply = new NotificationReplyEntity();
         reply.setDelivery(delivery);
@@ -229,12 +230,12 @@ public class NotificationService {
         events.publishEvent(new PushRequestedEvent("reply-" + reply.getId(),
                 "Nuevo mensaje de " + author.getNombre(), reply.getMessage(), NOTIFICATIONS_PATH,
                 List.of(recipientEmail), List.of(otherParticipantId(delivery, author))));
-        return new RealtimeReply(deliveryId, saved, recipientEmail);
+        return new RealtimeReply(deliveryId, saved, otherParticipantId(delivery, author));
     }
 
     @Transactional
     public RealtimeReply startTreasuryConversation(NotificationReplyRequest request, String email) {
-        UserEntity guardian = currentUser(email);
+        UserEntity guardian = currentUser();
         if (isAdministrative(guardian))
             throw error("recipient", HttpStatus.BAD_REQUEST,
                     "La conversación con Tesorería debe iniciarla un apoderado");
@@ -262,16 +263,16 @@ public class NotificationService {
         reply.setCreatedAt(now);
         NotificationReplyResponse savedReply = replyResponse(replyRepository.save(reply));
         events.publishEvent(new NotificationCreatedEvent(savedNotification.getId(),
-                List.of(admin.getCorreo())));
+                List.of(admin.getId())));
         events.publishEvent(new PushRequestedEvent("reply-" + reply.getId(),
                 "Nuevo mensaje de " + guardian.getNombre(), reply.getMessage(), NOTIFICATIONS_PATH,
                 List.of(admin.getCorreo()), List.of(admin.getId())));
-        return new RealtimeReply(savedDelivery.getId(), savedReply, admin.getCorreo());
+        return new RealtimeReply(savedDelivery.getId(), savedReply, admin.getId());
     }
 
     @Transactional(readOnly = true)
     public TreasuryContactResponse treasuryContact(String email) {
-        UserEntity requester = currentUser(email);
+        UserEntity requester = currentUser();
         if (isAdministrative(requester))
             throw error("recipient", HttpStatus.BAD_REQUEST,
                     "El contacto de Tesorería está disponible para apoderados");
@@ -296,20 +297,20 @@ public class NotificationService {
 
     @Transactional
     public NotificationReplyResponse editReply(Long id, NotificationReplyRequest request, String email) {
-        NotificationReplyEntity reply = ownEditableReply(id, email);
+        NotificationReplyEntity reply = ownEditableReply(id);
         reply.setMessage(request.message().trim());
         reply.setUpdatedAt(LocalDateTime.now());
         NotificationReplyResponse updated = replyResponse(replyRepository.save(reply));
         UserNotificationEntity delivery = reply.getDelivery();
         UserEntity author = reply.getAuthor();
         events.publishEvent(new NotificationReplyUpdatedEvent(new RealtimeReply(delivery.getId(),
-                updated, otherParticipantEmail(delivery, author)), author.getCorreo()));
+                updated, otherParticipantId(delivery, author)), author.getId()));
         return updated;
     }
 
     @Transactional
     public void deleteReply(Long id, String email) {
-        UserEntity user = currentUser(email);
+        UserEntity user = currentUser();
         NotificationReplyEntity reply = replyRepository.findById(id)
                 .orElseThrow(() -> error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
         UserNotificationEntity delivery = reply.getDelivery();
@@ -318,18 +319,17 @@ public class NotificationService {
         if (!user.getId().equals(creatorId) && !user.getId().equals(recipientId))
             throw error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado");
         if (user.getId().equals(reply.getAuthor().getId())) {
-            String recipientEmail = user.getId().equals(creatorId)
-                    ? delivery.getUser().getCorreo()
-                    : delivery.getNotification().getCreatedBy().getCorreo();
+            Long recipientUserId = user.getId().equals(creatorId)
+                    ? recipientId : creatorId;
             replyRepository.delete(reply);
-            events.publishEvent(new NotificationReplyDeletedEvent(reply.getId(), recipientEmail));
+            events.publishEvent(new NotificationReplyDeletedEvent(reply.getId(), recipientUserId));
         } else {
             replyRepository.hideForUser(reply.getId(), user.getId());
         }
     }
 
-    private NotificationReplyEntity ownEditableReply(Long id, String email) {
-        UserEntity author = currentUser(email);
+    private NotificationReplyEntity ownEditableReply(Long id) {
+        UserEntity author = currentUser();
         NotificationReplyEntity reply = replyRepository.findByIdAndAuthorId(id, author.getId())
                 .orElseThrow(() -> error(MESSAGE_FIELD, HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
         if (reply.getCreatedAt().plusMinutes(MESSAGE_EDIT_MINUTES).isBefore(LocalDateTime.now()))
@@ -372,13 +372,13 @@ public class NotificationService {
 
     private void publishReplyRead(NotificationReplyEntity reply, UserEntity reader) {
         events.publishEvent(new NotificationReadEvent(List.of(reply.getId()), List.of(),
-                reply.getReadAt(), List.of(reply.getAuthor().getCorreo(), reader.getCorreo())));
+                reply.getReadAt(), List.of(reply.getAuthor().getId(), reader.getId())));
     }
 
     private void publishDeliveryRead(UserNotificationEntity delivery) {
         events.publishEvent(new NotificationReadEvent(List.of(), List.of(delivery.getId()),
-                delivery.getReadAt(), List.of(delivery.getNotification().getCreatedBy().getCorreo(),
-                        delivery.getUser().getCorreo())));
+                delivery.getReadAt(), List.of(delivery.getNotification().getCreatedBy().getId(),
+                        delivery.getUser().getId())));
     }
 
     private List<UserEntity> resolveRecipients(NotificationRequest request, Long organizationId) {
@@ -404,17 +404,24 @@ public class NotificationService {
                 user -> user, (first, second) -> first, LinkedHashMap::new)).values().stream().toList();
     }
 
-    private UserEntity currentUser(String email) {
+    private UserEntity currentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null
                 && authentication.getPrincipal() instanceof TenantUserDetails tenantUser) {
-            return users.findById(tenantUser.getUserId()).orElseThrow(() ->
+            return users.findById(tenantUser.getUserId())
+                    .filter(user -> Objects.equals(user.getOrganizationId(), tenantUser.getOrganizationId()))
+                    .orElseThrow(() ->
                     new DomainException(UserErrorCode.NOT_FOUND.getField(),
                             UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));
         }
-        return users.findByCorreo(email).orElseThrow(() ->
-                new DomainException(UserErrorCode.NOT_FOUND.getField(),
-                        UserErrorCode.NOT_FOUND.getStatus(), "Usuario no encontrado"));
+        throw new AccessDeniedException("Identidad de cuenta requerida");
+    }
+
+    private UserEntity currentUserById(Long actorUserId) {
+        UserEntity user = currentUser();
+        if (!user.getId().equals(actorUserId))
+            throw new AccessDeniedException("Cuenta incorrecta");
+        return user;
     }
 
     private NotificationResponse response(UserNotificationEntity row) {

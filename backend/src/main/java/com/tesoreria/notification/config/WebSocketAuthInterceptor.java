@@ -11,8 +11,10 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.AuthenticationException;
+import com.tesoreria.organization.config.TenantUserDetails;
+import com.tesoreria.user.application.usecase.RefreshTokenService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,12 +22,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private final TokenRevocationService revocationService;
+    private final RefreshTokenService refreshTokenService;
 
     public WebSocketAuthInterceptor(JwtService jwtService, CustomUserDetailsService userDetailsService,
-            TokenRevocationService revocationService) {
+            TokenRevocationService revocationService, RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.revocationService = revocationService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -39,13 +43,18 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         try {
             if (revocationService.isRevoked(token)) throw new AccessDeniedException("JWT revocado");
             JwtService.ParsedToken parsed = jwtService.parseToken(token);
-            if (revocationService.isUserRevokedAfter(parsed.username(), parsed.issuedAt()))
+            if (parsed.userId() == null
+                    || revocationService.isUserRevokedAfter(parsed.userId(), parsed.issuedAt()))
                 throw new AccessDeniedException("JWT revocado");
-            UserDetails details = userDetailsService.loadUserByUsername(parsed.username());
+            if (parsed.tokenFamilyId() != null && !refreshTokenService.isFamilyActive(parsed.tokenFamilyId()))
+                throw new AccessDeniedException("Sesión revocada");
+            UserDetails details = userDetailsService.loadUserById(parsed.userId());
             if (!jwtService.isTokenValid(parsed, details)) throw new AccessDeniedException("JWT inválido");
-            accessor.setUser(new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities()));
+            if (!(details instanceof TenantUserDetails tenantUser))
+                throw new AccessDeniedException("Identidad de cuenta requerida");
+            accessor.setUser(new StompAccountAuthentication(tenantUser));
             return message;
-        } catch (JwtException | IllegalArgumentException exception) {
+        } catch (JwtException | IllegalArgumentException | AuthenticationException exception) {
             throw new AccessDeniedException("JWT inválido", exception);
         }
     }

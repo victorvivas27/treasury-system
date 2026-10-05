@@ -25,10 +25,11 @@ class WebSocketAuthInterceptorTest {
     @Mock JwtService jwtService;
     @Mock CustomUserDetailsService detailsService;
     @Mock TokenRevocationService revocationService;
+    @Mock com.tesoreria.user.application.usecase.RefreshTokenService refreshTokenService;
     private WebSocketAuthInterceptor interceptor;
 
     @BeforeEach void setUp() {
-        interceptor = new WebSocketAuthInterceptor(jwtService, detailsService, revocationService);
+        interceptor = new WebSocketAuthInterceptor(jwtService, detailsService, revocationService, refreshTokenService);
     }
     @Test void rejectsConnectWithoutJwt() {
         assertThrows(AccessDeniedException.class, () -> interceptor.preSend(connect(null), null));
@@ -37,19 +38,20 @@ class WebSocketAuthInterceptorTest {
         when(jwtService.parseToken("bad")).thenThrow(new io.jsonwebtoken.MalformedJwtException("bad"));
         assertThrows(AccessDeniedException.class, () -> interceptor.preSend(connect("Bearer bad"), null));
     }
-    @Test void associatesAuthenticatedEmailAsPrincipal() {
+    @Test void associatesAuthenticatedAccountIdAsPrincipal() {
         Date now = new Date();
         JwtService.ParsedToken parsed = new JwtService.ParsedToken("user@example.com", now,
-                new Date(now.getTime() + 60_000));
-        var details = User.withUsername("user@example.com").password("x").roles("USER").build();
+                new Date(now.getTime() + 60_000), 20L, 2L, null);
+        var details = new com.tesoreria.organization.config.TenantUserDetails(20L, 2L,
+                "user@example.com", "x", com.tesoreria.user.core.constant.RoleEnum.USER, true, true);
         when(jwtService.parseToken("valid")).thenReturn(parsed);
-        when(detailsService.loadUserByUsername("user@example.com")).thenReturn(details);
+        when(detailsService.loadUserById(20L)).thenReturn(details);
         when(jwtService.isTokenValid(parsed, details)).thenReturn(true);
         Message<?> result = interceptor.preSend(connect("Bearer valid"), null);
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(result, StompHeaderAccessor.class);
         assertNotNull(accessor);
         assertNotNull(accessor.getUser());
-        assertEquals("user@example.com", accessor.getUser().getName());
+        assertEquals("20", accessor.getUser().getName());
     }
     private Message<byte[]> connect(String authorization) {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);

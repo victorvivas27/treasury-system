@@ -13,6 +13,8 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
+import java.util.Objects;
+import com.tesoreria.user.core.constant.RoleEnum;
 import java.util.function.Function;
 
 @Service
@@ -95,10 +97,18 @@ public class JwtService {
     public boolean isTokenValid(
             ParsedToken token,
             UserDetails userDetails) {
-        return token.username() != null
+        return userDetails instanceof TenantUserDetails tenantUser
+                && token.userId() != null
+                && token.userId().equals(tenantUser.getUserId())
+                && Objects.equals(token.organizationId(), tenantUser.getOrganizationId())
+                && (tenantUser.getOrganizationId() != null || tenantUser.getRole() == RoleEnum.SUPER_ADMIN)
+                && userDetails.isEnabled()
+                && userDetails.isAccountNonLocked()
+                && token.issuedAt() != null
+                && token.expiresAt() != null
+                && token.username() != null
                 && userDetails.getUsername().equalsIgnoreCase(token.username())
-                && (!(userDetails instanceof TenantUserDetails tenantUser)
-                    || tenantUser.isOrganizationActive())
+                && tenantUser.isOrganizationActive()
                 && token.expiresAt().after(new Date());
     }
 

@@ -23,6 +23,7 @@ import java.util.UUID;
 
 @Service
 public class RefreshTokenService {
+    private static final int UNIQUE_ACCOUNT_COUNT = 1;
     private static final SecureRandom RANDOM = new SecureRandom();
     private final UserTokenJpaRepository tokenRepository;
     private final UserJpaRepository userRepository;
@@ -67,9 +68,9 @@ public class RefreshTokenService {
     }
 
     private IssuedTokens issue(String correo, UUID tokenFamilyId, String userAgent, String ipAddress) {
-        var user = userRepository.findFirstByCorreoOrderByIdAsc(correo.toLowerCase(java.util.Locale.ROOT))
-                .orElseThrow(this::invalidToken);
-        return issue(user, tokenFamilyId, userAgent, ipAddress);
+        var matches = userRepository.findAllByCorreoOrderByIdAsc(correo.toLowerCase(java.util.Locale.ROOT));
+        if (matches.size() != UNIQUE_ACCOUNT_COUNT) throw invalidToken();
+        return issue(matches.get(0), tokenFamilyId, userAgent, ipAddress);
     }
 
     private IssuedTokens issue(com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity user,

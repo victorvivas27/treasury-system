@@ -36,6 +36,19 @@ class NotificationServiceTest {
     @Mock private ApplicationEventPublisher events;
     private NotificationService service;
 
+    @org.junit.jupiter.api.AfterEach
+    void clearIdentity() { org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
+
+    private void authenticate(UserEntity user) {
+        var details = new com.tesoreria.organization.config.TenantUserDetails(user.getId(),
+                user.getOrganizationId(), user.getCorreo(), "x", user.getRol(), true, true);
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        details, null, details.getAuthorities()));
+        when(users.findById(user.getId())).thenReturn(Optional.of(user));
+    }
+
+
     @BeforeEach
     void setUp() {
         service = new NotificationService(notifications, deliveries, replies, users, guardians, events);
@@ -44,7 +57,7 @@ class NotificationServiceTest {
     @Test
     void unreadCount_deberiaSumarNotificacionesYMensajesRecibidos() {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(deliveries.countByUserIdAndReadFalseAndVisibleTrue(7L)).thenReturn(2L);
         when(replies.countUnreadReceived(7L)).thenReturn(3L);
 
@@ -59,7 +72,7 @@ class NotificationServiceTest {
         UserEntity recipient = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         UserNotificationEntity firstDelivery = delivery(20L, first, recipient, false);
         UserNotificationEntity secondDelivery = delivery(21L, second, recipient, true);
-        when(users.findByCorreo("admin@mail.com")).thenReturn(Optional.of(admin));
+        authenticate(admin);
         when(notifications.findByCreatedByIdOrderByCreatedAtDesc(1L))
                 .thenReturn(List.of(first, second));
         when(deliveries.findByNotificationIdInWithUserOrderByNotificationAndUserName(
@@ -85,7 +98,7 @@ class NotificationServiceTest {
         UserNotificationEntity delivery = new UserNotificationEntity();
         delivery.setNotification(notification);
         delivery.setUser(guardian);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(deliveries.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(delivery));
         when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -98,8 +111,8 @@ class NotificationServiceTest {
                 NotificationReplyCreatedEvent.class);
         verify(events).publishEvent(created.capture());
         assertEquals(12L, created.getValue().message().deliveryId());
-        assertEquals(admin.getCorreo(), created.getValue().message().recipientEmail());
-        assertEquals(guardian.getCorreo(), created.getValue().authorEmail());
+        assertEquals(admin.getId(), created.getValue().message().recipientUserId());
+        assertEquals(guardian.getId(), created.getValue().authorUserId());
         assertEquals(response, created.getValue().message().reply());
         ArgumentCaptor<NotificationReplyEntity> saved = ArgumentCaptor.forClass(
                 NotificationReplyEntity.class);
@@ -117,16 +130,16 @@ class NotificationServiceTest {
         UserNotificationEntity delivery = new UserNotificationEntity();
         delivery.setNotification(notification);
         delivery.setUser(guardian);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(deliveries.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(delivery));
         when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         var result = service.realtimeReply(12L, new NotificationReplyRequest("  Gracias  "),
-                guardian.getCorreo());
+                guardian.getId());
 
         assertEquals(12L, result.deliveryId());
         assertEquals("Gracias", result.reply().message());
-        assertEquals(admin.getCorreo(), result.recipientEmail());
+        assertEquals(admin.getId(), result.recipientUserId());
         verify(replies).save(any(NotificationReplyEntity.class));
     }
 
@@ -136,7 +149,7 @@ class NotificationServiceTest {
         UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         UserNotificationEntity savedDelivery = mock(UserNotificationEntity.class);
         when(savedDelivery.getId()).thenReturn(40L);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(users.findByRolOrderByIdAsc(RoleEnum.ADMIN)).thenReturn(List.of(admin));
         when(notifications.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(deliveries.save(any())).thenReturn(savedDelivery);
@@ -147,7 +160,7 @@ class NotificationServiceTest {
 
         assertEquals(40L, result.deliveryId());
         assertEquals("Necesito ayuda", result.reply().message());
-        assertEquals(admin.getCorreo(), result.recipientEmail());
+        assertEquals(admin.getId(), result.recipientUserId());
         verify(notifications).save(any(NotificationEntity.class));
         verify(deliveries).save(any(UserNotificationEntity.class));
         verify(replies).save(any(NotificationReplyEntity.class));
@@ -159,7 +172,7 @@ class NotificationServiceTest {
         guardian.setOrganizationId(10L);
         UserEntity admin = user(2L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         UserEntity superAdmin = user(1L, "Super admin", "super@mail.com", RoleEnum.SUPER_ADMIN);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(users.findByRolInAndOrganizationIdOrderByIdAsc(
                 List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), 10L))
                 .thenReturn(List.of(superAdmin, admin));
@@ -171,7 +184,7 @@ class NotificationServiceTest {
         var result = service.startTreasuryConversation(
                 new NotificationReplyRequest("Necesito ayuda"), guardian.getCorreo());
 
-        assertEquals(admin.getCorreo(), result.recipientEmail());
+        assertEquals(admin.getId(), result.recipientUserId());
         assertEquals("Necesito ayuda", result.reply().message());
         ArgumentCaptor<NotificationEntity> saved = ArgumentCaptor.forClass(NotificationEntity.class);
         verify(notifications).save(saved.capture());
@@ -184,7 +197,7 @@ class NotificationServiceTest {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         guardian.setOrganizationId(10L);
         UserEntity superAdmin = user(1L, "Tesorero", "super@mail.com", RoleEnum.SUPER_ADMIN);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(users.findByRolInAndOrganizationIdOrderByIdAsc(
                 List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), 10L)).thenReturn(List.of(superAdmin));
 
@@ -195,7 +208,7 @@ class NotificationServiceTest {
     void startTreasuryConversation_deberiaRechazarCursoSinResponsableSinGuardarMensajes() {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         guardian.setOrganizationId(10L);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(users.findByRolInAndOrganizationIdOrderByIdAsc(
                 List.of(RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN), 10L)).thenReturn(List.of());
 
@@ -209,7 +222,7 @@ class NotificationServiceTest {
     @Test
     void reply_deberiaImpedirQueOtroAdministradorAccedaAlHilo() {
         UserEntity admin = user(2L, "Otro admin", "other@mail.com", RoleEnum.ADMIN);
-        when(users.findByCorreo(admin.getCorreo())).thenReturn(Optional.of(admin));
+        authenticate(admin);
         when(deliveries.findByIdAndNotificationCreatedById(12L, 2L)).thenReturn(Optional.empty());
 
         assertThrows(DomainException.class, () -> service.reply(12L,
@@ -226,7 +239,7 @@ class NotificationServiceTest {
         UserNotificationEntity delivery = new UserNotificationEntity();
         delivery.setNotification(notification);
         delivery.setUser(guardian);
-        when(users.findByCorreo(superAdmin.getCorreo())).thenReturn(Optional.of(superAdmin));
+        authenticate(superAdmin);
         when(deliveries.findByIdAndNotificationCreatedById(12L, 1L))
                 .thenReturn(Optional.of(delivery));
         when(replies.findConversation(7L, 1L, 1L)).thenReturn(List.of());
@@ -240,7 +253,7 @@ class NotificationServiceTest {
     @Test
     void startTreasuryConversation_deberiaImpedirQueSuperAdminInicieComoApoderado() {
         UserEntity superAdmin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.SUPER_ADMIN);
-        when(users.findByCorreo(superAdmin.getCorreo())).thenReturn(Optional.of(superAdmin));
+        authenticate(superAdmin);
 
         assertThrows(DomainException.class, () -> service.startTreasuryConversation(
                 new NotificationReplyRequest("Mensaje"), superAdmin.getCorreo()));
@@ -253,7 +266,7 @@ class NotificationServiceTest {
     @Test
     void treasuryContact_deberiaImpedirQueSuperAdminLoConsulteComoApoderado() {
         UserEntity superAdmin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.SUPER_ADMIN);
-        when(users.findByCorreo(superAdmin.getCorreo())).thenReturn(Optional.of(superAdmin));
+        authenticate(superAdmin);
 
         assertThrows(DomainException.class, () -> service.treasuryContact(superAdmin.getCorreo()));
 
@@ -278,7 +291,7 @@ class NotificationServiceTest {
         reply.setCreatedAt(java.time.LocalDateTime.now().minusMinutes(1));
         reply.setRead(true);
         reply.setReadAt(java.time.LocalDateTime.now());
-        when(users.findByCorreo(author.getCorreo())).thenReturn(Optional.of(author));
+        authenticate(author);
         when(replies.findByIdAndAuthorId(91L, 7L)).thenReturn(Optional.of(reply));
         when(replies.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -293,8 +306,8 @@ class NotificationServiceTest {
         verify(events).publishEvent(event.capture());
         assertEquals(updated, event.getValue().message().reply());
         assertEquals(20L, event.getValue().message().deliveryId());
-        assertEquals(admin.getCorreo(), event.getValue().message().recipientEmail());
-        assertEquals(author.getCorreo(), event.getValue().authorEmail());
+        assertEquals(admin.getId(), event.getValue().message().recipientUserId());
+        assertEquals(author.getId(), event.getValue().authorUserId());
         verifyNoMoreInteractions(events);
     }
 
@@ -308,7 +321,7 @@ class NotificationServiceTest {
         doReturn(20L).when(delivery).getId();
         delivery.setNotification(notification);
         delivery.setUser(guardian);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(deliveries.findByIdAndUserIdAndVisibleTrue(20L, 7L)).thenReturn(Optional.of(delivery));
         when(deliveries.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -316,7 +329,7 @@ class NotificationServiceTest {
         var receipt = ArgumentCaptor.forClass(NotificationReadEvent.class);
         verify(events).publishEvent(receipt.capture());
         assertEquals(List.of(20L), receipt.getValue().readDeliveryIds());
-        assertEquals(List.of(admin.getCorreo(), guardian.getCorreo()), receipt.getValue().recipientEmails());
+        assertEquals(List.of(admin.getId(), guardian.getId()), receipt.getValue().recipientUserIds());
         assertNotNull(receipt.getValue().readAt());
         service.markRead(20L, guardian.getCorreo());
         verify(events, times(1)).publishEvent(any(NotificationReadEvent.class));
@@ -341,7 +354,7 @@ class NotificationServiceTest {
         NotificationReplyEntity own = new NotificationReplyEntity();
         own.setAuthor(reader);
         own.setMessage("Mensaje propio");
-        when(users.findByCorreo(reader.getCorreo())).thenReturn(Optional.of(reader));
+        authenticate(reader);
         if (readerRole == RoleEnum.ADMIN) {
             when(deliveries.findByIdAndNotificationCreatedById(20L, reader.getId()))
                     .thenReturn(Optional.of(delivery));
@@ -359,7 +372,7 @@ class NotificationServiceTest {
         var receipt = ArgumentCaptor.forClass(NotificationReadEvent.class);
         verify(events).publishEvent(receipt.capture());
         assertEquals(List.of(91L), receipt.getValue().readMessageIds());
-        assertEquals(List.of(sender.getCorreo(), reader.getCorreo()), receipt.getValue().recipientEmails());
+        assertEquals(List.of(sender.getId(), reader.getId()), receipt.getValue().recipientUserIds());
         service.replies(20L, reader.getCorreo());
         verify(events, times(1)).publishEvent(any(NotificationReadEvent.class));
     }
@@ -369,7 +382,7 @@ class NotificationServiceTest {
         UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         NotificationEntity notification = mock(NotificationEntity.class);
         when(notification.getId()).thenReturn(18L);
-        when(users.findByCorreo("admin@mail.com")).thenReturn(Optional.of(admin));
+        authenticate(admin);
         when(notifications.findByIdAndCreatedById(18L, 1L))
                 .thenReturn(Optional.of(notification));
 
@@ -387,7 +400,7 @@ class NotificationServiceTest {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         NotificationReplyEntity reply = reply(22L, guardian, admin, guardian);
-        when(users.findByCorreo(guardian.getCorreo())).thenReturn(Optional.of(guardian));
+        authenticate(guardian);
         when(replies.findById(22L)).thenReturn(Optional.of(reply));
 
         service.deleteReply(22L, guardian.getCorreo());
@@ -398,6 +411,8 @@ class NotificationServiceTest {
         verify(events).publishEvent(deletedEvent.capture());
         assertInstanceOf(com.tesoreria.notification.application.NotificationReplyDeletedEvent.class,
                 deletedEvent.getValue());
+        assertEquals(admin.getId(), ((com.tesoreria.notification.application.NotificationReplyDeletedEvent)
+                deletedEvent.getValue()).recipientUserId());
     }
 
     @Test
@@ -405,7 +420,7 @@ class NotificationServiceTest {
         UserEntity guardian = user(7L, "Apoderado", "guardian@mail.com", RoleEnum.USER);
         UserEntity admin = user(1L, "Tesorero", "admin@mail.com", RoleEnum.ADMIN);
         NotificationReplyEntity reply = reply(22L, guardian, admin, guardian);
-        when(users.findByCorreo(admin.getCorreo())).thenReturn(Optional.of(admin));
+        authenticate(admin);
         when(replies.findById(22L)).thenReturn(Optional.of(reply));
 
         service.deleteReply(22L, admin.getCorreo());
