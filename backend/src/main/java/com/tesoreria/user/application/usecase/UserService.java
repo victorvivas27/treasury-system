@@ -129,7 +129,7 @@ public class UserService implements UserUseCase {
 
     @Override
     @Transactional
-    public User update(Long id, User changes, String authenticatedEmail) {
+    public User update(Long id, User changes, Long authenticatedUserId) {
         User existing = findById(id);
         repository.findByCorreoAndOrganizationId(changes.getCorreo(), existing.getOrganizationId())
                 .filter(other -> !other.getId().equals(id))
@@ -150,11 +150,11 @@ public class UserService implements UserUseCase {
 
     @Override
     @Transactional
-    public User changeRole(Long id, RoleEnum role, String authenticatedEmail) {
+    public User changeRole(Long id, RoleEnum role, Long authenticatedUserId) {
         User existing = findById(id);
         assertSuperAdminRoleAllowed(role);
         assertSuperAdminRoleAllowed(existing.getRol());
-        if (existing.getCorreo().equalsIgnoreCase(authenticatedEmail)) {
+        if (existing.getId().equals(authenticatedUserId)) {
             throw new DomainException(
                     UserErrorCode.OWN_ROLE.getField(),
                     UserErrorCode.OWN_ROLE.getStatus(),
@@ -180,9 +180,9 @@ public class UserService implements UserUseCase {
     }
 
     @Transactional
-    public User cambiarEstado(Long id, boolean activo, String authenticatedEmail) {
+    public User cambiarEstado(Long id, boolean activo, Long authenticatedUserId) {
         User user = findById(id);
-        if (user.getCorreo().equalsIgnoreCase(authenticatedEmail) && !activo) {
+        if (user.getId().equals(authenticatedUserId) && !activo) {
             throw new DomainException("enabled", org.springframework.http.HttpStatus.CONFLICT,
                     "No puede desactivar su propio usuario");
         }

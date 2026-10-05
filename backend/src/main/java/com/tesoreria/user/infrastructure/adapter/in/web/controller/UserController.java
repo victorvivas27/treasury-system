@@ -1,5 +1,6 @@
 package com.tesoreria.user.infrastructure.adapter.in.web.controller;
 
+import com.tesoreria.user.config.security.AccountIdentity;
 import com.tesoreria.shared.domain.pagination.PageRequest;
 import com.tesoreria.shared.domain.pagination.PageResponse;
 import com.tesoreria.shared.infrastructure.constant.ApiConstants;
@@ -95,13 +96,13 @@ public class UserController {
 
     @Operation(summary = "Actualizar usuario")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @userAuthorization.isSelf(#id, authentication.name)")
+    @PreAuthorize("hasRole('ADMIN') or @userAuthorization.isSelf(#id, authentication)")
     public ResponseEntity<UserResponseDTO> update(
             @PathVariable Long id,
             @Valid @RequestBody UserRequestDTO request,
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
-                service.update(id, mapper.toUpdateDomain(request), authentication.getName())));
+                service.update(id, mapper.toUpdateDomain(request), AccountIdentity.userId(authentication))));
     }
 
     @Operation(summary = "Eliminar usuario")
@@ -119,7 +120,7 @@ public class UserController {
             @RequestBody EstadoActivoRequest request,
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
-                service.cambiarEstado(id, request.activo(), authentication.getName())));
+                service.cambiarEstado(id, request.activo(), AccountIdentity.userId(authentication))));
     }
 
     @Operation(summary = "Cambiar rol de usuario")
@@ -130,7 +131,7 @@ public class UserController {
             @Valid @RequestBody RoleRequestDTO request,
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
-                service.changeRole(id, request.rol(), authentication.getName())));
+                service.changeRole(id, request.rol(), AccountIdentity.userId(authentication))));
     }
 
     @PatchMapping("/me/avatar")

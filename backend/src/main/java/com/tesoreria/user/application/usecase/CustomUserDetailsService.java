@@ -15,6 +15,7 @@ import java.util.Locale;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
+    private static final int UNIQUE_ACCOUNT_COUNT = 1;
     private final UserRepositoryOutPort repository;
     private final OrganizationJpaRepository organizations;
 
@@ -31,9 +32,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String correo) {
-        User user = repository.findByCorreo(correo.toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new UsernameNotFoundException("Credenciales invalidas"));
-        return details(user);
+        var matches = repository.findAllByCorreo(correo.toLowerCase(Locale.ROOT));
+        if (matches.size() != UNIQUE_ACCOUNT_COUNT) throw new UsernameNotFoundException("Cuenta ambigua o inexistente");
+        return details(matches.get(0));
     }
 
     public UserDetails loadUserById(Long userId) {

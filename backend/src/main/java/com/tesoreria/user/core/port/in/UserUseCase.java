@@ -16,9 +16,9 @@ public interface UserUseCase {
 
     PageResponse<User> findAll(PageRequest request);
 
-    User update(Long id, User changes, String authenticatedEmail);
+    User update(Long id, User changes, Long authenticatedUserId);
 
-    User changeRole(Long id, RoleEnum role, String authenticatedEmail);
+    User changeRole(Long id, RoleEnum role, Long authenticatedUserId);
 
     void delete(Long id);
 }

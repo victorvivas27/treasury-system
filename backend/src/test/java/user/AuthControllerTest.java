@@ -147,9 +147,9 @@ class AuthControllerTest {
 
     @Test
     void me_deberiaRetornarUsuarioAutenticado() throws Exception {
-        when(userService.findByCorreo("admin@mail.com")).thenReturn(user);
+        when(userService.findById(1L)).thenReturn(user);
         mockMvc.perform(get("/api/v1/auth/me")
-                        .principal(new UsernamePasswordAuthenticationToken("admin@mail.com", null)))
+                        .principal(new UsernamePasswordAuthenticationToken(new com.tesoreria.organization.config.TenantUserDetails(1L, 1L, "admin@mail.com", "x", RoleEnum.ADMIN, true, true), null, java.util.List.of())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.correo").value("admin@mail.com"));
     }

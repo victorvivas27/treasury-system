@@ -49,7 +49,7 @@ class RefreshTokenServiceTest {
 
     @Test
     void issue_guardaHashYEntregaTokens() {
-        when(userRepository.findFirstByCorreoOrderByIdAsc("admin@mail.com")).thenReturn(Optional.of(user));
+        when(userRepository.findAllByCorreoOrderByIdAsc("admin@mail.com")).thenReturn(java.util.List.of(user));
         when(userDetailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(eq(details), any(UUID.class))).thenReturn("access");
 

@@ -70,8 +70,9 @@ public class AuthService {
     }
 
     public String refresh(String token) {
-        String username = jwtService.extractUsername(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        JwtService.ParsedToken parsed = jwtService.parseToken(token);
+        if (parsed.userId() == null) throw new BadCredentialsException("Identidad requerida");
+        UserDetails userDetails = userDetailsService.loadUserById(parsed.userId());
         if (!jwtService.isTokenValid(token, userDetails)) {
             throw new DomainException(
                     UserErrorCode.INVALID_CREDENTIALS.getField(),

@@ -86,6 +86,12 @@ class SecurityConfigTest {
 
     @BeforeEach
     void setUpUsers() {
+        if (organizations.findBySlug("default").isEmpty()) {
+            var defaultOrganization = new com.tesoreria.organization.infrastructure.persistence.OrganizationEntity();
+            defaultOrganization.setName("Default"); defaultOrganization.setSlug("default");
+            defaultOrganization.setSchoolYear(2026);
+            organizations.saveAndFlush(defaultOrganization);
+        }
         tokenRepository.deleteAll();
         userRepository.deleteAll();
         userRepository.flush();
@@ -97,7 +103,7 @@ class SecurityConfigTest {
     @Test
     @org.springframework.transaction.annotation.Transactional
     void notificaciones_deberiaPermitirAlApoderadoIniciarYResponderConAdminYSuperAdmin() throws Exception {
-        var organization = new com.tesoreria.organization.infrastructure.persistence.OrganizationEntity();
+        var organization = organizations.findBySlug("default").orElseThrow();
         organization.setSlug("default");
         organization.setName("Curso de prueba");
         organization.setSchoolYear(2026);
@@ -457,6 +463,8 @@ class SecurityConfigTest {
         user.setCorreo(correo);
         user.setPassword("Test123!");
         user.setRol(role);
+        user.setOrganizationId(organizations.findBySlug("default").orElseThrow().getId());
+        user.setEmailVerifiedAt(LocalDateTime.now());
         userRepository.save(user);
     }
 

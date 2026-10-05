@@ -25,7 +25,7 @@ class CustomUserDetailsServiceTest {
         User user = new User(
                 1L, "USR-001", "Victor Vivas", "admin@mail.com", "$2a$hash",
                 RoleEnum.ADMIN, true, false, null, null);
-        when(repository.findByCorreo("admin@mail.com")).thenReturn(Optional.of(user));
+        when(repository.findAllByCorreo("admin@mail.com")).thenReturn(java.util.List.of(user));
         var details = new CustomUserDetailsService(repository).loadUserByUsername("ADMIN@MAIL.COM");
         assertEquals("admin@mail.com", details.getUsername());
         assertFalse(details.isAccountNonLocked());
@@ -34,7 +34,7 @@ class CustomUserDetailsServiceTest {
 
     @Test
     void deberiaRechazarUsuarioInexistente() {
-        when(repository.findByCorreo("none@mail.com")).thenReturn(Optional.empty());
+        when(repository.findAllByCorreo("none@mail.com")).thenReturn(java.util.List.of());
         assertThrows(
                 UsernameNotFoundException.class,
                 () -> new CustomUserDetailsService(repository).loadUserByUsername("none@mail.com"));

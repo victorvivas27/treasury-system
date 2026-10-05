@@ -1,3 +1,3 @@
 package com.tesoreria.notification.application;
 
-public record NotificationReplyCreatedEvent(RealtimeReply message, String authorEmail) { }
+public record NotificationReplyCreatedEvent(RealtimeReply message, Long authorUserId) { }

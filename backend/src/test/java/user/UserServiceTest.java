@@ -121,6 +121,21 @@ class UserServiceTest {
     @Nested
     class UpdateTests {
         @Test
+        void sameEmailOtherAccountDoesNotTriggerOwnRoleGuard() {
+            User other = user(2L, "admin@mail.com", RoleEnum.ADMIN);
+            when(repository.findById(2L)).thenReturn(Optional.of(other));
+            when(repository.save(other)).thenReturn(other);
+            assertSame(other, service.changeRole(2L, RoleEnum.ADMIN, 1L));
+        }
+        @Test
+        void sameEmailOtherAccountCanBeDisabled() {
+            User other = user(2L, "admin@mail.com", RoleEnum.USER);
+            when(repository.findById(2L)).thenReturn(Optional.of(other));
+            when(repository.save(other)).thenReturn(other);
+            assertFalse(service.cambiarEstado(2L, false, 1L).getEnabled());
+            verify(repository).save(other);
+        }
+        @Test
         void update_deberiaPermitirMismoCorreoYConservarPassword() {
             User changes = user(null, "admin@mail.com", RoleEnum.USER);
             String currentPassword = user.getPassword();
@@ -129,7 +144,7 @@ class UserServiceTest {
                     changes.getCorreo(), user.getOrganizationId())).thenReturn(Optional.of(user));
             when(repository.save(user)).thenReturn(user);
 
-            User result = service.update(1L, changes, user.getCorreo());
+            User result = service.update(1L, changes, user.getId());
 
             assertEquals(currentPassword, result.getPassword());
             verifyNoInteractions(encoder);
@@ -141,7 +156,7 @@ class UserServiceTest {
             when(repository.findById(1L)).thenReturn(Optional.of(user));
             assertThrows(
                     DomainException.class,
-                    () -> service.changeRole(1L, RoleEnum.USER, "admin@mail.com"));
+                    () -> service.changeRole(1L, RoleEnum.USER, 1L));
         }
     }
 

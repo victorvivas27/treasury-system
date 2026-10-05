@@ -17,10 +17,7 @@ class JwtServiceTest {
     @BeforeEach
     void setUp() {
         jwtService = new JwtService("test-secret-key-with-at-least-32-characters", 60_000L);
-        userDetails = User.withUsername("admin@mail.com")
-                .password("secret")
-                .roles("ADMIN")
-                .build();
+        userDetails = new TenantUserDetails(1L, 1L, "admin@mail.com", "secret", RoleEnum.ADMIN, true, true);
     }
 
     @Test
@@ -71,6 +68,6 @@ class JwtServiceTest {
         JwtService.ParsedToken parsed = jwtService.parseToken(jwtService.generateToken(tenantUser));
 
         assertEquals(23L, parsed.organizationId());
-        assertNull(jwtService.parseToken(jwtService.generateToken(userDetails)).organizationId());
+        assertEquals(1L, jwtService.parseToken(jwtService.generateToken(userDetails)).organizationId());
     }
 }
