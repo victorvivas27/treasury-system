@@ -104,9 +104,8 @@ export const ProfilePage = () => {
     setSavingName(true);
     setNameError("");
     try {
-      const updatedUser = await users.update(user.id, {
-        nombre: normalizedName, correo: user.correo, rol: user.rol,
-        enabled: user.enabled, accountNonLocked: user.accountNonLocked,
+      const updatedUser = await users.updateSelfProfile(user.id, {
+        nombre: normalizedName,
       });
       syncUser(updatedUser);
       setEditingName(false);

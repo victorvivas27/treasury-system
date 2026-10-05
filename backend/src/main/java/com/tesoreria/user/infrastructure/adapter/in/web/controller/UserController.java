@@ -10,6 +10,9 @@ import com.tesoreria.user.application.usecase.ProfileImageService;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.AvatarRequestDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.RoleRequestDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.UserRequestDTO;
+import com.tesoreria.user.infrastructure.adapter.in.web.dto.AdminUserUpdateRequest;
+import com.tesoreria.user.infrastructure.adapter.in.web.dto.SelfProfileUpdateRequest;
+import com.tesoreria.user.core.model.AdminUserUpdate;
 import com.tesoreria.user.infrastructure.adapter.in.web.dto.UserResponseDTO;
 import com.tesoreria.user.infrastructure.adapter.in.web.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -96,13 +99,25 @@ public class UserController {
 
     @Operation(summary = "Actualizar usuario")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @userAuthorization.isSelf(#id, authentication)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> update(
             @PathVariable Long id,
-            @Valid @RequestBody UserRequestDTO request,
+            @Valid @RequestBody AdminUserUpdateRequest request,
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
-                service.update(id, mapper.toUpdateDomain(request), AccountIdentity.userId(authentication))));
+                service.update(id, new AdminUserUpdate(request.nombre(), request.correo(),
+                        request.enabled(), request.accountNonLocked()), AccountIdentity.userId(authentication))));
+    }
+
+    @Operation(summary = "Actualizar perfil propio")
+    @PutMapping("/{id}/profile")
+    @PreAuthorize("@userAuthorization.isSelf(#id, authentication)")
+    public ResponseEntity<UserResponseDTO> updateSelfProfile(
+            @PathVariable Long id,
+            @Valid @RequestBody SelfProfileUpdateRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(mapper.toResponse(
+                service.updateSelfProfile(id, request.nombre(), AccountIdentity.userId(authentication))));
     }
 
     @Operation(summary = "Eliminar usuario")

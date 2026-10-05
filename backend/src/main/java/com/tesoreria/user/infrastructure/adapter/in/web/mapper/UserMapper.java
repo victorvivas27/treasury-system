@@ -23,21 +23,5 @@ public interface UserMapper {
     @Mapping(target = "backupCodes", ignore = true)
     User toDomain(UserRequestDTO request);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "code", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "emailVerifiedAt", ignore = true)
-    @Mapping(target = "invitationAcceptedAt", ignore = true)
-    @Mapping(target = "invitedGuardianId", ignore = true)
-    @Mapping(target = "organizationId", ignore = true)
-    @Mapping(target = "profileImageUrl", ignore = true)
-    @Mapping(target = "profileImageType", ignore = true)
-    @Mapping(target = "totpSecret", ignore = true)
-    @Mapping(target = "totpEnabled", ignore = true)
-    @Mapping(target = "backupCodes", ignore = true)
-    User toUpdateDomain(UserRequestDTO request);
-
     UserResponseDTO toResponse(User user);
 }

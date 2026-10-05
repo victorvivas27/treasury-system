@@ -87,8 +87,14 @@ export const UserForm = ({
     event.preventDefault();
     if (!validate()) return;
     if (initialData) {
-      const { password: _password, ...updatePayload } = formData;
-      await onSubmit(updatePayload);
+      await onSubmit({
+        nombre: formData.nombre,
+        correo: formData.correo,
+        ...(showAccountStatus && {
+          enabled: formData.enabled,
+          accountNonLocked: formData.accountNonLocked,
+        }),
+      });
       return;
     }
     await onSubmit(formData);

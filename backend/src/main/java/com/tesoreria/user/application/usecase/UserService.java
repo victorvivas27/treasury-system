@@ -11,9 +11,12 @@ import com.tesoreria.user.core.exception.EmailAlreadyExistsException;
 import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.core.exception.UserNotFoundException;
 import com.tesoreria.user.core.model.User;
+import com.tesoreria.user.core.model.AdminUserUpdate;
 import com.tesoreria.user.core.port.in.UserUseCase;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
@@ -129,22 +132,42 @@ public class UserService implements UserUseCase {
 
     @Override
     @Transactional
-    public User update(Long id, User changes, Long authenticatedUserId) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public User update(Long id, AdminUserUpdate changes, Long authenticatedUserId) {
         User existing = findById(id);
-        repository.findByCorreoAndOrganizationId(changes.getCorreo(), existing.getOrganizationId())
+        assertSuperAdminRoleAllowed(existing.getRol());
+        // Validate profile values before mutating the loaded account.
+        User profile = new User();
+        profile.setNombre(changes.nombre());
+        profile.setCorreo(changes.correo());
+        repository.findByCorreoAndOrganizationId(profile.getCorreo(), existing.getOrganizationId())
                 .filter(other -> !other.getId().equals(id))
                 .ifPresent(other -> {
-                    throw new EmailAlreadyExistsException(changes.getCorreo());
+                    throw new EmailAlreadyExistsException(profile.getCorreo());
                 });
 
         if (existing.getRol() == RoleEnum.USER) {
-            if (!existing.getCorreo().equalsIgnoreCase(changes.getCorreo())) throw invitationRequired();
-            requireAuthorizedActivation(existing, Boolean.TRUE.equals(changes.getEnabled()));
+            if (!existing.getCorreo().equalsIgnoreCase(profile.getCorreo())) throw invitationRequired();
         }
-        existing.setNombre(changes.getNombre());
-        existing.setCorreo(changes.getCorreo());
-        existing.setEnabled(changes.getEnabled());
-        existing.setAccountNonLocked(changes.getAccountNonLocked());
+        if (changes.enabled() != null) {
+            validateStateChange(existing, changes.enabled(), authenticatedUserId);
+        }
+        existing.setNombre(profile.getNombre());
+        existing.setCorreo(profile.getCorreo());
+        if (changes.enabled() != null) existing.setEnabled(changes.enabled());
+        if (changes.accountNonLocked() != null) existing.setAccountNonLocked(changes.accountNonLocked());
+        return repository.save(existing);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("@userAuthorization.isSelf(#id, authentication)")
+    public User updateSelfProfile(Long id, String nombre, Long authenticatedUserId) {
+        if (id == null || !id.equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Solo puede actualizar su propio perfil");
+        }
+        User existing = findById(id);
+        existing.setNombre(nombre);
         return repository.save(existing);
     }
 
@@ -180,8 +203,16 @@ public class UserService implements UserUseCase {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public User cambiarEstado(Long id, boolean activo, Long authenticatedUserId) {
         User user = findById(id);
+        assertSuperAdminRoleAllowed(user.getRol());
+        validateStateChange(user, activo, authenticatedUserId);
+        user.setEnabled(activo);
+        return repository.save(user);
+    }
+
+    private void validateStateChange(User user, boolean activo, Long authenticatedUserId) {
         if (user.getId().equals(authenticatedUserId) && !activo) {
             throw new DomainException("enabled", org.springframework.http.HttpStatus.CONFLICT,
                     "No puede desactivar su propio usuario");
@@ -191,8 +222,6 @@ public class UserService implements UserUseCase {
             throw lastAdminError();
         }
         requireAuthorizedActivation(user, activo);
-        user.setEnabled(activo);
-        return repository.save(user);
     }
 
     private void requireAuthorizedActivation(User user, boolean enabled) {

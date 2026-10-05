@@ -27,6 +27,17 @@ export interface UserPayload {
   accountNonLocked?: boolean;
 }
 
+export interface SelfProfileUpdatePayload {
+  nombre: string;
+}
+
+export interface AdminUserUpdatePayload {
+  nombre: string;
+  correo: string;
+  enabled?: boolean;
+  accountNonLocked?: boolean;
+}
+
 
 export interface PageResponse<T> {
   content: T[];

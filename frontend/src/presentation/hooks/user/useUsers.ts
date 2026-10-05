@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import type { User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
+import type { AdminUserUpdatePayload, User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import {
   ChangeUserRoleUseCase,
   CreateUserUseCase,
@@ -59,7 +59,7 @@ export const useUsers = () => {
     await load();
   };
 
-  const update = async (id: number, payload: UserPayload, page = 0) => {
+  const update = async (id: number, payload: AdminUserUpdatePayload, page = 0) => {
     setLoading(true);
     try {
       await useCases.update.execute(id, payload);

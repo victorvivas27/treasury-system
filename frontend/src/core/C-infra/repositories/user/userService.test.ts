@@ -40,8 +40,16 @@ describe("UserRepositoryImpl", () => {
     vi.mocked(apiClient.put).mockResolvedValue({ data: { id: 1 } });
     await repository.update(1, payload);
     await repository.delete(1);
-    expect(apiClient.put).toHaveBeenCalledWith("/users/1", payload);
+    expect(apiClient.put).toHaveBeenCalledWith("/users/1", {
+      nombre: payload.nombre, correo: payload.correo,
+    });
     expect(apiClient.delete).toHaveBeenCalledWith("/users/1");
+  });
+
+  it("envía únicamente el nombre al actualizar el perfil propio", async () => {
+    vi.mocked(apiClient.put).mockResolvedValue({ data: { id: 1 } });
+    await repository.updateSelfProfile(1, { ...payload, enabled: true, accountNonLocked: true });
+    expect(apiClient.put).toHaveBeenCalledWith("/users/1/profile", { nombre: payload.nombre });
   });
 
   it("[UserService #04] debe cambiar rol", async () => {
