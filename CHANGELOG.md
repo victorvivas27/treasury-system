@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.1](https://github.com/victorvivas27/treasury-system/compare/v1.10.0...v1.10.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **security:** aislar identidad HTTP y STOMP por userId en SA-03 ([9f4ecad](https://github.com/victorvivas27/treasury-system/commit/9f4ecad3a07567c9456d4675d57948ba25770efc))
+* **security:** aislar identidad HTTP y STOMP por userId en SA-03 ([376fb46](https://github.com/victorvivas27/treasury-system/commit/376fb4629f8678fe545699625422a19d2338e8d4))
+
 ## [1.10.0](https://github.com/victorvivas27/treasury-system/compare/v1.9.0...v1.10.0) (2026-10-04)
 
 
