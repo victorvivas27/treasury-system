@@ -13,11 +13,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface UserTokenJpaRepository extends JpaRepository<UserTokenEntity, Long> {
+    @Query("select t.userId from UserTokenEntity t where t.tokenHash = :tokenHash and t.type = :type")
+    Optional<Long> findSessionUserId(String tokenHash, UserTokenType type);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<UserTokenEntity> findByTokenHashAndType(String tokenHash, UserTokenType type);
 
-    boolean existsByTokenFamilyIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
-            UUID tokenFamilyId, UserTokenType type, LocalDateTime now);
+    boolean existsByTokenFamilyIdAndUserIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
+            UUID tokenFamilyId, Long userId, UserTokenType type, LocalDateTime now);
+
+    @Modifying
+    @Query("update UserTokenEntity t set t.revokedAt = :revokedAt "
+            + "where t.userId = :userId and t.type = :type and t.revokedAt is null")
+    int revokeAllForUser(Long userId, UserTokenType type, LocalDateTime revokedAt);
 
     @Modifying
     @Query("delete from UserTokenEntity t where t.userId = :userId and t.type = :type")

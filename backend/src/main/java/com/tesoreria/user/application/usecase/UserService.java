@@ -29,6 +29,7 @@ public class UserService implements UserUseCase {
     private final PasswordEncoder passwordEncoder;
     private final DefaultOrganizationProvider defaultOrganization;
     private final CurrentOrganizationService currentOrganization;
+    private final RefreshTokenService sessions;
 
     public UserService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder) {
         this(repository, passwordEncoder, null, null);
@@ -37,10 +38,17 @@ public class UserService implements UserUseCase {
     public UserService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder,
                        DefaultOrganizationProvider defaultOrganization,
                        CurrentOrganizationService currentOrganization) {
+        this(repository, passwordEncoder, defaultOrganization, currentOrganization, null);
+    }
+
+    public UserService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder,
+                       DefaultOrganizationProvider defaultOrganization,
+                       CurrentOrganizationService currentOrganization, RefreshTokenService sessions) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.defaultOrganization = defaultOrganization;
         this.currentOrganization = currentOrganization;
+        this.sessions = sessions;
     }
 
     @Override
@@ -134,6 +142,7 @@ public class UserService implements UserUseCase {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public User update(Long id, AdminUserUpdate changes, Long authenticatedUserId) {
+        if (sessions != null) sessions.lockAccount(id);
         User existing = findById(id);
         assertSuperAdminRoleAllowed(existing.getRol());
         // Validate profile values before mutating the loaded account.
@@ -156,7 +165,9 @@ public class UserService implements UserUseCase {
         existing.setCorreo(profile.getCorreo());
         if (changes.enabled() != null) existing.setEnabled(changes.enabled());
         if (changes.accountNonLocked() != null) existing.setAccountNonLocked(changes.accountNonLocked());
-        return repository.save(existing);
+        User saved = repository.save(existing);
+        revokeSessionsIfRestricted(saved);
+        return saved;
     }
 
     @Override
@@ -205,11 +216,21 @@ public class UserService implements UserUseCase {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public User cambiarEstado(Long id, boolean activo, Long authenticatedUserId) {
+        if (sessions != null) sessions.lockAccount(id);
         User user = findById(id);
         assertSuperAdminRoleAllowed(user.getRol());
         validateStateChange(user, activo, authenticatedUserId);
         user.setEnabled(activo);
-        return repository.save(user);
+        User saved = repository.save(user);
+        revokeSessionsIfRestricted(saved);
+        return saved;
+    }
+
+    private void revokeSessionsIfRestricted(User user) {
+        if (sessions != null && (!Boolean.TRUE.equals(user.getEnabled())
+                || !Boolean.TRUE.equals(user.getAccountNonLocked()))) {
+            sessions.revokeAllForUser(user.getId());
+        }
     }
 
     private void validateStateChange(User user, boolean activo, Long authenticatedUserId) {

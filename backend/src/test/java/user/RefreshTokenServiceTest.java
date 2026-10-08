@@ -11,6 +11,10 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.User
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserTokenJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import com.tesoreria.organization.config.TenantUserDetails;
+import com.tesoreria.user.core.constant.RoleEnum;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -43,13 +47,17 @@ class RefreshTokenServiceTest {
         user = new UserEntity();
         user.setId(7L);
         user.setCorreo("admin@mail.com");
-        details = org.springframework.security.core.userdetails.User
-                .withUsername("admin@mail.com").password("hash").roles("ADMIN").build();
+        user.setOrganizationId(1L);
+        user.setRol(RoleEnum.ADMIN);
+        details = new TenantUserDetails(7L, 1L, "admin@mail.com", "hash", RoleEnum.ADMIN, true, true);
+        lenient().when(tokenRepository.findSessionUserId(anyString(), eq(UserTokenType.REFRESH_TOKEN)))
+                .thenReturn(Optional.of(7L));
+        lenient().when(userRepository.findByIdForSessionUpdate(7L)).thenReturn(Optional.of(user));
     }
 
     @Test
     void issue_guardaHashYEntregaTokens() {
-        when(userRepository.findAllByCorreoOrderByIdAsc("admin@mail.com")).thenReturn(java.util.List.of(user));
+        when(userRepository.findSessionUserIdsByCorreo("admin@mail.com")).thenReturn(java.util.List.of(7L));
         when(userDetailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(eq(details), any(UUID.class))).thenReturn("access");
 
@@ -74,7 +82,6 @@ class RefreshTokenServiceTest {
         UserTokenEntity current = refreshEntity(LocalDateTime.now().plusMinutes(5));
         when(tokenRepository.findByTokenHashAndType(anyString(), eq(UserTokenType.REFRESH_TOKEN)))
                 .thenReturn(Optional.of(current));
-        when(userRepository.findById(7L)).thenReturn(Optional.of(user));
         when(userDetailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(eq(details), any(UUID.class))).thenReturn("new-access");
 
@@ -121,7 +128,7 @@ class RefreshTokenServiceTest {
                 .thenReturn(Optional.of(expired));
 
         assertThrows(DomainException.class, () -> service.rotate("expired-refresh"));
-        verify(userRepository, never()).findById(anyLong());
+        verify(userDetailsService, never()).loadUserById(anyLong());
         verify(tokenRepository).revokeFamily(eq(expired.getTokenFamilyId()), eq(UserTokenType.REFRESH_TOKEN), any());
     }
 
@@ -166,11 +173,49 @@ class RefreshTokenServiceTest {
     @Test
     void isFamilyActive_consultaSesionPersistente() {
         UUID familyId = UUID.randomUUID();
-        when(tokenRepository.existsByTokenFamilyIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
-                eq(familyId), eq(UserTokenType.REFRESH_TOKEN), any())).thenReturn(true);
+        when(tokenRepository.existsByTokenFamilyIdAndUserIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
+                eq(familyId), eq(7L), eq(UserTokenType.REFRESH_TOKEN), any())).thenReturn(true);
 
-        assertTrue(service.isFamilyActive(familyId));
-        assertFalse(service.isFamilyActive(null));
+        assertTrue(service.isFamilyActive(familyId, 7L));
+        assertFalse(service.isFamilyActive(null, 7L));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,true,true", "true,false,true", "true,true,false"})
+    void issueAndRotateRejectRestrictedAccount(boolean enabled, boolean unlocked, boolean organizationActive) {
+        details = new TenantUserDetails(7L, 1L, "admin@mail.com", "hash", RoleEnum.ADMIN,
+                enabled, unlocked, organizationActive);
+        when(userDetailsService.loadUserById(7L)).thenReturn(details);
+        assertThrows(DomainException.class, () -> service.issueForUserId(7L, null, null));
+        UserTokenEntity current = refreshEntity(LocalDateTime.now().plusMinutes(5));
+        when(tokenRepository.findByTokenHashAndType(anyString(), eq(UserTokenType.REFRESH_TOKEN)))
+                .thenReturn(Optional.of(current));
+        assertThrows(DomainException.class, () -> service.rotate("old-refresh"));
+        assertNull(current.getUsedAt());
+        verify(tokenRepository, never()).save(any());
+        verify(jwtService, never()).generateToken(any(), any());
+    }
+
+    @Test
+    void issuanceRejectsMismatchedAccountOrOrganization() {
+        when(userDetailsService.loadUserById(7L)).thenReturn(
+                new TenantUserDetails(8L, 1L, "admin@mail.com", "hash", RoleEnum.ADMIN, true, true));
+        assertThrows(DomainException.class, () -> service.issueForUserId(7L, null, null));
+        when(userDetailsService.loadUserById(7L)).thenReturn(
+                new TenantUserDetails(7L, 2L, "admin@mail.com", "hash", RoleEnum.ADMIN, true, true));
+        assertThrows(DomainException.class, () -> service.issueForUserId(7L, null, null));
+        verify(tokenRepository, never()).save(any());
+    }
+
+    @Test
+    void familyBelongsToTheAccountInTheAccessToken() {
+        UUID familyId = UUID.randomUUID();
+        when(tokenRepository.existsByTokenFamilyIdAndUserIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
+                eq(familyId), eq(7L), eq(UserTokenType.REFRESH_TOKEN), any())).thenReturn(true);
+        assertTrue(service.isFamilyActive(familyId, 7L));
+        assertFalse(service.isFamilyActive(familyId, 8L));
+        assertFalse(service.isFamilyActive(familyId, null));
+        assertFalse(service.isFamilyActive(null, 7L));
     }
 
     private UserTokenEntity refreshEntity(LocalDateTime expiresAt) {

@@ -104,6 +104,8 @@ public class JwtService {
                 && (tenantUser.getOrganizationId() != null || tenantUser.getRole() == RoleEnum.SUPER_ADMIN)
                 && userDetails.isEnabled()
                 && userDetails.isAccountNonLocked()
+                && userDetails.isAccountNonExpired()
+                && userDetails.isCredentialsNonExpired()
                 && token.issuedAt() != null
                 && token.expiresAt() != null
                 && token.username() != null

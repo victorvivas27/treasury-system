@@ -173,6 +173,8 @@ Las 15 pruebas de caché pasan. Cubren ambos órdenes de calentamiento A/B, las 
 
 ### SA-05 — JWT y refresh admiten cuentas desactivadas o bloqueadas
 
+**Actualización 2026-10-08:** remediado y validado localmente: estados actuales comprobados en emisión/rotación, revocación persistida al bloquear/desactivar y familia ligada al propietario. 642 tests backend y 431 frontend aprobados; despliegue y comprobación productiva pendientes. Ver [corrección y validación de SA-05](docs/security/sa-05/SA-05-CIERRE.md). La descripción siguiente conserva el hallazgo original.
+
 **Severidad ALTA · Confianza ALTA · Confirmada por ejecución · P0.** Componente: autenticación HTTP/renovación.
 
 **Archivos y líneas:** [JwtService.java](backend/src/main/java/com/tesoreria/user/config/security/JwtService.java):95–102; [JwtAuthenticationFilter.java](backend/src/main/java/com/tesoreria/user/config/security/JwtAuthenticationFilter.java):78–91; [RefreshTokenService.java](backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java):75–114; [CustomUserDetailsService.java](backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java):48–60.

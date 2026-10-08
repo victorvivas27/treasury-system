@@ -3,6 +3,7 @@ package com.tesoreria.user.config;
 import com.tesoreria.organization.application.DefaultOrganizationProvider;
 import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.user.application.usecase.UserService;
+import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.ProfileImageService;
 import com.tesoreria.treasury.core.port.out.FileStorageService;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
@@ -16,8 +17,8 @@ public class UserDomainConfig {
     @Bean
     UserService userService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder,
                             DefaultOrganizationProvider defaultOrganization,
-                            CurrentOrganizationService currentOrganization) {
-        return new UserService(repository, passwordEncoder, defaultOrganization, currentOrganization);
+                            CurrentOrganizationService currentOrganization, RefreshTokenService sessions) {
+        return new UserService(repository, passwordEncoder, defaultOrganization, currentOrganization, sessions);
     }
 
     @Bean

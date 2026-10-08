@@ -46,7 +46,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             if (parsed.userId() == null
                     || revocationService.isUserRevokedAfter(parsed.userId(), parsed.issuedAt()))
                 throw new AccessDeniedException("JWT revocado");
-            if (parsed.tokenFamilyId() != null && !refreshTokenService.isFamilyActive(parsed.tokenFamilyId()))
+            if (parsed.tokenFamilyId() != null && !refreshTokenService.isFamilyActive(parsed.tokenFamilyId(), parsed.userId()))
                 throw new AccessDeniedException("Sesión revocada");
             UserDetails details = userDetailsService.loadUserById(parsed.userId());
             if (!jwtService.isTokenValid(parsed, details)) throw new AccessDeniedException("JWT inválido");
