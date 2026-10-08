@@ -72,7 +72,13 @@ describe("DashboardPage", () => {
     expect(container.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
-    expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
+    const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });
+    expect(activityToggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(activityToggle);
+    fireEvent.click(screen.getByRole("button", { name: /Modalidad y avance/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Aportes del curso/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Principales egresos/i }));
+    expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Rifa escolar")).toBeInTheDocument();
     const selectedYear = screen.getByRole("button", { name: "Año escolar" }).textContent;
     expect(screen.getByRole("link", { name: "Ingresos totales" })).toHaveAttribute("href",
       `/tesoreria/ingresos?year=${selectedYear}`);
@@ -106,8 +112,14 @@ describe("DashboardPage", () => {
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
+    const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });
+    expect(activityToggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(activityToggle);
+    fireEvent.click(screen.getByRole("button", { name: /Modalidad y avance/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Aportes del curso/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Principales egresos/i }));
     expect(screen.getByText("Actividad reciente")).toBeInTheDocument();
-    expect(screen.getByText("Rifa escolar")).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Rifa escolar")).toBeInTheDocument();
     expect(screen.queryByText("Trazas de Tesorería")).not.toBeInTheDocument();
     expect(screen.getByText("Modalidad y avance de recaudación")).toBeInTheDocument();
     expect(screen.getByText("Cuota única")).toBeInTheDocument();
@@ -161,10 +173,12 @@ describe("DashboardPage", () => {
 
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
-    await waitFor(() => expect(screen.getByText("Movimiento 1")).toBeInTheDocument());
-    expect(screen.queryByText("Movimiento 6")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: /Actividad reciente/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /Actividad reciente/i }));
+    await waitFor(() => expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Movimiento 1")).toBeInTheDocument());
+    expect(within(screen.getByRole("list", { name: "Actividad reciente" })).queryByText("Movimiento 6")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Siguiente ▶" }));
-    expect(screen.getByText("Movimiento 6")).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Movimiento 6")).toBeInTheDocument();
     expect(screen.getByText("Cuota")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Abrir" }))
       .toHaveAttribute("href", "/tesoreria/cuotas");
@@ -199,4 +213,22 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Traza 6")).toBeInTheDocument();
     expect(screen.getByText("Página 2 de 2")).toBeInTheDocument();
   });
+  it("inicia los cinco paneles cerrados y permite abrirlos y cerrarlos", async () => {
+    dashboardOverview.mockResolvedValue(overview);
+    contributionSummary.mockResolvedValue({ totalFamilies: 0 });
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByRole("button", { name: /Actividad reciente/i })).toBeInTheDocument());
+    for (const name of [/Actividad reciente/i, /Principales egresos/i, /Ganancias de eventos/i, /Aportes del curso/i, /Modalidad y avance/i]) {
+      const button = screen.getByRole("button", { name });
+      expect(button).toHaveAttribute("aria-expanded", "false");
+      const content = document.getElementById(button.getAttribute("aria-controls")!);
+      expect(content).toHaveAttribute("aria-hidden", "true");
+      fireEvent.click(button);
+      expect(button).toHaveAttribute("aria-expanded", "true");
+      expect(content).toHaveAttribute("aria-hidden", "false");
+      fireEvent.click(button);
+      expect(content).toHaveAttribute("aria-hidden", "true");
+    }
+  });
+
 });

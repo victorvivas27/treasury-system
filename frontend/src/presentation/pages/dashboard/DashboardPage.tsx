@@ -1,11 +1,11 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiActivity, FiCamera, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
+import { FiActivity, FiCamera, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
 import { IoBulbOutline } from "react-icons/io5";
 import { MdBoy, MdGirl, MdTransgender } from "react-icons/md";
 import { FcExpand } from "react-icons/fc";
 import {
-  CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Cell, Pie, PieChart, ResponsiveContainer,
 } from "recharts";
 import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
@@ -22,6 +22,7 @@ import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvement/ImprovementCenterEvents";
+import { CashflowTimeline } from "./CashflowTimeline";
 import { EventProfitCards } from "./EventProfitCards";
 import { NextBirthday } from "./NextBirthday";
 import { BoardMessage } from "./BoardMessage";
@@ -35,43 +36,6 @@ const money = new Intl.NumberFormat("es-CL", {
 });
 const ACTIVITY_PAGE_SIZE = 5;
 const AUDIT_PAGE_SIZE = 5;
-const monthName = (month: number) => new Intl.DateTimeFormat("es-CL", { month: "short" })
-  .format(new Date(2026, month - 1, 1)).replace(".", "");
-const dayName = (date: Date) => new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "short" })
-  .format(date).replace(".", "");
-const dateKey = (date: Date) => {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
-};
-const addDays = (date: Date, days: number) => {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
-};
-type CashflowPeriod = "7d" | "30d" | "6m" | "1y";
-const cashflowPeriods: Array<{ value: CashflowPeriod; label: string }> = [
-  { value: "7d", label: "7 días" },
-  { value: "30d", label: "30 días" },
-  { value: "6m", label: "6 meses" },
-  { value: "1y", label: "1 año" },
-];
-
-type CashflowPoint = {
-  key: string;
-  income: number;
-  expense: number;
-  incomePlot: number;
-  expensePlot: number;
-  name: string;
-  net: number;
-};
-
-type CashflowTooltipProps = {
-  active?: boolean;
-  label?: string | number;
-};
-
 export const DashboardPage = () => {
   const dashboardRef = useRef<HTMLElement | null>(null);
   const auth = useOptionalAuth();
@@ -91,18 +55,12 @@ export const DashboardPage = () => {
   const [capturing, setCapturing] = useState(false);
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
-  const [activityOpen, setActivityOpen] = useState(true);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [annualQuotaOpen, setAnnualQuotaOpen] = useState(false);
+  const [contributionsOpen, setContributionsOpen] = useState(false);
+  const [expensesOpen, setExpensesOpen] = useState(false);
+  const [eventsOpen, setEventsOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
-  const [cashflowPeriod, setCashflowPeriod] = useState<CashflowPeriod>("1y");
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" && window.innerWidth <= 700);
-
-  useEffect(() => {
-    const updateViewport = () => setIsMobile(window.innerWidth <= 700);
-    window.addEventListener("resize", updateViewport);
-    return () => window.removeEventListener("resize", updateViewport);
-  }, []);
-
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -131,82 +89,6 @@ export const DashboardPage = () => {
     if (!loading && data) requestAnimationFrame(() => loginPerformance.finish());
   }, [loading, data]);
 
-  const monthly = useMemo<CashflowPoint[]>(() => data?.monthlyCashFlow.map(item => ({
-    key: `m-${item.month}`,
-    income: item.income,
-    expense: item.expense,
-    incomePlot: item.income,
-    expensePlot: item.expense,
-    name: monthName(item.month),
-    net: item.income - item.expense,
-  })) ?? [], [data]);
-  const cashflowData = useMemo<CashflowPoint[]>(() => {
-    if (!data) return [];
-    if (cashflowPeriod === "6m") {
-      const endMonth = year === currentYear ? new Date().getMonth() + 1 : 12;
-      const startMonth = Math.max(1, endMonth - 5);
-      return monthly.filter((_, index) => {
-        const month = index + 1;
-        return month >= startMonth && month <= endMonth;
-      });
-    }
-    if (cashflowPeriod === "1y") return monthly;
-
-    const days = cashflowPeriod === "7d" ? 7 : 30;
-    const today = new Date();
-    const periodEnd = year === today.getFullYear() ? today : new Date(year, 11, 31);
-    const periodStart = addDays(periodEnd, -(days - 1));
-    const byDay = new Map<string, CashflowPoint>();
-
-    for (let offset = 0; offset < days; offset += 1) {
-      const date = addDays(periodStart, offset);
-      const key = dateKey(date);
-      byDay.set(key, {
-        key,
-        income: 0,
-        expense: 0,
-        incomePlot: 0,
-        expensePlot: 0,
-        name: dayName(date),
-        net: 0,
-      });
-    }
-
-    data.recentMovements.forEach(item => {
-      if (item.status !== "ACTIVE") return;
-      const movementDate = new Date(`${item.date}T00:00:00`);
-      if (movementDate < periodStart || movementDate > periodEnd) return;
-      const point = byDay.get(dateKey(movementDate));
-      if (!point) return;
-      if (item.type === "EGRESO") point.expense += item.amount;
-      else point.income += item.amount;
-    });
-
-    return Array.from(byDay.values()).map(point => ({
-      ...point,
-      incomePlot: point.income,
-      expensePlot: point.expense,
-      net: point.income - point.expense,
-    }));
-  }, [cashflowPeriod, data, monthly, year]);
-  const cashflowSummary = useMemo(() => {
-    const totalIncome = cashflowData.reduce((sum, item) => sum + item.income, 0);
-    const totalExpense = cashflowData.reduce((sum, item) => sum + item.expense, 0);
-    const bestPeriod = cashflowData.reduce<typeof cashflowData[number] | undefined>(
-      (best, item) => !best || item.net > best.net ? item : best, undefined);
-    return { totalIncome, totalExpense, net: totalIncome - totalExpense, bestPeriod };
-  }, [cashflowData]);
-  const cashflowPeriodLabel = cashflowPeriods.find(item => item.value === cashflowPeriod)?.label ?? "1 año";
-  const CashflowTooltip = useCallback(({ active, label }: CashflowTooltipProps) => {
-    if (!active) return null;
-    const point = cashflowData.find(item => item.name === label);
-    if (!point) return null;
-    return <div className="cashflow-hover-tooltip" role="status">
-      <strong>{point.name}</strong>
-      <span className="cashflow-hover-tooltip__income">Ingresos: <b>{money.format(point.income)}</b></span>
-      <span className="cashflow-hover-tooltip__expense">Egresos: <b>{money.format(point.expense)}</b></span>
-    </div>;
-  }, [cashflowData]);
   const genderCounts = data?.courseComposition ?? { masculino: 0, femenino: 0, otros: 0 };
   const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6).map(item => ({
     ...item, categoryName: expenseCategoryLabel(item.category),
@@ -354,85 +236,19 @@ export const DashboardPage = () => {
       </section>
 
       <section className="dashboard-charts">
-        <article className="dashboard-panel dashboard-panel--cashflow">
-          <header><i className="dashboard-panel-icon"><FiTrendingUp aria-hidden="true" /></i><div><span>Flujo · {year}</span><h2>Ingresos y egresos en el tiempo</h2></div>
-            <div className="cashflow-periods" aria-label="Período del flujo">
-              {cashflowPeriods.map(item => <button key={item.value} type="button"
-                className={cashflowPeriod === item.value ? "is-active" : ""}
-                aria-pressed={cashflowPeriod === item.value}
-                onClick={() => setCashflowPeriod(item.value)}>{item.label}</button>)}
-            </div></header>
-          <div className="cashflow-summary" aria-label={`Resumen de flujo: ${cashflowPeriodLabel}`}>
-            <span><small>Ingresos</small><strong>{money.format(cashflowSummary.totalIncome)}</strong></span>
-            <span><small>Egresos</small><strong>{money.format(cashflowSummary.totalExpense)}</strong></span>
-            <span className={cashflowSummary.net < 0 ? "is-negative" : "is-positive"}>
-              <small>Balance</small><strong>{money.format(cashflowSummary.net)}</strong>
-            </span>
-          </div>
-          <div className="dashboard-chart dashboard-chart--axisless dashboard-chart--cashflow-split" aria-label="Evolución mensual">
-            <div className="cashflow-visual">
-            <div className="dashboard-chart__plot cashflow-plot cashflow-plot--income" aria-label="Ingresos en el tiempo">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={cashflowData} margin={{ top: 12, right: isMobile ? 10 : 14,
-                bottom: isMobile ? 2 : 4, left: isMobile ? 2 : -16 }}>
-                <CartesianGrid vertical={false} stroke="var(--divider)" strokeDasharray="2 10" />
-                <XAxis dataKey="name" tickLine={false} axisLine={false}
-                  interval={cashflowPeriod === "30d" ? isMobile ? 6 : 3 : isMobile ? 1 : 0}
-                  tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 11 }} />
-                {!isMobile && <YAxis width={70}
-                  tickFormatter={(value) => money.format(Number(value))}
-                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
-                  tickLine={false} axisLine={false} domain={[0, "dataMax"]} />}
-                <Tooltip filterNull={false} cursor={{ stroke: "var(--divider)", strokeDasharray: "4 6" }}
-                  wrapperStyle={{ pointerEvents: "none" }} content={<CashflowTooltip />} />
-                <Line className="cashflow-line cashflow-line--income" name="Ingresos"
-                  dataKey="incomePlot" type="monotone" stroke="var(--color-success)"
-                  strokeWidth={1.25} strokeDasharray="9 9"
-                  dot={{ r: isMobile ? 3.5 : 2.75, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
-                  activeDot={{ r: isMobile ? 5 : 4, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
-                  isAnimationActive={!isMobile} animationDuration={650}
-                  animationEasing="ease-out" strokeLinecap="round" strokeLinejoin="round" />
-              </LineChart>
-            </ResponsiveContainer>
-            </div>
-            <div className="dashboard-chart__plot cashflow-plot cashflow-plot--expense" aria-label="Egresos en el tiempo">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={cashflowData} margin={{ top: 8, right: isMobile ? 10 : 14,
-                bottom: isMobile ? 2 : 4, left: isMobile ? 2 : -16 }}>
-                <CartesianGrid vertical={false} stroke="var(--divider)" strokeDasharray="2 10" />
-                <XAxis dataKey="name" tickLine={false} axisLine={false}
-                  interval={cashflowPeriod === "30d" ? isMobile ? 6 : 3 : isMobile ? 1 : 0}
-                  tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 11 }} />
-                {!isMobile && <YAxis width={70}
-                  tickFormatter={(value) => money.format(Number(value))}
-                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
-                  tickLine={false} axisLine={false} domain={[0, "dataMax"]} />}
-                <Tooltip filterNull={false} cursor={{ stroke: "var(--divider)", strokeDasharray: "4 6" }}
-                  wrapperStyle={{ pointerEvents: "none" }} content={<CashflowTooltip />} />
-                <Line className="cashflow-line cashflow-line--expense" name="Egresos"
-                  dataKey="expensePlot" type="monotone" stroke="var(--color-error)"
-                  strokeWidth={1.25} strokeDasharray="4 9"
-                  dot={{ r: isMobile ? 3.5 : 2.75, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
-                  activeDot={{ r: isMobile ? 5 : 4, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
-                  isAnimationActive={!isMobile} animationDuration={650}
-                  animationEasing="ease-out" strokeLinecap="round" strokeLinejoin="round" />
-              </LineChart>
-            </ResponsiveContainer>
-            </div>
-            </div>
-            <div className="cashflow-legend" aria-label="Leyenda del flujo mensual">
-              <span className="cashflow-legend__income">Ingresos</span>
-              <span className="cashflow-legend__expense">Egresos</span>
-              {cashflowSummary.bestPeriod && <b>Mejor período: {cashflowSummary.bestPeriod.name}</b>}
-            </div>
-          </div>
-        </article>
+        <CashflowTimeline data={data} year={year} loading={loading} onRefresh={() => void load()} />
 
         <article className="dashboard-panel dashboard-panel--annual">
-          <header><i className="dashboard-panel-icon"><FiPieChart aria-hidden="true" /></i><div><span>Cuota anual</span><h2>Modalidad y avance de recaudación</h2>
+          <header><button type="button" className="dashboard-collapse-trigger"
+            aria-expanded={annualQuotaOpen} aria-controls="dashboard-annual-quota"
+            onClick={() => setAnnualQuotaOpen(open => !open)}>
+            <i className="dashboard-panel-icon"><FiPieChart aria-hidden="true" /></i><div><span>Cuota anual</span><h2>Modalidad y avance de recaudación</h2>
             <p className="dashboard-panel__explanation">
               Modalidades por familia y dinero recaudado durante {year}.
-            </p></div></header>
+            </p></div><FcExpand className={annualQuotaOpen ? "is-open" : ""} aria-hidden="true" />
+            </button></header>
+          <div id="dashboard-annual-quota" className={`dashboard-collapse-content ${annualQuotaOpen ? "is-open" : ""}`}
+            aria-hidden={!annualQuotaOpen} inert={!annualQuotaOpen}><div>
           {!annualQuotaSummary || annualQuotaSummary.totalObligations === 0
             ? <p className="dashboard-empty">No hay obligaciones registradas.</p>
             : <div className="annual-quota-overview">
@@ -470,12 +286,19 @@ export const DashboardPage = () => {
                 </div>
               </div>
             </div>}
+          </div></div>
         </article>
 
         <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
-          <header><i className="dashboard-panel-icon"><FiUsers aria-hidden="true" /></i><div><span>Aportes del curso</span>
+          <header><button type="button" className="dashboard-collapse-trigger"
+            aria-expanded={contributionsOpen} aria-controls="dashboard-course-contributions"
+            onClick={() => setContributionsOpen(open => !open)}>
+            <i className="dashboard-panel-icon"><FiUsers aria-hidden="true" /></i><div><span>Aportes del curso</span>
             <h2>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h2>
-            <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div></header>
+            <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div><FcExpand className={contributionsOpen ? "is-open" : ""} aria-hidden="true" />
+            </button></header>
+          <div id="dashboard-course-contributions" className={`dashboard-collapse-content ${contributionsOpen ? "is-open" : ""}`}
+            aria-hidden={!contributionsOpen} inert={!contributionsOpen}><div>
           {contributions && contributions.totalFamilies > 0
             ? <div className="contribution-donuts">
               <ContributionDonut title="Cuota CEPA"
@@ -485,13 +308,20 @@ export const DashboardPage = () => {
                 pending={contributions.solidarityPending} />
             </div>
             : <p className="dashboard-empty">No hay familias para calcular los aportes.</p>}
+          </div></div>
         </article>
 
         <article className="dashboard-panel dashboard-panel--distribution">
-          <header><i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
+          <header><button type="button" className="dashboard-collapse-trigger"
+            aria-expanded={expensesOpen} aria-controls="dashboard-expense-details"
+            onClick={() => setExpensesOpen(open => !open)}>
+            <i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
             <p className="dashboard-panel__explanation">
               Descripción del gasto; la categoría se muestra como contexto.
-            </p></div></header>
+            </p></div><FcExpand className={expensesOpen ? "is-open" : ""} aria-hidden="true" />
+            </button></header>
+          <div id="dashboard-expense-details" className={`dashboard-collapse-content ${expensesOpen ? "is-open" : ""}`}
+            aria-hidden={!expensesOpen} inert={!expensesOpen}><div>
           {expenseDetails.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
             : <ol className="dashboard-expense-ranking">
               {expenseDetails.map((item, index) => <li key={item.id}>
@@ -505,6 +335,7 @@ export const DashboardPage = () => {
                 </div>
               </li>)}
             </ol>}
+          </div></div>
         </article>
 
         <section className="dashboard-panel dashboard-activity">
@@ -520,7 +351,7 @@ export const DashboardPage = () => {
           <div>
         {data.recentMovements.length === 0 ? <p className="dashboard-empty">
           No hay movimientos registrados para {year}.</p> : <div>
-          <ul className="dashboard-movement-list">{visibleMovements.map(item => <li key={`${item.type}-${item.id}`}>
+          <ul className="dashboard-movement-list" aria-label="Actividad reciente">{visibleMovements.map(item => <li key={`${item.type}-${item.id}`}>
               <i className={`dashboard-movement-icon ${item.type === "EGRESO" ? "is-negative" : "is-positive"}`}>
                 {item.type === "EGRESO" ? <FiLogOut aria-hidden="true" /> : <FiLogIn aria-hidden="true" />}
               </i>
@@ -544,9 +375,16 @@ export const DashboardPage = () => {
         </div>}</div></div>
         </section>
         <article className="dashboard-panel dashboard-panel--event-profits">
-          <header><i className="dashboard-panel-icon"><FiDollarSign aria-hidden="true" /></i>
-            <div><span>Fiesta de la Familia</span><h2>Ganancias de eventos</h2></div></header>
-          <EventProfitCards key={year} year={year} />
+          <header><button type="button" className="dashboard-collapse-trigger"
+            aria-expanded={eventsOpen} aria-controls="dashboard-event-profits"
+            onClick={() => setEventsOpen(open => !open)}>
+            <i className="dashboard-panel-icon"><FiDollarSign aria-hidden="true" /></i>
+            <div><span>Fiesta de la Familia</span><h2>Ganancias de eventos</h2></div>
+            <FcExpand className={eventsOpen ? "is-open" : ""} aria-hidden="true" /></button></header>
+          <div id="dashboard-event-profits" className={`dashboard-collapse-content ${eventsOpen ? "is-open" : ""}`}
+            aria-hidden={!eventsOpen} inert={!eventsOpen}><div>
+            <EventProfitCards key={year} year={year} />
+          </div></div>
         </article>
       </section>
 
@@ -697,7 +535,7 @@ const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
     <div className="skeleton-block dashboard-value-skeleton" /></article>)}</section>
   <section className="dashboard-charts">
     {[
-      ["Flujo mensual", "Ingresos extraordinarios y egresos", true],
+      ["Flujo mensual", "Ingresos y egresos por mes", true],
       ["Cuota anual", "Modalidad y avance de recaudación", false],
       ["Principales egresos", "¿En qué se gastó?", false],
       ["Aportes del curso", "Cuota CEPA y Fondo de Apoyo por Fallecimiento", true],
