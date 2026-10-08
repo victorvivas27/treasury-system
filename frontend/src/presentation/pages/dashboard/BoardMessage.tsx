@@ -1,6 +1,5 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { IoHeartOutline } from "react-icons/io5";
-import { FiEdit2 } from "react-icons/fi";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import "./BoardMessage.css";
 import type { BoardMessageContent } from "@/core/A-domain/entities/treasury/BoardMessageContent";
@@ -85,7 +84,7 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         {message.signature.includes("\n") ? <>{message.signature.split("\n")[0]}
           <strong>{message.signature.split("\n").slice(1).join("\n")}</strong></>
           : <strong>{message.signature}</strong>}</span>
-        {isAdmin && <button type="button" className="board-message-edit" disabled={!loaded}
+        {isAdmin && <button type="button" className="board-message-edit" aria-label="Editar mensaje" title="Editar mensaje" disabled={!loaded}
           data-dashboard-capture-exclude
           onClick={() => {
             setDraft(message); setError(""); drag.current = null;
@@ -97,7 +96,7 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
               dialog.current.showModal();
             }
           }}>
-          <FiEdit2 aria-hidden="true" /> Editar mensaje</button>}
+          Editar</button>}
       </footer>
       {isAdmin && !loaded && error && <p role="alert">{error}</p>}
     </div>
