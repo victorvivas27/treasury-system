@@ -12,13 +12,6 @@ on:
       - "backend/**"
       - "api-tests/**"
       - ".github/workflows/04-bruno-tests.yml"
-  pull_request:
-    branches: [dev, main]
-    paths:
-      - "backend/**"
-      - "api-tests/**"
-      - ".github/workflows/04-bruno-tests.yml"
-
 permissions:
   contents: read
 
