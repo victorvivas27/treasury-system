@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.11.0](https://github.com/victorvivas27/treasury-system/compare/v1.10.1...v1.11.0) (2026-10-08)
+
+
+### Features
+
+* **ui:** mejorar flujo financiero y dashboard en movil ([2a7e94c](https://github.com/victorvivas27/treasury-system/commit/2a7e94c7fbc42c4581f2b77d7867a7ea42d6aeba))
+* **ui:** mejorar linea de tiempo y paneles del dashboard en movil ([b05ebd2](https://github.com/victorvivas27/treasury-system/commit/b05ebd2b0f941f12cb828e624fdda155fc3e83b5))
+
+
+### Bug Fixes
+
+* **security:** impedir auto-reactivación y auto-desbloqueo (SA-04) ([1fd3f35](https://github.com/victorvivas27/treasury-system/commit/1fd3f35285411feefe06f1fd93c97d305e02dfac))
+* **security:** impedir auto-reactivación y auto-desbloqueo (SA-04) ([c22aa55](https://github.com/victorvivas27/treasury-system/commit/c22aa551ebe05d6f2e1dd5ac5c814e96b0995a2b))
+* **security:** revocar sesiones de cuentas restringidas (SA-05) ([902c3aa](https://github.com/victorvivas27/treasury-system/commit/902c3aa063fbeec15e01c2906ed0e88381350372))
+
 ## [1.10.1](https://github.com/victorvivas27/treasury-system/compare/v1.10.0...v1.10.1) (2026-10-05)
 
 
