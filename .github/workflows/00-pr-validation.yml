@@ -1,0 +1,106 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Select validations
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.paths.outputs.frontend }}
+      backend: ${{ steps.paths.outputs.backend }}
+      bruno: ${{ steps.paths.outputs.bruno }}
+      versioning: ${{ steps.paths.outputs.versioning }}
+    steps:
+      - name: Inspect changed files
+        id: paths
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            const paths = files.flatMap(file => [file.filename, file.previous_filename].filter(Boolean));
+            // GitHub limits this endpoint to 3,000 files; validate everything if truncated.
+            const all = files.length >= 3000 || paths.some(path => path.startsWith('.github/workflows/'));
+            const frontend = all || paths.some(path => path.startsWith('frontend/'));
+            const backend = all || paths.some(path => path.startsWith('backend/'));
+            const bruno = backend || paths.some(path => path.startsWith('api-tests/'));
+            const versionFiles = new Set([
+              'release-please-config.json', '.release-please-manifest.json',
+              'VERSION', 'CHANGELOG.md', 'frontend/package.json', 'backend/build.gradle',
+            ]);
+            const versioning = all || paths.some(path => versionFiles.has(path) ||
+              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation)\.cjs$/.test(path));
+            for (const [name, value] of Object.entries({ frontend, backend, bruno, versioning })) {
+              core.setOutput(name, String(value));
+            }
+
+  commits:
+    name: Commits and PR title
+    uses: ./.github/workflows/01-commit-lint.yml
+
+  frontend:
+    name: Frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    uses: ./.github/workflows/02-frontend-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  backend:
+    name: Backend
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    uses: ./.github/workflows/03-backend-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  bruno:
+    name: Bruno API
+    needs: changes
+    if: needs.changes.outputs.bruno == 'true'
+    uses: ./.github/workflows/04-bruno-tests.yml
+    with:
+      ref: ${{ github.sha }}
+
+  versioning:
+    name: Versioning
+    needs: changes
+    if: needs.changes.outputs.versioning == 'true'
+    uses: ./.github/workflows/05-versioning-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  result:
+    name: PR validation result
+    needs: [changes, commits, frontend, backend, bruno, versioning]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful applicable validations
+        uses: actions/github-script@v7
+        env:
+          VALIDATION_RESULTS: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const results = JSON.parse(process.env.VALIDATION_RESULTS);
+            for (const [name, job] of Object.entries(results)) {
+              const required = name === 'changes' || name === 'commits';
+              if (job.result !== 'success' && (required || job.result !== 'skipped')) {
+                core.setFailed(`${name}: ${job.result}`);
+              }
+            }

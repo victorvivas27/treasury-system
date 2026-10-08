@@ -12,12 +12,6 @@ on:
       - "frontend/**"
       - ".github/workflows/02-frontend-ci.yml"
 
-  pull_request:
-    branches: [dev, main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/02-frontend-ci.yml"
-
 permissions:
   contents: read
 

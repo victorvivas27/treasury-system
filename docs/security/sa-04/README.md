@@ -1,6 +1,6 @@
 # SA-04 — Impedir auto-reactivación y auto-desbloqueo
 
-**Estado: remediado en código y validado localmente.** Perfil propio y administración tienen contratos separados; el perfil permite modificar únicamente `nombre`. Despliegue y verificación en producción pendientes.
+**Estado: remediado, validado localmente y desplegado en producción el 2026-10-08.** Perfil propio y administración tienen contratos separados; el perfil permite modificar únicamente `nombre`. Bruno aprobó 10/10 comprobaciones productivas. Estados inicialmente bloqueados/deshabilitados, aislamiento con ADMIN ordinario y comprobación interactiva del frontend siguen pendientes para el cierre completo. Ver [evidencia productiva](SA04_PRODUCTION_CHECK.md).
 
 Validación: 611 tests backend y 431 frontend aprobados; 94 tests PostgreSQL incluidos. JaCoCo pasa. PMD conserva 19 incidencias preexistentes, sin incidencias nuevas.
 
