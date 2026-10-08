@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.1](https://github.com/victorvivas27/treasury-system/compare/v1.11.0...v1.11.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* mejora en grafico ([a04f76a](https://github.com/victorvivas27/treasury-system/commit/a04f76a8fe723f4c5bb0e63c4b1fa36807658109))
+* **ui:** colocar paneles debajo del flujo financiero ([366c71f](https://github.com/victorvivas27/treasury-system/commit/366c71ff1f62fccf7e776dab89d2c98b3d4738f4))
+
 ## [1.11.0](https://github.com/victorvivas27/treasury-system/compare/v1.10.1...v1.11.0) (2026-10-08)
 
 
