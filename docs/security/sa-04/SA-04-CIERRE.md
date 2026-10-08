@@ -8,9 +8,11 @@ Fecha: 2026-10-05. Alcance: autorización de campos en actualización de perfil 
 |---|---|
 | REMEDIADO EN CÓDIGO | SÍ: contratos separados, allowlist de perfil y autorización administrativa en backend |
 | VALIDADO EN TESTS | SÍ: 611 tests backend, 0 fallos/errores/omisiones; 431 tests frontend aprobados |
-| DESPLEGADO | NO |
-| VERIFICADO EN ENTORNO DESPLEGADO | NO |
+| DESPLEGADO | SÍ: backend y frontend desde c22aa55, 2026-10-08 |
+| VERIFICADO EN ENTORNO DESPLEGADO | PARCIAL: 10/10 comprobaciones Bruno aprobadas; estados bloqueados, aislamiento con ADMIN ordinario y prueba interactiva de frontend pendientes |
 | CERRADO EN PRODUCCIÓN | NO |
+
+Ver [evidencia productiva y despliegue](SA04_PRODUCTION_CHECK.md). El informe técnico original siguiente corresponde a la validación local del 2026-10-05.
 
 No se modificaron datos productivos, esquema, migraciones ni dependencias. PostgreSQL se probó en contenedores desechables `postgres:16-alpine` con Flyway y Hibernate `validate`.
 
@@ -229,4 +231,4 @@ SA-05 no se implementó ni se declara cerrado en esta tarea. No se modificaron `
 
 Aunque el código recibido ya verifica enabled/accountNonLocked en JWT como parte de SA-03, la revisión independiente de aceptación/revocación y ciclo de vida de sesiones sigue correspondiendo a SA-05. SA-04 no depende de esa comprobación: las pruebas suministran una sesión USER aceptada para una cuenta realmente bloqueada/deshabilitada y demuestran que el perfil no puede restaurar estados, roles, pertenencia ni atributos internos.
 
-SA-04 está remediado y validado localmente; no está cerrado en producción.
+SA-04 está remediado, validado localmente y desplegado desde el 2026-10-08, con 10/10 comprobaciones Bruno productivas aprobadas. Las verificaciones pendientes descritas en la evidencia productiva impiden declarar el cierre completo en producción.

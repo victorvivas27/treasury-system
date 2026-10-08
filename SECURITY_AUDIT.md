@@ -155,7 +155,7 @@ Las 15 pruebas de caché pasan. Cubren ambos órdenes de calentamiento A/B, las 
 
 ### SA-04 — El usuario puede reactivar y desbloquear su propia cuenta
 
-**Actualización 2026-10-05:** remediado en código y validado localmente; despliegue y verificación productiva pendientes. Ver [corrección y pruebas de SA-04](docs/security/sa-04/SA-04-CIERRE.md). La descripción siguiente conserva el hallazgo original de la auditoría.
+**Actualización 2026-10-08:** remediado en código, validado localmente y desplegado en backend y frontend; 10/10 comprobaciones Bruno productivas aprobadas. Cierre completo pendiente de las verificaciones restantes descritas en la [evidencia productiva](docs/security/sa-04/SA04_PRODUCTION_CHECK.md). Ver [corrección y pruebas de SA-04](docs/security/sa-04/SA-04-CIERRE.md). La descripción siguiente conserva el hallazgo original de la auditoría.
 
 **Severidad ALTA · Confianza ALTA · Confirmada por HTTP local · P0.** Componente: usuarios/mass assignment.
 

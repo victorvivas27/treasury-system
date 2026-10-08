@@ -1,0 +1,104 @@
+info:
+  name: SA-04 comprobacion de perfil y permisos
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {"correo":"{{Admin_Email}}","password":"{{Admin_Password}}"}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        const admin = res.getBody();
+        test('Login ADMIN', () => {
+          expect(res.getStatus()).to.equal(200);
+          expect(admin.user.rol).to.be.oneOf(['ADMIN', 'SUPER_ADMIN']);
+          expect(admin.token).to.be.a('string').and.not.be.empty;
+        });
+        if (res.getStatus() !== 200 || !admin.token || !['ADMIN', 'SUPER_ADMIN'].includes(admin.user?.rol)) {
+          throw new Error('No se pudo autenticar ADMIN; comprobaciones detenidas');
+        }
+        const base = bru.getEnvVar('Url_Base').replace(/\/$/, '');
+        async function request(method, path, token, data) {
+          try { return await bru.sendRequest({
+            method, url: base + path,
+            headers: {'Content-Type': 'application/json', ...(token ? {Authorization: 'Bearer ' + token} : {})},
+            ...(data === undefined ? {} : {data}), timeout: 20000
+          }); } catch (error) {
+            if (error.response) return error.response;
+            const statusMatch = String(error.message || error).match(/status code (\d{3})/);
+            if (statusMatch) return {status: Number(statusMatch[1]), data: null};
+            throw new Error('Error de transporte en ' + method + ' ' + path);
+          }
+        }
+        const login = await request('POST', '/auth/login', null, {
+          correo: bru.getEnvVar('User_Email'), password: bru.getEnvVar('User_Password')
+        });
+        test('Login USER', () => {
+          expect(login.status).to.equal(200);
+          expect(login.data.user.rol).to.equal('USER');
+          expect(login.data.token).to.be.a('string').and.not.be.empty;
+        });
+        if (login.status !== 200 || !login.data.token || login.data.user?.rol !== 'USER') {
+          throw new Error('No se pudo autenticar USER; comprobaciones detenidas');
+        }
+        const user = login.data.user;
+        const token = login.data.token;
+        const path = '/users/' + user.id;
+        const initial = await request('GET', path, admin.token);
+        test('ADMIN puede consultar al USER de prueba', () => {
+          expect(initial.status).to.equal(200);
+          expect(initial.data.id).to.equal(user.id);
+        });
+        if (initial.status !== 200) throw new Error('No se pudo obtener estado inicial');
+        const snapshot = initial.data;
+        function unchanged(actual) {
+          for (const key of ['id', 'code', 'nombre', 'correo', 'rol', 'enabled', 'accountNonLocked', 'emailVerifiedAt', 'profileImageType', 'profileImageUrl']) {
+            expect(actual[key], key).to.deep.equal(snapshot[key]);
+          }
+        }
+        const profile = await request('PUT', path + '/profile', token, {nombre: snapshot.nombre});
+        test('USER puede actualizar su perfil con su nombre actual', () => {
+          expect(profile.status).to.equal(200);
+          unchanged(profile.data);
+        });
+        if (profile.status !== 200) throw new Error('Perfil propio devolvio HTTP ' + profile.status + '; comprobaciones detenidas');
+        const forbidden = await request('PUT', path, token, {
+          nombre: snapshot.nombre, correo: snapshot.correo,
+          enabled: snapshot.enabled, accountNonLocked: snapshot.accountNonLocked
+        });
+        test('USER no puede utilizar PUT administrativo', () => expect(forbidden.status).to.equal(403));
+        const otherProfile = await request('PUT', '/users/' + admin.user.id + '/profile', token, {nombre: admin.user.nombre});
+        test('USER no puede editar el perfil de otro usuario', () => expect(otherProfile.status).to.equal(403));
+        const invalid = await request('PUT', path + '/profile', token, {enabled: true, accountNonLocked: true, rol: 'ADMIN'});
+        test('Perfil sin nombre valido devuelve 400', () => expect(invalid.status).to.equal(400));
+        const injected = await request('PUT', path + '/profile', token, {
+          nombre: snapshot.nombre, correo: 'sa04-injection@example.invalid',
+          rol: 'ADMIN', roles: ['ADMIN'], organizationId: -1, tenantId: -1,
+          id: admin.user.id, code: 'SA04-INJECTION', enabled: true, accountNonLocked: true
+        });
+        test('Perfil ignora atributos ajenos al contrato', () => {
+          expect(injected.status).to.equal(200);
+          unchanged(injected.data);
+        });
+        const adminEdit = await request('PUT', path, admin.token, {nombre: snapshot.nombre, correo: snapshot.correo});
+        test('ADMIN puede editar y omitir los estados', () => {
+          expect(adminEdit.status).to.equal(200);
+          unchanged(adminEdit.data);
+        });
+        const final = await request('GET', path, admin.token);
+        test('Lectura posterior confirma atributos conservados', () => {
+          expect(final.status).to.equal(200);
+          unchanged(final.data);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 20000
+  followRedirects: false
