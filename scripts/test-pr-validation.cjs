@@ -75,3 +75,36 @@ test('final result rejects failures, cancellations and skipped required jobs', a
   assert.deepEqual(await run({ ...base, frontend: { result: 'cancelled' } }), ['frontend: cancelled']);
   assert.deepEqual(await run({ ...base, commits: { result: 'skipped' } }), ['commits: skipped']);
 });
+
+test('promotion title comes from the exact latest dev commit and drops the commit body', async () => {
+  const titleJob = read(children[0]).jobs['promotion-title'];
+  assert.equal(titleJob.permissions['pull-requests'], 'write');
+  assert.ok(titleJob.if.includes("head.ref == 'dev'"));
+  assert.equal(read(children[0]).jobs['validate-commits'].permissions['pull-requests'], 'read');
+  const changes = [];
+  let message = 'fix(ui): corregir paneles\n\nDetalle del cambio';
+  const candidate = { number: 42, state: 'open', title: 'Dev', base: { ref: 'main' },
+    head: { ref: 'dev', sha: 'latest', repo: { full_name: 'owner/repo' } } };
+  const run = async pr => new AsyncFunction('github', 'context', 'core', titleJob.steps[0].with.script)(
+    { rest: {
+      pulls: { get: async () => ({ data: pr }), update: async args => changes.push(args) },
+      repos: { getCommit: async args => {
+        assert.equal(args.ref, 'latest');
+        return { data: { commit: { message } } };
+      } },
+    } },
+    { repo: { owner: 'owner', repo: 'repo' }, payload: { pull_request: { number: 42, head: { sha: 'latest' } } } },
+    { info: () => {} },
+  );
+  await run(candidate);
+  assert.equal(changes[0].title, 'fix(ui): corregir paneles');
+  await run({ ...candidate, title: changes[0].title });
+  assert.equal(changes.length, 1);
+  await run({ ...candidate, head: { ...candidate.head, ref: 'feature/test' } });
+  await run({ ...candidate, head: { ...candidate.head, repo: { full_name: 'external/repo' } } });
+  assert.equal(changes.length, 1);
+  await assert.rejects(run({ ...candidate, head: { ...candidate.head, sha: 'newer' } }), /changed during validation/);
+  message = 'Merge pull request #42 from owner/feature';
+  await run(candidate);
+  assert.equal(changes[1].title, 'chore: Merge pull request #42 from owner/feature');
+});

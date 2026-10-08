@@ -51,6 +51,9 @@ jobs:
 
   commits:
     name: Commits and PR title
+    permissions:
+      contents: read
+      pull-requests: write
     uses: ./.github/workflows/01-commit-lint.yml
 
   frontend:
