@@ -2,6 +2,9 @@ package com.tesoreria.user.application.usecase;
 
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.user.config.security.JwtService;
+import com.tesoreria.organization.config.TenantUserDetails;
+import com.tesoreria.user.core.constant.RoleEnum;
+import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.tesoreria.user.core.constant.UserTokenType;
 import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserTokenEntity;
@@ -20,6 +23,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.Objects;
 
 @Service
 public class RefreshTokenService {
@@ -58,7 +62,7 @@ public class RefreshTokenService {
 
     @Transactional
     public IssuedTokens issueForUserId(Long userId, String userAgent, String ipAddress) {
-        var user = userRepository.findById(userId).orElseThrow(this::invalidToken);
+        var user = userRepository.findByIdForSessionUpdate(userId).orElseThrow(this::invalidToken);
         return issue(user, UUID.randomUUID(), userAgent, ipAddress);
     }
 
@@ -68,14 +72,15 @@ public class RefreshTokenService {
     }
 
     private IssuedTokens issue(String correo, UUID tokenFamilyId, String userAgent, String ipAddress) {
-        var matches = userRepository.findAllByCorreoOrderByIdAsc(correo.toLowerCase(java.util.Locale.ROOT));
+        var matches = userRepository.findSessionUserIdsByCorreo(correo.toLowerCase(java.util.Locale.ROOT));
         if (matches.size() != UNIQUE_ACCOUNT_COUNT) throw invalidToken();
-        return issue(matches.get(0), tokenFamilyId, userAgent, ipAddress);
+        var user = userRepository.findByIdForSessionUpdate(matches.get(0)).orElseThrow(this::invalidToken);
+        return issue(user, tokenFamilyId, userAgent, ipAddress);
     }
 
-    private IssuedTokens issue(com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity user,
+    private IssuedTokens issue(UserEntity user,
                                UUID tokenFamilyId, String userAgent, String ipAddress) {
-        UserDetails details = userDetailsService.loadUserById(user.getId());
+        UserDetails details = activeAccountDetails(user);
         String refreshToken = randomToken();
         String csrfToken = randomToken();
         UserTokenEntity entity = new UserTokenEntity();
@@ -93,17 +98,24 @@ public class RefreshTokenService {
 
     @Transactional
     public IssuedTokens rotate(String refreshToken, String csrfToken) {
+        String tokenHash = hash(refreshToken);
+        Long userId = tokenRepository.findSessionUserId(tokenHash, UserTokenType.REFRESH_TOKEN)
+                .orElseThrow(this::invalidToken);
+        // Account first, token second: issuance, rotation and administrative revocation share this order.
+        var user = userRepository.findByIdForSessionUpdate(userId).orElseThrow(this::invalidToken);
         UserTokenEntity current = tokenRepository
-                .findByTokenHashAndType(hash(refreshToken), UserTokenType.REFRESH_TOKEN)
+                .findByTokenHashAndType(tokenHash, UserTokenType.REFRESH_TOKEN)
                 .orElseThrow(this::invalidToken);
         LocalDateTime now = LocalDateTime.now();
         validateCsrf(current, csrfToken);
+        if (!Objects.equals(current.getUserId(), user.getId())) throw invalidToken();
         if (current.getRevokedAt() != null
                 || current.getUsedAt() != null
                 || !current.getExpiresAt().isAfter(now)) {
             detectReuse(current, now);
             throw invalidToken();
         }
+        activeAccountDetails(user);
         UUID tokenFamilyId = current.getTokenFamilyId() == null
                 ? UUID.randomUUID()
                 : current.getTokenFamilyId();
@@ -111,7 +123,6 @@ public class RefreshTokenService {
         current.setUsedAt(now);
         current.setLastUsedAt(now);
         tokenRepository.save(current);
-        var user = userRepository.findById(current.getUserId()).orElseThrow(this::invalidToken);
         return issue(user, tokenFamilyId, current.getUserAgent(), current.getIpAddress());
     }
 
@@ -141,10 +152,37 @@ public class RefreshTokenService {
                 });
     }
 
-    public boolean isFamilyActive(UUID tokenFamilyId) {
-        return tokenFamilyId != null
-                && tokenRepository.existsByTokenFamilyIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
-                tokenFamilyId, UserTokenType.REFRESH_TOKEN, LocalDateTime.now());
+    public boolean isFamilyActive(UUID tokenFamilyId, Long userId) {
+        return tokenFamilyId != null && userId != null
+                && tokenRepository.existsByTokenFamilyIdAndUserIdAndTypeAndRevokedAtIsNullAndUsedAtIsNullAndExpiresAtAfter(
+                tokenFamilyId, userId, UserTokenType.REFRESH_TOKEN, LocalDateTime.now());
+    }
+
+    @Transactional
+    public void lockAccount(Long userId) {
+        userRepository.findByIdForSessionUpdate(userId);
+    }
+
+    @Transactional
+    public void revokeAllForUser(Long userId) {
+        lockAccount(userId);
+        tokenRepository.revokeAllForUser(userId, UserTokenType.REFRESH_TOKEN, LocalDateTime.now());
+    }
+
+    private UserDetails activeAccountDetails(UserEntity user) {
+        UserDetails details = userDetailsService.loadUserById(user.getId());
+        if (!(details instanceof TenantUserDetails tenant)
+                || !Objects.equals(tenant.getUserId(), user.getId())
+                || !Objects.equals(tenant.getOrganizationId(), user.getOrganizationId())
+                || tenant.getRole() != user.getRol()
+                || !details.getUsername().equalsIgnoreCase(user.getCorreo())
+                || (tenant.getOrganizationId() == null && tenant.getRole() != RoleEnum.SUPER_ADMIN)
+                || !details.isEnabled() || !details.isAccountNonLocked()
+                || !details.isAccountNonExpired() || !details.isCredentialsNonExpired()
+                || !tenant.isOrganizationActive()) {
+            throw invalidToken();
+        }
+        return details;
     }
 
     public long getExpirationSeconds() {

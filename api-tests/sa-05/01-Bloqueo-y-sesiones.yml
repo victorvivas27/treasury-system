@@ -1,0 +1,118 @@
+info:
+  name: SA-05 bloqueo y revocacion de sesiones de prueba
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{Url_Base}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {"correo":"{{Admin_Email}}","password":"{{Admin_Password}}"}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        // Run only on a dedicated test USER: this temporarily locks the account and revokes its sessions.
+        // Use --disable-cookies in CLI; refresh/CSRF cookies are sent explicitly per session.
+        const admin = res.getBody();
+        test('Login administrativo', () => {
+          expect(res.getStatus()).to.equal(200);
+          expect(admin.user.rol).to.be.oneOf(['ADMIN', 'SUPER_ADMIN']);
+        });
+        if (res.getStatus() !== 200 || !admin.token || !['ADMIN', 'SUPER_ADMIN'].includes(admin.user?.rol)) {
+          throw new Error('Login administrativo invalido; no se modifica ninguna cuenta');
+        }
+        const base = bru.getEnvVar('Url_Base').replace(/\/$/, '');
+        async function request(method, path, token, data, headers = {}) {
+          try {
+            return await bru.sendRequest({method, url: base + path, timeout: 20000,
+              headers: {'Content-Type': 'application/json', ...(token ? {Authorization: 'Bearer ' + token} : {}), ...headers},
+              ...(data === undefined ? {} : {data})});
+          } catch (error) {
+            if (error.response) return error.response;
+            const match = String(error.message || error).match(/status code (\d{3})/);
+            if (match) return {status: Number(match[1]), data: null};
+            throw new Error('Error de transporte en ' + method + ' ' + path);
+          }
+        }
+        function session(response) {
+          const headers = response.headers?.['set-cookie'] || response.headers?.['Set-Cookie'];
+          const entries = Array.isArray(headers) ? headers : (headers ? [headers] : []);
+          const cookies = entries.flatMap(value => String(value).split(/,(?=\s*treasury_(?:refresh|csrf)=)/))
+            .map(value => value.trim().split(';')[0])
+            .filter(value => /^(treasury_refresh|treasury_csrf)=/.test(value));
+          if (response.status !== 200 || !response.data?.token || cookies.length !== 2 || !response.data.csrfToken) {
+            throw new Error('Sesion incompleta: HTTP ' + response.status + ', cookies=' + cookies.length
+              + ', csrf=' + Boolean(response.data?.csrfToken)
+              + ', headers=' + Object.keys(response.headers || {}).join(','));
+          }
+          return {token: response.data.token, cookies: cookies.join('; '), csrf: response.data.csrfToken};
+        }
+        const loginPayload = {correo: bru.getEnvVar('User_Email'), password: bru.getEnvVar('User_Password')};
+        const login = await request('POST', '/auth/login', null, loginPayload);
+        if (login.status !== 200 || login.data.user?.rol !== 'USER' || login.data.user.id === admin.user.id) {
+          throw new Error('Se requiere un USER de prueba distinto del administrador');
+        }
+        const first = session(login);
+        const id = login.data.user.id;
+        const path = '/users/' + id;
+        const initial = await request('GET', path, admin.token);
+        if (initial.status !== 200 || initial.data.enabled !== true || initial.data.accountNonLocked !== true) {
+          throw new Error('Se requiere una cuenta de prueba inicialmente activa y desbloqueada');
+        }
+        const snapshot = initial.data;
+        const update = unlocked => ({nombre: snapshot.nombre, correo: snapshot.correo, accountNonLocked: unlocked});
+        async function refresh(old) {
+          return await request('POST', '/auth/refresh', null, undefined,
+            {Cookie: old.cookies, 'X-CSRF-Token': old.csrf});
+        }
+        const healthy = await refresh(first);
+        test('Refresh sano con CSRF correcto', () => expect(healthy.status).to.equal(200));
+        const rotated = session(healthy);
+        const second = session(await request('POST', '/auth/login', null, loginPayload));
+        let restoreRequired = false;
+        try {
+          // Mark restoration before sending: a timeout can occur after the server commits the lock.
+          restoreRequired = true;
+          const locked = await request('PUT', path, admin.token, update(false));
+          test('Administrador bloquea la cuenta de prueba', () => expect(locked.status).to.equal(200));
+          if (locked.status !== 200) throw new Error('Bloqueo no confirmado');
+          for (const [index, old] of [rotated, second].entries()) {
+            const access = await request('GET', '/auth/me', old.token);
+            test('Access de sesion ' + (index + 1) + ' rechazado al bloquear', () => expect(access.status).to.equal(401));
+            const renewed = await refresh(old);
+            test('Refresh de sesion ' + (index + 1) + ' rechazado al bloquear', () => expect(renewed.status).to.equal(401));
+          }
+          const deniedLogin = await request('POST', '/auth/login', null, loginPayload);
+          test('Login de cuenta bloqueada rechazado', () => expect(deniedLogin.status).to.equal(401));
+        } finally {
+          if (restoreRequired) {
+            const restored = await request('PUT', path, admin.token, update(true));
+            if (restored.status !== 200 || restored.data.accountNonLocked !== true) {
+              throw new Error('RESTAURACION NO CONFIRMADA: desbloquear manualmente el USER de prueba con ADMIN');
+            }
+          }
+        }
+        for (const [index, old] of [rotated, second].entries()) {
+          const access = await request('GET', '/auth/me', old.token);
+          test('Access anterior ' + (index + 1) + ' sigue revocado tras desbloquear', () => expect(access.status).to.equal(401));
+          const renewed = await refresh(old);
+          test('Refresh anterior ' + (index + 1) + ' sigue revocado tras desbloquear', () => expect(renewed.status).to.equal(401));
+        }
+        const fresh = await request('POST', '/auth/login', null, loginPayload);
+        test('Login nuevo funciona tras desbloquear', () => expect(fresh.status).to.equal(200));
+        const final = await request('GET', path, admin.token);
+        test('Estado y perfil final conservados', () => {
+          expect(final.status).to.equal(200);
+          for (const key of ['id', 'code', 'nombre', 'correo', 'rol', 'enabled', 'accountNonLocked']) {
+            expect(final.data[key], key).to.deep.equal(snapshot[key]);
+          }
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 20000
+  followRedirects: false

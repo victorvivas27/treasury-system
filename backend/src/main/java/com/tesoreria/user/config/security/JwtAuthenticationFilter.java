@@ -73,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             if (parsedToken.tokenFamilyId() != null
-                    && !refreshTokenService.isFamilyActive(parsedToken.tokenFamilyId())) {
+                    && !refreshTokenService.isFamilyActive(parsedToken.tokenFamilyId(), parsedToken.userId())) {
                 SecurityContextHolder.clearContext();
                 performanceProbe.phaseCurrent("auth", authStartedAt);
                 filterChain.doFilter(request, response);

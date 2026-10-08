@@ -242,12 +242,34 @@
   }
 
   .birthday-section__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .45rem;
   }
 
   .birthday-card,
   .birthday-card.is-next {
     min-height: var(--size-106px);
     transform: none;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .35rem;
+    padding: .5rem;
+  }
+
+  .birthday-card__icon {
+    width: 28px;
+    height: 28px;
+    font-size: .9rem;
+  }
+
+  .birthday-card__body span { font-size: .55rem; }
+  .birthday-card__body h3 { font-size: .75rem; }
+  .birthday-card__body p { font-size: .62rem; }
+  .birthday-card > strong {
+    padding: .25rem .35rem;
+    font-size: .6rem;
+    line-height: 1.2;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
   }
 }
