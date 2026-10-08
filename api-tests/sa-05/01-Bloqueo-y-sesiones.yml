@@ -39,12 +39,15 @@ runtime:
           }
         }
         function session(response) {
-          const headers = response.headers?.['set-cookie'];
+          const headers = response.headers?.['set-cookie'] || response.headers?.['Set-Cookie'];
           const entries = Array.isArray(headers) ? headers : (headers ? [headers] : []);
-          const cookies = entries.map(value => String(value).split(';')[0])
+          const cookies = entries.flatMap(value => String(value).split(/,(?=\s*treasury_(?:refresh|csrf)=)/))
+            .map(value => value.trim().split(';')[0])
             .filter(value => /^(treasury_refresh|treasury_csrf)=/.test(value));
           if (response.status !== 200 || !response.data?.token || cookies.length !== 2 || !response.data.csrfToken) {
-            throw new Error('No se pudo obtener una sesion completa; no registrar tokens ni cookies');
+            throw new Error('Sesion incompleta: HTTP ' + response.status + ', cookies=' + cookies.length
+              + ', csrf=' + Boolean(response.data?.csrfToken)
+              + ', headers=' + Object.keys(response.headers || {}).join(','));
           }
           return {token: response.data.token, cookies: cookies.join('; '), csrf: response.data.csrfToken};
         }

@@ -8,9 +8,11 @@ Fecha: 2026-10-08. Alcance: aceptación HTTP de JWT, emisión/rotación de refre
 |---|---|
 | REMEDIADO EN CÓDIGO | SÍ |
 | VALIDADO EN TESTS | SÍ: 642 backend, 431 frontend, cero fallos/errores/omisiones |
-| DESPLEGADO | NO |
-| VERIFICADO EN PRODUCCIÓN | NO |
+| DESPLEGADO | SÍ: backend 902c3aa, revisión backend-00125-87h, 2026-10-08 |
+| VERIFICADO EN PRODUCCIÓN | PARCIAL: 14/14 Bruno; bloqueo, refresh y no recuperación de sesiones tras desbloqueo |
 | CERRADO EN PRODUCCIÓN | NO |
+
+Ver [despliegue y evidencia productiva](SA05_PRODUCTION_CHECK.md). La cuenta terminó habilitada/desbloqueada; sus sesiones previas quedaron revocadas. Desactivación y aislamiento con ADMIN ordinario siguen pendientes de comprobación productiva.
 
 Las modificaciones de documentación/Bruno de SA-04 que ya estaban en el árbol de trabajo se conservan; no forman parte de la corrección funcional de SA-05.
 
@@ -41,7 +43,7 @@ Se recrea el servicio de refresh y se consulta la revocación desde la base, sin
 
 `RefreshTokenServiceTest` añade comprobaciones unitarias de estados restringidos, identidad/organización incoherentes y propiedad de familia.
 
-La colección Bruno de SA-05 está preparada para la comprobación posterior al despliegue; no se ha ejecutado en producción.
+La colección Bruno de SA-05 se ejecutó después del despliegue autorizado: 14/14 comprobaciones productivas aprobadas. Ver la evidencia productiva para su alcance y los pendientes.
 
 ### Resultados finales
 

@@ -4,7 +4,7 @@
 
 La familia de sesión del JWT se consulta junto con el ID de su propietario. Emisión, rotación y administración usan primero el bloqueo de la fila de usuario, evitando que una sesión concurrente quede fuera de la revocación.
 
-Ver el [informe de corrección y validación](SA-05-CIERRE.md). No se ha desplegado SA-05 ni ejecutado su colección Bruno en producción.
+Ver el [informe de corrección y validación](SA-05-CIERRE.md). Backend desplegado desde `902c3aa`: 14/14 comprobaciones Bruno aprobadas en producción. Bloqueo/desbloqueo y revocación están verificados; desactivación y aislamiento con ADMIN ordinario siguen pendientes para el cierre productivo completo. Ver [evidencia productiva](SA05_PRODUCTION_CHECK.md).
 
 ## Bruno
 
