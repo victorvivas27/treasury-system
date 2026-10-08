@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/victorvivas27/treasury-system/compare/v1.11.1...v1.12.0) (2026-10-08)
+
+
+### Features
+
+* **ci:** sincronizar título del PR con el último commit de dev ([cd0bd26](https://github.com/victorvivas27/treasury-system/commit/cd0bd26b5c493d95de3f892ed4fcac8ce60f249e))
+* **ci:** sincronizar título del PR con el último commit de dev ([fac3c91](https://github.com/victorvivas27/treasury-system/commit/fac3c91b261b5030671fc032e46faf86388070de))
+
 ## [1.11.1](https://github.com/victorvivas27/treasury-system/compare/v1.11.0...v1.11.1) (2026-10-08)
 
 
