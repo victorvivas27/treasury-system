@@ -11,6 +11,14 @@ commits y título del PR siempre se validan. Un cambio de workflows ejecuta toda
 las áreas. El resultado **PR validation result** falla si falla o se cancela una
 comprobación necesaria.
 
+Para PR de `dev` a `main` dentro del mismo repositorio, el título se sincroniza
+con la primera línea del último commit de `dev` antes de validarlo. También se
+actualiza al añadir commits. Los otros PR conservan su título. El job que cambia
+el título tiene permiso de escritura sobre PR y no descarga ni ejecuta código
+del repositorio; la validación de commits mantiene permisos de solo lectura.
+Si el último commit tiene un título sin prefijo convencional (por ejemplo un
+merge), se antepone `chore:` para mantener un título válido.
+
 GitHub puede exigir otra aprobación si el bot añade un nuevo commit. Este cambio
 agrupa las ejecuciones por actualización, sin eliminar la aprobación de GitHub.
 Las ejecuciones de push, el proceso de release y los despliegues siguen usando

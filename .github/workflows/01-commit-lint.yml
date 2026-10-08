@@ -14,9 +14,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  promotion-title:
+    name: Use latest dev commit as PR title
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Synchronize promotion title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              ...context.repo, pull_number: context.payload.pull_request.number,
+            });
+            if (pr.state !== 'open' || pr.base.ref !== 'main' || pr.head.ref !== 'dev' ||
+                pr.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            if (pr.head.sha !== context.payload.pull_request.head.sha) {
+              throw new Error('The PR changed during validation; use the newest workflow run.');
+            }
+            const { data: commit } = await github.rest.repos.getCommit({
+              ...context.repo, ref: pr.head.sha,
+            });
+            const subject = commit.commit.message.split('\n')[0].trim();
+            const conventional = /^(feat|fix|perf|docs|style|refactor|test|chore|config|ci|build)(\([^)]+\))?!?:\s+\S/.test(subject);
+            const title = conventional ? subject : `chore: ${subject}`.slice(0, 150).trimEnd();
+            if (pr.title !== title) {
+              await github.rest.pulls.update({
+                ...context.repo, pull_number: pr.number, title,
+              });
+              core.info('PR title synchronized with the latest dev commit.');
+            }
+
   validate-commits:
     name: Validar Conventional Commits
+    needs: promotion-title
+    if: >-
+      always() && !cancelled() &&
+      (needs.promotion-title.result == 'success' || needs.promotion-title.result == 'skipped')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - name: Checkout código
