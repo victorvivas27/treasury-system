@@ -47,6 +47,8 @@ class AccountRecoveryServiceTest {
     private AuthFlowRateLimiter rateLimiter;
     @Mock
     private TokenRevocationService revocationService;
+    @Mock
+    private com.tesoreria.user.application.usecase.RefreshTokenService sessions;
     private AccountRecoveryService service;
     @Mock
     private ApoderadoJpaRepository guardians;
@@ -56,7 +58,7 @@ class AccountRecoveryServiceTest {
     @BeforeEach
     void setUp() {
         service = new AccountRecoveryService(users, tokens, email, passwordEncoder,
-                rateLimiter, revocationService, "https://app.example", null, null, guardians, organizations);
+                rateLimiter, "https://app.example", null, null, guardians, organizations, sessions);
     }
 
     @Test
@@ -158,6 +160,10 @@ class AccountRecoveryServiceTest {
         token.setType(UserTokenType.ACCOUNT_INVITATION);
         when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.PASSWORD_RESET))
                 .thenReturn(Optional.empty());
+        when(tokens.findSessionUserId(token.getTokenHash(), UserTokenType.PASSWORD_RESET))
+                .thenReturn(Optional.empty());
+        when(tokens.findSessionUserId(token.getTokenHash(), UserTokenType.ACCOUNT_INVITATION))
+                .thenReturn(Optional.of(7L));
         when(tokens.findByTokenHashAndType(token.getTokenHash(), UserTokenType.ACCOUNT_INVITATION))
                 .thenReturn(Optional.of(token));
         when(users.findById(7L)).thenReturn(Optional.of(user));
@@ -211,6 +217,8 @@ class AccountRecoveryServiceTest {
         when(user.getCorreo()).thenReturn("user@example.com");
         when(user.getNombre()).thenReturn("User");
         when(user.getPassword()).thenReturn("old-hash");
+        when(user.getId()).thenReturn(7L);
+        when(tokens.findSessionUserId(hash, UserTokenType.PASSWORD_RESET)).thenReturn(Optional.of(7L));
         when(tokens.findByTokenHashAndType(hash, UserTokenType.PASSWORD_RESET))
                 .thenReturn(Optional.of(token));
         when(users.findById(7L)).thenReturn(Optional.of(user));

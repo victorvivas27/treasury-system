@@ -191,6 +191,8 @@ Las 15 pruebas de caché pasan. Cubren ambos órdenes de calentamiento A/B, las 
 
 ### SA-06 — Cambiar o recuperar contraseña no revoca refresh tokens
 
+**Estado de la reparación (2026-10-09):** implementada y validada en H2 y PostgreSQL 16; ver [pruebas y límites](docs/security/sa-06/SA-06-REPARACION.md). Despliegue pendiente. Se conserva el hallazgo original como evidencia.
+
 **Severidad ALTA · Confianza ALTA · Confirmada por ejecución · P0.** Componente: recuperación/revocación.
 
 **Archivos y líneas:** [AccountRecoveryService.java](backend/src/main/java/com/tesoreria/user/application/usecase/AccountRecoveryService.java):197–251; [TokenRevocationService.java](backend/src/main/java/com/tesoreria/user/config/security/TokenRevocationService.java):11–12, 31–37; [RefreshTokenService.java](backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java):93–114.

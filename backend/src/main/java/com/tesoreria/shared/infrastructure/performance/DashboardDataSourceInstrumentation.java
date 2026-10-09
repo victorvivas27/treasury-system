@@ -6,6 +6,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ClassUtils;
 
 import javax.sql.DataSource;
 import java.lang.reflect.InvocationHandler;
@@ -31,7 +32,7 @@ public class DashboardDataSourceInstrumentation implements BeanPostProcessor {
         if (!enabled || !(bean instanceof DataSource dataSource) || Proxy.isProxyClass(bean.getClass())) {
             return bean;
         }
-        return Proxy.newProxyInstance(bean.getClass().getClassLoader(), new Class<?>[]{DataSource.class},
+        return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(), new Class<?>[]{DataSource.class},
                 new DataSourceHandler(dataSource));
     }
 
@@ -45,7 +46,7 @@ public class DashboardDataSourceInstrumentation implements BeanPostProcessor {
             Object connection = invokeTarget(method, target, args);
             DashboardPerformanceProbe.connectionAcquired(startedAt);
             if (connection instanceof Connection jdbcConnection) {
-                return Proxy.newProxyInstance(connection.getClass().getClassLoader(),
+                return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
                         new Class<?>[]{Connection.class}, new ConnectionHandler(jdbcConnection));
             }
             return connection;
@@ -62,12 +63,12 @@ public class DashboardDataSourceInstrumentation implements BeanPostProcessor {
             Object result = invokeTarget(method, target, args);
             if (result instanceof PreparedStatement statement && isPreparedStatementFactory(method)) {
                 String sql = args != null && args.length > 0 && args[0] instanceof String value ? value : null;
-                return Proxy.newProxyInstance(statement.getClass().getClassLoader(),
+                return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
                         new Class<?>[]{PreparedStatement.class},
                         new StatementHandler(statement, sql));
             }
             if (result instanceof Statement statement && isStatementFactory(method)) {
-                return Proxy.newProxyInstance(statement.getClass().getClassLoader(),
+                return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
                         new Class<?>[]{Statement.class}, new StatementHandler(statement, null));
             }
             return result;
@@ -75,11 +76,11 @@ public class DashboardDataSourceInstrumentation implements BeanPostProcessor {
 
         private boolean isPreparedStatementFactory(Method method) {
             String name = method.getName();
-            return name.equals("prepareStatement") || name.equals("prepareCall");
+            return "prepareStatement".equals(name) || "prepareCall".equals(name);
         }
 
         private boolean isStatementFactory(Method method) {
-            return method.getName().equals("createStatement");
+            return "createStatement".equals(method.getName());
         }
     }
 
@@ -102,13 +103,13 @@ public class DashboardDataSourceInstrumentation implements BeanPostProcessor {
             return name.startsWith("execute");
         }
 
-        private String sqlFor(Object[] args) {
+        private String sqlFor(Object... args) {
             if (preparedSql != null) return preparedSql;
             return args != null && args.length > 0 && args[0] instanceof String value ? value : null;
         }
     }
 
-    private static Object invokeTarget(Method method, Object target, Object[] args) throws Throwable {
+    private static Object invokeTarget(Method method, Object target, Object... args) throws Throwable {
         try {
             return method.invoke(target, args);
         } catch (InvocationTargetException exception) {

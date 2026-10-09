@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "users")
@@ -48,6 +49,9 @@ public class UserEntity {
     @Column(name = "invited_guardian_id")
     private Long invitedGuardianId;
 
+    @Column(name = "sessions_revoked_at")
+    private Instant sessionsRevokedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -73,6 +77,14 @@ public class UserEntity {
 
     @Column(name = "backup_codes", columnDefinition = "TEXT")
     private String backupCodes;
+
+    public Instant getSessionsRevokedAt() {
+        return sessionsRevokedAt;
+    }
+
+    public void setSessionsRevokedAt(Instant sessionsRevokedAt) {
+        this.sessionsRevokedAt = sessionsRevokedAt;
+    }
 
     public Long getId() {
         return id;

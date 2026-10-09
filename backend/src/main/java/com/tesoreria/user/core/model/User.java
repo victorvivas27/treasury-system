@@ -6,6 +6,7 @@ import com.tesoreria.user.core.constant.ProfileImageType;
 import com.tesoreria.user.core.exception.UserErrorCode;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Locale;
 
 public class User {
@@ -26,6 +27,8 @@ public class User {
     private LocalDateTime emailVerifiedAt;
     private LocalDateTime invitationAcceptedAt;
     private Long invitedGuardianId;
+
+    private Instant sessionsRevokedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String profileImageUrl;
@@ -87,6 +90,14 @@ public class User {
 
     private static DomainException error(UserErrorCode code, String message) {
         return new DomainException(code.getField(), code.getStatus(), message);
+    }
+
+    public Instant getSessionsRevokedAt() {
+        return sessionsRevokedAt;
+    }
+
+    public void setSessionsRevokedAt(Instant sessionsRevokedAt) {
+        this.sessionsRevokedAt = sessionsRevokedAt;
     }
 
     public Long getId() {

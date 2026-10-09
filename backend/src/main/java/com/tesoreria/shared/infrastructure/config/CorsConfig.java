@@ -74,7 +74,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .toArray(String[]::new);
     }
 
-    private static void validateNoWildcard(String[] values) {
+    private static void validateNoWildcard(String... values) {
         if (Arrays.asList(values).contains("*")) {
             throw new IllegalStateException("CORS no puede usar '*' con credenciales habilitadas");
         }

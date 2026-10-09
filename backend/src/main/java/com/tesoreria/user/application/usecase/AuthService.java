@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 public class AuthService {
+    private static final int UNIQUE_ACCOUNT_COUNT = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
     private final UserRepositoryOutPort users;
     private final CustomUserDetailsService userDetailsService;
@@ -94,7 +95,7 @@ public class AuthService {
         String normalized = correo == null ? "" : correo.trim().toLowerCase(Locale.ROOT);
         if (organizationId == null) {
             List<User> matchingUsers = matchingEnabledUsers(normalized, password);
-            if (matchingUsers.size() > 1) {
+            if (matchingUsers.size() > UNIQUE_ACCOUNT_COUNT) {
                 return null;
             }
             return matchingUsers.stream().findFirst()

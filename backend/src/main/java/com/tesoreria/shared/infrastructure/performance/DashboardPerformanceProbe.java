@@ -151,14 +151,15 @@ public class DashboardPerformanceProbe {
                     statistics.getQueryExecutionCount() - measurement.queriesBefore,
                     measurement.cacheEntryBefore ? "HIT" : "MISS",
                     cacheContains(measurement.endpoint, measurement.year));
-            if (!measurement.connectionAcquisitions.isEmpty() || !measurement.sqlExecutions.isEmpty()) {
+            if (LOG.isInfoEnabled()
+                    && (!measurement.connectionAcquisitions.isEmpty() || !measurement.sqlExecutions.isEmpty())) {
                 LOG.info("PERF_DETAIL endpoint={} year={} connectionAcquisitionsMs={} repeatedRepositoryCalls={} repeatedSqlFingerprints={} sqlExecutions={}",
                         measurement.endpoint, measurement.year, measurement.connectionAcquisitions,
                         repeatedRepositoryCalls(measurement.repositoryCalls),
                         repeatedSqlFingerprints(measurement.sqlExecutions), measurement.sqlExecutions);
             }
         }
-        if (CURRENT.get() == measurement) CURRENT.remove();
+        if (measurement.equals(CURRENT.get())) CURRENT.remove();
     }
 
     private Map<String, Long> repeatedRepositoryCalls(List<RepositoryCall> calls) {
