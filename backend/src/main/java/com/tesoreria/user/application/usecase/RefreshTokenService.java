@@ -71,10 +71,15 @@ public class RefreshTokenService {
         return issue(correo, UUID.randomUUID(), userAgent, ipAddress);
     }
 
-    private IssuedTokens issue(String correo, UUID tokenFamilyId, String userAgent, String ipAddress) {
+    public Long findUniqueSessionUserId(String correo) {
         var matches = userRepository.findSessionUserIdsByCorreo(correo.toLowerCase(java.util.Locale.ROOT));
         if (matches.size() != UNIQUE_ACCOUNT_COUNT) throw invalidToken();
-        var user = userRepository.findByIdForSessionUpdate(matches.get(0)).orElseThrow(this::invalidToken);
+        return matches.get(0);
+    }
+
+    private IssuedTokens issue(String correo, UUID tokenFamilyId, String userAgent, String ipAddress) {
+        var user = userRepository.findByIdForSessionUpdate(findUniqueSessionUserId(correo))
+                .orElseThrow(this::invalidToken);
         return issue(user, tokenFamilyId, userAgent, ipAddress);
     }
 

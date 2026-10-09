@@ -11,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.tesoreria.organization.application.OrganizationEmailBrandingService;
 import com.tesoreria.shared.domain.exception.DomainException;
-import com.tesoreria.user.config.security.TokenRevocationService;
 import com.tesoreria.user.core.constant.UserTokenType;
 import com.tesoreria.user.core.exception.UserErrorCode;
 import com.tesoreria.user.core.model.User;
@@ -30,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
@@ -49,7 +49,7 @@ public class AccountRecoveryService {
     private final EmailOutPort email;
     private final PasswordEncoder passwordEncoder;
     private final AuthFlowRateLimiter rateLimiter;
-    private final TokenRevocationService revocationService;
+    private final RefreshTokenService sessions;
     private final SecureRandom secureRandom = new SecureRandom();
     private final String frontendUrl;
     private final CurrentOrganizationService currentOrganization;
@@ -64,51 +64,22 @@ public class AccountRecoveryService {
             EmailOutPort email,
             PasswordEncoder passwordEncoder,
             AuthFlowRateLimiter rateLimiter,
-            TokenRevocationService revocationService,
             @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
             CurrentOrganizationService currentOrganization,
             OrganizationEmailBrandingService emailBranding,
-            ApoderadoJpaRepository guardians, OrganizationJpaRepository organizations) {
+            ApoderadoJpaRepository guardians, OrganizationJpaRepository organizations,
+            RefreshTokenService sessions) {
+        this.sessions = sessions;
         this.users = users;
         this.tokens = tokens;
         this.email = email;
         this.passwordEncoder = passwordEncoder;
         this.rateLimiter = rateLimiter;
-        this.revocationService = revocationService;
         this.frontendUrl = frontendUrl.replaceAll("/+$", "");
         this.currentOrganization = currentOrganization;
         this.emailBranding = emailBranding;
         this.guardians = guardians;
         this.organizations = organizations;
-    }
-
-    public AccountRecoveryService(UserRepositoryOutPort users, UserTokenJpaRepository tokens,
-            EmailOutPort email, PasswordEncoder passwordEncoder, AuthFlowRateLimiter rateLimiter,
-            TokenRevocationService revocationService, String frontendUrl,
-            CurrentOrganizationService currentOrganization, OrganizationEmailBrandingService emailBranding,
-            ApoderadoJpaRepository guardians) {
-        this(users, tokens, email, passwordEncoder, rateLimiter, revocationService,
-                frontendUrl, currentOrganization, emailBranding, guardians, null);
-    }
-
-    public AccountRecoveryService(UserRepositoryOutPort users, UserTokenJpaRepository tokens,
-            EmailOutPort email, PasswordEncoder passwordEncoder, AuthFlowRateLimiter rateLimiter,
-            TokenRevocationService revocationService, String frontendUrl,
-            CurrentOrganizationService currentOrganization, OrganizationEmailBrandingService emailBranding) {
-        this(users, tokens, email, passwordEncoder, rateLimiter, revocationService,
-                frontendUrl, currentOrganization, emailBranding, null, null);
-    }
-
-    public AccountRecoveryService(
-            UserRepositoryOutPort users,
-            UserTokenJpaRepository tokens,
-            EmailOutPort email,
-            PasswordEncoder passwordEncoder,
-            AuthFlowRateLimiter rateLimiter,
-            TokenRevocationService revocationService,
-            String frontendUrl) {
-        this(users, tokens, email, passwordEncoder, rateLimiter, revocationService,
-                frontendUrl, null, null);
     }
 
     @Transactional
@@ -233,7 +204,7 @@ public class AccountRecoveryService {
         String normalized = normalize(address);
         if (organizationId == null) {
             List<User> matches = users.findAllByCorreo(normalized);
-            if (matches.size() > 1) {
+            if (matches.size() > UNIQUE_ACCOUNT_COUNT) {
                 return new PasswordResetRequestResult(GENERIC_RESET, true,
                         matches.stream().map(User::getOrganizationId).toList());
             }
@@ -253,6 +224,12 @@ public class AccountRecoveryService {
     @Transactional
     public void resetPassword(String rawToken, String newPassword) {
         User.validateRawPassword(newPassword);
+        if (rawToken == null || rawToken.isBlank()) throw invalidToken();
+        String tokenHash = hash(rawToken);
+        Long userId = tokens.findSessionUserId(tokenHash, UserTokenType.PASSWORD_RESET)
+                .or(() -> tokens.findSessionUserId(tokenHash, UserTokenType.ACCOUNT_INVITATION))
+                .orElseThrow(this::invalidToken);
+        sessions.lockAccount(userId);
         UserTokenEntity token = validPasswordToken(rawToken);
         User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
         if (token.getType() == UserTokenType.ACCOUNT_INVITATION) {
@@ -271,36 +248,24 @@ public class AccountRecoveryService {
             user.setEnabled(true);
             user.setAccountNonLocked(true);
         }
+        user.setSessionsRevokedAt(Instant.now());
         users.save(user);
         token.setUsedAt(LocalDateTime.now());
         tokens.save(token);
         tokens.markAllUsed(token.getUserId(), token.getType(), token.getUsedAt());
-        revocationService.revokeAllForUser(user.getId());
+        sessions.revokeAllForUser(user.getId());
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
     @Transactional
     public void changePassword(String address, String currentPassword, String newPassword) {
-        var matches = users.findAllByCorreo(normalize(address));
-        if (matches.size() != UNIQUE_ACCOUNT_COUNT) throw invalidToken();
-        User user = matches.get(0);
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new DomainException(UserErrorCode.INVALID_CREDENTIALS.getField(),
-                    UserErrorCode.INVALID_CREDENTIALS.getStatus(), "La contraseña actual no es correcta");
-        }
-        User.validateRawPassword(newPassword);
-        if (passwordEncoder.matches(newPassword, user.getPassword())) {
-            throw new DomainException(UserErrorCode.PASSWORD_INVALID.getField(),
-                    UserErrorCode.PASSWORD_INVALID.getStatus(), "La nueva contraseña debe ser diferente");
-        }
-        user.setPassword(passwordEncoder.encode(newPassword));
-        users.save(user);
-        revocationService.revokeAllForUser(user.getId());
-        requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
+        // Resolve only the ID before acquiring the account lock, so credentials are loaded fresh.
+        changePassword(sessions.findUniqueSessionUserId(normalize(address)), currentPassword, newPassword);
     }
 
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
+        sessions.lockAccount(userId);
         User user = users.findById(userId).orElseThrow(this::invalidToken);
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new DomainException(UserErrorCode.INVALID_CREDENTIALS.getField(),
@@ -312,8 +277,9 @@ public class AccountRecoveryService {
                     UserErrorCode.PASSWORD_INVALID.getStatus(), "La nueva contraseÃ±a debe ser diferente");
         }
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.setSessionsRevokedAt(Instant.now());
         users.save(user);
-        revocationService.revokeAllForUser(user.getId());
+        sessions.revokeAllForUser(user.getId());
         requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
@@ -395,7 +361,7 @@ public class AccountRecoveryService {
             return users.findByCorreoAndOrganizationId(emailAddress, organizationId);
         }
         List<User> matches = users.findAllByCorreo(emailAddress);
-        return matches.size() == 1 ? Optional.of(matches.get(0)) : Optional.empty();
+        return matches.size() == UNIQUE_ACCOUNT_COUNT ? Optional.of(matches.get(0)) : Optional.empty();
     }
 
     private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting) {

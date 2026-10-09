@@ -26,6 +26,7 @@ import java.util.Map;
 public class TreasuryService implements TreasuryUseCase {
     private static final int MIN_YEAR = 2000;
     private static final String INVALID_SCHOOL_YEAR_MESSAGE = "El año escolar es inválido";
+    private static final String FAMILY_AUDIT_TYPE = "FAMILIA";
     private static final String INCOME_AUDIT_TYPE = "INGRESO";
     private static final String EXPENSE_AUDIT_TYPE = "EGRESO";
     private static final String CACHE_YEAR_KEY = TenantCacheKeys.YEAR_KEY;
@@ -114,7 +115,7 @@ public class TreasuryService implements TreasuryUseCase {
         if (mode == PaymentMode.PERSONALIZADA) {
             saveCustomObligation(saved.id(), customAmount, customDueDate, customConcept);
         }
-        audit("ASIGNAR_MODALIDAD", "FAMILIA", String.valueOf(familyId), user,
+        audit("ASIGNAR_MODALIDAD", FAMILY_AUDIT_TYPE, String.valueOf(familyId), user,
                 mode == PaymentMode.PERSONALIZADA
                         ? mode.name() + " por " + customAmount
                         : mode.name());
@@ -143,7 +144,7 @@ public class TreasuryService implements TreasuryUseCase {
         }
         if (repository.hasActivePaymentForPlan(plan.id())) {
             if (plan.mode() == PaymentMode.PERSONALIZADA && removePendingCustomObligations(plan)) {
-                audit("QUITAR_CUOTA_PERSONALIZADA", "FAMILIA", String.valueOf(familyId), user,
+                audit("QUITAR_CUOTA_PERSONALIZADA", FAMILY_AUDIT_TYPE, String.valueOf(familyId), user,
                         reason.trim());
                 return;
             }
@@ -153,7 +154,7 @@ public class TreasuryService implements TreasuryUseCase {
         repository.deletePaymentsByPlan(plan.id());
         repository.deleteObligationsByPlan(plan.id());
         repository.deletePlan(plan.id());
-        audit("QUITAR_FAMILIA_CUOTA", "FAMILIA", String.valueOf(familyId), user, reason.trim());
+        audit("QUITAR_FAMILIA_CUOTA", FAMILY_AUDIT_TYPE, String.valueOf(familyId), user, reason.trim());
     }
 
     private boolean removePendingCustomObligations(FamilyFeePlan plan) {
@@ -514,7 +515,7 @@ public class TreasuryService implements TreasuryUseCase {
                 current == null ? null : current.id(), familyId, year, type, ContributionStatus.PAID,
                 null, paymentDate, user, normalize(notes), null, null, null,
                 current == null ? now : current.createdAt(), now));
-        audit("REGISTRAR_APORTE", "FAMILIA", String.valueOf(familyId), user,
+        audit("REGISTRAR_APORTE", FAMILY_AUDIT_TYPE, String.valueOf(familyId), user,
                 type.name() + " " + year);
         return saved;
     }

@@ -57,8 +57,10 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
                 || !java.util.Set.of("www.mercadopago.cl", "www.mercadopago.com").contains(uri.getHost())
                 || uri.getUserInfo() != null || uri.getPort() != -1 || response.path("id").asText().isBlank()
                 || !settings.collectorId().equals(response.path("collector_id").asText())) {
-            LOGGER.warn("Mercado Pago preference rejected after provider response: host={}, collectorIdMatches={}",
-                    uri.getHost(), settings.collectorId().equals(response.path("collector_id").asText()));
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Mercado Pago preference rejected after provider response: host={}, collectorIdMatches={}",
+                        uri.getHost(), settings.collectorId().equals(response.path("collector_id").asText()));
+            }
             throw unavailable();
         }
         return new Checkout(response.path("id").asText(), url);
@@ -93,8 +95,10 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
         try {
             HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                LOGGER.warn("Mercado Pago request failed: path={}, status={}, body={}",
-                        path, response.statusCode(), summarizeProviderBody(response.body()));
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Mercado Pago request failed: path={}, status={}, body={}",
+                            path, response.statusCode(), summarizeProviderBody(response.body()));
+                }
                 throw unavailable();
             }
             return mapper.readTree(response.body());
@@ -103,7 +107,9 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
             LOGGER.warn("Mercado Pago request interrupted: path={}", path);
             throw unavailable();
         } catch (IOException exception) {
-            LOGGER.warn("Mercado Pago request failed: path={}, error={}", path, exception.toString());
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Mercado Pago request failed: path={}, error={}", path, exception.toString());
+            }
             throw unavailable();
         }
     }

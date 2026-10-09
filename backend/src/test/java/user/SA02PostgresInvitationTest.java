@@ -70,7 +70,7 @@ class SA02PostgresInvitationTest extends SA02InvitationIntegrationTest {
                 "--MERCADO_PAGO_ORGANIZATION_ID=0", "--MERCADO_PAGO_COLLECTOR_ID=",
                 "--MERCADO_PAGO_RETURN_URL=", "--MERCADO_PAGO_WEBHOOK_URL=")) {
             org.junit.jupiter.api.Assertions.assertTrue(restarted.isActive());
-            assertEquals("50", restarted.getBean(org.flywaydb.core.Flyway.class)
+            assertEquals("51", restarted.getBean(org.flywaydb.core.Flyway.class)
                     .info().current().getVersion().getVersion());
         }
     }

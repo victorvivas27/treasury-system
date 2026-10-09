@@ -22,6 +22,7 @@ import org.springframework.security.core.AuthenticationException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final String AUTH_PHASE = "auth";
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -50,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         long authStartedAt = DashboardPerformanceProbe.now();
         String header = request.getHeader(SecurityConstants.AUTHORIZATION_HEADER);
         if (header == null || !header.startsWith(SecurityConstants.TOKEN_PREFIX)) {
-            performanceProbe.phaseCurrent("auth", authStartedAt);
+            performanceProbe.phaseCurrent(AUTH_PHASE, authStartedAt);
             filterChain.doFilter(request, response);
             return;
         }
@@ -59,23 +60,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (revocationService.isRevoked(token)) {
                 SecurityContextHolder.clearContext();
-                performanceProbe.phaseCurrent("auth", authStartedAt);
+                performanceProbe.phaseCurrent(AUTH_PHASE, authStartedAt);
                 filterChain.doFilter(request, response);
                 return;
             }
             JwtService.ParsedToken parsedToken = jwtService.parseToken(token);
             String username = parsedToken.username();
             if (parsedToken.userId() == null
-                    || revocationService.isUserRevokedAfter(parsedToken.userId(), parsedToken.issuedAt())) {
+                    || revocationService.isUserRevokedAfter(parsedToken)) {
                 SecurityContextHolder.clearContext();
-                performanceProbe.phaseCurrent("auth", authStartedAt);
+                performanceProbe.phaseCurrent(AUTH_PHASE, authStartedAt);
                 filterChain.doFilter(request, response);
                 return;
             }
             if (parsedToken.tokenFamilyId() != null
                     && !refreshTokenService.isFamilyActive(parsedToken.tokenFamilyId(), parsedToken.userId())) {
                 SecurityContextHolder.clearContext();
-                performanceProbe.phaseCurrent("auth", authStartedAt);
+                performanceProbe.phaseCurrent(AUTH_PHASE, authStartedAt);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -97,7 +98,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             SecurityContextHolder.clearContext();
         }
-        performanceProbe.phaseCurrent("auth", authStartedAt);
+        performanceProbe.phaseCurrent(AUTH_PHASE, authStartedAt);
         filterChain.doFilter(request, response);
     }
 }
