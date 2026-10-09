@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.14.0](https://github.com/victorvivas27/treasury-system/compare/v1.13.0...v1.14.0) (2026-10-09)
+
+
+### Features
+
+* Implement password session revocation on password change and re… ([2c6fa12](https://github.com/victorvivas27/treasury-system/commit/2c6fa129939c37b6799b008e609d25c93aebb846))
+* Implement password session revocation on password change and recovery ([88eb6f1](https://github.com/victorvivas27/treasury-system/commit/88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6))
+
 ## [1.13.0](https://github.com/victorvivas27/treasury-system/compare/v1.12.0...v1.13.0) (2026-10-09)
 
 
