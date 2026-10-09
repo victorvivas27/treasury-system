@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.0](https://github.com/victorvivas27/treasury-system/compare/v1.12.0...v1.13.0) (2026-10-09)
+
+
+### Features
+
+* **ui:** mejorar enlaces y accesibilidad en el panel de flujo de caja ([ebc041b](https://github.com/victorvivas27/treasury-system/commit/ebc041b8cdf71ba7247e750c6bf61074ca072cdf))
+* **ui:** mejorar enlaces y accesibilidad en el panel de flujo de caja ([adbb6ba](https://github.com/victorvivas27/treasury-system/commit/adbb6ba67d58287cb2a9611801a15f87fe32423e))
+
 ## [1.12.0](https://github.com/victorvivas27/treasury-system/compare/v1.11.1...v1.12.0) (2026-10-08)
 
 
