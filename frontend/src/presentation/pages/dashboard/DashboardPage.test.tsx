@@ -84,8 +84,8 @@ describe("DashboardPage", () => {
       `/tesoreria/ingresos?year=${selectedYear}`);
     expect(screen.getByRole("link", { name: "Egresos activos" })).toHaveAttribute("href",
       `/tesoreria/gastos?year=${selectedYear}`);
-    expect(screen.queryByRole("link", { name: "Ingresos", exact: true })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Egresos", exact: true })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^Ingresos\s*\$/ })).toHaveAttribute("href", `/tesoreria/ingresos?year=${selectedYear}`);
+    expect(screen.getByRole("link", { name: /^Egresos\s*\$/ })).toHaveAttribute("href", `/tesoreria/gastos?year=${selectedYear}`);
     const cepaCard = screen.getByRole("heading", { name: "Cuota CEPA" }).closest("article");
     const solidarityCard = screen.getByRole("heading",
       { name: "Fondo de Apoyo por Fallecimiento" }).closest("article");
