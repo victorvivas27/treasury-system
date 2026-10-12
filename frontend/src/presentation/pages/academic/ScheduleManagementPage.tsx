@@ -6,7 +6,8 @@ import type { Schedule, ScheduleBlock, ScheduleDay } from "@/core/A-domain/entit
 import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { ScheduleSkeleton } from "./ScheduleSkeleton";
+import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleTimeSelect } from "./ScheduleTimeSelect";
 import { ScheduleDayPanel } from "./ScheduleDayPanel";
 import { ScheduleDayProgress } from "./ScheduleDayProgress";
@@ -28,6 +29,11 @@ export function ScheduleManagementPage() {
   const focusBeforeDialog = useRef<HTMLElement | null>(null);
   const validationNotice = useRef<HTMLParagraphElement | null>(null);
   const preservedDraft = useRef<{ schedule: Schedule; dirty: boolean } | null>(null);
+  useEffect(() => {
+    if (saveResult !== "success" || !activeSave?.startsWith("day:")) return;
+    const timer = window.setTimeout(() => setSaveResult(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [saveResult, activeSave]);
   useEffect(() => {
     if (validation || data.error || saveResult === "failed") validationNotice.current?.focus();
   }, [validation, data.error, saveResult]);
@@ -64,7 +70,7 @@ export function ScheduleManagementPage() {
     document.addEventListener("keydown", keyboard);
     return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", keyboard); focusBeforeDialog.current?.focus(); };
   }, [confirmation]);
-  const change = (days: ScheduleDay[]) => { setDraft({ days }); setDirty(true); setValidation(""); setSaveResult(null); };
+  const change = (days: ScheduleDay[]) => { setDraft({ days }); setDirty(true); setValidation(""); if (saveResult !== "success") setSaveResult(null); };
   const updateDay = (day: ScheduleDay) => change([...draft.days.filter(value => value.dayOfWeek !== day.dayOfWeek), day].sort((a, b) => a.dayOfWeek - b.dayOfWeek));
   const updateBlock = (day: ScheduleDay, index: number, block: ScheduleBlock) =>
     updateDay({ ...day, blocks: day.blocks.map((value, position) => position === index ? block : value) });
@@ -116,16 +122,18 @@ export function ScheduleManagementPage() {
       <FiCalendar aria-hidden="true" /><span>Consultar horario publicado</span>
     </Link></header>
     <p>Guarda cada jornada mientras la configuras. Al terminar, publica el horario para que los usuarios lo vean. Publicar requiere configurar las cinco jornadas.</p>
-    <label>Año escolar <select disabled={data.loading || data.saving} value={data.year ?? ""} onChange={event => {
+    <div className="schedule-filters">
+    <ScheduleFilter label="Año escolar" loading={data.loading}><select disabled={data.loading || data.saving} value={data.year ?? ""} onChange={event => {
       const year = Number(event.target.value);
       if (dirty) ask("Hay cambios sin guardar. ¿Descartarlos para cambiar de año?", () => data.setYear(year));
       else data.setYear(year);
     }}>{data.periods.map(period => <option key={period.schoolYear} value={period.schoolYear}>
       {period.schoolYear} · {period.course}{period.editable ? "" : " · Histórico"}
-    </option>)}</select></label>
+    </option>)}</select></ScheduleFilter>
+    </div>
     {(validation || data.error) && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="alert" ref={validationNotice} tabIndex={-1}>{validation || data.error}</p>}
-    {data.message && <p role="status">{data.message}</p>}
-    {data.loading ? <LoadingState /> : <>
+    {data.message && !activeSave?.startsWith("day:") && <p role="status">{data.message}</p>}
+    {data.loading ? <ScheduleSkeleton view="management" /> : <>
       {!data.periods.length && <p>No hay períodos escolares disponibles.</p>}
       {!data.editable && data.periods.length > 0 && <p>Este año histórico es de solo lectura.</p>}
       {!draft.days.length && <p>Sin horario cargado. Configura cada jornada para comenzar.</p>}
@@ -194,20 +202,17 @@ export function ScheduleManagementPage() {
                 change(draft.days.filter(value => value.dayOfWeek !== number)))} />
               <Button label="Guardar" ariaLabel={`Guardar jornada · ${name}`} loading={data.saving && activeSave === `day:${number}`} onClick={() => { void save(false, `day:${number}`); }} />
               </div>
+              <div className="schedule-day-feedback-slot">
               {activeSave === `day:${number}` && (validation || data.error || saveResult) && <p
                 className={`schedule-save-feedback ${saveResult === "success" ? "is-success" : "is-error"}`}
                 ref={validationNotice} tabIndex={-1}
                 role={validation || data.error || saveResult === "failed" ? "alert" : "status"}>
                 {validation || data.error || (saveResult === "success" ? `${name} guardado como borrador.` : "No se pudo guardar. Inténtalo de nuevo.")}
               </p>}
+              </div>
             </>}
           </ScheduleDayPanel>;
         })}</div>
-        <div className="schedule-actions">
-          <Button label="Publicar horario" loading={data.saving && activeSave === "publish"} onClick={() => ask("El horario actual reemplazará la versión publicada para este año. ¿Publicar?", () => { void save(true); })} />
-          <Button label={`Eliminar todo el horario de ${data.year ?? "este año"}`} variant="danger" loading={data.pendingAction === "delete"}
-            disabled={data.year === undefined} onClick={requestDelete} />
-        </div>
         {activeSave === "publish" && (validation || data.error || saveResult === "failed") && <p
           className="schedule-save-feedback is-error" role="alert" ref={validationNotice} tabIndex={-1}>
           {validation || data.error || "No se pudo publicar el horario. Inténtalo de nuevo."}
@@ -219,6 +224,13 @@ export function ScheduleManagementPage() {
       </fieldset>
       {data.error && <Button label="Reintentar carga" onClick={data.retry} />}
     </>}
+    <div className="schedule-actions">
+      <Button label="Publicar horario" loading={data.pendingAction === "publish"}
+        disabled={data.loading || data.saving || !data.editable || data.loadFailed}
+        onClick={() => ask("El horario actual reemplazará la versión publicada para este año. ¿Publicar?", () => { void save(true); })} />
+      <Button label={`Eliminar todo el horario de ${data.year ?? "este año"}`} variant="danger" loading={data.pendingAction === "delete"}
+        disabled={data.loading || data.saving || !data.editable || data.loadFailed || data.year === undefined} onClick={requestDelete} />
+    </div>
     <ModalConfirm isOpen={Boolean(confirmation)} message={confirmation?.message ?? ""} compact
       title={confirmation?.deleteStep ? `Eliminar horario ${confirmation.deleteYear} · ${confirmation.deleteStep}/2` : undefined}
       confirmLabel={confirmation?.deleteStep === 1 ? "Continuar" : confirmation?.deleteStep === 2 ? "Eliminar definitivamente" : "Confirmar"}

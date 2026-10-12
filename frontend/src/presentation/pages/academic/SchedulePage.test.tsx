@@ -16,6 +16,19 @@ vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: () => account })
 describe("Consulta del horario", () => {
   beforeEach(() => { localStorage.clear(); state.loading = false; state.error = ""; account.user.id = 7; });
   const open = () => render(<MemoryRouter><SchedulePage /></MemoryRouter>);
+  it.each(["summary", "day", "table"])("muestra skeleton en la vista %s y lo retira al terminar la carga", view => {
+    state.loading = true;
+    localStorage.setItem("academic.schedule.view.7", view);
+    const page = open();
+    const loading = screen.getByRole("status", { name: "Cargando horario" });
+    expect(loading).toHaveAttribute("aria-busy", "true");
+    expect(loading.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
+    expect(loading.querySelectorAll(".schedule-day")).toHaveLength(view === "table" ? 0 : view === "day" ? 1 : 5);
+    expect(screen.queryByRole("button", { name: "Desplegar Lunes" })).not.toBeInTheDocument();
+    state.loading = false;
+    page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
+    expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
+  });
   it("muestra resumen por defecto, salida explícita, bloques y no edición para USER", () => {
     open();
     expect(screen.getByLabelText("Vista")).toHaveValue("summary");

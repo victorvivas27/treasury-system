@@ -87,6 +87,9 @@
 .schedule-day-actions .base-button { min-width: 0; margin: 0; padding: .35rem .15rem; font-size: .65rem; }
 .schedule-day-actions .button-content { gap: .15rem; }
 .schedule-day-actions .button-label { white-space: nowrap; }
+.schedule-day-actions .base-button { min-height: 2rem; }
+.schedule-day-feedback-slot { min-height: 3rem; margin-top: .4rem; }
+.schedule-day-feedback-slot .schedule-save-feedback { box-sizing: border-box; margin: 0; line-height: 1.4; }
 .schedule-save-feedback { margin: .4rem 0 0; padding: .35rem .45rem; border: 1px solid var(--border-color); border-left: 3px solid #d47749; border-radius: .35rem; background: color-mix(in srgb, #d47749 10%, var(--color-surface)); font-size: .75rem; overflow-wrap: anywhere; }
 .schedule-save-feedback.is-success { border-left-color: var(--color-accent); background: var(--color-accent-soft); }
 .schedule-page .schedule-copy-target { display: flex; flex-direction: row; align-items: center; gap: .4rem; margin: .5rem 0; font-size: .75rem; white-space: nowrap; }

@@ -8,7 +8,8 @@ import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { ScheduleSkeleton } from "./ScheduleSkeleton";
+import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleDayPanel } from "./ScheduleDayPanel";
 import "./Schedule.css";
 
@@ -46,17 +47,23 @@ export function SchedulePage() {
     <header><h1>Horario de clases</h1>{isAdminRole(user?.rol) && <Link className="schedule-manage-link" to="/admin/horario-clases">
       <FiSliders aria-hidden="true" /><span>Gestionar horario</span>
     </Link>}</header>
-    <label>Año escolar <select value={data.year ?? ""} disabled={data.loading} onChange={event => data.setYear(Number(event.target.value))}>
+    <div className="schedule-filters">
+    <ScheduleFilter label="Año escolar" loading={data.loading}><select value={data.year ?? ""} disabled={data.loading} onChange={event => data.setYear(Number(event.target.value))}>
       {data.periods.map(period => <option key={period.schoolYear} value={period.schoolYear}>{period.schoolYear} · {period.course}</option>)}
-    </select></label>
-    <label>Vista <select value={view} onChange={event => setPreference({ key, view: event.target.value as View })}>
+    </select></ScheduleFilter>
+    <ScheduleFilter label="Vista" loading={false} compact><select value={view} onChange={event => setPreference({ key, view: event.target.value as View })}>
       <option value="summary">Semanal resumida</option><option value="day">Por día</option><option value="table">Tabla semanal</option>
-    </select></label>
-    {data.loading ? <LoadingState /> : data.error ? <div role="alert">{data.error}<Button label="Reintentar" onClick={data.retry} /></div>
+    </select></ScheduleFilter>
+    </div>
+    {view === "day" && <div className="schedule-filters"><ScheduleFilter label="Día" loading={false} compact>
+      <select value={dayNumber} onChange={event => setDayNumber(Number(event.target.value))}>
+        {DAYS.map((day, index) => <option key={day} value={index + 1}>{day}</option>)}
+      </select>
+    </ScheduleFilter></div>}
+    {data.loading ? <ScheduleSkeleton view={view} dayNumber={dayNumber} /> : data.error ? <div role="alert">{data.error}<Button label="Reintentar" onClick={data.retry} /></div>
       : !data.schedule.days.length ? <p role="status">Todavía no hay un horario publicado para este año. La administración lo publicará cuando esté listo.</p>
       : view === "summary" ? <div className="schedule-week">{days.map(renderDay)}</div>
-      : view === "day" ? <><label>Día <select value={dayNumber} onChange={event => setDayNumber(Number(event.target.value))}>
-        {DAYS.map((day, index) => <option key={day} value={index + 1}>{day}</option>)}</select></label>{renderDay(days[dayNumber - 1], dayNumber - 1)}</>
+      : view === "day" ? renderDay(days[dayNumber - 1], dayNumber - 1)
       : <div className="schedule-table-scroll" tabIndex={0} role="region" aria-label="Tabla semanal, desplazamiento horizontal">
         <table className="schedule-table"><caption>Horario semanal · {data.year}</caption>
           <thead><tr><th scope="col">Franja</th>{DAYS.map((name, index) => <th scope="col" key={name}>
