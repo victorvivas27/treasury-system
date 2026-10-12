@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Acceso · HTTP frente a conexión WebSocket",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/01-auth-security/access-validation.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+    },
+    "column_fit": "spread",
+    "viewBox": [
+      1080,
+      600
+    ]
+  },
+  "participants": [
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Cliente",
+      "sublabel": "Bearer JWT",
+      "sources": [
+        {
+          "path": "frontend/src/core/D-config/axiosInterceptor.ts",
+          "line": 94,
+          "end_line": 118
+        }
+      ]
+    },
+    {
+      "id": "http",
+      "type": "security",
+      "label": "Filtro HTTP",
+      "sublabel": "JwtAuthenticationFilter",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/JwtAuthenticationFilter.java",
+          "line": 47,
+          "end_line": 104
+        }
+      ]
+    },
+    {
+      "id": "jwt",
+      "type": "security",
+      "label": "JWT / cuenta",
+      "sublabel": "JwtService + details",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/JwtService.java",
+          "line": 91,
+          "end_line": 124
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java",
+          "line": 46,
+          "end_line": 62
+        }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "Persistencia",
+      "sublabel": "Cuenta / familia",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/TokenRevocationService.java",
+          "line": 59,
+          "end_line": 71
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 160,
+          "end_line": 165
+        }
+      ]
+    },
+    {
+      "id": "ws",
+      "type": "security",
+      "label": "WebSocket",
+      "sublabel": "CONNECT STOMP",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/notification/config/WebSocketAuthInterceptor.java",
+          "line": 36,
+          "end_line": 61
+        }
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "id": "step-1",
+      "to": "http",
+      "y": 160,
+      "label": "Petición HTTP protegida · Bearer",
+      "from": "web"
+    },
+    {
+      "id": "step-2",
+      "to": "jwt",
+      "y": 193,
+      "label": "Parsear firma, expiración e identidad",
+      "from": "http",
+      "variant": "security"
+    },
+    {
+      "id": "step-3",
+      "to": "db",
+      "y": 226,
+      "label": "Consultar revocación persistente / familia activa",
+      "from": "http",
+      "variant": "security"
+    },
+    {
+      "id": "step-4",
+      "to": "jwt",
+      "y": 259,
+      "label": "Cargar cuenta; validar estado y organización",
+      "from": "http",
+      "variant": "security"
+    },
+    {
+      "id": "step-5",
+      "to": "web",
+      "y": 292,
+      "label": "Solo válida: Authentication; permisos de ruta/método",
+      "from": "http",
+      "variant": "return"
+    },
+    {
+      "id": "step-6",
+      "to": "ws",
+      "y": 325,
+      "label": "CONNECT con Authorization: Bearer",
+      "from": "web",
+      "variant": "emphasis"
+    },
+    {
+      "id": "step-7",
+      "to": "db",
+      "y": 358,
+      "label": "Consultar revocación y familia activa",
+      "from": "ws",
+      "variant": "security"
+    },
+    {
+      "id": "step-8",
+      "to": "jwt",
+      "y": 391,
+      "label": "Validar JWT y cargar TenantUserDetails",
+      "from": "ws",
+      "variant": "security"
+    },
+    {
+      "id": "step-9",
+      "to": "web",
+      "y": 424,
+      "label": "Solo válida: identidad STOMP por userId",
+      "from": "ws",
+      "variant": "return"
+    },
+    {
+      "id": "step-10",
+      "to": "ws",
+      "y": 457,
+      "label": "SEND / SUBSCRIBE posteriores",
+      "from": "web"
+    },
+    {
+      "id": "step-11",
+      "to": "web",
+      "y": 490,
+      "label": "Este interceptor retorna sin revalidar esos frames",
+      "from": "ws",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Diferencia de controles",
+      "items": [
+        "HTTP vuelve a validar cada petición que presenta JWT.",
+        "El interceptor WebSocket comprueba CONNECT; no revalida frames posteriores. SA-09 continúa fuera del cierre."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Límites",
+      "items": [
+        "SA-08: no afirmar autorización de todos los destinos SEND/SUBSCRIBE.",
+        "Revocación de un access individual en TokenRevocationService usa memoria local; SA-06 usa persistencia."
+      ]
+    }
+  ]
+}

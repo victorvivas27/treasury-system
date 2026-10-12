@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Refresh · Rotación y control CSRF",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/01-auth-security/refresh.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+    },
+    "column_fit": "spread",
+    "viewBox": [
+      1080,
+      600
+    ]
+  },
+  "participants": [
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Frontend",
+      "sublabel": "Axios / AuthContext",
+      "sources": [
+        {
+          "path": "frontend/src/core/D-config/axiosInterceptor.ts",
+          "line": 71,
+          "end_line": 98
+        },
+        {
+          "path": "frontend/src/presentation/context/AuthContext.tsx",
+          "line": 151,
+          "end_line": 167
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API",
+      "sublabel": "/auth/refresh",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
+          "line": 250,
+          "end_line": 273
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
+          "line": 328,
+          "end_line": 339
+        }
+      ]
+    },
+    {
+      "id": "sessions",
+      "type": "security",
+      "label": "Rotación",
+      "sublabel": "RefreshTokenService",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 105,
+          "end_line": 138
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 222,
+          "end_line": 235
+        }
+      ]
+    },
+    {
+      "id": "users",
+      "type": "database",
+      "label": "Cuentas",
+      "sublabel": "users",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserJpaRepository.java",
+          "line": 17,
+          "end_line": 19
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 177,
+          "end_line": 195
+        }
+      ]
+    },
+    {
+      "id": "tokens",
+      "type": "database",
+      "label": "Tokens",
+      "sublabel": "user_tokens",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java",
+          "line": 17,
+          "end_line": 21
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
+          "line": 11,
+          "end_line": 62
+        }
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "id": "step-1",
+      "to": "api",
+      "y": 160,
+      "label": "POST /auth/refresh · cookies + X-CSRF-Token",
+      "from": "web",
+      "variant": "emphasis"
+    },
+    {
+      "id": "step-3",
+      "to": "sessions",
+      "y": 193,
+      "label": "rotate(refresh, csrf)",
+      "from": "api"
+    },
+    {
+      "id": "step-4",
+      "to": "tokens",
+      "y": 226,
+      "label": "Hash refresh: obtener userId",
+      "from": "sessions"
+    },
+    {
+      "id": "step-5",
+      "to": "users",
+      "y": 259,
+      "label": "Bloquear cuenta antes del token",
+      "from": "sessions",
+      "variant": "security"
+    },
+    {
+      "id": "step-6",
+      "to": "tokens",
+      "y": 292,
+      "label": "Bloquear token; validar hash CSRF y vigencia",
+      "from": "sessions",
+      "variant": "security"
+    },
+    {
+      "id": "step-7",
+      "to": "users",
+      "y": 325,
+      "label": "Revalidar identidad, estado y curso activo",
+      "from": "sessions",
+      "variant": "security"
+    },
+    {
+      "id": "step-8",
+      "to": "tokens",
+      "y": 358,
+      "label": "Solo válido: usedAt / lastUsedAt; insertar sucesor",
+      "from": "sessions"
+    },
+    {
+      "id": "step-9",
+      "to": "api",
+      "y": 391,
+      "label": "JWT nuevo + refresh / CSRF nuevos",
+      "from": "sessions",
+      "variant": "return"
+    },
+    {
+      "id": "step-10",
+      "to": "web",
+      "y": 424,
+      "label": "200 + reemplazar cookies y JWT",
+      "from": "api",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Condiciones",
+      "items": [
+        "Token revocado, usado o vencido: rechazo. CSRF ausente o incorrecto: 403.",
+        "La rotación válida conserva tokenFamilyId; las llamadas concurrentes del interceptor comparten refreshPromise."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "SA-07 sigue pendiente",
+      "items": [
+        "detectReuse intenta revocar la familia y después lanza DomainException dentro de la misma transacción.",
+        "El gráfico no presenta esa revocación como confirmada: la auditoría documenta que puede revertirse por rollback."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Acciones internas",
+      "items": [
+        "Exigir que cabecera y cookie CSRF coincidan"
+      ]
+    }
+  ]
+}

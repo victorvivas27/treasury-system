@@ -13,8 +13,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.*;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.ExecutorSubscribableChannel;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -50,6 +53,26 @@ class SA03StompConsumerTest {
                 () -> interceptor.preSend(frame(StompCommand.SEND, "/queue/messages", true), null));
         assertThrows(AccessDeniedException.class,
                 () -> interceptor.preSend(frame(StompCommand.SEND, "/app/notifications.reply", false), null));
+        assertThrows(AccessDeniedException.class,
+                () -> interceptor.preSend(frame(StompCommand.SUBSCRIBE, "/user/queue/notifications", false), null));
+    }
+
+    @Test void completedSessionCanDisconnectWithoutAuthenticationAndWithoutLeakingContext() {
+        var channel = new ExecutorSubscribableChannel();
+        channel.addInterceptor(new StompDestinationInterceptor());
+        var received = new AtomicReference<Message<?>>();
+        channel.subscribe(received::set);
+        var previous = SecurityContextHolder.getContext();
+        var accessor = StompHeaderAccessor.create(StompCommand.DISCONNECT);
+        accessor.setSessionId("closed-before-authentication");
+        accessor.setSessionAttributes(Map.of("org.springframework.messaging.simp.SimpAttributes.COMPLETED", true));
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+        assertTrue(channel.send(message));
+        assertSame(message, received.get());
+        assertSame(previous, SecurityContextHolder.getContext());
+        // Transport shutdown may emit a second DISCONNECT for the same session.
+        assertTrue(channel.send(message));
+        assertSame(previous, SecurityContextHolder.getContext());
     }
 
     @Test void handlerReceivesCorrectTenantAndOriginalThreadContextIsRestored() {

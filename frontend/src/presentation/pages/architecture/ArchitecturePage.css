@@ -1,0 +1,16 @@
+.architecture-page { width:100%; min-width:0; box-sizing:border-box; padding:var(--xl); color:var(--text-main); }
+.architecture-page h1 { margin:.3rem 0; }
+.architecture-page header > p,.architecture-page small,.architecture-help { color:var(--text-muted); }
+.architecture-eyebrow { font-size:.8rem; font-weight:700; color:var(--color-accent); }
+.architecture-diagrams { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:.75rem; margin:1.25rem 0; }
+.architecture-diagrams button { display:flex; flex-direction:column; gap:.4rem; padding:1rem; text-align:left; font:inherit; color:var(--text-main); background:var(--color-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); cursor:pointer; }
+.architecture-diagrams button[aria-pressed="true"] { border-color:var(--color-accent); background:var(--color-accent-soft); }
+.architecture-diagrams button:focus-visible { outline:2px solid var(--color-accent); outline-offset:3px; }
+.architecture-diagrams span { font-size:.8rem; color:var(--text-muted); }
+.architecture-viewer { overflow:hidden; border:1px solid var(--border-color); border-radius:var(--radius-lg); background:var(--color-surface); }
+.architecture-viewer-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; padding:.75rem 1rem; }
+.architecture-viewer-heading h2 { margin:0; font-size:1rem; }
+.architecture-viewer iframe { display:block; width:100%; height: min(82vh,1100px); min-height:600px; border:0; background:var(--color-surface); }
+.architecture-viewer iframe:fullscreen { height:100vh; }
+.architecture-help { font-size:.85rem; line-height:1.5; }
+@media(max-width:600px) { .architecture-page { padding:.75rem; } .architecture-diagrams { grid-template-columns:1fr 1fr; } }

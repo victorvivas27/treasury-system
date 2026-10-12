@@ -36,6 +36,10 @@ import { BoardManagementPage } from "../pages/community/BoardManagementPage";
 import { PaymentsPage } from "../pages/tesoreria/PaymentsPage";
 import { AdministrationsPage } from "../pages/organization/AdministrationsPage";
 import { ImprovementAdminPage } from "../pages/improvement/ImprovementAdminPage";
+import { ArchitectureRoute } from "../components/ArchitectureRoute";
+import { ArchitecturePage } from "../pages/architecture/ArchitecturePage";
+import { SchedulePage } from "../pages/academic/SchedulePage";
+import { ScheduleManagementPage } from "../pages/academic/ScheduleManagementPage";
 
 export const AppRouter = () => {
   return (
@@ -53,6 +57,7 @@ export const AppRouter = () => {
       <Route element={<MainLayout />} >
         <Route element={<ProtectedRoute />}>
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="calendario/horario-clases" element={<SchedulePage />} />
           <Route path="tesoreria" element={<Navigate to="/dashboard" replace />} />
           <Route path="tesoreria/resumen" element={<Navigate to="/dashboard" replace />} />
           <Route path="treasury" element={<Navigate to="/dashboard" replace />} />
@@ -66,6 +71,7 @@ export const AppRouter = () => {
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />
+          <Route path="admin/horario-clases" element={<ScheduleManagementPage />} />
           <Route path="admin/fotos-del-curso" element={<CoursePhotoManagementPage />} />
           <Route path="admin/directiva" element={<BoardManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
@@ -86,6 +92,9 @@ export const AppRouter = () => {
         </Route>
         <Route element={<SuperAdminRoute />}>
           <Route path="administrations" element={<AdministrationsPage />} />
+        </Route>
+        <Route element={<ArchitectureRoute />}>
+          <Route path="admin/arquitectura" element={<ArchitecturePage />} />
         </Route>
         <Route path="configuration" element={<Configuracion />} />
       </Route>

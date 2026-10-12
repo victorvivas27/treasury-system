@@ -153,7 +153,7 @@ describe('Sidebar Component', () => {
     });
 
     fireEvent.click(screen.getByRole('link', { name: 'Cuotas' }));
-    expect(mockNavLinkClick).not.toHaveBeenCalled();
+    expect(mockNavLinkClick).toHaveBeenCalledOnce();
     expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
   });
 

@@ -5,6 +5,8 @@ import {
 } from "@/shared/constants/Icons";
 
 import "./style/SidebarNav.css";
+import { FiCalendar } from "react-icons/fi";
+import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
 
 import {
   NavLink,
@@ -14,6 +16,8 @@ import {
 import {
   useEffect,
   useState,
+  useRef,
+  type FocusEvent,
 } from "react";
 
 import type {
@@ -64,7 +68,7 @@ const USER_TREASURY_PATHS = new Set([
 ]);
 
 
-const TREASURY_MENU_AUTO_CLOSE_MS = 6000;
+const MENU_AUTO_CLOSE_MS = 6000;
 
 
 export const SidebarNav = ({
@@ -75,19 +79,58 @@ export const SidebarNav = ({
 
   const currentRole =
     role ?? auth?.user?.rol;
+  const architectureAccess = useArchitectureAccess(auth?.user?.id, currentRole);
 
   const location = useLocation();
+  type MenuGroup = "management" | "academic" | "treasury";
+  const [openGroup, setOpenGroup] = useState<MenuGroup | null>(null);
+  const [hoveredGroup, setHoveredGroup] = useState<MenuGroup | null>(null);
+  const [focusedGroup, setFocusedGroup] = useState<MenuGroup | null>(null);
+  const remainingTime = useRef(MENU_AUTO_CLOSE_MS);
+  const timedGroup = useRef<MenuGroup | null>(null);
+  const isManagementOpen = openGroup === "management";
+  const isAcademicOpen = openGroup === "academic";
+  const isTreasuryOpen = openGroup === "treasury";
+  const isPaused = openGroup !== null && (hoveredGroup === openGroup || focusedGroup === openGroup);
 
-  const [
-    isTreasuryOpen,
-    setIsTreasuryOpen,
-  ] = useState(false);
+  const toggleGroup = (group: MenuGroup) => {
+    setFocusedGroup(document.activeElement?.closest(`.sidebar-nav-section--${group}`) ? group : null);
+    setOpenGroup(current => current === group ? null : group);
+  };
 
-  const [
-    isManagementOpen,
-    setIsManagementOpen,
-  ] = useState(false);
+  const groupInteraction = (group: MenuGroup) => ({
+    onPointerEnter: () => setHoveredGroup(group),
+    onPointerLeave: () => setHoveredGroup(null),
+    onFocus: () => setFocusedGroup(group),
+    onBlur: (event: FocusEvent<HTMLLIElement>) => {
+      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusedGroup(null);
+    },
+  });
 
+  const renderTimer = () => <svg className="sidebar-treasury-timer" viewBox="0 0 48 48" aria-hidden="true">
+    <circle cx="24" cy="24" r="22" pathLength="100"
+      style={{ animationPlayState: isPaused ? "paused" : "running" }} />
+  </svg>;
+
+  useEffect(() => {
+    if (!openGroup) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest(`.sidebar-nav-section--${openGroup}`)) {
+        setOpenGroup(null);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      document.querySelector<HTMLButtonElement>(`[aria-controls="${openGroup}-submenu"]`)?.focus();
+      setOpenGroup(null);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [openGroup]);
 
   /* =========================================================
      LINKS VISIBLES DE TESORERÍA
@@ -118,6 +161,12 @@ export const SidebarNav = ({
         isAdminRole(currentRole),
     ),
   );
+  if (architectureAccess.allowed) visibleManagementLinks.push({
+    path: "/admin/arquitectura", label: "Arquitectura del sistema", icon: ICONS.dashboard,
+  });
+  if (isAdminRole(currentRole)) visibleManagementLinks.push({
+    path: "/admin/horario-clases", label: "Gestión del horario", icon: FiCalendar,
+  });
 
   const isManagementActive = visibleManagementLinks.some((link) =>
     location.pathname.startsWith(link.path),
@@ -129,6 +178,7 @@ export const SidebarNav = ({
      ========================================================= */
 
   const handleClick = () => {
+    setOpenGroup(null);
     onNavLinkClick();
   };
 
@@ -138,37 +188,23 @@ export const SidebarNav = ({
      ========================================================= */
 
   useEffect(() => {
-    if (!isTreasuryOpen && !isManagementOpen) {
-      return;
+    if (timedGroup.current !== openGroup) {
+      timedGroup.current = openGroup;
+      remainingTime.current = MENU_AUTO_CLOSE_MS;
     }
-
-    const timer = window.setTimeout(
-      () => {
-        setIsTreasuryOpen(false);
-        setIsManagementOpen(false);
-      },
-      TREASURY_MENU_AUTO_CLOSE_MS,
-    );
-
+    if (!openGroup || isPaused) return;
+    const startedAt = performance.now();
+    const timer = window.setTimeout(() => setOpenGroup(null), remainingTime.current);
     return () => {
       window.clearTimeout(timer);
+      remainingTime.current = Math.max(0, remainingTime.current - (performance.now() - startedAt));
     };
-  }, [isTreasuryOpen, isManagementOpen]);
+  }, [openGroup, isPaused]);
 
 
   /* =========================================================
      CLICK LINK TESORERÍA
      ========================================================= */
-
-  const handleTreasuryLinkClick = () => {
-    setIsTreasuryOpen(false);
-  };
-
-  const handleManagementLinkClick = () => {
-    setIsManagementOpen(false);
-    handleClick();
-  };
-
 
   /* =========================================================
      RENDER
@@ -178,8 +214,7 @@ export const SidebarNav = ({
     <nav
       className={[
         "sidebar-nav",
-        isTreasuryOpen &&
-          "sidebar-nav--treasury-open",
+        openGroup && "sidebar-nav--group-open",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -237,6 +272,7 @@ export const SidebarNav = ({
               sidebar-nav-section
               sidebar-nav-section--management
             "
+            {...groupInteraction("management")}
           >
             <button
               type="button"
@@ -251,10 +287,7 @@ export const SidebarNav = ({
               data-tour="management"
               aria-expanded={isManagementOpen}
               aria-controls="management-submenu"
-              onClick={() => {
-                setIsManagementOpen((open) => !open);
-                setIsTreasuryOpen(false);
-              }}
+              onClick={() => toggleGroup("management")}
             >
               <span
                 className="sidebar-treasury-icon-wrap"
@@ -264,19 +297,7 @@ export const SidebarNav = ({
                   className="sidebar-nav-icon"
                 />
 
-                {isManagementOpen && (
-                  <svg
-                    className="sidebar-treasury-timer"
-                    viewBox="0 0 48 48"
-                  >
-                    <circle
-                      cx="24"
-                      cy="24"
-                      r="22"
-                      pathLength="100"
-                    />
-                  </svg>
-                )}
+                {isManagementOpen && renderTimer()}
               </span>
 
               <span className="sidebar-nav-label">
@@ -321,7 +342,7 @@ export const SidebarNav = ({
                             .filter(Boolean)
                             .join(" ")
                         }
-                        onClick={handleManagementLinkClick}
+                        onClick={handleClick}
                       >
                         <ManagementIcon
                           className="sidebar-submenu-icon"
@@ -344,6 +365,34 @@ export const SidebarNav = ({
           </li>
         )}
 
+        {currentRole && <li className="sidebar-nav-section sidebar-nav-section--academic" {...groupInteraction("academic")}>
+          <button type="button"
+            className={["sidebar-nav-link-item", "sidebar-nav-parent",
+              location.pathname.startsWith("/calendario") && "active", isAcademicOpen && "is-open"].filter(Boolean).join(" ")}
+            aria-expanded={isAcademicOpen} aria-controls="academic-submenu"
+            onClick={() => toggleGroup("academic")}>
+            <span className="sidebar-treasury-icon-wrap" aria-hidden="true">
+              <FiCalendar className="sidebar-nav-icon" />
+              {isAcademicOpen && renderTimer()}
+            </span>
+            <span className="sidebar-nav-label">Calendario Académico</span>
+            <ICONS.expand className={["sidebar-nav-chevron", isAcademicOpen && "is-open"].filter(Boolean).join(" ")} aria-hidden="true" />
+            <Tooltip content="Calendario Académico" position="right" className="sidebar-icon-tooltip" />
+          </button>
+          {isAcademicOpen && <ul id="academic-submenu" className="sidebar-submenu">
+            <li><NavLink to="/calendario/horario-clases"
+              className={({ isActive }) => ["sidebar-submenu-link", isActive && "active"].filter(Boolean).join(" ")}
+              onClick={handleClick}>
+              <FiCalendar className="sidebar-submenu-icon" aria-hidden="true" /><span>Horario de clases</span>
+              <Tooltip content="Horario de clases" position="right" className="sidebar-icon-tooltip" />
+            </NavLink></li>
+            <li><span className="sidebar-submenu-link" aria-disabled="true">
+              <FiCalendar className="sidebar-submenu-icon" aria-hidden="true" /><span>Evaluaciones · Próximamente</span>
+              <Tooltip content="Evaluaciones · Próximamente" position="right" className="sidebar-icon-tooltip" />
+            </span></li>
+          </ul>}
+        </li>}
+
 
         {/* ===================================================
             TESORERÍA
@@ -355,6 +404,7 @@ export const SidebarNav = ({
               sidebar-nav-section
               sidebar-nav-section--treasury
             "
+            {...groupInteraction("treasury")}
           >
             {/* ===============================================
                 BOTÓN PADRE TESORERÍA
@@ -378,12 +428,7 @@ export const SidebarNav = ({
               data-tour="treasury"
               aria-expanded={isTreasuryOpen}
               aria-controls="treasury-submenu"
-              onClick={() => {
-                setIsTreasuryOpen(
-                  (open) => !open,
-                );
-                setIsManagementOpen(false);
-              }}
+              onClick={() => toggleGroup("treasury")}
             >
               {/* =============================================
                   ICONO TESORERÍA
@@ -397,19 +442,7 @@ export const SidebarNav = ({
                   className="sidebar-nav-icon"
                 />
 
-                {isTreasuryOpen && (
-                  <svg
-                    className="sidebar-treasury-timer"
-                    viewBox="0 0 48 48"
-                  >
-                    <circle
-                      cx="24"
-                      cy="24"
-                      r="22"
-                      pathLength="100"
-                    />
-                  </svg>
-                )}
+                {isTreasuryOpen && renderTimer()}
               </span>
 
 
@@ -487,7 +520,7 @@ export const SidebarNav = ({
                               .join(" ")
                           }
                           onClick={
-                            handleTreasuryLinkClick
+                            handleClick
                           }
                         >
                           <TreasuryIcon

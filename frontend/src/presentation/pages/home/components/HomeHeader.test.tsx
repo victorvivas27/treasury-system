@@ -1,10 +1,37 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeHeader } from "./HomeHeader";
 
+const architectureAccess = vi.hoisted(() => ({ allowed: false }));
+vi.mock("@/presentation/hooks/architecture/useArchitectureAccess", () => ({
+  useArchitectureAccess: () => architectureAccess,
+}));
+
 describe("HomeHeader", () => {
+  beforeEach(() => { architectureAccess.allowed = false; });
   afterEach(() => vi.useRealTimers());
+  it("muestra el icono de arquitectura al dueño y cierra el menú al seleccionarlo", () => {
+    architectureAccess.allowed = true;
+    render(<MemoryRouter><HomeHeader isAuthenticated isSuperAdmin /></MemoryRouter>);
+    fireEvent.click(screen.getByLabelText(/abrir menú/i));
+    const link = screen.getByRole("link", { name: "Arquitectura del sistema" });
+    expect(link).toHaveAttribute("href", "/admin/arquitectura");
+    expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    fireEvent.click(link);
+    expect(screen.getByLabelText(/abrir menú/i)).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("oculta arquitectura a visitantes, administradores y SUPER_ADMIN sin permiso", () => {
+    const { rerender } = render(<MemoryRouter><HomeHeader /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: "Arquitectura del sistema" })).not.toBeInTheDocument();
+    architectureAccess.allowed = true;
+    rerender(<MemoryRouter><HomeHeader isAuthenticated isAdmin /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: "Arquitectura del sistema" })).not.toBeInTheDocument();
+    architectureAccess.allowed = false;
+    rerender(<MemoryRouter><HomeHeader isAuthenticated isSuperAdmin /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: "Arquitectura del sistema" })).not.toBeInTheDocument();
+  });
   it("muestra la navegación de la comunidad para una sesión autenticada", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
 

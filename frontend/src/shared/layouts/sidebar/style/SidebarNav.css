@@ -281,24 +281,24 @@
    12. ESTADO ESPECIAL CUANDO TESORERÍA ESTÁ ABIERTA
    ========================================================= */
 
-.sidebar-nav--treasury-open
+.sidebar-nav--group-open
 .sidebar-nav-section
-.sidebar-nav-link-item.active {
+.sidebar-nav-link-item.active:not(.is-open) {
   background: transparent;
 
   box-shadow: none;
 }
 
-.sidebar-nav--treasury-open
+.sidebar-nav--group-open
 .sidebar-nav-section
-.sidebar-nav-link-item.active
+.sidebar-nav-link-item.active:not(.is-open)
 .sidebar-nav-icon {
   color: var(--sidebar-icon);
 }
 
-.sidebar-nav--treasury-open
+.sidebar-nav--group-open
 .sidebar-nav-section
-.sidebar-nav-link-item.active
+.sidebar-nav-link-item.active:not(.is-open)
 .sidebar-nav-label {
   color: var(--sidebar-text);
 
@@ -316,6 +316,15 @@
 
 .sidebar-nav-section--management {
   position: relative;
+}
+
+.sidebar-nav-section--academic {
+  position: relative;
+}
+
+.sidebar-submenu-link[aria-disabled="true"] {
+  cursor: default;
+  color: var(--text-muted);
 }
 
 
