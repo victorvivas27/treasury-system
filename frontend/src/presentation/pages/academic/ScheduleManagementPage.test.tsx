@@ -1,11 +1,11 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ScheduleManagementPage } from "./ScheduleManagementPage";
 import type { Schedule } from "@/core/A-domain/entities/academic/Schedule";
 const data = vi.hoisted(() => ({
   schedule: { days: [] } as Schedule, editable: true, periods: [{ schoolYear: 2026, course: "Curso", editable: true }],
-  year: 2026, setYear: vi.fn(), loading: false, saving: false, error: "", message: "", retry: vi.fn(),
+  year: 2026, setYear: vi.fn(), loading: false, saving: false, pendingAction: null as "save" | "publish" | "delete" | null, error: "", message: "", retry: vi.fn(),
   save: vi.fn().mockResolvedValue(true), remove: vi.fn(),
 }));
 vi.mock("@/presentation/hooks/academic/useSchedule", () => ({ useSchedule: () => data }));
@@ -16,7 +16,7 @@ const schedule = (): Schedule => ({ days: [
   { dayOfWeek: 2, entryTime: "12:00", exitTime: "14:30", blocks: [] },
 ] });
 describe("Editor del horario", () => {
-  beforeEach(() => { vi.clearAllMocks(); data.save.mockResolvedValue(true); data.schedule = schedule(); data.editable = true; data.error = ""; });
+  beforeEach(() => { vi.clearAllMocks(); data.save.mockResolvedValue(true); data.schedule = schedule(); data.editable = true; data.error = ""; data.saving = false; data.pendingAction = null; data.message = ""; });
   const open = () => {
     const page = render(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
     screen.getAllByRole("button", { name: /^Desplegar / }).forEach(button => fireEvent.click(button));
@@ -118,6 +118,52 @@ describe("Editor del horario", () => {
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("No se pudo guardar"));
     expect(screen.getByRole("alert").closest(".schedule-day")).toHaveTextContent("Lunes");
     expect(screen.getByRole("button", { name: "Editar Lunes bloque 1" })).toBeInTheDocument();
+  });
+  it("explica los días que faltan junto a Publicar incluso con las tarjetas plegadas", () => {
+    render(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Publicar horario" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(data.save).not.toHaveBeenCalled();
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Faltan: Miércoles, Jueves, Viernes");
+    expect(alert.closest(".schedule-day")).toBeNull();
+    expect(alert).toHaveFocus();
+  });
+  it("solo Guardar muestra loader mientras persiste una jornada", async () => {
+    let finish!: (value: boolean) => void;
+    data.save.mockImplementation(() => new Promise<boolean>(resolve => { finish = resolve; }));
+    const page = open();
+    fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
+    data.saving = true; data.pendingAction = "save";
+    page.rerender(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    expect(screen.getByRole("button", { name: "Guardar jornada · Lunes" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Eliminar todo el horario de 2026" })).toHaveAttribute("aria-busy", "false");
+    expect(screen.getByRole("button", { name: "Publicar horario" })).toHaveAttribute("aria-busy", "false");
+    expect(screen.getByRole("button", { name: "Eliminar todo el horario de 2026" })).toBeDisabled();
+    await act(async () => finish(true));
+  });
+  it("publica cinco jornadas y muestra el rechazo del servidor junto al botón", async () => {
+    data.schedule = { days: Array.from({ length: 5 }, (_, index) => ({
+      dayOfWeek: index + 1, entryTime: "08:00", exitTime: "14:00", blocks: [],
+    })) };
+    data.save.mockResolvedValue(false);
+    const page = render(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Publicar horario" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    await waitFor(() => expect(data.save).toHaveBeenCalledWith(data.schedule, true));
+    data.error = "Los años históricos son de solo lectura.";
+    page.rerender(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(data.error);
+    expect(alert.closest(".schedule-day")).toBeNull();
+    expect(alert).toHaveFocus();
+  });
+  it("solo Eliminar muestra loader al borrar todo el horario", () => {
+    data.saving = true; data.pendingAction = "delete";
+    open();
+    expect(screen.getByRole("button", { name: "Eliminar todo el horario de 2026" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Publicar horario" })).toHaveAttribute("aria-busy", "false");
+    expect(screen.getByRole("button", { name: "Guardar jornada · Lunes" })).toHaveAttribute("aria-busy", "false");
   });
   it("confirma copiar sobre contenido y bloquea fondo con foco y Escape", () => {
     open();

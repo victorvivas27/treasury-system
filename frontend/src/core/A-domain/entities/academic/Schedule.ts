@@ -10,7 +10,7 @@ export interface SchoolPeriod { schoolYear: number; course: string; editable: bo
 export const timeLabel = (value: string) => value.slice(0, 5);
 export const orderedBlocks = (day: ScheduleDay) => [...day.blocks].sort((a, b) =>
   timeLabel(a.startTime).localeCompare(timeLabel(b.startTime)) || a.order - b.order);
-export function validateSchedule(schedule: Schedule): string | null {
+export function validateSchedule(schedule: Schedule, publish = false): string | null {
   const seen = new Set<number>();
   for (const day of schedule.days) {
     if (day.dayOfWeek < 1 || day.dayOfWeek > 5 || seen.has(day.dayOfWeek)) return "Jornada inválida o duplicada.";
@@ -34,6 +34,10 @@ export function validateSchedule(schedule: Schedule): string | null {
       previousEnd = end;
       previousName = blockName;
     }
+  }
+  if (publish) {
+    const missing = DAYS.filter((_, index) => !seen.has(index + 1));
+    if (missing.length) return `Antes de publicar, configura las cinco jornadas. Faltan: ${missing.join(", ")}.`;
   }
   return null;
 }

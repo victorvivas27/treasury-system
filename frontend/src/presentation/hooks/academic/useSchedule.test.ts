@@ -10,6 +10,9 @@ vi.mock("@/core/C-infra/repositories/academic/ScheduleRepositoryImpl", () => ({
     periods = fixtures.periods; read = fixtures.read; save = fixtures.save; delete = fixtures.delete;
   },
 }));
+const completeSchedule = { days: Array.from({ length: 5 }, (_, index) => ({
+  dayOfWeek: index + 1, entryTime: "08:00", exitTime: "14:00", blocks: [],
+})) };
 describe("Carga del horario", () => {
   beforeEach(() => {
     vi.clearAllMocks(); fixtures.account.user.id = 1;
@@ -33,6 +36,33 @@ describe("Carga del horario", () => {
     expect(hook.result.current.error).toBe("Conflicto de horario");
     expect(hook.result.current.loadFailed).toBe(false);
     expect(hook.result.current.saving).toBe(false);
+  });
+  it.each([
+    [{ response: { data: { errors: {}, message: "Publicación rechazada" } } }, "Publicación rechazada"],
+    [{ response: { status: 403, data: { errors: {} } } }, "No tienes permiso"],
+    [{ code: "ERR_NETWORK" }, "No se pudo conectar"],
+    [{ code: "ECONNABORTED" }, "tardó demasiado"],
+  ])("explica los errores de publicación sin mensajes vacíos", async (reason, message) => {
+    fixtures.save.mockRejectedValueOnce(reason);
+    const hook = renderHook(() => useSchedule(true));
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    await act(async () => { await hook.result.current.save(completeSchedule, true); });
+    expect(hook.result.current.error).toContain(message);
+    expect(hook.result.current.pendingAction).toBeNull();
+  });
+  it("identifica la acción pendiente y la limpia al terminar", async () => {
+    let finish!: (value: { days: [] }) => void;
+    fixtures.save.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    const hook = renderHook(() => useSchedule(true));
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    let result!: Promise<boolean>;
+    act(() => { result = hook.result.current.save(completeSchedule, true); });
+    await waitFor(() => expect(fixtures.save).toHaveBeenCalled());
+    expect(hook.result.current.pendingAction).toBe("publish");
+    expect(hook.result.current.saving).toBe(true);
+    await act(async () => { finish({ days: [] }); await result; });
+    expect(hook.result.current.pendingAction).toBeNull();
+    expect(hook.result.current.message).toBe("Horario publicado.");
   });
   it("vuelve a cargar datos al cambiar de cuenta aunque tenga el mismo año", async () => {
     const hook = renderHook(() => useSchedule(false));

@@ -28,7 +28,9 @@ export function ScheduleManagementPage() {
   const focusBeforeDialog = useRef<HTMLElement | null>(null);
   const validationNotice = useRef<HTMLParagraphElement | null>(null);
   const preservedDraft = useRef<{ schedule: Schedule; dirty: boolean } | null>(null);
-  useEffect(() => { if (validation) validationNotice.current?.focus(); }, [validation]);
+  useEffect(() => {
+    if (validation || data.error || saveResult === "failed") validationNotice.current?.focus();
+  }, [validation, data.error, saveResult]);
   useEffect(() => {
     const preserved = preservedDraft.current;
     preservedDraft.current = null;
@@ -80,7 +82,7 @@ export function ScheduleManagementPage() {
     const day = draft.days.find(value => value.dayOfWeek === dayNumber);
     const payload = day ? { days: [...data.schedule.days.filter(value => value.dayOfWeek !== dayNumber), day]
       .sort((a, b) => a.dayOfWeek - b.dayOfWeek) } : draft;
-    const error = validateSchedule(payload);
+    const error = validateSchedule(payload, publish);
     if (error) { setValidation(error); return; }
     const normalize = (value: ScheduleDay[]) => JSON.stringify(value, (_, item: unknown) =>
       typeof item === "string" && /^\d{2}:\d{2}:00$/.test(item) ? timeLabel(item) : item);
@@ -105,7 +107,7 @@ export function ScheduleManagementPage() {
     setDeleteText("");
     ask(`Se eliminará TODO el horario del año ${year}: todas las jornadas de lunes a viernes, sus materias y actividades, el borrador y la versión publicada. Esta acción no se puede deshacer.`, () => {
       ask(`Confirmación final: el horario completo de ${year} dejará de estar disponible para los usuarios.`, () => {
-        if (data.year === year) { void data.remove(); }
+        if (data.year === year) { setActiveSave("delete"); setValidation(""); setSaveResult(null); void data.remove(); }
       }, { deleteStep: 2, deleteYear: year });
     }, { deleteStep: 1, deleteYear: year });
   };
@@ -121,7 +123,7 @@ export function ScheduleManagementPage() {
     }}>{data.periods.map(period => <option key={period.schoolYear} value={period.schoolYear}>
       {period.schoolYear} · {period.course}{period.editable ? "" : " · Histórico"}
     </option>)}</select></label>
-    {(validation || data.error) && !activeSave?.startsWith("day:") && <p role="alert" ref={validationNotice} tabIndex={-1}>{validation || data.error}</p>}
+    {(validation || data.error) && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="alert" ref={validationNotice} tabIndex={-1}>{validation || data.error}</p>}
     {data.message && <p role="status">{data.message}</p>}
     {data.loading ? <LoadingState /> : <>
       {!data.periods.length && <p>No hay períodos escolares disponibles.</p>}
@@ -203,13 +205,17 @@ export function ScheduleManagementPage() {
         })}</div>
         <div className="schedule-actions">
           <Button label="Publicar horario" loading={data.saving && activeSave === "publish"} onClick={() => ask("El horario actual reemplazará la versión publicada para este año. ¿Publicar?", () => { void save(true); })} />
-          <Button label={`Eliminar todo el horario de ${data.year ?? "este año"}`} variant="danger" loading={data.saving}
+          <Button label={`Eliminar todo el horario de ${data.year ?? "este año"}`} variant="danger" loading={data.pendingAction === "delete"}
             disabled={data.year === undefined} onClick={requestDelete} />
         </div>
+        {activeSave === "publish" && (validation || data.error || saveResult === "failed") && <p
+          className="schedule-save-feedback is-error" role="alert" ref={validationNotice} tabIndex={-1}>
+          {validation || data.error || "No se pudo publicar el horario. Inténtalo de nuevo."}
+        </p>}
         {activeSave && !activeSave.startsWith("day:") && saveResult === "success" && <p className="schedule-save-feedback is-success" role="status">
           {activeSave === "publish" ? "Horario publicado." : "Borrador guardado."}
         </p>}
-        {activeSave && !activeSave.startsWith("day:") && saveResult === "failed" && !data.error && <p className="schedule-save-feedback is-error" role="alert">No se pudo guardar. Inténtalo de nuevo.</p>}
+        {activeSave && !activeSave.startsWith("day:") && saveResult === "failed" && activeSave !== "publish" && !data.error && <p className="schedule-save-feedback is-error" role="alert">No se pudo guardar. Inténtalo de nuevo.</p>}
       </fieldset>
       {data.error && <Button label="Reintentar carga" onClick={data.retry} />}
     </>}
