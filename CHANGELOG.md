@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/victorvivas27/treasury-system/compare/v1.14.0...v1.15.0) (2026-10-12)
+
+
+### Features
+
+* **academic:** publish schedules, private architecture and navigation improvements ([#211](https://github.com/victorvivas27/treasury-system/issues/211)) ([3c67743](https://github.com/victorvivas27/treasury-system/commit/3c67743005d9fccc2a32aeae71c26e6eca527169))
+
 ## [1.14.0](https://github.com/victorvivas27/treasury-system/compare/v1.13.0...v1.14.0) (2026-10-09)
 
 
