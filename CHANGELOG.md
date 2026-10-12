@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.16.0](https://github.com/victorvivas27/treasury-system/compare/v1.15.0...v1.16.0) (2026-10-12)
+
+
+### Features
+
+* **academic:** publish schedules, private architecture and navigation improvements ([32f5ffc](https://github.com/victorvivas27/treasury-system/commit/32f5ffc6bf142c88cb6f421d1adc658b098b6bc7))
+
+
+### Bug Fixes
+
+* **schedule:** sync main into dev and preserve loading improvements ([#215](https://github.com/victorvivas27/treasury-system/issues/215)) ([32f5ffc](https://github.com/victorvivas27/treasury-system/commit/32f5ffc6bf142c88cb6f421d1adc658b098b6bc7))
+
 ## [1.15.0](https://github.com/victorvivas27/treasury-system/compare/v1.14.0...v1.15.0) (2026-10-12)
 
 
