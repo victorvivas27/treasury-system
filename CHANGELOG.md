@@ -1,5 +1,106 @@
 # Changelog
 
+## [1.15.0](https://github.com/victorvivas27/treasury-system/compare/v1.14.0...v1.15.0) (2026-10-12)
+
+
+### Features
+
+* **academic:** publish schedules, private architecture and navigation improvements ([#211](https://github.com/victorvivas27/treasury-system/issues/211)) ([3c67743](https://github.com/victorvivas27/treasury-system/commit/3c67743005d9fccc2a32aeae71c26e6eca527169))
+
+## [1.14.0](https://github.com/victorvivas27/treasury-system/compare/v1.13.0...v1.14.0) (2026-10-09)
+
+
+### Features
+
+* Implement password session revocation on password change and re… ([2c6fa12](https://github.com/victorvivas27/treasury-system/commit/2c6fa129939c37b6799b008e609d25c93aebb846))
+* Implement password session revocation on password change and recovery ([88eb6f1](https://github.com/victorvivas27/treasury-system/commit/88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6))
+
+## [1.13.0](https://github.com/victorvivas27/treasury-system/compare/v1.12.0...v1.13.0) (2026-10-09)
+
+
+### Features
+
+* **ui:** mejorar enlaces y accesibilidad en el panel de flujo de caja ([ebc041b](https://github.com/victorvivas27/treasury-system/commit/ebc041b8cdf71ba7247e750c6bf61074ca072cdf))
+* **ui:** mejorar enlaces y accesibilidad en el panel de flujo de caja ([adbb6ba](https://github.com/victorvivas27/treasury-system/commit/adbb6ba67d58287cb2a9611801a15f87fe32423e))
+
+## [1.12.0](https://github.com/victorvivas27/treasury-system/compare/v1.11.1...v1.12.0) (2026-10-08)
+
+
+### Features
+
+* **ci:** sincronizar título del PR con el último commit de dev ([cd0bd26](https://github.com/victorvivas27/treasury-system/commit/cd0bd26b5c493d95de3f892ed4fcac8ce60f249e))
+* **ci:** sincronizar título del PR con el último commit de dev ([fac3c91](https://github.com/victorvivas27/treasury-system/commit/fac3c91b261b5030671fc032e46faf86388070de))
+
+## [1.11.1](https://github.com/victorvivas27/treasury-system/compare/v1.11.0...v1.11.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* mejora en grafico ([a04f76a](https://github.com/victorvivas27/treasury-system/commit/a04f76a8fe723f4c5bb0e63c4b1fa36807658109))
+* **ui:** colocar paneles debajo del flujo financiero ([366c71f](https://github.com/victorvivas27/treasury-system/commit/366c71ff1f62fccf7e776dab89d2c98b3d4738f4))
+
+## [1.11.0](https://github.com/victorvivas27/treasury-system/compare/v1.10.1...v1.11.0) (2026-10-08)
+
+
+### Features
+
+* **ui:** mejorar flujo financiero y dashboard en movil ([2a7e94c](https://github.com/victorvivas27/treasury-system/commit/2a7e94c7fbc42c4581f2b77d7867a7ea42d6aeba))
+* **ui:** mejorar linea de tiempo y paneles del dashboard en movil ([b05ebd2](https://github.com/victorvivas27/treasury-system/commit/b05ebd2b0f941f12cb828e624fdda155fc3e83b5))
+
+
+### Bug Fixes
+
+* **security:** impedir auto-reactivación y auto-desbloqueo (SA-04) ([1fd3f35](https://github.com/victorvivas27/treasury-system/commit/1fd3f35285411feefe06f1fd93c97d305e02dfac))
+* **security:** impedir auto-reactivación y auto-desbloqueo (SA-04) ([c22aa55](https://github.com/victorvivas27/treasury-system/commit/c22aa551ebe05d6f2e1dd5ac5c814e96b0995a2b))
+* **security:** revocar sesiones de cuentas restringidas (SA-05) ([902c3aa](https://github.com/victorvivas27/treasury-system/commit/902c3aa063fbeec15e01c2906ed0e88381350372))
+
+## [1.10.1](https://github.com/victorvivas27/treasury-system/compare/v1.10.0...v1.10.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **security:** aislar identidad HTTP y STOMP por userId en SA-03 ([9f4ecad](https://github.com/victorvivas27/treasury-system/commit/9f4ecad3a07567c9456d4675d57948ba25770efc))
+* **security:** aislar identidad HTTP y STOMP por userId en SA-03 ([376fb46](https://github.com/victorvivas27/treasury-system/commit/376fb4629f8678fe545699625422a19d2338e8d4))
+
+## [1.10.0](https://github.com/victorvivas27/treasury-system/compare/v1.9.0...v1.10.0) (2026-10-04)
+
+
+### Features
+
+* Implement SA-02 invitation integration tests and PostgreSQL sup… ([9b6b8b5](https://github.com/victorvivas27/treasury-system/commit/9b6b8b5575fdadfa2d6dfee5864d421b9da23eb9))
+* Implement SA-02 invitation integration tests and PostgreSQL support ([5a30970](https://github.com/victorvivas27/treasury-system/commit/5a309700629b4dcb9d5845026f85cae72a00092e))
+
+## [1.9.0](https://github.com/victorvivas27/treasury-system/compare/v1.8.0...v1.9.0) (2026-10-03)
+
+
+### Features
+
+* agrega funcionalidad para gestionar y editar mensajes del table… ([3142ea2](https://github.com/victorvivas27/treasury-system/commit/3142ea2e4cf2f8e3521795331cc51ec33bdd18d3))
+* agrega funcionalidad para gestionar y editar mensajes del tablero en el dashboard ([2da7d4a](https://github.com/victorvivas27/treasury-system/commit/2da7d4a3983102ec49e5aeab132abeb99bc85527))
+
+## [1.8.0](https://github.com/victorvivas27/treasury-system/compare/v1.7.0...v1.8.0) (2026-09-29)
+
+
+### Features
+
+* agrega funcionalidad de flujo de caja y mejora en la visualizac… ([d902c57](https://github.com/victorvivas27/treasury-system/commit/d902c578aea2d862ffca01631b2491274699d67a))
+* agrega funcionalidad de flujo de caja y mejora en la visualización del dashboard ([34e0fa6](https://github.com/victorvivas27/treasury-system/commit/34e0fa6f8cbf92e0f915ff279b96844c6e341cbe))
+
+## [1.7.0](https://github.com/victorvivas27/treasury-system/compare/v1.6.0...v1.7.0) (2026-09-25)
+
+
+### Features
+
+* agrega funcionalidad para capturar el dashboard como imagen PNG ([76a5e8c](https://github.com/victorvivas27/treasury-system/commit/76a5e8cab944d6c6157fb9f6316432bbf325af90))
+* agrega funcionalidad para capturar el dashboard como imagen PNG ([b3c1c59](https://github.com/victorvivas27/treasury-system/commit/b3c1c594f3b98a82b90bc314f293c414b865753a))
+
+## [1.6.0](https://github.com/victorvivas27/treasury-system/compare/v1.5.0...v1.6.0) (2026-09-23)
+
+
+### Features
+
+* mejora la visualización de cumpleaños en el Dashboard con mensajes de estado ([80669bf](https://github.com/victorvivas27/treasury-system/commit/80669bf7d956cc7253e80a205991d214a9261d99))
+
 ## [1.5.0](https://github.com/victorvivas27/treasury-system/compare/v1.4.0...v1.5.0) (2026-09-21)
 
 
