@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Button } from './Button';
 
 describe('Button Component', () => {
@@ -12,6 +12,7 @@ describe('Button Component', () => {
   beforeEach(() => {
     mockClick.mockClear();
   });
+  afterEach(() => vi.useRealTimers());
 
   const renderButton = (props = {}) => {
     return render(<Button {...defaultProps} {...props} />);
@@ -69,6 +70,34 @@ describe('Button Component', () => {
 
     expect(screen.queryByTestId('action-icon')).not.toBeInTheDocument();
     expect(container.querySelector('.button-loader')).toBeInTheDocument();
+  });
+
+  it('mantiene Guardando visible por 700 ms en una operación rápida y evita dobles clics', () => {
+    vi.useFakeTimers();
+    const page = render(<Button label="Guardar cambios" onClick={mockClick} loading />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveTextContent('Guardando…');
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    act(() => vi.advanceTimersByTime(100));
+    page.rerender(<Button label="Guardar cambios" onClick={mockClick} loading={false} />);
+    act(() => vi.advanceTimersByTime(599));
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(mockClick).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(button).toBeEnabled();
+    expect(button).toHaveTextContent('Guardar cambios');
+    expect(button).toHaveAttribute('aria-busy', 'false');
+  });
+
+  it('mantiene el indicador hasta que una operación lenta termine', () => {
+    vi.useFakeTimers();
+    const page = render(<Button label="Guardar" onClick={mockClick} loading />);
+    act(() => vi.advanceTimersByTime(1500));
+    expect(screen.getByRole('button')).toHaveTextContent('Guardando…');
+    page.rerender(<Button label="Guardar" onClick={mockClick} loading={false} />);
+    act(() => vi.runOnlyPendingTimers());
+    expect(screen.getByRole('button')).toBeEnabled();
   });
 
 });

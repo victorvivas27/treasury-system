@@ -28,7 +28,7 @@ export const HomePage = () => {
           <HomeFeatures />
         </>}
       </main>
-      <HomeFooter />
+      <HomeFooter showLogin={!isAuthenticated} />
     </div>
   );
 };

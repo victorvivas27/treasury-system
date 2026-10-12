@@ -11,6 +11,7 @@ import {
   FiCamera,
   FiEdit3,
   FiHeart,
+  FiGitBranch,
   FiLogIn,
   FiLogOut,
   FiMenu,
@@ -20,6 +21,7 @@ import {
 } from "react-icons/fi";
 
 import type { User } from "@/core/A-domain/entities/user/User";
+import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
 
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
@@ -60,6 +62,10 @@ export const HomeHeader = ({
   user,
   onLogout,
 }: HomeHeaderProps) => {
+  const architectureAccess = useArchitectureAccess(
+    isAuthenticated ? user?.id : undefined,
+    isSuperAdmin ? "SUPER_ADMIN" : undefined,
+  );
   const [activeSection, setActiveSection] =
     useState<SectionId>("sobre-nosotros");
 
@@ -356,8 +362,26 @@ export const HomeHeader = ({
               </Link>
             )}
 
+            {isSuperAdmin && architectureAccess.allowed && (
+              <Link
+                to="/admin/arquitectura"
+                title="Arquitectura del sistema"
+                aria-label="Arquitectura del sistema"
+                onClick={closeMobileMenu}
+              >
+                <FiGitBranch aria-hidden="true" />
+                <span>Arquitectura del sistema</span>
+              </Link>
+            )}
+
 
             {/* SOBRE NOSOTROS */}
+            {isAdmin && (
+              <Link to="/admin/horario-clases" onClick={closeMobileMenu}>
+                <FiEdit3 aria-hidden="true" />
+                <span>Gestionar horario de clases</span>
+              </Link>
+            )}
 
             {isAdmin ? (
               <Link

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiCheckCircle, FiClock, FiDollarSign, FiLogIn,
+import { FiCheckCircle, FiClock, FiDollarSign,
   FiShield, FiUsers } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
@@ -57,21 +57,15 @@ export const HomeHero = ({ isAuthenticated = false }: { isAuthenticated?: boolea
         Una plataforma pensada para que apoderados y directiva administren cuotas, actividades y
         gastos del curso con total transparencia.
       </p>
-      <div className="public-home__actions">
-        <Link className="public-home__primary-action" to={isAuthenticated ? "/dashboard" : "/login"}>
-          {isAuthenticated ? <>
+      {isAuthenticated && <div className="public-home__actions">
+        <Link className="public-home__primary-action" to="/dashboard">
             <BrandLogo className="public-home__system-access-logo" alt="" src="/icono-gestion-curso.png" />
             <span>Gestion del curso</span>
-          </> : <>
-          <FiLogIn aria-hidden="true" /> Acceder al curso
-          </>}
         </Link>
-        {isAuthenticated ? <a className="public-home__secondary-action" href="#sobre-nosotros">
+        <a className="public-home__secondary-action" href="#sobre-nosotros">
           Conocer nuestro curso
-        </a> : <Link className="public-home__secondary-action" to="/login">
-          <FiLogIn aria-hidden="true" /> Iniciar sesión
-        </Link>}
-      </div>
+        </a>
+      </div>}
       <div className="public-home__trust">
         <span><FiCheckCircle aria-hidden="true" /> Fácil de usar</span>
         <span><FiCheckCircle aria-hidden="true" /> Cuentas transparentes</span>

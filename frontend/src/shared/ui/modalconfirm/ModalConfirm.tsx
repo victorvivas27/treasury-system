@@ -78,7 +78,7 @@ export const ModalConfirm = ({
             size="medium"
             variant="secondary"
             type="button"
-            disabled={isLoading || confirmDisabled}
+            disabled={isLoading}
             icon={cancelIcon}
             iconPosition="left"
           />

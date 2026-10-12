@@ -21,7 +21,8 @@ public final class StompDestinationInterceptor implements ExecutorChannelInterce
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor == null) throw new AccessDeniedException("STOMP requerido");
         StompCommand command = accessor.getCommand();
-        if (command == StompCommand.CONNECT) return message;
+        // Spring also emits DISCONNECT when an unauthenticated transport is closed.
+        if (command == StompCommand.CONNECT || command == StompCommand.DISCONNECT) return message;
         if (!(accessor.getUser() instanceof StompAccountAuthentication authentication)
                 || !authentication.isAuthenticated()) {
             throw new AccessDeniedException("Cuenta WebSocket requerida");
@@ -36,8 +37,7 @@ public final class StompDestinationInterceptor implements ExecutorChannelInterce
             if (!REPLY_DESTINATION.equals(destination)) {
                 throw new AccessDeniedException("Destino no permitido");
             }
-        } else if (command != null && command != StompCommand.DISCONNECT
-                && command != StompCommand.UNSUBSCRIBE) {
+        } else if (command != null && command != StompCommand.UNSUBSCRIBE) {
             throw new AccessDeniedException("Comando no permitido");
         }
         return message;

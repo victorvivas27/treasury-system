@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "2af69cce-36c6-44fd-9974-821959830743",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\access-validation.json",
+  "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\access-validation.html",
+  "specification": {
+    "sha256": "2cd280d0c80a3c844c026e14492430d9f51677b3e41f7f1d132a0ac77ab8fc66",
+    "bytes": 6125
+  },
+  "artifact": {
+    "sha256": "604604987e509e1e99d20f79f71f2a8659f176a0debd9f0af6a1b62e7600ad1c",
+    "bytes": 757608
+  }
+}
