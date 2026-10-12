@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "a7b816a7-ea5b-4e7c-a2e1-f6b515aca932",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\architecture.json",
+  "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\architecture.html",
+  "specification": {
+    "sha256": "1704ec4689c8641a785246e7bd81cb554f8304df702ca134e5303d88c5efb165",
+    "bytes": 8795
+  },
+  "artifact": {
+    "sha256": "36602f0dab9fa7c617d8fba04b978ac674c2fe42e8bda329cd57663f7b2f4c7c",
+    "bytes": 766433
+  }
+}

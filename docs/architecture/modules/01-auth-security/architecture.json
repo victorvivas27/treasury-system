@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Módulo 1 · Componentes de autenticación",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/01-auth-security/architecture.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+    }
+  },
+  "components": [
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Pantallas y sesión",
+      "sublabel": "React · AuthContext",
+      "sources": [
+        {
+          "path": "frontend/src/presentation/context/AuthContext.tsx",
+          "line": 219,
+          "end_line": 248
+        },
+        {
+          "path": "frontend/src/core/C-infra/repositories/auth/AuthRepositoryImpl.ts",
+          "line": 10,
+          "end_line": 28
+        }
+      ],
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "http-security",
+      "type": "security",
+      "label": "Seguridad HTTP",
+      "sublabel": "JWT · roles · curso",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/SecurityConfig.java",
+          "line": 36,
+          "end_line": 63
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/JwtAuthenticationFilter.java",
+          "line": 47,
+          "end_line": 104
+        }
+      ],
+      "pos": [
+        340,
+        60
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "auth-api",
+      "type": "backend",
+      "label": "API de cuentas",
+      "sublabel": "AuthController",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
+          "line": 112,
+          "end_line": 149
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
+          "line": 201,
+          "end_line": 228
+        }
+      ],
+      "pos": [
+        640,
+        60
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "credentials",
+      "type": "security",
+      "label": "Credenciales",
+      "sublabel": "PasswordEncoder · estado",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java",
+          "line": 94,
+          "end_line": 138
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java",
+          "line": 46,
+          "end_line": 62
+        }
+      ],
+      "pos": [
+        940,
+        60
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "sessions",
+      "type": "backend",
+      "label": "Sesiones",
+      "sublabel": "RefreshTokenService",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 105,
+          "end_line": 138
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 172,
+          "end_line": 177
+        }
+      ],
+      "pos": [
+        640,
+        290
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "recovery",
+      "type": "backend",
+      "label": "Recuperación",
+      "sublabel": "AccountRecoveryService",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AccountRecoveryService.java",
+          "line": 225,
+          "end_line": 260
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AccountRecoveryService.java",
+          "line": 267,
+          "end_line": 287
+        }
+      ],
+      "pos": [
+        340,
+        290
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "users",
+      "type": "database",
+      "label": "users",
+      "sublabel": "Cuenta · curso · revocación",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserEntity.java",
+          "line": 14,
+          "end_line": 57
+        }
+      ],
+      "pos": [
+        940,
+        290
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "tokens",
+      "type": "database",
+      "label": "user_tokens",
+      "sublabel": "Hash · familia · expiración",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
+          "line": 11,
+          "end_line": 62
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java",
+          "line": 28,
+          "end_line": 28
+        }
+      ],
+      "pos": [
+        640,
+        530
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "email",
+      "type": "external",
+      "label": "Correo",
+      "sublabel": "JavaMailSender",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/email/GmailEmailAdapter.java",
+          "line": 84,
+          "end_line": 93
+        }
+      ],
+      "pos": [
+        340,
+        530
+      ],
+      "size": [
+        190,
+        76
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge-1",
+      "from": "web",
+      "to": "http-security",
+      "label": "HTTP / Bearer"
+    },
+    {
+      "id": "edge-2",
+      "from": "http-security",
+      "to": "auth-api",
+      "label": "Ruta permitida"
+    },
+    {
+      "id": "edge-3",
+      "from": "auth-api",
+      "to": "credentials",
+      "label": "Login"
+    },
+    {
+      "id": "edge-4",
+      "from": "auth-api",
+      "to": "sessions",
+      "label": "Emite / rota"
+    },
+    {
+      "id": "edge-5",
+      "from": "auth-api",
+      "to": "recovery",
+      "label": "Cambia / recupera"
+    },
+    {
+      "id": "edge-6",
+      "from": "credentials",
+      "to": "users",
+      "label": "Lee cuenta"
+    },
+    {
+      "id": "edge-7",
+      "from": "sessions",
+      "to": "tokens",
+      "label": "Guarda / revoca"
+    },
+    {
+      "id": "edge-8",
+      "from": "recovery",
+      "to": "email",
+      "label": "Envía aviso"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cómo leer esta vista",
+      "items": [
+        "Las flechas agrupan llamadas por capa; las secuencias separan los controles y escrituras.",
+        "AuthController coordina credenciales, sesiones y recuperación. El mapa no es una topología de despliegue."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Controles reales",
+      "items": [
+        "Registro público bloqueado; acceso de apoderados mediante invitación administrativa.",
+        "La familia de sesión se consulta en BD. JWT sin familia consultan users.sessions_revoked_at."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Alcance",
+      "items": [
+        "Usuarios y curso se consultan también desde sesiones y recuperación; ver las secuencias.",
+        "Correo es un adaptador configurado; su disponibilidad real no se prueba al generar este gráfico."
+      ]
+    }
+  ]
+}

@@ -103,6 +103,22 @@ tasks.named('test') {
     }
 }
 
+// Docker builds from backend/: private HTML copies travel with that build context.
+// In a full checkout, prevent shipping a stale copy of the documented artifacts.
+tasks.named('processResources') {
+    def architectureSource = file('../docs/architecture/modules/01-auth-security')
+    inputs.files(fileTree(architectureSource) { include '*.html'; exclude '*.visual-check.html' })
+    doFirst {
+        ['architecture', 'login', 'refresh', 'password-change', 'password-reset', 'access-validation'].each { id ->
+            def packaged = file("src/main/resources/architecture-diagrams/${id}.html")
+            def documented = new File(architectureSource, "${id}.html")
+            if (!packaged.exists() || (documented.exists() && !java.util.Arrays.equals(packaged.bytes, documented.bytes))) {
+                throw new GradleException('Run node scripts/sync-architecture-artifacts.mjs from the repository root.')
+            }
+        }
+    }
+}
+
 // ========== CONFIGURACIÓN JACOCO ==========
 jacoco {
     toolVersion = "0.8.12"

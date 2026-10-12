@@ -46,6 +46,42 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class SecurityConfigTest {
     @Test
+    void architectureRequiresOwnerForCatalogAndEveryDiagramAndIsNotPublicStaticContent() throws Exception {
+        String base = "/api/v1/admin/architecture";
+        String ownerToken = tokenFor("superadmin@mail.com");
+        for (String path : List.of(base, base + "/diagrams/login")) {
+            mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+            mockMvc.perform(get(path).header("Authorization", "Bearer " + tokenFor("user@mail.com")))
+                    .andExpect(status().isForbidden());
+            mockMvc.perform(get(path).header("Authorization", "Bearer " + tokenFor("admin@mail.com")))
+                    .andExpect(status().isForbidden());
+        }
+        mockMvc.perform(get(base + "/access").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.allowed").value(true));
+        mockMvc.perform(get(base).header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.diagrams.length()").value(6))
+                .andExpect(header().string("Cache-Control", "no-store"));
+        mockMvc.perform(get(base + "/diagrams/login").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Login")));
+        mockMvc.perform(get(base + "/diagrams/unknown").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/architecture-diagrams/login.html")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/architecture-diagrams/login.html").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isForbidden());
+        createUser("SAD-002", "another-superadmin@mail.com", RoleEnum.SUPER_ADMIN);
+        mockMvc.perform(get(base + "/access").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.allowed").value(false));
+        for (String email : List.of("superadmin@mail.com", "another-superadmin@mail.com")) {
+            mockMvc.perform(get(base + "/diagrams/login").header("Authorization", "Bearer " + tokenFor(email)))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
     void corsPreflight_deberiaPermitirLoginDesdeTryCloudflare() throws Exception {
         String origin = "https://scratch-assessed-choir-removing.trycloudflare.com";
 

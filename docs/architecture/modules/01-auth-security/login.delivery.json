@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5946a4c2-9c97-415a-b7cc-f201fd75d421",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\login.json",
+  "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\login.html",
+  "specification": {
+    "sha256": "295a11dd69b484270d17bbab7d58ab3bf0751986e4d7cccae050b3bf607751b0",
+    "bytes": 7176
+  },
+  "artifact": {
+    "sha256": "88b1b3a9ece95132024a709bc9008418dfe12f839fd66441743e1afa2032895f",
+    "bytes": 760327
+  }
+}

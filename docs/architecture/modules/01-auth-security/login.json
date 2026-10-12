@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Login · Credenciales y selección de curso",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/01-auth-security/login.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+    },
+    "column_fit": "spread",
+    "viewBox": [
+      1080,
+      600
+    ]
+  },
+  "participants": [
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Frontend",
+      "sublabel": "LoginPage",
+      "sources": [
+        {
+          "path": "frontend/src/presentation/pages/auth/LoginPage.tsx",
+          "line": 55,
+          "end_line": 97
+        },
+        {
+          "path": "frontend/src/presentation/context/AuthContext.tsx",
+          "line": 219,
+          "end_line": 246
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API",
+      "sublabel": "AuthController",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
+          "line": 112,
+          "end_line": 149
+        }
+      ]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "Credenciales",
+      "sublabel": "AuthService",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java",
+          "line": 42,
+          "end_line": 70
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java",
+          "line": 94,
+          "end_line": 138
+        }
+      ]
+    },
+    {
+      "id": "users",
+      "type": "database",
+      "label": "Cuentas",
+      "sublabel": "users",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserEntity.java",
+          "line": 14,
+          "end_line": 57
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java",
+          "line": 46,
+          "end_line": 62
+        }
+      ]
+    },
+    {
+      "id": "sessions",
+      "type": "backend",
+      "label": "Sesiones",
+      "sublabel": "Refresh + JWT",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 64,
+          "end_line": 68
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
+          "line": 86,
+          "end_line": 107
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/JwtService.java",
+          "line": 45,
+          "end_line": 82
+        }
+      ]
+    },
+    {
+      "id": "tokens",
+      "type": "database",
+      "label": "Tokens",
+      "sublabel": "user_tokens",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
+          "line": 11,
+          "end_line": 62
+        }
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "id": "step-1",
+      "to": "api",
+      "y": 160,
+      "label": "POST /auth/login · correo y contraseña",
+      "from": "web",
+      "variant": "emphasis"
+    },
+    {
+      "id": "step-2",
+      "to": "auth",
+      "y": 193,
+      "label": "login(correo, password, organizationId)",
+      "from": "api",
+      "variant": "security"
+    },
+    {
+      "id": "step-3",
+      "to": "users",
+      "y": 226,
+      "label": "Buscar por correo / curso; comparar contraseña",
+      "from": "auth"
+    },
+    {
+      "id": "step-4",
+      "to": "auth",
+      "y": 259,
+      "label": "Cuenta habilitada y no bloqueada",
+      "from": "users",
+      "variant": "return"
+    },
+    {
+      "id": "step-5",
+      "to": "api",
+      "y": 292,
+      "label": "Si es ambiguo: opciones; si válido: userId",
+      "from": "auth",
+      "variant": "return"
+    },
+    {
+      "id": "step-6",
+      "to": "web",
+      "y": 325,
+      "label": "Solo si ambiguo: elegir curso y repetir",
+      "from": "api",
+      "variant": "return"
+    },
+    {
+      "id": "step-7",
+      "to": "sessions",
+      "y": 358,
+      "label": "Solo cuenta única válida: issueForUserId",
+      "from": "api",
+      "variant": "emphasis"
+    },
+    {
+      "id": "step-8",
+      "to": "users",
+      "y": 391,
+      "label": "Bloqueo de cuenta; revalidar estado y curso",
+      "from": "sessions",
+      "variant": "security"
+    },
+    {
+      "id": "step-9",
+      "to": "tokens",
+      "y": 424,
+      "label": "Persistir hash refresh, CSRF y familia",
+      "from": "sessions"
+    },
+    {
+      "id": "step-10",
+      "to": "api",
+      "y": 457,
+      "label": "JWT con userId, organizationId y familia",
+      "from": "sessions",
+      "variant": "return"
+    },
+    {
+      "id": "step-11",
+      "to": "web",
+      "y": 490,
+      "label": "200 · token + usuario + Set-Cookie",
+      "from": "api",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Ramas alternativas",
+      "items": [
+        "La elección de curso termina ese request sin emitir una sesión. Un nuevo login incluye organizationId.",
+        "Credenciales o estado inválido: rechazo; límite de intentos: 429. Nunca se continúa hacia emisión."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Cookies",
+      "items": [
+        "treasury_refresh: HttpOnly; treasury_csrf: legible. Secure y SameSite dependen de configuración.",
+        "El JWT emitido por RefreshTokenService es el que se devuelve al frontend."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Acciones internas",
+      "items": [
+        "JWT en memoria; usuario / CSRF en sessionStorage"
+      ]
+    }
+  ]
+}

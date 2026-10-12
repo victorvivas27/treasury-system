@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Módulo 1 · Treasury System</title>
+  <style>
+    :root{color-scheme:light dark;font-family:system-ui,sans-serif;background:#f5f7fb;color:#172234}body{max-width:1100px;margin:0 auto;padding:48px 24px}header{margin-bottom:32px}small{color:#53647b}h1{font-size:clamp(28px,4vw,44px);letter-spacing:-.04em;margin:12px 0}p{line-height:1.65;max-width:780px}.status{display:inline-block;border-radius:20px;background:#d7f4e7;color:#176748;padding:6px 12px;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.card{display:block;text-decoration:none;color:inherit;padding:24px;border:1px solid #dbe2ec;border-radius:16px;background:white;transition:transform .15s,border-color .15s}.card:hover{transform:translateY(-3px);border-color:#008aab}.card:focus-visible{outline:3px solid #008aab;outline-offset:3px}.number{color:#007b98;font-size:13px;font-weight:700}h2{font-size:21px;margin:12px 0 8px}.card p{margin:0;color:#53647b;font-size:15px}.open{display:block;color:#007b98;font-weight:600;margin-top:18px}footer{margin-top:32px;border-top:1px solid #dbe2ec;padding-top:20px;font-size:14px}footer a{color:#007b98}code{overflow-wrap:anywhere}@media(prefers-color-scheme:dark){:root{background:#0b1220;color:#e5edf9}.card{background:#131e30;border-color:#2b3a51}.card p,small{color:#afbed3}.number,.open,footer a{color:#56d3e5}.status{background:#153a32;color:#9ae5c3}footer{border-color:#2b3a51}}
+  </style>
+</head>
+<body>
+  <header>
+    <small>TREASURY SYSTEM · ARQUITECTURA INTERACTIVA</small>
+    <h1>Autenticación, usuarios y seguridad</h1>
+    <span class="status">Módulo 1 · Piloto validado</span>
+    <p>Recorre cómo empieza una sesión, cómo se renueva y cómo se invalida. Cada gráfico permite explorar componentes y consultar las referencias al código.</p>
+    <small>Referencia: <code>88eb6f11</code> · 9 de octubre de 2026 · Archify 3.0.1</small>
+  </header>
+  <main class="grid" aria-label="Gráficos del módulo 1">
+    <a class="card" href="architecture.html"><span class="number">01 · VISTA GENERAL</span><h2>Componentes</h2><p>Pantallas, seguridad, servicios, almacenamiento y correo.</p><span class="open">Explorar componentes →</span></a>
+    <a class="card" href="login.html"><span class="number">02 · INICIO DE SESIÓN</span><h2>Login y curso</h2><p>Credenciales, estado de cuenta y elección de organización.</p><span class="open">Seguir el login →</span></a>
+    <a class="card" href="refresh.html"><span class="number">03 · CONTINUIDAD</span><h2>Renovar la sesión</h2><p>Cookies, CSRF, rotación de refresh y familia de sesión.</p><span class="open">Seguir la renovación →</span></a>
+    <a class="card" href="password-change.html"><span class="number">04 · SA-06</span><h2>Cambiar contraseña</h2><p>Cambio autenticado y revocación persistente de sesiones.</p><span class="open">Ver la transacción →</span></a>
+    <a class="card" href="password-reset.html"><span class="number">05 · RECUPERACIÓN</span><h2>Recuperar y activar</h2><p>Código de un uso, nueva contraseña y variante de invitación.</p><span class="open">Seguir la recuperación →</span></a>
+    <a class="card" href="access-validation.html"><span class="number">06 · CONTROL DE ACCESO</span><h2>HTTP y WebSocket</h2><p>Validación de peticiones, CONNECT y límites de revalidación.</p><span class="open">Comparar los recorridos →</span></a>
+  </main>
+  <footer>
+    <p>Selecciona un componente o su indicador SRC para explorar sus fuentes. Usa zoom y búsqueda para recorrer el gráfico; las notas explicativas están debajo. Algunos controles del visor están en inglés.</p>
+    <p><a href="README.md">Guía, alcance y pendientes</a> · <a href="evidence.md">Evidencias del código</a> · <a href="../../PLAN_ARCHIFY_POR_MODULOS.md">Plan por módulos</a></p>
+    <p>Siguiente: módulo 2, organizaciones y cursos. Su generación está pendiente. Este piloto documenta el código y no certifica un despliegue de producción.</p>
+  </footer>
+</body>
+</html>

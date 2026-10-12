@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { FiCode, FiMail, FiPhone } from "react-icons/fi";
+import { FiCode, FiLogIn, FiMail, FiPhone } from "react-icons/fi";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "../style/HomeFooter.css";
 
-export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
+export const HomeFooter = ({ reveal = true, showLogin = false }: { reveal?: boolean; showLogin?: boolean }) => (
   <footer className={`public-home__footer${reveal ? "" : " system-home-footer"}`}
     {...(reveal ? { "data-home-footer-reveal": true } : {})}>
     <div className="public-home__footer-content">
@@ -12,6 +12,9 @@ export const HomeFooter = ({ reveal = true }: { reveal?: boolean }) => (
         <BrandLogo alt="" /><span>Tesorería Escolar</span>
       </Link>
       <p>Finanzas claras para cada curso.</p>
+      {showLogin && <Link className="public-home__footer-login" to="/login">
+        <FiLogIn aria-hidden="true" /><span>Iniciar sesión</span>
+      </Link>}
     </div>
     <address className="public-home__signature" aria-label="Datos del desarrollador">
       <span className="public-home__signature-glow" aria-hidden="true" />
