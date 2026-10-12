@@ -22,6 +22,38 @@ describe("Editor del horario", () => {
     screen.getAllByRole("button", { name: /^Desplegar / }).forEach(button => fireEvent.click(button));
     return page;
   };
+  it("oculta el éxito tras cuatro segundos y reinicia el aviso al volver a guardar", async () => {
+    vi.useFakeTimers();
+    try {
+      open();
+      const save = screen.getByRole("button", { name: "Guardar jornada · Lunes" });
+      await act(async () => { fireEvent.click(save); });
+      expect(screen.getByText("Lunes guardado como borrador.")).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(3000));
+      fireEvent.change(screen.getByLabelText("Salida · Lunes · Minutos"), { target: { value: "15" } });
+      expect(screen.getByText("Lunes guardado como borrador.")).toBeInTheDocument();
+      expect(save).toBeEnabled();
+      await act(async () => { fireEvent.click(save); });
+      expect(data.save).toHaveBeenCalledTimes(2);
+      act(() => vi.advanceTimersByTime(3999));
+      expect(screen.getByText("Lunes guardado como borrador.")).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(1));
+      expect(screen.queryByText("Lunes guardado como borrador.")).not.toBeInTheDocument();
+      expect(save).toBeEnabled();
+    } finally { vi.useRealTimers(); }
+  });
+  it("muestra skeleton en administración sin acciones de edición durante la carga", () => {
+    data.loading = true;
+    const page = render(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    const loading = screen.getByRole("status", { name: "Cargando horario" });
+    expect(loading.querySelectorAll(".schedule-day")).toHaveLength(5);
+    expect(screen.getByRole("button", { name: "Publicar horario" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Publicar horario" })).toHaveAttribute("aria-busy", "false");
+    data.loading = false;
+    page.rerender(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Publicar horario" })).toBeInTheDocument();
+  });
   it.each(["SUBJECT", "ACTIVITY", "BREAK", "LUNCH", "SNACK"] as const)("usa el desplegable de diez colores también para %s", (type) => {
     data.schedule.days[0].blocks[0].type = type;
     const page = open();
