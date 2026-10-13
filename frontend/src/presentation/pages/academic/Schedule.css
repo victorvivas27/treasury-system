@@ -7,6 +7,9 @@
 .schedule-page label { display: inline-flex; flex-direction: column; gap: .3rem; margin: .4rem; font-size: .9rem; }
 .schedule-page input, .schedule-page select { padding: .45rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: var(--color-input); color: var(--text-main); max-width: 100%; }
 .schedule-week { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); align-items: start; gap: .8rem; margin-top: 1rem; }
+@media (min-width: 1101px) {
+  .schedule-week { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
 .schedule-day { padding: .8rem; border: 1px solid color-mix(in srgb, #5276df 30%, var(--border-color)); border-top: 3px solid #5276df; border-radius: var(--radius-lg); min-width: 0; background: var(--color-surface); box-shadow: 0 3px 10px rgb(0 0 0 / 8%); }
 .schedule-day h2 { font-size: 1.05rem; margin: -.8rem -.8rem .6rem; padding: .5rem .8rem; border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: color-mix(in srgb, #5276df 12%, var(--color-surface)); border-bottom: 1px solid color-mix(in srgb, #5276df 20%, var(--border-color)); }
 .schedule-exit { font-weight: 400; }
@@ -79,34 +82,35 @@
 .schedule-editor-block .schedule-block-time { align-items: center; text-align: center; }
 .schedule-block-fields > .schedule-block-time { grid-column: 1; }
 .schedule-block-fields > .schedule-block-time + .schedule-block-time { grid-column: 2; }
-.schedule-editor-block .schedule-time-select { width: 100%; }
-.schedule-editor-block .schedule-time-select select { width: 3.1rem; }
 .schedule-editor-block > .base-button { min-width: 0; margin: 0; padding: .3rem .2rem; font-size: .7rem; }
-.schedule-block-color-actions { grid-column: 1 / -1; display: flex; align-items: end; flex-wrap: wrap; gap: .3rem; }
-.schedule-color-palette { flex: 1; min-width: 0; }
+.schedule-block-color-actions { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .3rem; }
+.schedule-color-palette { min-width: 0; width: 100%; }
 .schedule-color-select { display: flex; align-items: center; gap: .25rem; }
 .schedule-color-preview { flex: 0 0 16px; height: 16px; border: 1px solid var(--border-color); border-radius: .25rem; }
-.schedule-color-select select { width: 100%; min-width: 0; padding: .25rem; font-size: .7rem; }
+.schedule-color-select select { flex: 1; width: 0; min-width: 0; padding: .25rem; font-size: .7rem; }
 .schedule-block-color-actions .base-button { min-width: 0; margin: 0; padding: .3rem .2rem; font-size: .65rem; white-space: nowrap; }
 .schedule-block-color-actions .button-content { gap: .15rem; }
-.schedule-day-actions { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: .25rem; margin-top: .5rem; }
+.schedule-block-color-actions .button-label { white-space: normal; overflow-wrap: anywhere; }
+.schedule-block-color-actions > .base-button:last-child { grid-column: 1 / -1; }
+.schedule-day-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem; margin-top: .5rem; }
+.schedule-day-actions > .base-button:first-child { grid-column: 1 / -1; }
 .schedule-day-actions .base-button { min-width: 0; margin: 0; padding: .35rem .15rem; font-size: .65rem; }
-.schedule-day-actions .button-content { gap: .15rem; }
-.schedule-day-actions .button-label { white-space: nowrap; }
+.schedule-day-actions .button-content { gap: .15rem; flex-wrap: wrap; min-width: 0; }
+.schedule-day-actions .button-label { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .schedule-day-actions .base-button { min-height: 2rem; }
 .schedule-day-feedback-slot { min-height: 3rem; margin-top: .4rem; }
-.schedule-day-feedback-slot .schedule-save-feedback { box-sizing: border-box; margin: 0; line-height: 1.4; }
+.schedule-day-feedback-slot .schedule-save-feedback { box-sizing: border-box; max-width: 100%; margin: 0; padding: .3rem; font-size: .65rem; line-height: 1.3; white-space: normal; }
 .schedule-save-feedback { margin: .4rem 0 0; padding: .35rem .45rem; border: 1px solid var(--border-color); border-left: 3px solid #d47749; border-radius: .35rem; background: color-mix(in srgb, #d47749 10%, var(--color-surface)); font-size: .75rem; overflow-wrap: anywhere; }
 .schedule-save-feedback.is-success { border-left-color: var(--color-accent); background: var(--color-accent-soft); }
-.schedule-page .schedule-copy-target { display: flex; flex-direction: row; align-items: center; gap: .4rem; margin: .5rem 0; font-size: .75rem; white-space: nowrap; }
-.schedule-copy-target select { flex: 1; min-width: 0; padding: .3rem .2rem; font-size: .75rem; }
+.schedule-page .schedule-copy-target { display: flex; flex-direction: column; align-items: stretch; gap: .25rem; margin: .5rem 0; font-size: .7rem; white-space: normal; }
+.schedule-copy-target select { width: 100%; min-width: 0; padding: .3rem .2rem; font-size: .7rem; }
 .schedule-page :focus-visible { outline: 3px solid #5276df; outline-offset: 2px; }
 .schedule-confirm { max-width: min(280px, calc(100vw - 24px)) !important; }
 .schedule-page .schedule-delete-check { display: flex; margin: .5rem 0 0; font-size: .8rem; }
 .schedule-delete-check input { width: 100%; box-sizing: border-box; }
 .schedule-page fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.schedule-day-times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.schedule-day-times label { min-width: 0; align-items: center; text-align: center; }
+.schedule-day-times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; }
+.schedule-day-times label { min-width: 0; margin: .4rem 0; align-items: center; text-align: center; }
 .schedule-day-progress { margin: .4rem 0 .6rem; font-size: .7rem; }
 .schedule-day-progress-counts { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .5rem; }
 .schedule-day-progress-remaining { margin-left: auto; font-weight: 600; }
@@ -119,6 +123,10 @@
 .schedule-time-select { display: inline-flex; align-items: center; justify-content: center; align-self: center; gap: .2rem; color: var(--text-main); }
 .schedule-time-select select { min-width: 0; width: 3.1rem; padding: .25rem .1rem; font-size: .8rem; font-weight: 400; text-align: center; text-align-last: center; background: color-mix(in srgb, #5276df 12%, var(--color-input)); border-color: color-mix(in srgb, #5276df 40%, var(--border-color)); }
 .schedule-time-select select:hover:not(:disabled) { background: color-mix(in srgb, #5276df 20%, var(--color-input)); }
+.schedule-day-times .schedule-time-select,
+.schedule-editor-block .schedule-time-select { width: 100%; gap: .1rem; font-size: .7rem; }
+.schedule-day-times .schedule-time-select select,
+.schedule-editor-block .schedule-time-select select { appearance: none; flex: 1; width: 0; max-width: 2.1rem; padding: .25rem 0; font-size: .7rem; letter-spacing: 0; text-align: center; text-align-last: center; cursor: pointer; }
 .schedule-day-times input { width: 100%; min-width: 0; }
 .schedule-actions { margin-top: .65rem; justify-content: flex-start; gap: .4rem; }
 .schedule-actions .base-button { margin: 0; padding: .4rem .6rem; font-size: .8rem; }
