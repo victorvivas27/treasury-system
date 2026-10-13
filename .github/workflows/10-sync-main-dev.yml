@@ -1,0 +1,77 @@
+name: 10 - Sync main into dev
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Preserve main history in dev
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sync-main-into-dev
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.merge.outputs.sha }}
+    steps:
+      - name: Merge main without rewriting dev
+        id: merge
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: main } = await github.rest.git.getRef({
+              ...context.repo, ref: 'heads/main',
+            });
+            const mainSha = main.object.sha;
+            const { data: comparison } = await github.rest.repos.compareCommits({
+              ...context.repo, base: mainSha, head: 'dev',
+            });
+            if (comparison.merge_base_commit.sha !== mainSha) {
+              // GitHub computes a normal merge against the current dev head.
+              // A content conflict or branch protection fails safely; never force push.
+              await github.rest.repos.merge({
+                ...context.repo, base: 'dev', head: mainSha,
+                commit_message: 'chore(branches): sync main into dev',
+              });
+            }
+            const { data: dev } = await github.rest.git.getRef({
+              ...context.repo, ref: 'heads/dev',
+            });
+            const { data: verified } = await github.rest.repos.compareCommits({
+              ...context.repo, base: mainSha, head: dev.object.sha,
+            });
+            if (verified.merge_base_commit.sha !== mainSha) {
+              throw new Error('main was not integrated into dev; refusing to report success');
+            }
+            core.setOutput('sha', dev.object.sha);
+            core.info(`dev includes main ${mainSha}; validating ${dev.object.sha}`);
+
+  # GITHUB_TOKEN merges do not trigger push or PR workflows.
+  # Run all checks explicitly on the synchronized commit.
+  frontend:
+    needs: sync
+    uses: ./.github/workflows/02-frontend-ci.yml
+    with:
+      ref: ${{ needs.sync.outputs.sha }}
+  backend:
+    needs: sync
+    uses: ./.github/workflows/03-backend-ci.yml
+    with:
+      ref: ${{ needs.sync.outputs.sha }}
+  versioning:
+    needs: sync
+    uses: ./.github/workflows/05-versioning-ci.yml
+    with:
+      ref: ${{ needs.sync.outputs.sha }}
+  bruno:
+    needs: sync
+    uses: ./.github/workflows/04-bruno-tests.yml
+    with:
+      ref: ${{ needs.sync.outputs.sha }}

@@ -1,6 +1,7 @@
 name: 04-Bruno API Tests
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       ref:
@@ -16,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: bruno-api-tests-${{ github.event.pull_request.number || github.ref }}
+  group: bruno-api-tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
