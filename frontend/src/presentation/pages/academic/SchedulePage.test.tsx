@@ -39,6 +39,8 @@ describe("Consulta del horario", () => {
     expect(screen.getByRole("button", { name: "Desplegar Martes" })).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByText("16:00")).toBeInTheDocument();
     expect(screen.getByText("Lenguaje")).toBeInTheDocument();
+    expect(screen.getByText("45 min")).toBeInTheDocument();
+    expect(screen.getByText("15 min")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Gestionar horario" })).not.toBeInTheDocument();
   });
   it("las tres vistas conservan los datos y recuerda la preferencia por usuario", () => {

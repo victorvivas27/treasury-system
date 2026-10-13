@@ -73,26 +73,19 @@ contraseña son MINOR; 40 archivos que corrigen errores sin cambiar contratos pu
 ser PATCH; tres líneas que eliminan API v1 son MAJOR. No se cuentan líneas,
 archivos, commits ni horas. Entre cambios acumulados gana MAJOR > MINOR > PATCH.
 
-## PR, squash y conservación de la intención
+## PR y conservación del historial
 
-Flujo: branch → commits → push → PR → revisión/CI → merge a main → Release PR
-→ CI del Release PR → merge automático → tag y GitHub Release.
-Push a una rama u abrir un PR no incrementa la versión. Se pueden acumular fixes;
-si entra un feat antes de liberar la release, Release Please recalcula MINOR.
+Flujo: rama de trabajo → dev → PR a main → revisión/CI → merge commit → Release PR
+→ CI del Release PR → merge automático → tag y GitHub Release → sincronización a dev.
 
-GitHub permite merge, squash y rebase. En la auditoría, squash usaba
-`COMMIT_OR_PR_TITLE` + `COMMIT_MESSAGES`: un único commit puede aportar el título,
-y varios commits conservan sus mensajes en el cuerpo. Se validan ambos, pero
-antes de confirmar el merge hay que revisar el mensaje final, que se puede editar.
-El título del PR debe expresar el mayor impacto. Si hay una incompatibilidad,
-usar `!` en el título y conservar su descripción/migración en el cuerpo.
-Si se usa `BREAKING CHANGE:`, debe sobrevivir en el commit final. Nunca reemplazar
-los mensajes por un texto genérico como «cambios». Release Please admite varios
-mensajes convencionales separados por líneas vacías dentro del commit squash.
+Las ramas permanentes se integran con **Create a merge commit**. Squash y rebase
+están deshabilitados para evitar duplicar cambios al reutilizar dev. El título del
+PR debe expresar el mayor impacto y conservar los cambios incompatibles con `!` o
+`BREAKING CHANGE:`. Los commits convencionales originales permanecen en el historial.
 
-Recomendado en Settings → General: configurar squash con título del PR y mensajes
-de commits. En Rulesets, exigir revisión y checks de CI, Conventional Commits y
-Versioning CI para main; estas políticas remotas no se cambian con este trabajo.
+Release Please también utiliza merge commit. `10-sync-main-dev.yml` devuelve a dev
+los commits y versiones de main, incluyendo las releases creadas por el bot. Ver
+`docs/BRANCHING.md` para el flujo local y las comprobaciones de sincronización.
 
 ## Primera release y operación de Actions
 
@@ -116,7 +109,7 @@ el PR y ejecuta directamente los workflows reutilizables sobre su SHA exacto:
 - Backend: compilación, tests y verificación de cobertura JaCoCo, como en Backend CI.
 - Versionamiento: schema, YAML, escenarios SemVer y sincronización de versiones.
 
-Solo si todos pasan se integra el PR por squash. Antes del merge se comprueba
+Solo si todos pasan se integra el PR mediante merge commit. Antes del merge se comprueba
 que main no haya cambiado y que el PR siga abierto, pertenezca a este repositorio,
 tenga la rama de Release Please y la etiqueta `autorelease: pending`. La API
 recibe el SHA validado y rechaza un head modificado. No se usa force ni bypass de

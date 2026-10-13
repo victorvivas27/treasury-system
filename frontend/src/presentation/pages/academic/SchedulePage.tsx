@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FiSliders } from "react-icons/fi";
-import { DAYS, TYPES, orderedBlocks, timeLabel } from "@/core/A-domain/entities/academic/Schedule";
+import { DAYS, TYPES, blockDurationLabel, mergeConsecutiveSubjects, orderedBlocks, timeLabel } from "@/core/A-domain/entities/academic/Schedule";
 import type { ScheduleBlock, ScheduleDay } from "@/core/A-domain/entities/academic/Schedule";
 import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { useAuth } from "@/presentation/context/AuthContext";
@@ -14,7 +14,7 @@ import { ScheduleDayPanel } from "./ScheduleDayPanel";
 import "./Schedule.css";
 
 type View = "summary" | "day" | "table";
-const blockColors = { SUBJECT: "#5276df", ACTIVITY: "#a855f7", BREAK: "#22a06b", SNACK: "#d47749", LUNCH: "#d99024" };
+const blockColors = { SUBJECT: "#5276df", ACTIVITY: "#a855f7", EVENT: "#db2777", BREAK: "#22a06b", SNACK: "#d47749", LUNCH: "#d99024" };
 const blockStyle = (block: ScheduleBlock): CSSProperties => ({
   "--schedule-block-color": block.color || blockColors[block.type],
 } as CSSProperties);
@@ -30,7 +30,8 @@ export function SchedulePage() {
   const view = preference.key === key ? preference.view : preferredView(key);
   const [dayNumber, setDayNumber] = useState(1);
   useEffect(() => { try { localStorage.setItem(key, view); } catch { /* Local preference is optional. */ } }, [key, view]);
-  const days = DAYS.map((_, index) => data.schedule.days.find(day => day.dayOfWeek === index + 1));
+  const mergedDays = data.schedule.days.map(mergeConsecutiveSubjects);
+  const days = DAYS.map((_, index) => mergedDays.find(day => day.dayOfWeek === index + 1));
   const boundaries = [...new Set(days.flatMap(day => day
     ? [day.entryTime, day.exitTime, ...day.blocks.flatMap(block => [block.startTime, block.endTime])] : []))].sort();
   const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
@@ -38,9 +39,9 @@ export function SchedulePage() {
     {day ? <><p>Entrada <strong>{timeLabel(day.entryTime)}</strong> · <span className="schedule-exit">Salida <strong>{timeLabel(day.exitTime)}</strong></span></p>
       {orderedBlocks(day).length ? <ol className="schedule-blocks">{orderedBlocks(day).map((block, position) =>
         <li className="schedule-published-block" key={position} style={blockStyle(block)}>
-          <small className="schedule-published-type">{block.type === "ACTIVITY" ? "Evento / actividad" : TYPES[block.type]}</small>
-          {(block.type === "SUBJECT" || block.type === "ACTIVITY") && block.name && <strong title={block.name}>{block.name}</strong>}
-          <span>{timeLabel(block.startTime)} – {timeLabel(block.endTime)}</span>
+          <small className="schedule-published-type">{TYPES[block.type]}</small>
+          {(block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && block.name && <strong title={block.name}>{block.name}</strong>}
+          <span>{timeLabel(block.startTime)} – {timeLabel(block.endTime)}{blockDurationLabel(block) && <small className="schedule-block-duration">{blockDurationLabel(block)}</small>}</span>
         </li>)}</ol> : <p>Sin bloques programados.</p>}</> : <p>Sin jornada publicada.</p>}
   </ScheduleDayPanel>;
   return <section className="schedule-page">
@@ -75,9 +76,11 @@ export function SchedulePage() {
               <th scope="row">{timeLabel(start)} – {timeLabel(end)}</th>
               {days.map((day, dayIndex) => {
                 const block = day?.blocks.find(value => value.startTime <= start && value.endTime >= end);
-                return <td key={dayIndex}>{block ? <span className="schedule-cell schedule-published-block" style={blockStyle(block)}>
-                  <small className="schedule-published-type">{block.type === "ACTIVITY" ? "Evento / actividad" : TYPES[block.type]}</small>{(block.type === "SUBJECT" || block.type === "ACTIVITY") && block.name && <strong title={block.name}>{block.name}</strong>}
-                  <small>{timeLabel(block.startTime)} – {timeLabel(block.endTime)}</small>
+                if (block && block.startTime < start) return null;
+                const rowSpan = block ? boundaries.filter(boundary => boundary >= start && boundary < block.endTime).length : 1;
+                return <td key={dayIndex} rowSpan={rowSpan}>{block ? <span className="schedule-cell schedule-published-block" style={blockStyle(block)}>
+                  <small className="schedule-published-type">{TYPES[block.type]}</small>{(block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && block.name && <strong title={block.name}>{block.name}</strong>}
+                  <small>{timeLabel(block.startTime)} – {timeLabel(block.endTime)}{blockDurationLabel(block) && <span className="schedule-block-duration">{blockDurationLabel(block)}</span>}</small>
                 </span> : day && start >= day.entryTime && end <= day.exitTime ? "Libre" : "—"}</td>;
               })}</tr>;
           })}</tbody>

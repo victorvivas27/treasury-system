@@ -44,7 +44,7 @@ jobs:
               'VERSION', 'CHANGELOG.md', 'frontend/package.json', 'backend/build.gradle',
             ]);
             const versioning = all || paths.some(path => versionFiles.has(path) ||
-              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation)\.cjs$/.test(path));
+              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation|test-branch-sync)\.cjs$/.test(path));
             for (const [name, value] of Object.entries({ frontend, backend, bruno, versioning })) {
               core.setOutput(name, String(value));
             }

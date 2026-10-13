@@ -54,7 +54,7 @@ describe("Editor del horario", () => {
     expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Publicar horario" })).toBeInTheDocument();
   });
-  it.each(["SUBJECT", "ACTIVITY", "BREAK", "LUNCH", "SNACK"] as const)("usa el desplegable de diez colores también para %s", (type) => {
+  it.each(["SUBJECT", "ACTIVITY", "EVENT", "BREAK", "LUNCH", "SNACK"] as const)("usa el desplegable de diez colores también para %s", (type) => {
     data.schedule.days[0].blocks[0].type = type;
     const page = open();
     fireEvent.click(screen.getByRole("button", { name: "Editar Lunes bloque 1" }));
@@ -174,6 +174,23 @@ describe("Editor del horario", () => {
     expect(screen.getByRole("button", { name: "Eliminar todo el horario de 2026" })).toBeDisabled();
     await act(async () => finish(true));
   });
+  it("muestra el aviso pequeño compartido tras publicar y lo cierra automáticamente", async () => {
+    vi.useFakeTimers();
+    try {
+    data.schedule = { days: Array.from({ length: 5 }, (_, index) => ({
+      dayOfWeek: index + 1, entryTime: "08:00", exitTime: "14:00", blocks: [],
+    })) };
+    open();
+    fireEvent.click(screen.getByRole("button", { name: "Publicar horario" }));
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Confirmar" })); });
+    const notice = screen.getByText("Horario publicado.").closest('[role="status"]');
+    expect(notice).toHaveTextContent("Horario publicado.");
+    expect(notice).toHaveClass("modal-overlay--toast");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.queryByText("Horario publicado.")).not.toBeInTheDocument();
+    } finally { vi.useRealTimers(); }
+  });
   it("publica cinco jornadas y muestra el rechazo del servidor junto al botón", async () => {
     data.schedule = { days: Array.from({ length: 5 }, (_, index) => ({
       dayOfWeek: index + 1, entryTime: "08:00", exitTime: "14:00", blocks: [],
@@ -284,6 +301,7 @@ describe("Editor del horario", () => {
     open();
     expect(screen.getByText("Lenguaje")).toBeInTheDocument();
     expect(screen.getByText("12:00 – 12:45")).toBeInTheDocument();
+    expect(screen.getAllByText("45 min")).toHaveLength(2);
     expect(screen.queryByLabelText("Nombre Lunes bloque 1")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Editar Lunes bloque 1" }));
     expect(screen.getByLabelText("Nombre Lunes bloque 1")).toHaveValue("Lenguaje");

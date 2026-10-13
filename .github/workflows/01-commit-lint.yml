@@ -1,6 +1,7 @@
 name: 01-Commit Validation
 
 on:
+  workflow_dispatch:
   workflow_call:
   push:
     branches: [dev, main]
@@ -71,7 +72,7 @@ jobs:
       - name: Validar commits con commitlint
         uses: wagoid/commitlint-github-action@v5
         with:
-          configFile: frontend/.commitlintrc.json
+          configFile: frontend/.commitlintrc.cjs
           failOnErrors: true
 
       - name: Validar título del PR

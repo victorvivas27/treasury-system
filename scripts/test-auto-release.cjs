@@ -45,7 +45,7 @@ test('successful merge is bound to the tested SHA and uses a trimmed conventiona
   assert.equal(calls.length, 1);
   assert.equal(calls[0].sha, 'tested-sha');
   assert.equal(calls[0].commit_title, 'chore(main): release 1.0.0');
-  assert.equal(calls[0].merge_method, 'squash');
+  assert.equal(calls[0].merge_method, 'merge');
 });
 test('main changing during CI prevents merge', async () => {
   const { github, calls } = fixture({ main: 'new-main' });

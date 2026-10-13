@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 public record Schedule(List<Day> days) {
-    public enum BlockType { SUBJECT, BREAK, SNACK, LUNCH, ACTIVITY }
+    public enum BlockType { SUBJECT, BREAK, SNACK, LUNCH, ACTIVITY, EVENT }
     public record Block(int dayOfWeek, LocalTime startTime, LocalTime endTime,
                         BlockType type, String name, int order, String color) { }
     public record Day(int dayOfWeek, LocalTime entryTime, LocalTime exitTime, List<Block> blocks) { }
@@ -35,8 +35,8 @@ public record Schedule(List<Day> days) {
                     "El bloque queda fuera de la jornada.");
             require(block.type() != null && block.order() >= 0, "Tipo u orden inválido.");
             require(block.name() == null || block.name().length() <= 100, "El nombre admite hasta 100 caracteres.");
-            require(block.type() != BlockType.SUBJECT && block.type() != BlockType.ACTIVITY
-                    || block.name() != null && !block.name().isBlank(), "Indique la materia o actividad.");
+            require(block.type() != BlockType.SUBJECT && block.type() != BlockType.ACTIVITY && block.type() != BlockType.EVENT
+                    || block.name() != null && !block.name().isBlank(), "Indique la materia, actividad o evento.");
             require(block.color() == null || block.color().matches("#[0-9a-fA-F]{6}"), "Color inválido.");
         }
         LocalTime previousEnd = null;

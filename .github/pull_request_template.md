@@ -10,4 +10,5 @@ Describe el problema y el comportamiento resultante.
 
 Indica los checks ejecutados y sus resultados.
 
-Antes de squash, revisa que el título y el cuerpo del commit final conserven el cambio de mayor impacto. Ver `docs/VERSIONING.md`.
+Integrar con **Create a merge commit** para conservar el historial de `dev` y `main`.
+El título debe conservar el cambio de mayor impacto. Ver `docs/BRANCHING.md` y `docs/VERSIONING.md`.

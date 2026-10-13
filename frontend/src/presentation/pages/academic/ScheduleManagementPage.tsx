@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiCalendar } from "react-icons/fi";
-import { DAYS, TYPES, orderedBlocks, timeLabel, validateSchedule } from "@/core/A-domain/entities/academic/Schedule";
+import { DAYS, TYPES, blockDurationLabel, mergeConsecutiveSubjects, orderedBlocks, timeLabel, validateSchedule } from "@/core/A-domain/entities/academic/Schedule";
 import type { Schedule, ScheduleBlock, ScheduleDay } from "@/core/A-domain/entities/academic/Schedule";
 import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
+import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ScheduleSkeleton } from "./ScheduleSkeleton";
 import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleTimeSelect } from "./ScheduleTimeSelect";
@@ -24,6 +25,7 @@ export function ScheduleManagementPage() {
   const [openBlock, setOpenBlock] = useState<string | null>(null);
   const [activeSave, setActiveSave] = useState<string | null>(null);
   const [saveResult, setSaveResult] = useState<"success" | "failed" | null>(null);
+  const [publishSuccess, setPublishSuccess] = useState(false);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [deleteText, setDeleteText] = useState("");
   const focusBeforeDialog = useRef<HTMLElement | null>(null);
@@ -40,7 +42,7 @@ export function ScheduleManagementPage() {
   useEffect(() => {
     const preserved = preservedDraft.current;
     preservedDraft.current = null;
-    setDraft(preserved?.schedule ?? data.schedule);
+    setDraft(preserved?.schedule ?? { days: data.schedule.days.map(mergeConsecutiveSubjects) });
     setDirty(preserved?.dirty ?? false);
     setValidation(""); setOpenBlock(null);
   }, [data.schedule]);
@@ -95,8 +97,8 @@ export function ScheduleManagementPage() {
     const otherChanges = day ? normalize(draft.days.filter(value => value.dayOfWeek !== dayNumber)) !==
       normalize(data.schedule.days.filter(value => value.dayOfWeek !== dayNumber)) : false;
     if (day) preservedDraft.current = { schedule: draft, dirty: otherChanges };
-    const saved = await data.save(payload, publish);
-    if (saved) { setDirty(otherChanges); setOpenBlock(null); setSaveResult("success"); }
+    const saved = await data.save({ days: payload.days.map(mergeConsecutiveSubjects) }, publish);
+    if (saved) { setDirty(otherChanges); setOpenBlock(null); setSaveResult("success"); if (publish) setPublishSuccess(true); }
     else { preservedDraft.current = null; setSaveResult("failed"); }
   };
   const copy = (source: ScheduleDay) => {
@@ -132,7 +134,7 @@ export function ScheduleManagementPage() {
     </option>)}</select></ScheduleFilter>
     </div>
     {(validation || data.error) && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="alert" ref={validationNotice} tabIndex={-1}>{validation || data.error}</p>}
-    {data.message && !activeSave?.startsWith("day:") && <p role="status">{data.message}</p>}
+    {data.message && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="status">{data.message}</p>}
     {data.loading ? <ScheduleSkeleton view="management" /> : <>
       {!data.periods.length && <p>No hay períodos escolares disponibles.</p>}
       {!data.editable && data.periods.length > 0 && <p>Este año histórico es de solo lectura.</p>}
@@ -150,36 +152,38 @@ export function ScheduleManagementPage() {
               <ScheduleDayProgress day={day} name={name} />
               {orderedBlocks(day).sort((a, b) => {
                 const pending = (block: ScheduleBlock) => !block.startTime || !block.endTime ||
-                  ((block.type === "SUBJECT" || block.type === "ACTIVITY") && !block.name?.trim());
+                  ((block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && !block.name?.trim());
                 return Number(pending(a)) - Number(pending(b));
               }).map(block => {
                 const position = day.blocks.indexOf(block);
                 const blockKey = `${number}:${position}`;
                 const expanded = openBlock === blockKey;
-                const typeName = block.type === "ACTIVITY" ? "Evento / actividad" : TYPES[block.type];
-                const needsName = block.type === "SUBJECT" || block.type === "ACTIVITY";
+                const typeName = TYPES[block.type];
+                const needsName = block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT";
                 return <div className={`schedule-editor-block schedule-editor-block--${block.type.toLowerCase()}`} key={position}>
                   <button type="button" className="schedule-block-summary" aria-expanded={expanded}
                     aria-controls={`schedule-block-${number}-${position}`} aria-label={`Editar ${name} bloque ${position + 1}`}
                     onClick={() => setOpenBlock(expanded ? null : blockKey)}>
                     <span className="schedule-block-dot" aria-hidden="true" style={{ backgroundColor: block.color ?? undefined }} />
+                    {needsName && <span className="schedule-block-summary-type">{typeName}</span>}
                     <span className="schedule-block-summary-name" title={needsName ? block.name?.trim() || typeName : typeName}>{needsName ? block.name?.trim() || typeName : typeName}</span>
-                    <span className="schedule-block-summary-time">{timeLabel(block.startTime) || "--:--"} – {timeLabel(block.endTime) || "--:--"}</span>
+                    <span className="schedule-block-summary-time">{timeLabel(block.startTime) || "--:--"} – {timeLabel(block.endTime) || "--:--"}{blockDurationLabel(block) && <small className="schedule-block-duration">{blockDurationLabel(block)}</small>}</span>
                     <span className="schedule-block-summary-action">{expanded ? "Cerrar" : "Editar"}</span>
                   </button>
                   {expanded && <div className="schedule-block-fields" id={`schedule-block-${number}-${position}`}>
                   <span className="schedule-block-badge">{typeName}</span>
                   <label className="schedule-block-type">Tipo<select aria-label={`Tipo · ${name} bloque ${position + 1}`} value={block.type} onChange={event => {
                     const type = event.target.value as ScheduleBlock["type"];
-                    updateBlock(day, position, { ...block, type, name: type === "SUBJECT" || type === "ACTIVITY" ? block.name : null });
+                    updateBlock(day, position, { ...block, type, name: type === "SUBJECT" || type === "ACTIVITY" || type === "EVENT" ? block.name : null });
                   }}>
-                    {Object.entries(TYPES).map(([type, label]) => <option key={type} value={type}>{type === "ACTIVITY" ? "Evento / actividad" : label}</option>)}</select></label>
-                  {needsName && <label className="schedule-block-name">Materia / actividad<input maxLength={100} value={block.name ?? ""} aria-label={`Nombre ${name} bloque ${position + 1}`}
+                    {Object.entries(TYPES).map(([type, label]) => <option key={type} value={type}>{label}</option>)}</select></label>
+                  {needsName && <label className="schedule-block-name">{typeName}<input maxLength={100} value={block.name ?? ""} aria-label={`Nombre ${name} bloque ${position + 1}`}
                     onChange={event => updateBlock(day, position, { ...block, name: event.target.value })} /></label>}
                   <label className="schedule-block-time">Inicio<ScheduleTimeSelect value={timeLabel(block.startTime)} label={`Inicio ${name} bloque ${position + 1}`}
                     onChange={value => updateBlock(day, position, { ...block, startTime: value })} /></label>
                   <label className="schedule-block-time">Fin<ScheduleTimeSelect value={timeLabel(block.endTime)} label={`Fin ${name} bloque ${position + 1}`}
                     onChange={value => updateBlock(day, position, { ...block, endTime: value })} /></label>
+                  {blockDurationLabel(block) && <span className="schedule-block-duration-field">Duración: {blockDurationLabel(block)}</span>}
                   <div className="schedule-block-color-actions">
                   <ScheduleColorPalette label={`Color ${name} bloque ${position + 1}`}
                     value={block.color} onChange={color => updateBlock(day, position, { ...block, color })} />
@@ -217,8 +221,8 @@ export function ScheduleManagementPage() {
           className="schedule-save-feedback is-error" role="alert" ref={validationNotice} tabIndex={-1}>
           {validation || data.error || "No se pudo publicar el horario. Inténtalo de nuevo."}
         </p>}
-        {activeSave && !activeSave.startsWith("day:") && saveResult === "success" && <p className="schedule-save-feedback is-success" role="status">
-          {activeSave === "publish" ? "Horario publicado." : "Borrador guardado."}
+        {activeSave && !activeSave.startsWith("day:") && activeSave !== "publish" && saveResult === "success" && <p className="schedule-save-feedback is-success" role="status">
+          Borrador guardado.
         </p>}
         {activeSave && !activeSave.startsWith("day:") && saveResult === "failed" && activeSave !== "publish" && !data.error && <p className="schedule-save-feedback is-error" role="alert">No se pudo guardar. Inténtalo de nuevo.</p>}
       </fieldset>
@@ -231,6 +235,8 @@ export function ScheduleManagementPage() {
       <Button label={`Eliminar todo el horario de ${data.year ?? "este año"}`} variant="danger" loading={data.pendingAction === "delete"}
         disabled={data.loading || data.saving || !data.editable || data.loadFailed || data.year === undefined} onClick={requestDelete} />
     </div>
+    <ModalAlert isOpen={publishSuccess} type="success" variant="toast" autoCloseTime={2000} message="Horario publicado."
+      onClose={() => setPublishSuccess(false)} />
     <ModalConfirm isOpen={Boolean(confirmation)} message={confirmation?.message ?? ""} compact
       title={confirmation?.deleteStep ? `Eliminar horario ${confirmation.deleteYear} · ${confirmation.deleteStep}/2` : undefined}
       confirmLabel={confirmation?.deleteStep === 1 ? "Continuar" : confirmation?.deleteStep === 2 ? "Eliminar definitivamente" : "Confirmar"}

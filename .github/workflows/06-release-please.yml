@@ -193,7 +193,7 @@ jobs:
               ...context.repo,
               pull_number: pr.number,
               sha: process.env.RELEASE_SHA,
-              merge_method: 'squash',
+              merge_method: 'merge',
               commit_title: pr.title.trim(),
             });
 
@@ -233,6 +233,13 @@ jobs:
             });
 
             core.setOutput('tag_name', release.tag_name);
+
+  sync-dev:
+    name: Return released main to dev
+    needs: publish
+    uses: ./.github/workflows/10-sync-main-dev.yml
+    permissions:
+      contents: write
 
   deploy:
     name: Trigger production workflows
