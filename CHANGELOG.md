@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.17.0](https://github.com/victorvivas27/treasury-system/compare/v1.16.0...v1.17.0) (2026-10-13)
+
+
+### Features
+
+* **schedule:** add EVENT block type and enhance schedule validation ([0e3f8a6](https://github.com/victorvivas27/treasury-system/commit/0e3f8a62469e8c49458dcd0fba3f1c937b3c49c8))
+
+
+### Bug Fixes
+
+* **branches:** reconcile main and dev without losing schedule changes ([4a21b65](https://github.com/victorvivas27/treasury-system/commit/4a21b655085483c9189fb25503d8eff90a515390))
+* **ci:** preserve branch history and sync main into dev after releases ([4ca2c7b](https://github.com/victorvivas27/treasury-system/commit/4ca2c7b162d4e3bd260c1d23581b6fad42055cb7))
+* **ci:** validate new commits while preserving published legacy history ([73f5bb3](https://github.com/victorvivas27/treasury-system/commit/73f5bb3287e0474e1fb6b241c0f12e3301c0b6a9))
+* **ci:** validate new commits while preserving published legacy history ([0cd34a2](https://github.com/victorvivas27/treasury-system/commit/0cd34a2ee997ef33905ea9b4cdde1cb84bfa6a21))
+
 ## [1.16.0](https://github.com/victorvivas27/treasury-system/compare/v1.15.0...v1.16.0) (2026-10-12)
 
 
