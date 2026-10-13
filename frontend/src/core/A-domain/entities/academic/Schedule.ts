@@ -1,5 +1,5 @@
 export const DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-export const TYPES = { SUBJECT: "Materia", BREAK: "Recreo", SNACK: "Colación", LUNCH: "Almuerzo", ACTIVITY: "Actividad" };
+export const TYPES = { SUBJECT: "Materia", BREAK: "Recreo", SNACK: "Colación", LUNCH: "Almuerzo", ACTIVITY: "Actividad", EVENT: "Evento" };
 export interface ScheduleBlock {
   dayOfWeek: number; startTime: string; endTime: string;
   type: keyof typeof TYPES; name: string | null; order: number; color: string | null;
@@ -8,8 +8,28 @@ export interface ScheduleDay { dayOfWeek: number; entryTime: string; exitTime: s
 export interface Schedule { days: ScheduleDay[] }
 export interface SchoolPeriod { schoolYear: number; course: string; editable: boolean }
 export const timeLabel = (value: string) => value.slice(0, 5);
+export function blockDurationLabel(block: ScheduleBlock): string | null {
+  const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d(?::00)?$/.test(value);
+  if (!validTime(block.startTime) || !validTime(block.endTime)) return null;
+  const minutes = (value: string) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
+  const duration = minutes(block.endTime) - minutes(block.startTime);
+  return duration > 0 ? `${duration} min` : null;
+}
 export const orderedBlocks = (day: ScheduleDay) => [...day.blocks].sort((a, b) =>
   timeLabel(a.startTime).localeCompare(timeLabel(b.startTime)) || a.order - b.order);
+export function mergeConsecutiveSubjects(day: ScheduleDay): ScheduleDay {
+  const blocks: ScheduleBlock[] = [];
+  for (const block of orderedBlocks(day)) {
+    const previous = blocks[blocks.length - 1];
+    if (previous?.type === "SUBJECT" && block.type === "SUBJECT" &&
+        previous.name?.trim() && previous.name.trim().toLocaleLowerCase("es") === block.name?.trim().toLocaleLowerCase("es") &&
+        previous.dayOfWeek === block.dayOfWeek && timeLabel(previous.endTime) === timeLabel(block.startTime) &&
+        blockDurationLabel(previous) && blockDurationLabel(block)) {
+      previous.endTime = block.endTime;
+    } else blocks.push({ ...block });
+  }
+  return { ...day, blocks };
+}
 export function validateSchedule(schedule: Schedule, publish = false): string | null {
   const seen = new Set<number>();
   for (const day of schedule.days) {
@@ -30,7 +50,7 @@ export function validateSchedule(schedule: Schedule, publish = false): string | 
       if (start >= end) return `${context}: el inicio debe ser anterior al fin.`;
       if (start < entry || end > exit) return `${context}: el bloque queda fuera de la jornada (${entry} – ${exit}).`;
       if (start < previousEnd) return `${context}: hay bloques superpuestos con ${previousName}.`;
-      if ((block.type === "SUBJECT" || block.type === "ACTIVITY") && !block.name?.trim()) return `${context}: indique el nombre de la materia o actividad.`;
+      if ((block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && !block.name?.trim()) return `${context}: indique el nombre de la materia, actividad o evento.`;
       previousEnd = end;
       previousName = blockName;
     }

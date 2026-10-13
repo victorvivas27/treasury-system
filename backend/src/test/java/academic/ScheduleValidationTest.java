@@ -23,7 +23,8 @@ class ScheduleValidationTest {
                 block("13:00", "13:15", BlockType.BREAK, null),
                 block("13:15", "13:40", BlockType.LUNCH, null),
                 block("13:40", "13:55", BlockType.SNACK, null),
-                block("14:00", "15:00", BlockType.ACTIVITY, "Taller")).validate());
+                block("14:00", "15:00", BlockType.ACTIVITY, "Taller"),
+                block("15:00", "16:00", BlockType.EVENT, "Celebración")).validate());
     }
     @Test void rejectsOverlapIncludingBreaks() {
         assertThrows(DomainException.class, () -> schedule(block("12:00", "13:00", BlockType.SUBJECT, "Lenguaje"),
@@ -36,9 +37,10 @@ class ScheduleValidationTest {
         assertThrows(DomainException.class, () -> new Schedule(List.of(
                 new Day(1, time("16:00"), time("12:00"), List.of()))).validate());
     }
-    @Test void rejectsMissingSubjectAndActivityAndInvalidColor() {
+    @Test void rejectsMissingSubjectActivityEventAndInvalidColor() {
         assertThrows(DomainException.class, () -> schedule(block("12:00", "13:00", BlockType.SUBJECT, "")).validate());
         assertThrows(DomainException.class, () -> schedule(block("12:00", "13:00", BlockType.ACTIVITY, null)).validate());
+        assertThrows(DomainException.class, () -> schedule(block("12:00", "13:00", BlockType.EVENT, " ")).validate());
         assertThrows(DomainException.class, () -> schedule(new Block(1, time("12:00"), time("13:00"),
                 BlockType.BREAK, null, 0, "red")).validate());
     }

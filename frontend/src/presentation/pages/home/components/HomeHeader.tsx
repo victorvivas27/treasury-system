@@ -8,6 +8,7 @@ import {
 import { Link } from "react-router-dom";
 
 import {
+  FiCalendar,
   FiCamera,
   FiEdit3,
   FiHeart,
@@ -378,7 +379,7 @@ export const HomeHeader = ({
             {/* SOBRE NOSOTROS */}
             {isAdmin && (
               <Link to="/admin/horario-clases" onClick={closeMobileMenu}>
-                <FiEdit3 aria-hidden="true" />
+                <FiCalendar aria-hidden="true" />
                 <span>Gestionar horario de clases</span>
               </Link>
             )}
