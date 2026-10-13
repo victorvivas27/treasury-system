@@ -73,3 +73,15 @@ test('bot merges explicitly validate the synchronized SHA in all reusable checks
     assert.ok(read(workflow.jobs[job].uses.split('/').pop()).concurrency.group.includes('${{ github.workflow }}'));
   }
 });
+
+test('commit validation exempts only the exact already published legacy message', () => {
+  const config = require('../frontend/.commitlintrc.cjs');
+  const legacy = 'Release/academic sidebar production (#213)\n\n' +
+    '* feat(academic): publish schedules, private architecture and navigation improvements\n\n' +
+    '* feat(schedule): mejorar validación y manejo de errores en la publicación del horario';
+  assert.equal(config.ignores[0](legacy), true);
+  assert.equal(config.ignores[0]('Release/academic sidebar production (#213)'), false);
+  assert.equal(config.ignores[0]('new invalid commit'), false);
+  assert.equal(config.ignores[0]('feat(schedule): new change'), false);
+  assert.deepEqual(config.rules, require('../frontend/.commitlintrc.json').rules);
+});
