@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.18.0](https://github.com/victorvivas27/treasury-system/compare/v1.17.0...v1.18.0) (2026-10-15)
+
+
+### Features
+
+* **schedule:** mejorar la funcionalidad de paneles y gestión de horarios con soporte para sticky headers ([a40bed5](https://github.com/victorvivas27/treasury-system/commit/a40bed5dd19aca4d052d7c7d37fbc66af5c8cab6))
+* **schedule:** mejorar la funcionalidad de paneles y gestión de horarios con soporte para sticky headers ([6540e08](https://github.com/victorvivas27/treasury-system/commit/6540e087b140095a3a7e9f98cea5fcb4b20d985e))
+
 ## [1.17.0](https://github.com/victorvivas27/treasury-system/compare/v1.16.0...v1.17.0) (2026-10-13)
 
 
