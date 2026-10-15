@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.0](https://github.com/victorvivas27/treasury-system/compare/v1.18.0...v1.19.0) (2026-10-15)
+
+
+### Features
+
+* improve schedule management and UI ([ce557f1](https://github.com/victorvivas27/treasury-system/commit/ce557f14c438c800e173c0b0b52819a5b0343ccc))
+* improve schedule management and UI ([f66d210](https://github.com/victorvivas27/treasury-system/commit/f66d210d5612512ed109094679111150833a20e0))
+
 ## [1.18.0](https://github.com/victorvivas27/treasury-system/compare/v1.17.0...v1.18.0) (2026-10-15)
 
 
