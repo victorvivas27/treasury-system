@@ -18,6 +18,17 @@ import "./Schedule.css";
 interface Confirmation { message: string; action: () => void; anchor?: { top: number; left: number }; deleteStep?: 1 | 2; deleteYear?: number }
 export function ScheduleManagementPage() {
   const data = useSchedule(true);
+  const stickyTitle = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const title = stickyTitle.current;
+    if (!title) return;
+    const updateHeight = () => title.parentElement?.style.setProperty("--schedule-title-height", `${title.getBoundingClientRect().height}px`);
+    updateHeight();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(title);
+    return () => observer.disconnect();
+  }, []);
   const [draft, setDraft] = useState<Schedule>({ days: [] });
   const [dirty, setDirty] = useState(false);
   const [validation, setValidation] = useState("");
@@ -119,8 +130,8 @@ export function ScheduleManagementPage() {
       }, { deleteStep: 2, deleteYear: year });
     }, { deleteStep: 1, deleteYear: year });
   };
-  return <section className="schedule-page">
-    <header><h1>Gestión del horario</h1><Link className="schedule-manage-link" to="/calendario/horario-clases">
+  return <section className="schedule-page schedule-page--management">
+    <header ref={stickyTitle} className="schedule-management-heading"><h1>Gestión del horario</h1><Link className="schedule-manage-link" to="/calendario/horario-clases">
       <FiCalendar aria-hidden="true" /><span>Consultar horario publicado</span>
     </Link></header>
     <p>Guarda cada jornada mientras la configuras. Al terminar, publica el horario para que los usuarios lo vean. Publicar requiere configurar las cinco jornadas.</p>
