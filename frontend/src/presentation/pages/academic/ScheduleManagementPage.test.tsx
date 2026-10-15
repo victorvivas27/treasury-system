@@ -19,13 +19,30 @@ describe("Editor del horario", () => {
   beforeEach(() => { vi.clearAllMocks(); data.save.mockResolvedValue(true); data.schedule = schedule(); data.editable = true; data.error = ""; data.saving = false; data.pendingAction = null; data.message = ""; });
   const open = () => {
     const page = render(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
-    screen.getAllByRole("button", { name: /^Desplegar / }).forEach(button => fireEvent.click(button));
     return page;
   };
+  it("muestra solo el día seleccionado y conserva cada bloque al guardar", async () => {
+    data.schedule.days[0].entryTime = "07:50";
+    data.schedule.days[0].blocks = [
+      { dayOfWeek: 1, startTime: "08:00", endTime: "08:45", type: "SUBJECT", name: "Lenguaje", order: 0, color: null },
+      { dayOfWeek: 1, startTime: "08:45", endTime: "09:30", type: "SUBJECT", name: "Lenguaje", order: 1, color: "#2563eb" },
+    ];
+    open();
+    expect(screen.getByText("07:50 – 08:00")).toBeInTheDocument();
+    expect(screen.getAllByText("Lenguaje")).toHaveLength(2);
+    expect(screen.queryByRole("heading", { name: "Martes" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
+    expect(screen.queryByText("Lenguaje")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Martes" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
+    await waitFor(() => expect(data.save).toHaveBeenCalledWith(data.schedule, false));
+  });
   it("oculta el éxito tras cuatro segundos y reinicia el aviso al volver a guardar", async () => {
     vi.useFakeTimers();
     try {
       open();
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
       const save = screen.getByRole("button", { name: "Guardar jornada · Lunes" });
       await act(async () => { fireEvent.click(save); });
       expect(screen.getByText("Lunes guardado como borrador.")).toBeInTheDocument();
@@ -72,6 +89,7 @@ describe("Editor del horario", () => {
     expect(screen.getByLabelText("Nombre Lunes bloque 1").closest(".schedule-editor-block")?.querySelector('input[type="color"]')).toBeNull();
     fireEvent.change(palette, { target: { value: "#2563eb" } });
     expect(palette).toHaveValue("#2563eb");
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(data.save).toHaveBeenCalledWith(expect.objectContaining({
       days: expect.arrayContaining([expect.objectContaining({ blocks: [expect.objectContaining({ color: "#2563eb" })] })]),
@@ -79,13 +97,17 @@ describe("Editor del horario", () => {
   });
   it("guarda horarios diarios independientes y valida antes de persistir", async () => {
     open();
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
     expect(screen.getByLabelText("Salida · Martes · Hora")).toHaveValue("14");
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Editar Lunes bloque 1" }));
     fireEvent.change(screen.getByLabelText("Fin Lunes bloque 1 · Hora"), { target: { value: "17" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     expect(screen.getByRole("alert")).toHaveTextContent("fuera de la jornada");
     expect(data.save).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText("Fin Lunes bloque 1 · Hora"), { target: { value: "13" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(data.save).toHaveBeenCalledWith(expect.objectContaining({ days: expect.any(Array) }), false));
   });
@@ -114,12 +136,15 @@ describe("Editor del horario", () => {
     fireEvent.click(screen.getByRole("button", { name: "Editar Lunes bloque 1" }));
     fireEvent.change(screen.getByLabelText("Fin Lunes bloque 1 · Hora"), { target: { value: "14" } });
     fireEvent.change(screen.getByLabelText("Fin Lunes bloque 1 · Minutos"), { target: { value: "00" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(data.save).toHaveBeenCalledWith(expect.objectContaining({
       days: expect.arrayContaining([expect.objectContaining({ blocks: [expect.objectContaining({ name: "Matemática", startTime: "12:00", endTime: "14:00" })] })]),
     }), false));
     data.save.mockClear();
-    fireEvent.click(screen.getAllByRole("button", { name: "Añadir bloque" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Añadir bloque" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(data.save).toHaveBeenCalled());
     expect(data.save.mock.calls[0][0].days.find((day: { dayOfWeek: number }) => day.dayOfWeek === 2).blocks).toEqual([]);
@@ -134,18 +159,22 @@ describe("Editor del horario", () => {
   });
   it("conserva los cambios pendientes de otros días cuando llega la jornada guardada del servidor", async () => {
     const page = open();
-    fireEvent.click(screen.getAllByRole("button", { name: "Añadir bloque" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Añadir bloque" })[0]);
     fireEvent.change(screen.getByLabelText("Nombre Martes bloque 1"), { target: { value: "Pendiente de completar" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(data.save).toHaveBeenCalled());
     data.schedule = data.save.mock.calls[0][0];
     page.rerender(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Editar Martes bloque 1" }));
     expect(screen.getByLabelText("Nombre Martes bloque 1")).toHaveValue("Pendiente de completar");
   });
   it("muestra junto a Guardar si el servidor rechaza la operación", async () => {
     data.save.mockResolvedValue(false);
     open();
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("No se pudo guardar"));
     expect(screen.getByRole("alert").closest(".schedule-day")).toHaveTextContent("Lunes");
@@ -165,9 +194,11 @@ describe("Editor del horario", () => {
     let finish!: (value: boolean) => void;
     data.save.mockImplementation(() => new Promise<boolean>(resolve => { finish = resolve; }));
     const page = open();
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     data.saving = true; data.pendingAction = "save";
     page.rerender(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     expect(screen.getByRole("button", { name: "Guardar jornada · Lunes" })).toHaveAttribute("aria-busy", "true");
     expect(screen.getByRole("button", { name: "Eliminar todo el horario de 2026" })).toHaveAttribute("aria-busy", "false");
     expect(screen.getByRole("button", { name: "Publicar horario" })).toHaveAttribute("aria-busy", "false");
@@ -212,6 +243,7 @@ describe("Editor del horario", () => {
     open();
     expect(screen.getByRole("button", { name: "Eliminar todo el horario de 2026" })).toHaveAttribute("aria-busy", "true");
     expect(screen.getByRole("button", { name: "Publicar horario" })).toHaveAttribute("aria-busy", "false");
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     expect(screen.getByRole("button", { name: "Guardar jornada · Lunes" })).toHaveAttribute("aria-busy", "false");
   });
   it("confirma copiar sobre contenido y bloquea fondo con foco y Escape", () => {
@@ -223,10 +255,14 @@ describe("Editor del horario", () => {
     expect(screen.getByRole("button", { name: "Cancelar" })).toHaveFocus();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
     expect(screen.getByLabelText("Salida · Martes · Hora")).toHaveValue("14");
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getAllByRole("button", { name: "Copiar jornada" })[0]);
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
     expect(screen.getByLabelText("Salida · Martes · Hora")).toHaveValue("16");
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Editar Martes bloque 1" }));
     expect(screen.getByLabelText("Nombre Martes bloque 1")).toHaveValue("Lenguaje");
   });
@@ -253,6 +289,7 @@ describe("Editor del horario", () => {
     fireEvent.click(screen.getByRole("button", { name: "Editar Lunes bloque 1" }));
     fireEvent.change(screen.getByLabelText("Tipo · Lunes bloque 1"), { target: { value: type } });
     expect(screen.queryByLabelText("Nombre Lunes bloque 1")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(data.save).toHaveBeenCalledWith(expect.objectContaining({
       days: expect.arrayContaining([expect.objectContaining({ blocks: [expect.objectContaining({ type, name: null })] })]),
@@ -308,6 +345,7 @@ describe("Editor del horario", () => {
     fireEvent.click(screen.getByRole("button", { name: "Editar Lunes bloque 2" }));
     expect(screen.queryByLabelText("Nombre Lunes bloque 1")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Nombre Lunes bloque 2")).toHaveValue("Matemática");
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
     fireEvent.click(screen.getByRole("button", { name: "Guardar jornada · Lunes" }));
     await waitFor(() => expect(screen.queryByLabelText("Nombre Lunes bloque 2")).not.toBeInTheDocument());
     expect(data.save).toHaveBeenCalled();

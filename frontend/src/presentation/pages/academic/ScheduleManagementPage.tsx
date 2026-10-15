@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FiCalendar } from "react-icons/fi";
-import { DAYS, TYPES, blockDurationLabel, mergeConsecutiveSubjects, orderedBlocks, timeLabel, validateSchedule } from "@/core/A-domain/entities/academic/Schedule";
+import { DAYS, TYPES, blockDurationLabel, orderedBlocks, timeLabel, validateSchedule } from "@/core/A-domain/entities/academic/Schedule";
 import type { Schedule, ScheduleBlock, ScheduleDay } from "@/core/A-domain/entities/academic/Schedule";
 import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { Button } from "@/shared/ui/button/Button";
@@ -10,7 +10,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ScheduleSkeleton } from "./ScheduleSkeleton";
 import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleTimeSelect } from "./ScheduleTimeSelect";
-import { ScheduleDayPanel } from "./ScheduleDayPanel";
+import { scheduleCardColor, scheduleIngress } from "./scheduleCards";
 import { ScheduleDayProgress } from "./ScheduleDayProgress";
 import { ScheduleColorPalette } from "./ScheduleColorPalette";
 import "./Schedule.css";
@@ -29,6 +29,7 @@ export function ScheduleManagementPage() {
     observer.observe(title);
     return () => observer.disconnect();
   }, []);
+  const [selectedDay, setSelectedDay] = useState(1);
   const [draft, setDraft] = useState<Schedule>({ days: [] });
   const [dirty, setDirty] = useState(false);
   const [validation, setValidation] = useState("");
@@ -53,7 +54,7 @@ export function ScheduleManagementPage() {
   useEffect(() => {
     const preserved = preservedDraft.current;
     preservedDraft.current = null;
-    setDraft(preserved?.schedule ?? { days: data.schedule.days.map(mergeConsecutiveSubjects) });
+    setDraft(preserved?.schedule ?? data.schedule);
     setDirty(preserved?.dirty ?? false);
     setValidation(""); setOpenBlock(null);
   }, [data.schedule]);
@@ -108,7 +109,7 @@ export function ScheduleManagementPage() {
     const otherChanges = day ? normalize(draft.days.filter(value => value.dayOfWeek !== dayNumber)) !==
       normalize(data.schedule.days.filter(value => value.dayOfWeek !== dayNumber)) : false;
     if (day) preservedDraft.current = { schedule: draft, dirty: otherChanges };
-    const saved = await data.save({ days: payload.days.map(mergeConsecutiveSubjects) }, publish);
+    const saved = await data.save(payload, publish);
     if (saved) { setDirty(otherChanges); setOpenBlock(null); setSaveResult("success"); if (publish) setPublishSuccess(true); }
     else { preservedDraft.current = null; setSaveResult("failed"); }
   };
@@ -150,17 +151,23 @@ export function ScheduleManagementPage() {
       {!data.periods.length && <p>No hay períodos escolares disponibles.</p>}
       {!data.editable && data.periods.length > 0 && <p>Este año histórico es de solo lectura.</p>}
       {!draft.days.length && <p>Sin horario cargado. Configura cada jornada para comenzar.</p>}
+      <div className="schedule-day-selector" role="group" aria-label="Seleccionar día">
+        {["Lun", "Mar", "Mié", "Jue", "Vie"].map((label, index) => <button type="button" key={label}
+          aria-label={DAYS[index]} aria-pressed={selectedDay === index + 1}
+          onClick={() => { if (selectedDay !== index + 1) { setSelectedDay(index + 1); setOpenBlock(null); } }}>{label}</button>)}
+      </div>
       <fieldset disabled={!data.editable || data.saving || data.loadFailed} aria-label="Editor del horario">
         <div className="schedule-week">{DAYS.map((name, index) => {
           const number = index + 1;
+          if (number !== selectedDay) return null;
           const day = draft.days.find(value => value.dayOfWeek === number);
-          return <ScheduleDayPanel index={index} day={day} key={`${data.year}:${name}`}>
+          const ingress = day ? scheduleIngress(day) : null;
+          return <article className="schedule-day schedule-daily-editor" key={`${data.year}:${name}`} aria-label={`Jornada · ${name}`}>
+            <div className="schedule-daily-heading"><h2>{name}</h2><span>Salida <strong>{day ? timeLabel(day.exitTime) || "--:--" : "--:--"}</strong></span></div>
             {!day ? <Button label="Configurar jornada" onClick={() => updateDay({ dayOfWeek: number, entryTime: "", exitTime: "", blocks: [] })} /> : <>
-              <div className="schedule-day-times">
-                <label>Entrada<ScheduleTimeSelect label={`Entrada · ${name}`} value={timeLabel(day.entryTime)} onChange={value => updateDay({ ...day, entryTime: value })} /></label>
-                <label>Salida<ScheduleTimeSelect label={`Salida · ${name}`} value={timeLabel(day.exitTime)} onChange={value => updateDay({ ...day, exitTime: value })} /></label>
-              </div>
-              <ScheduleDayProgress day={day} name={name} />
+              {ingress && <div className="schedule-ingress schedule-editor-block" style={{ "--schedule-type-color": "#64748b" } as CSSProperties}>
+                <span className="schedule-ingress-time">{ingress.start} – {ingress.end}</span><strong>Ingreso</strong>
+              </div>}
               {orderedBlocks(day).sort((a, b) => {
                 const pending = (block: ScheduleBlock) => !block.startTime || !block.endTime ||
                   ((block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && !block.name?.trim());
@@ -171,7 +178,7 @@ export function ScheduleManagementPage() {
                 const expanded = openBlock === blockKey;
                 const typeName = TYPES[block.type];
                 const needsName = block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT";
-                return <div className={`schedule-editor-block schedule-editor-block--${block.type.toLowerCase()}`} key={position}>
+                return <div className={`schedule-editor-block schedule-editor-block--${block.type.toLowerCase()}`} key={position} style={{ "--schedule-type-color": scheduleCardColor(block) } as CSSProperties}>
                   <button type="button" className="schedule-block-summary" aria-expanded={expanded}
                     aria-controls={`schedule-block-${number}-${position}`} aria-label={`Editar ${name} bloque ${position + 1}`}
                     onClick={() => setOpenBlock(expanded ? null : blockKey)}>
@@ -205,6 +212,11 @@ export function ScheduleManagementPage() {
                   </div>}
                 </div>;
               })}
+              <div className="schedule-day-times">
+                <label>Entrada<ScheduleTimeSelect label={`Entrada · ${name}`} value={timeLabel(day.entryTime)} onChange={value => updateDay({ ...day, entryTime: value })} /></label>
+                <label>Salida<ScheduleTimeSelect label={`Salida · ${name}`} value={timeLabel(day.exitTime)} onChange={value => updateDay({ ...day, exitTime: value })} /></label>
+              </div>
+              <ScheduleDayProgress day={day} name={name} />
               <Button label="Añadir bloque" onClick={() => { updateDay({ ...day, blocks: [...day.blocks, {
                 dayOfWeek: number, startTime: "", endTime: "", type: "SUBJECT", name: "", order: day.blocks.length, color: null,
               }] }); setOpenBlock(`${number}:${day.blocks.length}`); }} />
@@ -226,7 +238,7 @@ export function ScheduleManagementPage() {
               </p>}
               </div>
             </>}
-          </ScheduleDayPanel>;
+          </article>;
         })}</div>
         {activeSave === "publish" && (validation || data.error || saveResult === "failed") && <p
           className="schedule-save-feedback is-error" role="alert" ref={validationNotice} tabIndex={-1}>
