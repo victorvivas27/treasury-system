@@ -7,6 +7,7 @@ import com.tesoreria.user.core.constant.RoleEnum;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.tesoreria.user.core.constant.UserTokenType;
 import com.tesoreria.user.core.exception.UserErrorCode;
+import com.tesoreria.user.core.exception.RefreshTokenRejectedException;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserTokenEntity;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserTokenJpaRepository;
@@ -101,7 +102,7 @@ public class RefreshTokenService {
         return new IssuedTokens(jwtService.generateToken(details, tokenFamilyId), refreshToken, csrfToken);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = RefreshTokenRejectedException.class)
     public IssuedTokens rotate(String refreshToken, String csrfToken) {
         String tokenHash = hash(refreshToken);
         Long userId = tokenRepository.findSessionUserId(tokenHash, UserTokenType.REFRESH_TOKEN)
@@ -118,7 +119,7 @@ public class RefreshTokenService {
                 || current.getUsedAt() != null
                 || !current.getExpiresAt().isAfter(now)) {
             detectReuse(current, now);
-            throw invalidToken();
+            throw new RefreshTokenRejectedException();
         }
         activeAccountDetails(user);
         UUID tokenFamilyId = current.getTokenFamilyId() == null
@@ -131,7 +132,7 @@ public class RefreshTokenService {
         return issue(user, tokenFamilyId, current.getUserAgent(), current.getIpAddress());
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = RefreshTokenRejectedException.class)
     public IssuedTokens rotate(String refreshToken) {
         return rotate(refreshToken, null);
     }

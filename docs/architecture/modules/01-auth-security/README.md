@@ -39,6 +39,8 @@ SA-06 aparece en las vistas de contraseña: guardar la contraseña, marcar la re
 
 ## Límites y pendientes
 
+Actualización posterior al snapshot: SA-07 cuenta con una [reparación de la política transaccional](../../../security/sa-07/SA-07-REPARACION.md). La tarjeta pendiente del gráfico de refresh corresponde al commit histórico de referencia.
+
 - **SA-07:** ante reutilización de refresh se intenta revocar la familia y se lanza una excepción. El rollback de la transacción sigue siendo un asunto pendiente; el gráfico no promete que esa revocación quede confirmada.
 - **SA-08 y SA-09:** la comprobación mostrada corresponde a CONNECT. La autorización de destinos y la revalidación de conexiones existentes requieren su revisión propia.
 - **2FA:** existe TwoFactorService, pero no se encontró integrado en el login actual. No se muestra como un segundo factor activo.
