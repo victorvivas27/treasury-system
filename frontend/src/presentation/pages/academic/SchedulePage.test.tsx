@@ -24,19 +24,13 @@ describe("Consulta del horario", () => {
     expect(loading).toHaveAttribute("aria-busy", "true");
     expect(loading.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
     expect(loading.querySelectorAll(".schedule-day")).toHaveLength(view === "table" ? 0 : view === "day" ? 1 : 5);
-    expect(screen.queryByRole("button", { name: "Desplegar Lunes" })).not.toBeInTheDocument();
     state.loading = false;
     page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
     expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
   });
-  it("muestra resumen por defecto, salida explícita, bloques y no edición para USER", () => {
+  it("muestra la jornada por defecto, salida explícita, bloques y no edición para USER", () => {
     open();
-    expect(screen.getByLabelText("Vista")).toHaveValue("summary");
-    expect(screen.getAllByRole("button", { name: /^Desplegar / })).toHaveLength(5);
-    expect(screen.getByRole("button", { name: "Desplegar Lunes" })).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(screen.getByRole("button", { name: "Desplegar Lunes" }));
-    expect(screen.getByRole("button", { name: "Plegar Lunes" })).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("button", { name: "Desplegar Martes" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Por d\u00eda", exact: true })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("16:00")).toBeInTheDocument();
     expect(screen.getByText("Lenguaje")).toBeInTheDocument();
     expect(screen.getByText("45 min")).toBeInTheDocument();
@@ -45,18 +39,21 @@ describe("Consulta del horario", () => {
   });
   it("las tres vistas conservan los datos y recuerda la preferencia por usuario", () => {
     const page = open();
-    fireEvent.change(screen.getByLabelText("Vista"), { target: { value: "day" } });
-    expect(screen.getByRole("button", { name: "Desplegar Lunes" })).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(screen.getByRole("button", { name: "Desplegar Lunes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Por día", exact: true }));
     expect(screen.getByText("Lenguaje")).toBeInTheDocument();
     expect(screen.getByText("16:00")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Vista"), { target: { value: "table" } });
+    expect(screen.getByRole("group", { name: "Día" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
+    expect(screen.getByRole("button", { name: "Martes", exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText("Lenguaje")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Martes" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Tabla semanal", exact: true }));
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByText("Salida 16:00")).toBeInTheDocument();
     expect(screen.getAllByText("Lenguaje").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Libre")).toHaveLength(2);
     expect(localStorage.getItem("academic.schedule.view.7")).toBe("table");
-    page.unmount(); open(); expect(screen.getByLabelText("Vista")).toHaveValue("table");
+    page.unmount(); open(); expect(screen.getByRole("button", { name: "Tabla semanal", exact: true })).toHaveAttribute("aria-pressed", "true");
   });
   it("muestra error y permite reintentar", () => {
     state.error = "No se pudo cargar"; open();
@@ -71,19 +68,19 @@ describe("Consulta del horario", () => {
     try {
       open();
       expect(screen.getAllByText(label)).toHaveLength(1);
-      fireEvent.change(screen.getByLabelText("Vista"), { target: { value: "day" } });
+      fireEvent.click(screen.getByRole("button", { name: "Por día", exact: true }));
       expect(screen.getAllByText(label)).toHaveLength(1);
-      fireEvent.change(screen.getByLabelText("Vista"), { target: { value: "table" } });
+      fireEvent.click(screen.getByRole("button", { name: "Tabla semanal", exact: true }));
       expect(screen.getAllByText(label)).toHaveLength(1);
     } finally { Object.assign(block, previous); }
   });
   it("no transfiere la preferencia al cambiar de usuario en la misma pantalla", () => {
     const page = open();
-    fireEvent.change(screen.getByLabelText("Vista"), { target: { value: "table" } });
+    fireEvent.click(screen.getByRole("button", { name: "Tabla semanal", exact: true }));
     account.user.id = 8;
     page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
-    expect(screen.getByLabelText("Vista")).toHaveValue("summary");
+    expect(screen.getByRole("button", { name: "Por d\u00eda", exact: true })).toHaveAttribute("aria-pressed", "true");
     expect(localStorage.getItem("academic.schedule.view.7")).toBe("table");
-    expect(localStorage.getItem("academic.schedule.view.8")).toBe("summary");
+    expect(localStorage.getItem("academic.schedule.view.8")).toBe("day");
   });
 });
