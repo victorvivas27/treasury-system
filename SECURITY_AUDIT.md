@@ -209,6 +209,8 @@ Las 15 pruebas de caché pasan. Cubren ambos órdenes de calentamiento A/B, las 
 
 ### SA-07 — La revocación por reutilización de refresh se deshace por rollback
 
+**Reparación posterior:** implementada en el workspace; ver [corrección y pruebas SA-07](docs/security/sa-07/SA-07-REPARACION.md). La descripción y evidencia siguientes corresponden al diagnóstico original.
+
 **Severidad ALTA · Confianza ALTA · Confirmada con transacción real · P0.** Componente: rotación.
 
 **Archivos y líneas:** [RefreshTokenService.java](backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java):93–105, 169–176; [UserTokenJpaRepository.java](backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java):27–36; [DomainException.java](backend/src/main/java/com/tesoreria/shared/domain/exception/DomainException.java):5–6.
