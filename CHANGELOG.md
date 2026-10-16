@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/victorvivas27/treasury-system/compare/v1.20.0...v1.21.0) (2026-10-16)
+
+
+### Features
+
+* **schedule:** mejorar la lógica de carga y presentación del horario semanal ([4992683](https://github.com/victorvivas27/treasury-system/commit/4992683fc477c1a74cc53b4be6ba2009ab8cc374))
+
 ## [1.20.0](https://github.com/victorvivas27/treasury-system/compare/v1.19.0...v1.20.0) (2026-10-15)
 
 
