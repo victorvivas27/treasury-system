@@ -52,11 +52,8 @@
 .schedule-published .schedule-table { border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .schedule-published .schedule-table th, .schedule-published .schedule-table td { border: 0; border-bottom: 1px solid var(--border-color); border-right: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent); padding: .55rem; }
 .schedule-published .schedule-table thead th { background: var(--color-surface); text-align: left; }
-.schedule-published .schedule-table thead th:first-child { width: 105px; }
 .schedule-published .schedule-table-day-heading { display: block; padding: .35rem .5rem; font-family: inherit; font-weight: 700; font-size: .9rem; border-radius: .5rem; }
-.schedule-published .schedule-table thead p { margin: .5rem .2rem; font-size: .7rem; line-height: 1.7; }
-.schedule-published .schedule-table tbody > tr > th { position: sticky; left: 0; z-index: 1; background: var(--color-surface); font-size: .7rem; line-height: 1.7; }
-.schedule-published .schedule-table thead th:first-child { position: sticky; left: 0; z-index: 3; }
+.schedule-published .schedule-table thead p { margin: .5rem .2rem; font-size: .7rem; line-height: 1.7; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .schedule-published .schedule-table tbody tr:nth-child(even) > td { background: color-mix(in srgb, var(--color-accent) 2%, var(--color-surface)); }
 .schedule-published .schedule-table .schedule-published-block { border-radius: .65rem; padding: .55rem; height: 100%; box-sizing: border-box; }
 .schedule-table-block-heading { display: flex; align-items: center; gap: .4rem; }
@@ -78,3 +75,6 @@
   .schedule-agenda--compact .schedule-agenda-duration { grid-column: 3; }
 }
 @media (prefers-reduced-motion: reduce) { .schedule-published .schedule-day-selector button { transition: none; } }
+
+.schedule-published .schedule-table-time-range { white-space: nowrap; overflow-wrap: normal; flex-shrink: 0; }
+.schedule-published .schedule-cell.schedule-published-block > small:last-child { align-items: flex-start; }

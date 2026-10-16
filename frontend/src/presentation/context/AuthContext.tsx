@@ -88,7 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let removeTimer: number | undefined;
     const hideLoader = () => {
       const startedAt = Number(document.documentElement.dataset.bootStartedAt ?? 0);
-      const remaining = Math.max(0, 650 - (performance.now() - startedAt));
+      // Allow 700 ms of skeleton, 550 ms of logo fade-in, and a brief pause before leaving.
+      const remaining = Math.max(0, 1600 - (performance.now() - startedAt));
       hideTimer = window.setTimeout(() => {
         loader.classList.add("is-leaving");
         removeTimer = window.setTimeout(() => loader.remove(), 400);

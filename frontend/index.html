@@ -86,7 +86,7 @@
         <span class="boot-loader__logo-placeholder"></span>
         <img class="boot-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
           decoding="sync" fetchpriority="high"
-          onload="this.parentElement.classList.add('is-logo-ready')"
+          onload="setTimeout(() => this.parentElement.classList.add('is-logo-ready'), Math.max(0, 700 - (performance.now() - Number(document.documentElement.dataset.bootStartedAt))))"
           onerror="this.parentElement.classList.add('is-logo-failed')" />
       </div>
       <div>
