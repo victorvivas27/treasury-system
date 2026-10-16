@@ -66,20 +66,19 @@ export function SchedulePage() {
       : view === "day" ? <ScheduleAgenda day={days[dayNumber - 1]} index={dayNumber - 1} />
       : <div className="schedule-table-scroll" tabIndex={0} role="region" aria-label="Tabla semanal, desplazamiento horizontal">
         <table className="schedule-table"><caption>Horario semanal · {data.year}</caption>
-          <thead><tr><th scope="col">Franja</th>{DAYS.map((name, index) => <th scope="col" key={name}>
+          <thead><tr>{DAYS.map((name, index) => <th scope="col" key={name}>
             <span className={`schedule-table-day-heading schedule-day-heading--${index + 1}`}>{name}</span>
             {days[index] && <p>Entrada {timeLabel(days[index]!.entryTime)}<br /><span className="schedule-exit">Salida {timeLabel(days[index]!.exitTime)}</span></p>}</th>)}</tr></thead>
           <tbody>{boundaries.slice(0, -1).map((start, index) => {
             const end = boundaries[index + 1];
             return <tr key={start} style={{ height: Math.max(32, (minutes(end) - minutes(start)) * 1.2) }}>
-              <th scope="row">{timeLabel(start)} – {timeLabel(end)}</th>
               {days.map((day, dayIndex) => {
                 const block = day?.blocks.find(value => value.startTime <= start && value.endTime >= end);
                 if (block && block.startTime < start) return null;
                 const rowSpan = block ? boundaries.filter(boundary => boundary >= start && boundary < block.endTime).length : 1;
                 return <td key={dayIndex} rowSpan={rowSpan}>{block ? <span className="schedule-cell schedule-published-block" style={blockStyle(block)}>
                   <span className="schedule-table-block-heading"><ScheduleBlockIcon block={block} /><small className="schedule-published-type">{TYPES[block.type]}</small></span>{(block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && block.name && <strong title={block.name}>{block.name}</strong>}
-                  <small>{timeLabel(block.startTime)} – {timeLabel(block.endTime)}{blockDurationLabel(block) && <span className="schedule-block-duration">{blockDurationLabel(block)}</span>}</small>
+                  <small><span className="schedule-table-time-range">{timeLabel(block.startTime)} – {timeLabel(block.endTime)}</span>{blockDurationLabel(block) && <span className="schedule-block-duration">{blockDurationLabel(block)}</span>}</small>
                 </span> : day && start >= day.entryTime && end <= day.exitTime ? "Libre" : "—"}</td>;
               })}</tr>;
           })}</tbody>

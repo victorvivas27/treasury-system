@@ -23,7 +23,7 @@ describe("Consulta del horario", () => {
     const loading = screen.getByRole("status", { name: "Cargando horario" });
     expect(loading).toHaveAttribute("aria-busy", "true");
     expect(loading.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
-    expect(loading.querySelectorAll(".schedule-day")).toHaveLength(view === "table" ? 0 : view === "day" ? 1 : 5);
+    expect(loading.querySelectorAll(".schedule-agenda")).toHaveLength(view === "table" ? 0 : view === "day" ? 1 : 5);
     state.loading = false;
     page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
     expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
@@ -54,6 +54,24 @@ describe("Consulta del horario", () => {
     expect(screen.getAllByText("Libre")).toHaveLength(2);
     expect(localStorage.getItem("academic.schedule.view.7")).toBe("table");
     page.unmount(); open(); expect(screen.getByRole("button", { name: "Tabla semanal", exact: true })).toHaveAttribute("aria-pressed", "true");
+  });
+  it("alinea los cinco dias sin una columna adicional de horas", () => {
+    localStorage.setItem("academic.schedule.view.7", "table");
+    open();
+    const table = screen.getByRole("table");
+    expect(table.querySelectorAll("thead th")).toHaveLength(5);
+    expect(table.querySelectorAll("tbody th")).toHaveLength(0);
+    const occupiedUntil = Array(5).fill(0);
+    Array.from(table.querySelectorAll("tbody tr")).forEach((row, rowIndex) => {
+      let column = 0;
+      Array.from(row.querySelectorAll("td")).forEach(cell => {
+        while (occupiedUntil[column] > rowIndex) column++;
+        expect(column).toBeLessThan(5);
+        occupiedUntil[column] = rowIndex + cell.rowSpan;
+        column++;
+      });
+      expect(occupiedUntil.every(end => end > rowIndex)).toBe(true);
+    });
   });
   it("muestra error y permite reintentar", () => {
     state.error = "No se pudo cargar"; open();
