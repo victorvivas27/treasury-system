@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.20.0](https://github.com/victorvivas27/treasury-system/compare/v1.19.0...v1.20.0) (2026-10-15)
+
+
+### Features
+
+* **security:** implementar revocación persistente para reutilización de refresh tokens y agregar pruebas correspondientes ([ad2a4ac](https://github.com/victorvivas27/treasury-system/commit/ad2a4ac25ad078972c82c1d8c2617cef848cef15))
+* **security:** implementar revocación persistente para reutilización de refresh tokens y agregar pruebas correspondientes ([4a11181](https://github.com/victorvivas27/treasury-system/commit/4a11181bee0e212a74b8afb524e98e47dfe645e9))
+
 ## [1.19.0](https://github.com/victorvivas27/treasury-system/compare/v1.18.0...v1.19.0) (2026-10-15)
 
 
