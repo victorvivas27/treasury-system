@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/victorvivas27/treasury-system/compare/v1.21.0...v1.22.0) (2026-10-17)
+
+
+### Features
+
+* Implement WhatsApp invitations for guardians ([07d5fd1](https://github.com/victorvivas27/treasury-system/commit/07d5fd110792d5641f05846a901c9b1078c47e4c))
+
 ## [1.21.0](https://github.com/victorvivas27/treasury-system/compare/v1.20.0...v1.21.0) (2026-10-16)
 
 
