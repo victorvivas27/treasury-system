@@ -145,7 +145,17 @@ export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const token = params.get("token") ?? "";
+  const location = useLocation();
+  const [token] = useState(() => new URLSearchParams(location.hash.slice(1)).get("token") ?? params.get("token") ?? "");
+  const [invitationValid, setInvitationValid] = useState(!invitation);
+  useEffect(() => {
+    if (!invitation) return;
+    let active = true;
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+    repository.validateInvitation(token).then(() => { if (active) setInvitationValid(true); })
+      .catch(error => { if (active) setMessage(recoveryErrorMessage(error)); });
+    return () => { active = false; };
+  }, [invitation, repository, token]);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -157,7 +167,7 @@ export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean
   const submittingRef = useRef(false);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (submittingRef.current) return;
+    if (submittingRef.current || !invitationValid) return;
     setMessage("");
     if (!token) { setMessage("El enlace no es válido."); return; }
     if (!PASSWORD_PATTERN.test(password)) {
@@ -180,8 +190,8 @@ export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
     <Shell title={invitation ? "Aceptar invitación" : "Crear nueva contraseña"} message={message}>
-      <form onSubmit={submit}>
-        <input type="hidden" name="recoveryToken" value={token} />
+      {invitation && !invitationValid && !message && <p role="status">Validando invitacion...</p>}
+      {invitationValid && <form onSubmit={submit}>
         <div className="auth-flow__password-row">
         <div className="auth-flow__password-inputs">
         <label>Nueva contraseña
@@ -224,12 +234,12 @@ export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean
         </div>
         <PasswordStrength id="reset-password-guidance" password={password} />
         </div>
-        <Button type="submit" label="Actualizar contraseña" loading={loading}
+        <Button type="submit" label={invitation ? "Activar mi cuenta" : "Actualizar contraseña"} loading={loading}
           onClick={() => {}} size="large" className="auth-flow__action" />
-      </form>
+      </form>}
     </Shell>
     <ModalAlert isOpen={passwordUpdated}
-      message="Tu contraseña fue restablecida correctamente. Ya puedes iniciar sesión."
+      message={invitation ? "Tu cuenta fue activada. Ya puedes iniciar sesión." : "Tu contraseña fue restablecida correctamente. Ya puedes iniciar sesión."}
       type="success" onClose={returnToLogin} autoCloseTime={3000} />
   </>;
 };

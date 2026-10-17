@@ -1,3 +1,5 @@
+import axios from "axios";
+import { useGuardianInvitation } from "@/presentation/hooks/apoderado/useGuardianInvitation";
 import { ApoderadosList } from "@/presentation/features/apoderado/ApoderadosList";
 import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
 import type { FC } from "react";
@@ -8,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useDeleteApoderado } from "@/presentation/hooks/apoderado/useDeleteApoderado";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
@@ -31,6 +33,27 @@ export const ApoderadoPage: FC = () => {
   const token = auth?.token;
   const [initialPage] = useState(consumeSavedPage);
   const [accessGuardian, setAccessGuardian] = useState<Apoderado | null>(null);
+  const [invitationAnchor, setInvitationAnchor] = useState<{ top: number; left: number }>();
+  useEffect(() => {
+    if (!accessGuardian) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [accessGuardian]);
+  const [channel, setChannel] = useState("email");
+  const [consent, setConsent] = useState(false);
+  const [consentSource, setConsentSource] = useState("");
+  const [consentDate, setConsentDate] = useState("");
+  const { invitation, error: invitationError, reload: reloadInvitation } = useGuardianInvitation(accessGuardian?.codigo);
+  const openInvitation = (guardian: Apoderado) => {
+    setChannel("email"); setConsent(false); setConsentSource(""); setConsentDate("");
+    const rect = document.activeElement?.getBoundingClientRect();
+    setInvitationAnchor(rect && window.innerWidth >= 600 ? {
+      top: Math.max(16, Math.min(rect.top, window.innerHeight - 536)),
+      left: Math.max(16, Math.min(rect.left - 280, window.innerWidth - 296)),
+    } : undefined);
+    setAccessGuardian(guardian);
+  };
   const [enablingAccess, setEnablingAccess] = useState(false);
   const [accessAlert, setAccessAlert] = useState({
     isOpen: false, message: "", type: "success" as "success" | "error",
@@ -94,17 +117,28 @@ export const ApoderadoPage: FC = () => {
     const guardian = accessGuardian;
     setEnablingAccess(true);
     try {
-      await new ApoderadoRepositoryImpl().enableAccess(
-        guardian.codigo, token ?? undefined);
+      if (channel === "whatsapp") {
+        const result = await new ApoderadoRepositoryImpl().inviteWhatsApp(guardian.codigo,
+          { authorized: consent, source: consentSource, authorizedAt: `${consentDate}T00:00:00` });
+        reloadInvitation();
+        setAccessAlert({ isOpen: true, type: result.deliveryStatus === "FAILED" ? "error" : "success",
+          message: result.deliveryStatus === "FAILED" ? "Meta no pudo aceptar el mensaje. Consulta el estado antes de reintentar."
+            : result.simulated ? "Invitación simulada. No se envió ningún mensaje real."
+            : "Meta acepto el mensaje. La entrega está pendiente de confirmacion." });
+        refetch();
+        return;
+      }
+      await new ApoderadoRepositoryImpl().enableAccess(guardian.codigo, token ?? undefined);
       setAccessGuardian(null);
       setAccessAlert({ isOpen: true,
         message: "Invitación enviada. El apoderado figura como usuario pendiente.",
         type: "success" });
       refetch();
-    } catch {
-      setAccessGuardian(null);
+    } catch (error) {
+      const errors = axios.isAxiosError(error) ? error.response?.data?.errors : null;
+      const detail = errors && typeof errors === "object" ? Object.values(errors).find(value => typeof value === "string") : null;
       setAccessAlert({ isOpen: true,
-        message: "No fue posible habilitar el acceso del apoderado.", type: "error" });
+        message: typeof detail === "string" ? detail : "No fue posible habilitar el acceso del apoderado.", type: "error" });
     } finally {
       setEnablingAccess(false);
     }
@@ -155,7 +189,7 @@ export const ApoderadoPage: FC = () => {
           onRefresh={refetch}
           handleDelete={(codigo) => openDeleteConfirm(String(codigo))}
           handleEdit={handleEdit}
-          handleEnableAccess={setAccessGuardian}
+          handleEnableAccess={openInvitation}
           handleToggleStatus={(apoderado) => void toggleStatus(apoderado)}
           currentPage={currentPage}
           onNextPage={nextPage}
@@ -189,12 +223,31 @@ export const ApoderadoPage: FC = () => {
         autoCloseTime={2000}
         variant={alert.type === "success" ? "toast" : "modal"}
       />
-      <ModalConfirm isOpen={Boolean(accessGuardian)} title="Habilitar acceso"
-        message={`Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
+      <ModalConfirm isOpen={Boolean(accessGuardian)} title="Habilitar acceso" anchor={invitationAnchor} containerClassName="guardian-invitation-modal"
+        message={channel === "whatsapp" ? `Invitar por WhatsApp a ${accessGuardian?.telefono ?? ""}.`
+          : `Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
+        confirmDisabled={channel === "whatsapp" && (!consent || !consentSource.trim() || !consentDate || invitation?.status === "ACTIVATED")}
         confirmLabel="Enviar invitación" isLoading={enablingAccess}
         compact
         onCancel={() => setAccessGuardian(null)}
-        onConfirm={() => void confirmEnableAccess()} />
+        onConfirm={() => void confirmEnableAccess()}>
+        <div className="guardian-invitation-fields">
+          <label>Canal<select value={channel} disabled={enablingAccess} onChange={event => setChannel(event.target.value)}>
+            <option value="email">Correo electrónico</option><option value="whatsapp">WhatsApp</option>
+          </select></label>
+          {channel === "whatsapp" && <>
+            <p role="status">{invitationError || (!invitation ? "Consultando estado..." :
+              invitation.status === "ACTIVATED" ? "Cuenta activada" : invitation.status === "NONE" ? "Sin invitación por WhatsApp" :
+              `${({ PENDING: "Activación pendiente", EXPIRED: "Invitación vencida", SUPERSEDED: "Invitación reemplazada" } as Record<string, string>)[invitation.status]} · ${
+                ({ ACCEPTED: "Aceptado por Meta", DELIVERED: "Entregado", FAILED: "Error de envío", SIMULATED: "Envío simulado", PENDING: "Pendiente", SEND_REQUESTED: "Envío solicitado" } as Record<string, string>)[invitation.deliveryStatus ?? ""]}`)}</p>
+            {invitation?.errorCode && <p role="alert">No se pudo enviar o entregar el mensaje. Revisa el número y la configuración de WhatsApp.</p>}
+            <Button label="Consultar estado" variant="secondary" size="small" onClick={reloadInvitation} />
+            <label><input type="checkbox" checked={consent} disabled={enablingAccess} onChange={event => setConsent(event.target.checked)} />El apoderado autorizó recibir mensajes por WhatsApp</label>
+            <label>Fuente de autorización<input maxLength={200} value={consentSource} disabled={enablingAccess} onChange={event => setConsentSource(event.target.value)} placeholder="Ej: formulario firmado" /></label>
+            <label>Fecha de autorización<input type="date" value={consentDate} disabled={enablingAccess} onChange={event => setConsentDate(event.target.value)} /></label>
+          </>}
+        </div>
+      </ModalConfirm>
       <ModalAlert isOpen={accessAlert.isOpen} message={accessAlert.message}
         type={accessAlert.type}
         variant={accessAlert.type === "success" ? "toast" : "modal"}

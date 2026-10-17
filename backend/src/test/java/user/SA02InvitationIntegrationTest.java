@@ -49,7 +49,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
-        "app.storage.gcs.enabled=false", "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",
+        "app.storage.gcs.enabled=false", "app.whatsapp.enabled=true", "app.whatsapp.public-url=https://app.example", "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",
         "MERCADO_PAGO_ACCESS_TOKEN=", "MERCADO_PAGO_WEBHOOK_SECRET=",
         "MERCADO_PAGO_ORGANIZATION_ID=0", "MERCADO_PAGO_COLLECTOR_ID=",
         "MERCADO_PAGO_RETURN_URL=", "MERCADO_PAGO_WEBHOOK_URL="
@@ -70,6 +70,8 @@ class SA02InvitationIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository students;
     @MockitoBean EmailOutPort email;
+    @MockitoBean com.tesoreria.messaging.core.InvitationMessagePort whatsappMessages;
+
 
     private final ConcurrentHashMap<String, String> links = new ConcurrentHashMap<>();
     private Long courseA;
@@ -104,6 +106,76 @@ class SA02InvitationIntegrationTest {
     @AfterEach
     void clearContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void whatsappInvitationActivatesExistingAccountOnceWithoutExposingToken() throws Exception {
+        String raw = inviteWhatsApp();
+        UserEntity pending = invited(guardianA);
+        assertFalse(pending.getEnabled());
+        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + raw + "\"}")).andExpect(status().isNoContent());
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + raw + "\",\"newPassword\":\"weak\"}"))
+                .andExpect(status().isBadRequest());
+        assertFalse(invited(guardianA).getEnabled());
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + raw + "\",\"newPassword\":\"Activated1!\"}"))
+                .andExpect(status().isOk());
+        assertTrue(invited(guardianA).getEnabled());
+        assertTrue(encoder.matches("Activated1!", invited(guardianA).getPassword()));
+        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + raw + "\"}")).andExpect(status().is4xxClientError());
+        reject(raw);
+        mvc.perform(get(whatsappPath()).header("Authorization", bearer(adminA)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVATED"));
+    }
+
+    @Test
+    void whatsappResendReusesUserInvalidatesOldTokenAndRejectsExpiredLinks() throws Exception {
+        String first = inviteWhatsApp();
+        Long accountId = invited(guardianA).getId();
+        mvc.perform(post(whatsappPath()).header("Authorization", bearer(adminA))
+                .contentType(MediaType.APPLICATION_JSON).content(whatsappConsent())).andExpect(status().isTooManyRequests());
+        jdbc.update("UPDATE guardian_whatsapp_invitations SET created_at = ? WHERE guardian_id = ?",
+                LocalDateTime.now().minusMinutes(2), guardianA.getApoderadoId());
+        String second = inviteWhatsApp();
+        assertNotEquals(first, second);
+        assertEquals(accountId, invited(guardianA).getId());
+        reject(first);
+        jdbc.update("UPDATE user_tokens SET expires_at = ? WHERE token_hash = ?", LocalDateTime.now().minusMinutes(1), hash(second));
+        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + second + "\"}")).andExpect(status().is4xxClientError());
+        reject(second);
+        assertFalse(invited(guardianA).getEnabled());
+    }
+
+    @Test
+    void whatsappRoutesRequireAdministratorAndCorrectTenant() throws Exception {
+        mvc.perform(get(whatsappPath())).andExpect(status().isUnauthorized());
+        mvc.perform(post(whatsappPath()).contentType(MediaType.APPLICATION_JSON).content(whatsappConsent()))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post(whatsappPath()).header("Authorization", bearer(ordinary))
+                .contentType(MediaType.APPLICATION_JSON).content(whatsappConsent())).andExpect(status().isForbidden());
+        mvc.perform(get(whatsappPath()).header("Authorization", bearer(adminB))).andExpect(status().isNotFound());
+    }
+
+    private String whatsappPath() { return "/api/v1/apoderados/" + guardianA.getCodigo() + "/invitacion-whatsapp"; }
+    private String whatsappConsent() {
+        return "{\"authorized\":true,\"source\":\"Signed form\",\"authorizedAt\":\"2026-01-01T10:00:00\"}";
+    }
+    private String inviteWhatsApp() throws Exception {
+        jdbc.update("UPDATE apoderados SET telefono = ? WHERE apoderado_id = ?", "+56912345678", guardianA.getApoderadoId());
+        when(whatsappMessages.sendInvitation(anyString(), anyString(), anyString(), anyString())).thenAnswer(call -> {
+            links.put("whatsapp", call.getArgument(3));
+            return new com.tesoreria.messaging.core.InvitationMessagePort.SendResult("wamid." + UUID.randomUUID(), null, false);
+        });
+        mvc.perform(post(whatsappPath()).header("Authorization", bearer(adminA))
+                .contentType(MediaType.APPLICATION_JSON).content(whatsappConsent()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.deliveryStatus").value("ACCEPTED"))
+                .andExpect(jsonPath("$.deliveredAt").isEmpty()).andExpect(jsonPath("$.token").doesNotExist());
+        assertNotNull(links.get("whatsapp"));
+        return links.get("whatsapp");
     }
 
     @Test

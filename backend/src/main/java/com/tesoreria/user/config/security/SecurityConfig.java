@@ -40,6 +40,9 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/v1/webhooks/whatsapp").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/webhooks/whatsapp", "/api/v1/auth/validate-invitation").permitAll()
+                        .requestMatchers("/api/v1/apoderados/*/invitacion-whatsapp").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .dispatcherTypeMatchers(ERROR).permitAll()
                         .requestMatchers("/api/v1/auth/register").denyAll()
                         .requestMatchers(

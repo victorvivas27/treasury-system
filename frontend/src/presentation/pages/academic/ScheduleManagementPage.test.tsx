@@ -63,7 +63,8 @@ describe("Editor del horario", () => {
     data.loading = true;
     const page = render(<MemoryRouter><ScheduleManagementPage /></MemoryRouter>);
     const loading = screen.getByRole("status", { name: "Cargando horario" });
-    expect(loading.querySelectorAll(".schedule-day")).toHaveLength(5);
+    expect(loading.querySelectorAll(".schedule-daily-editor")).toHaveLength(1);
+    expect(loading.querySelector("button, input, select")).toBeNull();
     expect(screen.getByRole("button", { name: "Publicar horario" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Publicar horario" })).toHaveAttribute("aria-busy", "false");
     data.loading = false;

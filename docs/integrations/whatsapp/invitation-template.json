@@ -1,0 +1,32 @@
+{
+  "name": "guardian_account_invitation",
+  "language": "es_CL",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hola {{1}}, has sido invitado/a a acceder a {{2}} como apoderado/a.\n\nPara activar tu cuenta y establecer tu contrase\u00f1a, utiliza el siguiente bot\u00f3n.\n\nSi no esperabas esta invitaci\u00f3n, puedes ignorar el mensaje.",
+      "example": {
+        "body_text": [
+          [
+            "Ana",
+            "Tesorer\u00eda Escolar"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        {
+          "type": "URL",
+          "text": "Activar mi cuenta",
+          "url": "https://TU-DOMINIO/aceptar-invitacion#token={{1}}",
+          "example": [
+            "https://TU-DOMINIO/aceptar-invitacion#token=EJEMPLO_NO_VALIDO"
+          ]
+        }
+      ]
+    }
+  ]
+}

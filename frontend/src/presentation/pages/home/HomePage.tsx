@@ -25,6 +25,7 @@ export const HomePage = () => {
           <HomeCommunity />
         </> : <>
           <HomeHero />
+          <HomeInstallGuide />
           <HomeFeatures />
         </>}
       </main>

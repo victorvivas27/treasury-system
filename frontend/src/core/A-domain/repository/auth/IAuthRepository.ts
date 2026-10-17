@@ -9,6 +9,7 @@ export interface IAuthRepository {
   verifyEmail(token: string): Promise<AuthMessageResponse>;
   resendVerification(email: string, organizationId?: number): Promise<string>;
   forgotPassword(email: string, organizationId?: number): Promise<AuthMessageResponse>;
+  validateInvitation(token: string): Promise<void>;
   resetPassword(token: string, newPassword: string): Promise<string>;
   changePassword(currentPassword: string, newPassword: string): Promise<string>;
 }

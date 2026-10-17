@@ -1,4 +1,5 @@
 import { StrictMode } from 'react'
+import '@/shared/pwa/installApp'
 import { createRoot } from 'react-dom/client'
 import App from '@/presentation/App'
 import '@/shared/style/ResponsiveDataList.css'

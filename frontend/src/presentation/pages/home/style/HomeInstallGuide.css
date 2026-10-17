@@ -1,133 +1,76 @@
-.public-home__install {
-  --install-surface: linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 94%, var(--color-accent) 6%), var(--color-surface));
-  --install-option-surface: color-mix(in srgb, var(--color-bg) 78%, var(--color-surface));
-  --install-icon-surface: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
-  --install-icon-border: color-mix(in srgb, var(--color-accent) 24%, var(--border-color));
-
-  display: grid;
-  width: min(var(--size-1180px), calc(100% - var(--size-3rem)));
-  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
-  gap: clamp(var(--space-1-5rem), var(--space-4vw), var(--space-3-5rem));
-  align-items: center;
-  margin: var(--space-1rem) auto 0;
-  padding: clamp(var(--space-1-5rem), var(--space-4vw), var(--space-2-5rem));
-  border: var(--stroke-1px) solid var(--border-color);
-  border-radius: var(--radius-1-25rem);
-  background: var(--install-surface);
-  box-shadow: 0 18px 48px color-mix(in srgb, black 20%, transparent);
-  backface-visibility: hidden;
-  opacity: 0;
-  transform: translateY(var(--motion-distance-22px)) scale(.985);
-  transform-origin: center;
-  will-change: opacity, transform;
+﻿.install-modal {
+  width: min(320px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  margin: auto;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 24%, var(--border-color));
+  border-radius: 20px;
+  background: var(--color-surface);
+  color: var(--text-main);
+  box-shadow: 0 24px 80px #0006;
 }
-
-.public-home__install.is-visible {
-  animation: install-gentle-reveal var(--duration-900ms) var(--easing-cubic-bezier--22-1--36-1-2) both,
-    install-attention var(--duration-3800ms) var(--easing-ease-in-out) var(--duration-1200ms) infinite alternate;
+.install-launcher { position: fixed; right: 20px; bottom: 20px; z-index: 50; display: inline-flex; align-items: center; gap: 9px; padding: 8px 13px 8px 9px; border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--border-color)); border-radius: 999px; background: var(--color-surface); color: var(--text-main); box-shadow: 0 4px 20px #0003; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.install-launcher img { object-fit: contain; }
+.install-launcher > svg { color: var(--color-accent); }
+.install-launcher:hover { border-color: var(--color-accent); }
+.install-launcher:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.install-launcher { animation: install-launcher-attention 14s ease-in-out 5s infinite; }
+.install-launcher:is(:hover, :focus-visible, :active) { animation: none; }
+@keyframes install-launcher-attention {
+  0%, 14%, 100% { transform: translateY(0); box-shadow: 0 4px 20px #0003, 0 0 0 0 transparent; }
+  3%, 9% { transform: translateY(-4px); box-shadow: 0 6px 24px #0003, 0 0 0 5px color-mix(in srgb, var(--color-accent) 14%, transparent); }
+  6%, 12% { transform: translateY(0); box-shadow: 0 4px 20px #0003, 0 0 0 9px transparent; }
 }
-
-.public-home__install-heading {
-  display: flex;
-  gap: var(--space-1rem);
-  align-items: flex-start;
-}
-
-.public-home__install-icon {
-  display: grid;
-  width: var(--size-3rem);
-  height: var(--size-3rem);
-  flex: 0 0 auto;
-  place-items: center;
-  border: var(--stroke-1px) solid var(--install-icon-border);
-  border-radius: var(--radius-0-85rem);
-  background: var(--install-icon-surface);
-  color: var(--icon-accent);
-  font-size: var(--font-size-1-4rem);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
-}
-
-.public-home__install-icon img {
-  width: var(--size-2-55rem);
-  height: var(--size-2-55rem);
-  object-fit: contain;
-}
-
-.public-home__install-eyebrow {
-  display: inline-flex;
-  gap: var(--space-0-4rem);
-  align-items: center;
-  margin-bottom: var(--space-0-45rem);
-  color: var(--icon-accent);
-  font-size: var(--font-size-0-82rem);
-  font-weight: var(--font-weight-700);
-  letter-spacing: var(--tracking-0-04em);
-  text-transform: uppercase;
-}
-
-.public-home__install h2 { margin-bottom: var(--space-0-45rem); font-size: clamp(var(--font-size-1-15rem), var(--font-size-1-8vw), var(--font-size-1-4rem)); line-height: var(--leading-1-2); white-space: nowrap; }
-.public-home__typing-caret { display: inline-block; width: var(--size-2px); height: var(--size-0-9em); margin-left: var(--space-0-14em); background: var(--icon-accent); animation: typing-caret var(--duration-650ms) steps(1) infinite; vertical-align: var(--size-negative-0-05em); }
-.public-home__install p { color: var(--text-muted); }
-.public-home__install-options { display: grid; gap: var(--space-0-8rem); }
-.public-home__install-options article { display: flex; gap: var(--space-0-85rem); padding: var(--space-1rem); border: var(--stroke-1px) solid color-mix(in srgb, var(--border-color) 78%, transparent); border-radius: var(--radius-0-85rem); background: var(--install-option-surface); }
-.public-home__install-options article > svg { flex: 0 0 auto; margin-top: var(--space-0-2rem); color: var(--icon-accent); font-size: var(--font-size-1-25rem); }
-.public-home__install-options h3 { margin-bottom: var(--space-0-2rem); font-size: var(--font-size-1rem); }
-.public-home__install-options p { font-size: var(--font-size-0-9rem); }
-.public-home__install-options strong { color: var(--text-main); }
-
-@keyframes install-attention {
-  from {
-    border-color: var(--border-color);
-    box-shadow: var(--shadow-card);
-  }
-  to {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-to);
-  }
-}
-
-@keyframes install-gentle-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(var(--motion-distance-22px)) scale(.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes typing-caret {
-  50% { opacity: 0; }
-}
-
-:root[data-theme="light"] .public-home__install {
-  --install-surface: var(--color-surface);
-  --install-option-surface: var(--color-input);
-  --install-icon-surface: var(--color-accent-soft);
-  --install-icon-border: color-mix(in srgb, var(--color-accent) 20%, var(--border-color));
-
-  box-shadow: var(--shadow-card);
-}
-
-@media (max-width: 760px) {
-  .public-home__install { width: min(100% - var(--size-1rem), var(--size-1180px)); grid-template-columns: 1fr; gap: var(--space-0-8rem); margin: var(--space-0-45rem) auto 0; padding: var(--space-0-85rem); border-radius: var(--radius-0-9rem); transform:translateY(var(--motion-distance-18px)) scale(.99); }
-  .public-home__install.is-visible { animation:install-gentle-reveal var(--duration-850ms) var(--easing-cubic-bezier--22-1--36-1) both,install-attention var(--duration-3800ms) var(--easing-ease-in-out) var(--duration-1200ms) infinite alternate; }
-  .public-home__install-heading { gap: var(--space-0-65rem); }
-  .public-home__install-icon { width: var(--size-2-3rem); height: var(--size-2-3rem); border-radius: var(--radius-0-65rem); font-size: var(--font-size-1-1rem); }
-  .public-home__install-icon img { width: var(--size-2rem); height: var(--size-2rem); }
-  .public-home__install-eyebrow { margin-bottom: var(--space-0-2rem); font-size: var(--font-size-0-68rem); }
-  .public-home__install h2 { min-height: var(--size-2-4em); margin-bottom: var(--space-0-2rem); font-size: var(--font-size-1-25rem); line-height: var(--leading-1-2); white-space: normal; }
-  .public-home__install-heading p { font-size: var(--font-size-0-8rem); line-height: var(--leading-1-35); }
-  .public-home__install-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-0-35rem); }
-  .public-home__install-options article { display: block; min-width: 0; padding: var(--space-0-5rem); }
-  .public-home__install-options article > svg { margin: 0 0 var(--space-0-15rem); font-size: var(--font-size-0-9rem); }
-  .public-home__install-options h3 { margin-bottom: var(--space-0-1rem); font-size: var(--font-size-0-68rem); line-height: var(--leading-1-15); }
-  .public-home__install-options p { overflow-wrap: anywhere; font-size: var(--font-size-0-62rem); line-height: var(--leading-1-22); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .public-home__install,
-  .public-home__install.is-visible { opacity: 1; animation: none; transform: none; }
-  .public-home__typing-caret { animation: none; }
-}
+@media (prefers-reduced-motion: reduce) { .install-launcher { animation: none; } }
+@media (max-width: 760px) { .install-launcher { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); } }
+.install-modal::backdrop { background: #04091299; backdrop-filter: blur(5px); }
+.install-modal__content { position: relative; padding: 26px 22px 16px; text-align: center; background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 60%); }
+.install-modal__close { position: absolute; right: 10px; top: 10px; display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--text-muted); cursor: pointer; }
+.install-modal__close:hover { background: var(--color-bg); color: var(--text-main); }
+.install-modal__brand { position: relative; width: 80px; height: 80px; display: grid; place-items: center; margin: 0 auto 18px; border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent); border-radius: 23px; background: var(--color-bg); box-shadow: 0 8px 26px #0002; }
+.install-modal__brand img { object-fit: contain; }
+.install-modal__brand > span { position: absolute; bottom: -5px; right: -5px; display: grid; place-items: center; width: 26px; height: 26px; border: 3px solid var(--color-surface); border-radius: 50%; background: var(--color-accent); color: var(--color-surface); }
+.install-modal__eyebrow { color: var(--color-accent); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.install-modal h2 { margin: 8px 0; font-size: 22px; font-weight: 700; line-height: 1.2; letter-spacing: -.025em; }
+.install-modal p { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.55; }
+.install-modal__benefits { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 16px 0 20px; font-size: 10px; color: var(--text-muted); }
+.install-modal__benefits span { display: inline-flex; align-items: center; gap: 4px; }
+.install-modal__benefits svg { color: var(--color-accent); }
+.install-modal__install { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; padding: 11px; border: 0; border-radius: 10px; background: var(--color-accent); color: var(--color-surface); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.install-modal__install:disabled { opacity: .65; cursor: wait; }
+.install-modal h2 em { color: var(--color-accent); font-style: normal; }
+.install-modal__brand { width: 68px; height: 68px; margin-bottom: 14px; }
+.install-modal__brand img { width: 56px; height: 56px; }
+.install-modal__browsers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 14px 0; }
+.install-modal__browser { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 9px 2px; border: 1px solid var(--border-color); border-radius: 12px; background: color-mix(in srgb, var(--color-bg) 65%, transparent); color: var(--text-muted); font: inherit; font-size: 10px; cursor: pointer; transition: border-color .18s, transform .18s, background .18s; }
+.install-modal__browser > svg { font-size: 23px; }
+.install-modal__browser--chrome > svg { color: #eab344; }
+.install-modal__browser--edge > svg { color: #20bcd5; }
+.install-modal__browser--firefox > svg { color: #ff8b43; }
+.install-modal__browser--safari > svg { color: #4fafff; }
+.install-modal__browser:hover { transform: translateY(-2px); border-color: var(--color-accent); }
+.install-modal__browser[aria-pressed="true"] { border-color: var(--color-accent); color: var(--text-main); background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface)); }
+.install-modal__install > svg:last-child { margin-left: auto; }
+.install-modal__install > svg:first-child { margin-right: auto; }
+.install-modal__content--guide { padding-top: 18px; }
+.install-modal__content--guide .install-modal__brand { width: 44px; height: 44px; margin-bottom: 10px; border-radius: 14px; }
+.install-modal__content--guide .install-modal__brand img { width: 36px; height: 36px; }
+.install-modal__content--guide .install-modal__brand > span { width: 20px; height: 20px; font-size: 10px; }
+.install-modal__content--guide h2 { font-size: 23px; }
+.install-modal__guide { text-align: left; }
+.install-modal__guide ol { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.install-modal__guide li { display: flex; align-items: center; gap: 9px; padding: 10px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--color-bg); }
+.install-modal__step-number { display: grid; place-items: center; flex: 0 0 24px; height: 24px; border-radius: 8px; background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); font-size: 12px; font-weight: 700; }
+.install-modal__guide li p { flex: 1; color: var(--text-main); font-size: 12px; line-height: 1.4; }
+.install-modal__guide li > svg { flex-shrink: 0; color: var(--color-accent); }
+.install-modal__guide .install-modal__guide-note { margin-top: 10px; font-size: 10px; line-height: 1.4; }
+.install-modal__ready { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; color: var(--color-accent); font-size: 11px; }
+@media (prefers-reduced-motion: reduce) { .install-modal__browser { transition: none; } }
+.install-modal__later { margin-top: 8px; padding: 8px 18px; border: 0; background: transparent; color: var(--text-muted); font: inherit; font-size: 12px; cursor: pointer; }
+.install-modal button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.install-modal .install-modal__steps { padding: 12px; text-align: left; border: 1px solid var(--border-color); border-radius: 10px; background: var(--color-bg); }
+.install-modal__timeout { margin-top: 8px; color: var(--text-muted); font-size: 9px; }
+.install-modal__timeout i { display: block; height: 2px; margin-top: 10px; border-radius: 2px; background: var(--color-accent); opacity: .35; transform-origin: left; animation: install-countdown 12s linear forwards; }
+@keyframes install-countdown { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .install-modal__timeout i { animation: none; } }
