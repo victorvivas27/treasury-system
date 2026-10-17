@@ -177,7 +177,7 @@ describe('Sidebar Component', () => {
     });
   });
 
-  it('[Sidebar #08.3] Cierra automáticamente el submenú de Tesorería', () => {
+  it('[Sidebar #08.3] Mantiene abierto el submenú de Tesorería sin temporizador', () => {
     vi.useFakeTimers();
     try {
       renderWithRouter(<SidebarNav role="ADMIN" onNavLinkClick={mockNavLinkClick} />);
@@ -187,8 +187,8 @@ describe('Sidebar Component', () => {
       expect(screen.getByRole('link', { name: 'Cuotas' })).toBeInTheDocument();
       act(() => vi.advanceTimersByTime(6000));
 
-      expect(screen.queryByRole('link', { name: 'Cuotas' })).not.toBeInTheDocument();
-      expect(treasuryButton).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.getByRole('link', { name: 'Cuotas' })).toBeInTheDocument();
+      expect(treasuryButton).toHaveAttribute('aria-expanded', 'true');
     } finally {
       vi.useRealTimers();
     }

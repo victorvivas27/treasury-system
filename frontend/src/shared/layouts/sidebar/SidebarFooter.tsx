@@ -16,10 +16,12 @@ import "./style/SidebarFooter.css";
 
 interface SidebarFooterProps {
   onNavLinkClick?: () => void;
+  isCollapsed?: boolean;
 }
 
 export const SidebarFooter: FC<SidebarFooterProps> = ({
   onNavLinkClick,
+  isCollapsed = true,
 }) => {
   const auth = useOptionalAuth();
   const notifications = useOptionalNotifications();
@@ -82,7 +84,7 @@ export const SidebarFooter: FC<SidebarFooterProps> = ({
                     {link.label}
                   </span>
 
-                  <Tooltip
+                  <Tooltip disabled={!isCollapsed}
                     content={link.label}
                     position="right"
                     className="sidebar-icon-tooltip"
@@ -125,7 +127,7 @@ export const SidebarFooter: FC<SidebarFooterProps> = ({
           </span>
         </div>
 
-        <Tooltip
+        <Tooltip disabled={!isCollapsed}
           content="Mi perfil"
           position="right"
           className="sidebar-icon-tooltip"

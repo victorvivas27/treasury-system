@@ -16,8 +16,6 @@ import {
 import {
   useEffect,
   useState,
-  useRef,
-  type FocusEvent,
 } from "react";
 
 import type {
@@ -40,6 +38,7 @@ import {
 interface SidebarNavProps {
   onNavLinkClick: () => void;
   role?: UserRole;
+  isCollapsed?: boolean;
 }
 
 
@@ -68,12 +67,12 @@ const USER_TREASURY_PATHS = new Set([
 ]);
 
 
-const MENU_AUTO_CLOSE_MS = 6000;
 
 
 export const SidebarNav = ({
   onNavLinkClick,
   role,
+  isCollapsed = true,
 }: SidebarNavProps) => {
   const auth = useOptionalAuth();
 
@@ -84,33 +83,12 @@ export const SidebarNav = ({
   const location = useLocation();
   type MenuGroup = "management" | "academic" | "treasury";
   const [openGroup, setOpenGroup] = useState<MenuGroup | null>(null);
-  const [hoveredGroup, setHoveredGroup] = useState<MenuGroup | null>(null);
-  const [focusedGroup, setFocusedGroup] = useState<MenuGroup | null>(null);
-  const remainingTime = useRef(MENU_AUTO_CLOSE_MS);
-  const timedGroup = useRef<MenuGroup | null>(null);
   const isManagementOpen = openGroup === "management";
   const isAcademicOpen = openGroup === "academic";
   const isTreasuryOpen = openGroup === "treasury";
-  const isPaused = openGroup !== null && (hoveredGroup === openGroup || focusedGroup === openGroup);
-
   const toggleGroup = (group: MenuGroup) => {
-    setFocusedGroup(document.activeElement?.closest(`.sidebar-nav-section--${group}`) ? group : null);
     setOpenGroup(current => current === group ? null : group);
   };
-
-  const groupInteraction = (group: MenuGroup) => ({
-    onPointerEnter: () => setHoveredGroup(group),
-    onPointerLeave: () => setHoveredGroup(null),
-    onFocus: () => setFocusedGroup(group),
-    onBlur: (event: FocusEvent<HTMLLIElement>) => {
-      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusedGroup(null);
-    },
-  });
-
-  const renderTimer = () => <svg className="sidebar-treasury-timer" viewBox="0 0 48 48" aria-hidden="true">
-    <circle cx="24" cy="24" r="22" pathLength="100"
-      style={{ animationPlayState: isPaused ? "paused" : "running" }} />
-  </svg>;
 
   useEffect(() => {
     if (!openGroup) return;
@@ -183,23 +161,6 @@ export const SidebarNav = ({
   };
 
 
-  /* =========================================================
-     AUTO CLOSE TESORERÍA
-     ========================================================= */
-
-  useEffect(() => {
-    if (timedGroup.current !== openGroup) {
-      timedGroup.current = openGroup;
-      remainingTime.current = MENU_AUTO_CLOSE_MS;
-    }
-    if (!openGroup || isPaused) return;
-    const startedAt = performance.now();
-    const timer = window.setTimeout(() => setOpenGroup(null), remainingTime.current);
-    return () => {
-      window.clearTimeout(timer);
-      remainingTime.current = Math.max(0, remainingTime.current - (performance.now() - startedAt));
-    };
-  }, [openGroup, isPaused]);
 
 
   /* =========================================================
@@ -254,7 +215,7 @@ export const SidebarNav = ({
                       {link.label}
                     </span>
 
-                    <Tooltip
+                    <Tooltip disabled={!isCollapsed}
                       content={link.label}
                       position="right"
                       className="sidebar-icon-tooltip"
@@ -272,7 +233,6 @@ export const SidebarNav = ({
               sidebar-nav-section
               sidebar-nav-section--management
             "
-            {...groupInteraction("management")}
           >
             <button
               type="button"
@@ -296,8 +256,6 @@ export const SidebarNav = ({
                 <ICONS.crearFamilia
                   className="sidebar-nav-icon"
                 />
-
-                {isManagementOpen && renderTimer()}
               </span>
 
               <span className="sidebar-nav-label">
@@ -314,7 +272,7 @@ export const SidebarNav = ({
                 aria-hidden="true"
               />
 
-              <Tooltip
+              <Tooltip disabled={!isCollapsed}
                 content="Gestión"
                 position="right"
                 className="sidebar-icon-tooltip"
@@ -351,11 +309,7 @@ export const SidebarNav = ({
 
                         <span>{link.label}</span>
 
-                        <Tooltip
-                          content={link.label}
-                          position="right"
-                          className="sidebar-icon-tooltip"
-                        />
+
                       </NavLink>
                     </li>
                   );
@@ -365,7 +319,7 @@ export const SidebarNav = ({
           </li>
         )}
 
-        {currentRole && <li className="sidebar-nav-section sidebar-nav-section--academic" {...groupInteraction("academic")}>
+        {currentRole && <li className="sidebar-nav-section sidebar-nav-section--academic">
           <button type="button"
             className={["sidebar-nav-link-item", "sidebar-nav-parent",
               location.pathname.startsWith("/calendario") && "active", isAcademicOpen && "is-open"].filter(Boolean).join(" ")}
@@ -373,22 +327,21 @@ export const SidebarNav = ({
             onClick={() => toggleGroup("academic")}>
             <span className="sidebar-treasury-icon-wrap" aria-hidden="true">
               <FiCalendar className="sidebar-nav-icon" />
-              {isAcademicOpen && renderTimer()}
             </span>
             <span className="sidebar-nav-label">Calendario Académico</span>
             <ICONS.expand className={["sidebar-nav-chevron", isAcademicOpen && "is-open"].filter(Boolean).join(" ")} aria-hidden="true" />
-            <Tooltip content="Calendario Académico" position="right" className="sidebar-icon-tooltip" />
+            <Tooltip disabled={!isCollapsed} content="Calendario Académico" position="right" className="sidebar-icon-tooltip" />
           </button>
           {isAcademicOpen && <ul id="academic-submenu" className="sidebar-submenu">
             <li><NavLink to="/calendario/horario-clases"
               className={({ isActive }) => ["sidebar-submenu-link", isActive && "active"].filter(Boolean).join(" ")}
               onClick={handleClick}>
               <FiCalendar className="sidebar-submenu-icon" aria-hidden="true" /><span>Horario de clases</span>
-              <Tooltip content="Horario de clases" position="right" className="sidebar-icon-tooltip" />
+
             </NavLink></li>
             <li><span className="sidebar-submenu-link" aria-disabled="true">
               <FiCalendar className="sidebar-submenu-icon" aria-hidden="true" /><span>Evaluaciones · Próximamente</span>
-              <Tooltip content="Evaluaciones · Próximamente" position="right" className="sidebar-icon-tooltip" />
+
             </span></li>
           </ul>}
         </li>}
@@ -404,7 +357,6 @@ export const SidebarNav = ({
               sidebar-nav-section
               sidebar-nav-section--treasury
             "
-            {...groupInteraction("treasury")}
           >
             {/* ===============================================
                 BOTÓN PADRE TESORERÍA
@@ -441,8 +393,6 @@ export const SidebarNav = ({
                 <ICONS.tesoreria
                   className="sidebar-nav-icon"
                 />
-
-                {isTreasuryOpen && renderTimer()}
               </span>
 
 
@@ -475,7 +425,7 @@ export const SidebarNav = ({
                   TOOLTIP
                   ============================================= */}
 
-              <Tooltip
+              <Tooltip disabled={!isCollapsed}
                 content="Tesorería"
                 position="right"
                 className="sidebar-icon-tooltip"
@@ -532,11 +482,7 @@ export const SidebarNav = ({
                             {label}
                           </span>
 
-                          <Tooltip
-                            content={label}
-                            position="right"
-                            className="sidebar-icon-tooltip"
-                          />
+
                         </NavLink>
                       </li>
                     );

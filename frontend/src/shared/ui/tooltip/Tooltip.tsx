@@ -6,6 +6,7 @@ type TooltipPosition = "top" | "right" | "bottom" | "left" | "bottom-right";
 
 type TooltipProps = {
   content: string;
+  disabled?: boolean;
   position?: TooltipPosition;
   className?: string;
 };
@@ -16,7 +17,7 @@ const CLICK_VISIBLE_TIME = 2000;
 const tooltipDisabledForDevice = () => typeof window.matchMedia === "function"
   && window.matchMedia("(max-width: 680px), (hover: none), (pointer: coarse)").matches;
 
-export const Tooltip = ({ content, position = "top", className = "" }: TooltipProps) => {
+export const Tooltip = ({ content, position = "top", className = "", disabled = false }: TooltipProps) => {
   const markerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
@@ -52,7 +53,8 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
 
   useEffect(() => {
     const anchor = markerRef.current?.parentElement;
-    if (!anchor) return;
+    if (!anchor || disabled) return;
+    setVisible(false);
     let hideTimeout: ReturnType<typeof setTimeout> | undefined;
     let hovered = false;
     const clearHideTimeout = () => {
@@ -96,10 +98,10 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
       anchor.removeEventListener("mouseleave", hideOnLeave);
       anchor.removeEventListener("click", showTemporarily);
     };
-  }, []);
+  }, [disabled]);
 
   useLayoutEffect(() => {
-    if (!visible) return;
+    if (!visible || disabled) return;
     updatePosition();
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
@@ -107,11 +109,11 @@ export const Tooltip = ({ content, position = "top", className = "" }: TooltipPr
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [updatePosition, visible]);
+  }, [updatePosition, visible, disabled]);
 
   return <>
     <span ref={markerRef} className="ui-tooltip__marker" aria-hidden="true" />
-    {visible && createPortal(
+    {visible && !disabled && createPortal(
       <span ref={tooltipRef} className={`ui-tooltip ui-tooltip--${position} ${className}`.trim()}
         style={coordinates} role="tooltip">{content}</span>,
       document.body,
