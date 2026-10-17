@@ -9,8 +9,9 @@ import "./style/SidebarHeader.css";
 type SidebarHeaderProps = {
   onToggleSidebar: () => void;
   isLocked: boolean;
+  isCollapsed?: boolean;
 };
-export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps) => {
+export const SidebarHeader = ({ onToggleSidebar, isLocked, isCollapsed = true }: SidebarHeaderProps) => {
   return (
     <>
       <button
@@ -28,7 +29,7 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
       <Link className="sidebar-brand-header" to="/" aria-label="Ir a la página de inicio">
         <BrandLogo className="sidebar-brand-icon" />
         <span className="sidebar-brand-name">Home</span>
-        <Tooltip content="Inicio" position="right" className="sidebar-icon-tooltip" />
+        <Tooltip disabled={!isCollapsed} content="Inicio" position="right" className="sidebar-icon-tooltip" />
       </Link>
 
       <button type="button" className="sidebar-improvement-button"
@@ -36,7 +37,7 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked }: SidebarHeaderProps)
         onClick={() => window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT))}>
         <IoBulbOutline aria-hidden="true" />
         <span>Mejoras</span>
-        <Tooltip content="Centro de Mejoras" position="right" className="sidebar-icon-tooltip" />
+        <Tooltip disabled={!isCollapsed} content="Centro de Mejoras" position="right" className="sidebar-icon-tooltip" />
       </button>
     </>
   );

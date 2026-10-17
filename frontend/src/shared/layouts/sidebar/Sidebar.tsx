@@ -17,10 +17,11 @@ export const Sidebar: FC<SidebarProps> = ({ isSidebarOpen, isLocked, onToggleSid
     <aside className={`sidebar flex-col ${!isSidebarOpen ? "sidebar--collapsed" : ""}`}>
       <SidebarHeader
         isLocked={isLocked}
+        isCollapsed={!isSidebarOpen}
         onToggleSidebar={onToggleSidebar}
       />
-      <SidebarNav onNavLinkClick={onNavLinkClick}/>
-      <SidebarFooter onNavLinkClick={onNavLinkClick} />
+      <SidebarNav onNavLinkClick={onNavLinkClick} isCollapsed={!isSidebarOpen} />
+      <SidebarFooter onNavLinkClick={onNavLinkClick} isCollapsed={!isSidebarOpen} />
     </aside>
   );
 };

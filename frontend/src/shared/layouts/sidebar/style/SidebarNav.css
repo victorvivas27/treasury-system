@@ -44,7 +44,9 @@
 
   width: 100%;
 
-  padding: clamp(var(--space-0-25rem), var(--space-1-2vh), var(--space-0-6rem)) 0;
+  box-sizing: border-box;
+  height: var(--sidebar-row-height);
+  padding: 0;
   gap: 0;
 
   color: var(--sidebar-text);
@@ -164,17 +166,6 @@
    9. WRAPPER DEL ICONO + LOADER DE TESORERÍA
    ========================================================= */
 
-/*
- * IMPORTANTE:
- *
- * Este wrapper NO usa var(--lg), porque también contiene
- * el loader circular.
- *
- * El wrapper define el diámetro del loader.
- *
- * El icono de Tesorería sigue usando var(--lg).
- */
-
 .sidebar-treasury-icon-wrap {
   position: relative;
 
@@ -214,66 +205,6 @@
   line-height: 1;
 
   margin: 0;
-}
-
-
-/* =========================================================
-   11. LOADER / TIMER DE TESORERÍA
-   ========================================================= */
-
-/*
- * El loader ocupa el 100% del wrapper.
- *
- * Para cambiar el tamaño del loader:
- *
- * cambiar 3rem en .sidebar-treasury-icon-wrap
- */
-
-.sidebar-treasury-timer {
-  position: absolute;
-
-  inset: 0;
-
-  z-index: 1;
-
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  overflow: visible;
-
-  pointer-events: none;
-
-  transform: rotate(-90deg);
-}
-
-.sidebar-treasury-timer circle {
-  fill: none;
-
-  stroke: var(--color-warning);
-
-  stroke-width: 2;
-  stroke-linecap: round;
-
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-
-  filter:
-    drop-shadow(
-      0 0 var(--effect-size-3px)
-      color-mix(
-        in srgb,
-        var(--color-warning) 55%,
-        transparent
-      )
-    );
-
-  animation:
-    sidebar-treasury-timer
-    var(--duration-6000ms)
-    var(--easing-linear)
-    forwards;
 }
 
 
@@ -602,17 +533,6 @@
 
 
 /* =========================================================
-   26. ANIMACIÓN DEL TIMER
-   ========================================================= */
-
-@keyframes sidebar-treasury-timer {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-
-/* =========================================================
    27. REDUCED MOTION
    ========================================================= */
 
@@ -621,10 +541,6 @@
     animation: none;
   }
 
-  .sidebar-treasury-timer circle {
-    animation-timing-function:
-      steps(20, end);
-  }
 }
 
 

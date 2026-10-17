@@ -28,7 +28,9 @@
 
   width: var(--wh-100);
 
-  padding: clamp(var(--space-0-2rem), var(--space-1vh), var(--xs)) 0;
+  box-sizing: border-box;
+  height: var(--sidebar-row-height);
+  padding: 0;
   gap: 0;
 
   color: var(--sidebar-text);

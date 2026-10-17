@@ -22,62 +22,25 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("Shared sidebar group interaction", () => {
-  it("switches immediately during animation and gives each new group six seconds", () => {
+  it("switches between groups without a countdown circle", () => {
     const { button, container } = setup();
     for (const group of [...groups, "management"] as const) {
       fireEvent.pointerDown(button(group));
       fireEvent.click(button(group));
       expect(button(group)).toHaveAttribute("aria-expanded", "true");
       expect(container.querySelectorAll(".sidebar-submenu")).toHaveLength(1);
-      expect(container.querySelectorAll(".sidebar-treasury-timer")).toHaveLength(1);
-      advance(2500);
+      expect(container.querySelector(".sidebar-treasury-timer")).toBeNull();
     }
-    advance(3499);
-    expect(button("management")).toHaveAttribute("aria-expanded", "true");
-    advance(1);
-    expect(button("management")).toHaveAttribute("aria-expanded", "false");
   });
 
-  it.each(groups)("%s closes after six seconds of inactivity", group => {
-    const { button } = setup();
-    fireEvent.click(button(group));
-    advance(5999);
-    expect(button(group)).toHaveAttribute("aria-expanded", "true");
-    advance(1);
-    expect(button(group)).toHaveAttribute("aria-expanded", "false");
-  });
-
-  it.each(groups)("%s pauses over the whole group and resumes remaining time", group => {
-    const { button, section } = setup();
-    fireEvent.click(button(group));
-    advance(2000);
-    fireEvent.pointerEnter(section(group));
-    expect(section(group).querySelector("circle")).toHaveStyle({ animationPlayState: "paused" });
-    advance(10000);
-    expect(button(group)).toHaveAttribute("aria-expanded", "true");
-    fireEvent.pointerLeave(section(group));
-    expect(section(group).querySelector("circle")).toHaveStyle({ animationPlayState: "running" });
-    advance(3999);
-    expect(button(group)).toHaveAttribute("aria-expanded", "true");
-    advance(1);
-    expect(button(group)).toHaveAttribute("aria-expanded", "false");
-  });
-
-  it.each(groups)("%s stays paused until both pointer and keyboard leave", group => {
+  it.each(groups)("%s stays open after inactivity and pointer leave", group => {
     const { button, section } = setup();
     fireEvent.click(button(group));
     fireEvent.pointerEnter(section(group));
-    act(() => button(group).focus());
     fireEvent.pointerLeave(section(group));
-    advance(10000);
+    advance(60000);
     expect(button(group)).toHaveAttribute("aria-expanded", "true");
-    const link = section(group).querySelector<HTMLAnchorElement>("a")!;
-    act(() => link.focus());
-    advance(10000);
-    expect(button(group)).toHaveAttribute("aria-expanded", "true");
-    act(() => link.blur());
-    advance(6000);
-    expect(button(group)).toHaveAttribute("aria-expanded", "false");
+    expect(section(group).querySelector("circle")).toBeNull();
   });
 
   it.each(groups)("%s supports keyboard opening, Tab, Escape and focus restoration", async group => {
@@ -122,7 +85,7 @@ describe("Shared sidebar group interaction", () => {
     expect(nav).not.toHaveClass("sidebar-nav--group-open");
   });
 
-  it("cleans up the timer when unmounted", () => {
+  it("cleans up event listeners when unmounted", () => {
     const { button, unmount } = setup();
     fireEvent.click(button("treasury"));
     unmount();
