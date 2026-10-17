@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.0](https://github.com/victorvivas27/treasury-system/compare/v1.22.0...v1.23.0) (2026-10-17)
+
+
+### Features
+
+* enhance sidebar and schedule components with improved tooltip and sticky behavior ([37d6d60](https://github.com/victorvivas27/treasury-system/commit/37d6d608112c143f0434ab6255af67537599c729))
+* enhance sidebar and schedule components with improved tooltip and sticky behavior ([d2946ed](https://github.com/victorvivas27/treasury-system/commit/d2946ed92546abbfa77e2a42d2c58841bcf30ff0))
+
 ## [1.22.0](https://github.com/victorvivas27/treasury-system/compare/v1.21.0...v1.22.0) (2026-10-17)
 
 
