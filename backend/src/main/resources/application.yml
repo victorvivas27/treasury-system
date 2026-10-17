@@ -65,3 +65,19 @@ app:
     public-key: ${WEB_PUSH_PUBLIC_KEY:}
     private-key: ${WEB_PUSH_PRIVATE_KEY:}
     subject: ${WEB_PUSH_SUBJECT:mailto:tesoreria@example.com}
+
+  whatsapp:
+    enabled: ${WHATSAPP_ENABLED:false}
+    mode: ${WHATSAPP_MODE:test}
+    provider: ${WHATSAPP_PROVIDER:mock}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    business-account-id: ${WHATSAPP_BUSINESS_ACCOUNT_ID:}
+    template-invitation: ${WHATSAPP_TEMPLATE_INVITATION:}
+    template-language: ${WHATSAPP_TEMPLATE_LANGUAGE:es_CL}
+    api-version: ${WHATSAPP_API_VERSION:}
+    public-url: ${APP_PUBLIC_URL:}
+    test-recipients: ${WHATSAPP_TEST_RECIPIENTS:}
+    app-secret: ${WHATSAPP_APP_SECRET:}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+    invitation-hours: ${WHATSAPP_INVITATION_HOURS:24}

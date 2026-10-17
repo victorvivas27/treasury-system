@@ -50,6 +50,10 @@ export class AuthRepositoryImpl implements IAuthRepository {
       .data;
   }
 
+  async validateInvitation(token: string): Promise<void> {
+    await apiClient.post(`${this.baseUrl}/validate-invitation`, { token });
+  }
+
   async resetPassword(token: string, newPassword: string): Promise<string> {
     return (await apiClient.post<{ message: string }>(`${this.baseUrl}/reset-password`,
       { token, newPassword })).data.message;

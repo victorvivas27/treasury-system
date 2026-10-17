@@ -39,6 +39,7 @@ import java.util.UUID;
 
 @Service
 public class AccountRecoveryService {
+    private static final String WHATSAPP_CHANNEL = "WHATSAPP";
     private static final int UNIQUE_ACCOUNT_COUNT = 1;
     private static final String GENERIC_VERIFICATION =
             "Si el correo corresponde a una cuenta pendiente, recibirás un nuevo enlace de verificación.";
@@ -93,6 +94,12 @@ public class AccountRecoveryService {
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public User inviteGuardian(Long guardianId) {
+        return inviteGuardian(guardianId, null, 24 * 60);
+    }
+
+    @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public User inviteGuardian(Long guardianId, java.util.function.Consumer<GuardianInvitation> delivery, long minutes) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || authentication.getAuthorities().stream().noneMatch(a ->
@@ -124,12 +131,12 @@ public class AccountRecoveryService {
                         "El apoderado debe estar activo y registrado en el curso de la sesión."));
         String normalized = normalize(guardian.getEmail());
         User user = users.findByCorreoAndOrganizationId(normalized, organizationId).orElseGet(() -> {
-            String temporaryPassword = "Tmp!" + UUID.randomUUID() + "aA1";
+            // Disabled account has no usable password until the invitation is accepted.
+            String disabledHash = "$2a$10$" + ".".repeat(53);
             User invited = new User(null,
                     "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT),
-                    guardian.getNombre(), normalized, temporaryPassword, RoleEnum.USER,
+                    guardian.getNombre(), normalized, disabledHash, RoleEnum.USER,
                     false, true, null, LocalDateTime.now(), LocalDateTime.now());
-            invited.setPassword(passwordEncoder.encode(temporaryPassword));
             invited.setOrganizationId(organizationId);
             invited.setInvitedGuardianId(guardianId);
             return users.save(invited);
@@ -148,9 +155,16 @@ public class AccountRecoveryService {
         user.setInvitedGuardianId(guardianId);
         user.setEnabled(false);
         user = users.save(user);
-        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true, guardian);
-        requireDelivery(sendPasswordReset(user,
-                frontendUrl + "/aceptar-invitacion?token=" + rawToken));
+        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, minutes, true, guardian);
+        if (delivery == null) {
+            requireDelivery(sendPasswordReset(user, frontendUrl + "/aceptar-invitacion?token=" + rawToken));
+        } else {
+            UserTokenEntity invitationToken = tokens.findByTokenHashAndType(hash(rawToken), UserTokenType.ACCOUNT_INVITATION)
+                    .orElseThrow(this::invalidToken);
+            invitationToken.setInvitationChannel(WHATSAPP_CHANNEL);
+            tokens.save(invitationToken);
+            delivery.accept(new GuardianInvitation(user, guardian, rawToken, hash(rawToken)));
+        }
         return user;
     }
 
@@ -254,7 +268,9 @@ public class AccountRecoveryService {
         tokens.save(token);
         tokens.markAllUsed(token.getUserId(), token.getType(), token.getUsedAt());
         sessions.revokeAllForUser(user.getId());
-        requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
+        boolean notified = sendPasswordChanged(user, LocalDateTime.now());
+        // A WhatsApp invitation must not depend on mailbox delivery to activate the account.
+        if (!WHATSAPP_CHANNEL.equals(token.getInvitationChannel())) requireDelivery(notified);
     }
 
     @Transactional
@@ -388,6 +404,18 @@ public class AccountRecoveryService {
         }
         tokens.save(token);
         return raw;
+    }
+
+    public record GuardianInvitation(User user, ApoderadoEntity guardian, String rawToken, String tokenHash) {
+        @Override public String toString() { return "GuardianInvitation[redacted]"; }
+    }
+
+    @Transactional
+    public void validateInvitation(String rawToken) {
+        UserTokenEntity token = validToken(rawToken, UserTokenType.ACCOUNT_INVITATION);
+        User user = users.findById(token.getUserId()).orElseThrow(this::invalidToken);
+        requireInvitationMembership(token, user);
+        if (Boolean.TRUE.equals(user.getEnabled())) throw invalidToken();
     }
 
     private UserTokenEntity validToken(String rawToken, UserTokenType type) {

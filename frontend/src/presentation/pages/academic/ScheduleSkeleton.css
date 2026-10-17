@@ -8,7 +8,7 @@
 }
 
 .schedule-skeleton-agenda,
-.schedule-skeleton-card,
+.schedule-skeleton-editor-block,
 .schedule-skeleton .schedule-table-scroll {
   position: relative;
   overflow: hidden;
@@ -16,7 +16,7 @@
 }
 
 .schedule-skeleton-agenda::after,
-.schedule-skeleton-card::after,
+.schedule-skeleton-editor-block::after,
 .schedule-skeleton .schedule-table-scroll::after {
   content: "";
   position: absolute;
@@ -28,10 +28,6 @@
   animation: schedule-skeleton-sweep 2.4s ease-in-out infinite;
 }
 
-.schedule-skeleton-heading { flex: 1; min-width: 0; }
-.schedule-skeleton-card h2 > svg { flex-shrink: 0; width: 1rem; height: 1rem; padding: .25rem; border-radius: 50%; background: color-mix(in srgb, #2196f3 11%, var(--color-surface)); }
-.schedule-skeleton-overview { display: flex; align-items: center; gap: .5rem; min-height: .85rem; }
-.schedule-skeleton-day { margin-top: 0; }
 .schedule-skeleton-table-times { display: grid; gap: .5rem; margin: .85rem 0; }
 .schedule-skeleton-cell { display: grid; gap: .4rem; min-height: 2.5rem; padding: .35rem .4rem; border: 1px solid var(--border-color); border-left-width: 3px; border-radius: .4rem; }
 
@@ -42,7 +38,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .schedule-skeleton-agenda::after,
-.schedule-skeleton-card::after,
+  .schedule-skeleton-editor-block::after,
   .schedule-skeleton .schedule-table-scroll::after { animation: none; display: none; }
 }
 
@@ -52,3 +48,7 @@
   .schedule-skeleton .schedule-skeleton-icon { width: 28px; height: 28px; }
   .schedule-skeleton .schedule-agenda--compact .schedule-skeleton-icon { width: 26px; height: 26px; }
 }
+
+.schedule-skeleton-selector > span { display: grid; place-items: center; min-width: 0; min-height: 44px; }
+.schedule-skeleton-editor .schedule-skeleton-editor-block { --schedule-type-color: var(--text-muted); }
+.schedule-skeleton-time-field { display: grid; gap: .3rem; min-width: 0; margin-block: .4rem; }

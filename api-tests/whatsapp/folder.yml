@@ -1,0 +1,8 @@
+info:
+  name: WhatsApp - pruebas manuales autorizadas
+  type: folder
+  seq: 34
+request:
+  auth:
+    type: bearer
+    token: "{{adminToken}}"

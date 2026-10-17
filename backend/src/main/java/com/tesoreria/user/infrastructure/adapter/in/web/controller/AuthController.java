@@ -198,6 +198,17 @@ public class AuthController {
                 recoveryOrganizationOptions(result.organizationIds())));
     }
 
+    public record InvitationValidation(@jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(max = 256) String token) {
+        @Override public String toString() { return "InvitationValidation[redacted]"; }
+    }
+
+    @PostMapping("/validate-invitation")
+    public ResponseEntity<Void> validateInvitation(@Valid @RequestBody InvitationValidation request) {
+        accountRecoveryService.validateInvitation(request.token());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/reset-password")
     public ResponseEntity<MessageResponseDTO> resetPassword(
             @Valid @RequestBody ResetPasswordRequestDTO request) {

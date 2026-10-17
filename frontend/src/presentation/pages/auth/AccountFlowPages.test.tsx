@@ -5,11 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 import { ResetPasswordPage, VerifyEmailPage } from "./AccountFlowPages";
 
 const verifyEmail = vi.hoisted(() => vi.fn());
+const validateInvitation = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const resetPassword = vi.hoisted(() => vi.fn());
 const establishSession = vi.hoisted(() => vi.fn());
 
 vi.mock("@/core/C-infra/repositories/auth/AuthRepositoryImpl", () => ({
-  AuthRepositoryImpl: class { verifyEmail = verifyEmail; resetPassword = resetPassword; },
+  AuthRepositoryImpl: class { validateInvitation = validateInvitation; verifyEmail = verifyEmail; resetPassword = resetPassword; },
 }));
 
 vi.mock("@/presentation/context/AuthContext", () => ({
@@ -25,11 +26,21 @@ describe("VerifyEmailPage", () => {
     </MemoryRouter>);
     expect(screen.getByRole("heading", { name: "Aceptar invitación" })).toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Nueva contraseña"), { target: { value: "Invited1!" } });
+    fireEvent.change(await screen.findByLabelText("Nueva contraseña"), { target: { value: "Invited1!" } });
     fireEvent.change(screen.getByLabelText("Repite tu contraseña"), { target: { value: "Invited1!" } });
-    fireEvent.click(screen.getByRole("button", { name: "Actualizar contraseña" }));
+    fireEvent.click(screen.getByRole("button", { name: "Activar mi cuenta" }));
     await waitFor(() => expect(resetPassword).toHaveBeenCalledWith("invitation-test", "Invited1!"));
     resetPassword.mockClear();
+  });
+
+  it("valida el token en fragmento y no ofrece formulario si ya fue usado", async () => {
+    validateInvitation.mockRejectedValueOnce(new Error("used"));
+    render(<MemoryRouter initialEntries={["/aceptar-invitacion#token=used-token"]}>
+      <ResetPasswordPage invitation />
+    </MemoryRouter>);
+    await waitFor(() => expect(validateInvitation).toHaveBeenCalledWith("used-token"));
+    expect(await screen.findByText(/No fue posible actualizar/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Nueva contrase\u00f1a")).not.toBeInTheDocument();
   });
 
   it("exige contraseñas iguales antes de restablecer y permite corregirlas", async () => {
