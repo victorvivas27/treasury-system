@@ -86,7 +86,7 @@ export const CrearApoderadoForm = () => {
             className={`form-input-apoderado ${fieldErrors.email ?
               'input-error-apoderado input-error' : ''}`}
           />
-          <label htmlFor="email_input" className="floating-label-apoderado">
+          <label htmlFor="email_input" className="floating-label-apoderado form-label-apoderado">
             Email
           </label>
           {fieldErrors.email && (

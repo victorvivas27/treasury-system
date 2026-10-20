@@ -25,6 +25,8 @@ import {
 import "./ExpensesPage.css";
 import "./IncomesPage.css";
 import "./IncomesSkeleton.css";
+import "./TreasuryMovementFilters.css";
+import { MovementFilterSelect } from "./MovementFilterSelect";
 
 const repository = new TreasuryRepositoryImpl();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
@@ -328,57 +330,52 @@ export const IncomesPage = () => {
           <option value="ALL">Todos</option><option value="FEES">Cuotas</option><option value="OTHER">Otros ingresos</option>
         </select>
       </label>
-      <button type="button" className="income-filter-trigger" onClick={() => setFiltersOpen(true)}>
+      <button type="button" className="income-filter-trigger" aria-haspopup="dialog" aria-controls="income-filters" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(true)}>
         <FiFilter aria-hidden="true" /> Filtros
         {activeFilters > 0 && <span>{activeFilters}</span>}
       </button>
     </div>
-    {filtersOpen && <div className="income-filter-backdrop"
+    {filtersOpen && <div className="income-filter-backdrop movement-filter-backdrop"
       onClick={() => setFiltersOpen(false)}>
-    <aside className="expenses-filters" aria-label="Filtros de ingresos" role="dialog"
+    <aside id="income-filters" className="expenses-filters" aria-label="Filtros de ingresos" role="dialog"
       aria-modal="true" onClick={event => event.stopPropagation()}>
       <header><div><FiFilter aria-hidden="true" /><h2>Filtros</h2></div>
         <button type="button" aria-label="Cerrar filtros"
           onClick={() => setFiltersOpen(false)}><FiX /></button></header>
-      <label className="income-filter-search"><span>Buscar</span>
+      <label className="income-filter-search movement-filter-search"><span>Buscar</span>
         <input placeholder="Descripción, origen o comprobante"
         value={filters.search ?? ""} onChange={(e) => setFilter("search", e.target.value)} /></label>
-      <label><span>Año</span><select value={year} onChange={(e) => setYear(Number(e.target.value))}>
-        {years.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label><span>Mes</span><select value={filters.month ?? ""}
-        onChange={(e) => setFilter("month", e.target.value ? Number(e.target.value) : undefined)}>
-        <option value="">Todos</option>{Array.from({ length: 12 }, (_, index) =>
-          <option value={index + 1} key={index}>{new Intl.DateTimeFormat("es-CL",
-            { month: "long" }).format(new Date(2026, index, 1))}</option>)}</select></label>
+      <MovementFilterSelect label="Año" value={String(year)}
+        options={years.map(item => ({ value: String(item), label: String(item) }))}
+        onChange={value => setYear(Number(value))} />
+      <MovementFilterSelect label="Mes" value={String(filters.month ?? "")} placeholder="Todos"
+        options={Array.from({ length: 12 }, (_, index) => ({ value: String(index + 1),
+          label: new Intl.DateTimeFormat("es-CL", { month: "long" }).format(new Date(2026, index, 1)) }))}
+        onChange={value => setFilter("month", value ? Number(value) : undefined)} />
       <label><span>Desde</span><input type="date" value={filters.dateFrom ?? ""}
         onChange={(e) => setFilter("dateFrom", e.target.value)} /></label>
       <label><span>Hasta</span><input type="date" value={filters.dateTo ?? ""}
         onChange={(e) => setFilter("dateTo", e.target.value)} /></label>
-      <label><span>Categoría</span><select value={filters.category ?? ""}
-        onChange={(e) => setFilter("category", e.target.value as IncomeCategory)}>
-        <option value="">Todas</option>{INCOME_CATEGORIES.map((item) =>
-          <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
+      <MovementFilterSelect label="Categoría" value={filters.category ?? ""} placeholder="Todas"
+        options={INCOME_CATEGORIES} onChange={value => setFilter("category", value as IncomeCategory)} />
       <label><span>Curso</span><input value={filters.course ?? ""}
         onChange={(e) => setFilter("course", e.target.value)} /></label>
-      <label><span>Medio</span><select value={filters.paymentMethod ?? ""}
-        onChange={(e) => setFilter("paymentMethod", e.target.value as IncomeFilters["paymentMethod"])}>
-        <option value="">Todos</option>{INCOME_PAYMENT_METHODS.map((item) =>
-          <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
-      <label><span>Registrado por</span><select value={filters.registeredBy ?? ""}
-        onChange={(e) => setFilter("registeredBy", e.target.value)}>
-        <option value="">Todos</option>{registeredUsers.map((name) =>
-          <option key={name}>{name}</option>)}</select></label>
-      <label><span>Ordenar</span><select value={filters.sort}
-        onChange={(e) => setFilter("sort", e.target.value as IncomeFilters["sort"])}>
-        <option value="DATE_DESC">Fecha más reciente</option><option value="DATE_ASC">Fecha más antigua</option>
-        <option value="AMOUNT_DESC">Monto mayor</option><option value="AMOUNT_ASC">Monto menor</option>
-        <option value="DESCRIPTION">Descripción</option><option value="CATEGORY">Categoría</option>
-      </select></label>
-      <footer className="income-filter-actions">
-        <button type="button" className="income-filter-clear" onClick={() =>
+      <MovementFilterSelect label="Medio" value={filters.paymentMethod ?? ""} placeholder="Todos"
+        options={INCOME_PAYMENT_METHODS} onChange={value => setFilter("paymentMethod", value as IncomeFilters["paymentMethod"])} />
+      <MovementFilterSelect label="Registrado por" value={filters.registeredBy ?? ""} placeholder="Todos"
+        options={registeredUsers.map(name => ({ value: name, label: name }))}
+        onChange={value => setFilter("registeredBy", value)} />
+      <MovementFilterSelect label="Ordenar" value={filters.sort ?? "DATE_DESC"}
+        options={[
+          { value: "DATE_DESC", label: "Fecha más reciente" }, { value: "DATE_ASC", label: "Fecha más antigua" },
+          { value: "AMOUNT_DESC", label: "Monto mayor" }, { value: "AMOUNT_ASC", label: "Monto menor" },
+          { value: "DESCRIPTION", label: "Descripción" }, { value: "CATEGORY", label: "Categoría" },
+        ]} onChange={value => setFilter("sort", value as IncomeFilters["sort"])} />
+      <footer className="income-filter-actions movement-filter-actions">
+        <button type="button" className="income-filter-clear movement-filter-clear" onClick={() =>
           setFilters({ status: "ACTIVE", sort: "DATE_DESC" })}>
           <FiRefreshCw aria-hidden="true" /> Limpiar filtros</button>
-        <button type="button" className="income-filter-apply"
+        <button type="button" className="income-filter-apply movement-filter-apply"
           onClick={() => setFiltersOpen(false)}>
           <FiCheck aria-hidden="true" /> Ver resultados</button>
       </footer>

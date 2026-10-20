@@ -4,7 +4,8 @@ import "@/shared/style/AdminDataTable.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";
-import { Button } from "@/shared/ui/button/Button";
+import { ApoderadoActions } from "./ApoderadoActions";
+import "./style/ApoderadosMobile.css";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { EmptyState } from "@/shared/ui/emptystate/EmptyState";
 import type { FC } from "react";
@@ -220,62 +221,11 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 </td>
 
                 <td className="apoderados-table__td" data-label="Acciones">
-                  {loading ? (
-                    <div className="apoderados-table__td--actions loading-action-placeholder">
-                      <span className="apoderados-table__access-slot">
-                        <Button variant="primary" size="small"
-                          className="apoderados-table__action-button apoderados-table__access-button"
-                          disabled onClick={() => undefined}
-                          icon={<APODERADOS_ICONS.add />} label="Acceso" />
-                      </span>
-                      <Button variant="secondary" size="small"
-                        className="apoderados-table__action-button apoderados-table__icon-button"
-                        disabled onClick={() => undefined}
-                        icon={<APODERADOS_ICONS.edit />} label="Editar" />
-                      <Button variant="danger" size="small"
-                        className="apoderados-table__action-button apoderados-table__icon-button"
-                        disabled onClick={() => undefined}
-                        icon={<APODERADOS_ICONS.delete />} label="Eliminar" />
-                    </div>
-                  ) : !isEmptyRow && apoderado ? (
-                    <div className="apoderados-table__td--actions admin-table-actions">
-                      <span className="apoderados-table__access-slot">
-                        {apoderado.accessStatus !== "ACTIVO"
-                          && apoderado.accessStatus !== "BLOQUEADO" && <Button
-                            variant="primary"
-                            size="small"
-                            className="apoderados-table__action-button apoderados-table__access-button"
-                            onClick={() => handleEnableAccess?.(apoderado)}
-                            icon={<APODERADOS_ICONS.add />}
-                            ariaLabel={apoderado.accessStatus === "INVITACION_PENDIENTE"
-                              ? "Reenviar invitación" : "Habilitar acceso"}
-                            label="Acceso"
-                          />}
-                      </span>
-                      <Button
-                        variant="secondary"
-                        size="small"
-                        className="apoderados-table__action-button apoderados-table__icon-button"
-                        onClick={() => handleEdit?.(
-                          apoderado.codigo || String(apoderadoIdentifier))}
-                        icon={<APODERADOS_ICONS.edit />}
-                        label="Editar"
-                        testId={`edit-btn-${apoderadoIdentifier}`}
-                      />
-                      <Button
-                        variant="danger"
-                        size="small"
-                        className="apoderados-table__action-button apoderados-table__icon-button"
-                        onClick={() => handleDelete?.(
-                          apoderado.codigo || apoderadoIdentifier)}
-                        icon={<APODERADOS_ICONS.delete />}
-                        label="Eliminar"
-                        testId={`delete-btn-${apoderadoIdentifier}`}
-                      />
-                    </div>
-                  ) : (
-                    <span>&nbsp;</span>
-                  )}
+                  {loading || !isEmptyRow ? <ApoderadoActions
+                    apoderado={loading ? undefined : apoderado}
+                    identifier={apoderadoIdentifier} loading={loading}
+                    onEdit={handleEdit} onDelete={handleDelete}
+                    onEnableAccess={handleEnableAccess} /> : <span>&nbsp;</span>}
                 </td>
               </tr>
             );

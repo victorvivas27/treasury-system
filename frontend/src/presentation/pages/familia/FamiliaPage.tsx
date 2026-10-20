@@ -72,7 +72,7 @@ export const FamiliaPage: FC = () => {
   };
 
   return (
-    <main className="page-container">
+    <main className="page-container familias-page">
       <header className="page-header">
         <div className="page-header__content">
           <h1 className="page-header__title">Gestión de familias</h1>

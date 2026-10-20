@@ -1,12 +1,11 @@
 import { EditarApoderadoForm } from "@/presentation/features/apoderado/EditarApoderadoForm";
 
 import "./style/ApoderadoForm.css"
-import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 
 
 export const ApoderadoEditFormPage = () => {
   return (
-    <main className="form-page-container">
+    <main className="form-page-container apoderado-edit-page">
       <header className="form-page-header">
         <h1 className="form-page-header__title">
           Modificar datos del apoderado
@@ -19,7 +18,6 @@ export const ApoderadoEditFormPage = () => {
       <section className="form-container">
         <EditarApoderadoForm />
       </section>
-      <ButtonBack/>
     </main>
   );
 };

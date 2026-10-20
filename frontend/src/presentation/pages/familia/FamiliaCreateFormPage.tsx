@@ -1,5 +1,5 @@
 import { CrearFamilia } from "@/presentation/features/familia/CrearFamilia";
-import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
+import "./style/FamiliaFormMobile.css";
 
 export const FamiliaCrearFormPage = () => {
   return (
@@ -14,7 +14,6 @@ export const FamiliaCrearFormPage = () => {
       <section className="form-container">
         <CrearFamilia />
       </section>
-      <ButtonBack />
     </main>
   );
 };

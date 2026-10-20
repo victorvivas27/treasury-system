@@ -1,54 +1,71 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type SidebarState = "hidden" | "icons" | "expanded";
+const mobileQuery = "(max-width: 768px)";
+const isMobileViewport = () => window.matchMedia(mobileQuery).matches;
 
 export const useSidebarBehavior = () => {
-  const [sidebarState, setSidebarState] = useState<SidebarState>("hidden");
-  const pointerInside = useRef(false);
+  const [mobile, setMobile] = useState(isMobileViewport);
+  const [sidebarState, setSidebarState] = useState<SidebarState>(() =>
+    isMobileViewport() ? "hidden" : "expanded");
+
   useEffect(() => {
-    if (sidebarState === "hidden") {
-      pointerInside.current = false;
-      return;
-    }
-    const checkPointer = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse" || !pointerInside.current) return;
-      if (event.target instanceof Element && event.target.closest("#app-sidebar, .sidebar-state-toggle")) return;
-      pointerInside.current = false;
-      setSidebarState("hidden");
+    const media = window.matchMedia(mobileQuery);
+    const update = () => {
+      setMobile(media.matches);
+      setSidebarState(media.matches ? "hidden" : "expanded");
     };
-    document.addEventListener("pointermove", checkPointer);
-    return () => document.removeEventListener("pointermove", checkPointer);
-  }, [sidebarState]);
-  const onSidebarPointerEnter = useCallback(() => {
-    pointerInside.current = true;
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
-  const onSidebarPointerLeave = useCallback(() => {
-    pointerInside.current = false;
-    setSidebarState("hidden");
-  }, []);
-  const onSidebarFocus = useCallback(() => {
-    setSidebarState(current => current === "hidden" ? "icons" : current);
-  }, []);
-  const onSidebarBlur = useCallback(() => {
-    if (!pointerInside.current) setSidebarState("hidden");
-  }, []);
-  const onNavLinkClick = useCallback(() => {
-    if (!pointerInside.current) setSidebarState("hidden");
-  }, []);
+
+  const closeSidebar = useCallback(() => {
+    if (mobile) setSidebarState("hidden");
+  }, [mobile]);
+
+  useEffect(() => {
+    if (!mobile || sidebarState !== "expanded") return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const toggle = document.querySelector<HTMLButtonElement>(".sidebar-state-toggle");
+    const sidebar = document.getElementById("app-sidebar");
+    sidebar?.querySelector<HTMLElement>("a, button")?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebarState("hidden");
+        toggle?.focus();
+      }
+      if (event.key === "Tab" && sidebar && toggle) {
+        const controls = [toggle, ...Array.from(sidebar.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"))];
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", escape);
+    };
+  }, [mobile, sidebarState]);
+
   const onToggleSidebar = useCallback(() => {
-    setSidebarState(current => current === "hidden" ? "icons"
-      : current === "icons" ? "expanded" : "hidden");
-  }, []);
+    setSidebarState(current => current === "expanded" ? (mobile ? "hidden" : "icons") : "expanded");
+  }, [mobile]);
 
   return {
     sidebarState,
+    isMobile: mobile,
     isSidebarOpen: sidebarState === "expanded",
     isLocked: sidebarState === "expanded",
     onToggleSidebar,
-    onNavLinkClick,
-    onSidebarPointerEnter,
-    onSidebarPointerLeave,
-    onSidebarFocus,
-    onSidebarBlur,
+    onNavLinkClick: closeSidebar,
+    closeSidebar,
   };
 };

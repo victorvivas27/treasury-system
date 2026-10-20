@@ -52,3 +52,11 @@ git diff --check
 ```
 
 No ampliar `scripts/test-full-flow.sh` sin una tarea específica: actualmente ejecuta solo Apoderado.
+
+Confirmado: tu app dispone de 1216 px de ancho × 552 px de alto.
+
+- 100vw = 1216 px
+- 100vh = 552 px
+
+El valor 1.5789 corresponde a la relación entre píxeles físicos y CSS; no cambia esas medidas disponibles. Usaremos 1216 × 552 px para ajustar el navbar y la imagen.
+

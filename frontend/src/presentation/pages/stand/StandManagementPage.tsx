@@ -1,7 +1,8 @@
+import { PiEyeLight, PiEyeClosedLight } from "react-icons/pi";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
   type PointerEvent as ReactPointerEvent } from "react";
 import {
-  FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiCreditCard, FiDollarSign, FiEdit2, FiPercent, FiPlus,
+  FiAlertTriangle, FiBox, FiCheckCircle, FiCopy, FiDollarSign, FiEdit2, FiPlus,
   FiMessageSquare, FiRefreshCw, FiSettings, FiShoppingCart, FiTrash2, FiX,
   FiTrendingUp, FiMaximize2, FiDownload,
 } from "react-icons/fi";
@@ -20,7 +21,7 @@ import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import { useAuth } from "@/presentation/context/AuthContext";
-import pizzaEquivalentImage from "@/assets/stand/pizza-equivalent-optimized.png";
+import { StandSummaryPanel } from "./StandSummaryPanel";
 import { loadStandPanelData, type StandPanelTab } from "./standPanelData";
 import { printStandSalesReport } from "./standSalesReport";
 import "./StandManagementPage.css";
@@ -156,9 +157,11 @@ export const StandManagementPage = () => {
       const data = readOnly
         ? await eventsRepository.listEventOptions(year)
         : await eventsRepository.listEvents(year);
-      setEvents(data);
+      const orderedEvents = [...data].sort((a, b) =>
+        a.eventDate.localeCompare(b.eventDate) || a.id - b.id);
+      setEvents(orderedEvents);
       setEventId(current => data.some(item => item.id === current) ? current
-        : (data.find(item => item.id === requestedEventId)?.id ?? data[0]?.id ?? 0));
+        : (orderedEvents.find(item => item.id === requestedEventId)?.id ?? orderedEvents[0]?.id ?? 0));
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible cargar los eventos."));
     } finally {
@@ -275,9 +278,11 @@ export const StandManagementPage = () => {
     }
   };
 
-  return <main className="stand-page">
+  const activeEvent = events.find(item => item.id === eventId);
+
+  return <main className={`stand-page${readOnly ? " stand-page--summary" : ""}`}>
     <header className="stand-page__header">
-      <div><h1>Ventas del stand</h1>
+      <div><h1>{readOnly ? "Resumen de stands" : "Ventas del stand"}</h1>
         <p>{readOnly ? "Consulta las ventas y la recaudación de cada stand."
           : "Administra los productos, las ventas y la caja de tu stand."}</p></div>
     </header>
@@ -292,27 +297,37 @@ export const StandManagementPage = () => {
             onClick={() => { setSelected(undefined); setStandList([]); setEventId(0); setYear(value => value + 1); }}>›</button>
         </div>
       </div>
-      <nav className="stand-event-cards" aria-label="Eventos del año">
+      <fieldset className="stand-event-picker">
+        <legend>Elegí un evento</legend>
         {loading ? <p role="status">Cargando eventos…</p> : events.length === 0
-          ? <p>No hay eventos en {year}.</p> : events.map(item => <button type="button"
-            key={item.id} aria-pressed={eventId === item.id}
-            className={eventId === item.id ? "is-active" : ""}
-            onClick={() => {
-              if (eventId === item.id) return;
-              setSelected(undefined); setStandList([]); setEventId(item.id);
-            }}>
-            <span>{eventId === item.id ? "Evento seleccionado" : "Ver evento"}</span>{" "}
-            <strong>{item.name}</strong>{" "}
-            <small>{new Date(`${item.eventDate}T12:00:00`).toLocaleDateString("es-CL", {
-              day: "numeric", month: "long", year: "numeric",
-            })}</small>
-            {selected?.eventId === item.id && <span className="stand-event-card__stand">
-              <span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
-                {statusLabels[selected.status]}</span>{" "}
-              <b>{selected.name}</b>
-            </span>}
-          </button>)}
-      </nav>
+          ? <p>No hay eventos en {year}.</p>
+          : <div className="stand-event-choices">
+            {events.map(item => <label className={`stand-event-choice${eventId === item.id ? " is-selected" : ""}`}
+              key={item.id}>
+              <input type="radio" name="stand-event" value={item.id} checked={eventId === item.id}
+                onChange={() => {
+                  if (eventId === item.id) return;
+                  setSelected(undefined); setStandList([]); setEventId(item.id);
+                }} />
+              <span className="stand-event-choice__info">
+                <span>{item.name}</span>
+                <time dateTime={item.eventDate}>{new Date(`${item.eventDate}T12:00:00`).toLocaleDateString("es-CL", {
+                  day: "numeric", month: "short", year: "numeric",
+                })}</time>
+              </span>
+              {eventId === item.id && <small>Seleccionado</small>}
+            </label>)}
+          </div>}
+      </fieldset>
+      {activeEvent && <div className="stand-event-meta">
+
+        {selected?.eventId === activeEvent.id && <>
+          <span className={`stand-status stand-status--${selected.status.toLowerCase()}`}>
+            {statusLabels[selected.status]}</span>
+          <span className="stand-event-meta__name">{selected.name}</span>
+        </>}
+      </div>}
+
     </section>
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
     {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton readOnly={readOnly} />
@@ -365,7 +380,10 @@ export const StandManagementPage = () => {
           <details className="stand-workspace__overview">
             <summary>
               <strong>Datos del stand</strong>
-              <span className="stand-workspace__overview-action">Administrar <FcExpand /></span>
+              <span className="stand-workspace__overview-action">
+                <span className="stand-workspace__overview-show" title="Mostrar datos"><PiEyeClosedLight aria-hidden="true" /></span>
+                <span className="stand-workspace__overview-hide" title="Ocultar datos"><PiEyeLight aria-hidden="true" /></span>
+              </span>
             </summary>
             <header className="stand-workspace__header">
               <div>
@@ -422,7 +440,7 @@ export const StandManagementPage = () => {
               onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
             {!readOnly && tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
               onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
-            {(readOnly || tab === "summary") && summary && <SummaryPanel summary={summary} />}
+            {(readOnly || tab === "summary") && summary && <StandSummaryPanel summary={summary} />}
           </>}
         </section>}
       </>}
@@ -1189,117 +1207,6 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       autoCloseTime={0}
       onClose={() => setShowReasonAlert(false)}
     />
-  </div>;
-};
-
-const SummaryBar = ({ value, max }: { value: number; max: number }) =>
-  <span className="stand-summary-bar" aria-hidden="true"><i style={{
-    width: `${Math.max(4, value / Math.max(max, 1) * 100)}%`,
-  }} /></span>;
-
-const SummaryPanel = ({ summary }: { summary: StandSummary }) => {
-  const maxPayment = Math.max(1, ...Object.values(summary.salesByPaymentMethod));
-  const maxProduct = Math.max(1, ...summary.salesByProduct.map(item => item.total));
-  const unitsByVariant = summary.salesByProduct.reduce<Record<string, number>>((totals, item) => {
-    const variant = item.variant?.trim() || "Sin variante";
-    totals[variant] = (totals[variant] ?? 0) + item.units;
-    return totals;
-  }, {});
-  const maxVariantEquivalent = Math.max(1, ...Object.values(summary.equivalentUnitsByVariant ?? {}));
-  const maxPresentation = Math.max(1, ...Object.values(summary.unitsByPresentation));
-  return <div className="stand-summary">
-    <div className="stand-summary__cards">
-      <article className="is-highlight"><div><span>Ganancia neta</span><i><FiTrendingUp /></i></div>
-        <strong>{money.format(summary.netProfit)}</strong></article>
-      <article className="is-sales"><div><span>Total vendido</span><i><FiDollarSign /></i></div>
-        <strong>{money.format(summary.totalSold)}</strong></article>
-      <article className="is-cash"><div><span>Efectivo esperado</span><i><FiCreditCard /></i></div>
-        <strong>{money.format(summary.expectedCash)}</strong>
-        <small>Incluye fondo de {money.format(summary.initialFund)}</small></article>
-      <article className="is-commissions"><div><span>Comisión débito</span><i><FiPercent /></i></div>
-        <strong>{money.format(summary.debitCommission)}</strong></article>
-      <article className="is-commissions"><div><span>Comisión crédito</span><i><FiPercent /></i></div>
-        <strong>{money.format(summary.creditCommission)}</strong></article>
-      <article className="is-commissions"><div><span>Comisión transferencia</span><i><FiPercent /></i></div>
-        <strong>{money.format(summary.transferCommission)}</strong></article>
-      <article className="is-commissions"><div><span>Costo de productos</span><i><FiBox /></i></div>
-        <strong>{money.format(summary.totalCost)}</strong></article>
-      <article className="is-count"><div><span>Ventas</span><i><FiShoppingCart /></i></div>
-        <strong>{summary.saleCount}</strong></article>
-      <article className="is-units"><div><span>Unidades vendidas</span><i><FiBox /></i></div>
-        <strong>{summary.unitsSold}</strong></article>
-    </div>
-    <div className="stand-summary__columns">
-      <section className="is-payment"><h3><i><FiCreditCard /></i> Ventas por medio de pago</h3>
-        {Object.entries(summary.salesByPaymentMethod).map(([method, total]) =>
-          <div className="stand-summary-row" key={method}><div>
-            <span>{paymentLabels[method as StandPaymentMethod]}</span>
-            <strong>{money.format(total)}</strong></div>
-            <SummaryBar value={total} max={maxPayment} /></div>)}</section>
-      <section className="is-product"><h3><i><FiBox /></i> Ventas por producto</h3>
-        {summary.salesByProduct.map(item => <div
-          className="stand-summary-row" key={`${item.product}-${item.category}-${item.variant}`}>
-          <div><span>{item.product}{item.variant ? ` · ${item.variant}` : ""}
-            <small>{item.units} unidades · {item.category || "Sin categoría"}</small></span>
-          <strong>{money.format(item.profit)}<small>Venta {money.format(item.total)} · Costo {
-            money.format(item.cost)}</small></strong></div>
-          <SummaryBar value={item.total} max={maxProduct} /></div>)}</section>
-      <section className="is-variant"><h3><i><FiTrendingUp /></i> Ventas por variante</h3>
-        {Object.entries(summary.salesByVariant).map(([variant, total]) =>
-          <div className="stand-summary-row stand-summary-variant" key={variant}><div>
-            <span className="stand-summary-variant__heading">
-              <img src={pizzaEquivalentImage} alt="" aria-hidden="true" />
-              <span>
-                <strong>{variant}</strong>
-                <small>{unitsByVariant[variant] ?? 0} unidades registradas</small>
-              </span>
-            </span>
-            <span className="stand-summary-variant__metrics">
-              <span className="stand-summary-variant__metric is-primary">
-                <span>
-                  <small>Pizzas enteras</small>
-                  <strong>{decimal.format(summary.equivalentUnitsByVariant?.[variant] ?? 0)}</strong>
-                  <small>equivalentes</small>
-                </span>
-              </span>
-              <span className="stand-summary-variant__metric">
-                <small>Total vendido</small>
-                <strong>{money.format(total)}</strong>
-              </span>
-            </span>
-            </div><SummaryBar value={summary.equivalentUnitsByVariant?.[variant] ?? 0}
-              max={maxVariantEquivalent} /></div>)}
-      </section>
-      <section className="is-presentation"><h3><i><FiCopy /></i> Unidades por presentación</h3>
-        {Object.keys(summary.unitsByPresentation).length === 0
-          ? <p>Sin presentaciones configuradas.</p>
-          : Object.entries(summary.unitsByPresentation).map(([presentation, units]) =>
-            <div className="stand-summary-row" key={presentation}><div>
-              <span>{presentation}</span><strong>{units}</strong></div>
-              <SummaryBar value={units} max={maxPresentation} /></div>)}
-      </section>
-      <section className="is-stock"><h3><i><FiAlertTriangle /></i> Stock por variante</h3>
-        {summary.stockAlerts.length === 0 ? <p>No hay productos con stock configurado.</p>
-          : summary.stockAlerts.map(item => {
-            const initial = item.initialStock ?? item.stock;
-            const percentage = initial > 0 ? Math.min(100, (item.stock / initial) * 100) : 0;
-            const lowStock = item.stock <= 5;
-            return <div className={`stand-summary-stock${lowStock ? " is-low" : ""}`}
-              key={item.productId}>
-              <div className="stand-summary-stock__heading">
-                <span><strong>{item.variant || item.product}</strong>
-                  <small>{item.variant ? item.product : "Stock disponible"}</small></span>
-                <strong className="stock-alert">{item.soldOut ? "Agotado"
-                  : `${decimal.format(item.stock)} disponibles`}</strong>
-              </div>
-              <span className="stand-summary-stock__bar" aria-hidden="true">
-                <i style={{ width: `${percentage}%` }} /></span>
-              <small className="stand-summary-stock__detail">Inicial: {decimal.format(initial)} · Vendido: {
-                decimal.format(Math.max(0, initial - item.stock))} pizzas equivalentes
-                {lowStock && !item.soldOut ? " · Stock bajo" : ""}</small>
-            </div>;
-          })}</section>
-    </div>
   </div>;
 };
 

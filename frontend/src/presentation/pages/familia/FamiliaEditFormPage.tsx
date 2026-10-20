@@ -1,4 +1,5 @@
 import { EditarFamiliaForm } from "@/presentation/features/familia/EditarFamiliaForm";
+import "./style/FamiliaFormMobile.css";
 
 export const FamiliaEditFormPage = () => {
   return (

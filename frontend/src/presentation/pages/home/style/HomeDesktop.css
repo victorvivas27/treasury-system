@@ -1,7 +1,7 @@
 ﻿/* Public desktop layout. Loaded only from 1024px by HomePage.css. */
 .public-home--guest .public-home__header {
-  min-height: 72px;
-  padding: 10px max(32px, calc((100% - 1088px) / 2));
+  min-height: 56px;
+  padding: 6px max(32px, calc((100% - 1088px) / 2));
 }
 .public-home--guest .public-home__brand { gap: 10px; font-size: 17px; }
 .public-home--guest .public-home__brand img { width: 42px; height: 42px; }

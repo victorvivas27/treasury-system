@@ -20,8 +20,8 @@ vi.mock("./standPanelData", () => ({ loadStandPanelData }));
 describe("StandManagementPage navigation", () => {
   it("abre el evento indicado por el dashboard en la pestaña Resumen", async () => {
     listEvents.mockResolvedValue([
-      { id: 1, name: "Otro evento", eventDate: "2027-01-01" },
       { id: 2, name: "Fiesta de la Familia", eventDate: "2027-09-07" },
+      { id: 1, name: "Otro evento", eventDate: "2027-01-01" },
     ]);
     list.mockResolvedValue([{
       id: 20, eventId: 2, name: "Pizza", status: "CLOSED", responsible: "Curso",
@@ -43,15 +43,14 @@ describe("StandManagementPage navigation", () => {
       .toHaveClass("stand-workspace__overview");
     expect(screen.getByRole("button", { name: "Recargar" }).closest("details"))
       .toHaveClass("stand-workspace__overview");
-    expect(screen.getByRole("button", { name: /Evento seleccionado Fiesta de la Familia/ }))
-      .toHaveTextContent("Cerrado Pizza");
-    expect(screen.getByRole("button", { name: /Evento seleccionado Fiesta de la Familia/ }))
-      .toHaveAttribute("aria-pressed", "true");
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Ver evento Otro evento/ }));
+    expect(screen.getAllByRole("radio")[0]).toHaveAccessibleName(/Otro evento/);
+    expect(screen.getAllByRole("radio")[1]).toHaveAccessibleName(/Fiesta de la Familia/);
+    const selectedEvent = screen.getByRole("radio", { name: /Fiesta de la Familia/ });
+    expect(selectedEvent).toBeChecked();
+    expect(document.querySelector(".stand-event-meta")).toHaveTextContent("CerradoPizza");
+    fireEvent.click(screen.getByRole("radio", { name: /Otro evento/ }));
     await waitFor(() => expect(list).toHaveBeenLastCalledWith(1));
-    expect(screen.getByRole("button", { name: /Evento seleccionado Otro evento/ }))
-      .toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("radio", { name: /Otro evento/ })).toBeChecked();
     listEvents.mockResolvedValue([]);
     fireEvent.click(screen.getByRole("button", { name: "Año siguiente" }));
     await waitFor(() => expect(listEvents).toHaveBeenLastCalledWith(2028));

@@ -1,5 +1,5 @@
 import { EditarAlumnoForm } from "@/presentation/features/alumno/EditarAlumnoForm";
-import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
+import "./style/AlumnoFormMobile.css";
 
 
 export const AlumnoEditFormPage = () => {
@@ -17,7 +17,6 @@ export const AlumnoEditFormPage = () => {
       <section className="form-container">
         <EditarAlumnoForm />
       </section>
-      <ButtonBack />
     </main>
   );
 };

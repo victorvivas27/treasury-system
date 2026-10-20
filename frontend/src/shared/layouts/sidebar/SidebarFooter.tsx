@@ -1,3 +1,5 @@
+import { IoBulbOutline } from "react-icons/io5";
+import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvement/ImprovementCenterEvents";
 import { NavLink } from "react-router-dom";
 import type { FC } from "react";
 
@@ -33,6 +35,13 @@ export const SidebarFooter: FC<SidebarFooterProps> = ({
 
   return (
     <footer className="sidebar-footer">
+      <button type="button" className="sidebar-improvement-button"
+        aria-label="Centro de Mejoras"
+        onClick={() => { onNavLinkClick?.(); window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT)); }}>
+        <IoBulbOutline aria-hidden="true" />
+        <span>Mejoras</span>
+        <Tooltip disabled={!isCollapsed} content="Centro de Mejoras" position="right" className="sidebar-icon-tooltip" />
+      </button>
       <nav
         className="sidebar-footer-nav"
         aria-label="Acciones secundarias"
