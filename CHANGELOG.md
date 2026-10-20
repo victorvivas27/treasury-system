@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.24.0](https://github.com/victorvivas27/treasury-system/compare/v1.23.0...v1.24.0) (2026-10-20)
+
+
+### Features
+
+* add UserEditorModal component for user editing functionality ([f03bc1d](https://github.com/victorvivas27/treasury-system/commit/f03bc1dab520b02050dd87c2a3b554f5a580da36))
+* create responsi ([f03bc1d](https://github.com/victorvivas27/treasury-system/commit/f03bc1dab520b02050dd87c2a3b554f5a580da36))
+* **home:** renueva la portada pública con casos de uso interactivos ([da94a48](https://github.com/victorvivas27/treasury-system/commit/da94a48014a621a230e44668d09552c4fce4d3d3))
+* **home:** renueva la portada pública con casos de uso interactivos ([c6da3d3](https://github.com/victorvivas27/treasury-system/commit/c6da3d3c2e1f2911edbed967f53d2a5e38145636))
+* **ui:** compactar gestión móvil de apoderados, alumnos, familias y usuarios ([f03bc1d](https://github.com/victorvivas27/treasury-system/commit/f03bc1dab520b02050dd87c2a3b554f5a580da36))
+
 ## [1.23.0](https://github.com/victorvivas27/treasury-system/compare/v1.22.0...v1.23.0) (2026-10-17)
 
 
