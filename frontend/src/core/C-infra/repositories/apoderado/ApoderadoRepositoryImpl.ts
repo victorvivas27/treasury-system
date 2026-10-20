@@ -1,4 +1,4 @@
-import type { GuardianInvitation, WhatsAppConsent } from "@/core/A-domain/entities/apoderado/GuardianInvitation";
+import type { GuardianInvitation, InvitationChannels, WhatsAppConsent } from "@/core/A-domain/entities/apoderado/GuardianInvitation";
 import { apiClient } from "@/core/D-config/api";
 import type {
   Apoderado,
@@ -43,6 +43,9 @@ export class ApoderadoRepositoryImpl implements IApoderadoRepository {
     return (await apiClient.patch<Apoderado>(`${this.baseUrl}/${codigo}/estado`, { activo })).data;
   }
 
+  async invitationChannels(): Promise<InvitationChannels> {
+    return (await apiClient.get<InvitationChannels>(`${this.baseUrl}/canales-invitacion`)).data;
+  }
   async invitationStatus(codigo: string): Promise<GuardianInvitation> {
     return (await apiClient.get<GuardianInvitation>(`${this.baseUrl}/${codigo}/invitacion-whatsapp`)).data;
   }

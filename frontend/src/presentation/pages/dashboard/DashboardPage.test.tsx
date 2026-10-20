@@ -75,7 +75,7 @@ describe("DashboardPage", () => {
     const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });
     expect(activityToggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(activityToggle);
-    fireEvent.click(screen.getByRole("button", { name: /Modalidad y avance/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Cuota anual$/i }));
     fireEvent.click(screen.getByRole("button", { name: /Aportes del curso/i }));
     fireEvent.click(screen.getByRole("button", { name: /Principales egresos/i }));
     expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Rifa escolar")).toBeInTheDocument();
@@ -92,10 +92,10 @@ describe("DashboardPage", () => {
     expect(cepaCard?.querySelector(".contribution-donut__chart > strong")).toHaveTextContent("75%");
     expect(solidarityCard?.querySelector(".contribution-donut__chart > strong"))
       .toHaveTextContent("50%");
-    expect(cepaCard).toHaveTextContent("Pagadas3 familias75%");
-    expect(cepaCard).toHaveTextContent("Pendientes1 familias25%");
+    expect(cepaCard).toHaveTextContent("Pagadas3");
+    expect(cepaCard).toHaveTextContent("Pendientes1");
     expect(cepaCard?.querySelector(".recharts-tooltip-wrapper")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Últimos registros Actividad reciente/i }))
+    expect(screen.getByRole("button", { name: /^Actividad reciente$/i }))
       .toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("link", { name: "Abrir" }))
       .toHaveAttribute("href", "/tesoreria/ingresos");
@@ -115,21 +115,21 @@ describe("DashboardPage", () => {
     const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });
     expect(activityToggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(activityToggle);
-    fireEvent.click(screen.getByRole("button", { name: /Modalidad y avance/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Cuota anual$/i }));
     fireEvent.click(screen.getByRole("button", { name: /Aportes del curso/i }));
     fireEvent.click(screen.getByRole("button", { name: /Principales egresos/i }));
     expect(screen.getByText("Actividad reciente")).toBeInTheDocument();
     expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Rifa escolar")).toBeInTheDocument();
     expect(screen.queryByText("Trazas de Tesorería")).not.toBeInTheDocument();
-    expect(screen.getByText("Modalidad y avance de recaudación")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cuota anual" })).toBeInTheDocument();
     expect(screen.getByText("Cuota única")).toBeInTheDocument();
     expect(screen.getByText("Dos cuotas")).toBeInTheDocument();
     expect(screen.getByText("$140.000 de $210.000")).toBeInTheDocument();
     expect(screen.getByText("67% recaudado")).toBeInTheDocument();
-    expect(screen.getByText("4 de 6 cuotas pagadas")).toBeInTheDocument();
-    expect(screen.getByText("¿En qué se gastó?")).toBeInTheDocument();
+    expect(screen.getByText("Pendiente: $70.000")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Principales egresos" })).toBeInTheDocument();
     expect(screen.getByText("Colaciones reunión")).toBeInTheDocument();
-    expect(screen.getByText("Alimentación")).toBeInTheDocument();
+    expect(screen.queryByText("Alimentación")).not.toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Avance de recaudación" }))
       .toHaveAttribute("aria-valuenow", "67");
   });
@@ -218,7 +218,7 @@ describe("DashboardPage", () => {
     contributionSummary.mockResolvedValue({ totalFamilies: 0 });
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
     await waitFor(() => expect(screen.getByRole("button", { name: /Actividad reciente/i })).toBeInTheDocument());
-    for (const name of [/Actividad reciente/i, /Principales egresos/i, /Ganancias de eventos/i, /Aportes del curso/i, /Modalidad y avance/i]) {
+    for (const name of [/Actividad reciente/i, /Principales egresos/i, /Ganancias de eventos/i, /Aportes del curso/i, /^Cuota anual$/i]) {
       const button = screen.getByRole("button", { name });
       expect(button).toHaveAttribute("aria-expanded", "false");
       const content = document.getElementById(button.getAttribute("aria-controls")!);

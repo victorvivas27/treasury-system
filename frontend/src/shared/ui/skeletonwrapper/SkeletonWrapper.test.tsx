@@ -4,7 +4,7 @@ import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
 
 describe("SkeletonWrapper", () => {
 
-  it("[SkeletonWrapper #01]Debe usar height: 'var(--md)' como valor por defecto cuando no se proporciona height", () => {
+  it("[SkeletonWrapper #01]Debe usar height: '1rem' como valor por defecto cuando no se proporciona height", () => {
     render(
       <SkeletonWrapper isLoading={true}>
         <div>Child</div>
@@ -12,11 +12,12 @@ describe("SkeletonWrapper", () => {
     );
 
     const skeleton = document.querySelector(".skeleton-block");
-    expect(skeleton).toHaveStyle("height: var(--md)");
+    // Verifica que el valor siga siendo relativo; jsdom lo calcula como 16px.
+    expect((skeleton as HTMLElement).style.height).toBe("1rem");
   });
 
 
-  it("[SkeletonWrapper #02]Debe usar width: 'var(--wh-100)' como valor por defecto cuando no se proporciona width", () => {
+  it("[SkeletonWrapper #02]Debe usar width: '100%' como valor por defecto cuando no se proporciona width", () => {
     render(
       <SkeletonWrapper isLoading={true}>
         <div>Child</div>
@@ -24,6 +25,6 @@ describe("SkeletonWrapper", () => {
     );
 
     const skeleton = document.querySelector(".skeleton-block");
-    expect(skeleton).toHaveStyle("width: var(--wh-100)");
+    expect(skeleton).toHaveStyle("width: 100%");
   });
 });

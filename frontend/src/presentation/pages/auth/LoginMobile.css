@@ -1,0 +1,22 @@
+/* Phone layout, loaded only up to 680px. */
+.form-page-container.login-page { width: min(440px, calc(100% - 32px)); padding-block: 24px; }
+.login-page .login-page-header { gap: 12px; margin-bottom: 20px; }
+.login-page .login-brand-logo { width: 48px; height: 48px; }
+.login-page .login-form { gap: 16px; padding: 20px 16px; }
+.login-page .login-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  margin-top: 14px;
+  padding: 4px 10px 4px 6px;
+  border-color: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  background: transparent;
+  box-shadow: none;
+}
+.login-page .login-back-button:hover { background: var(--color-accent-soft); box-shadow: none; }
+.login-page .login-back-button .button-content { gap: 5px; }
+.login-page .login-back-button .button-label { font-size: 12px; font-weight: var(--font-weight-medium); }
+.login-page .login-back-button .button-back__animation { width: 22px; height: 22px; background: transparent; }
+.login-page .login-back-button .button-icon svg,
+.login-page .login-back-button .button-back__animation > div { width: 22px !important; height: 22px !important; }

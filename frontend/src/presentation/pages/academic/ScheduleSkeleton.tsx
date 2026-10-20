@@ -26,7 +26,7 @@ export function ScheduleSkeleton({ view = "summary", dayNumber = 1 }: {
       </table>
     </div> : view !== "management" ? <div className={view === "summary" ? "schedule-agenda-week" : undefined} aria-hidden="true">
       {(view === "day" ? DAYS.slice(dayNumber - 1, dayNumber) : DAYS).map(day => <article
-        className={`schedule-agenda schedule-skeleton-agenda${view === "summary" ? " schedule-agenda--compact" : ""}`} key={day}>
+        className={`schedule-agenda schedule-skeleton-agenda${view === "summary" ? " schedule-agenda--compact" : " schedule-agenda--day"}`} key={day}>
         <div className="schedule-agenda-heading">
           <div><h2>{day}</h2><Skeleton width="10rem" height=".75rem" /></div>
           <div className="schedule-agenda-exit"><span><Skeleton width="2rem" height=".65rem" /><Skeleton width="3rem" height="1.15rem" /></span></div>

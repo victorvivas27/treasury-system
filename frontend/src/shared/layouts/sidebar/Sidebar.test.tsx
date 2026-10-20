@@ -38,6 +38,17 @@ describe('Sidebar Component', () => {
     mockNavLinkClick.mockClear();
   });
 
+  it("keeps a usable control outside the hidden, inert navigation", () => {
+    const { container } = renderSidebar({ isHidden: true, isSidebarOpen: false });
+    const sidebar = container.querySelector("aside");
+    expect(sidebar).toHaveAttribute("inert");
+    expect(sidebar).toHaveAttribute("aria-hidden", "true");
+    const control = screen.getByRole("button", { name: /mostrar iconos del menú/i });
+    expect(sidebar?.contains(control)).toBe(false);
+    fireEvent.click(control);
+    expect(mockToggle).toHaveBeenCalledOnce();
+  });
+
   describe('Sidebar Principal', () => {
     it('[Sidebar #00] El logo enlaza a la página de inicio', () => {
       renderSidebar();

@@ -1,14 +1,13 @@
 import { Link } from "react-router-dom";
 import { FiCode, FiLogIn, FiMail, FiPhone } from "react-icons/fi";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
-import "../style/HomeFooter.css";
+import "./AppFooter.css";
 
-export const HomeFooter = ({ reveal = true, showLogin = false }: { reveal?: boolean; showLogin?: boolean }) => (
-  <footer className={`public-home__footer${reveal ? "" : " system-home-footer"}`}
-    {...(reveal ? { "data-home-footer-reveal": true } : {})}>
+export const AppFooter = ({ showLogin = false }: { showLogin?: boolean }) => (
+  <footer className="public-home__footer">
     <div className="public-home__footer-content">
     <div className="public-home__footer-brand">
-      <Link className="public-home__brand" to="/">
+      <Link className="public-home__footer-home-link" to="/">
         <BrandLogo alt="" /><span>Tesorería Escolar</span>
       </Link>
       <p>Finanzas claras para cada curso.</p>

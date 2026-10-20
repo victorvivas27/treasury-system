@@ -17,11 +17,11 @@
    ========================================================= */
 
 .sidebar-nav {
-  width: var(--wh-100);
+  width: 100%;
 
   flex-shrink: 1;
 
-  font-size: var(--sm);
+  font-size: 0.8rem;
 }
 
 
@@ -30,7 +30,7 @@
    ========================================================= */
 
 .sidebar-nav-section {
-  width: var(--wh-100);
+  width: 100%;
 }
 
 
@@ -52,8 +52,8 @@
   color: var(--sidebar-text);
 
   transition:
-    background-color var(--duration-200ms) var(--easing-ease),
-    color var(--duration-200ms) var(--easing-ease),
+    background-color 200ms ease,
+    color 200ms ease,
     padding var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     gap var(--sidebar-motion-duration) var(--sidebar-motion-easing);
 }
@@ -67,7 +67,7 @@
   background: var(--color-hover);
 
   box-shadow:
-    var(--shadow-sidebar-nav-link-item-active);
+    var(--shadow-nav-active);
 }
 
 .sidebar-nav-link-item.active .sidebar-nav-icon {
@@ -77,7 +77,7 @@
 .sidebar-nav-link-item.active .sidebar-nav-label {
   color: var(--icon-accent);
 
-  font-weight: var(--font-weight-600);
+  font-weight: var(--font-weight-semibold);
 }
 
 
@@ -109,7 +109,7 @@
    ========================================================= */
 
 .sidebar-nav-label {
-  max-width: var(--size-10rem);
+  max-width: 10rem;
 
   overflow: hidden;
 
@@ -119,10 +119,10 @@
   opacity: 1;
 
   transition:
-    color var(--duration-200ms) var(--easing-ease),
+    color 200ms ease,
     max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
-    visibility var(--duration-0ms) var(--easing-linear);
+    visibility 0ms linear;
 }
 
 
@@ -148,7 +148,7 @@
   background: var(--color-hover);
 
   box-shadow:
-    var(--shadow-sidebar-nav-link-item-active);
+    var(--shadow-nav-active);
 }
 
 .sidebar-nav-parent.is-open .sidebar-nav-icon,
@@ -264,17 +264,17 @@
    ========================================================= */
 
 .sidebar-nav-chevron {
-  width: var(--size-1rem);
-  height: var(--size-1rem);
+  width: 1rem;
+  height: 1rem;
 
-  min-width: var(--size-1rem);
+  min-width: 1rem;
 
   margin-left: auto;
 
   color: var(--icon-muted);
 
   transition:
-    transform var(--duration-200ms) var(--easing-ease);
+    transform 200ms ease;
 }
 
 .sidebar-nav-chevron.is-open {
@@ -290,24 +290,24 @@
   position: absolute;
 
   top: 50%;
-  left: calc(100% + var(--offset-0-5rem));
+  left: calc(100% + 0.5rem);
 
   z-index: 20;
 
   display: grid;
 
-  gap: var(--space-0-1rem);
+  gap: 0.1rem;
 
-  width: var(--size-12rem);
+  width: 12rem;
 
   margin: 0;
 
-  padding: var(--space-0-65rem);
+  padding: 0.65rem;
 
   list-style: none;
 
   border:
-    var(--stroke-1px) solid
+    1px solid
     color-mix(
       in srgb,
       var(--color-accent) 38%,
@@ -320,11 +320,11 @@
   background: var(--sidebar-submenu-bg);
 
   -webkit-backdrop-filter:
-    blur(var(--effect-size-22px))
+    blur(22px)
     saturate(165%);
 
   backdrop-filter:
-    blur(var(--effect-size-22px))
+    blur(22px)
     saturate(165%);
 
   box-shadow:
@@ -338,8 +338,8 @@
 
   animation:
     treasurySubmenuIn
-    var(--duration-260ms)
-    var(--easing-cubic-bezier-0-2-0-8-0-2-1);
+    260ms
+    cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 
@@ -347,21 +347,29 @@
    16. FLECHA VISUAL DEL SUBMENÚ
    ========================================================= */
 
+.sidebar-submenu::after {
+  position: absolute;
+  inset: 0 100% 0 auto;
+  width: calc(var(--space-4) + 2px);
+  content: "";
+  background: transparent;
+}
+
 .sidebar-submenu::before {
   position: absolute;
 
   top: 50%;
-  left: var(--offset-negative-8px);
+  left: -8px;
 
-  width: var(--size-14px);
-  height: var(--size-14px);
+  width: 14px;
+  height: 14px;
 
   border-bottom:
-    var(--stroke-1px) solid
+    1px solid
     var(--border-color);
 
   border-left:
-    var(--stroke-1px) solid
+    1px solid
     var(--border-color);
 
   background: var(--sidebar-submenu-arrow-bg);
@@ -382,23 +390,23 @@
   display: flex;
   align-items: center;
 
-  gap: var(--space-0-55rem);
+  gap: 0.55rem;
 
   padding:
-    var(--space-0-35rem)
-    var(--space-0-5rem);
+    0.35rem
+    var(--space-2);
 
   border-left:
-    var(--stroke-2px) solid
+    2px solid
     var(--border-color);
 
   color: var(--sidebar-submenu-text);
 
-  font-size: var(--font-size-0-92em);
+  font-size: 0.92em;
 
   transition:
-    color var(--duration-200ms) var(--easing-ease),
-    border-color var(--duration-200ms) var(--easing-ease);
+    color 200ms ease,
+    border-color 200ms ease;
 }
 
 
@@ -409,12 +417,12 @@
 .sidebar-submenu-icon {
   display: block;
 
-  width: var(--size-1rem);
-  height: var(--size-1rem);
+  width: 1rem;
+  height: 1rem;
 
-  min-width: var(--size-1rem);
+  min-width: 1rem;
 
-  flex: 0 0 var(--size-1rem);
+  flex: 0 0 1rem;
 
   color: var(--sidebar-icon);
 }
@@ -479,7 +487,7 @@
   transition:
     max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
-    visibility var(--duration-0ms) var(--easing-linear) var(--sidebar-motion-duration);
+    visibility 0ms linear var(--sidebar-motion-duration);
 }
 
 
@@ -518,7 +526,7 @@
     opacity: 0;
 
     transform:
-      translate(var(--motion-distance-negative-0-65rem), -50%)
+      translate(-0.65rem, -50%)
       scale(0.96);
   }
 
@@ -551,12 +559,12 @@
 @media (max-width: 768px) {
   .sidebar-submenu {
     left:
-      calc(100% + var(--offset-0-25rem));
+      calc(100% + 0.25rem);
 
     width:
       min(
-        var(--size-11rem),
-        calc(var(--size-100vw) - var(--size-4-25rem))
+        11rem,
+        calc(100vw - 4.25rem)
       );
   }
 }

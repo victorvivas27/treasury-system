@@ -1,0 +1,628 @@
+[
+  {
+    "file": "frontend/src/presentation/context/AuthContext.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/layouts/MainLayout.css",
+    "declarations": 2,
+    "breakpoints": [
+      "(min-width: 1024px)",
+      "(min-width: 1101px)",
+      "(min-width: 681px) and (max-width: 1100px)",
+      "(max-width: 768px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/layouts/ManagedCourseBanner.css",
+    "declarations": 4,
+    "breakpoints": [
+      "(max-width: 700px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/style/AdminDataTable.css",
+    "declarations": 1,
+    "breakpoints": [
+      "(min-width: 1101px)",
+      "(max-width: 1100px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/style/ResponsiveDataList.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width: 1100px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/components/improvement-center/ImprovementCenter.css",
+    "declarations": 4,
+    "breakpoints": [
+      "(max-width:520px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/user/UserTable.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(min-width: 1101px)",
+      "(max-width: 1100px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/academic/Schedule.css",
+    "declarations": 191,
+    "breakpoints": [
+      "(min-width: 1101px)",
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 600px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/academic/ScheduleFilter.css",
+    "declarations": 13,
+    "breakpoints": [
+      "(max-width: 480px)",
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/academic/SchedulePublished.css",
+    "declarations": 155,
+    "breakpoints": [
+      "(min-width: 1024px)",
+      "(max-width: 600px)",
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/academic/ScheduleSkeleton.css",
+    "declarations": 19,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 600px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/architecture/ArchitecturePage.css",
+    "declarations": 16,
+    "breakpoints": [
+      "(max-width:600px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/auth/AccountFlowPages.css",
+    "declarations": 7,
+    "breakpoints": [
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/auth/PasswordVisibility.css",
+    "declarations": 2,
+    "breakpoints": [
+      "(min-width: 1024px)",
+      "(max-width: 680px)",
+      "(min-width: 681px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/community/AboutManagementPage.css",
+    "declarations": 4,
+    "breakpoints": [
+      "(max-width:680px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/community/BoardManagementPage.css",
+    "declarations": 5,
+    "breakpoints": [
+      "(prefers-reduced-motion:reduce)",
+      "(max-width:680px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/community/CoursePhotoManagementPage.css",
+    "declarations": 5,
+    "breakpoints": [
+      "(max-width:680px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/configuracion/Configuracion.css",
+    "declarations": 25,
+    "breakpoints": [
+      "(max-width: 640px)",
+      "(max-width: 380px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/dashboard/BoardMessage.css",
+    "declarations": 15,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/presentation/pages/dashboard/CashflowTimeline.css",
+    "declarations": 46,
+    "breakpoints": [
+      "(max-width:700px)",
+      "(prefers-reduced-motion:reduce)",
+      "(min-width:701px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/dashboard/DashboardPage.css",
+    "declarations": 43,
+    "breakpoints": [
+      "(max-width:700px)",
+      "(max-width:480px)",
+      "(max-width:340px)",
+      "(max-width:420px)",
+      "(prefers-reduced-motion:reduce)",
+      "(max-width:360px)",
+      "(max-width:1050px)",
+      "(min-width:1200px)",
+      "(min-width:701px) and (max-width:1199px)",
+      "(min-width:701px) and (max-width:1100px)",
+      "(min-width:1024px)",
+      "(min-width:1500px)",
+      "(min-width:1900px)",
+      "(min-width:701px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/improvement/ImprovementAdminPage.css",
+    "declarations": 4,
+    "breakpoints": [
+      "(max-width:1050px)",
+      "(max-width:620px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/NotFoundPage/NotFoundPage.css",
+    "declarations": 1,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/presentation/pages/notificacion/MessageEditModal.css",
+    "declarations": 4,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/presentation/pages/notificacion/Notificacion.css",
+    "declarations": 26,
+    "breakpoints": [
+      "(max-width: 1000px)",
+      "(max-width: 600px)",
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/organization/AdministrationsPage.css",
+    "declarations": 10,
+    "breakpoints": [
+      "(max-width:760px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/stand/StandManagementPage.css",
+    "declarations": 25,
+    "breakpoints": [
+      "(max-width:680px)",
+      "(max-width: 900px)",
+      "(max-width: 680px)",
+      "(max-width:900px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/AnnualFeesPage.css",
+    "declarations": 10,
+    "breakpoints": [
+      "(min-width: 701px)",
+      "(max-width: 980px)",
+      "(max-width: 700px)",
+      "(max-width: 1100px)",
+      "(max-width: 850px)",
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/EventsPage.css",
+    "declarations": 17,
+    "breakpoints": [
+      "(max-width:1000px)",
+      "(max-width:700px)",
+      "(max-width:480px)",
+      "(max-width:600px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/ExpensesPage.css",
+    "declarations": 13,
+    "breakpoints": [
+      "(max-width:1050px)",
+      "(max-width:680px)",
+      "(max-width:480px)",
+      "(max-width:340px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/ExpensesSkeleton.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/FamilyContributionsPage.css",
+    "declarations": 8,
+    "breakpoints": [
+      "(max-width:1100px)",
+      "(max-width:650px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/IncomesPage.css",
+    "declarations": 7,
+    "breakpoints": [
+      "(max-width:1100px)",
+      "(max-width:680px)",
+      "(max-width:340px)",
+      "(max-width:480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/IncomesSkeleton.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/PaymentsPage.css",
+    "declarations": 273,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 1024px)",
+      "(max-width: 760px)",
+      "(max-width: 600px)",
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/tesoreria/TreasurySectionPage.css",
+    "declarations": 2,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/presentation/pages/user/ProfilePage.css",
+    "declarations": 12,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 480px)",
+      "(max-width: 680px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/user/UsersPage.css",
+    "declarations": 5,
+    "breakpoints": [
+      "(max-width: 768px)",
+      "(max-width: 640px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/apptour/AppTour.css",
+    "declarations": 10,
+    "breakpoints": [
+      "(max-width:600px)",
+      "(max-width:600px), (hover:none) and (pointer:coarse)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/brandlogo/BrandLogo.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/button/Button.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 768px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/buttonback/ButtonBack.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/codereveal/CodeReveal.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/compactselect/CompactSelect.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/emptystate/EmptyState.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/expandablesearch/ExpandableSearch.css",
+    "declarations": 1,
+    "breakpoints": [
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/feedback/FeedbackState.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/loading/LoadingState.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/modalalert/ModalAlert.css",
+    "declarations": 3,
+    "breakpoints": [
+      "(max-width: 420px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/modalconfirm/ModalConfirm.css",
+    "declarations": 6,
+    "breakpoints": [
+      "(max-width: 420px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/pagination/Pagination.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/passwordstrength/PasswordStrength.css",
+    "declarations": 2,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/single-line-fit-text/SingleLineFitText.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/skeleton/Skeleton.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/skeletonwrapper/SkeletonWrapper.css",
+    "declarations": 0,
+    "breakpoints": []
+  },
+  {
+    "file": "frontend/src/shared/ui/status-toggle/StatusToggleButton.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width: 768px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/tooltip/Tooltip.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 680px), (hover: none), (pointer: coarse)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/ui/user-avatar/UserAvatar.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/alumno/style/AlumnosList.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(min-width: 1101px)",
+      "(max-width: 1100px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/alumno/style/BirthdaySection.css",
+    "declarations": 16,
+    "breakpoints": [
+      "(max-width: 640px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/alumno/style/CrearAlumnoForm.css",
+    "declarations": 8,
+    "breakpoints": [
+      "(max-width: 640px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/alumno/style/EditarAlumnoForm.css",
+    "declarations": 3,
+    "breakpoints": [
+      "(max-width: 640px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/apoderado/style/ApoderadosList.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(min-width: 1101px)",
+      "(min-width: 1024px)",
+      "(max-width: 1100px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/apoderado/style/CrearApoderadoForm.css",
+    "declarations": 8,
+    "breakpoints": [
+      "(max-width: 640px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/familia/style/CrearFamilia.css",
+    "declarations": 1,
+    "breakpoints": [
+      "(max-width: 720px)",
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/features/familia/style/FamiliaList.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(min-width: 1101px)",
+      "(max-width: 1100px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/alumno/style/AlumnoPage.css",
+    "declarations": 6,
+    "breakpoints": [
+      "(max-width: 768px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/alumno/style/BirthdaysPage.css",
+    "declarations": 1,
+    "breakpoints": [
+      "(max-width: 640px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/apoderado/style/ApoderadoForm.css",
+    "declarations": 2,
+    "breakpoints": [
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/apoderado/style/ApoderadoPage.css",
+    "declarations": 20,
+    "breakpoints": [
+      "(max-width: 768px)",
+      "(max-width: 420px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/familia/style/FamiliaPage.css",
+    "declarations": 3,
+    "breakpoints": [
+      "(max-width: 900px)",
+      "(max-width: 480px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomeCommunity.css",
+    "declarations": 6,
+    "breakpoints": [
+      "(max-width:680px)",
+      "(hover:none) and (pointer:coarse)",
+      "(max-width:360px)",
+      "(prefers-reduced-motion:reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomeFeatures.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width:680px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomeFooter.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(min-width:681px) and (max-width:1100px)",
+      "(max-width:680px)",
+      "(max-width:420px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomeHeader.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width: 1280px)",
+      "(\r\n  min-width: 681px\r\n) and (\r\n  max-width: 1280px\r\n)",
+      "(max-width: 680px)",
+      "(max-width: 360px)",
+      "(\r\n  prefers-reduced-motion: reduce\r\n)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomeHero.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width:900px)",
+      "(max-width:680px)",
+      "(max-width:420px)",
+      "(prefers-reduced-motion:reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomeInstallGuide.css",
+    "declarations": 74,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 760px)"
+    ]
+  },
+  {
+    "file": "frontend/src/presentation/pages/home/style/HomePage.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(max-width: 680px)",
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/layouts/sidebar/style/Sidebar.css",
+    "declarations": 6,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 768px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/layouts/sidebar/style/SidebarFooter.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/layouts/sidebar/style/SidebarHeader.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(min-width: 1024px)"
+    ]
+  },
+  {
+    "file": "frontend/src/shared/layouts/sidebar/style/SidebarNav.css",
+    "declarations": 0,
+    "breakpoints": [
+      "(prefers-reduced-motion: reduce)",
+      "(max-width: 768px)"
+    ]
+  }
+]

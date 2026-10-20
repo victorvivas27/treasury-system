@@ -1,59 +1,61 @@
 .form-card-alumno {
   background-color: var(--color-surface);
-  padding: var(--xl);
-  border-radius: var(--radius-12px);
+  padding: var(--card-padding);
+  border-radius: 12px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--md);
+  gap: var(--form-gap);
 }
 
 .form-group-alumno {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4px);
-  margin: var(--md);
-  padding-bottom: var(--space-24px);
+  gap: 4px;
+  margin: 1rem;
+  padding-bottom: 24px;
 }
 
 .form-input-alumno {
-  width: var(--wh-100);
-  min-height: var(--size-48px);
-  padding: var(--md);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--control-padding);
   background: var(--color-bg);
-  border: var(--stroke-1px) solid var(--border-color);
-  border-radius: var(--sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
   color: var(--text-main);
   outline: none;
-  transition: border-color var(--duration-200ms) var(--easing-ease), box-shadow var(--duration-200ms) var(--easing-ease);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .form-input-alumno:hover {
-  border-color: var(--color-text-muted);
+  border-color: var(--text-muted);
 }
 
 .form-input-alumno:focus {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-form-input-alumno-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb,
+   var(--color-accent) 20%, transparent
+   );
 }
 
 textarea.form-input-alumno {
-  min-height: var(--size-120px);
+  min-height: 120px;
   resize: vertical;
-  line-height: var(--leading-1-5);
+  line-height: var(--leading-body);
 }
 
 .floating-label-alumno {
   position: absolute;
-  left: var(--offset-12px);
-  top: var(--offset-24px);
+  left: 12px;
+  top: 24px;
   transform: translateY(-50%);
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   pointer-events: none;
-  transition: all var(--duration-200ms) var(--easing-ease-out);
+  transition: all 200ms ease-out;
   background: transparent;
-  padding: 0 var(--space-4px);
-  font-size: var(--sm);
+  padding: 0 4px;
+  font-size: var(--font-label);
 }
 
 .form-input-alumno::placeholder {
@@ -61,7 +63,7 @@ textarea.form-input-alumno {
 }
 
 .form-input-alumno:focus::placeholder {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .form-input-alumno:focus+.floating-label-alumno,
@@ -86,29 +88,29 @@ textarea.form-input-alumno {
 .error-message-alumno {
   position: absolute;
   right: 0;
-  bottom: var(--offset-2px);
+  bottom: 2px;
   left: 0;
   overflow: hidden;
   color: var(--color-error);
-  font-size: var(--xs);
-  line-height: var(--leading-1-2);
+  font-size: 0.6rem;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-  animation: fadeIn var(--duration-200ms) var(--easing-ease-in);
+  animation: fadeIn 200ms ease-in;
 }
 
 .form-actions-alumno {
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-start;
-  gap: var(--sm);
-  margin-top: var(--sm);
+  gap: 0.8rem;
+  margin-top: 0.8rem;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(var(--motion-distance-negative-4px));
+    transform: translateY(-4px);
   }
 
   to {
@@ -119,46 +121,46 @@ textarea.form-input-alumno {
 
 @media (max-width: 640px) {
   .alumno-create-page .form-page-header {
-    margin-bottom: var(--space-0-45rem);
+    margin-bottom: 0.45rem;
   }
 
   .alumno-create-page .form-page-header__title {
-    margin-bottom: var(--space-0-1rem);
-    font-size: var(--font-size-1-15rem);
+    margin-bottom: 0.1rem;
+    font-size: var(--font-h1);
   }
 
   .alumno-create-page .form-page-header__subtitle {
     margin-bottom: 0;
-    font-size: var(--font-size-0-75rem);
-    line-height: var(--leading-1-35);
+    font-size: var(--font-subtitle);
+    line-height: 1.35;
   }
 
   .form-card-alumno {
     grid-template-columns: 1fr;
-    gap: var(--space-0-25rem);
-    padding: var(--space-0-65rem);
+    gap: var(--form-gap);
+    padding: var(--card-padding);
   }
 
   .form-group-alumno {
-    margin: var(--space-0-25rem) var(--space-0-35rem);
-    padding-bottom: var(--space-18px);
+    margin: var(--space-1) 0.35rem;
+    padding-bottom: 18px;
   }
 
   .form-input-alumno {
-    min-height: var(--size-44px);
-    padding: var(--space-0-7rem) var(--space-0-8rem);
+    min-height: 44px;
+    padding: 0.7rem 0.8rem;
   }
 
   .form-actions-alumno {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-0-5rem);
-    margin: var(--space-0-15rem) var(--space-0-35rem) 0;
+    gap: var(--space-2);
+    margin: 0.15rem 0.35rem 0;
   }
 
   .form-actions-alumno .base-button {
     width: 100%;
-    min-height: var(--size-40px);
+    min-height: 40px;
     margin: 0;
   }
 

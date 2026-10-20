@@ -62,6 +62,18 @@ class AccountRecoveryServiceTest {
     }
 
     @Test
+    void combinedInvitationEmailReusesTokenWithoutIssuingAnother() {
+        User user = new User();
+        user.setCorreo("ana@example.com");
+        user.setNombre("Ana");
+        var invitation = new AccountRecoveryService.GuardianInvitation(user, null, "shared-token", "hash");
+        when(email.sendPasswordResetEmail("ana@example.com", "ANA",
+                "https://local.example/aceptar-invitacion#token=shared-token")).thenReturn(true);
+        assertTrue(service.sendGuardianInvitationEmail(invitation, "https://local.example"));
+        verifyNoInteractions(tokens, users);
+    }
+
+    @Test
     void registerRejectsEvenAnExistingActiveGuardian() {
         User user = new User();
         user.setOrganizationId(5L);

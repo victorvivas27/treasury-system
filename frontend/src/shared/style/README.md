@@ -1,49 +1,31 @@
-# Personalizar los estilos
+# Estilos compartidos
 
-El archivo de edición es **`global.css`**. También controla la pantalla de carga inicial y la cubierta de actualización. Vite incluye automáticamente las reglas marcadas `critical-boot` y las variables que necesitan en el HTML, para conservar la carga diferida del resto del CSS. No se mantiene una segunda copia manual de esos valores.
+`global.css` contiene el tema, las escalas comunes, los roles de componentes y las reglas base. Se redujo de 1.195 a **117 variables** (90,2% menos).
 
-## Qué cambiar
+## Dónde cambiar cada cosa
 
-| Variables | Uso |
+| Necesidad | Variables |
 | --- | --- |
-| `--color-*`, `--text-*`, `--border-color`, `--overlay` | Colores semánticos del tema |
-| `--palette-*` | Colores decorativos que conservan el mismo valor en ambos temas |
-| `--font-main`, `--font-family-*` | Fuentes |
-| `--font-size-*`, `--font-weight-*`, `--leading-*`, `--tracking-*` | Tipografía |
-| `--space-*` | Márgenes, rellenos y separaciones |
-| `--radius-*`, `--stroke-*` | Esquinas y bordes |
-| `--size-*`, `--offset-*` | Dimensiones y desplazamientos |
-| `--shadow-*`, `--effect-size-*`, `--opacity-*` | Sombras y efectos |
-| `--duration-*`, `--easing-*`, `--motion-distance-*`, `--stagger-*` | Animaciones y transiciones |
+| Tema oscuro y claro | `--color-*`, `--text-*`, `--icon-*` |
+| Títulos y texto | `--font-h1` a `--font-h4`, `--font-body`, `--font-small` |
+| Etiquetas y botones | `--font-label`, `--font-button` |
+| Escala de texto | `--font-size-xs` a `--font-size-4xl` |
+| Espacios comunes | `--space-1` a `--space-16` (escala de ocho pasos) |
+| Espacio según su función | `--page-padding`, `--section-gap`, `--card-padding`, `--form-gap` |
+| Controles y modales | `--control-*`, `--modal-*` |
+| Bordes y superficies | `--radius-*`, `--border-width`, `--shadow-*` |
+| Movimiento compartido | `--duration-fast`, `--duration-normal`, `--duration-slow` |
 
-El primer `:root` contiene la identidad y los valores originales compartidos. `:root[data-theme="light"]` define las diferencias del tema claro. El siguiente `:root` agrupa los demás valores por función.
+Los valores iniciales están en `:root`. El tema claro modifica solamente sus diferencias. Los bloques responsive ajustan los roles de móvil y tablet.
 
-Los nombres numéricos describen el **valor inicial**. Para personalizar, modifica el valor y conserva el nombre: todos los componentes que lo usan recibirán el cambio. Un tamaño de texto y un espaciado tienen variables diferentes aunque inicialmente midan lo mismo.
+Para cambiar los H1 móviles, editar `--font-h1` en el bloque de hasta 767px. Para cambiar su interlineado, editar `--heading-leading`. El H1 del Home público usa esas reglas globales; su clase conserva el degradado y la animación.
 
-Ejemplos de declaraciones que puedes editar dentro de esos bloques:
+## Regla para nuevos estilos
 
-```css
-/* Acento del tema oscuro; editar también su variante clara si corresponde. */
---color-accent: #0eebcd;
+Reutilizar un rol o una medida de la escala cuando corresponda. Crear una variable global solamente si representa una decisión compartida. Una sombra decorativa, una posición o una medida exclusiva de un componente permanece en su propia hoja CSS. No crear una variable global por cada número que aparezca.
 
-/* Todos los espacios que originalmente medían 0.75rem. */
---space-0-75rem: 0.875rem;
+Las dimensiones calculadas, los iconos, los gráficos y las animaciones particulares conservan sus valores locales. Esta simplificación conserva la apariencia previa; no rediseña ni redondea automáticamente esas medidas.
 
-/* Todos los textos que originalmente medían 0.875rem. */
---font-size-0-875rem: 0.95rem;
+Vite obtiene el CSS de carga inicial del bloque `critical-boot` de este mismo archivo. No mantener una segunda copia manual ni eliminar sus marcadores.
 
-/* Color decorativo violeta, incluido el gráfico de cuotas. */
---palette-violet: #7c3aed;
-```
-
-La escala conserva la variedad de medidas existente para evitar cambios de diseño durante la migración. Las sombras completas también tienen variables propias. Cambiar un color decorativo no sustituye automáticamente colores semánticos ni los colores internos de todas las sombras: se editan en sus respectivas secciones del mismo archivo.
-
-## Qué permanece en los componentes
-
-- Selectores, distribución (`display`, grid, flex), porcentajes relativos, proporciones, capas y estados de interacción.
-- Condiciones `@media`: las variables CSS no se pueden utilizar directamente en sus consultas.
-- Posiciones y dimensiones calculadas según la pantalla, el contenido o el progreso de una operación.
-- Variables locales que seleccionan una variante o reciben datos dinámicos; sus valores visuales estáticos referencian las variables globales.
-- Los colores de archivos independientes de la aplicación, como imágenes, iconos y el manifiesto PWA, no son propiedades CSS.
-
-Para nuevos estilos, reutiliza una variable de la misma función. Si falta, declárala en la sección correspondiente de `global.css`. Evita introducir otro valor visual fijo en un componente. Comprueba los cambios en ambos temas, en móvil y escritorio.
+Validación de navegador con API simulada: `node scripts/check-responsive-design.mjs home` o `components`, con Vite en 5178. El resumen de la migración está en `docs/design-system/simplification-summary.json` desde la raíz del repositorio.

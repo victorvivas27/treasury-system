@@ -2,6 +2,8 @@
 
 El administrador abre **Apoderados > Acceso**, elige WhatsApp y registra autorizacion, fuente y fecha. Crear un apoderado por si solo no envia mensajes: la invitacion es una accion administrativa expresa. No hay envios masivos.
 
+Estado confirmado en Meta el 2026-10-17: `invitacion_apoderado`, `es_CL`, `APPROVED`, categoria `MARKETING`. Cabecera, cuerpo y pie son estaticos; el unico parametro es el del boton URL de indice 0: `https://tesoreriaescolar.app/aceptar-invitacion#token={{1}}`. El adaptador envia solo ese componente dinamico. `invitation-template.json` y los pasos 2–3 siguientes son la propuesta historica anterior a la aprobacion: no usarlos para recrear o modificar la plantilla activa ni asumir que tiene dos parametros de cuerpo. Consultar [verificacion real y webhook](META-PREFLIGHT-2026-10-17.md) antes del primer envio.
+
 Se reutilizan ACCOUNT_INVITATION, el usuario por correo y curso, la vinculacion al apoderado, la politica de contrasenas y el bloqueo transaccional de la activacion existentes. La cuenta permanece deshabilitada hasta establecer la contrasena. No se generan contrasenas temporales. El token de 32 bytes aleatorios solo se persiste como SHA-256, vence inicialmente a las 24 horas y cada reenvio invalida el anterior. La activacion por WhatsApp no depende de la entrega del correo de aviso de cambio de contrasena.
 
 ## Configuracion del backend
@@ -39,6 +41,14 @@ Referencias oficiales: [plantillas y boton dinamico](https://www.postman.com/met
 
 ## API y estados
 
+El selector de canal admite correo, WhatsApp o **WhatsApp y correo**. La opcion combinada agrega
+`"sendEmail":true` al cuerpo del POST de WhatsApp y usa un unico token para los dos enlaces.
+La respuesta incluye `emailSent` (`true`/`false` cuando se solicito correo; `null` en caso contrario).
+Un fallo de correo no invalida el enlace de WhatsApp; un rechazo de Meta permite enviar el correo.
+El formulario se cierra cuando ambos envios son aceptados y muestra el resultado de cada canal si hay un fallo.
+`emailSent=true` indica aceptacion por el proveedor de correo, no recepcion en la bandeja del destinatario.
+El estado GET conserva el seguimiento de WhatsApp; el resultado del correo se informa en el POST.
+
 - `POST /api/v1/apoderados/{codigo}/invitacion-whatsapp`: genera o reenvia. Cuerpo `{"authorized":true,"source":"Formulario firmado","authorizedAt":"2026-01-01T10:00:00"}`. ADMIN o SUPER_ADMIN, solo el curso actual.
 - `GET` en esa misma ruta: estado de la ultima invitacion. No devuelve el token, el telefono ni credenciales de Meta.
 - `POST /api/v1/auth/validate-invitation`: `{ "token": "..." }`, valida antes de mostrar el formulario.
@@ -50,6 +60,27 @@ Estado de invitacion: NONE, PENDING, EXPIRED, SUPERSEDED o ACTIVATED. Estado de 
 La migracion `V53__create_guardian_whatsapp_invitations.sql` agrega el canal de la invitacion a user_tokens y una tabla con hash, referencias a usuario/apoderado/curso, telefono normalizado, consentimiento, administrador que lo registro, fechas de creacion, solicitud, aceptacion, vencimiento y entrega, ID del mensaje y codigo de error sanitizado. Activacion y reemplazo se resuelven usando los registros existentes de usuario y token. Hay indices por curso/apoderado e ID de mensaje unico, con borrado en cascada de las referencias del curso.
 
 Los reenvios por WhatsApp tienen un minuto de espera persistido bajo bloqueo del apoderado. Validacion y activacion publicas tienen un limite de 20 peticiones por IP/minuto por instancia, con cache acotada. Antes de escalar horizontalmente, complementar ese limite con el del proxy de confianza. No confiar en X-Forwarded-For sin configurar el proxy. No registrar cuerpos de estas rutas, fragmentos de enlaces ni errores completos del cliente HTTP; mantener analitica y servicios externos fuera de la pagina de activacion. El frontend elimina el token de la URL tras capturarlo y usa no-referrer.
+
+## Publicar la aplicacion manteniendo WhatsApp apagado
+
+El workflow `07-deploy-backend.yml` fija `WHATSAPP_ENABLED=false`, modo `production`, proveedor
+`meta` y `APP_PUBLIC_URL=https://tesoreriaescolar.app`. No incorpora credenciales locales de Meta.
+El formulario consulta `GET /api/v1/apoderados/canales-invitacion` con sesion administrativa y solo
+ofrece WhatsApp y el envio combinado cuando `whatsappEnabled` es `true`. Si la consulta falla
+(incluido un backend anterior sin ese endpoint), conserva disponible el envio por correo.
+No consulta estados de WhatsApp cuando esta deshabilitado; el backend tambien rechaza sus envios.
+
+Antes de publicar, validar backend/frontend, respaldar la base productiva y revisar las migraciones
+pendientes con Flyway. Usar perfil `prod`, Hibernate `validate`, las credenciales productivas de base
+y correo, y `FRONTEND_URL=https://tesoreriaescolar.app`. No subir `.env`, tuneles ni credenciales
+locales. Desplegar backend y despues frontend del mismo commit mediante los workflows existentes.
+Verificar login e invitacion por correo con una cuenta de prueba autorizada; solo debe aparecer correo.
+Guardar las revisiones anteriores para poder revertir la aplicacion; cualquier reversion de esquema
+requiere revision independiente. Esta preparacion no ejecuta despliegues ni modifica la base productiva.
+
+Cuando exista un numero productivo, preparar sus secretos, plantilla y webhook, y cambiar de forma
+deliberada `WHATSAPP_ENABLED` en el workflow/configuracion de despliegue. Cambiar solo Cloud Run
+no basta: el siguiente despliegue volveria a aplicar el valor del workflow.
 
 ## Pruebas locales
 

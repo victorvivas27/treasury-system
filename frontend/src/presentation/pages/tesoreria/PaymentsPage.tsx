@@ -256,24 +256,32 @@ export const PaymentsPage = () => {
   useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
-    if (!bankDrawerOpen) return;
-    window.setTimeout(() => bankDrawerRef.current?.focus(), 0);
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setBankDrawerOpen(false);
+    if (!bankDrawerOpen && !bankConfigOpen) return;
+    const modal = bankConfigOpen ? bankConfigRef.current : bankDrawerRef.current;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    modal?.focus();
+    const handleModalKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setBankDrawerOpen(false);
+        setBankConfigOpen(false);
+      }
+      if (event.key !== "Tab" || !modal) return;
+      const controls = Array.from(modal.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), [tabindex="0"]'));
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); modal.focus(); }
+      else if (event.shiftKey && (document.activeElement === first || document.activeElement === modal)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === modal)) { event.preventDefault(); first.focus(); }
     };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [bankDrawerOpen]);
-
-  useEffect(() => {
-    if (!bankConfigOpen) return;
-    window.setTimeout(() => bankConfigRef.current?.focus(), 0);
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setBankConfigOpen(false);
+    window.addEventListener("keydown", handleModalKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleModalKey);
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [bankConfigOpen]);
+  }, [bankDrawerOpen, bankConfigOpen]);
 
   const mp = useMercadoPago(load, admin);
 
@@ -474,17 +482,17 @@ export const PaymentsPage = () => {
           <button className="bank-drawer__download" onClick={downloadBankData}><FiDownload aria-hidden="true" /> Descargar datos</button>
           <button className="copy-all bank-drawer__copy" onClick={copyAll}>
             {copiedBankKey === "all" ? <FiCheck aria-hidden="true" /> : <FiClipboard aria-hidden="true" />}
-            {copiedBankKey === "all" ? "Datos copiados" : "Copiar todos los datos"}
+            {copiedBankKey === "all" ? "Datos copiados" : "Copiar todo"}
           </button>
         </div>
-        <p className="bank-drawer__hint"><FiInfo aria-hidden="true" /> Usa estos datos para realizar la transferencia. Verifica que estén correctos antes de pagar.</p>
+        <p className="bank-drawer__hint"><FiInfo aria-hidden="true" /> Verifica los datos antes de transferir.</p>
       </> : <p className="bank-drawer__empty">El tesorero aún no configura la cuenta bancaria para {year}.</p>}
     </aside>
   </div>;
 
   return <main className={`payments-page${admin ? "" : " payments-page--guardian"}`}>
     <header className="payments-head">
-      <div><span><FiCreditCard aria-hidden="true" /></span><div><h1>Pagos</h1><p>{admin ? "Gestiona Mercado Pago, transferencias e historial." : "Gestiona las cuotas y pagos del alumno."}</p></div></div>
+      <div><span><FiCreditCard aria-hidden="true" /></span><div><h1>Pagos</h1></div></div>
       <label>Año escolar <select value={year} onChange={event => setYear(Number(event.target.value))}>{[yearNow - 1, yearNow, yearNow + 1].map(value => <option key={value}>{value}</option>)}</select></label>
     </header>
     {(admin || loadingMine || !mine) && mercadoPagoDetails}
@@ -569,10 +577,9 @@ export const PaymentsPage = () => {
 
         <section className="payment-methods-bar" aria-label="Métodos de pago">
           <div className="payment-methods-bar__mp">
-            <img className="mp-logo-mark" src={mercadoPagoLogoUrl} alt="Mercado Pago" />
+            <img className="mp-logo-mark" src={mercadoPagoLogoUrl} alt="Mercado Pago" onError={event => { event.currentTarget.hidden = true; }} />
             <div><h2>Mercado Pago</h2><b className={mp.enabled ? "is-available" : ""}>{mercadoPagoStatus}</b></div>
           </div>
-          <button onClick={() => setBankDrawerOpen(true)}>Ver datos de transferencia <FiChevronRight aria-hidden="true" /></button>
         </section>
       </>}
       {renderBankDrawer()}

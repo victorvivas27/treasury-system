@@ -1,0 +1,24 @@
+{
+  "name": "invitacion_apoderado_local",
+  "language": "es_CL",
+  "category": "MARKETING",
+  "components": [
+    { "type": "HEADER", "format": "TEXT", "text": "Prueba local de Tesorería Escolar" },
+    {
+      "type": "BODY",
+      "text": "Has sido invitado(a) a una prueba de Tesorería Escolar. Para activar tu cuenta de prueba y crear tu contraseña, presiona el botón. Este enlace es personal y tiene una validez de 24 horas. Si no reconoces esta invitación, puedes ignorar este mensaje."
+    },
+    { "type": "FOOTER", "text": "Entorno local de pruebas" },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        {
+          "type": "URL",
+          "text": "Activar mi cuenta",
+          "url": "https://paltry-thousand-oval.ngrok-free.dev/aceptar-invitacion#token={{1}}",
+          "example": ["https://paltry-thousand-oval.ngrok-free.dev/aceptar-invitacion#token=EJEMPLO_NO_VALIDO"]
+        }
+      ]
+    }
+  ]
+}

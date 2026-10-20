@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { AxiosError } from "axios";
@@ -138,10 +138,10 @@ describe("LoginPage", () => {
     );
   });
 
-  it("[LoginPage #07] delega la restauración de sesión al loader de arranque", () => {
+  it.each(["token-guardado", null])("[LoginPage #07] delega la restauración de sesión al loader de arranque (token: %s)", (token) => {
     vi.mocked(useAuth).mockReturnValue({
       login: vi.fn(),
-      token: "token-guardado",
+      token,
       loading: true,
       isAuthenticated: false,
     } as unknown as ReturnType<typeof useAuth>);
@@ -181,5 +181,31 @@ describe("LoginPage", () => {
     const courseSelect = await screen.findByLabelText("Selecciona el curso");
     expect(courseSelect.compareDocumentPosition(password)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
     expect(courseSelect).toHaveValue("4");
+    fireEvent.change(courseSelect, { target: { value: "5" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+    await waitFor(() => expect(login).toHaveBeenLastCalledWith("user@mail.com", "Password1!", 5));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Ingresar" })).toBeEnabled());
+    fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "otra@mail.com" } });
+    expect(screen.queryByLabelText("Selecciona el curso")).not.toBeInTheDocument();
+  });
+
+  it.each(["/dashboard", "/login"])("conserva el destino solicitado al ingresar desde %s", async (from) => {
+    vi.mocked(useAuth).mockReturnValue({
+      login: vi.fn().mockResolvedValue({ requiresOrganizationSelection: false }),
+      loading: false,
+    } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter initialEntries={[{ pathname: "/login", state: { from } }]}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<h1>Panel privado</h1>} />
+        <Route path="/" element={<h1>Inicio del curso</h1>} />
+      </Routes>
+    </MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "user@mail.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Password1!" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+    expect(await screen.findByRole("heading", {
+      name: from === "/login" ? "Inicio del curso" : "Panel privado",
+    })).toBeInTheDocument();
   });
 });

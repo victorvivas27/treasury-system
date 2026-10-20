@@ -1,0 +1,54 @@
+@import "./PasswordVisibility.css";
+@import "@/presentation/pages/auth/LoginMobile.css" screen and (max-width: 680px);
+@import "@/presentation/pages/auth/LoginDesktop.css" screen and (min-width: 1024px);
+
+/* Shared login controls; layout differences live in the two viewport files. */
+.login-page { width: min(480px, calc(100% - 32px)); margin: 0 auto; padding-block: 32px; box-sizing: border-box; }
+:where(.login-page) .login-page-header { display: flex; align-items: center; gap: 16px; margin: 0 0 24px; text-align: left; }
+.login-page-header__copy { min-width: 0; }
+:where(.login-page) .login-brand-logo { width: 64px; height: 64px; flex: 0 0 auto; margin: 0; object-fit: contain; }
+:where(.login-page) .form-page-header__title { margin: 0 0 6px; }
+:where(.login-page) .form-page-header__subtitle { margin: 0; color: var(--text-muted); }
+:where(.login-page) .login-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.login-form .form-group { min-width: 0; padding-bottom: 22px; }
+.login-form .form-group:has(.password-input) { padding-bottom: 38px; }
+.login-form .form-group > .error-message {
+  position: absolute;
+  bottom: 0;
+  display: block;
+  margin: 0;
+  white-space: normal;
+  font-size: 11px;
+  line-height: 16px;
+}
+.login-form .form-input { box-sizing: border-box; min-height: 46px; font-size: 16px; }
+.login-form .password-input { padding-right: 48px; }
+.login-form .login-floating-label { font-size: 13px; }
+.login-form .login-floating-field .form-input:focus + .login-floating-label,
+.login-form .login-floating-field .form-input:not(:placeholder-shown) + .login-floating-label {
+  padding-inline: 5px;
+  background: var(--color-surface);
+  transform: translateY(-50%) scale(.9);
+}
+.login-form .login-password-visibility { right: 8px; width: 40px; height: 40px; }
+.login-password-visibility svg { width: 20px; height: 20px; }
+.login-organization-slot { display: grid; gap: 12px; min-width: 0; }
+.login-organization-label { display: block; margin-bottom: 6px; font-size: 12px; color: var(--text-muted); }
+.login-organization-select { cursor: pointer; }
+.login-form .password-strength { padding: 0; font-size: 11px; }
+.login-form .password-strength__requirements { gap: 6px 12px; }
+.login-form .password-strength__requirements svg { width: 13px; height: 13px; }
+.login-form .form-submit-message { margin: 0; font-size: 12px; }
+.login-form-actions .base-button { width: 100%; min-height: 44px; margin: 0; }
+.login-form .login-invitation { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+.login-form .auth-text-link { justify-self: center; padding: 4px; color: var(--color-accent); font-size: 13px; }
+:where(.login-page) .login-back-button { margin: 20px 0 0; }

@@ -1,7 +1,6 @@
 import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useState, type FormEvent } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
 import type { LoginOrganizationOption } from "@/core/A-domain/entities/auth/Auth";
 import { Button } from "@/shared/ui/button/Button";
@@ -12,7 +11,12 @@ import { FiLock, FiLogIn, FiMail } from "react-icons/fi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
-import "./PasswordVisibility.css";
+import "./LoginPage.css";
+
+const FIELDS = [
+  { name: "correo", label: "Correo", type: "email", placeholder: "Ej.: nombre@correo.cl", autoComplete: "email", Icon: FiMail },
+  { name: "password", label: "Contraseña", type: "password", placeholder: "Ej.: ClaveSegura1!", autoComplete: "current-password", Icon: FiLock },
+] as const;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const loginErrorMessage = (error: unknown) => {
@@ -40,20 +44,29 @@ const loginErrorMessage = (error: unknown) => {
 };
 
 export const LoginPage = () => {
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState({ correo: "", password: "" });
+  const { correo, password } = credentials;
   const [organizationId, setOrganizationId] = useState("");
   const [organizationOptions, setOrganizationOptions] = useState<LoginOrganizationOption[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const { login, token, loading: sessionLoading, isAuthenticated } = useAuth();
+  const { login, loading: sessionLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const hasOrganizationOptions = organizationOptions.length > 0;
+  const requestedDestination = (location.state as { from?: string } | null)?.from;
+  const destination = requestedDestination && requestedDestination !== "/login" ? requestedDestination : "/";
+  const updateCredential = (name: keyof typeof credentials, value: string) => {
+    setCredentials(current => ({ ...current, [name]: value }));
+    setOrganizationOptions([]);
+    setOrganizationId("");
+    setFieldErrors(current => ({ ...current, [name]: "", organization: "" }));
+  };
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (submitting) return;
     setError(null);
     const validationErrors: Record<string, string> = {};
     if (!EMAIL_PATTERN.test(correo.trim())) {
@@ -81,10 +94,6 @@ export const LoginPage = () => {
         return;
       }
       loginPerformance.mark("response");
-      const requestedDestination = (location.state as { from?: string } | null)?.from;
-      const destination = requestedDestination && requestedDestination !== "/login"
-        ? requestedDestination
-        : "/";
       navigate(destination, { replace: true });
       loginPerformance.mark("navigation");
     } catch (loginError) {
@@ -94,16 +103,11 @@ export const LoginPage = () => {
     }
   };
 
-  const requestedDestination = (location.state as { from?: string } | null)?.from;
-  const authenticatedDestination = requestedDestination && requestedDestination !== "/login"
-    ? requestedDestination
-    : "/";
-
-  if (isAuthenticated) return <Navigate to={authenticatedDestination} replace />;
-  if (sessionLoading && token) return null;
+  if (sessionLoading && !submitting) return null;
+  if (isAuthenticated) return <Navigate to={destination} replace />;
 
   return (
-    <main className="form-page-container">
+    <main className="form-page-container login-page">
       <header className="form-page-header login-page-header">
         <BrandLogo className="login-brand-logo" />
         <div className="login-page-header__copy">
@@ -112,73 +116,35 @@ export const LoginPage = () => {
         </div>
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
-        <div className="form-group">
-          <span className="login-input-wrapper login-floating-field">
-            <input
-              id="login-correo"
-              className={`form-input ${fieldErrors.correo ? "input-error" : ""}`}
-              type="email"
-              placeholder="Ej.: nombre@correo.cl"
-              autoComplete="email"
-              value={correo}
-              onChange={(event) => {
-              setCorreo(event.target.value);
-              setOrganizationOptions([]);
-              setOrganizationId("");
-              setFieldErrors((current) => ({ ...current, correo: "" }));
-              }}
-              aria-invalid={Boolean(fieldErrors.correo)}
-              aria-describedby={fieldErrors.correo ? "login-correo-error" : undefined}
-              required
-            />
-            <label htmlFor="login-correo" className="login-floating-label">Correo</label>
-            <FiMail className="login-field-icon" aria-hidden="true" />
-          </span>
-          {fieldErrors.correo && (
-            <span id="login-correo-error" className="error-message">{fieldErrors.correo}</span>
-          )}
-        </div>
-        <div className="form-group">
-          <span className="password-input-wrapper login-floating-field">
-            <input
-              id="login-password"
-              className="form-input password-input"
-              type={showPassword ? "text" : "password"}
-              placeholder="Ej.: ClaveSegura1!"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => {
-              setPassword(event.target.value);
-              setOrganizationOptions([]);
-              setOrganizationId("");
-              setFieldErrors((current) => ({ ...current, password: "" }));
-              }}
-              aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={[
-                "login-password-guidance",
-                fieldErrors.password && "login-password-error",
-              ].filter(Boolean).join(" ") || undefined}
-              required
-            />
-            <label htmlFor="login-password" className="login-floating-label">Contraseña</label>
-            <FiLock className="login-field-icon" aria-hidden="true" />
-            <button
-              className="password-visibility-button login-password-visibility"
-              type="button"
-              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              aria-pressed={showPassword}
-              onClick={() => setShowPassword((visible) => !visible)}
-            >
-              {showPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
-            </button>
-          </span>
-          {fieldErrors.password && (
-            <span id="login-password-error" className="error-message">{fieldErrors.password}</span>
-          )}
-        </div>
-        <div
-          className="login-organization-slot is-visible"
-        >
+        {FIELDS.map(({ name, label, type, placeholder, autoComplete, Icon }) => (
+          <div className="form-group" key={name}>
+            <span className="login-input-wrapper login-floating-field">
+              <input id={`login-${name}`} name={name}
+                className={`form-input ${name === "password" ? "password-input" : ""} ${fieldErrors[name] ? "input-error" : ""}`}
+                type={name === "password" && showPassword ? "text" : type}
+                placeholder={placeholder} autoComplete={autoComplete}
+                value={credentials[name]} onChange={event => updateCredential(name, event.target.value)}
+                aria-invalid={Boolean(fieldErrors[name])}
+                aria-describedby={[
+                  name === "password" && "login-password-guidance",
+                  fieldErrors[name] && `login-${name}-error`,
+                ].filter(Boolean).join(" ") || undefined}
+                required />
+              <label htmlFor={`login-${name}`} className="login-floating-label">{label}</label>
+              <Icon className="login-field-icon" aria-hidden="true" />
+              {name === "password" && <button
+                className="password-visibility-button login-password-visibility" type="button"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-pressed={showPassword} onClick={() => setShowPassword(visible => !visible)}>
+                {showPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
+              </button>}
+            </span>
+            {fieldErrors[name] && <span id={`login-${name}-error`} className="error-message">
+              {fieldErrors[name]}
+            </span>}
+          </div>
+        ))}
+        <div className="login-organization-slot">
           {hasOrganizationOptions && (
             <div className="form-group login-organization-group">
               <label className="login-organization-label" htmlFor="login-organization">
@@ -211,13 +177,7 @@ export const LoginPage = () => {
           )}
           <PasswordStrength id="login-password-guidance" password={password} />
         </div>
-        <p
-          className={`form-submit-message ${error ? "is-visible" : ""}`}
-          role={error ? "alert" : undefined}
-          aria-live="polite"
-        >
-          {error || "\u00A0"}
-        </p>
+        {error && <p className="form-submit-message is-visible" role="alert" aria-live="polite">{error}</p>}
         <div className="login-form-actions">
           <Button
             type="submit"
@@ -228,7 +188,7 @@ export const LoginPage = () => {
             size="medium"
           />
         </div>
-        <p>El acceso se habilita mediante una invitación enviada por la administración.</p>
+        <p className="login-invitation">El acceso se habilita mediante una invitación enviada por la administración.</p>
         <Link className="auth-text-link" to="/olvide-password">¿Olvidaste tu contraseña?</Link>
       </form>
       <ButtonBack className="login-back-button" />

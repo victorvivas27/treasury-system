@@ -23,7 +23,7 @@ describe("EventProfitCards", () => {
     expect(within(first).getByText("$125.000")).toBeInTheDocument();
     expect(within(second).getByText("$86.000")).toBeInTheDocument();
     expect(first.querySelector("svg")).toBeInTheDocument();
-    expect(second).toHaveTextContent("Ganancia neta del curso");
+    expect(second).not.toHaveTextContent("Ganancia neta del curso");
     expect(within(first).getByRole("link")).toHaveAttribute("href",
       "/tesoreria/stands?year=2026&eventId=1&tab=summary");
     expect(within(second).getByRole("link")).toHaveAttribute("href",

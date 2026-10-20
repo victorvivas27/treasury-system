@@ -23,11 +23,10 @@ export const useHomeReveal = (refreshKey?: unknown) => {
       entries.forEach(entry => {
         const isCommunity = entry.target.hasAttribute("data-home-community-repeat");
         const showAt = isCommunity ? 0.14 : 0.25;
-        const hideAt = isCommunity ? 0.06 : 0.02;
-        if (entry.intersectionRatio >= showAt) {
+        // Long community sections can exceed the viewport and never reach 14%.
+        if (entry.intersectionRatio >= showAt || (isCommunity && entry.isIntersecting)) {
           entry.target.classList.add("is-visible");
-        } else if (entry.intersectionRatio <= hideAt) {
-          entry.target.classList.remove("is-visible");
+          repeatObserver.unobserve(entry.target);
         }
       });
     }, { threshold: [0, 0.02, 0.06, 0.14, 0.25] });

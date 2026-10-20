@@ -16,6 +16,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
 import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { chileDate } from "@/shared/date/chileDateTime";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
@@ -39,6 +40,7 @@ const initialForm = (year: number, course?: string): IncomePayload => ({
   schoolYear: year, description: "", amount: 0, incomeDate: today, category: "RAFFLE", course,
 });
 type IncomeView = "ALL" | "FEES" | "OTHER";
+const INCOME_PAGE_SIZE = 3;
 
 export const IncomesPage = () => {
   const { user } = useAuth();
@@ -52,6 +54,8 @@ export const IncomesPage = () => {
   const [items, setItems] = useState<TreasuryIncome[]>([]);
   const [summary, setSummary] = useState(emptySummary);
   const [feePayments, setFeePayments] = useState<TreasuryDashboardOverview["recentMovements"]>([]);
+  const [incomePage, setIncomePage] = useState(1);
+  const [selectedFee, setSelectedFee] = useState<TreasuryDashboardOverview["recentMovements"][number] | null>(null);
   const [filters, setFilters] = useState<IncomeFilters>({
     status: "ACTIVE",
     sort: "DATE_DESC",
@@ -89,6 +93,7 @@ export const IncomesPage = () => {
       setItems(incomes);
       setSummary(overview.finances);
       setFeePayments(overview.recentMovements.filter(item => item.type === "CUOTA"));
+      setIncomePage(1);
     } catch {
       setError("No fue posible cargar los ingresos. Intenta nuevamente.");
     } finally {
@@ -175,6 +180,52 @@ export const IncomesPage = () => {
     }
   }, [managedCourse, formOpen, editing, form.course]);
 
+  useEffect(() => {
+    if (!formOpen && !detail && !selectedFee && !filtersOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || saving || documentsUploading || confirmCancel) return;
+      setFormOpen(false);
+      setDetail(null);
+      setSelectedFee(null);
+      setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onEscape);
+    };
+  }, [formOpen, detail, selectedFee, filtersOpen, saving, documentsUploading, confirmCancel]);
+
+  const incomeRows = useMemo(() => {
+    const ordinary = view === "FEES" ? [] : items.map(income => ({
+      key: `income-${income.id}`, description: income.description, amount: income.amount,
+      date: income.incomeDate, status: income.status, category: income.category,
+      income, fee: null,
+    }));
+    const fees = view === "OTHER" ? [] : feePayments.filter(payment => {
+      if (filters.category || filters.paymentMethod || filters.registeredBy || filters.familyId) return false;
+      if (filters.status && filters.status !== "ACTIVE") return false;
+      if (filters.search && !payment.description.toLocaleLowerCase("es-CL").includes(filters.search.toLocaleLowerCase("es-CL"))) return false;
+      if (filters.month && Number(payment.date.slice(5, 7)) !== filters.month) return false;
+      if (filters.dateFrom && payment.date < filters.dateFrom) return false;
+      if (filters.dateTo && payment.date > filters.dateTo) return false;
+      return !filters.course || filters.course.toLocaleLowerCase("es-CL") === managedCourse.toLocaleLowerCase("es-CL");
+    }).map(fee => ({ key: `fee-${fee.id}`, description: fee.description, amount: fee.amount,
+      date: fee.date, status: fee.status, category: "CUOTA", income: null, fee }));
+    return [...ordinary, ...fees].sort((a, b) => {
+      if (filters.sort === "AMOUNT_ASC") return a.amount - b.amount;
+      if (filters.sort === "AMOUNT_DESC") return b.amount - a.amount;
+      if (filters.sort === "DESCRIPTION") return a.description.localeCompare(b.description, "es");
+      if (filters.sort === "CATEGORY") return a.category.localeCompare(b.category, "es");
+      return filters.sort === "DATE_ASC" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+    });
+  }, [items, feePayments, view, filters, managedCourse]);
+  const incomePages = Math.max(1, Math.ceil(incomeRows.length / INCOME_PAGE_SIZE));
+  const currentIncomePage = Math.min(incomePage, incomePages);
+  const visibleIncomes = incomeRows.slice((currentIncomePage - 1) * INCOME_PAGE_SIZE, currentIncomePage * INCOME_PAGE_SIZE);
+
   const registeredUsers = useMemo(
     () => [...new Set(items.map((item) => item.registeredBy))].sort(), [items],
   );
@@ -237,7 +288,7 @@ export const IncomesPage = () => {
 
   return <main className="expenses-page incomes-page">
     <header className="expenses-header"><div>
-      <h1>Ingresos</h1><p>Cuotas y otros ingresos de Tesorería.</p></div>
+      <h1>Ingresos</h1></div>
       {canManage && <button type="button" onClick={openCreate}>
         <FiPlus /> Registrar ingreso</button>}</header>
 
@@ -271,21 +322,18 @@ export const IncomesPage = () => {
       </>}
     </section>
 
-    <nav className="income-tabs" aria-label="Tipo de ingreso">
-      {(["ALL", "FEES", "OTHER"] as const).map((tab) => <button type="button" key={tab}
-        className={view === tab ? "is-active" : ""} onClick={() => setView(tab)}>
-        {tab === "ALL" ? "Todos" : tab === "FEES" ? "Cuotas" : "Otros ingresos"}
-      </button>)}
-    </nav>
-
-    {view !== "FEES" && <div className="income-filter-toolbar">
+    <div className="income-controls">
+      <label className="income-type-filter">Tipo
+        <select aria-label="Tipo de ingreso" value={view} onChange={event => { setView(event.target.value as IncomeView); setIncomePage(1); }}>
+          <option value="ALL">Todos</option><option value="FEES">Cuotas</option><option value="OTHER">Otros ingresos</option>
+        </select>
+      </label>
       <button type="button" className="income-filter-trigger" onClick={() => setFiltersOpen(true)}>
         <FiFilter aria-hidden="true" /> Filtros
         {activeFilters > 0 && <span>{activeFilters}</span>}
       </button>
-    </div>}
-
-    {view !== "FEES" && filtersOpen && <div className="income-filter-backdrop"
+    </div>
+    {filtersOpen && <div className="income-filter-backdrop"
       onClick={() => setFiltersOpen(false)}>
     <aside className="expenses-filters" aria-label="Filtros de ingresos" role="dialog"
       aria-modal="true" onClick={event => event.stopPropagation()}>
@@ -336,36 +384,34 @@ export const IncomesPage = () => {
       </footer>
     </aside></div>}
 
-    {view === "FEES" && (initialLoading
-      ? <section className="fee-payment-grid" aria-label="Cargando pagos">
-          {Array.from({ length: 4 }, (_, index) => <article key={index} aria-hidden="true">
-            <div className="skeleton-block" /><div className="skeleton-block" />
-          </article>)}
-        </section>
-      : feePayments.length === 0
-        ? <p className="expenses-empty">Aún no hay pagos de cuotas registrados.</p>
-        : <section className="fee-payment-grid" aria-label="Historial de pagos de cuotas">
-            {feePayments.map(payment => <article className="fee-payment-card" key={payment.id}>
-              <div><span><FiCalendar aria-hidden="true" /> {payment.date}</span>
-                <strong>+{money.format(payment.amount)}</strong></div>
-              <p>{payment.description}</p>
-            </article>)}
-          </section>)}
-
-    {view !== "FEES" && (initialLoading ? <IncomeCardsSkeleton />
-      : items.length === 0 ? <p className="expenses-empty">No hay ingresos extraordinarios para los filtros seleccionados.</p>
-      : <section className="expenses-grid">{items.map((item) =>
-        <article className={`expense-card income-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
-          <header><span><FiArrowDownCircle /> Ingreso extraordinario</span>
-            <b>{item.status === "ACTIVE" ? "Activo" : "Anulado"}</b></header>
+    {initialLoading ? <IncomeCardsSkeleton /> : incomeRows.length === 0
+      ? <p className="expenses-empty">No hay ingresos para los filtros seleccionados.</p>
+      : <section className="expenses-grid income-results" aria-label="Listado de ingresos">
+        <span className="income-results__count">{incomeRows.length} ingresos</span>
+        {visibleIncomes.map(item => <article className={`expense-card income-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.key}>
+          <header><span><FiCalendar aria-hidden="true" /> {item.date}</span>{item.status === "CANCELLED" && <b>Anulado</b>}</header>
           <h2>{item.description}</h2><strong>+{money.format(item.amount)}</strong>
           <footer className="income-card__footer">
-            <span><FiCalendar aria-hidden="true" /> {item.incomeDate}</span>
-            <button type="button" aria-label={`Ver detalle de ${item.description}`}
-              title="Ver detalle" onClick={() => setDetail(item)}><FiEye /></button>
+            <button type="button" aria-label={`Ver detalle de ${item.description}`} title="Ver detalle"
+              onClick={() => item.income ? setDetail(item.income) : setSelectedFee(item.fee)}><FiEye /></button>
           </footer>
-        </article>)}</section>)}
+        </article>)}
+        {Array.from({ length: INCOME_PAGE_SIZE - visibleIncomes.length }, (_, index) =>
+          <div key={`empty-${index}`} className="income-card-placeholder" aria-hidden="true" />)}
+        {incomePages > 1 && <Pagination currentPage={currentIncomePage} totalPages={incomePages}
+          hasPrevious={currentIncomePage > 1} hasNext={currentIncomePage < incomePages}
+          onPrevious={() => setIncomePage(Math.max(1, currentIncomePage - 1))}
+          onNext={() => setIncomePage(Math.min(incomePages, currentIncomePage + 1))}
+          ariaLabel="Paginación de ingresos" />}
+      </section>}
 
+    {selectedFee && <div className="expense-modal-overlay"><section className="expense-detail-modal income-detail-modal"
+      role="dialog" aria-modal="true" aria-labelledby="income-fee-title">
+      <button type="button" aria-label="Cerrar" onClick={() => setSelectedFee(null)}><FiX /></button>
+      <span className="expense-detail-status">Pago de cuota</span>
+      <h2 id="income-fee-title">{selectedFee.description}</h2><strong className="income-amount">+{money.format(selectedFee.amount)}</strong>
+      <dl><div><dt>Fecha</dt><dd>{selectedFee.date}</dd></div><div><dt>Estado</dt><dd>Pagado</dd></div></dl>
+    </section></div>}
     {formOpen && <div className="expense-modal-overlay"><section className="expense-form-modal"
       role="dialog" aria-modal="true" aria-labelledby="income-form-title">
       <header><div><span>{editing ? "Corrección auditada" : "Nuevo registro"}</span>
@@ -415,35 +461,32 @@ export const IncomesPage = () => {
     {detail && <div className="expense-modal-overlay"><section className="expense-detail-modal income-detail-modal"
       role="dialog" aria-modal="true" aria-labelledby="income-detail-title">
       <button type="button" aria-label="Cerrar" onClick={() => setDetail(null)}><FiX /></button>
-      <span className={`expense-detail-status is-${detail.status.toLowerCase()}`}>
-        {detail.status === "ACTIVE" ? "Activo" : "Anulado"}</span>
+      {detail.status === "CANCELLED" && <span className="expense-detail-status is-cancelled">Anulado</span>}
       <h2 id="income-detail-title">{detail.description}</h2><strong className="income-amount">+{money.format(detail.amount)}</strong>
-      <dl><div><dt><FiArrowDownCircle /> Tipo</dt><dd>Ingreso extraordinario</dd></div>
-        <div><dt><FiCalendar /> Fecha</dt><dd>{detail.incomeDate}</dd></div>
-        <div><dt><FiTag /> Categoría</dt><dd>{incomeCategoryLabel(detail.category)}</dd></div>
-        <div><dt><FiLogIn /> Origen</dt><dd>{detail.source || "No informado"}</dd></div>
-        <div><dt><FiCreditCard /> Medio</dt><dd>{incomePaymentLabel(detail.paymentMethod)}</dd></div>
-        <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber ||
-          (documentsLoading ? "Cargando…" : documents.length === 1
-            ? documents[0].originalName
-            : documents.length > 1 ? `${documents.length} archivos adjuntos` : "No informado")}</dd></div>
-        <div><dt><FiBookOpen /> Curso</dt><dd>{detail.course || "No relacionado"}</dd></div>
-        <div><dt><FiUsers /> Familia</dt><dd>{detail.familyId || "No relacionada"}</dd></div>
-        <div className="income-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
-        <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
-        <div className="income-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
-        {detail.cancellationReason && <div className="income-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
-      <section className="expense-documents" aria-label="Documentos adjuntos">
-        <h3><FiFileText /> Documentos adjuntos</h3>
-        {canManage && <label className={`expense-document-upload ${
+        {canManage && <label className={`expense-document-upload income-proof-shortcut ${
           documentsUploading ? "is-loading" : ""}`}>
           {documentsUploading ? <FiLoader className="expense-document-spinner" /> : <FiFilePlus />}
-          {documentsUploading ? "Subiendo archivos…" : "Seleccionar archivos"}
+          {documentsUploading ? "Subiendo archivos…" : "Adjuntar comprobante"}
           <input type="file" multiple disabled={documentsUploading}
             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
             onChange={(event) => { void uploadDocuments(event.target.files); event.target.value = ""; }} />
         </label>}
-        <small>PDF, Word, Excel o imágenes · Máximo 10 MB por archivo</small>
+      <dl>
+        <div><dt><FiCalendar /> Fecha</dt><dd>{detail.incomeDate}</dd></div>
+        <div><dt><FiTag /> Categoría</dt><dd>{incomeCategoryLabel(detail.category)}</dd></div>
+        {detail.source && <div><dt><FiLogIn /> Origen</dt><dd>{detail.source}</dd></div>}
+        {detail.paymentMethod && <div><dt><FiCreditCard /> Medio</dt><dd>{incomePaymentLabel(detail.paymentMethod)}</dd></div>}
+        {detail.receiptNumber && <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber}</dd></div>}
+        {detail.course && <div><dt><FiBookOpen /> Curso</dt><dd>{detail.course}</dd></div>}
+        {detail.familyId && <div><dt><FiUsers /> Familia</dt><dd>{detail.familyId}</dd></div>}
+        {detail.notes && <div className="income-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes}</dd></div>}
+        <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
+        <div className="income-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
+        {detail.cancellationReason && <div className="income-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
+      {(documentsLoading || documentsUploading || documents.length > 0) && <section className="expense-documents" aria-label="Documentos adjuntos">
+        <h3><FiFileText /> Documentos adjuntos</h3>
+
+        {canManage && <small>PDF, Word, Excel o imágenes · Hasta 10 MB</small>}
         {documentsUploading && <p className="expense-document-progress" role="status" aria-live="polite">
           <FiLoader className="expense-document-spinner" /> Guardando en almacenamiento seguro…
         </p>}
@@ -470,7 +513,7 @@ export const IncomesPage = () => {
                 {documentAction?.id === document.id && documentAction.type === "delete"
                   ? <FiLoader className="expense-document-spinner" /> : <FiTrash2 />}</button>}</div>
           </li>)}</ul>}
-      </section>
+      </section>}
       {canManage && detail.status === "ACTIVE" && <footer>
         <button type="button" onClick={() => openEdit(detail)}>
           <FiEdit3 aria-hidden="true" /> Corregir ingreso</button>
@@ -497,7 +540,7 @@ export const IncomesPage = () => {
 
 const IncomeCardsSkeleton = () => (
   <section className="expenses-grid" aria-label="Cargando ingresos" role="status">
-    {Array.from({ length: 6 }, (_, index) => (
+    {Array.from({ length: INCOME_PAGE_SIZE }, (_, index) => (
       <article className="expense-card income-card income-card--skeleton" key={index}
         aria-hidden="true">
         <header><span><FiArrowDownCircle /> Ingreso extraordinario</span>

@@ -16,6 +16,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
 import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { chileDate } from "@/shared/date/chileDateTime";
 import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
@@ -24,8 +25,10 @@ import {
 } from "@/shared/constants/ExpenseConstants";
 import "./ExpensesPage.css";
 import "./ExpensesSkeleton.css";
+import "./ExpensesResponsive.css";
 
 const repository = new TreasuryRepositoryImpl();
+const EXPENSE_PAGE_SIZE = 3;
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
@@ -49,6 +52,10 @@ export const ExpensesPage = () => {
     return years.includes(requestedYear) ? requestedYear : 2026;
   });
   const [items, setItems] = useState<TreasuryExpense[]>([]);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(items.length / EXPENSE_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const visibleExpenses = items.slice((currentPage - 1) * EXPENSE_PAGE_SIZE, currentPage * EXPENSE_PAGE_SIZE);
   const [summary, setSummary] = useState(emptySummary);
   const [filters, setFilters] = useState<ExpenseFilters>({
     status: "ACTIVE",
@@ -85,6 +92,7 @@ export const ExpensesPage = () => {
         repository.financialSummary(year),
       ]);
       setItems(expenses);
+      setPage(1);
       setSummary(totals);
     } catch {
       setError("No fue posible cargar los egresos. Intenta nuevamente.");
@@ -98,6 +106,23 @@ export const ExpensesPage = () => {
     const timer = window.setTimeout(() => void load(), 250);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  useEffect(() => {
+    if (!formOpen && !detail && !filtersOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || saving || documentsUploading || confirmSave || confirmCancel) return;
+      setFormOpen(false);
+      setDetail(null);
+      setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", closeWithEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeWithEscape);
+    };
+  }, [formOpen, detail, filtersOpen, saving, documentsUploading, confirmSave, confirmCancel]);
 
   useEffect(() => {
     if (!detail) { setDocuments([]); return; }
@@ -240,11 +265,10 @@ export const ExpensesPage = () => {
   const setFilter = <K extends keyof ExpenseFilters>(key: K, value: ExpenseFilters[K]) =>
     setFilters((current) => ({ ...current, [key]: value || undefined }));
 
-  return <main className="expenses-page">
+  return <main className="expenses-page outgoings-page">
     <header className="expenses-header">
       <div>
         <h1>Egresos</h1>
-        <p>Pagos realizados por Tesorería.</p>
       </div>
       {canManage && <button type="button" onClick={openCreate}>
         <FiPlus aria-hidden="true" /> Registrar egreso
@@ -328,16 +352,24 @@ export const ExpensesPage = () => {
 
     {initialLoading ? <ExpenseCardsSkeleton />
       : items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
-      : <section className="expenses-grid" aria-label="Listado de egresos">
-        {items.map((item) => <article className={`expense-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
-          <header><span><FiMinusCircle aria-hidden="true" /> Egreso</span>
-            <b>{item.status === "ACTIVE" ? "Activo" : "Anulado"}</b></header>
+      : <section className="expenses-grid expense-results" aria-label="Listado de egresos">
+        <span className="expense-results__count">{items.length} egresos</span>
+        {visibleExpenses.map((item) => <article className={`expense-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
+          <header><span><FiCalendar aria-hidden="true" /> {item.expenseDate}</span>
+            {item.status === "CANCELLED" && <b>Anulado</b>}</header>
           <h2>{item.description}</h2>
           <strong>-{money.format(item.amount)}</strong>
-          <footer className="expense-card__footer"><span><FiCalendar /> {item.expenseDate}</span>
+          <footer className="expense-card__footer">
             <button type="button" aria-label={`Ver detalle de ${item.description}`}
               title="Ver detalle" onClick={() => setDetail(item)}><FiEye /></button></footer>
         </article>)}
+        {Array.from({ length: EXPENSE_PAGE_SIZE - visibleExpenses.length }, (_, index) =>
+          <div className="expense-card-placeholder" key={`empty-${index}`} aria-hidden="true" />)}
+        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages}
+          hasPrevious={currentPage > 1} hasNext={currentPage < totalPages}
+          onPrevious={() => setPage(Math.max(1, currentPage - 1))}
+          onNext={() => setPage(Math.min(totalPages, currentPage + 1))}
+          ariaLabel="Paginación de egresos" />}
       </section>}
 
     {formOpen && <div className="expense-modal-overlay">
@@ -381,32 +413,29 @@ export const ExpensesPage = () => {
       e.target === e.currentTarget && setDetail(null)}>
       <section className="expense-detail-modal" role="dialog" aria-modal="true" aria-labelledby="expense-detail-title">
         <button type="button" aria-label="Cerrar" onClick={() => setDetail(null)}><FiX /></button>
-        <span className={`expense-detail-status is-${detail.status.toLowerCase()}`}>
-          {detail.status === "ACTIVE" ? "Activo" : "Anulado"}</span>
+        {detail.status === "CANCELLED" && <span className="expense-detail-status is-cancelled">Anulado</span>}
         <h2 id="expense-detail-title">{detail.description}</h2><strong>-{money.format(detail.amount)}</strong>
-        <dl><div><dt><FiCalendar /> Fecha</dt><dd>{detail.expenseDate}</dd></div>
-          <div><dt><FiTag /> Categoría</dt><dd>{expenseCategoryLabel(detail.category)}</dd></div>
-          <div><dt><FiCreditCard /> Medio de pago</dt><dd>{expensePaymentLabel(detail.paymentMethod)}</dd></div>
-          <div><dt><FiBriefcase /> Responsable/proveedor</dt><dd>{detail.recipient || "No informado"}</dd></div>
-          <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber ||
-            (documentsLoading ? "Cargando…" : documents.length === 1
-              ? documents[0].originalName
-              : documents.length > 1 ? `${documents.length} archivos adjuntos` : "No informado")}</dd></div>
-          <div className="expense-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes || "Sin observaciones"}</dd></div>
-          <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
-          <div className="expense-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
-          {detail.cancellationReason && <div className="expense-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
-        <section className="expense-documents" aria-label="Documentos adjuntos">
-          <h3><FiFileText /> Documentos adjuntos</h3>
           {canManage && <label className={`expense-document-upload ${
             documentsUploading ? "is-loading" : ""}`}>
             {documentsUploading ? <FiLoader className="expense-document-spinner" /> : <FiFilePlus />}
-            {documentsUploading ? "Subiendo archivos…" : "Seleccionar archivos"}
+            {documentsUploading ? "Subiendo archivos…" : "Adjuntar comprobante"}
             <input type="file" multiple disabled={documentsUploading}
               accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
               onChange={(event) => { void uploadDocuments(event.target.files); event.target.value = ""; }} />
           </label>}
-          <small>PDF, Word, Excel o imágenes · Máximo 10 MB por archivo</small>
+        <dl><div><dt><FiCalendar /> Fecha</dt><dd>{detail.expenseDate}</dd></div>
+          <div><dt><FiTag /> Categoría</dt><dd>{expenseCategoryLabel(detail.category)}</dd></div>
+          {detail.paymentMethod && <div><dt><FiCreditCard /> Medio de pago</dt><dd>{expensePaymentLabel(detail.paymentMethod)}</dd></div>}
+          {detail.recipient && <div><dt><FiBriefcase /> Responsable/proveedor</dt><dd>{detail.recipient}</dd></div>}
+          {detail.receiptNumber && <div><dt><FiFileText /> Comprobante</dt><dd>{detail.receiptNumber}</dd></div>}
+          {detail.notes && <div className="expense-detail-wide"><dt><FiMessageSquare /> Observaciones</dt><dd>{detail.notes}</dd></div>}
+          <div><dt><FiUser /> Registrado por</dt><dd>{detail.registeredBy}</dd></div>
+          <div className="expense-detail-wide"><dt><FiClock /> Fecha de registro</dt><dd>{new Date(detail.createdAt).toLocaleString("es-CL")}</dd></div>
+          {detail.cancellationReason && <div className="expense-detail-wide"><dt><FiAlertTriangle /> Motivo de anulación</dt><dd>{detail.cancellationReason}</dd></div>}</dl>
+        {(documentsLoading || documentsUploading || documents.length > 0) && <section className="expense-documents" aria-label="Documentos adjuntos">
+          <h3><FiFileText /> Documentos adjuntos</h3>
+
+          {canManage && <small>PDF, Word, Excel o imágenes · Hasta 10 MB</small>}
           {documentsUploading && <p className="expense-document-progress" role="status" aria-live="polite">
             <FiLoader className="expense-document-spinner" /> Guardando en almacenamiento seguro…
           </p>}
@@ -433,7 +462,7 @@ export const ExpensesPage = () => {
                   {documentAction?.id === document.id && documentAction.type === "delete"
                     ? <FiLoader className="expense-document-spinner" /> : <FiTrash2 />}</button>}</div>
             </li>)}</ul>}
-        </section>
+        </section>}
         {canManage && detail.status === "ACTIVE" && <footer>
           <button type="button" onClick={() => openEdit(detail)}><FiEdit3 /> Corregir egreso</button>
           <button className="is-danger" type="button" onClick={() => setConfirmCancel(true)}>
@@ -466,7 +495,7 @@ export const ExpensesPage = () => {
 
 const ExpenseCardsSkeleton = () => (
   <section className="expenses-grid" aria-label="Cargando egresos" role="status">
-    {Array.from({ length: 6 }, (_, index) => (
+    {Array.from({ length: EXPENSE_PAGE_SIZE }, (_, index) => (
       <article className="expense-card expense-card--skeleton" key={index} aria-hidden="true">
         <header><span><FiMinusCircle /> Egreso</span><div className="skeleton-block" /></header>
         <div className="skeleton-block" /><div className="skeleton-block" />

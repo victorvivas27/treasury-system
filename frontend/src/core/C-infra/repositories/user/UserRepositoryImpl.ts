@@ -37,7 +37,10 @@ export class UserRepositoryImpl implements IUserRepository {
   }
 
   async updateSelfProfile(id: number, payload: SelfProfileUpdatePayload): Promise<User> {
-    return (await apiClient.put<User>(`${this.baseUrl}/${id}/profile`, { nombre: payload.nombre })).data;
+    return (await apiClient.put<User>(`${this.baseUrl}/${id}/profile`, {
+      nombre: payload.nombre,
+      ...(payload.telefono !== undefined && { telefono: payload.telefono }),
+    })).data;
   }
 
   async changeRole(id: number, rol: UserRole): Promise<User> {

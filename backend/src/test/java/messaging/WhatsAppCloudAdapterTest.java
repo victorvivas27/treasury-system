@@ -12,12 +12,19 @@ import static org.junit.jupiter.api.Assertions.*;
 class WhatsAppCloudAdapterTest {
  @Test void sendsApprovedTemplateAndUrlButtonThroughOfficialEndpoint() {
   var config = new WhatsAppProperties(); config.setProvider("meta"); config.setApiVersion("v25.0");
-  config.setPhoneNumberId("123"); config.setAccessToken("secret"); config.setTemplateInvitation("guardian_invitation");
+  config.setPhoneNumberId("123"); config.setAccessToken("secret"); config.setTemplateInvitation("invitacion_apoderado");
   var builder = RestClient.builder().baseUrl("https://graph.facebook.com");
   var server = MockRestServiceServer.bindTo(builder).build();
   server.expect(requestTo("https://graph.facebook.com/v25.0/123/messages"))
    .andExpect(header("Authorization", "Bearer secret"))
-   .andExpect(jsonPath("$.template.components[1].parameters[0].text").value("private-token"))
+   .andExpect(jsonPath("$.template.name").value("invitacion_apoderado"))
+   .andExpect(jsonPath("$.template.language.code").value("es_CL"))
+   .andExpect(jsonPath("$.template.components.length()").value(1))
+   .andExpect(jsonPath("$.template.components[0].type").value("button"))
+   .andExpect(jsonPath("$.template.components[0].sub_type").value("url"))
+   .andExpect(jsonPath("$.template.components[0].index").value("0"))
+   .andExpect(jsonPath("$.template.components[0].parameters.length()").value(1))
+   .andExpect(jsonPath("$.template.components[0].parameters[0].text").value("private-token"))
    .andExpect(jsonPath("$.to").value("56912345678"))
    .andRespond(withSuccess("{\"messages\":[{\"id\":\"wamid.test\"}]}", MediaType.APPLICATION_JSON));
   var adapter = new WhatsAppCloudAdapter(config, builder.build());

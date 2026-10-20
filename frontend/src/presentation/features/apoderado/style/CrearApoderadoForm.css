@@ -1,85 +1,87 @@
 .form-card-apoderado {
   background-color: var(--color-surface);
-  padding: var(--xl);
-  border-radius: var(--radius-12px);
+  padding: var(--card-padding);
+  border-radius: 12px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--md);
+  gap: var(--form-gap);
 }
 
 .form-group-apoderado {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4px);
-  margin: var(--md);
-  padding-bottom: var(--space-24px);
+  gap: 4px;
+  margin: 1rem;
+  padding-bottom: 24px;
 }
 
 .form-input-apoderado {
-  width: var(--wh-100);
-  min-height: var(--size-48px);
-  padding: var(--md);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--control-padding);
   background: var(--color-bg);
-  border: var(--stroke-1px) solid var(--border-color);
-  border-radius: var(--sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
   color: var(--text-main);
   outline: none;
-  transition: border-color var(--duration-200ms) var(--easing-ease), box-shadow var(--duration-200ms) var(--easing-ease);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .form-input-apoderado:hover {
-  border-color: var(--color-text-muted);
+  border-color: var(--text-muted);
 }
 
 .form-input-apoderado:focus {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-form-input-alumno-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb,
+   var(--color-accent) 20%, transparent
+   );
 }
 
 textarea.form-input-apoderado {
-  min-height: var(--size-120px);
+  min-height: 120px;
   resize: vertical;
-  line-height: var(--leading-1-5);
+  line-height: var(--leading-body);
 }
 
 .apoderado-observaciones {
   grid-column: 1 / -1;
-  margin: 0 var(--md);
-  border: var(--stroke-1px) solid var(--border-color);
-  border-radius: var(--sm);
+  margin: 0 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
   background: var(--color-bg);
 }
 
 .apoderado-observaciones summary {
-  padding: var(--space-0-75rem) var(--space-1rem);
+  padding: var(--space-3) var(--space-4);
   color: var(--text-main);
-  font-weight: var(--font-weight-600);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
 }
 
 .apoderado-observaciones summary span {
-  color: var(--color-text-muted);
-  font-size: var(--xs);
-  font-weight: var(--font-weight-400);
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: var(--font-weight-normal);
 }
 
 .apoderado-observaciones__content {
   margin: 0;
-  padding: var(--space-0-25rem) var(--space-1rem) var(--space-1rem);
+  padding: var(--space-1) var(--space-4) var(--space-4);
 }
 
 .floating-label-apoderado {
   position: absolute;
-  left: var(--offset-12px);
-  top: var(--offset-24px);
+  left: 12px;
+  top: 24px;
   transform: translateY(-50%);
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   pointer-events: none;
-  transition: all var(--duration-200ms) var(--easing-ease-out);
+  transition: all 200ms ease-out;
   background: transparent;
-  padding: 0 var(--space-4px);
-  font-size: var(--sm);
+  padding: 0 4px;
+  font-size: var(--font-label);
 }
 
 .form-input-apoderado::placeholder {
@@ -87,7 +89,7 @@ textarea.form-input-apoderado {
 }
 
 .form-input-apoderado:focus::placeholder {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .form-input-apoderado:focus+.floating-label-apoderado,
@@ -102,25 +104,25 @@ textarea.form-input-apoderado {
 }
 
 .telefono-label-apoderado {
-  margin-bottom: var(--space-2px);
+  margin-bottom: 2px;
 }
 
 .telefono-control-apoderado {
   display: grid;
-  grid-template-columns: minmax(var(--size-8-5rem), auto) auto 1fr;
+  grid-template-columns: minmax(8.5rem, auto) auto 1fr;
   align-items: center;
-  min-height: var(--size-48px);
+  min-height: 48px;
   overflow: hidden;
-  border: var(--stroke-1px) solid var(--border-color);
-  border-radius: var(--sm);
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
   background: var(--color-bg);
-  transition: border-color var(--duration-200ms) var(--easing-ease), box-shadow var(--duration-200ms) var(--easing-ease);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .telefono-control-apoderado:focus-within {
-  border-color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-bg) 92%, var(--palette-white) 8%);
-  box-shadow: var(--shadow-telefono-control-apoderado-focus-within);
+  border-color: var(--text-muted);
+  background: color-mix(in srgb, var(--color-bg) 92%, white 8%);
+  box-shadow: 0 0 0 3px rgb(148 163 184 / 18%);
 }
 
 .telefono-control-apoderado.input-error-apoderado {
@@ -130,7 +132,7 @@ textarea.form-input-apoderado {
 .telefono-country-apoderado,
 .telefono-number-apoderado {
   min-width: 0;
-  min-height: var(--size-46px);
+  min-height: 46px;
   border: 0;
   background: transparent;
   color: var(--text-main);
@@ -148,27 +150,27 @@ textarea.form-input-apoderado {
 }
 
 .telefono-country-apoderado {
-  max-width: var(--size-11rem);
-  padding: 0 var(--space-0-55rem);
+  max-width: 11rem;
+  padding: 0 0.55rem;
   cursor: pointer;
 }
 
 .telefono-prefix-apoderado {
-  padding-left: var(--space-0-7rem);
+  padding-left: 0.7rem;
   color: var(--text-main);
-  font-weight: var(--font-weight-600);
+  font-weight: var(--font-weight-semibold);
 }
 
 .telefono-number-apoderado {
   width: 100%;
-  padding: 0 var(--space-0-7rem) 0 var(--space-0-35rem);
+  padding: 0 0.7rem 0 0.35rem;
   caret-color: transparent;
   font-family: var(--font-family-mono-ui);
-  letter-spacing: var(--tracking-0-08em);
+  letter-spacing: 0.08em;
 }
 
 .telefono-number-apoderado::placeholder {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .telefono-number-wrap-apoderado {
@@ -179,14 +181,14 @@ textarea.form-input-apoderado {
 .telefono-mask-apoderado {
   position: absolute;
   top: 50%;
-  left: var(--offset-0-35rem);
+  left: 0.35rem;
   z-index: 0;
   transform: translateY(-50%);
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-family: var(--font-family-mono-ui);
-  letter-spacing: var(--tracking-0-08em);
+  letter-spacing: 0.08em;
   pointer-events: none;
-  opacity: var(--opacity-0-65);
+  opacity: 0.65;
 }
 
 .telefono-mask-apoderado span {
@@ -206,29 +208,29 @@ textarea.form-input-apoderado {
 .error-message-apoderado {
   position: absolute;
   right: 0;
-  bottom: var(--offset-2px);
+  bottom: 2px;
   left: 0;
   overflow: hidden;
   color: var(--color-error);
-  font-size: var(--xs);
-  line-height: var(--leading-1-2);
+  font-size: 0.6rem;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-  animation: fadeIn var(--duration-200ms) var(--easing-ease-in);
+  animation: fadeIn 200ms ease-in;
 }
 
 .form-actions-apoderado {
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-start;
-  gap: var(--sm);
-  margin-top: var(--sm);
+  gap: 0.8rem;
+  margin-top: 0.8rem;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(var(--motion-distance-negative-4px));
+    transform: translateY(-4px);
   }
 
   to {
@@ -239,70 +241,70 @@ textarea.form-input-apoderado {
 
 @media (max-width: 640px) {
   .apoderado-create-page .form-page-header {
-    margin-bottom: var(--space-0-45rem);
+    margin-bottom: 0.45rem;
   }
 
   .apoderado-create-page .form-page-header__title {
-    margin-bottom: var(--space-0-1rem);
-    font-size: var(--font-size-1-15rem);
+    margin-bottom: 0.1rem;
+    font-size: var(--font-h1);
   }
 
   .apoderado-create-page .form-page-header__subtitle {
     margin-bottom: 0;
-    font-size: var(--font-size-0-75rem);
-    line-height: var(--leading-1-35);
+    font-size: var(--font-subtitle);
+    line-height: 1.35;
   }
 
   .form-card-apoderado {
     grid-template-columns: 1fr;
-    gap: var(--space-0-25rem);
-    padding: var(--space-0-65rem);
+    gap: var(--form-gap);
+    padding: var(--card-padding);
   }
 
   .form-group-apoderado {
-    margin: var(--space-0-25rem) var(--space-0-35rem);
-    padding-bottom: var(--space-18px);
+    margin: var(--space-1) 0.35rem;
+    padding-bottom: 18px;
   }
 
   .form-input-apoderado {
-    min-height: var(--size-44px);
-    padding: var(--space-0-7rem) var(--space-0-8rem);
+    min-height: 44px;
+    padding: 0.7rem 0.8rem;
   }
 
   .telefono-control-apoderado {
-    grid-template-columns: var(--size-5-25rem) auto 1fr;
-    min-height: var(--size-44px);
+    grid-template-columns: 5.25rem auto 1fr;
+    min-height: 44px;
   }
 
   .telefono-country-apoderado {
-    width: var(--size-5-25rem);
-    padding-inline: var(--space-0-35rem);
+    width: 5.25rem;
+    padding-inline: 0.35rem;
   }
 
   textarea.form-input-apoderado {
-    min-height: var(--size-82px);
+    min-height: 82px;
   }
 
   .apoderado-observaciones {
-    margin: var(--space-0-25rem) var(--space-0-35rem);
+    margin: var(--space-1) 0.35rem;
   }
 
   .form-actions-apoderado {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-0-5rem);
-    margin: var(--space-0-15rem) var(--space-0-35rem) 0;
+    gap: var(--space-2);
+    margin: 0.15rem 0.35rem 0;
   }
 
   .form-actions-apoderado .base-button {
     width: 100%;
-    min-height: var(--size-40px);
+    min-height: 40px;
     margin: 0;
   }
 
   .form-actions-apoderado__create-button {
-    padding-inline: var(--space-0-35rem);
-    font-size: var(--font-size-0-68rem);
+    padding-inline: 0.35rem;
+    font-size: 0.68rem;
   }
 
   .form-actions-apoderado__create-button .button-content,
@@ -312,7 +314,7 @@ textarea.form-input-apoderado {
   }
 
   .form-actions-apoderado__create-button .button-content {
-    gap: var(--space-0-15rem);
+    gap: 0.15rem;
   }
 
   .form-actions-apoderado__create-button .button-icon {

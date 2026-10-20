@@ -1,0 +1,28 @@
+/* Mobile: personal header, touch actions and stacked family/payment cards. */
+.profile-page .profile-card { gap: var(--space-3); }
+.profile-page .profile-identity { padding: var(--space-4); }
+.profile-page .profile-summary { align-items: flex-start; gap: var(--space-3); }
+.profile-page .profile-identity .profile-avatar { flex-basis: 56px; width: 56px; height: 56px; }
+.profile-page .profile-name-row { display: contents; }
+.profile-page .profile-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.profile-page .profile-edit-name { order: 1; width: 100%; min-height: var(--control-height-large); margin-top: var(--space-3); }
+.profile-page .profile-account-data { flex-direction: column; align-items: stretch; }
+.profile-page .profile-account-actions { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); }
+.profile-page .profile-logout-button { min-height: var(--control-height-large); }
+.profile-page .profile-data-grid { grid-template-columns: minmax(0, 1fr); }
+.profile-page .profile-contribution-statuses { grid-template-columns: minmax(0, 1fr); }
+.profile-page .profile-family-data > header { align-items: flex-start; flex-direction: column; }
+.profile-page .profile-course-installments > span { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2) var(--space-3); }
+.profile-page .profile-course-installments > span small:first-of-type { text-align: right; }
+.profile-page .profile-course-installments em { text-align: right; }
+.profile-page .profile-payment-status { padding: var(--space-4) 0 0; }
+.profile-page .profile-payment-heading { grid-template-columns: auto minmax(0, 1fr); }
+.profile-page .profile-payment-summary { grid-column: 2; justify-self: start; }
+.profile-page .profile-course-installments > li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "concept status" "date amount"; gap: var(--space-3) var(--space-2); }
+.profile-page .profile-installment-amount { text-align: right; }
+.profile-page .profile-edit-backdrop { align-items: end; padding: var(--space-3); padding-bottom: max(var(--space-3), env(safe-area-inset-bottom)); }
+.profile-page .profile-edit-modal { width: min(100%, var(--modal-edit-max)); max-height: calc(100dvh - 24px); }
+.profile-page .profile-edit-form footer { display: grid; grid-template-columns: 1fr 1fr; }
+.profile-page .profile-edit-form input { min-height: var(--control-height-large); font-size: 16px; }
+.profile-page .profile-edit-form footer button, .profile-page .profile-upload-button, .profile-page .profile-initials-button { min-height: var(--control-height-large); }
+.profile-page .profile-avatar-gallery { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }

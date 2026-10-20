@@ -44,7 +44,8 @@ export const ApoderadoPage: FC = () => {
   const [consent, setConsent] = useState(false);
   const [consentSource, setConsentSource] = useState("");
   const [consentDate, setConsentDate] = useState("");
-  const { invitation, error: invitationError, reload: reloadInvitation } = useGuardianInvitation(accessGuardian?.codigo);
+  const { invitation, error: invitationError, whatsappEnabled, reload: reloadInvitation } = useGuardianInvitation(accessGuardian?.codigo);
+  const usesWhatsApp = whatsappEnabled && channel !== "email";
   const openInvitation = (guardian: Apoderado) => {
     setChannel("email"); setConsent(false); setConsentSource(""); setConsentDate("");
     const rect = document.activeElement?.getBoundingClientRect();
@@ -117,14 +118,22 @@ export const ApoderadoPage: FC = () => {
     const guardian = accessGuardian;
     setEnablingAccess(true);
     try {
-      if (channel === "whatsapp") {
+      if (usesWhatsApp) {
         const result = await new ApoderadoRepositoryImpl().inviteWhatsApp(guardian.codigo,
-          { authorized: consent, source: consentSource, authorizedAt: `${consentDate}T00:00:00` });
-        reloadInvitation();
-        setAccessAlert({ isOpen: true, type: result.deliveryStatus === "FAILED" ? "error" : "success",
-          message: result.deliveryStatus === "FAILED" ? "Meta no pudo aceptar el mensaje. Consulta el estado antes de reintentar."
-            : result.simulated ? "Invitación simulada. No se envió ningún mensaje real."
-            : "Meta acepto el mensaje. La entrega está pendiente de confirmacion." });
+          { authorized: consent, source: consentSource, authorizedAt: `${consentDate}T00:00:00`,
+            ...(channel === "both" && { sendEmail: true }) });
+        const failed = result.deliveryStatus === "FAILED" || (channel === "both" && result.emailSent !== true);
+        if (failed) {
+          reloadInvitation();
+        } else {
+          setAccessGuardian(null);
+        }
+        const whatsappMessage = result.deliveryStatus === "FAILED" ? "Meta no pudo aceptar el mensaje. Consulta el estado antes de reintentar."
+            : result.simulated ? "WhatsApp simulado. No se envió ningún mensaje por WhatsApp."
+            : "Meta acepto el mensaje. La entrega está pendiente de confirmacion.";
+        setAccessAlert({ isOpen: true, type: failed ? "error" : "success",
+          message: channel === "both" ? `${whatsappMessage} ${result.emailSent === true
+            ? "Correo enviado." : "No fue posible enviar el correo."}` : whatsappMessage });
         refetch();
         return;
       }
@@ -224,18 +233,21 @@ export const ApoderadoPage: FC = () => {
         variant={alert.type === "success" ? "toast" : "modal"}
       />
       <ModalConfirm isOpen={Boolean(accessGuardian)} title="Habilitar acceso" anchor={invitationAnchor} containerClassName="guardian-invitation-modal"
-        message={channel === "whatsapp" ? `Invitar por WhatsApp a ${accessGuardian?.telefono ?? ""}.`
+        message={usesWhatsApp && channel === "both" ? `Invitar por WhatsApp a ${accessGuardian?.telefono ?? ""} y por correo a ${accessGuardian?.email ?? ""}.`
+          : usesWhatsApp ? `Invitar por WhatsApp a ${accessGuardian?.telefono ?? ""}.`
           : `Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
-        confirmDisabled={channel === "whatsapp" && (!consent || !consentSource.trim() || !consentDate || invitation?.status === "ACTIVATED")}
+        confirmDisabled={usesWhatsApp && (!consent || !consentSource.trim() || !consentDate || invitation?.status === "ACTIVATED")}
         confirmLabel="Enviar invitación" isLoading={enablingAccess}
         compact
         onCancel={() => setAccessGuardian(null)}
         onConfirm={() => void confirmEnableAccess()}>
         <div className="guardian-invitation-fields">
-          <label>Canal<select value={channel} disabled={enablingAccess} onChange={event => setChannel(event.target.value)}>
-            <option value="email">Correo electrónico</option><option value="whatsapp">WhatsApp</option>
+          <label>Canal<select value={whatsappEnabled ? channel : "email"} disabled={enablingAccess} onChange={event => setChannel(event.target.value)}>
+            <option value="email">Correo electrónico</option>
+            {whatsappEnabled && <><option value="whatsapp">WhatsApp</option>
+              <option value="both">WhatsApp y correo</option></>}
           </select></label>
-          {channel === "whatsapp" && <>
+          {usesWhatsApp && <>
             <p role="status">{invitationError || (!invitation ? "Consultando estado..." :
               invitation.status === "ACTIVATED" ? "Cuenta activada" : invitation.status === "NONE" ? "Sin invitación por WhatsApp" :
               `${({ PENDING: "Activación pendiente", EXPIRED: "Invitación vencida", SUPERSEDED: "Invitación reemplazada" } as Record<string, string>)[invitation.status]} · ${

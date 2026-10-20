@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/apoderados/{codigo}/invitacion-whatsapp")
+@RequestMapping("/api/v1/apoderados")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 public class GuardianWhatsAppController {
     private final ApoderadoService guardians;
@@ -15,12 +15,16 @@ public class GuardianWhatsAppController {
         this.guardians = guardians;
         this.invitations = invitations;
     }
-    @PostMapping
+    @GetMapping("/canales-invitacion")
+    public GuardianWhatsAppService.InvitationChannels channels() {
+        return invitations.channels();
+    }
+    @PostMapping("/{codigo}/invitacion-whatsapp")
     public GuardianWhatsAppService.InvitationStatus invite(@PathVariable String codigo,
             @RequestBody GuardianWhatsAppService.Consent consent) {
         return invitations.invite(guardians.findByCodigo(codigo).getApoderadoId(), consent);
     }
-    @GetMapping
+    @GetMapping("/{codigo}/invitacion-whatsapp")
     public GuardianWhatsAppService.InvitationStatus status(@PathVariable String codigo) {
         return invitations.latest(guardians.findByCodigo(codigo).getApoderadoId());
     }

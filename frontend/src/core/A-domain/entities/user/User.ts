@@ -29,6 +29,7 @@ export interface UserPayload {
 
 export interface SelfProfileUpdatePayload {
   nombre: string;
+  telefono?: string;
 }
 
 export interface AdminUserUpdatePayload {

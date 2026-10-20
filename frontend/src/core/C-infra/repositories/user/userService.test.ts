@@ -58,6 +58,14 @@ describe("UserRepositoryImpl", () => {
     expect(apiClient.patch).toHaveBeenCalledWith("/users/1/rol", { rol: "ADMIN" });
   });
 
+  it("envía nombre y teléfono sin otros atributos de la cuenta", async () => {
+    vi.mocked(apiClient.put).mockResolvedValue({ data: { id: 1 } });
+    await repository.updateSelfProfile(1, { ...payload, telefono: "+56987654321", enabled: true });
+    expect(apiClient.put).toHaveBeenCalledWith("/users/1/profile", {
+      nombre: payload.nombre, telefono: "+56987654321",
+    });
+  });
+
   it("[UserService #05] debe subir la foto como multipart", async () => {
     vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 1 } });
     const file = new File(["image"], "perfil.png", { type: "image/png" });

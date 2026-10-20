@@ -37,8 +37,7 @@ describe("BirthdaySection", () => {
   it("ordena cumpleanos cercanos y muestra los dias restantes", () => {
     render(<BirthdaySection alumnos={alumnos} today={new Date(2026, 0, 10)} />);
 
-    expect(screen.getByText("Cumplea\u00f1os")).toBeInTheDocument();
-    expect(screen.getByText("Pr\u00f3ximos alumnos")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Pr\u00f3ximos cumplea\u00f1os" })).toBeInTheDocument();
     expect(screen.getByText("THEO VIVAS")).toBeInTheDocument();
     expect(screen.getByText("Hoy cumple")).toBeInTheDocument();
     expect(screen.getByText("10-ene \u00b7 7 a\u00f1os")).toBeInTheDocument();

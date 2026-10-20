@@ -3,15 +3,15 @@
 .dashboard-board-message h2,
 .dashboard-board-message__signature { overflow-wrap: anywhere; }
 .dashboard-board-message__signature strong { white-space: pre-wrap; }
-.board-message-field { display: grid; gap: .4rem; }
-.board-message-field-help { color: var(--text-muted); font-size: .8rem; }
+.board-message-field { display: grid; gap: 0.4rem; }
+.board-message-field-help { color: var(--text-muted); font-size: 0.8rem; }
 .board-message-edit,
 .board-message-modal button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
-  padding: .6rem .9rem;
+  gap: var(--space-2);
+  padding: 0.6rem 0.9rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -28,7 +28,7 @@
   box-sizing: border-box;
   width: min(32rem, calc(100vw - 2rem));
   max-height: calc(100dvh - 2rem);
-  padding: 1.5rem;
+  padding: var(--space-6);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -36,15 +36,15 @@
   box-shadow: var(--shadow-card);
 }
 .board-message-modal::backdrop { background: rgb(0 0 0 / .5); }
-.board-message-modal form { display: grid; gap: .8rem; }
-.board-message-modal h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+.board-message-modal form { display: grid; gap: 0.8rem; }
+.board-message-modal h2 { margin: 0 0 var(--space-2); font-size: var(--font-h2); }
 .board-message-drag-handle { cursor: grab; touch-action: none; user-select: none; }
 .board-message-drag-handle:active { cursor: grabbing; }
 .board-message-modal textarea,
 .board-message-modal input {
   width: 100%;
   box-sizing: border-box;
-  padding: .75rem;
+  padding: var(--modal-padding);
   resize: vertical;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -53,7 +53,7 @@
   font: inherit;
 }
 .board-message-modal small { text-align: right; color: var(--text-muted); }
-.board-message-modal footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; }
+.board-message-modal footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); }
 .board-message-modal button[type="submit"] { background: var(--color-primary); color: var(--icon-on-accent); }
 
 .dashboard-board-message .board-message-edit {
@@ -63,13 +63,13 @@
   height: auto;
   min-width: 0;
   min-height: 28px;
-  padding: .2rem .4rem;
+  padding: 0.2rem 0.4rem;
   border: 0;
-  border-radius: var(--radius-8px);
+  border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
   box-shadow: none;
-  font-size: .7rem;
+  font-size: 0.7rem;
   line-height: 1.2;
   font-weight: 500;
 }
