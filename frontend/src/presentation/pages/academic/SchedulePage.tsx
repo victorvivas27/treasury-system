@@ -64,7 +64,7 @@ export function SchedulePage() {
       : !data.schedule.days.length ? <p role="status">Todavía no hay un horario publicado para este año. La administración lo publicará cuando esté listo.</p>
       : view === "summary" ? <div className="schedule-agenda-week">{days.map((day, index) => <ScheduleAgenda day={day} index={index} compact key={index} />)}</div>
       : view === "day" ? <ScheduleAgenda day={days[dayNumber - 1]} index={dayNumber - 1} />
-      : <div className="schedule-table-scroll" tabIndex={0} role="region" aria-label="Tabla semanal, desplazamiento horizontal">
+      : <div className="schedule-table-scroll" tabIndex={0} role="region" aria-label="Tabla semanal, desplazamiento horizontal y vertical">
         <table className="schedule-table"><caption>Horario semanal · {data.year}</caption>
           <thead><tr>{DAYS.map((name, index) => <th scope="col" key={name}>
             <span className={`schedule-table-day-heading schedule-day-heading--${index + 1}`}>{name}</span>

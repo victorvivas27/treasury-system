@@ -20,6 +20,7 @@ public interface UserUseCase {
     User update(Long id, AdminUserUpdate changes, Long authenticatedUserId);
 
     User updateSelfProfile(Long id, String nombre, Long authenticatedUserId);
+    User updateSelfProfile(Long id, String nombre, String telefono, Long authenticatedUserId);
 
     User changeRole(Long id, RoleEnum role, Long authenticatedUserId);
 

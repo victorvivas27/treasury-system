@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiActivity, FiCamera, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
 import { IoBulbOutline } from "react-icons/io5";
@@ -11,7 +11,6 @@ import type { ContributionSummary,
   TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
-import { expenseCategoryLabel } from "@/shared/constants/ExpenseConstants";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -90,9 +89,7 @@ export const DashboardPage = () => {
   }, [loading, data]);
 
   const genderCounts = data?.courseComposition ?? { masculino: 0, femenino: 0, otros: 0 };
-  const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6).map(item => ({
-    ...item, categoryName: expenseCategoryLabel(item.category),
-  })) ?? [], [data]);
+  const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6) ?? [], [data]);
   const expenseMax = useMemo(() => Math.max(
     1,
     ...expenseDetails.map(item => Number(item.amount)),
@@ -158,10 +155,12 @@ export const DashboardPage = () => {
     }
   }, [capturing]);
 
-  return <main ref={dashboardRef} className="business-dashboard business-dashboard--compact">
+  return <main ref={dashboardRef} className="business-dashboard">
     <header className="business-dashboard__header">
-      <div><h1>{user?.nombre ? `Hola, ${user.nombre.trim().split(/\s+/)[0]}` : "Dashboard"}</h1>
-        <p>Tu curso, sus finanzas y su actividad en un solo lugar.</p></div>
+      <div><h1 className="dashboard-greeting">{user?.nombre
+        ? <><span className="dashboard-greeting__intro">Hola,</span>{" "}<span className="dashboard-greeting__name">{user.nombre.trim().split(/\s+/)[0]}</span></>
+        : "Dashboard"}</h1>
+      </div>
       <div className="dashboard-header-actions">
       <span data-dashboard-capture-exclude="true">
       <Button label={capturing ? "Capturando..." : "Capturar dashboard"}
@@ -195,13 +194,37 @@ export const DashboardPage = () => {
     {error && !loading && <FeedbackState message={error} onRefresh={() => void load()} />}
     {!error && (loading && !data ? <DashboardSkeleton isAdmin={isAdmin} /> : data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
+        <section className="dashboard-summary-group dashboard-summary-group--money" aria-labelledby="dashboard-money-title">
+          <header className="dashboard-summary-group__heading">
+            <h2 id="dashboard-money-title">Dinero del curso</h2>
+          </header>
+          <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
+            featured negative={data.finances.availableBalance < 0}
+            positive={data.finances.availableBalance >= 0}
+            description="Ingresos totales menos egresos" />
+          <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)}
+            positive direction="in" to={`/tesoreria/ingresos?year=${year}`} />
+          <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)}
+            negative direction="out" to={`/tesoreria/gastos?year=${year}`} />
+        </section>
+        <section className="dashboard-summary-group dashboard-summary-group--fees" aria-labelledby="dashboard-fees-title">
+          <header className="dashboard-summary-group__heading">
+            <h2 id="dashboard-fees-title">Cuotas del curso</h2>
+          </header>
+          <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)} icon="paid" />
+          <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)} icon="pending" />
+        </section>
+        <section className="dashboard-summary-group dashboard-summary-group--course" aria-labelledby="dashboard-course-title">
+          <header className="dashboard-summary-group__heading">
+            <h2 id="dashboard-course-title">Nuestro curso</h2>
+          </header>
         <Kpi label="Familias activas" value={String(data.quotas.totalFamilies)}
           icon="families" description={`Registradas para ${year}`} />
         <div className="dashboard-course-cards">
         <article className="dashboard-gender-card" aria-label="Composición del curso">
           <header>
             <i className="dashboard-gender-card__icon"><FiUsers aria-hidden="true" /></i>
-            <div><span>Composición del curso</span>
+            <div><span>Alumnos activos</span>
               <small>Alumnos activos</small></div>
           </header>
           <div className="dashboard-gender-card__total">
@@ -221,31 +244,19 @@ export const DashboardPage = () => {
         </article>
         <NextBirthday />
         </div>
-        <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
-          featured negative={data.finances.availableBalance < 0}
-          positive={data.finances.availableBalance >= 0}
-          description="Ingresos totales menos egresos" />
-        <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)}
-          positive direction="in" to={`/tesoreria/ingresos?year=${year}`} />
-        <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)}
-          negative direction="out" to={`/tesoreria/gastos?year=${year}`} />
-        <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)}
-          icon="paid" />
-        <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)}
-          icon="pending" />
+        </section>
       </section>
 
       <section className="dashboard-charts">
         <CashflowTimeline data={data} year={year} loading={loading} onRefresh={() => void load()} />
 
+        <div className="dashboard-chart-column dashboard-chart-column--finance">
         <article className="dashboard-panel dashboard-panel--annual">
           <header><button type="button" className="dashboard-collapse-trigger"
             aria-expanded={annualQuotaOpen} aria-controls="dashboard-annual-quota"
             onClick={() => setAnnualQuotaOpen(open => !open)}>
-            <i className="dashboard-panel-icon"><FiPieChart aria-hidden="true" /></i><div><span>Cuota anual</span><h2>Modalidad y avance de recaudación</h2>
-            <p className="dashboard-panel__explanation">
-              Modalidades por familia y dinero recaudado durante {year}.
-            </p></div><FcExpand className={annualQuotaOpen ? "is-open" : ""} aria-hidden="true" />
+            <i className="dashboard-panel-icon"><FiPieChart aria-hidden="true" /></i><div><h2>Cuota anual</h2>
+            </div><FcExpand className={annualQuotaOpen ? "is-open" : ""} aria-hidden="true" />
             </button></header>
           <div id="dashboard-annual-quota" className={`dashboard-collapse-content ${annualQuotaOpen ? "is-open" : ""}`}
             aria-hidden={!annualQuotaOpen} inert={!annualQuotaOpen}><div>
@@ -280,22 +291,58 @@ export const DashboardPage = () => {
                 </div>
                 <div className="annual-quota-progress__detail">
                   <strong>{annualQuotaSummary.percentage}% recaudado</strong>
-                  <span>{data.quotas.paidObligations} de {annualQuotaSummary.totalObligations} cuotas pagadas</span>
-                  <span>{data.quotas.pendingObligations} pendientes · {money.format(
-                    data.quotas.pendingAmount)}</span>
+                  <span>Pendiente: {money.format(data.quotas.pendingAmount)}</span>
                 </div>
               </div>
             </div>}
           </div></div>
         </article>
 
+        <article className="dashboard-panel dashboard-panel--distribution">
+          <header><button type="button" className="dashboard-collapse-trigger"
+            aria-expanded={expensesOpen} aria-controls="dashboard-expense-details"
+            onClick={() => setExpensesOpen(open => !open)}>
+            <i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><h2>Principales egresos</h2>
+            </div><FcExpand className={expensesOpen ? "is-open" : ""} aria-hidden="true" />
+            </button></header>
+          <div id="dashboard-expense-details" className={`dashboard-collapse-content ${expensesOpen ? "is-open" : ""}`}
+            aria-hidden={!expensesOpen} inert={!expensesOpen}><div>
+          {expenseDetails.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
+            : <ol className="dashboard-expense-ranking">
+              {expenseDetails.map((item, index) => <li key={item.id}>
+                <span className="dashboard-expense-ranking__position">{index + 1}</span>
+                <div className="dashboard-expense-ranking__content">
+                  <div><strong title={item.description}>{item.description}</strong>
+                    <b>{money.format(item.amount)}</b></div>
+                  <span className="dashboard-expense-ranking__track" aria-hidden="true">
+                    <i style={{ width: `${Math.max(5, (item.amount * 100) / expenseMax)}%` }} />
+                  </span>
+                </div>
+              </li>)}
+            </ol>}
+          </div></div>
+        </article>
+
+        <article className="dashboard-panel dashboard-panel--event-profits">
+          <header><button type="button" className="dashboard-collapse-trigger"
+            aria-expanded={eventsOpen} aria-controls="dashboard-event-profits"
+            onClick={() => setEventsOpen(open => !open)}>
+            <i className="dashboard-panel-icon"><FiDollarSign aria-hidden="true" /></i>
+            <div><h2>Ganancias de eventos</h2></div>
+            <FcExpand className={eventsOpen ? "is-open" : ""} aria-hidden="true" /></button></header>
+          <div id="dashboard-event-profits" className={`dashboard-collapse-content ${eventsOpen ? "is-open" : ""}`}
+            aria-hidden={!eventsOpen} inert={!eventsOpen}><div>
+            <EventProfitCards key={year} year={year} />
+          </div></div>
+        </article>
+        </div>
+        <div className="dashboard-chart-column dashboard-chart-column--activity">
         <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
           <header><button type="button" className="dashboard-collapse-trigger"
             aria-expanded={contributionsOpen} aria-controls="dashboard-course-contributions"
             onClick={() => setContributionsOpen(open => !open)}>
-            <i className="dashboard-panel-icon"><FiUsers aria-hidden="true" /></i><div><span>Aportes del curso</span>
-            <h2>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h2>
-            <p>Porcentaje de familias pagadas y pendientes durante {year}.</p></div><FcExpand className={contributionsOpen ? "is-open" : ""} aria-hidden="true" />
+            <i className="dashboard-panel-icon"><FiUsers aria-hidden="true" /></i><div>
+            <h2>Aportes del curso</h2></div><FcExpand className={contributionsOpen ? "is-open" : ""} aria-hidden="true" />
             </button></header>
           <div id="dashboard-course-contributions" className={`dashboard-collapse-content ${contributionsOpen ? "is-open" : ""}`}
             aria-hidden={!contributionsOpen} inert={!contributionsOpen}><div>
@@ -311,38 +358,11 @@ export const DashboardPage = () => {
           </div></div>
         </article>
 
-        <article className="dashboard-panel dashboard-panel--distribution">
-          <header><button type="button" className="dashboard-collapse-trigger"
-            aria-expanded={expensesOpen} aria-controls="dashboard-expense-details"
-            onClick={() => setExpensesOpen(open => !open)}>
-            <i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><span>Principales egresos</span><h2>¿En qué se gastó?</h2>
-            <p className="dashboard-panel__explanation">
-              Descripción del gasto; la categoría se muestra como contexto.
-            </p></div><FcExpand className={expensesOpen ? "is-open" : ""} aria-hidden="true" />
-            </button></header>
-          <div id="dashboard-expense-details" className={`dashboard-collapse-content ${expensesOpen ? "is-open" : ""}`}
-            aria-hidden={!expensesOpen} inert={!expensesOpen}><div>
-          {expenseDetails.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
-            : <ol className="dashboard-expense-ranking">
-              {expenseDetails.map((item, index) => <li key={item.id}>
-                <span className="dashboard-expense-ranking__position">{index + 1}</span>
-                <div className="dashboard-expense-ranking__content">
-                  <div><strong title={item.description}>{item.description}</strong>
-                    <small>{item.categoryName}</small><b>{money.format(item.amount)}</b></div>
-                  <span className="dashboard-expense-ranking__track" aria-hidden="true">
-                    <i style={{ width: `${Math.max(5, (item.amount * 100) / expenseMax)}%` }} />
-                  </span>
-                </div>
-              </li>)}
-            </ol>}
-          </div></div>
-        </article>
-
         <section className="dashboard-panel dashboard-activity">
         <header><button className="dashboard-collapse-trigger" type="button"
           aria-expanded={activityOpen} aria-controls="dashboard-recent-activity"
           onClick={() => setActivityOpen(open => !open)}>
-          <i className="dashboard-panel-icon"><FiActivity aria-hidden="true" /></i><div><span>Últimos registros</span><h2>Actividad reciente</h2></div>
+          <i className="dashboard-panel-icon"><FiActivity aria-hidden="true" /></i><div><h2>Actividad reciente</h2></div>
           <FcExpand className={activityOpen ? "is-open" : ""} aria-hidden="true" />
         </button></header>
         <div id="dashboard-recent-activity"
@@ -374,21 +394,9 @@ export const DashboardPage = () => {
             ariaLabel="Paginación de actividad reciente" />}
         </div>}</div></div>
         </section>
-        <article className="dashboard-panel dashboard-panel--event-profits">
-          <header><button type="button" className="dashboard-collapse-trigger"
-            aria-expanded={eventsOpen} aria-controls="dashboard-event-profits"
-            onClick={() => setEventsOpen(open => !open)}>
-            <i className="dashboard-panel-icon"><FiDollarSign aria-hidden="true" /></i>
-            <div><span>Fiesta de la Familia</span><h2>Ganancias de eventos</h2></div>
-            <FcExpand className={eventsOpen ? "is-open" : ""} aria-hidden="true" /></button></header>
-          <div id="dashboard-event-profits" className={`dashboard-collapse-content ${eventsOpen ? "is-open" : ""}`}
-            aria-hidden={!eventsOpen} inert={!eventsOpen}><div>
-            <EventProfitCards key={year} year={year} />
-          </div></div>
-        </article>
+        </div>
+        <BoardMessage isAdmin={isAdmin} />
       </section>
-
-      <BoardMessage isAdmin={isAdmin} />
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
         <header><button className="dashboard-collapse-trigger" type="button"
@@ -467,7 +475,7 @@ const Kpi = ({ label, value, positive = false, negative = false, direction, feat
   direction?: "in" | "out"; featured?: boolean; description?: string;
   icon?: "paid" | "pending" | "families";
   to?: string;
-}) => <article className={`${featured ? "dashboard-kpi--featured" : ""} ${
+}) => <article className={`dashboard-kpi ${featured ? "dashboard-kpi--featured" : ""} ${
   direction ? `dashboard-kpi--${direction}` : ""} ${icon ? `dashboard-kpi--${icon}` : ""}`}>
   <div className="dashboard-kpi__header">
     <span className="dashboard-kpi__label">{to
@@ -491,7 +499,6 @@ const ContributionDonut = ({ title, paid, pending }: {
 }) => {
   const total = paid + pending;
   const percentage = total === 0 ? 0 : Math.round((paid * 100) / total);
-  const pendingPercentage = total === 0 ? 0 : 100 - percentage;
   const chartData = [
     { name: "Pagado", value: paid, color: "var(--color-success)" },
     { name: "Pendiente", value: pending, color: "var(--color-warning)" },
@@ -501,8 +508,8 @@ const ContributionDonut = ({ title, paid, pending }: {
     <div className="contribution-donut__chart">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
-          <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="67%"
-          outerRadius="96%" paddingAngle={2}>
+          <Pie data={chartData} dataKey="value" nameKey="name" innerRadius="62%"
+          outerRadius="88%" paddingAngle={2}>
           {chartData.map(item => <Cell key={item.name} fill={item.color} />)}
         </Pie>
         </PieChart>
@@ -511,15 +518,13 @@ const ContributionDonut = ({ title, paid, pending }: {
     </div>
     <div className="contribution-donut__details"
       aria-label={`${paid} familias pagadas y ${pending} pendientes`}>
-      <div className="contribution-donut__metric is-paid">
+      <div className="contribution-donut__metric contribution-donut__metric--paid">
         <i aria-hidden="true" />
-        <span><small>Pagadas</small><strong>{paid} familias</strong></span>
-        <b>{percentage}%</b>
+        <span><small>Pagadas</small><strong>{paid}</strong></span>
       </div>
-      <div className="contribution-donut__metric is-pending">
+      <div className="contribution-donut__metric contribution-donut__metric--pending">
         <i aria-hidden="true" />
-        <span><small>Pendientes</small><strong>{pending} familias</strong></span>
-        <b>{pendingPercentage}%</b>
+        <span><small>Pendientes</small><strong>{pending}</strong></span>
       </div>
     </div>
   </article>;
@@ -531,7 +536,7 @@ const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
   <section className="dashboard-kpis">{[
     "Familias activas", "Saldo disponible", "Ingresos totales", "Egresos activos",
     "Cuotas pagadas", "Cuotas pendientes",
-  ].map(label => <article key={label}><span>{label}</span>
+  ].map(label => <article className="dashboard-kpi" key={label}><span>{label}</span>
     <div className="skeleton-block dashboard-value-skeleton" /></article>)}</section>
   <section className="dashboard-charts">
     {[

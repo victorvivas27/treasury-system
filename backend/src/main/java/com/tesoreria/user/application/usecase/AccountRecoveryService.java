@@ -168,6 +168,10 @@ public class AccountRecoveryService {
         return user;
     }
 
+    public boolean sendGuardianInvitationEmail(GuardianInvitation invitation, String publicUrl) {
+        return sendPasswordReset(invitation.user(), publicUrl + "/aceptar-invitacion#token=" + invitation.rawToken());
+    }
+
     @Transactional
     public User verifyEmail(String rawToken) {
         UserTokenEntity token = validToken(rawToken, UserTokenType.EMAIL_VERIFICATION);

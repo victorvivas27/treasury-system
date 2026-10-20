@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
-import { FiAward, FiBookOpen, FiCamera, FiChevronLeft, FiChevronRight, FiCompass, FiGift, FiHeart, FiMail, FiMusic,
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { FiAward, FiBookOpen, FiCamera, FiChevronLeft, FiChevronRight, FiCompass, FiGift, FiHeart, FiMusic,
   FiSmile, FiStar, FiSun, FiTarget, FiUsers } from "react-icons/fi";
 import type { AboutIcon, AboutSection } from "@/core/A-domain/entities/community/AboutSection";
 import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
@@ -9,6 +9,7 @@ import { AboutSectionRepositoryImpl } from "@/core/C-infra/repositories/communit
 import { coursePhotos } from "@/core/C-infra/repositories/community/CoursePhotoRepository";
 import { courseBoard } from "@/core/C-infra/repositories/community/CourseBoardRepository";
 import { useTheme } from "@/presentation/context/ThemeContext";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeCommunity.css";
 
@@ -28,9 +29,18 @@ const icons: Record<AboutIcon, typeof FiUsers> = {
   AWARD: FiAward, COMPASS: FiCompass, GIFT: FiGift, MUSIC: FiMusic, SUN: FiSun,
 };
 const Lottie = lazy(() => import("lottie-react").then(module => ({ default: module.Lottie })));
-const heartAnimationRequest = typeof window === "undefined"
-  ? undefined
-  : fetch("/icons/Heart.json").then(response => response.json() as Promise<object>);
+const animationRequests = new Map<string, Promise<object>>();
+const loadAnimation = (file: string) => {
+  if (!animationRequests.has(file)) {
+    const request = fetch(`/icons/${encodeURIComponent(file)}.json`)
+      .then(response => {
+        if (!response.ok) throw new Error("Animation unavailable");
+        return response.json() as Promise<object>;
+      }).catch(error => { animationRequests.delete(file); throw error; });
+    animationRequests.set(file, request);
+  }
+  return animationRequests.get(file)!;
+};
 
 const lottieColor = (value: string) => {
   const normalized = value.trim();
@@ -67,89 +77,78 @@ const themedCommunityAnimation = (animation: object) => {
   return copy;
 };
 
-const CameraV3Icon = () => {
+const CommunityIcon = ({ file, name, speed = .85, fallback = null }: {
+  file: string;
+  name: string;
+  speed?: number;
+  fallback?: ReactNode;
+}) => {
   const { resolvedTheme } = useTheme();
   const [animationData, setAnimationData] = useState<object>();
   useEffect(() => {
     let active = true;
-    fetch("/icons/Camera%20V3.json").then(response => response.json() as Promise<object>)
+    loadAnimation(file)
       .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
       .catch(() => undefined);
     return () => { active = false; };
-  }, [resolvedTheme]);
-  return <span className="home-community__camera-icon" aria-hidden="true">
-    <Suspense fallback={<img src="/icons/Camera%20V3.svg" alt="" />}>
-      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
-        loop autoplay />
-        : <img src="/icons/Camera%20V3.svg" alt="" />}
-    </Suspense>
-  </span>;
-};
-
-const StaffIcon = () => {
-  const { resolvedTheme } = useTheme();
-  const [animationData, setAnimationData] = useState<object>();
-  useEffect(() => {
-    let active = true;
-    fetch("/icons/Staff.json").then(response => response.json() as Promise<object>)
-      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [resolvedTheme]);
-  return <span className="home-community__staff-icon" aria-hidden="true">
-    <Suspense fallback={<FiUsers />}>
-      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.8}
-        loop autoplay /> : <FiUsers />}
-    </Suspense>
-  </span>;
-};
-
-const HeartIcon = () => {
-  const { resolvedTheme } = useTheme();
-  const [animationData, setAnimationData] = useState<object>();
-  useEffect(() => {
-    let active = true;
-    if (!heartAnimationRequest) return () => { active = false; };
-    heartAnimationRequest
-      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [resolvedTheme]);
-  return <span className="home-community__heart-icon" aria-hidden="true">
-    <Suspense fallback={null}>
-      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={.85}
-        loop autoplay /> : null}
+  }, [file, resolvedTheme]);
+  return <span className={`home-community__${name}-icon`} aria-hidden="true">
+    <Suspense fallback={fallback}>
+      {animationData ? <Lottie key={resolvedTheme} src={animationData} speed={speed}
+        loop autoplay /> : fallback}
     </Suspense>
   </span>;
 };
 
 export const HomeCommunity = () => {
+  const [loading, setLoading] = useState(true);
+  const [photosLoading, setPhotosLoading] = useState(true);
   const [sections, setSections] = useState<AboutSection[]>([]);
-  const [photos, setPhotos] = useState<CoursePhoto[]>([]);
+  const [photos, setPhotos] = useState<(CoursePhoto & { url: string; contained: boolean })[]>([]);
   const [board, setBoard] = useState<BoardMember[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
   const [activePhoto, setActivePhoto] = useState(0);
-  const [dragStart, setDragStart] = useState<number>();
+  const dragStart = useRef<number | undefined>(undefined);
+  const dragged = useRef(false);
   const [carouselPaused, setCarouselPaused] = useState(false);
   const [carouselCycle, setCarouselCycle] = useState(0);
-  const [containedPhotos, setContainedPhotos] = useState<Set<number>>(new Set());
   const [expandedCard, setExpandedCard] = useState<number>();
   const boardTrackRef = useRef<HTMLDivElement>(null);
   const moveBoard = (direction: number) => boardTrackRef.current?.scrollBy({
     left: direction * boardTrackRef.current.clientWidth * .78, behavior: "smooth",
   });
-  useEffect(() => { about.publicList().then(setSections).catch(() => setSections([])); }, []);
-  useEffect(() => { coursePhotos.list().then(setPhotos).catch(() => setPhotos([])); }, []);
-  useEffect(() => { courseBoard.list().then(setBoard).catch(() => setBoard([])); }, []);
   useEffect(() => {
     let active = true;
     const urls: string[] = [];
-    void Promise.all(photos.map(async photo => {
-      const url = await coursePhotos.loadImageUrl(photo); urls.push(url); return [photo.id, url] as const;
-    })).then(entries => { if (active) setPhotoUrls(Object.fromEntries(entries)); })
-      .catch(() => { if (active) setPhotoUrls({}); });
+    const load = async () => {
+      const [sectionResult, photoResult, boardResult] = await Promise.allSettled([
+        about.publicList(), coursePhotos.list(), courseBoard.list(),
+      ]);
+      if (!active) return;
+      setSections(sectionResult.status === "fulfilled" ? sectionResult.value : []);
+      setBoard(boardResult.status === "fulfilled" ? boardResult.value : []);
+      setLoading(false);
+      const loadedPhotos = photoResult.status === "fulfilled" ? photoResult.value : [];
+      const images = await Promise.allSettled(loadedPhotos.map(async photo => {
+        const url = await coursePhotos.loadImageUrl(photo);
+        if (!active) { URL.revokeObjectURL(url); return null; }
+        urls.push(url);
+        // Decode before displaying the gallery to avoid blank image flashes.
+        const contained = await new Promise<boolean>((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image.naturalWidth / image.naturalHeight < 1.1);
+          image.onerror = () => reject(new Error("Photo unavailable"));
+          image.src = url;
+        });
+        return { ...photo, url, contained };
+      }));
+      if (!active) return;
+      setPhotos(images.flatMap(result =>
+        result.status === "fulfilled" && result.value ? [result.value] : []));
+      setPhotosLoading(false);
+    };
+    void load();
     return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)); };
-  }, [photos]);
+  }, []);
   useEffect(() => { setActivePhoto(current => Math.min(current, Math.max(0, photos.length - 1))); }, [photos.length]);
   useEffect(() => {
     if (photos.length < 2 || carouselPaused) return;
@@ -158,44 +157,47 @@ export const HomeCommunity = () => {
     return () => window.clearTimeout(timer);
   }, [activePhoto, carouselCycle, carouselPaused, photos.length]);
   const showPhoto = (index: number) => {
-    setActivePhoto((index + photos.length) % photos.length); setCarouselCycle(value => value + 1);
-  };
-  const movePhoto = (direction: number) => {
-    setActivePhoto(current => (current + direction + photos.length) % photos.length);
+    if (!photos.length) return;
+    setActivePhoto((index + photos.length) % photos.length);
     setCarouselCycle(value => value + 1);
   };
+  const movePhoto = (direction: number) => showPhoto(activePhoto + direction);
   const photoPosition = (index: number) => {
     if (index === activePhoto) return "is-active";
     if ((index - activePhoto + photos.length) % photos.length === 1) return "is-next";
-    return "is-previous";
+    return (activePhoto - index + photos.length) % photos.length === 1 ? "is-previous" : "";
   };
   return (
-  <div className="home-community">
+  <div className="home-community" aria-busy={loading || photosLoading}>
     <section id="sobre-nosotros" className="home-community__about" data-home-reveal
       data-home-scroll-repeat data-home-community-repeat>
       <header className="home-community__title-banner">
-        <HeartIcon />
+        <CommunityIcon file="Heart" name="heart" />
         <div>
           <span>Nuestro manifiesto</span>
           <h2>Lo que nos mueve</h2>
         </div>
       </header>
       <div className="home-community__about-grid">
-        {sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured"
+        {loading ? <div className="home-community__loading" role="status" aria-label="Cargando comunidad">
+          <Skeleton width="55%" height="1.5rem" />
+          <Skeleton height="1rem" /><Skeleton width="85%" height="1rem" />
+        </div> : sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured"
           data-card-number="01">
           <span className="home-community__card-icon"><FiUsers /></span><div><h2>Una comunidad organizada y conectada</h2>
           <p>Este espacio reúne la información del curso y facilita una comunicación clara entre
             las familias y su directiva.</p></div></article> : sections.map((section, index) => {
           const Icon = icons[section.icon] ?? FiUsers;
-          return <article key={section.id} style={{ "--card-delay": `calc(${index} * var(--stagger-community))` } as CSSProperties}
+          return <article key={section.id} style={{ "--card-delay": `calc(${index} * 170ms)` } as CSSProperties}
             data-card-number={String(index + 1).padStart(2, "0")}
             className={`home-community__about-card is-${section.accentColor.toLowerCase()} ${section.featured ? "is-featured" : ""}`}>
             <span className="home-community__card-icon"><Icon aria-hidden="true" /></span>
             <div><h3>{section.title}</h3>
-              <p className={expandedCard === section.id ? "is-expanded" : ""}>
+              <p id={`home-about-${section.id}`} className={expandedCard === section.id ? "is-expanded" : ""}>
                 {section.description}</p>
               {section.description.length > 120 && <button className="home-community__read-more"
-                type="button" onClick={() => setExpandedCard(current =>
+                type="button" aria-expanded={expandedCard === section.id}
+                aria-controls={`home-about-${section.id}`} onClick={() => setExpandedCard(current =>
                   current === section.id ? undefined : section.id)}>
                 {expandedCard === section.id ? "Ver menos" : "Leer más"}
               </button>}
@@ -207,46 +209,44 @@ export const HomeCommunity = () => {
 
     <section id="fotos-del-curso" className="home-community__content" data-home-reveal>
       <header className="home-community__photo-heading">
-        <CameraV3Icon />
+        <CommunityIcon file="Camera V3" name="camera" fallback={<img src="/icons/Camera%20V3.svg" alt="" />} />
         <div><h2>Nuestros momentos</h2>
           <p>Historias compartidas que merecen quedarse con nosotros.</p></div>
       </header>
-      {photos.length > 0 ? <div className="home-community__carousel" role="region"
+      {photosLoading ? <div className="home-community__photo-placeholder" aria-label="Cargando fotos"><Skeleton width="100%" height="100%" /></div> : photos.length > 0 ? <div className="home-community__carousel" role="region"
         aria-roledescription="carrusel" aria-label="Nuestros momentos" tabIndex={0}
-        onMouseEnter={() => setCarouselPaused(true)} onMouseLeave={() => setCarouselPaused(false)}
+        onMouseEnter={() => setCarouselPaused(true)}
+        onMouseLeave={event => setCarouselPaused(event.currentTarget.contains(document.activeElement))}
+        onFocus={() => setCarouselPaused(true)}
+        onBlur={event => setCarouselPaused(event.currentTarget.contains(event.relatedTarget)
+          || event.currentTarget.matches(":hover"))}
         onKeyDown={event => {
           if (event.key === "ArrowLeft") { event.preventDefault(); movePhoto(-1); }
           if (event.key === "ArrowRight") { event.preventDefault(); movePhoto(1); }
         }} onPointerDown={event => {
           if ((event.target as HTMLElement).closest("button")) return;
-          setDragStart(event.clientX); event.currentTarget.setPointerCapture(event.pointerId);
+          dragged.current = false;
+          dragStart.current = event.clientX;
+          event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerUp={event => {
-          if (dragStart !== undefined && Math.abs(event.clientX - dragStart) > 35)
-            movePhoto(event.clientX < dragStart ? 1 : -1);
-          setDragStart(undefined);
-        }} onPointerCancel={() => setDragStart(undefined)}>
-        <div className="home-community__photo-gallery" aria-live="polite">
+          if (dragStart.current !== undefined && Math.abs(event.clientX - dragStart.current) > 35) {
+            dragged.current = true;
+            movePhoto(event.clientX < dragStart.current ? 1 : -1);
+          }
+          dragStart.current = undefined;
+        }} onPointerCancel={() => { dragStart.current = undefined; }}>
+        <div className="home-community__photo-gallery" aria-live={carouselPaused ? "polite" : "off"}>
           {photos.map((photo, index) => <figure key={photo.id}
             className={photoPosition(index)} aria-hidden={index !== activePhoto}
-            onClick={() => showPhoto(index)}>
-            <div className={`home-community__photo-media ${containedPhotos.has(photo.id) ? "uses-contain" : "uses-cover"}`}>
-              <img className="home-community__photo-backdrop" src={photoUrls[photo.id]} alt=""
+            onClick={() => { if (!dragged.current) showPhoto(index); }}>
+            <div className={`home-community__photo-media ${photo.contained ? "uses-contain" : "uses-cover"}`}>
+              <img className="home-community__photo-backdrop" src={photo.url} alt=""
                 aria-hidden="true" draggable={false} />
-              <img className="home-community__photo-image" src={photoUrls[photo.id]}
+              <img className="home-community__photo-image" src={photo.url}
                 alt={photo.caption || `Momento del curso ${index + 1}`}
                 style={{ objectPosition: photo.objectPosition ?? "50% 50%" }}
-                loading={index === 0 ? "eager" : "lazy"} draggable={false}
-                onLoad={event => {
-                  const image = event.currentTarget;
-                  const shouldContain = image.naturalWidth / image.naturalHeight < 1.1;
-                  setContainedPhotos(current => {
-                    if (current.has(photo.id) === shouldContain) return current;
-                    const next = new Set(current);
-                    if (shouldContain) next.add(photo.id); else next.delete(photo.id);
-                    return next;
-                  });
-                }} />
+                loading={index === 0 ? "eager" : "lazy"} draggable={false} />
             </div>
             <figcaption>
               <span>{String(index + 1).padStart(2, "0")}</span>
@@ -254,12 +254,14 @@ export const HomeCommunity = () => {
                 <p>{photo.caption || "Un momento que forma parte de nuestra historia."}</p></div>
             </figcaption>
           </figure>)}
+          {photos.length > 1 && <div className="home-community__carousel-controls">
+            <button className="home-community__carousel-arrow is-previous" type="button"
+              aria-label="Ver foto anterior" onClick={() => movePhoto(-1)}><FiChevronLeft /></button>
+            <button className="home-community__carousel-arrow is-next" type="button"
+              aria-label="Ver foto siguiente" onClick={() => movePhoto(1)}><FiChevronRight /></button>
+          </div>}
         </div>
         {photos.length > 1 && <>
-          <button className="home-community__carousel-arrow is-previous" type="button"
-            aria-label="Ver foto anterior" onClick={() => movePhoto(-1)}><FiChevronLeft /></button>
-          <button className="home-community__carousel-arrow is-next" type="button"
-            aria-label="Ver foto siguiente" onClick={() => movePhoto(1)}><FiChevronRight /></button>
           <div className="home-community__carousel-dots" aria-label="Seleccionar fotografía">
             {photos.map((photo, index) => <button key={photo.id} type="button"
               className={index === activePhoto ? "is-active" : ""}
@@ -275,7 +277,7 @@ export const HomeCommunity = () => {
 
     <section id="directiva" className="home-community__content" data-home-reveal>
       <div className="home-community__board-heading">
-        <StaffIcon />
+        <CommunityIcon file="Staff" name="staff" speed={.8} fallback={<FiUsers />} />
         <div><span className="home-community__eyebrow">Directiva</span>
           <h2>Representantes del curso</h2></div>
       </div>
@@ -293,7 +295,7 @@ export const HomeCommunity = () => {
           const roleLabel = `${boardLabels[slot.role]}${slot.role === "PASTORAL" ? ` ${slot.position}` : ""}`;
           return <article key={`${slot.role}-${slot.position}`}
             className={`is-${slot.role.toLowerCase()}`}
-            style={{ "--board-delay": `calc(${index} * var(--stagger-board))` } as CSSProperties}>
+            style={{ "--board-delay": `calc(${index} * 120ms)` } as CSSProperties}>
             {member ? <UserAvatar className="home-community__board-avatar"
               customImageUserId={member.userId ?? undefined} user={{ nombre: member.nombre,
                 profileImageType: member.profileImageType, profileImageUrl: member.profileImageUrl }} />
@@ -311,13 +313,6 @@ export const HomeCommunity = () => {
       </div>
     </section>
 
-    <section id="contacto" className="home-community__contact" data-home-reveal hidden>
-      <FiMail aria-hidden="true" />
-      <div><span className="home-community__eyebrow">Contacto</span>
-        <h2>Comunícate con la directiva</h2>
-        <p>Los datos de contacto del curso estarán disponibles cuando la directiva los publique.</p>
-      </div>
-    </section>
   </div>
   );
 };

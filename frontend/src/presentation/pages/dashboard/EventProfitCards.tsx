@@ -44,7 +44,6 @@ export const EventProfitCards = ({ year }: { year: number }) => {
               aria-label={`Ver resumen de ${event.name}`}>{event.name}</Link></h2>
             <span className="dashboard-event-profit__date">{date.format(new Date(`${event.eventDate}T12:00:00`))}</span>
             <strong>{money.format(event.netProfit)}</strong>
-            <small>Ganancia neta del curso</small>
           </div>
         </article>)}
   </section>;

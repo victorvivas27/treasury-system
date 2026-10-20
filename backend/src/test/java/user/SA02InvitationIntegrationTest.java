@@ -49,7 +49,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
-        "app.storage.gcs.enabled=false", "app.whatsapp.enabled=true", "app.whatsapp.public-url=https://app.example", "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",
+        "app.storage.gcs.enabled=false", "app.whatsapp.enabled=true", "app.whatsapp.provider=mock", "app.whatsapp.mode=test",
+        "app.whatsapp.public-url=https://app.example", "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",
         "MERCADO_PAGO_ACCESS_TOKEN=", "MERCADO_PAGO_WEBHOOK_SECRET=",
         "MERCADO_PAGO_ORGANIZATION_ID=0", "MERCADO_PAGO_COLLECTOR_ID=",
         "MERCADO_PAGO_RETURN_URL=", "MERCADO_PAGO_WEBHOOK_URL="
@@ -109,6 +110,35 @@ class SA02InvitationIntegrationTest {
     }
 
     @Test
+    void invitationChannelsRequireAdminAndExposeOnlyAvailability() throws Exception {
+        String path = "/api/v1/apoderados/canales-invitacion";
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).header("Authorization", bearer(ordinary))).andExpect(status().isForbidden());
+        mvc.perform(get(path).header("Authorization", bearer(adminA)))
+                .andExpect(status().isOk()).andExpect(content().json("{\"whatsappEnabled\":true}"));
+    }
+
+    @Test
+    void combinedInvitationSharesOneTokenAndActivatesOnlyOnce() throws Exception {
+        String raw = inviteWhatsApp(true);
+        assertEquals("https://app.example/aceptar-invitacion#token=" + raw, links.get(guardianA.getEmail()));
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + raw + "\",\"newPassword\":\"Activated1!\"}"))
+                .andExpect(status().isOk());
+        assertTrue(invited(guardianA).getEnabled());
+        reject(raw);
+    }
+
+    @Test
+    void combinedInvitationKeepsTokenUsableWhenEmailFails() throws Exception {
+        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), any())).thenReturn(false);
+        String raw = inviteWhatsApp(true);
+        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + raw + "\"}")).andExpect(status().isNoContent());
+        assertFalse(invited(guardianA).getEnabled());
+    }
+
+    @Test
     void whatsappInvitationActivatesExistingAccountOnceWithoutExposingToken() throws Exception {
         String raw = inviteWhatsApp();
         UserEntity pending = invited(guardianA);
@@ -165,13 +195,17 @@ class SA02InvitationIntegrationTest {
         return "{\"authorized\":true,\"source\":\"Signed form\",\"authorizedAt\":\"2026-01-01T10:00:00\"}";
     }
     private String inviteWhatsApp() throws Exception {
+        return inviteWhatsApp(false);
+    }
+    private String inviteWhatsApp(boolean sendEmail) throws Exception {
         jdbc.update("UPDATE apoderados SET telefono = ? WHERE apoderado_id = ?", "+56912345678", guardianA.getApoderadoId());
         when(whatsappMessages.sendInvitation(anyString(), anyString(), anyString(), anyString())).thenAnswer(call -> {
             links.put("whatsapp", call.getArgument(3));
             return new com.tesoreria.messaging.core.InvitationMessagePort.SendResult("wamid." + UUID.randomUUID(), null, false);
         });
         mvc.perform(post(whatsappPath()).header("Authorization", bearer(adminA))
-                .contentType(MediaType.APPLICATION_JSON).content(whatsappConsent()))
+                .contentType(MediaType.APPLICATION_JSON).content(sendEmail
+                        ? whatsappConsent().replace("}", ",\"sendEmail\":true}") : whatsappConsent()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.deliveryStatus").value("ACCEPTED"))
                 .andExpect(jsonPath("$.deliveredAt").isEmpty()).andExpect(jsonPath("$.token").doesNotExist());
         assertNotNull(links.get("whatsapp"));

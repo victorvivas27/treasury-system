@@ -17,7 +17,7 @@ export function ScheduleAgenda({ day, index, compact = false }: { day?: Schedule
   }, [compact]);
   const blocks = day ? orderedBlocks(day) : [];
   const ingress = day ? scheduleIngress(day) : null;
-  return <article className={`schedule-agenda${compact ? " schedule-agenda--compact" : ""}`} aria-label={`Jornada · ${DAYS[index]}`}>
+  return <article className={`schedule-agenda${compact ? " schedule-agenda--compact" : " schedule-agenda--day"}`} aria-label={`Jornada · ${DAYS[index]}`}>
     {compact && <span ref={stickyMarker} className="schedule-agenda-sticky-marker" aria-hidden="true" />}
     {compact ? <div className={`schedule-agenda-heading schedule-agenda-toggle-heading${stuck ? " is-stuck" : ""}`}>
       <h2><button type="button" className="schedule-agenda-toggle" aria-label={DAYS[index]} aria-expanded={expanded} aria-controls={contentId}
@@ -43,7 +43,7 @@ export function ScheduleAgenda({ day, index, compact = false }: { day?: Schedule
       {blocks.map((block, position) => {
         const named = block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT";
         const title = named ? block.name?.trim() || TYPES[block.type] : TYPES[block.type];
-        return <li key={position} className="schedule-agenda-card" style={{ "--agenda-color": scheduleCardColor(block) } as CSSProperties}>
+        return <li key={position} className={`schedule-agenda-card${!named ? " schedule-agenda-card--pause" : ""}`} style={{ "--agenda-color": scheduleCardColor(block) } as CSSProperties}>
           <span className="schedule-agenda-time"><time>{timeLabel(block.startTime)}</time><time>{timeLabel(block.endTime)}</time></span>
           <ScheduleBlockIcon block={block} /><div className="schedule-agenda-subject"><strong>{title}</strong>{named && !compact && <small>{TYPES[block.type]}</small>}</div>
           {blockDurationLabel(block) && <span className="schedule-agenda-duration">{blockDurationLabel(block)}</span>}

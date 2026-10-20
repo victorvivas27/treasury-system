@@ -1,0 +1,32 @@
+info:
+  name: Actualizar teléfono del perfil propio
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: "{{Url_Base}}/users/{{profileUserId}}/profile"
+  headers:
+    - name: Authorization
+      value: "Bearer {{profileToken}}"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "{{profileName}}",
+        "telefono": "{{profilePhone}}"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Actualiza el perfil propio", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().id).to.equal(Number(bru.getVar("profileUserId")));
+          expect(res.getBody().password).to.be.undefined;
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0

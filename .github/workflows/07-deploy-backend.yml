@@ -93,6 +93,10 @@ jobs:
             GMAIL_APP_PASSWORD=${{ secrets.GMAIL_APP_PASSWORD }}
             EMAIL_FROM=${{ secrets.EMAIL_FROM }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            APP_PUBLIC_URL=https://tesoreriaescolar.app
+            WHATSAPP_ENABLED=false
+            WHATSAPP_MODE=production
+            WHATSAPP_PROVIDER=meta
             WEB_PUSH_ENABLED=true
             WEB_PUSH_PUBLIC_KEY=${{ secrets.WEB_PUSH_PUBLIC_KEY }}
             WEB_PUSH_PRIVATE_KEY=${{ secrets.WEB_PUSH_PRIVATE_KEY }}

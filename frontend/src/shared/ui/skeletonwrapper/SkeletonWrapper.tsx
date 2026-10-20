@@ -19,8 +19,8 @@ export const SkeletonWrapper = ({
     <div
       className={`skeleton-block ${className}`}
       style={{
-        height: height || 'var(--md)',
-        width: width || 'var(--wh-100)',
+        height: height || '1rem',
+        width: width || '100%',
         display: 'block'
       }}
     />

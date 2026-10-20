@@ -10,11 +10,12 @@ type SidebarHeaderProps = {
   onToggleSidebar: () => void;
   isLocked: boolean;
   isCollapsed?: boolean;
+  showToggle?: boolean;
 };
-export const SidebarHeader = ({ onToggleSidebar, isLocked, isCollapsed = true }: SidebarHeaderProps) => {
+export const SidebarHeader = ({ onToggleSidebar, isLocked, isCollapsed = true, showToggle = true }: SidebarHeaderProps) => {
   return (
     <>
-      <button
+      {showToggle && <button
         onClick={onToggleSidebar}
         className={`sidebar-btn-arrow ${isLocked ? "is-pinned" : ""}`}
         aria-label="Toggle sidebar"
@@ -24,7 +25,7 @@ export const SidebarHeader = ({ onToggleSidebar, isLocked, isCollapsed = true }:
         <IoIosArrowBack className="sidebar-btn-arrow-icon" aria-hidden="true" />
         <Tooltip content={isLocked ? "Cerrar menú" : "Abrir menú"} position="right"
           className="sidebar-icon-tooltip" />
-      </button>
+      </button>}
 
       <Link className="sidebar-brand-header" to="/" aria-label="Ir a la página de inicio">
         <BrandLogo className="sidebar-brand-icon" />

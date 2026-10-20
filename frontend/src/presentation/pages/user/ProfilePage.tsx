@@ -60,8 +60,11 @@ export const ProfilePage = () => {
   const { user, syncUser, logout } = useAuth();
   const navigate = useNavigate();
   const [editingName, setEditingName] = useState(false);
+  const editModalRef = useRef<HTMLElement>(null);
   const [nameInput, setNameInput] = useState(user?.nombre ?? "");
   const [nameError, setNameError] = useState("");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [savingPhoto, setSavingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState("");
@@ -83,21 +86,70 @@ export const ProfilePage = () => {
     if (!editingName) setNameInput(user?.nombre ?? "");
   }, [editingName, user?.nombre]);
 
+  useEffect(() => {
+    setPhoneInput(familyProfile?.guardianPhone ?? "");
+    setPhoneError("");
+  }, [editingName, familyProfile?.guardianPhone]);
+
   const cancelNameEdit = () => {
+    if (savingName || savingPhoto) return;
     setNameInput(user?.nombre ?? "");
     setNameError("");
+    setPhoneError("");
     setEditingName(false);
   };
 
+  useEffect(() => {
+    if (!editingName) return;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const modal = editModalRef.current;
+    modal?.querySelector<HTMLButtonElement>(".profile-edit-modal__close")?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (modal?.getAttribute("aria-busy") === "true") return;
+        event.preventDefault();
+        setNameError("");
+        setEditingName(false);
+      }
+      if (event.key !== "Tab") return;
+      const controls = Array.from(modal?.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled):not([type="file"]), [tabindex="0"]',
+      ) ?? []);
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKey);
+      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+    };
+  }, [editingName]);
+
   const saveName = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user) return;
+    if (!user || savingName || savingPhoto) return;
     const normalizedName = nameInput.trim().replace(/\s+/g, " ");
+    const normalizedPhone = phoneInput.replace(/[\s()-]/g, "");
+    const phoneChanged = Boolean(familyProfile) && normalizedPhone !==
+      (familyProfile?.guardianPhone ?? "").replace(/[\s()-]/g, "");
+    setPhoneError("");
     if (!NAME_PATTERN.test(normalizedName)) {
       setNameError("Ingresa entre 3 y 100 letras. Puedes usar espacios y tildes.");
       return;
     }
-    if (normalizedName === user.nombre) {
+    if (familyProfile && !/^\+?[0-9]{8,15}$/.test(normalizedPhone)) {
+      setPhoneError("Usa entre 8 y 15 dígitos y + opcional al inicio.");
+      return;
+    }
+    if (normalizedName === user.nombre && !phoneChanged) {
       cancelNameEdit();
       return;
     }
@@ -106,11 +158,16 @@ export const ProfilePage = () => {
     try {
       const updatedUser = await users.updateSelfProfile(user.id, {
         nombre: normalizedName,
+        ...(phoneChanged && { telefono: normalizedPhone }),
       });
       syncUser(updatedUser);
+      if (phoneChanged) {
+        clearProfileCache();
+        setFamilyProfile(current => current ? { ...current, guardianPhone: normalizedPhone } : current);
+      }
       setEditingName(false);
     } catch {
-      setNameError("No fue posible actualizar tu nombre. Intenta nuevamente.");
+      setNameError("No fue posible actualizar tu perfil. Intenta nuevamente.");
     } finally {
       setSavingName(false);
     }
@@ -247,7 +304,7 @@ export const ProfilePage = () => {
         </div>
       </section>
 
-      <section className="profile-real-data" aria-label="Datos de la cuenta">
+      <section className="profile-real-data profile-account-data" aria-label="Datos de la cuenta">
         <div><span>Tu espacio personal</span><h2>Estado de la cuenta</h2></div>
         <div className="profile-account-actions">
           <strong className={`profile-account-status ${user?.enabled ? "is-active" : "is-inactive"}`}>
@@ -347,37 +404,41 @@ export const ProfilePage = () => {
           })}
         </div>
 
-        {paymentMode && <div className={`profile-payment-status ${familyProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
-          <i className="profile-payment-icon"><FiBookOpen /></i>
-          <div>
-            <span>Cuota del curso · {paymentMode === "PERSONALIZADA" ? "Cuota personalizada" : paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
-            <strong>{familyProfile.obligations.length === 0
+        {paymentMode && <section aria-labelledby="profile-course-fee-title" className={`profile-payment-status ${familyProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
+          <header className="profile-payment-heading">
+            <i className="profile-payment-icon" aria-hidden="true"><FiBookOpen /></i>
+            <div><h3 id="profile-course-fee-title">Cuota del curso</h3>
+              <span className="profile-payment-mode">{paymentMode === "PERSONALIZADA" ? "Personalizada" : paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
+            </div>
+            <strong className="profile-payment-summary">{familyProfile.obligations.length === 0
               ? "Modalidad asignada"
               : pending.length === 0 ? "Al día"
               : `${pending.length} ${pending.length === 1 ? "cuota pendiente" : "cuotas pendientes"}`}</strong>
-            {familyProfile.obligations.length > 0 && <div className="profile-course-installments">
-              {familyProfile.obligations.map(item => <span key={item.id}>
-                <b>{item.concept}</b>
-                <small>{item.dueDate
-                  ? shortDate.format(new Date(`${item.dueDate}T00:00:00`))
-                  : "Sin fecha"}</small>
-                <small>{money.format(item.amount)}</small>
-                <em className={item.status === "PAGADA" ? "is-paid" : "is-pending"}>
-                  {item.status === "PAGADA" ? "Pagada" : "Pendiente"}
-                </em>
-              </span>)}
-            </div>}
-          </div>
+          </header>
+          {familyProfile.obligations.length > 0 && <ul className="profile-course-installments" aria-label="Detalle de cuotas">
+            {familyProfile.obligations.map(item => <li key={item.id}>
+              <b className="profile-installment-concept">{item.concept}</b>
+              <span className="profile-installment-date"><small>Vencimiento</small>
+                {item.dueDate ? <time dateTime={item.dueDate}>{shortDate.format(new Date(`${item.dueDate}T00:00:00`))}</time> : <span>Sin fecha</span>}
+              </span>
+              <strong className="profile-installment-amount">{money.format(item.amount)}</strong>
+              <span className={`profile-installment-status ${item.status === "PAGADA" ? "is-paid" : "is-pending"}`}>
+                {item.status === "PAGADA" ? <FiCheck aria-hidden="true" /> : <FiClock aria-hidden="true" />}
+                {item.status === "PAGADA" ? "Pagada" : "Pendiente"}
+              </span>
+            </li>)}
+          </ul>}
           {pending.length > 0 && <div className="profile-payment-total">
-            <span>Total cuota</span><b>{money.format(pendingAmount)}</b>
+            <span>Total pendiente</span><b>{money.format(pendingAmount)}</b>
           </div>}
-        </div>}
+        </section>}
       </section>}
     </article>
 
     {editingName && <div className="profile-edit-backdrop" role="presentation"
       onMouseDown={event => { if (event.target === event.currentTarget) cancelNameEdit(); }}>
-      <section className="profile-edit-modal" role="dialog" aria-modal="true"
+      <section ref={editModalRef} className="profile-edit-modal" role="dialog" aria-modal="true"
+        aria-busy={savingName || savingPhoto}
         aria-labelledby="profile-edit-title">
         <header>
           <div className="profile-edit-modal__heading">
@@ -385,7 +446,7 @@ export const ProfilePage = () => {
             <div><h2 id="profile-edit-title">Editar perfil</h2>
               <p>Actualiza tu información personal.</p></div>
           </div>
-          <button type="button" className="profile-edit-modal__close" disabled={savingName}
+          <button type="button" className="profile-edit-modal__close" disabled={savingName || savingPhoto}
             onClick={cancelNameEdit} aria-label="Cerrar edición">
             <FiX aria-hidden="true" />
           </button>
@@ -413,7 +474,7 @@ export const ProfilePage = () => {
                 event.currentTarget.value = "";
                 uploadPhoto(file);
               }} /></label>
-          <small>JPG, PNG o WEBP \u00b7 m\u00e1ximo 5 MB</small>
+          <small>JPG, PNG o WEBP · máximo 5 MB</small>
           <button type="button" className="profile-initials-button" disabled={savingPhoto}
             onClick={() => void applyPhoto(() => users.resetProfileImage())}>Usar mis iniciales</button>
           {(savingPhoto || photoSuccess) && <div className="profile-photo-progress"
@@ -439,15 +500,25 @@ export const ProfilePage = () => {
             <small>Los cambios se verán en todo el sistema.</small>
           </div>
           <label htmlFor="profile-name-input">Nombre completo</label>
-          <input id="profile-name-input" value={nameInput} autoFocus maxLength={100}
+          <input id="profile-name-input" value={nameInput} maxLength={100}
             autoComplete="name" aria-invalid={Boolean(nameError)} aria-describedby={nameError
               ? "profile-name-error" : "profile-name-help"}
             onChange={event => { setNameInput(event.target.value); setNameError(""); }} />
           {nameError
             ? <p id="profile-name-error" className="profile-edit-form__error" role="alert">{nameError}</p>
             : <small id="profile-name-help">Usa entre 3 y 100 letras.</small>}
+          {familyProfile && <div className="profile-edit-phone">
+            <label htmlFor="profile-phone-input">Teléfono</label>
+            <input id="profile-phone-input" type="tel" inputMode="tel" autoComplete="tel"
+              value={phoneInput} maxLength={24} placeholder="Ej.: +56912345678"
+              disabled={savingName || savingPhoto} aria-invalid={Boolean(phoneError)}
+              aria-describedby={phoneError ? "profile-phone-error" : "profile-phone-help"}
+              onChange={event => { setPhoneInput(event.target.value); setPhoneError(""); }} />
+            {phoneError ? <p id="profile-phone-error" className="profile-edit-form__error" role="alert">{phoneError}</p>
+              : <small id="profile-phone-help">Número de contacto de tu apoderado vinculado.</small>}
+          </div>}
           <footer>
-            <button type="button" className="profile-edit-cancel" disabled={savingName}
+            <button type="button" className="profile-edit-cancel" disabled={savingName || savingPhoto}
               onClick={cancelNameEdit}>Cancelar</button>
             <button type="submit" className="profile-edit-save" disabled={savingName}>
               {savingName ? "Guardando..." : "Guardar cambios"}

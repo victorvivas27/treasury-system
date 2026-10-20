@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: var(--space-2rem) var(--space-1rem);
+  padding: var(--space-8) var(--space-4);
 }
 
 
@@ -12,13 +12,13 @@
 .animated-icons {
   /* border: 1px solid red; */ /* Puedes quitarlo ya */
   position: relative;
-  width: var(--size-120px);
-  height: var(--size-110px);
+  width: 120px;
+  height: 110px;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: visible;
-  margin-bottom: var(--space-30px);
+  margin-bottom: 30px;
 }
 
 /* icono */
@@ -29,15 +29,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-0-35rem);
+  gap: 0.35rem;
   opacity: 0;
-  animation: treasurySmooth var(--duration-5800ms) infinite var(--easing-ease-in-out);
+  animation: treasurySmooth 5800ms infinite ease-in-out;
 }
 
 /* icono visual */
 .icon svg {
-  width: var(--size-3rem);
-  height: var(--size-3rem);
+  width: 3rem;
+  height: 3rem;
 }
 
 /* colores */
@@ -46,8 +46,8 @@
 }
 
 .icon-transfer svg {
-  width: var(--size-3-15rem);
-  height: var(--size-3-15rem);
+  width: 3.15rem;
+  height: 3.15rem;
 }
 
 .icon-piggy svg {
@@ -60,19 +60,19 @@
 
 /* delays */
 .icon-money {
-  animation-delay: var(--duration-0ms);
+  animation-delay: 0ms;
 }
 
 .icon-transfer{
-  animation-delay: var(--duration-1450ms);
+  animation-delay: 1450ms;
 }
 
 .icon-piggy{
-  animation-delay: var(--duration-2900ms);
+  animation-delay: 2900ms;
 }
 
 .icon-banck {
-  animation-delay: var(--duration-4350ms);
+  animation-delay: 4350ms;
 }
 
 /* animación FINAL */
@@ -81,7 +81,7 @@
   /* inicio oculto */
   0% {
     opacity: 0;
-    transform: translateY(var(--motion-distance-8px)) scale(0.94);
+    transform: translateY(8px) scale(0.94);
   }
 
   /* entrada */
@@ -128,13 +128,13 @@
   /* salida suave */
   34% {
     opacity: 0;
-    transform: translateY(var(--motion-distance-negative-6px)) scale(0.95);
+    transform: translateY(-6px) scale(0.95);
   }
 
   /* resto oculto */
   100% {
     opacity: 0;
-    transform: translateY(var(--motion-distance-negative-6px)) scale(0.95);
+    transform: translateY(-6px) scale(0.95);
   }
 }
 
@@ -142,7 +142,7 @@
 
 .rotating-text {
   position: absolute;
-  bottom: var(--offset-negative-1px);
+  bottom: -1px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -153,20 +153,20 @@
 .rotating-text__text {
   margin: 0;
   white-space: nowrap;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-0-9rem);
-  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: bold;
   overflow: hidden;
-  border-right: var(--stroke-3px) solid var(--color-success);
-  width: calc(var(--chars) * var(--size-1-05ch));
+  border-right: 3px solid var(--color-success);
+  width: calc(var(--chars) * 1.05ch);
   animation:
-    typing var(--duration-4000ms) steps(var(--chars)) infinite,
-    blink var(--duration-500ms) step-end infinite;
+    typing 4000ms steps(var(--chars)) infinite,
+    blink 500ms step-end infinite;
 }
 
 @keyframes typing {
   0% { width: 0; }
-  50%, 85% { width: calc(var(--chars) * var(--size-1-05ch)); }
+  50%, 85% { width: calc(var(--chars) * 1.05ch); }
   100% { width: 0; }
 }
 

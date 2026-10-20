@@ -84,6 +84,49 @@ class SA04ProfileSecurityIntegrationTest {
         assertEquals(before, securitySnapshot(user));
     }
 
+    @Test
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    void phoneUpdatePersistsOnlyGuardianInAuthenticatedCourse() throws Exception {
+        String ownCode = insertGuardian(user.getOrganizationId(), user.getCorreo());
+        String otherCode = insertGuardian(otherAdmin.getOrganizationId(), user.getCorreo());
+        try {
+        mvc.perform(put(profilePath(user)).header("Authorization", "Bearer " + token(user))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Nuevo Nombre\",\"telefono\":\"+56987654321\"}"))
+                .andExpect(status().isOk());
+        assertEquals("+56987654321", storedPhone(ownCode));
+        assertEquals("+56912345678", storedPhone(otherCode));
+        assertEquals("NUEVO NOMBRE", jdbc.queryForObject("select nombre from users where id=?", String.class, user.getId()));
+        } finally {
+            jdbc.update("delete from apoderados where codigo in (?,?)", ownCode, otherCode);
+            jdbc.update("delete from users where id in (?,?,?,?,?)", user.getId(), admin.getId(),
+                    otherAdmin.getId(), superAdmin.getId(), targetAdmin.getId());
+            jdbc.update("delete from organizations where id in (?,?)", user.getOrganizationId(), otherAdmin.getOrganizationId());
+        }
+    }
+
+    @Test
+    void invalidPhoneRequestDoesNotChangeNameOrGuardian() throws Exception {
+        String code = insertGuardian(user.getOrganizationId(), user.getCorreo());
+        mvc.perform(put(profilePath(user)).header("Authorization", "Bearer " + token(user))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Nuevo Nombre\",\"telefono\":\"123\"}"))
+                .andExpect(status().isBadRequest());
+        assertEquals("+56912345678", storedPhone(code));
+        assertEquals("PERSONA PRUEBA", storedName(user));
+    }
+
+    private String insertGuardian(Long organizationId, String email) {
+        String code = "AP-" + UUID.randomUUID().toString().substring(0, 8);
+        jdbc.update("insert into apoderados(codigo,nombre,email,telefono,organization_id,activo) values(?,?,?,?,?,?)",
+                code, "PERSONA PRUEBA", email, "+56912345678", organizationId, true);
+        return code;
+    }
+
+    private String storedPhone(String code) {
+        return jdbc.queryForObject("select telefono from apoderados where codigo=?", String.class, code);
+    }
+
     // Simulate an already accepted authentication so SA-05 cannot mask SA-04.
     // SQL assertions verify persisted account attributes, rather than response DTOs.
     @ParameterizedTest

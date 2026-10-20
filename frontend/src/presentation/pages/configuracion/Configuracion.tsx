@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiBell, FiBookOpen, FiCheck, FiCompass, FiMonitor, FiMoon, FiSave,
+import { FiBell, FiBookOpen, FiCheck, FiMonitor, FiMoon, FiSave,
   FiSun } from "react-icons/fi";
 import { useTheme } from "@/presentation/context/ThemeContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
@@ -8,7 +8,6 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
-import { OPEN_APP_TOUR_EVENT } from "@/shared/ui/apptour/AppTour";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./Configuracion.css";
 
@@ -146,16 +145,6 @@ export const Configuracion = () => {
         <p className="theme-description">{selectedOption.description}</p>
       </article>
 
-      <article className="guided-tour-card">
-        <FiCompass aria-hidden="true" />
-        <div>
-          <h2>Recorrido guiado</h2>
-          <p>Vuelve a revisar las funciones principales de la aplicación paso a paso.</p>
-        </div>
-        <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_APP_TOUR_EVENT))}>
-          Ver recorrido
-        </button>
-      </article>
 
       <article className={`push-settings-card push-settings-card--${pushStatus}`}>
         <span className="push-settings-icon"><FiBell aria-hidden="true" /></span>

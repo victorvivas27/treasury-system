@@ -4,30 +4,34 @@ import "./MainLayout.css";
 import { useSidebarBehavior } from "@/presentation/hooks/sidebar/useSidebarBehavior";
 import { ManagedCourseBanner } from "./ManagedCourseBanner";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
-import { AppTour } from "@/shared/ui/apptour/AppTour";
-import { HomeFooter } from "@/presentation/pages/home/components/HomeFooter";
+import { AppFooter } from "@/shared/ui/footer/AppFooter";
 import { ImprovementCenter } from "@/presentation/components/improvement-center/ImprovementCenter";
 
 
 
 export const MainLayout = () => {
-const { isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick } = useSidebarBehavior();
+const { sidebarState, isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick,
+  onSidebarPointerEnter, onSidebarPointerLeave, onSidebarFocus, onSidebarBlur } = useSidebarBehavior();
 const auth = useOptionalAuth();
 
   return (
-    <main className="main-layout">
+    <main className={`main-layout main-layout--sidebar-${sidebarState}`}>
       <Sidebar
+        headerContent={<ManagedCourseBanner />}
+        onPointerEnter={onSidebarPointerEnter}
+        onPointerLeave={onSidebarPointerLeave}
+        onFocus={onSidebarFocus}
+        onBlur={onSidebarBlur}
+        isHidden={sidebarState === "hidden"}
         isSidebarOpen={isSidebarOpen}
         isLocked={isLocked}
         onToggleSidebar={onToggleSidebar}
         onNavLinkClick={onNavLinkClick}
       />
       <section className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
-        <ManagedCourseBanner />
         <Outlet />
-        <HomeFooter reveal={false} />
+        <AppFooter />
       </section>
-      {auth?.user && <AppTour user={auth.user} />}
       {auth?.user && <ImprovementCenter />}
     </main>
   );

@@ -146,13 +146,60 @@ describe("ProfilePage", () => {
     expect(await screen.findByText("Aporte CEPA")).toBeInTheDocument();
     expect(screen.getByText("Fondo de Apoyo por Fallecimiento")).toBeInTheDocument();
     expect(screen.getAllByText("Pendiente")).toHaveLength(4);
-    expect(screen.getByText("Cuota del curso · Dos cuotas")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cuota del curso" })).toBeInTheDocument();
+    expect(screen.getByText("Dos cuotas")).toBeInTheDocument();
     expect(screen.getByText("2 cuotas pendientes")).toBeInTheDocument();
     expect(screen.getByText("$70.000")).toBeInTheDocument();
-    expect(screen.getByText("Total cuota")).toBeInTheDocument();
+    expect(screen.getByText("Total pendiente")).toBeInTheDocument();
     expect(screen.getByText("15-04-2026")).toBeInTheDocument();
     expect(screen.getByText("15-07-2026")).toBeInTheDocument();
     expect(screen.getAllByText("$35.000")).toHaveLength(2);
+  });
+
+  it("permite cambiar solo el teléfono y actualiza el dato familiar visible", async () => {
+    updateUser.mockResolvedValue(vi.mocked(useAuth)().user);
+    renderProfile();
+    await screen.findByText("Apoderado principal");
+    fireEvent.click(screen.getByRole("button", { name: "Editar perfil" }));
+    expect(screen.getByLabelText("Teléfono")).toHaveValue("+56912345678");
+    fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "+56 9 8765 4321" } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => expect(updateUser).toHaveBeenCalledWith(1, {
+      nombre: "Juan Díaz", telefono: "+56987654321",
+    }));
+    expect(await screen.findByText("+56987654321")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("no guarda un teléfono inválido ni elimina el teléfono al cancelar", async () => {
+    renderProfile();
+    await screen.findByText("Apoderado principal");
+    fireEvent.click(screen.getByRole("button", { name: "Editar perfil" }));
+    fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    expect(screen.getByLabelText("Teléfono")).toHaveAttribute("aria-invalid", "true");
+    expect(updateUser).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(screen.getByText("+56912345678")).toBeInTheDocument();
+  });
+
+  it("bloquea el fondo, contiene el foco y restaura la edición al cerrar con Escape", async () => {
+    renderProfile();
+    await screen.findByText("Apoderado principal");
+    const edit = screen.getByRole("button", { name: "Editar perfil" });
+    edit.focus();
+    fireEvent.click(edit);
+    expect(document.body.style.overflow).toBe("hidden");
+    const close = screen.getByRole("button", { name: "Cerrar edición" });
+    expect(close).toHaveFocus();
+    fireEvent.keyDown(close, { key: "Tab", shiftKey: true });
+    expect(screen.getByRole("button", { name: "Guardar cambios" })).toHaveFocus();
+    fireEvent.keyDown(document.activeElement!, { key: "Tab" });
+    expect(close).toHaveFocus();
+    fireEvent.keyDown(close, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(edit).toHaveFocus();
   });
 
   it("muestra al apoderado secundario la misma información financiera familiar", async () => {

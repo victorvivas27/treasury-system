@@ -1,23 +1,23 @@
 .page-container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5rem);
-  border-radius: var(--radius-16px);
-  padding: var(--space-1-5rem);
+  gap: var(--space-2);
+  border-radius: 16px;
+  padding: var(--page-padding);
   width: 98%;
-  animation: fadeIn var(--duration-400ms) var(--easing-ease-out);
+  animation: fadeIn var(--duration-slow) ease-out;
 }
 
 .page-header__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-0-75rem);
+  gap: var(--space-3);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(var(--motion-distance-10px));
+    transform: translateY(10px);
   }
 
   to {
@@ -30,26 +30,26 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: var(--space-1rem);
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 
 .page-header__title {
-  color: var(--color-text-main);
-  font-size: var(--font-size-1-5rem);
-  font-weight: var(--font-weight-700);
-  margin: 0 0 var(--space-0-5rem) 0;
+  color: var(--text-main);
+  font-size: var(--font-h1);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--space-2) 0;
 }
 
 .page-header__subtitle {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-1rem);
+  color: var(--text-muted);
+  font-size: var(--font-subtitle);
 }
 
 @media (max-width: 768px) {
   .page-container {
     width: 100%;
-    padding: var(--sm);
+    padding: var(--page-padding);
   }
 
   .page-header {
@@ -58,19 +58,19 @@
   }
 
   .alumnos-page .page-header {
-    gap: var(--space-0-45rem);
+    gap: 0.45rem;
   }
 
   .alumnos-page .page-header__title {
-    margin-bottom: var(--space-0-1rem);
-    font-size: var(--font-size-1-15rem);
+    margin-bottom: 0.1rem;
+    font-size: var(--font-h1);
   }
 
   .alumnos-page .page-header__subtitle {
-    font-size: var(--font-size-0-75rem);
-    line-height: var(--leading-1-35);
+    font-size: var(--font-subtitle);
+    line-height: 1.35;
   }
 
   .page-header__actions { width: 100%; flex-wrap: wrap; }
-  .page-header__actions .base-button { flex: 1 1 var(--size-9rem); margin: 0; }
+  .page-header__actions .base-button { flex: 1 1 9rem; margin: 0; }
 }

@@ -12,5 +12,8 @@ public record SelfProfileUpdateRequest(
         @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
         @Pattern(regexp = "^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$",
                 message = "El nombre solo puede contener letras y espacios")
-        String nombre) {
+        String nombre,
+        @Pattern(regexp = "^\\+?[0-9]{8,15}$",
+                message = "Usa entre 8 y 15 dígitos y + opcional al inicio")
+        String telefono) {
 }

@@ -1,26 +1,26 @@
 
 .form-page-container {
-margin: var(--space-1rem);
+margin: var(--space-4);
 /* border: 1px solid rgb(123, 255, 0); */
 }
 .form-page-header {
-margin: var(--space-1rem);
+margin: var(--space-4);
 /* border: 1px solid rgb(123, 255, 0); */
 }
 
 .form-page-header__title {
-font-size: var(--font-size-1-2rem);
-font-weight: var(--font-weight-bold);
-margin-bottom: var(--space-0-5rem);
+font-size: var(--font-h1);
+font-weight: bold;
+margin-bottom: var(--space-2);
 }
 
 .form-page-header__subtitle {
-font-size: var(--font-size-1rem);
-margin-bottom: var(--space-1rem);
+font-size: var(--font-subtitle);
+margin-bottom: var(--space-4);
 }
 
 .form-container {
-margin: var(--space-1rem);
+margin: var(--space-4);
 /* border: 1px solid rgb(0, 8, 255); */
 }
 
@@ -28,7 +28,7 @@ margin: var(--space-1rem);
   .form-page-container,
   .form-page-header,
   .form-container {
-    margin: var(--sm);
+    margin: 0.8rem;
   }
 }
 

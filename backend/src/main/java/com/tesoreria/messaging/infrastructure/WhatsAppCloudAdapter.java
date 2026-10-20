@@ -38,8 +38,8 @@ public class WhatsAppCloudAdapter implements InvitationMessagePort {
         var body = Map.of("messaging_product", "whatsapp", "to", phone.substring(1), TYPE, "template",
                 "template", Map.of("name", config.getTemplateInvitation(),
                 "language", Map.of("code", config.getTemplateLanguage()),
-                "components", List.of(Map.of(TYPE, "body", "parameters", List.of(text(name), text(application))),
-                        Map.of(TYPE, "button", "sub_type", "url", "index", "0", "parameters", List.of(text(token))))));
+                "components", List.of(Map.of(TYPE, "button", "sub_type", "url", "index", "0",
+                        "parameters", List.of(text(token))))));
         try {
             JsonNode response = client.post().uri("/{version}/{phone}/messages", config.getApiVersion(), config.getPhoneNumberId())
                     .header("Authorization", "Bearer " + config.getAccessToken())

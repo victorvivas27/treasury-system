@@ -4,12 +4,16 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
 import type { LoginOrganizationOption } from "@/core/A-domain/entities/auth/Auth";
 import { Button } from "@/shared/ui/button/Button";
+import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
+import { FiMail } from "react-icons/fi";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
+import { passwordRecoveryFailure, validateRecoveryEmail } from "./passwordRecoveryValidation";
 import "./AccountFlowPages.css";
+import "./LoginPage.css";
 
 const recoveryErrorMessage = (error: unknown) => {
   if (!axios.isAxiosError(error)) return "No fue posible actualizar la contraseña. Intenta nuevamente.";
@@ -84,27 +88,63 @@ export const ForgotPasswordPage = () => {
   const [organizationOptions, setOrganizationOptions] = useState<LoginOrganizationOption[]>([]);
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const requestingRef = useRef(false);
+  const [retrySeconds, setRetrySeconds] = useState(0);
+  const retryDeadline = useRef(0);
+  useEffect(() => {
+    if (!retrySeconds) return;
+    const timer = window.setTimeout(() => setRetrySeconds(
+      Math.max(0, Math.ceil((retryDeadline.current - Date.now()) / 1000))), 1000);
+    return () => window.clearTimeout(timer);
+  }, [retrySeconds]);
+  useEffect(() => {
+    if (!successMessage) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = overflow; };
+  }, [successMessage]);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (requestingRef.current) return;
+    if (requestingRef.current || retrySeconds || successMessage) return;
     setMessage("");
+    const errors = {
+      email: validateRecoveryEmail(email),
+      organization: organizationOptions.length && !organizationOptions.some(option => String(option.id) === organizationId)
+        ? "Seleccione un curso válido" : "",
+    };
+    setFieldErrors(errors);
+    if (Object.values(errors).some(Boolean)) {
+      document.getElementById(errors.email ? "recovery-email" : "recovery-organization")?.focus();
+      return;
+    }
     requestingRef.current = true;
     setLoading(true);
     try {
       const response = await repository.forgotPassword(
-        email, organizationId ? Number(organizationId) : undefined);
+        email.trim(), organizationId ? Number(organizationId) : undefined);
       if (response.requiresOrganizationSelection) {
-        const options = response.organizationOptions ?? [];
+        const options = Array.isArray(response.organizationOptions) ? response.organizationOptions.filter(option =>
+          Number.isSafeInteger(option.id) && option.id > 0 && typeof option.name === "string" && option.name.trim()) : [];
         setOrganizationOptions(options);
         setOrganizationId(options[0]?.id ? String(options[0].id) : "");
-        setMessage("");
+        setMessage(options.length ? "" : "No fue posible cargar los cursos. Intenta nuevamente.");
         return;
       }
+      if (typeof response.message !== "string" || !response.message.trim()) throw new Error("Invalid recovery response");
       setSuccessMessage(response.message);
     }
-    catch { setMessage("No fue posible procesar la solicitud. Intenta más tarde."); }
+    catch (error) {
+      const failure = passwordRecoveryFailure(error);
+      setFieldErrors(failure.fields ?? {});
+      setMessage(failure.message || (failure.fields?.organization && !organizationOptions.length
+        ? failure.fields.organization : ""));
+      if (failure.retryAt) {
+        retryDeadline.current = failure.retryAt;
+        setRetrySeconds(Math.max(1, Math.ceil((failure.retryAt - Date.now()) / 1000)));
+      }
+    }
     finally {
       requestingRef.current = false;
       setLoading(false);
@@ -112,32 +152,70 @@ export const ForgotPasswordPage = () => {
   };
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
-    <Shell title="Olvidé mi contraseña" message={message}>
-      <form onSubmit={submit}>
-        {organizationOptions.length > 0 && (
-          <label>Curso
-            <select value={organizationId} onChange={e => setOrganizationId(e.target.value)} required>
-              {organizationOptions.map((organization) => (
-                <option key={organization.id} value={organization.id}>
-                  {organization.slug === "default" ? "Administración general" : organization.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label>Correo<input type="email" value={email} onChange={e => {
-          setEmail(e.target.value);
-          setOrganizationOptions([]);
-          setOrganizationId("");
-        }}
-          placeholder="Ej: nombre@correo.cl" autoComplete="email" required /></label>
-        <Button type="submit" label="Enviar instrucciones" loading={loading}
-          onClick={() => {}} size="large" className="auth-flow__action" />
+    <main className="form-page-container login-page">
+      <header className="form-page-header login-page-header">
+        <BrandLogo className="login-brand-logo" />
+        <div className="login-page-header__copy">
+          <h1 className="form-page-header__title">Olvidé mi contraseña</h1>
+          <p className="form-page-header__subtitle">Recupera el acceso a tu cuenta</p>
+        </div>
+      </header>
+      <form className="login-form recovery-form" onSubmit={submit} noValidate>
+        <p className="login-invitation">Ingresa tu correo y te enviaremos las instrucciones para restablecer tu contraseña.</p>
+        <div className="form-group">
+          <span className="login-input-wrapper login-floating-field">
+            <input id="recovery-email" type="email" autoComplete="email"
+              className={`form-input ${fieldErrors.email ? "input-error" : ""}`}
+              value={email} placeholder="Ej: nombre@correo.cl" required disabled={loading || Boolean(successMessage)}
+              aria-invalid={Boolean(fieldErrors.email)}
+              aria-describedby={fieldErrors.email ? "recovery-email-error" : undefined}
+              onBlur={() => setFieldErrors(current => ({ ...current, email: validateRecoveryEmail(email) }))}
+              onChange={event => {
+                setEmail(event.target.value);
+                setOrganizationOptions([]);
+                setOrganizationId("");
+                setFieldErrors({});
+                setMessage("");
+              }} />
+            <label htmlFor="recovery-email" className="login-floating-label">Correo</label>
+            <FiMail className="login-field-icon" aria-hidden="true" />
+          </span>
+          {fieldErrors.email && <span id="recovery-email-error" className="error-message" role="alert">
+            {fieldErrors.email}
+          </span>}
+        </div>
+        {organizationOptions.length > 0 && <div className="form-group">
+          <label htmlFor="recovery-organization" className="login-organization-label">Curso</label>
+          <select id="recovery-organization" className="form-input login-organization-select"
+            value={organizationId} required disabled={loading || Boolean(successMessage)} aria-invalid={Boolean(fieldErrors.organization)}
+            aria-describedby={fieldErrors.organization ? "recovery-organization-error" : undefined}
+            onChange={event => {
+              setOrganizationId(event.target.value);
+              setFieldErrors(current => ({ ...current, organization: "" }));
+            }}>
+            {organizationOptions.map(organization => <option key={organization.id} value={organization.id}>
+              {organization.slug === "default" ? "Administración general" : organization.name}
+            </option>)}
+          </select>
+          {fieldErrors.organization && <span id="recovery-organization-error" className="error-message" role="alert">
+            {fieldErrors.organization}
+          </span>}
+        </div>}
+        <div className="login-form-actions">
+          <Button type="submit" label={retrySeconds ? `Reintentar en ${retrySeconds} s` : "Enviar instrucciones"}
+            loading={loading} disabled={retrySeconds > 0 || Boolean(successMessage)}
+            icon={<FiMail aria-hidden="true" />} onClick={() => {}} size="medium" />
+        </div>
+        <div className="recovery-feedback">
+          {message && <p className="form-submit-message is-visible" role="alert">{message}</p>}
+        </div>
       </form>
-      <Link to="/login">Volver</Link>
-    </Shell>
-    <ModalAlert isOpen={Boolean(successMessage)} message={successMessage}
-      type="success" onClose={returnToLogin} />
+      <ButtonBack className="login-back-button" />
+    </main>
+    <div className="recovery-confirmation">
+      <ModalAlert isOpen={Boolean(successMessage)} message={successMessage}
+        title="Revisa tu correo" type="success" compact onClose={returnToLogin} />
+    </div>
   </>;
 };
 

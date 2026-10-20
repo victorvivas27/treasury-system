@@ -90,14 +90,14 @@ class UserControllerTest {
 
     @Test
     void selfProfile_deberiaPasarSoloNombreEIdentidadAlServicio() throws Exception {
-        when(service.updateSelfProfile(1L, "Nuevo Nombre", 1L)).thenReturn(user);
+        when(service.updateSelfProfile(1L, "Nuevo Nombre", null, 1L)).thenReturn(user);
         mockMvc.perform(put("/api/v1/users/1/profile")
                         .principal(new UsernamePasswordAuthenticationToken(new com.tesoreria.organization.config.TenantUserDetails(
                                 1L, 1L, "user@mail.com", "x", RoleEnum.USER, true, true), null, java.util.List.of()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Nuevo Nombre\",\"enabled\":true,\"accountNonLocked\":true,\"rol\":\"ADMIN\"}"))
                 .andExpect(status().isOk());
-        verify(service).updateSelfProfile(1L, "Nuevo Nombre", 1L);
+        verify(service).updateSelfProfile(1L, "Nuevo Nombre", null, 1L);
         org.mockito.Mockito.verify(service, org.mockito.Mockito.never()).update(any(), any(), any());
     }
 

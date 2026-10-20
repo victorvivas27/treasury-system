@@ -22,7 +22,7 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
 
   return <article className="dashboard-panel dashboard-panel--cashflow" aria-busy={loading}>
     <header><i className="dashboard-panel-icon"><FiTrendingUp aria-hidden="true" /></i>
-      <div><span>Flujo {year}</span><h2>Ingresos y egresos en el tiempo</h2></div>
+      <div><h2>Ingresos y egresos en el tiempo</h2></div>
       <button className="cashflow-refresh" type="button" onClick={onRefresh} disabled={loading}
         aria-label="Actualizar flujo"><FiRefreshCw aria-hidden="true" /></button>
     </header>
@@ -35,7 +35,7 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
           firstBalance.current?.focus({ preventScroll: true });
         }}><small>Balance anual</small><strong>{money.format(income - expense)}</strong></button></span>
     </div>
-    <div className="flow-ribbon-legend"><span>Ingresos</span><span>Egresos</span>
+    <div className="flow-ribbon-legend">
       <small>Recorre el año deslizando la línea de tiempo</small></div>
     <div className="flow-ribbon-scroll" role="region" tabIndex={0}
       aria-label={`Línea de tiempo de meses con movimientos de ${year}`}>
@@ -45,8 +45,7 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
           aria-label={`${month.name} de ${year}`}>
           <FlowDetails kind="income" total={month.income} groups={month.incomes} />
           <div className="flow-ribbon-station">
-            <span className="flow-ribbon-node" aria-hidden="true" />
-            <h3>{month.name}<small>{currentMonth === month.month ? "Mes actual" : `${String(month.month).padStart(2, "0")} / ${year}`}</small></h3>
+            <h3><span className="flow-ribbon-node" aria-hidden="true" />{month.name}<small>{currentMonth === month.month ? "Mes actual" : `${String(month.month).padStart(2, "0")} / ${year}`}</small></h3>
           </div>
           <FlowDetails kind="expense" total={month.expense} groups={month.expenses} />
           <div className="flow-ribbon-balance" ref={month === months[0] ? firstBalance : undefined} tabIndex={-1}><small>Balance</small><strong

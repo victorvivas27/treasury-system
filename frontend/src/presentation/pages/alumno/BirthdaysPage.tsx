@@ -1,8 +1,6 @@
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import { BirthdaySection } from "@/presentation/features/alumno/BirthdaySection";
-import { Button } from "@/shared/ui/button/Button";
-import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
 import { useCallback, useEffect, useState } from "react";
 import "./style/BirthdaysPage.css";
 
@@ -35,23 +33,8 @@ export const BirthdaysPage = () => {
       <header className="page-header">
         <div className="page-header__content">
           <h1 className="page-header__title">{"Cumplea\u00f1os"}</h1>
-          <p className="page-header__subtitle">
-            {"Revisa todos los cumplea\u00f1os registrados y los pr\u00f3ximos del curso."}
-          </p>
         </div>
 
-        <div className="page-header__actions mobile-inline-header-actions">
-          <Button
-            onClick={() => void loadBirthdays()}
-            variant="secondary"
-            size="medium"
-            className="mobile-compact-header-action"
-            icon={<ALUMNOS_ICONS.reload />}
-            iconPosition="left"
-            loading={loading}
-            label={loading ? "Cargando" : "Recargar"}
-          />
-        </div>
       </header>
 
       {error ? (

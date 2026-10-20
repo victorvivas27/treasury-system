@@ -117,7 +117,7 @@ public class UserController {
             @Valid @RequestBody SelfProfileUpdateRequest request,
             Authentication authentication) {
         return ResponseEntity.ok(mapper.toResponse(
-                service.updateSelfProfile(id, request.nombre(), AccountIdentity.userId(authentication))));
+                service.updateSelfProfile(id, request.nombre(), request.telefono(), AccountIdentity.userId(authentication))));
     }
 
     @Operation(summary = "Eliminar usuario")

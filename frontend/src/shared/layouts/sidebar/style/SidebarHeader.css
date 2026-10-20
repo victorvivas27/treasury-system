@@ -10,45 +10,48 @@
 .sidebar-btn-arrow {
   position: absolute;
 
-  top: var(--offset-1rem);
-  right: var(--offset-negative-1-1rem);
+  top: 1rem;
+  right: -1.1rem;
 
   isolation: isolate;
 
   display: grid;
   place-items: center;
 
-  width: var(--size-2-2rem);
-  height: var(--size-2-2rem);
+  width: 2.2rem;
+  height: 2.2rem;
 
   padding: 0;
 
   border:
-    var(--stroke-1px) solid color-mix(in srgb,
+    1px solid color-mix(in srgb,
       var(--color-primary) 70%,
-      var(--palette-white) 18%);
+      white 18%);
 
-  border-radius: var(--radius-50percent);
+  border-radius: var(--radius-round);
 
   background:
     linear-gradient(145deg,
       color-mix(in srgb,
         var(--color-primary) 88%,
-        var(--palette-white)),
+        white),
       var(--color-primary));
 
   color: var(--icon-on-accent);
 
   box-shadow:
-    var(--shadow-sidebar-btn-arrow);
+    0 8px 20px color-mix(in srgb,
+      var(--color-primary) 30%,
+      transparent),
+    inset 0 1px 0 rgb(255 255 255 / 28%);
 
   cursor: pointer;
 
   transition:
-    border-color var(--duration-240ms) var(--easing-ease),
-    box-shadow var(--duration-240ms) var(--easing-ease),
-    transform var(--duration-240ms) var(--easing-cubic-bezier--2--8--2-1-2),
-    background var(--duration-240ms) var(--easing-ease);
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    transform 240ms cubic-bezier(.2, .8, .2, 1),
+    background 240ms ease;
 }
 
 
@@ -61,10 +64,10 @@
 
   z-index: -1;
 
-  inset: var(--offset-negative-5px);
+  inset: -5px;
 
   border:
-    var(--stroke-1px) solid color-mix(in srgb,
+    1px solid color-mix(in srgb,
       var(--color-primary) 32%,
       transparent);
 
@@ -72,11 +75,11 @@
 
   content: "";
 
-  opacity: var(--opacity-0-7);
+  opacity: 0.7;
 
   transition:
-    inset var(--duration-240ms) var(--easing-ease),
-    opacity var(--duration-240ms) var(--easing-ease);
+    inset 240ms ease,
+    opacity 240ms ease;
 }
 
 
@@ -89,12 +92,12 @@
 
   z-index: -1;
 
-  inset: var(--offset-4px);
+  inset: 4px;
 
   border-radius: inherit;
 
   background:
-    var(--palette-rgb-255-255-255-10);
+    rgb(255 255 255 / 10%);
 
   pointer-events: none;
 }
@@ -111,17 +114,17 @@
 .sidebar-btn-arrow-icon {
   display: block;
 
-  width: var(--lg);
-  height: var(--lg);
+  width: 1.3rem;
+  height: 1.3rem;
 
-  flex: 0 0 var(--xl);
+  flex: 0 0 1.8rem;
 
-  font-size: var(--xl);
+  font-size: 1.8rem;
 
   line-height: 1;
 
   filter:
-    drop-shadow(0 var(--effect-size-1px) var(--effect-size-1px) var(--palette-rgb-0-0-0-18));
+    drop-shadow(0 1px 1px rgb(0 0 0 / 18%));
 
   transition:
     transform var(--sidebar-motion-duration) var(--sidebar-motion-easing);
@@ -144,16 +147,19 @@
 
 .sidebar-btn-arrow:hover {
   box-shadow:
-    var(--shadow-sidebar-btn-arrow-hover);
+    0 10px 26px color-mix(in srgb,
+      var(--color-primary) 44%,
+      transparent),
+    inset 0 1px 0 rgb(255 255 255 / 34%);
 
   transform:
-    translateY(var(--motion-distance-negative-2px)) scale(1.05);
+    translateY(-2px) scale(1.05);
 }
 
 .sidebar-btn-arrow:hover::after {
-  inset: var(--offset-negative-8px);
+  inset: -8px;
 
-  opacity: var(--opacity-0-35);
+  opacity: 0.35;
 }
 
 
@@ -168,11 +174,11 @@
 
 .sidebar-btn-arrow:focus-visible {
   outline:
-    var(--stroke-3px) solid color-mix(in srgb,
+    3px solid color-mix(in srgb,
       var(--color-primary) 32%,
       transparent);
 
-  outline-offset: var(--stroke-4px);
+  outline-offset: 4px;
 }
 
 
@@ -184,17 +190,20 @@
   border-color:
     color-mix(in srgb,
       var(--color-warning) 72%,
-      var(--palette-white) 15%);
+      white 15%);
 
   background:
     linear-gradient(145deg,
       color-mix(in srgb,
         var(--color-warning) 88%,
-        var(--palette-white)),
+        white),
       var(--color-warning));
 
   box-shadow:
-    var(--shadow-sidebar-btn-arrow-is-pinned);
+    0 8px 22px color-mix(in srgb,
+      var(--color-warning) 30%,
+      transparent),
+    inset 0 1px 0 rgb(255 255 255 / 32%);
 }
 
 .sidebar-btn-arrow.is-pinned::after {
@@ -216,11 +225,11 @@
   width: 100%;
 
   margin-top:
-    calc(var(--md) + var(--space-2-5rem));
+    calc(1rem + 2.5rem);
 
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--size-2-5rem)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - 2.5rem) / 2);
 
-  gap: var(--sm);
+  gap: 0.8rem;
 
   overflow: hidden;
 
@@ -240,10 +249,10 @@
 .sidebar-brand-icon {
   display: block;
 
-  width: var(--size-2-5rem);
-  height: var(--size-2-5rem);
+  width: 2.5rem;
+  height: 2.5rem;
 
-  flex: 0 0 var(--size-2-5rem);
+  flex: 0 0 2.5rem;
 
   object-fit: contain;
 }
@@ -254,14 +263,14 @@
    ========================================================= */
 
 .sidebar-brand-name {
-  max-width: var(--size-10rem);
+  max-width: 10rem;
 
   overflow: hidden;
 
   color:
     var(--color-primary);
 
-  font-weight: var(--font-weight-600);
+  font-weight: var(--font-weight-semibold);
 
   white-space: nowrap;
 
@@ -271,7 +280,7 @@
   transition:
     max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
-    visibility var(--duration-0ms) var(--easing-linear);
+    visibility 0ms linear;
 }
 
 
@@ -287,7 +296,7 @@
  */
 
 .sidebar--collapsed .sidebar-brand-header {
-  padding-inline: calc((var(--sidebar-collapsed-width) - var(--size-2-5rem)) / 2);
+  padding-inline: calc((var(--sidebar-collapsed-width) - 2.5rem) / 2);
 }
 
 
@@ -304,22 +313,22 @@
   transition:
     max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
-    visibility var(--duration-0ms) var(--easing-linear) var(--sidebar-motion-duration);
+    visibility 0ms linear var(--sidebar-motion-duration);
 }
 
 .sidebar-improvement-button {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: var(--size-2-25rem);
-  margin-top: var(--sm);
+  min-height: 2.25rem;
+  margin-top: 0.8rem;
   padding-inline: calc((var(--sidebar-collapsed-width) - var(--sidebar-icon-size)) / 2);
-  gap: var(--sm);
+  gap: 0.8rem;
   border: 0;
   background: transparent;
   color: var(--sidebar-text);
   font: inherit;
-  font-weight: var(--font-weight-650);
+  font-weight: 650;
   cursor: pointer;
   transition: color var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     background var(--sidebar-motion-duration) var(--sidebar-motion-easing);
@@ -332,8 +341,8 @@
 }
 
 .sidebar-improvement-button:focus-visible {
-  outline: var(--stroke-2px) solid var(--focus-ring);
-  outline-offset: var(--stroke-negative-2px);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .sidebar-improvement-button svg {
@@ -344,12 +353,12 @@
 }
 
 .sidebar-improvement-button span {
-  max-width: var(--size-10rem);
+  max-width: 10rem;
   overflow: hidden;
   white-space: nowrap;
   transition: max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
-    visibility var(--duration-0ms) var(--easing-linear);
+    visibility 0ms linear;
 }
 
 .sidebar--collapsed .sidebar-improvement-button span {
@@ -358,7 +367,7 @@
   opacity: 0;
   transition: max-width var(--sidebar-motion-duration) var(--sidebar-motion-easing),
     opacity var(--sidebar-motion-duration) var(--sidebar-motion-easing),
-    visibility var(--duration-0ms) var(--easing-linear) var(--sidebar-motion-duration);
+    visibility 0ms linear var(--sidebar-motion-duration);
 }
 
 

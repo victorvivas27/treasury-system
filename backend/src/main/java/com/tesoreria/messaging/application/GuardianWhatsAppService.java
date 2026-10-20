@@ -68,6 +68,7 @@ public class GuardianWhatsAppService {
             throw problem(HttpStatus.TOO_MANY_REQUESTS, "Espera un minuto antes de reenviar la invitacion.");
         }
         GuardianInvitationEntity[] created = new GuardianInvitationEntity[1];
+        Boolean[] emailSent = new Boolean[1];
         recovery.inviteGuardian(guardianId, issued -> {
             var invitation = new GuardianInvitationEntity();
             invitation.setOrganizationId(tenant);
@@ -92,15 +93,24 @@ public class GuardianWhatsAppService {
             invitation.setMessageId(result.messageId());
             invitation.setErrorCode(result.errorCode());
             created[0] = invitations.save(invitation);
+            if (Boolean.TRUE.equals(consent.sendEmail())) {
+                emailSent[0] = recovery.sendGuardianInvitationEmail(issued, config.getPublicUrl());
+            }
         }, config.getInvitationHours() * 60);
         if (created[0] == null) throw problem(HttpStatus.CONFLICT, "La cuenta ya esta activada.");
-        return status(created[0]);
+        var result = status(created[0]);
+        return new InvitationStatus(result.status(), result.deliveryStatus(), result.createdAt(), result.expiresAt(),
+                result.activatedAt(), result.deliveredAt(), result.errorCode(), result.simulated(), emailSent[0]);
     }
 
     @Transactional
     public InvitationStatus latest(Long guardianId) {
         return invitations.findFirstByGuardianIdAndOrganizationIdOrderByIdDesc(guardianId, organization.getId())
                 .map(this::status).orElse(new InvitationStatus("NONE", null, null, null, null, null, null, false));
+    }
+
+    public InvitationChannels channels() {
+        return new InvitationChannels(config.isEnabled());
     }
 
     private InvitationStatus status(GuardianInvitationEntity invitation) {
@@ -149,7 +159,21 @@ public class GuardianWhatsAppService {
 
     private DomainException problem(HttpStatus status, String message) { return new DomainException("whatsapp", status, message); }
 
-    public record Consent(boolean authorized, String source, LocalDateTime authorizedAt) { }
+    public record InvitationChannels(boolean whatsappEnabled) { }
+
+    public record Consent(boolean authorized, String source, LocalDateTime authorizedAt, Boolean sendEmail) {
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public Consent { }
+
+        public Consent(boolean authorized, String source, LocalDateTime authorizedAt) {
+            this(authorized, source, authorizedAt, false);
+        }
+    }
     public record InvitationStatus(String status, String deliveryStatus, LocalDateTime createdAt, LocalDateTime expiresAt,
-            LocalDateTime activatedAt, LocalDateTime deliveredAt, String errorCode, boolean simulated) { }
+            LocalDateTime activatedAt, LocalDateTime deliveredAt, String errorCode, boolean simulated, Boolean emailSent) {
+        public InvitationStatus(String status, String deliveryStatus, LocalDateTime createdAt, LocalDateTime expiresAt,
+                LocalDateTime activatedAt, LocalDateTime deliveredAt, String errorCode, boolean simulated) {
+            this(status, deliveryStatus, createdAt, expiresAt, activatedAt, deliveredAt, errorCode, simulated, null);
+        }
+    }
 }

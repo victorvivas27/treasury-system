@@ -14,6 +14,8 @@ import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.model.AdminUserUpdate;
 import com.tesoreria.user.core.port.in.UserUseCase;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
+import com.tesoreria.apoderado.core.model.Apoderado;
+import com.tesoreria.apoderado.core.port.out.ApoderadoRepositoryOutPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,6 +32,7 @@ public class UserService implements UserUseCase {
     private final DefaultOrganizationProvider defaultOrganization;
     private final CurrentOrganizationService currentOrganization;
     private final RefreshTokenService sessions;
+    private final ApoderadoRepositoryOutPort guardians;
 
     public UserService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder) {
         this(repository, passwordEncoder, null, null);
@@ -44,11 +47,19 @@ public class UserService implements UserUseCase {
     public UserService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder,
                        DefaultOrganizationProvider defaultOrganization,
                        CurrentOrganizationService currentOrganization, RefreshTokenService sessions) {
+        this(repository, passwordEncoder, defaultOrganization, currentOrganization, sessions, null);
+    }
+
+    public UserService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder,
+                       DefaultOrganizationProvider defaultOrganization,
+                       CurrentOrganizationService currentOrganization, RefreshTokenService sessions,
+                       ApoderadoRepositoryOutPort guardians) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.defaultOrganization = defaultOrganization;
         this.currentOrganization = currentOrganization;
         this.sessions = sessions;
+        this.guardians = guardians;
     }
 
     @Override
@@ -174,11 +185,28 @@ public class UserService implements UserUseCase {
     @Transactional
     @PreAuthorize("@userAuthorization.isSelf(#id, authentication)")
     public User updateSelfProfile(Long id, String nombre, Long authenticatedUserId) {
+        return updateSelfProfile(id, nombre, null, authenticatedUserId);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("@userAuthorization.isSelf(#id, authentication)")
+    public User updateSelfProfile(Long id, String nombre, String telefono, Long authenticatedUserId) {
         if (id == null || !id.equals(authenticatedUserId)) {
             throw new AccessDeniedException("Solo puede actualizar su propio perfil");
         }
         User existing = findById(id);
-        existing.setNombre(nombre);
+        User validated = new User();
+        validated.setNombre(nombre);
+        if (telefono != null) {
+            if (guardians == null) throw new IllegalStateException("Guardian repository unavailable");
+            Apoderado guardian = guardians.findByEmail(existing.getCorreo())
+                    .orElseThrow(() -> new DomainException("telefono", org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "Esta cuenta no tiene un apoderado vinculado"));
+            guardian.setTelefono(telefono);
+            guardians.save(guardian);
+        }
+        existing.setNombre(validated.getNombre());
         return repository.save(existing);
     }
 

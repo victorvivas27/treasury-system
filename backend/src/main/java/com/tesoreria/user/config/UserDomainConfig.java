@@ -7,6 +7,7 @@ import com.tesoreria.user.application.usecase.RefreshTokenService;
 import com.tesoreria.user.application.usecase.ProfileImageService;
 import com.tesoreria.treasury.core.port.out.FileStorageService;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
+import com.tesoreria.apoderado.core.port.out.ApoderadoRepositoryOutPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,8 +18,9 @@ public class UserDomainConfig {
     @Bean
     UserService userService(UserRepositoryOutPort repository, PasswordEncoder passwordEncoder,
                             DefaultOrganizationProvider defaultOrganization,
-                            CurrentOrganizationService currentOrganization, RefreshTokenService sessions) {
-        return new UserService(repository, passwordEncoder, defaultOrganization, currentOrganization, sessions);
+                            CurrentOrganizationService currentOrganization, RefreshTokenService sessions,
+                            ApoderadoRepositoryOutPort guardians) {
+        return new UserService(repository, passwordEncoder, defaultOrganization, currentOrganization, sessions, guardians);
     }
 
     @Bean

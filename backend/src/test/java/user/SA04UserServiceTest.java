@@ -7,6 +7,8 @@ import com.tesoreria.user.core.exception.EmailAlreadyExistsException;
 import com.tesoreria.user.core.model.AdminUserUpdate;
 import com.tesoreria.user.core.model.User;
 import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
+import com.tesoreria.apoderado.core.model.Apoderado;
+import com.tesoreria.apoderado.core.port.out.ApoderadoRepositoryOutPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.*;
 class SA04UserServiceTest {
     @Mock UserRepositoryOutPort repository;
     @Mock PasswordEncoder encoder;
+    @Mock ApoderadoRepositoryOutPort guardians;
     private UserService service;
     private User account;
 
@@ -71,6 +74,54 @@ class SA04UserServiceTest {
         assertThrows(DomainException.class, () -> service.updateSelfProfile(10L, "123", 10L));
         assertEquals("PERSONA PRUEBA", account.getNombre());
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void selfProfileUpdatesOwnGuardianPhoneWithoutChangingAccountSecurity() {
+        service = new UserService(repository, encoder, null, null, null, guardians);
+        Apoderado guardian = new Apoderado();
+        guardian.setTelefono("+56912345678");
+        when(repository.findById(10L)).thenReturn(Optional.of(account));
+        when(guardians.findByEmail(account.getCorreo())).thenReturn(Optional.of(guardian));
+        when(repository.save(account)).thenReturn(account);
+        service.updateSelfProfile(10L, "Nuevo Nombre", "+56987654321", 10L);
+        assertEquals("+56987654321", guardian.getTelefono());
+        assertEquals(RoleEnum.USER, account.getRol());
+        verify(guardians).save(guardian);
+    }
+
+    @Test
+    void invalidPhoneCannotPersistEitherNameOrPhone() {
+        service = new UserService(repository, encoder, null, null, null, guardians);
+        Apoderado guardian = new Apoderado();
+        guardian.setTelefono("+56912345678");
+        when(repository.findById(10L)).thenReturn(Optional.of(account));
+        when(guardians.findByEmail(account.getCorreo())).thenReturn(Optional.of(guardian));
+        assertThrows(DomainException.class,
+                () -> service.updateSelfProfile(10L, "Nuevo Nombre", "123", 10L));
+        assertEquals("PERSONA PRUEBA", account.getNombre());
+        assertEquals("+56912345678", guardian.getTelefono());
+        verify(repository, never()).save(any());
+        verify(guardians, never()).save(any());
+    }
+
+    @Test
+    void phoneUpdateRejectsAnotherUserBeforeReadingGuardian() {
+        service = new UserService(repository, encoder, null, null, null, guardians);
+        assertThrows(AccessDeniedException.class,
+                () -> service.updateSelfProfile(10L, "Nuevo Nombre", "+56987654321", 20L));
+        verifyNoInteractions(repository, guardians);
+    }
+
+    @Test
+    void phoneUpdateWithoutGuardianCannotPersistName() {
+        service = new UserService(repository, encoder, null, null, null, guardians);
+        when(repository.findById(10L)).thenReturn(Optional.of(account));
+        when(guardians.findByEmail(account.getCorreo())).thenReturn(Optional.empty());
+        assertThrows(DomainException.class,
+                () -> service.updateSelfProfile(10L, "Nuevo Nombre", "+56987654321", 10L));
+        verify(repository, never()).save(any());
+        verify(guardians, never()).save(any());
     }
 
     @Test
