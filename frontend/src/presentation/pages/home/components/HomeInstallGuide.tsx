@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useId } from "react";
 import { FiArrowDown, FiArrowRight, FiCheck, FiDownload, FiMoreHorizontal, FiShare, FiX } from "react-icons/fi";
 import { FaChrome, FaEdge, FaFirefoxBrowser, FaSafari } from "react-icons/fa";
 import { useAppInstallation } from "@/shared/pwa/installApp";
@@ -32,6 +33,7 @@ const installationSteps = (browser: Browser) => {
 };
 
 export const HomeInstallGuide = () => {
+  const dialogId = useId();
   const { state, install } = useAppInstallation();
   const [open, setOpen] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
@@ -39,11 +41,12 @@ export const HomeInstallGuide = () => {
   const [interacted, setInteracted] = useState(false);
   const [browser, setBrowser] = useState<Browser>(currentBrowser);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
   const visible = open && state !== "installed";
 
   useEffect(() => {
     if (!visible) return;
-    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousFocus = triggerRef.current;
     const previousOverflow = document.body.style.overflow;
     const dialog = dialogRef.current;
     dialog?.showModal();
@@ -71,6 +74,7 @@ export const HomeInstallGuide = () => {
   };
 
   const reopen = () => {
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setShowSteps(false);
     setBrowser(currentBrowser());
     setInteracted(true);
@@ -79,26 +83,26 @@ export const HomeInstallGuide = () => {
 
   if (state === "installed") return null;
   return <>
-    {!visible && <button className="install-launcher" type="button" onClick={reopen}
+    <button className="install-launcher" type="button" onClick={reopen} hidden={visible}
       aria-label="Abrir opciones de instalación" aria-haspopup="dialog">
       <img src="/icono-tesoreria.png" alt="" width="24" height="24" />
       <span>Instalar app</span><FiDownload aria-hidden="true" />
-    </button>}
+    </button>
     {visible && createPortal(
-    <dialog ref={dialogRef} className="install-modal" aria-labelledby="install-app-title"
-      aria-describedby="install-app-description" onCancel={() => setOpen(false)}
+    <dialog ref={dialogRef} className="install-modal" aria-labelledby={`${dialogId}-title`}
+      aria-describedby={`${dialogId}-description`} onCancel={() => setOpen(false)}
       onClick={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <div className={`install-modal__content${showSteps ? " install-modal__content--guide" : ""}`} onClick={(event) => event.stopPropagation()}
         onPointerDown={() => setInteracted(true)} onKeyDown={() => setInteracted(true)}>
         <button className="install-modal__close" type="button" aria-label="Cerrar invitación"
-          autoFocus onClick={() => setOpen(false)}><FiX aria-hidden="true" /></button>
+          onClick={() => setOpen(false)}><FiX aria-hidden="true" /></button>
         <div className="install-modal__brand" aria-hidden="true">
           <img src="/icono-tesoreria.png" alt="" width="64" height="64" />
           <span><FiArrowDown /></span>
         </div>
         <span className="install-modal__eyebrow">{showSteps ? "SOLO DOS PASOS" : "TU CURSO, SIEMPRE CONTIGO"}</span>
-        <h2 id="install-app-title">{showSteps ? "¡Ya casi está!" : <>Menos vueltas.<br /><em>Más cerca de tu curso.</em></>}</h2>
-        <p id="install-app-description">{showSteps ? "Sigue estos pasos en tu navegador." : "Pagos, actividades y novedades, a un toque desde tu pantalla de inicio."}</p>
+        <h2 id={`${dialogId}-title`}>{showSteps ? "¡Ya casi está!" : <>Menos vueltas.<br /><em>Más cerca de tu curso.</em></>}</h2>
+        <p id={`${dialogId}-description`}>{showSteps ? "Sigue estos pasos en tu navegador." : "Pagos, actividades y novedades, a un toque desde tu pantalla de inicio."}</p>
         {!showSteps && <div className="install-modal__benefits"><span><FiCheck aria-hidden="true" /> Acceso directo</span><span><FiCheck aria-hidden="true" /> Sin tienda de apps</span></div>}
         <div className="install-modal__browsers" role="group" aria-label="Ver pasos por navegador">
           {(Object.entries(browsers) as [Browser, typeof browsers[Browser]][]).map(([key, { name, Icon }]) => (

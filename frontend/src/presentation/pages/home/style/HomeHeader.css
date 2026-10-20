@@ -531,3 +531,18 @@
     transition-duration: 1ms;
   }
 }
+/* Guest installation belongs to the navbar flow, alongside sign-in. */
+.public-home--guest .public-home__nav { gap: 12px; }
+.public-home--guest .public-home__nav .install-launcher {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  box-sizing: border-box;
+  min-height: 42px;
+  margin: 0;
+  animation: none;
+}
+@media (max-width: 680px) {
+  .public-home--guest .public-home__nav { gap: 8px; }
+  .public-home--guest .public-home__nav .install-launcher { min-height: 40px; height: 40px; }
+}
