@@ -21,7 +21,7 @@ export const HomePage = () => {
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
         {!isAuthenticated && <HomeHero />}
-        <HomeInstallGuide />
+        {isAuthenticated && <HomeInstallGuide />}
         {isAuthenticated ? <HomeCommunity /> : <HomeFeatures />}
       </main>
       <AppFooter showLogin={!isAuthenticated} />

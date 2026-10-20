@@ -73,14 +73,3 @@
 .public-home--guest .public-home__feature-icon { width: 36px; height: 36px; font-size: 20px; }
 .public-home--guest .public-home__feature-grid h3 { margin: 14px 0 8px; font-size: 16px; }
 .public-home--guest .public-home__feature-grid p { margin: 0; font-size: 14px; line-height: 1.6; }
-/* Keep the install action beside login in the sticky desktop header. */
-.public-home--guest .install-launcher {
-  top: 15px;
-  right: calc(max(32px, (100vw - 1088px) / 2) + 160px);
-  bottom: auto;
-  left: auto;
-  z-index: 51;
-  min-height: 42px;
-  box-sizing: border-box;
-  animation: none;
-}

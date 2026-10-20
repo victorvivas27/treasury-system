@@ -1,6 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+vi.hoisted(() => {
+  Object.defineProperty(window, "matchMedia", { writable: true, value: vi.fn(() => ({
+    matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+  })) });
+});
 import { HomeHeader } from "./HomeHeader";
 
 const architectureAccess = vi.hoisted(() => ({ allowed: false }));
@@ -9,6 +14,12 @@ vi.mock("@/presentation/hooks/architecture/useArchitectureAccess", () => ({
 }));
 
 describe("HomeHeader", () => {
+  it("mantiene instalar app e iniciar sesión dentro de la navegación pública", () => {
+    render(<MemoryRouter><HomeHeader /></MemoryRouter>);
+    const nav = screen.getByRole("navigation", { name: "Acceso a la plataforma" });
+    expect(nav).toContainElement(screen.getByRole("button", { name: "Abrir opciones de instalación" }));
+    expect(nav).toContainElement(screen.getByRole("link", { name: "Iniciar sesión" }));
+  });
   beforeEach(() => { architectureAccess.allowed = false; });
   afterEach(() => vi.useRealTimers());
   it("muestra el icono de arquitectura al dueño y cierra el menú al seleccionarlo", () => {

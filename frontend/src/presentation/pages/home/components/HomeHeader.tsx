@@ -8,6 +8,7 @@ import type { User } from "@/core/A-domain/entities/user/User";
 import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
+import { HomeInstallGuide } from "./HomeInstallGuide";
 import "../style/HomeHeader.css";
 
 const MOBILE_MENU_AUTO_CLOSE_MS = 4000;
@@ -171,9 +172,12 @@ export const HomeHeader = ({
             </button>
           </>
         ) : (
+          <>
+          <HomeInstallGuide />
           <Link className="public-home__login" to="/login">
             <FiLogIn aria-hidden="true" /><span>Iniciar sesión</span>
           </Link>
+          </>
         )}
       </nav>
     </header>
