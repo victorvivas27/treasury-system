@@ -39,6 +39,7 @@ interface SidebarNavProps {
   onNavLinkClick: () => void;
   role?: UserRole;
   isCollapsed?: boolean;
+  onExpandSidebar?: () => void;
 }
 
 
@@ -73,6 +74,7 @@ export const SidebarNav = ({
   onNavLinkClick,
   role,
   isCollapsed = true,
+  onExpandSidebar,
 }: SidebarNavProps) => {
   const auth = useOptionalAuth();
 
@@ -87,6 +89,7 @@ export const SidebarNav = ({
   const isAcademicOpen = openGroup === "academic";
   const isTreasuryOpen = openGroup === "treasury";
   const toggleGroup = (group: MenuGroup) => {
+    if (isCollapsed) onExpandSidebar?.();
     setOpenGroup(current => current === group ? null : group);
   };
 
@@ -132,6 +135,8 @@ export const SidebarNav = ({
     ),
   );
 
+  visibleMainLinks.sort((a, b) => Number(b.path === "/dashboard") - Number(a.path === "/dashboard"));
+
   const visibleManagementLinks = SIDEBAR_LINKS.flatMap((section) =>
     section.links.filter(
       (link) =>
@@ -173,6 +178,7 @@ export const SidebarNav = ({
 
   return (
     <nav
+      aria-label="Navegación principal"
       className={[
         "sidebar-nav",
         openGroup && "sidebar-nav--group-open",
@@ -195,6 +201,7 @@ export const SidebarNav = ({
                 <li key={link.path}>
                   <NavLink
                     to={link.path}
+                    aria-label={link.label}
                     data-tour-path={link.path}
                     className={({ isActive }) =>
                       [
@@ -245,6 +252,7 @@ export const SidebarNav = ({
                 .filter(Boolean)
                 .join(" ")}
               data-tour="management"
+              aria-label="Gestión"
               aria-expanded={isManagementOpen}
               aria-controls="management-submenu"
               onClick={() => toggleGroup("management")}
@@ -323,7 +331,7 @@ export const SidebarNav = ({
           <button type="button"
             className={["sidebar-nav-link-item", "sidebar-nav-parent",
               location.pathname.startsWith("/calendario") && "active", isAcademicOpen && "is-open"].filter(Boolean).join(" ")}
-            aria-expanded={isAcademicOpen} aria-controls="academic-submenu"
+            aria-label="Calendario Académico" aria-expanded={isAcademicOpen} aria-controls="academic-submenu"
             onClick={() => toggleGroup("academic")}>
             <span className="sidebar-treasury-icon-wrap" aria-hidden="true">
               <FiCalendar className="sidebar-nav-icon" />
@@ -378,6 +386,7 @@ export const SidebarNav = ({
                 .filter(Boolean)
                 .join(" ")}
               data-tour="treasury"
+              aria-label="Tesorería"
               aria-expanded={isTreasuryOpen}
               aria-controls="treasury-submenu"
               onClick={() => toggleGroup("treasury")}

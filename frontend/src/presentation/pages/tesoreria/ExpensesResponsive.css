@@ -42,6 +42,7 @@
   .expenses-page.outgoings-page .expense-results > .expense-card, .expense-card-placeholder { height: 84px; }
   .expenses-page.outgoings-page .expense-results > .expense-card { padding: var(--space-2); }
 }
+.expenses-page.outgoings-page .expense-detail-modal { animation-duration: 900ms; animation-timing-function: cubic-bezier(.22, .61, .36, 1); }
 @media (prefers-reduced-motion: reduce) {
   .expenses-page.outgoings-page .expense-form-modal, .expenses-page.outgoings-page .expense-detail-modal, .expenses-page.outgoings-page .expense-filter-backdrop, .expenses-page.outgoings-page .expense-filter-backdrop .expenses-filters { animation: none; }
 }

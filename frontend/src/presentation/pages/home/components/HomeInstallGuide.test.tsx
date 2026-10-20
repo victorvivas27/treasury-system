@@ -7,30 +7,29 @@ vi.hoisted(() => {
 });
 import { HomeInstallGuide } from "./HomeInstallGuide";
 beforeEach(() => {
-  sessionStorage.clear();
   vi.useFakeTimers();
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
-const openPrompt = () => { render(<HomeInstallGuide />); act(() => { vi.advanceTimersByTime(3000); }); };
-it("closes automatically and does not repeat in the same session", () => {
-  openPrompt();
-  expect(screen.getByRole("dialog")).toBeVisible();
-  expect(document.body.style.overflow).toBe("hidden");
-  act(() => { vi.advanceTimersByTime(12000); });
+const openPrompt = () => {
+  render(<HomeInstallGuide />);
+  fireEvent.click(screen.getByRole("button", { name: "Abrir opciones de instalación" }));
+};
+it("opens only from the installation button and restores scrolling when dismissed", () => {
+  render(<HomeInstallGuide />);
+  act(() => { vi.advanceTimersByTime(20000); });
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(document.body.style.overflow).toBe("");
   fireEvent.click(screen.getByRole("button", { name: "Abrir opciones de instalación" }));
   expect(screen.getByRole("dialog")).toBeVisible();
+  expect(document.body.style.overflow).toBe("hidden");
   act(() => { vi.advanceTimersByTime(20000); });
   expect(screen.getByRole("dialog")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Cerrar invitación" }));
-  expect(screen.getByRole("button", { name: "Abrir opciones de instalación" })).toBeVisible();
-  cleanup();
-  render(<HomeInstallGuide />);
-  act(() => { vi.advanceTimersByTime(20000); });
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(document.body.style.overflow).toBe("");
+  expect(screen.getByRole("button", { name: "Abrir opciones de instalación" })).toBeVisible();
 });
 it("keeps instructions open for reading and allows dismissal", async () => {
   openPrompt();

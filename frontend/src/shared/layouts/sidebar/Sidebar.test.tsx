@@ -43,7 +43,7 @@ describe('Sidebar Component', () => {
     const sidebar = container.querySelector("aside");
     expect(sidebar).toHaveAttribute("inert");
     expect(sidebar).toHaveAttribute("aria-hidden", "true");
-    const control = screen.getByRole("button", { name: /mostrar iconos del menú/i });
+    const control = screen.getByRole("button", { name: /abrir menú/i });
     expect(sidebar?.contains(control)).toBe(false);
     fireEvent.click(control);
     expect(mockToggle).toHaveBeenCalledOnce();
@@ -58,7 +58,7 @@ describe('Sidebar Component', () => {
 
     it('[Sidebar #01] Llama a onToggleSidebar al hacer clic en el botón toggle', () => {
       renderSidebar();
-      fireEvent.click(screen.getByRole("button", { name: /toggle sidebar/i }));
+      fireEvent.click(screen.getByRole("button", { name: /contraer menú/i }));
       expect(mockToggle).toHaveBeenCalledTimes(1);
     });
 
@@ -217,9 +217,9 @@ describe('Sidebar Component', () => {
 
   it('[Sidebar #09] Cambia el color de fondo del botón toggle según el estado isLocked', () => {
     renderSidebar({ isLocked: true });
-    const toggleButton = screen.getByRole("button", { name: /toggle sidebar/i });
+    const toggleButton = screen.getByRole("button", { name: /contraer menú/i });
     expect(toggleButton).toHaveClass("is-pinned");
-    expect(toggleButton).toHaveAttribute("aria-pressed", "true");
+    expect(toggleButton).toHaveAttribute("aria-expanded", "true");
   });
 });
 

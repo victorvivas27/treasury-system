@@ -10,25 +10,22 @@ import { ImprovementCenter } from "@/presentation/components/improvement-center/
 
 
 export const MainLayout = () => {
-const { sidebarState, isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick,
-  onSidebarPointerEnter, onSidebarPointerLeave, onSidebarFocus, onSidebarBlur } = useSidebarBehavior();
+const { sidebarState, isMobile, isSidebarOpen, isLocked, onToggleSidebar, onNavLinkClick,
+  closeSidebar } = useSidebarBehavior();
 const auth = useOptionalAuth();
 
   return (
     <main className={`main-layout main-layout--sidebar-${sidebarState}`}>
       <Sidebar
         headerContent={<ManagedCourseBanner />}
-        onPointerEnter={onSidebarPointerEnter}
-        onPointerLeave={onSidebarPointerLeave}
-        onFocus={onSidebarFocus}
-        onBlur={onSidebarBlur}
+        onCloseSidebar={closeSidebar}
         isHidden={sidebarState === "hidden"}
         isSidebarOpen={isSidebarOpen}
         isLocked={isLocked}
         onToggleSidebar={onToggleSidebar}
         onNavLinkClick={onNavLinkClick}
       />
-      <section className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
+      <section inert={isMobile && isSidebarOpen} className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
         <Outlet />
         <AppFooter />
       </section>

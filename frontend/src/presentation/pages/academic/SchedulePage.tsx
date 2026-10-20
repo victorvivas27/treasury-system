@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FiSliders } from "react-icons/fi";
-import { DAYS, TYPES, blockDurationLabel, timeLabel } from "@/core/A-domain/entities/academic/Schedule";
+import { DAYS, TYPES, blockDurationLabel, mergeConsecutiveSubjects, timeLabel } from "@/core/A-domain/entities/academic/Schedule";
 import type { ScheduleBlock } from "@/core/A-domain/entities/academic/Schedule";
 import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { useAuth } from "@/presentation/context/AuthContext";
@@ -33,6 +33,7 @@ export function SchedulePage() {
   const [dayNumber, setDayNumber] = useState(1);
   useEffect(() => { try { localStorage.setItem(key, view); } catch { /* Local preference is optional. */ } }, [key, view]);
   const days = DAYS.map((_, index) => data.schedule.days.find(day => day.dayOfWeek === index + 1));
+  const tableDays = days.map(day => day ? mergeConsecutiveSubjects(day) : undefined);
   const boundaries = [...new Set(days.flatMap(day => day
     ? [day.entryTime, day.exitTime, ...day.blocks.flatMap(block => [block.startTime, block.endTime])] : []))].sort();
   const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
@@ -72,11 +73,12 @@ export function SchedulePage() {
           <tbody>{boundaries.slice(0, -1).map((start, index) => {
             const end = boundaries[index + 1];
             return <tr key={start} style={{ height: Math.max(32, (minutes(end) - minutes(start)) * 1.2) }}>
-              {days.map((day, dayIndex) => {
+              {tableDays.map((day, dayIndex) => {
                 const block = day?.blocks.find(value => value.startTime <= start && value.endTime >= end);
                 if (block && block.startTime < start) return null;
                 const rowSpan = block ? boundaries.filter(boundary => boundary >= start && boundary < block.endTime).length : 1;
-                return <td key={dayIndex} rowSpan={rowSpan}>{block ? <span className="schedule-cell schedule-published-block" style={blockStyle(block)}>
+                return <td key={dayIndex} rowSpan={rowSpan} className={block ? "schedule-table-block-cell" : undefined}
+                  style={block ? blockStyle(block) : undefined}>{block ? <span className="schedule-cell schedule-published-block" style={blockStyle(block)}>
                   <span className="schedule-table-block-heading"><ScheduleBlockIcon block={block} /><small className="schedule-published-type">{TYPES[block.type]}</small></span>{(block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT") && block.name && <strong title={block.name}>{block.name}</strong>}
                   <small><span className="schedule-table-time-range">{timeLabel(block.startTime)} – {timeLabel(block.endTime)}</span>{blockDurationLabel(block) && <span className="schedule-block-duration">{blockDurationLabel(block)}</span>}</small>
                 </span> : day && start >= day.entryTime && end <= day.exitTime ? "Libre" : "—"}</td>;

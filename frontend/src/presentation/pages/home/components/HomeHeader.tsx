@@ -77,7 +77,7 @@ export const HomeHeader = ({
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 1280) setIsMobileMenuOpen(false);
+      if (window.innerWidth >= 1024) setIsMobileMenuOpen(false);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -137,28 +137,28 @@ export const HomeHeader = ({
           <>
             {isSuperAdmin && (
               <Link to="/administrations" onClick={closeMobileMenu}>
-                <FiShield aria-hidden="true" /><span>Administraciones</span>
+                <span className="public-home__nav-icon"><FiShield aria-hidden="true" /></span><span>Administraciones</span>
               </Link>
             )}
             {isSuperAdmin && architectureAccess.allowed && (
               <Link to="/admin/arquitectura" title="Arquitectura del sistema"
                 aria-label="Arquitectura del sistema" onClick={closeMobileMenu}>
-                <FiGitBranch aria-hidden="true" /><span>Arquitectura del sistema</span>
+                <span className="public-home__nav-icon"><FiGitBranch aria-hidden="true" /></span><span>Arquitectura del sistema</span>
               </Link>
             )}
             {isAdmin && (
               <Link to="/admin/horario-clases" onClick={closeMobileMenu}>
-                <FiCalendar aria-hidden="true" /><span>Gestionar horario de clases</span>
+                <span className="public-home__nav-icon"><FiCalendar aria-hidden="true" /></span><span>Gestionar horario de clases</span>
               </Link>
             )}
             {COMMUNITY_LINKS.map(({ id, label, icon: Icon, editTo, editLabel, editIcon: EditIcon }) => (
               isAdmin ? (
                 <Link key={id} to={editTo} onClick={closeMobileMenu}>
-                  <EditIcon aria-hidden="true" /><span>{editLabel}</span>
+                  <span className="public-home__nav-icon"><EditIcon aria-hidden="true" /></span><span>{editLabel}</span>
                 </Link>
               ) : (
                 <a key={id} href={`#${id}`} {...getSectionProps(id)}>
-                  <Icon aria-hidden="true" /><span>{label}</span>
+                  <span className="public-home__nav-icon"><Icon aria-hidden="true" /></span><span>{label}</span>
                 </a>
               )
             ))}
@@ -167,7 +167,7 @@ export const HomeHeader = ({
               <span>Gestion del curso</span>
             </Link>
             <button className="public-home__logout" type="button" onClick={handleLogout}>
-              <FiLogOut aria-hidden="true" /><span>Cerrar sesión</span>
+              <span className="public-home__nav-icon"><FiLogOut aria-hidden="true" /></span><span>Cerrar sesión</span>
             </button>
           </>
         ) : (

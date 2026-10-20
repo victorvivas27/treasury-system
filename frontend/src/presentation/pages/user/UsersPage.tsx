@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
+import { UserEditorModal } from "@/presentation/features/user/UserEditorModal";
 import { UserForm } from "@/presentation/features/user/UserForm";
 import { UserTable } from "@/presentation/features/user/UserTable";
 import { useUsers } from "@/presentation/hooks/user/useUsers";
@@ -13,6 +14,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { FiRefreshCw, FiUserPlus, FiX } from "react-icons/fi";
 import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
 import "./UsersPage.css";
+import "./UsersMobile.css";
 
 export const UsersPage = () => {
   const { user } = useAuth();
@@ -54,13 +56,18 @@ export const UsersPage = () => {
 
   const handleUpdate = async (payload: UserPayload) => {
     if (!editingUser) return;
-    await update(editingUser.id, payload, currentPage);
-    setEditingUser(null);
+    try {
+      await update(editingUser.id, payload, currentPage);
+      setEditingUser(null);
+    } catch {
+      setUserAlert({ isOpen: true, message: "No fue posible actualizar el usuario.", type: "error" });
+    }
   };
 
   const closeForm = () => {
     setShowForm(false);
     setEditingUser(null);
+    setUserAlert(current => current.type === "error" ? { ...current, isOpen: false } : current);
   };
 
   const confirmDelete = async () => {
@@ -135,26 +142,26 @@ export const UsersPage = () => {
         </div>
       </header>
 
-      {showForm && (
-        <>
-          <p>Para habilitar apoderados, envía una invitación desde el módulo Apoderados. Aquí puedes crear cuentas administrativas.</p>
-          <UserForm loading={loading} onSubmit={handleCreate} onCancel={closeForm} allowedRoles={["ADMIN"]} />
-        </>
-      )}
-
-      {editingUser && (
-        <UserForm
-          initialData={editingUser}
+      {(showForm || editingUser) && <UserEditorModal
+        title={editingUser ? "Modificar datos del usuario" : "Nuevo usuario"}
+        description={editingUser ? "Revisa y cambia los campos que necesites actualizar"
+          : "Completa los datos para crear una cuenta administrativa."}
+        busy={loading} onClose={closeForm}>
+        {userAlert.isOpen && userAlert.type === "error" && <p className="user-editor-modal__error" role="alert">{userAlert.message}</p>}
+        {!editingUser && <p className="users-page-editor__notice">Para habilitar apoderados, env?a una invitaci?n desde el m?dulo Apoderados.</p>}
+        <UserForm key={editingUser?.id ?? "new"}
+          initialData={editingUser ?? undefined}
           loading={loading}
-          submitLabel="Actualizar usuario"
-          onSubmit={handleUpdate}
+          submitLabel={editingUser ? "Actualizar" : "Crear usuario"}
+          onSubmit={editingUser ? handleUpdate : handleCreate}
           onCancel={closeForm}
-          showRole={false}
-          showAccountStatus={editingUser.rol !== "USER"}
+          allowedRoles={["ADMIN"]}
+          showRole={!editingUser}
+          showAccountStatus={editingUser?.rol !== "USER"}
         />
-      )}
+      </UserEditorModal>}
 
-      <section>
+      <section className="users-page-list">
         {!loading && users.length === 0 && !search.trim() ? (
           <EmptyState title="Sin usuarios" message="No hay usuarios registrados." />
         ) : (
@@ -207,7 +214,7 @@ export const UsersPage = () => {
       />
 
       <ModalAlert
-        isOpen={userAlert.isOpen}
+        isOpen={userAlert.isOpen && !((showForm || editingUser) && userAlert.type === "error")}
         message={userAlert.message}
         type={userAlert.type}
         onClose={() => setUserAlert((current) => ({ ...current, isOpen: false }))}

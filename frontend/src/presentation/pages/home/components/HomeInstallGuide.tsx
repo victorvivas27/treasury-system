@@ -5,7 +5,6 @@ import { FaChrome, FaEdge, FaFirefoxBrowser, FaSafari } from "react-icons/fa";
 import { useAppInstallation } from "@/shared/pwa/installApp";
 import "../style/HomeInstallGuide.css";
 
-const SEEN_KEY = "treasury-install-prompt-seen";
 type Browser = "chrome" | "edge" | "firefox" | "safari";
 const browsers = {
   chrome: { name: "Chrome", Icon: FaChrome },
@@ -43,16 +42,6 @@ export const HomeInstallGuide = () => {
   const visible = open && state !== "installed";
 
   useEffect(() => {
-    if (state === "installed") return;
-    try { if (sessionStorage.getItem(SEEN_KEY)) return; } catch { /* Storage may be unavailable. */ }
-    const timer = window.setTimeout(() => {
-      try { sessionStorage.setItem(SEEN_KEY, "true"); } catch { /* Keep the prompt usable. */ }
-      setOpen(true);
-    }, 3000);
-    return () => window.clearTimeout(timer);
-  }, [state, open]);
-
-  useEffect(() => {
     if (!visible) return;
     const previousFocus = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
@@ -82,7 +71,6 @@ export const HomeInstallGuide = () => {
   };
 
   const reopen = () => {
-    try { sessionStorage.setItem(SEEN_KEY, "true"); } catch { /* Storage may be unavailable. */ }
     setShowSteps(false);
     setBrowser(currentBrowser());
     setInteracted(true);

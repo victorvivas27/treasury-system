@@ -11,9 +11,20 @@ export function ScheduleAgenda({ day, index, compact = false }: { day?: Schedule
   const contentId = useId();
   useEffect(() => {
     if (!compact || !stickyMarker.current || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(([entry]) => setStuck(entry.boundingClientRect.top < 12), { rootMargin: "-12px 0px 0px 0px", threshold: 0 });
-    observer.observe(stickyMarker.current);
-    return () => observer.disconnect();
+    const marker = stickyMarker.current;
+    const heading = marker.nextElementSibling;
+    if (!heading) return;
+    let observer: IntersectionObserver;
+    const observe = () => {
+      observer?.disconnect();
+      const offset = Number.parseFloat(getComputedStyle(heading).top) || 0;
+      observer = new IntersectionObserver(([entry]) => setStuck(entry.boundingClientRect.top < offset),
+        { rootMargin: `-${offset}px 0px 0px 0px`, threshold: 0 });
+      observer.observe(marker);
+    };
+    observe();
+    window.addEventListener("resize", observe);
+    return () => { observer.disconnect(); window.removeEventListener("resize", observe); };
   }, [compact]);
   const blocks = day ? orderedBlocks(day) : [];
   const ingress = day ? scheduleIngress(day) : null;

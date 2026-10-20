@@ -73,6 +73,30 @@ describe("Consulta del horario", () => {
       expect(occupiedUntil.every(end => end > rowIndex)).toBe(true);
     });
   });
+  it("une materias consecutivas en una celda completa sin atravesar el recreo ni modificar el horario", () => {
+    const originalDays = state.schedule.days;
+    const subject = { ...originalDays[0].blocks[0], name: "Matemática" };
+    const blocks = [
+      { ...subject, startTime: "12:00:00", endTime: "12:45:00", order: 0 },
+      { ...subject, startTime: "12:45:00", endTime: "13:30:00", order: 1 },
+      { ...originalDays[0].blocks[1], startTime: "13:30:00", endTime: "13:45:00", order: 2 },
+      { ...subject, startTime: "13:45:00", endTime: "14:30:00", order: 3 },
+    ];
+    state.schedule.days = [{ ...originalDays[0], blocks }];
+    localStorage.setItem("academic.schedule.view.7", "table");
+    try {
+      open();
+      const subjects = screen.getAllByText("Matemática");
+      expect(subjects).toHaveLength(2);
+      const mergedCell = subjects[0].closest("td");
+      expect(mergedCell).toHaveAttribute("rowspan", "2");
+      expect(mergedCell).toHaveTextContent("12:00 – 13:30");
+      expect(mergedCell).toHaveTextContent("90 min");
+      expect(subjects[1].closest("td")).toHaveAttribute("rowspan", "1");
+      expect(blocks[0].endTime).toBe("12:45:00");
+      expect(state.schedule.days[0].blocks).toHaveLength(4);
+    } finally { state.schedule.days = originalDays; }
+  });
   it("muestra error y permite reintentar", () => {
     state.error = "No se pudo cargar"; open();
     expect(screen.getByRole("alert")).toHaveTextContent(state.error);

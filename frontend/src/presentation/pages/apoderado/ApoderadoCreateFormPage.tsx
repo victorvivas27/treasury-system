@@ -1,6 +1,5 @@
 import { CrearApoderadoForm } from "@/presentation/features/apoderado/CrearApoderadoForm";
 import "./style/ApoderadoForm.css";
-import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 
 
 
@@ -21,7 +20,6 @@ export const ApoderadoCrearFormPage = () => {
       <section className="form-container">
         <CrearApoderadoForm />
       </section>
-      <ButtonBack />
     </main>
   );
 };

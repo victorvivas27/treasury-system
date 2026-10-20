@@ -2,7 +2,7 @@
 .schedule-published .schedule-published-heading { margin-bottom: var(--space-4); gap: 0.7rem; }
 .schedule-published-heading h1 { margin: var(--space-1) 0; font-size: var(--font-h1); letter-spacing: -.04em; line-height: 1.15; }
 .schedule-published-heading p { margin: 0.35rem 0 0; font-size: 0.85rem; opacity: .7; }
-.schedule-published-toolbar { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr); align-items: end; gap: var(--space-4); padding: 0.8rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: var(--color-surface); }
+.schedule-published-toolbar { display: grid; grid-template-columns: minmax(160px, 240px) minmax(0, 1fr); align-items: end; gap: 12px; padding: 8px 0 12px; border: 0; border-bottom: 1px solid var(--border-color); border-radius: 0; background: transparent; }
 .schedule-published-toolbar .schedule-visible-filter { margin: 0; }
 .schedule-published-toolbar .schedule-filter { margin: 0; width: 100%; max-width: 100%; }
 .schedule-published-toolbar .schedule-filters { min-width: 0; margin: 0; }
@@ -56,6 +56,9 @@
 .schedule-agenda--compact .schedule-agenda-toggle-heading { position: sticky; top: .75rem; z-index: 5; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.2rem; margin: 0; padding: 0.2rem 0 var(--space-2); border-bottom: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent); border-radius: 0.4rem 0.4rem 0 0; background: var(--color-surface); }
 .schedule-agenda--compact .schedule-agenda-toggle-heading h2 { display: block; width: 100%; min-width: 0; max-width: none; margin: 0; }
 .schedule-agenda-sticky-marker { display: block; height: 0; pointer-events: none; }
+@media (min-width: 769px) {
+  .main-layout .schedule-agenda--compact .schedule-agenda-toggle-heading { top: calc(40px + .75rem); }
+}
 .schedule-agenda--compact .schedule-agenda-toggle-heading.is-stuck { border-radius: 0; }
 .schedule-agenda--compact .schedule-agenda-toggle-heading.is-stuck::before { content: ""; position: absolute; top: -.75rem; left: 0; right: 0; height: 0.75rem; border-radius: 0.65rem 0.65rem 0 0; background: var(--color-surface); pointer-events: none; }
 .schedule-agenda--compact .schedule-agenda-toggle { box-sizing: border-box; display: grid; gap: 0.45rem; width: 100%; min-width: 0; max-width: none; min-height: 0; margin: 0; padding: 0.2rem; border: 0; border-radius: 0.4rem; background: transparent; box-shadow: none; color: var(--text-main); font: inherit; text-align: left; cursor: pointer; }
@@ -84,12 +87,22 @@
 .schedule-published .schedule-table-day-heading { display: block; padding: 0.35rem var(--space-2); font-family: inherit; font-weight: 700; font-size: 0.9rem; border-radius: var(--radius-md); }
 .schedule-published .schedule-table thead p { margin: var(--space-2) 0.2rem; font-size: 0.7rem; line-height: 1.7; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .schedule-published .schedule-table tbody tr:nth-child(even) > td { background: color-mix(in srgb, var(--color-accent) 2%, var(--color-surface)); }
-.schedule-published .schedule-table .schedule-published-block { border-radius: 0.65rem; padding: 0.55rem; height: 100%; box-sizing: border-box; }
+.schedule-published .schedule-table .schedule-published-block { border-radius: 0.65rem; padding: 0.55rem; height: auto; box-sizing: border-box; }
+.schedule-published .schedule-table tbody tr > td.schedule-table-block-cell {
+  border-left: 3px solid var(--schedule-block-color);
+  background: color-mix(in srgb, var(--schedule-block-color) 8%, var(--color-surface));
+}
+.schedule-published .schedule-table .schedule-table-block-cell > .schedule-published-block {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
 .schedule-table-block-heading { display: flex; align-items: center; gap: 0.4rem; }
 .schedule-table-block-heading > svg { flex: 0 0 auto; width: 16px; height: 16px; }
 @media (max-width: 600px) {
   .schedule-published { padding: var(--page-padding); }
-  .schedule-published-toolbar { grid-template-columns: minmax(0, 1fr); gap: 0.7rem; padding: 0.65rem; }
+  .schedule-published-toolbar { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 8px 0 12px; }
   .schedule-published .schedule-view-selector button { font-size: var(--font-size-xs); }
   .schedule-published > .schedule-visible-filter .schedule-day-selector { gap: 0.3rem; }
   .schedule-published > .schedule-visible-filter button small { display: none; }
@@ -178,4 +191,24 @@
   .schedule-agenda--day .schedule-agenda-subject small { display: none; }
   .schedule-agenda--day .schedule-agenda-duration { grid-column: 3; grid-row: 2; justify-self: start; padding: 0; border: 0; font-size: 0.6rem; opacity: .7; }
   .schedule-agenda--day .schedule-agenda-heading p { font-size: 0.65rem; }
+}
+
+/* Compact typography and controls for the published consultation view. */
+.schedule-published .schedule-published-heading h1 { font-size: 15px; font-weight: 500; letter-spacing: normal; }
+.schedule-published .schedule-published-heading p { margin-top: 4px; font-size: 12px; font-weight: 400; }
+.schedule-published .schedule-filter,
+.schedule-published .schedule-visible-filter > span { font-size: 11px; font-weight: 400; }
+.schedule-published .schedule-filter select { height: 34px; min-height: 34px; padding: 5px 30px 5px 8px; border-radius: 6px; font-size: 12px; font-weight: 400; }
+.schedule-published .schedule-day-selector button { font-size: 12px; font-weight: 400; }
+.schedule-published .schedule-view-selector button { min-height: 32px; padding: 5px 10px; }
+.schedule-published > .schedule-visible-filter button { min-height: 44px; gap: 3px; border-radius: 6px; }
+.schedule-published .schedule-agenda-heading h2 { font-size: 14px; font-weight: 500; letter-spacing: normal; }
+.schedule-published .schedule-agenda-subject strong { font-size: 13px; font-weight: 500; }
+.schedule-published .schedule-agenda-time time:first-child { font-weight: 500; }
+.schedule-published .schedule-agenda--compact .schedule-agenda-subject strong { font-size: 12px; }
+.schedule-published .schedule-table-day-heading { font-size: 12px; font-weight: 500; }
+.schedule-published .schedule-table caption { font-size: 12px; font-weight: 500; }
+@media (max-width: 768px) {
+  .schedule-published .schedule-filter select { min-height: 40px; height: 40px; font-size: 12px !important; }
+  .schedule-published .schedule-view-selector button { min-height: 40px; padding-inline: 6px; }
 }

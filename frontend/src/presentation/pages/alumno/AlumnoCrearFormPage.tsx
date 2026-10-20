@@ -1,5 +1,5 @@
 import { CrearAlumnoForm } from "@/presentation/features/alumno/CrearAlumnoForm";
-import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
+import "./style/AlumnoFormMobile.css";
 
 export const AlumnoCrearFormPage = () => {
   return (
@@ -14,7 +14,6 @@ export const AlumnoCrearFormPage = () => {
       <section className="form-container">
         <CrearAlumnoForm />
       </section>
-      <ButtonBack />
     </main>
   );
 };

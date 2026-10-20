@@ -15,7 +15,8 @@ for (const viewport of [{ width: 1216, height: 552 }, { width: 390, height: 844 
         { startTime: "09:45", endTime: "10:30", name: "Lenguaje", type: "SUBJECT", color: null },
         { startTime: "10:30", endTime: "11:15", name: "Inglés", type: "SUBJECT", color: null },
         { startTime: "11:15", endTime: "12:00", name: null, type: "LUNCH", color: null },
-      ].map((block, order) => ({ ...block, order, dayOfWeek: index + 1 })) }));
+      ].map((block, order) => ({ ...block, name: index === 1 && order === 1 ? "Historia" : block.name,
+        order, dayOfWeek: index + 1 })) }));
     await page.route("**/tesoreria/api/v1/**", async route => {
       const path = new URL(route.request().url()).pathname;
       let body: unknown = [];
@@ -29,28 +30,24 @@ for (const viewport of [{ width: 1216, height: 552 }, { width: 390, height: 844 
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
     });
     await page.goto("/calendario/horario-clases");
-    await page.getByRole("button", { name: "Omitir" }).click();
     await expect(page.getByRole("heading", { name: "Horario de clases" })).toBeVisible();
     if (viewport.width === 1216) {
       const treasury = page.locator('[aria-controls="treasury-submenu"]');
+      await expect(page.locator(".sidebar")).toHaveAttribute("data-state", "expanded");
+      await treasury.hover();
+      await expect(page.getByRole("tooltip")).toHaveCount(0);
+      await treasury.click();
+      await expect(treasury).toHaveAttribute("aria-expanded", "true");
+      await expect(page.locator("#treasury-submenu")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(treasury).toHaveAttribute("aria-expanded", "false");
+      await page.locator(".sidebar-state-toggle").click();
+      await expect(page.locator(".sidebar")).toHaveAttribute("data-state", "icons");
       await treasury.hover();
       await expect(page.getByRole("tooltip", { name: "Tesorería", exact: true })).toBeVisible();
       await treasury.click();
-      await expect(treasury).toHaveAttribute("aria-expanded", "true");
-      await page.locator("#treasury-submenu a").first().hover();
+      await expect(page.locator(".sidebar")).toHaveAttribute("data-state", "expanded");
       await expect(page.getByRole("tooltip")).toHaveCount(0);
-      await expect(page.locator(".sidebar-treasury-timer")).toHaveCount(0);
-      await page.keyboard.press("Escape");
-      await expect(page.locator(".sidebar-treasury-timer")).toHaveCount(0);
-      const toggle = page.getByRole("button", { name: "Toggle sidebar", exact: true });
-      await toggle.click();
-      await expect(page.locator(".sidebar")).not.toHaveClass(/sidebar--collapsed/);
-      await treasury.hover();
-      await expect(page.getByRole("tooltip")).toHaveCount(0);
-      await page.locator('.sidebar-footer-link[href="/notifications"]').hover();
-      await expect(page.getByRole("tooltip")).toHaveCount(0);
-      await toggle.click();
-      await expect(page.locator(".sidebar")).toHaveClass(/sidebar--collapsed/);
     }
     await expect(page.getByRole("button", { name: "Por día", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Ingreso", { exact: true })).toBeVisible();
@@ -58,7 +55,7 @@ for (const viewport of [{ width: 1216, height: 552 }, { width: 390, height: 844 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: `demo-output/schedule-published/day-${viewport.width}.png`, fullPage: true });
     await page.locator(".schedule-day-nav").evaluate(element => window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY + 180));
-    await expect.poll(() => page.locator(".schedule-day-nav").evaluate(element => Math.round(element.getBoundingClientRect().top))).toBe(0);
+    await expect.poll(() => page.locator(".schedule-day-nav").evaluate(element => Math.round(element.getBoundingClientRect().top))).toBe(viewport.width <= 768 ? 48 : 0);
     await expect(page.getByRole("button", { name: "Viernes", exact: true })).toBeInViewport();
     await page.screenshot({ path: `demo-output/schedule-published/sticky-days-${viewport.width}.png` });
     await page.getByRole("button", { name: "Viernes", exact: true }).click();
@@ -92,7 +89,7 @@ for (const viewport of [{ width: 1216, height: 552 }, { width: 390, height: 844 
       await page.locator(".schedule-agenda-toggle-heading").first().evaluate(element =>
         window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY + 140));
       await expect.poll(() => page.locator(".schedule-agenda-toggle-heading").evaluateAll(elements =>
-        elements.map(element => Math.round(element.getBoundingClientRect().top)))).toEqual([12, 12, 12, 12, 12]);
+        elements.map(element => Math.round(element.getBoundingClientRect().top)))).toEqual([52, 52, 52, 52, 52]);
       expect(await page.locator(".schedule-agenda-card").first().evaluate(element => element.getBoundingClientRect().top)).toBeLessThan(0);
       expect(await page.locator(".schedule-agenda-toggle-heading").first().evaluate(element => {
         const cover = getComputedStyle(element, "::before");
@@ -107,6 +104,25 @@ for (const viewport of [{ width: 1216, height: 552 }, { width: 390, height: 844 
     await page.getByRole("button", { name: "Tabla semanal", exact: true }).click();
     await expect(page.getByRole("table")).toBeVisible();
     await expect(page.locator(".schedule-table-block-heading > svg").first()).toBeVisible();
+    const merged = page.locator('.schedule-table td[rowspan="2"]').first();
+    await expect(merged).toContainText("08:00");
+    await expect(merged).toContainText("09:30");
+    await expect(merged).toContainText("90 min");
+    const measurements = await merged.evaluate(cell => {
+      const card = cell.querySelector<HTMLElement>(".schedule-published-block")!;
+      const nextCell = cell.nextElementSibling as HTMLElement;
+      return { cell: cell.getBoundingClientRect().height, content: card.getBoundingClientRect().height,
+        single: nextCell.getBoundingClientRect().height, color: getComputedStyle(cell).backgroundColor };
+    });
+    expect(measurements.cell).toBeGreaterThan(measurements.single * 1.8);
+    expect(measurements.content).toBeLessThanOrEqual(measurements.cell);
+    expect(measurements.color).not.toBe("rgba(0, 0, 0, 0)");
+    const overlapping = await page.locator(".schedule-table-block-cell").evaluateAll(cells => cells.some(cell => {
+      const rect = cell.getBoundingClientRect();
+      const card = cell.querySelector(".schedule-published-block")!.getBoundingClientRect();
+      return card.bottom > rect.bottom + 1 || card.right > rect.right + 1;
+    }));
+    expect(overlapping).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: `demo-output/schedule-published/table-${viewport.width}.png`, fullPage: true });
   });

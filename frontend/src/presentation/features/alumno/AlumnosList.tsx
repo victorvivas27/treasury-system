@@ -1,6 +1,7 @@
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import "./style/AlumnosList.css";
 import "@/shared/style/AdminDataTable.css";
+import "./style/AlumnosMobile.css";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
 import { FcHighPriority } from "react-icons/fc";

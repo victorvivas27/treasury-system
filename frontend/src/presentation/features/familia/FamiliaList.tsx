@@ -2,6 +2,7 @@ import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "./style/FamiliaList.css";
 import "@/shared/style/AdminDataTable.css";
+import "./style/FamiliasMobile.css";
 import type { FC } from "react";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { FcHighPriority } from "react-icons/fc";

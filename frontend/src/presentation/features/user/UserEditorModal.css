@@ -1,0 +1,50 @@
+.user-editor-modal {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  width: min(320px, calc(100vw - 24px));
+  max-width: 320px;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--text-main);
+  box-shadow: var(--shadow-elevated);
+}
+.user-editor-modal[open] { animation: user-editor-arrive 280ms cubic-bezier(.22, 1, .36, 1) both; }
+.user-editor-modal::backdrop { background: var(--overlay); backdrop-filter: blur(4px); animation: user-editor-shade 220ms ease both; }
+.user-editor-modal__heading { margin-bottom: 14px; }
+.user-editor-modal__heading h2 { margin: 0 0 4px; font-size: 15px; font-weight: 500; line-height: 1.3; }
+.user-editor-modal__heading p,
+.user-editor-modal .users-page-editor__notice { margin: 0; font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+.user-editor-modal .users-page-editor__notice { margin-bottom: 12px; }
+.user-editor-modal__error { margin: 0 0 12px; padding: 8px; border-radius: 6px; background: var(--color-error-soft); color: var(--color-error); font-size: 11px; }
+.users-page .user-editor-modal .user-form.form-card {
+  box-sizing: border-box; display: grid; width: 100%; margin: 0; padding: 0;
+  grid-template-columns: minmax(0, 1fr); gap: 12px; border: 0; background: transparent; border-radius: 0;
+}
+.users-page .user-editor-modal .user-form .form-group { display: grid; min-width: 0; margin: 0; padding: 0; gap: 5px; }
+.users-page .user-editor-modal .login-floating-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.users-page .user-editor-modal .user-form.form-card .form-group .login-floating-label { position: static; order: -1; padding: 0; transform: none; font-size: 11px; color: var(--text-muted); }
+.users-page .user-editor-modal .user-form .form-input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 36px; padding: 7px 9px; font-size: 16px; border-radius: 6px; }
+.users-page .user-editor-modal .user-form .password-input { padding-right: 38px; }
+.users-page .user-editor-modal .password-visibility-button { top: auto; bottom: 0; right: 0; width: 36px; height: 36px; transform: none; }
+.users-page .user-editor-modal .user-form__password-group { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.users-page .user-editor-modal .user-form__password-input { gap: 10px; }
+.users-page .user-editor-modal .user-form__account-status { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0; }
+.users-page .user-editor-modal .checkbox-label { min-height: 28px; gap: 6px; font-size: 11px; }
+.users-page .user-editor-modal .user-form .error-message { position: static; font-size: 10px; white-space: normal; }
+.users-page .user-editor-modal .form-label { font-size: 11px; }
+.users-page .user-editor-modal .password-strength { padding: 0; font-size: 10px; }
+.users-page .user-editor-modal .password-strength__requirements { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 8px; }
+.users-page .user-editor-modal .password-strength__requirements > li { min-width: 0; }
+.users-page .user-editor-modal .form-actions { gap: 8px; }
+.users-page .user-editor-modal .form-actions .base-button { box-sizing: border-box; min-width: 0; min-height: 36px; margin: 0; padding: 7px 8px; font-size: 11px; border-radius: 6px; }
+@keyframes user-editor-arrive { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes user-editor-shade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .user-editor-modal[open], .user-editor-modal::backdrop { animation: none; } }
