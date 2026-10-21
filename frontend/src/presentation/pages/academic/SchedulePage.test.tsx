@@ -8,25 +8,25 @@ const state = vi.hoisted(() => ({
     { dayOfWeek: 1, startTime: "12:00:00", endTime: "12:45:00", type: "SUBJECT", name: "Lenguaje", order: 0, color: null },
     { dayOfWeek: 1, startTime: "13:00:00", endTime: "13:15:00", type: "BREAK", name: null, order: 1, color: null },
   ] }] },
-  loading: false, error: "", setYear: vi.fn(), retry: vi.fn(),
+  ready: true, loading: false, error: "", setYear: vi.fn(), retry: vi.fn(),
 }));
 const account = vi.hoisted(() => ({ user: { id: 7, rol: "USER" } }));
-vi.mock("@/presentation/hooks/academic/useSchedule", () => ({ useSchedule: () => state }));
+vi.mock("@/presentation/hooks/academic/usePublishedSchedule", () => ({ usePublishedSchedule: () => state }));
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: () => account }));
 describe("Consulta del horario", () => {
-  beforeEach(() => { localStorage.clear(); state.loading = false; state.error = ""; account.user.id = 7; });
+  beforeEach(() => { localStorage.clear(); state.loading = false; state.ready = true; state.error = ""; account.user.id = 7; });
   const open = () => render(<MemoryRouter><SchedulePage /></MemoryRouter>);
-  it.each(["summary", "day", "table"])("muestra skeleton en la vista %s y lo retira al terminar la carga", view => {
-    state.loading = true;
+  it.each(["summary", "day", "table"])("muestra el loader compartido en la vista %s y lo retira al terminar la carga", view => {
+    state.loading = true; state.ready = false;
     localStorage.setItem("academic.schedule.view.7", view);
     const page = open();
-    const loading = screen.getByRole("status", { name: "Cargando horario" });
-    expect(loading).toHaveAttribute("aria-busy", "true");
-    expect(loading.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
-    expect(loading.querySelectorAll(".schedule-agenda")).toHaveLength(view === "table" ? 0 : view === "day" ? 1 : 5);
-    state.loading = false;
+    const loading = screen.getByRole("status", { name: "Preparando el horario de clases" });
+    expect(document.querySelector(".schedule-published")).toHaveAttribute("inert");
+    expect(page.container.querySelectorAll(".skeleton-block")).toHaveLength(0);
+    expect(loading).toHaveClass("app-loader");
+    state.loading = false; state.ready = true;
     page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
-    expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Preparando el horario de clases" })).not.toBeInTheDocument();
   });
   it("muestra la jornada por defecto, salida explícita, bloques y no edición para USER", () => {
     open();

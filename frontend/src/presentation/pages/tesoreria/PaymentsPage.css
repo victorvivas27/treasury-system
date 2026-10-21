@@ -1457,20 +1457,6 @@
   line-height: 1.5;
 }
 
-.payments-skeleton {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.payments-skeleton .installment-table {
-  display: grid;
-}
-
-.payments-skeleton .installment-row__main {
-  border-top: 1px solid var(--border-color);
-  pointer-events: none;
-}
-
 .payments-page button:focus-visible,
 .payments-page a:focus-visible,
 .proof-upload:focus-within {

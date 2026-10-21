@@ -1,3 +1,4 @@
+import { clearDashboardCache } from "./dashboardCache";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BoardMessage } from "./BoardMessage";
@@ -16,6 +17,7 @@ vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
 
 describe("BoardMessage", () => {
   beforeEach(() => {
+    clearDashboardCache();
     vi.clearAllMocks();
     getBoardMessage.mockResolvedValue(content);
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };

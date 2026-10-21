@@ -1,29 +1,37 @@
 import "./LoadingState.css";
-import { GiTakeMyMoney } from "react-icons/gi";
-import { FcMoneyTransfer } from "react-icons/fc";
-import { LiaPiggyBankSolid } from "react-icons/lia";
-import { BsBank } from "react-icons/bs";
-import type { FC } from "react";
-interface LoadingStateProps {
-  mesage?: string;
-}
+import { useEffect, useState } from "react";
 
-export const LoadingState: FC<LoadingStateProps> = ({ mesage = "Cargando..." }) => {
-  const charCount = mesage.length;
+export const LoadingState = ({ message = "Preparando tu espacio", variant = "fullscreen", delayMs = 0 }: {
+  message?: string; variant?: "fullscreen" | "contained"; delayMs?: number;
+}) => {
+  const [visible, setVisible] = useState(delayMs === 0);
+  useEffect(() => {
+    if (!delayMs) { setVisible(true); return; }
+    const timer = window.setTimeout(() => setVisible(true), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [delayMs]);
+  useEffect(() => {
+    if (variant === "contained") return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [variant]);
+  if (!visible) return null;
   return (
-    <section className="loading-state">
-      <div className="animated-icons">
-        <span className="icon icon-money"><GiTakeMyMoney /></span>
-        <span className="icon icon-transfer"><FcMoneyTransfer /></span>
-        <span className="icon icon-piggy"><LiaPiggyBankSolid /></span>
-        <span className="icon icon-banck"><BsBank /></span>
-        <div
-          className="rotating-text"
-          style={{ "--chars": charCount } as React.CSSProperties}
-        >
-          <p className="rotating-text__text">{mesage}</p>
-        </div>
+  <div className={`app-loader${variant === "contained" ? " app-loader--contained" : ""}`} role="status" aria-live="polite" aria-label={message}>
+    <div className="app-loader__content">
+      <div className="app-loader__mark" aria-hidden="true">
+        <span className="app-loader__ring" />
+        <img className="app-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
+          decoding="sync" fetchPriority="high" onError={event => { event.currentTarget.hidden = true; }} />
       </div>
-    </section>
+      <div>
+        <p className="app-loader__title">Tesorería Escolar</p>
+        <p className="app-loader__status">{message} <span className="app-loader__dots" aria-hidden="true">
+          <i /><i /><i />
+        </span></p>
+      </div>
+    </div>
+  </div>
   );
 };

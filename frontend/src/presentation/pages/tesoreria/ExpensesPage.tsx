@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { useSearchParams } from "react-router-dom";
 import { FiAlertTriangle, FiArrowLeft, FiBriefcase, FiCalendar, FiCheck, FiClock,
   FiCreditCard, FiDollarSign, FiDownload, FiEdit3, FiEye, FiFilePlus, FiFileText, FiFilter, FiLogIn,
-  FiLoader, FiLogOut, FiMessageSquare, FiMinusCircle, FiPlus, FiRefreshCw, FiSave,
+  FiLoader, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw, FiSave,
   FiSlash, FiTag, FiTrash2, FiUser, FiX }
   from "react-icons/fi";
 import type {
@@ -15,16 +15,16 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
-import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { getExpensesResource, expensesSelection } from "./expensesCache";
+import { useDashboardResource } from "../dashboard/dashboardCache";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { chileDate } from "@/shared/date/chileDateTime";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   EXPENSE_CATEGORIES, EXPENSE_PAYMENT_METHODS,
   expenseCategoryLabel, expensePaymentLabel,
 } from "@/shared/constants/ExpenseConstants";
 import "./ExpensesPage.css";
-import "./ExpensesSkeleton.css";
 import "./ExpensesResponsive.css";
 import "./TreasuryMovementFilters.css";
 import { MovementFilterSelect } from "./MovementFilterSelect";
@@ -49,20 +49,20 @@ export const ExpensesPage = () => {
   const { user } = useAuth();
   const canManage = isAdminRole(user?.rol);
   const [searchParams] = useSearchParams();
+  const selection = expensesSelection(user?.id, canManage);
   const [year, setYear] = useState(() => {
     const requestedYear = Number(searchParams.get("year"));
-    return years.includes(requestedYear) ? requestedYear : 2026;
+    return years.includes(requestedYear) ? requestedYear : selection.year;
   });
-  const [items, setItems] = useState<TreasuryExpense[]>([]);
+  const [filters, setFilters] = useState<ExpenseFilters>(selection.filters);
+  const resource = getExpensesResource(user?.id, canManage, year, filters);
+  const cached = useDashboardResource(resource);
+  const items = cached.data?.items ?? [];
+  const summary = cached.data?.summary ?? emptySummary;
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(items.length / EXPENSE_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const visibleExpenses = items.slice((currentPage - 1) * EXPENSE_PAGE_SIZE, currentPage * EXPENSE_PAGE_SIZE);
-  const [summary, setSummary] = useState(emptySummary);
-  const [filters, setFilters] = useState<ExpenseFilters>({
-    status: "ACTIVE",
-    sort: "DATE_DESC",
-  });
   const [form, setForm] = useState<ExpensePayload>(initialForm(year));
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<TreasuryExpense | null>(null);
@@ -76,38 +76,16 @@ export const ExpensesPage = () => {
   const [confirmSave, setConfirmSave] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const activeFilters = Object.entries(filters).filter(([key, value]) =>
     !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
-  const initialLoading = loading && !hasLoaded;
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [expenses, totals] = await Promise.all([
-        repository.listExpenses(year, filters),
-        repository.financialSummary(year),
-      ]);
-      setItems(expenses);
-      setPage(1);
-      setSummary(totals);
-    } catch {
-      setError("No fue posible cargar los egresos. Intenta nuevamente.");
-    } finally {
-      setHasLoaded(true);
-      setLoading(false);
-    }
-  }, [year, filters]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 250);
-    return () => window.clearTimeout(timer);
-  }, [load]);
+  const initialLoading = !cached.data && !cached.error;
+  const load = useCallback(() => resource.load(true), [resource]);
+  useEffect(() => { Object.assign(selection, { year, filters }); }, [selection, year, filters]);
+  useEffect(() => { setPage(1); }, [resource]);
 
   useEffect(() => {
     if (!formOpen && !detail && !filtersOpen) return;
@@ -267,7 +245,13 @@ export const ExpensesPage = () => {
   const setFilter = <K extends keyof ExpenseFilters>(key: K, value: ExpenseFilters[K]) =>
     setFilters((current) => ({ ...current, [key]: value || undefined }));
 
-  return <main className="expenses-page outgoings-page">
+  return <>
+    {initialLoading && <LoadingState message="Preparando los egresos" />}
+    <main className="expenses-page outgoings-page" inert={initialLoading} aria-busy={initialLoading}>
+    {cached.error && <div role="alert">
+      <p>No fue posible cargar los egresos. Intenta nuevamente.</p>
+      <button type="button" onClick={() => void load()}>Reintentar</button>
+    </div>}
     <header className="expenses-header">
       <div>
         <h1>Egresos</h1>
@@ -278,15 +262,6 @@ export const ExpensesPage = () => {
     </header>
 
     <section className="expenses-summary" aria-label="Resumen financiero">
-      {initialLoading ? [
-        ["Saldo disponible", <FiDollarSign key="balance" />],
-        ["Total recaudado", <FiLogIn key="income" />],
-        ["Total de egresos", <FiLogOut key="expense" />],
-      ].map(([label, icon]) =>
-        <article className="expense-summary-card" key={String(label)}>
-          <div><span>{label}</span><i>{icon}</i></div><CardValueSkeleton />
-          <small>Actualizando información</small>
-        </article>) : <>
       <article className={`expense-summary-card expense-summary-card--balance ${
         summary.availableBalance < 0 ? "is-negative" : "is-balance"}`}>
         <div><span>Saldo disponible</span><i><FiDollarSign /></i></div>
@@ -299,7 +274,6 @@ export const ExpensesPage = () => {
       <article className="expense-summary-card expense-summary-card--expense is-expense">
         <div><span>Total de egresos</span><i><FiLogOut /></i></div>
         <strong>-{money.format(summary.totalExpenses)}</strong><small>Solo egresos activos</small></article>
-      </>}
     </section>
 
     <div className="expense-filter-toolbar"><button type="button"
@@ -345,9 +319,8 @@ export const ExpensesPage = () => {
           <FiCheck /> Ver resultados</button></footer>
     </aside></div>}
 
-    {initialLoading ? <ExpenseCardsSkeleton />
-      : items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
-      : <section className="expenses-grid expense-results" aria-label="Listado de egresos">
+    {!initialLoading && !cached.error && items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
+      : cached.data ? <section className="expenses-grid expense-results" aria-label="Listado de egresos">
         <span className="expense-results__count">{items.length} egresos</span>
         {visibleExpenses.map((item) => <article className={`expense-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.id}>
           <header><span><FiCalendar aria-hidden="true" /> {item.expenseDate}</span>
@@ -365,7 +338,7 @@ export const ExpensesPage = () => {
           onPrevious={() => setPage(Math.max(1, currentPage - 1))}
           onNext={() => setPage(Math.min(totalPages, currentPage + 1))}
           ariaLabel="Paginación de egresos" />}
-      </section>}
+      </section> : null}
 
     {formOpen && <div className="expense-modal-overlay">
       <section className="expense-form-modal" role="dialog" aria-modal="true" aria-labelledby="expense-form-title">
@@ -485,22 +458,5 @@ export const ExpensesPage = () => {
       message={message} variant="toast" onClose={() => setMessage("")} />
     <ModalAlert isOpen={Boolean(error)} type="error" title="No fue posible completar la acción"
       message={error} onClose={() => setError("")} />
-  </main>;
+  </main></>;
 };
-
-const ExpenseCardsSkeleton = () => (
-  <section className="expenses-grid" aria-label="Cargando egresos" role="status">
-    {Array.from({ length: EXPENSE_PAGE_SIZE }, (_, index) => (
-      <article className="expense-card expense-card--skeleton" key={index} aria-hidden="true">
-        <header><span><FiMinusCircle /> Egreso</span><div className="skeleton-block" /></header>
-        <div className="skeleton-block" /><div className="skeleton-block" />
-        <div className="expense-details-skeleton">
-          {Array.from({ length: 3 }, (_, row) => <div className="skeleton-block" key={row} />)}
-        </div>
-        <footer className="expense-card__footer"><div className="skeleton-block" />
-          <button type="button" className="loading-action-placeholder" disabled
-            aria-label="Ver detalle"><FiEye /></button></footer>
-      </article>
-    ))}
-  </section>
-);

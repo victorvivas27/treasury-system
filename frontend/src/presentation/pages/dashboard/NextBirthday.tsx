@@ -1,23 +1,10 @@
-﻿import { useEffect, useState } from "react";
 import { FiGift } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
-import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
-
-const repository = new AlumnoRepositoryImpl();
-
+import { birthdayResource, useDashboardResource } from "./dashboardCache";
 export const NextBirthday = ({ today = new Date() }: { today?: Date }) => {
-  const [alumnos, setAlumnos] = useState<Alumno[]>([]);
-  const [status, setStatus] = useState("loading");
-
-  useEffect(() => {
-    let active = true;
-    repository.getBirthdays().then(result => {
-      if (active) { setAlumnos(result); setStatus("ready"); }
-    }).catch(() => { if (active) setStatus("error"); });
-    return () => { active = false; };
-  }, []);
-
+  const { data, error } = useDashboardResource(birthdayResource);
+  const alumnos = data ?? [];
+  const status = data ? "ready" : error ? "error" : "loading";
   const currentDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const birthdays = alumnos.filter(alumno => alumno.activo && alumno.fechaNacimiento)
     .flatMap(alumno => {

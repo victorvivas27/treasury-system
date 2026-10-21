@@ -1,3 +1,4 @@
+import { clearDashboardCache } from "./dashboardCache";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -55,12 +56,27 @@ const overview = {
 
 describe("DashboardPage", () => {
   beforeEach(() => {
+    clearDashboardCache();
     vi.clearAllMocks();
     eventProfits.mockResolvedValue([]);
     currentUser.rol = "ADMIN";
   });
 
-  it("[DashboardPage #01] muestra skeleton y luego métricas y actividad reales", async () => {
+  it("reutiliza el dashboard al salir y volver sin otro loader ni consultas repetidas", async () => {
+    dashboardOverview.mockResolvedValue(overview);
+    contributionSummary.mockResolvedValue({ totalFamilies: 0 });
+    const first = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.queryByLabelText("Preparando tu dashboard")).not.toBeInTheDocument());
+    first.unmount();
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+    expect(screen.queryByLabelText("Preparando tu dashboard")).not.toBeInTheDocument();
+    expect(screen.getByText("$240.000")).toBeInTheDocument();
+    expect(dashboardOverview).toHaveBeenCalledTimes(1);
+    expect(contributionSummary).toHaveBeenCalledTimes(1);
+    expect(eventProfits).toHaveBeenCalledTimes(1);
+  });
+
+  it("[DashboardPage #01] muestra el loader compartido y luego métricas y actividad reales", async () => {
     dashboardOverview.mockResolvedValue(overview);
     contributionSummary.mockResolvedValue({
       totalFamilies: 4, cepaPaid: 3, cepaPending: 1,
@@ -68,8 +84,8 @@ describe("DashboardPage", () => {
     });
     const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
-    expect(screen.getByLabelText("Cargando dashboard")).toBeInTheDocument();
-    expect(container.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Preparando tu dashboard")).toBeInTheDocument();
+    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(0);
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
     const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });

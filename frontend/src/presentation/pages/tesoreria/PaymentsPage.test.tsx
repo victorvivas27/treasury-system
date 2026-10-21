@@ -1,5 +1,7 @@
+import { clearPaymentsCache } from "./paymentsCache";
+import { mercadoPagoAvailability } from "@/presentation/hooks/treasury/mercadoPagoAvailability";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "@/core/D-config/api";
 import { useAuth } from "@/presentation/context/AuthContext";
@@ -11,7 +13,7 @@ vi.mock("@/core/C-infra/repositories/treasury/MercadoPagoRepository", () => ({
 }));
 
 vi.mock("@/core/D-config/api", () => ({
-  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
+  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), interceptors: { response: { use: vi.fn() } } },
 }));
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
 
@@ -21,13 +23,49 @@ const deferred = <T,>() => {
   return { promise, resolve };
 };
 
+function BrowserBack() {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate(-1)}>Volver atrás</button>;
+}
+
 describe("PaymentsPage para apoderado", () => {
   beforeEach(() => {
+    clearPaymentsCache(); mercadoPagoAvailability.clear();
     vi.clearAllMocks();
     vi.mocked(mercadoPagoRepository.available).mockResolvedValue(true);
     vi.mocked(useAuth).mockReturnValue({
       user: { rol: "USER" },
     } as ReturnType<typeof useAuth>);
+  });
+
+  it("conserva cuotas y disponibilidad al salir y volver sin loader ni consultas adicionales", async () => {
+    const payments = { schoolYear: 2026, annualAmount: 70000, totalAmount: 70000, allowedMode: "AMBAS", studentName: "Alumno",
+      selectedMode: "ANUAL", paidAmount: 0, installments: [], bankAccount: null };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: payments });
+    const first = render(<MemoryRouter><PaymentsPage /></MemoryRouter>);
+    await screen.findByRole("heading", { name: "Alumno" });
+    first.unmount();
+    const calls = vi.mocked(apiClient.get).mock.calls.length;
+    render(<MemoryRouter><PaymentsPage /></MemoryRouter>);
+    expect(screen.getByRole("heading", { name: "Alumno" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Preparando tus pagos")).not.toBeInTheDocument();
+    expect(apiClient.get).toHaveBeenCalledTimes(calls);
+    expect(mercadoPagoRepository.available).toHaveBeenCalledTimes(1);
+  });
+
+  it("retira el loader si se vuelve atrás mientras todavía se está cargando el retorno", async () => {
+    const payments = deferred<{ data: Record<string, unknown> }>();
+    vi.mocked(apiClient.get).mockImplementation(url => String(url).endsWith("/cuenta-bancaria")
+      ? Promise.resolve({ data: {} }) : payments.promise);
+    render(<MemoryRouter initialEntries={["/tesoreria/pagos", "/tesoreria/pagos?mp_return=1"]}>
+      <BrowserBack /><PaymentsPage />
+    </MemoryRouter>);
+    await waitFor(() => expect(apiClient.get).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole("button", { name: "Volver atrás" }));
+    await act(async () => payments.resolve({ data: { schoolYear: 2026, annualAmount: 70000, totalAmount: 70000,
+      allowedMode: "AMBAS", studentName: "Alumno", selectedMode: "ANUAL", paidAmount: 0, installments: [], bankAccount: null } }));
+    await waitFor(() => expect(screen.queryByLabelText("Preparando tus pagos")).not.toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: "Alumno" })).toBeInTheDocument();
   });
 
   it.each(["ANUAL", "DOS_CUOTAS"] as const)("guarda la elección %s y oculta las alternativas", async mode => {
@@ -143,21 +181,21 @@ describe("PaymentsPage para apoderado", () => {
     expect(await screen.findByText(/No pudimos abrir Mercado Pago/)).toBeInTheDocument();
   });
 
-  it("mantiene el skeleton hasta tener juntos la cuenta y las cuotas", async () => {
+  it("mantiene el loader hasta tener juntos la cuenta y las cuotas", async () => {
     const bank = deferred<{ data: Record<string, unknown> }>();
     const payments = deferred<{ data: Record<string, unknown> }>();
     vi.mocked(apiClient.get).mockImplementation(url =>
       String(url).endsWith("/cuenta-bancaria") ? bank.promise : payments.promise);
 
     render(<MemoryRouter><PaymentsPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Cargando tus pagos" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Preparando tus pagos" })).toBeInTheDocument();
 
     await act(async () => bank.resolve({ data: {
       id: 3, schoolYear: 2026, accountHolderName: "Curso", accountHolderRut: "1-9",
       bankName: "Banco", accountType: "Vista", accountNumber: "123", email: "curso@mail.cl",
     } }));
 
-    expect(screen.getByRole("status", { name: "Cargando tus pagos" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Preparando tus pagos" })).toBeInTheDocument();
     expect(screen.queryByText("Falta configurar la cuota anual")).not.toBeInTheDocument();
 
     await act(async () => payments.resolve({ data: {
@@ -172,7 +210,7 @@ describe("PaymentsPage para apoderado", () => {
     } }));
 
     expect(await screen.findByRole("heading", { name: "Sofía Díaz" })).toBeInTheDocument();
-    expect(screen.queryByRole("status", { name: "Cargando tus pagos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Preparando tus pagos" })).not.toBeInTheDocument();
     expect(screen.getAllByText("$35.000")).toHaveLength(2);
     expect(screen.getByRole("region", { name: "Métodos de pago" })).toBeInTheDocument();
     const checkoutButtons = screen.getAllByRole("button", { name: "Pagar con Mercado Pago" });

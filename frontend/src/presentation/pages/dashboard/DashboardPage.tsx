@@ -7,8 +7,7 @@ import { FcExpand } from "react-icons/fc";
 import {
   Cell, Pie, PieChart, ResponsiveContainer,
 } from "recharts";
-import type { ContributionSummary,
-  TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
+
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
@@ -17,7 +16,8 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { birthdayResource, boardMessageResource, dashboardYear, getDashboardResources, useDashboardResource } from "./dashboardCache";
 import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvement/ImprovementCenterEvents";
@@ -28,7 +28,6 @@ import { BoardMessage } from "./BoardMessage";
 import { buildDashboardCaptureFileName, captureElementAsPng } from "./captureElement";
 
 const repository = new TreasuryRepositoryImpl();
-const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, index) => 2026 + index);
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
@@ -40,12 +39,19 @@ export const DashboardPage = () => {
   const auth = useOptionalAuth();
   const user = auth?.user;
   const isAdmin = isAdminRole(user?.rol);
-  const [year, setYear] = useState(years.includes(currentYear) ? currentYear : 2026);
+  const [year, setYear] = useState(dashboardYear.get);
   const [yearOpen, setYearOpen] = useState(false);
-  const [data, setData] = useState<TreasuryDashboardOverview>();
-  const [contributions, setContributions] = useState<ContributionSummary>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const resources = getDashboardResources(year);
+  const summary = useDashboardResource(resources.summary);
+  const profits = useDashboardResource(resources.profits);
+  const birthdays = useDashboardResource(birthdayResource);
+  const boardMessage = useDashboardResource(boardMessageResource);
+  const data = summary.data?.overview;
+  const contributions = summary.data?.contributions;
+  const loading = summary.loading;
+  const error = summary.error ? "No fue posible actualizar el dashboard." : "";
+  const preparing = !summary.error && (!data || (!profits.data && !profits.error)
+    || (!birthdays.data && !birthdays.error) || (!boardMessage.data && !boardMessage.error));
   const [selectedAudits, setSelectedAudits] = useState<Set<number>>(new Set());
   const [cleanup, setCleanup] = useState<"selected" | "all" | null>(null);
   const [cleanupMessage, setCleanupMessage] = useState("");
@@ -60,30 +66,14 @@ export const DashboardPage = () => {
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [overview, contributionSummary] = await Promise.all([
-        repository.dashboardOverview(year),
-        repository.contributionSummary(year),
-      ]);
-      setData(overview);
-      setContributions(contributionSummary);
-      loginPerformance.mark("dashboard-api");
-      setSelectedAudits(new Set());
-      setActivityPage(1);
-      setAuditPage(1);
-    } catch {
-      setData(undefined);
-      setContributions(undefined);
-      setError("No fue posible cargar el dashboard.");
-    } finally {
-      setLoading(false);
-    }
-  }, [year]);
-
-  useEffect(() => { void load(); }, [load]);
+  const load = useCallback(() => resources.summary.load(true), [resources]);
+  useEffect(() => {
+    if (!data) return;
+    loginPerformance.mark("dashboard-api");
+    setSelectedAudits(new Set());
+    setActivityPage(1);
+    setAuditPage(1);
+  }, [data]);
   useEffect(() => {
     if (!loading && data) requestAnimationFrame(() => loginPerformance.finish());
   }, [loading, data]);
@@ -155,7 +145,7 @@ export const DashboardPage = () => {
     }
   }, [capturing]);
 
-  return <main ref={dashboardRef} className="business-dashboard">
+  return <><main ref={dashboardRef} className="business-dashboard" inert={preparing} aria-busy={preparing}>
     <header className="business-dashboard__header">
       <div><h1 className="dashboard-greeting">{user?.nombre
         ? <><span className="dashboard-greeting__intro">Hola,</span>{" "}<span className="dashboard-greeting__name">{user.nombre.trim().split(/\s+/)[0]}</span></>
@@ -184,6 +174,7 @@ export const DashboardPage = () => {
           aria-label="Año escolar">
           {years.map(item => <button key={item} type="button" role="option"
             aria-selected={item === year} onClick={() => {
+              dashboardYear.set(item);
               setYear(item);
               setYearOpen(false);
             }}>{item}</button>)}
@@ -191,8 +182,8 @@ export const DashboardPage = () => {
       </div></div>
     </header>
 
-    {error && !loading && <FeedbackState message={error} onRefresh={() => void load()} />}
-    {!error && (loading && !data ? <DashboardSkeleton isAdmin={isAdmin} /> : data && <>
+    {error && !loading && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => void load()} />}
+    {data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <section className="dashboard-summary-group dashboard-summary-group--money" aria-labelledby="dashboard-money-title">
           <header className="dashboard-summary-group__heading">
@@ -453,7 +444,7 @@ export const DashboardPage = () => {
             ariaLabel="Paginación de trazas de Tesorería" />}
         </div>}</div></div>
       </section>}
-    </>)}
+    </>}
     {isAdmin && <ModalConfirm isOpen={cleanup !== null} title="Limpiar trazas"
       message={cleanup === "all"
         ? `Se eliminará definitivamente todo el historial de Tesorería de ${year}.`
@@ -466,7 +457,7 @@ export const DashboardPage = () => {
       message={cleanupError} onClose={() => setCleanupError("")} />
     <ModalAlert isOpen={Boolean(captureError)} type="error"
       message={captureError} onClose={() => setCaptureError("")} />
-  </main>;
+  </main>{preparing && <LoadingState message="Preparando tu dashboard" />}</>;
 };
 
 const Kpi = ({ label, value, positive = false, negative = false, direction, featured,
@@ -529,41 +520,3 @@ const ContributionDonut = ({ title, paid, pending }: {
     </div>
   </article>;
 };
-
-const DashboardSkeleton = ({ isAdmin }: { isAdmin: boolean }) =>
-<div className="dashboard-loading" role="status"
-  aria-label="Cargando dashboard">
-  <section className="dashboard-kpis">{[
-    "Familias activas", "Saldo disponible", "Ingresos totales", "Egresos activos",
-    "Cuotas pagadas", "Cuotas pendientes",
-  ].map(label => <article className="dashboard-kpi" key={label}><span>{label}</span>
-    <div className="skeleton-block dashboard-value-skeleton" /></article>)}</section>
-  <section className="dashboard-charts">
-    {[
-      ["Flujo mensual", "Ingresos y egresos por mes", true],
-      ["Cuota anual", "Modalidad y avance de recaudación", false],
-      ["Principales egresos", "¿En qué se gastó?", false],
-      ["Aportes del curso", "Cuota CEPA y Fondo de Apoyo por Fallecimiento", true],
-    ].map(([eyebrow, title, wide]) => <article
-      className={`dashboard-panel ${wide ? "dashboard-panel--wide" : ""}`} key={String(title)}>
-      <header><div><span>{eyebrow}</span><h2>{title}</h2></div></header>
-      <div className="skeleton-block dashboard-chart-skeleton" /></article>)}
-  </section>
-  <article className="dashboard-panel dashboard-activity">
-    <header><div><span>Últimos registros</span><h2>Actividad reciente</h2></div></header>
-    <div className="dashboard-table-wrap"><table><thead><tr><th>Tipo</th><th>Descripción</th>
-      <th>Fecha</th><th>Estado</th><th>Monto</th><th>Detalle</th></tr></thead>
-      <tbody>{Array.from({ length: 5 }, (_, row) => <tr key={row} aria-hidden="true">
-        {Array.from({ length: 5 }, (_, column) => <td key={column}>
-          <div className="skeleton-block dashboard-row-skeleton" /></td>)}
-        <td>&nbsp;</td></tr>)}</tbody></table></div>
-  </article>
-  {isAdmin && <article className="dashboard-panel dashboard-audit">
-    <header><div><span>Historial del sistema</span><h2>Trazas de Tesorería</h2></div></header>
-    <div className="dashboard-table-wrap"><table><thead><tr><th></th><th>Acción</th>
-      <th>Tipo</th><th>Detalle</th><th>Usuario</th><th>Fecha</th></tr></thead>
-      <tbody>{Array.from({ length: 5 }, (_, row) => <tr key={row} aria-hidden="true">
-        <td>&nbsp;</td>{Array.from({ length: 5 }, (_, column) => <td key={column}>
-          <div className="skeleton-block dashboard-row-skeleton" /></td>)}</tr>)}</tbody></table></div>
-  </article>}
-</div>;

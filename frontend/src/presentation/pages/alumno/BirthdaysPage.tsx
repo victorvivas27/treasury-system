@@ -1,35 +1,14 @@
-import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
-import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import { BirthdaySection } from "@/presentation/features/alumno/BirthdaySection";
-import { useCallback, useEffect, useState } from "react";
+import { birthdayResource, useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import "./style/BirthdaysPage.css";
 
 export const BirthdaysPage = () => {
-  const [alumnos, setAlumnos] = useState<Alumno[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const loadBirthdays = useCallback(async () => {
-    const repository = new AlumnoRepositoryImpl();
-
-    try {
-      setLoading(true);
-      setError("");
-
-      setAlumnos(await repository.getBirthdays());
-    } catch {
-      setError("No fue posible cargar los cumpleaños.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadBirthdays();
-  }, [loadBirthdays]);
+  const { data: alumnos, error } = useDashboardResource(birthdayResource);
+  const preparing = !alumnos && !error;
 
   return (
-    <main className="page-container birthdays-page">
+    <><main className="page-container birthdays-page" inert={preparing} aria-busy={preparing}>
       <header className="page-header">
         <div className="page-header__content">
           <h1 className="page-header__title">{"Cumplea\u00f1os"}</h1>
@@ -37,14 +16,13 @@ export const BirthdaysPage = () => {
 
       </header>
 
-      {error ? (
-        <section className="birthdays-page__error">
-          <p>{error}</p>
-          <button type="button" onClick={() => void loadBirthdays()}>Reintentar</button>
+      {error && (
+        <section className="birthdays-page__error" role="alert">
+          <p>No fue posible actualizar los cumpleaños.</p>
+          <button type="button" onClick={() => void birthdayResource.load(true)}>Reintentar</button>
         </section>
-      ) : (
-        <BirthdaySection alumnos={alumnos} loading={loading} maxItems={0} />
       )}
-    </main>
+      {alumnos && <BirthdaySection alumnos={alumnos} maxItems={0} />}
+    </main>{preparing && <LoadingState message="Preparando los cumpleaños" />}</>
   );
 };

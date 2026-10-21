@@ -1,3 +1,4 @@
+import { clearDashboardCache } from "./dashboardCache";
 import { render as renderComponent, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -11,7 +12,7 @@ vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
 }));
 
 describe("NextBirthday", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { clearDashboardCache(); vi.clearAllMocks(); });
 
   it("elige el cumpleaños más cercano al cambiar de año y excluye inactivos y fechas inválidas", async () => {
     getBirthdays.mockResolvedValue([

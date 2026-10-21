@@ -20,68 +20,17 @@ import {
 } from "react-icons/fi";
 import type { IconType } from "react-icons";
 import { apiClient } from "@/core/D-config/api";
-import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
+import { emptyBank, getPaymentsResource, paymentsSelection, PaymentsLoadError, paymentsLoadError, resolveAnnualAmount, paymentsBase as base } from "./paymentsCache";
+import type { BankAccount, MyPayments, Payment } from "./paymentsCache";
 import { Tooltip } from "@/shared/ui/tooltip/Tooltip";
 import { useMercadoPago } from "@/presentation/hooks/treasury/useMercadoPago";
 import "./PaymentsPage.css";
 
-type BankAccount = {
-  id?: number;
-  schoolYear: number;
-  accountHolderName: string;
-  accountHolderRut: string;
-  bankName: string;
-  accountType: string;
-  accountNumber: string;
-  email: string;
-};
-type Payment = {
-  paymentMethod?: string;
-  providerPaymentId?: string;
-  providerStatus?: string;
-  createdAt?: string;
-  id: number;
-  amount: number;
-  status: string;
-  paidAt: string | null;
-  originalFileName: string | null;
-  submittedAt: string | null;
-  rejectionReason: string | null;
-};
-type Installment = {
-  installment?: string;
-  id: number;
-  concept: string;
-  amount: number;
-  dueDate: string;
-  status: string;
-  history: Payment[];
-};
-type MyPayments = {
-  schoolYear: number;
-  annualAmount?: number | null;
-  totalAmount: number;
-  allowedMode: "ANUAL" | "DOS_CUOTAS" | "AMBAS";
-  studentName: string;
-  selectedMode: "ANUAL" | "DOS_CUOTAS" | "PERSONALIZADA" | null;
-  paidAmount: number;
-  installments: Installment[];
-  bankAccount: BankAccount | null;
-};
-type Review = {
-  paymentMethod?: string;
-  id: number;
-  studentName: string;
-  guardianName: string;
-  installment: string;
-  amount: number;
-  status: string;
-  submittedAt: string | null;
-  rejectionReason: string | null;
-};
 type InstallmentFilter = "ALL" | "PENDING" | "PAID";
 type BankDetailRow = {
   key: string;
@@ -99,18 +48,9 @@ type BankFieldConfig = {
   inputType?: "email" | "text";
 };
 
-const base = "/tesoreria/pagos-transferencia";
 const mercadoPagoLogoUrl = "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mercado-pago/default.svg";
 const yearNow = new Date().getFullYear();
-const treasuryRepository = new TreasuryRepositoryImpl();
-const resolveAnnualAmount = async (payments: MyPayments): Promise<MyPayments> => {
-  if (typeof payments.annualAmount === "number" && Number.isFinite(payments.annualAmount)) return payments;
-  const config = await treasuryRepository.getConfig(payments.schoolYear);
-  if (config.year !== payments.schoolYear || typeof config.annualAmount !== "number" || !Number.isFinite(config.annualAmount)) {
-    throw new Error("No fue posible consultar el monto de la configuración anual.");
-  }
-  return { ...payments, annualAmount: config.annualAmount };
-};
+
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
 const friendly: Record<string, string> = {
   PENDIENTE: "Pendiente",
@@ -124,31 +64,6 @@ const friendly: Record<string, string> = {
   PAID: "Pagado",
   REJECTED: "Rechazado",
 };
-const emptyBank = (schoolYear: number): BankAccount => ({
-  schoolYear,
-  accountHolderName: "",
-  accountHolderRut: "",
-  bankName: "",
-  accountType: "",
-  accountNumber: "",
-  email: "",
-});
-
-const paymentsLoadError = (reason: unknown) => {
-  const fallback = "No fue posible cargar tus pagos. Intenta nuevamente.";
-  if (typeof reason !== "object" || reason === null || !("response" in reason)) return fallback;
-  const response = (reason as { response?: { status?: number; data?: { errors?: Record<string, unknown> } } }).response;
-  if (!response) return "No pudimos conectar con el servidor para cargar tus pagos. Revisa la conexión e intenta nuevamente.";
-  if (response.status === 401) return "Tu sesión no está disponible. Vuelve a iniciar sesión para consultar tus pagos.";
-  if (response.status && response.status >= 400 && response.status < 500) {
-    const messages = Object.values(response.data?.errors ?? {}).filter(
-      (value): value is string => typeof value === "string" && value.trim().length > 0,
-    );
-    if (messages.length) return messages.join(" ");
-  }
-  return fallback;
-};
-
 export const formatChileanRut = (rut: string) => {
   const normalizedRut = rut.replace(/[^0-9kK]/g, "").toUpperCase();
   if (normalizedRut.length < 2) return normalizedRut;
@@ -194,67 +109,57 @@ export const PaymentsPage = () => {
   const [params] = useSearchParams();
   const [year, setYear] = useState(() => {
     const value = Number(params.get("year"));
-    return Number.isInteger(value) && value >= 2000 && value <= yearNow + 1 ? value : yearNow;
+    return Number.isInteger(value) && value >= 2000 && value <= yearNow + 1 ? value : paymentsSelection(user?.id, admin).get()?.year ?? yearNow;
   });
-  const [mine, setMine] = useState<MyPayments | null>(null);
-  const [bank, setBank] = useState<BankAccount>(emptyBank(yearNow));
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [filter, setFilter] = useState("");
+
+  const [filter, setFilter] = useState(() => paymentsSelection(user?.id, admin).get()?.filter ?? "");
   const [installmentFilter, setInstallmentFilter] = useState<InstallmentFilter>("ALL");
   const [expandedInstallmentId, setExpandedInstallmentId] = useState<number | null>(null);
   const [bankDrawerOpen, setBankDrawerOpen] = useState(false);
   const [bankConfigOpen, setBankConfigOpen] = useState(false);
   const [adminHistoryOpen, setAdminHistoryOpen] = useState(true);
-  const [loadingMine, setLoadingMine] = useState(!admin);
-  const [loadingAdmin, setLoadingAdmin] = useState(admin);
+
   const [changingPlan, setChangingPlan] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [actionBusy, setBusy] = useState(false);
   const [uploadingInstallmentId, setUploadingInstallmentId] = useState<number | null>(null);
   const [copiedBankKey, setCopiedBankKey] = useState("");
   const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
+  const [actionError, setError] = useState("");
   const bankDrawerRef = useRef<HTMLElement>(null);
   const bankConfigRef = useRef<HTMLFormElement>(null);
 
+  const resource = getPaymentsResource(user?.id, admin, year, filter);
+  const cached = useDashboardResource(resource, params.get("mp_return") !== "1");
+  const busy = actionBusy || cached.loading;
+  const loadFailure = cached.failure instanceof PaymentsLoadError ? cached.failure : undefined;
+  const [bankDraft, setBankDraft] = useState<{ resource: typeof resource; value: BankAccount } | null>(null);
+  const bank = bankConfigOpen && bankDraft?.resource === resource ? bankDraft.value
+    : cached.data?.bank ?? loadFailure?.partial.bank ?? emptyBank(year);
+  const setBank = (value: BankAccount | ((current: BankAccount) => BankAccount)) =>
+    setBankDraft({ resource, value: typeof value === "function" ? value(bank) : value });
+  const mine = cached.data?.mine ?? null;
+  const reviews = cached.data?.reviews ?? loadFailure?.partial.reviews ?? [];
+  const error = actionError || (cached.error ? loadFailure?.message ?? "No fue posible cargar los pagos. Intenta nuevamente." : "");
+  const returned = params.get("mp_return") === "1";
+  const [refreshingReturn, setRefreshingReturn] = useState(returned);
   const load = useCallback(async () => {
     setError("");
     setChangingPlan(false);
-    try {
-      if (admin) {
-        setLoadingAdmin(true);
-        const [setting, review] = await Promise.all([
-          apiClient.get<BankAccount>(`${base}/cuenta-bancaria`, { params: { year } }).then(r => r.data).catch(() => emptyBank(year)),
-          apiClient.get<Review[]>(`${base}/revision`, { params: { year, status: filter || undefined } }).then(r => r.data).catch(() => []),
-        ]);
-        setBank(setting);
-        setReviews(review);
-      } else {
-        setLoadingMine(true);
-        const [bankResult, paymentsResult] = await Promise.allSettled([
-          apiClient.get<BankAccount>(`${base}/cuenta-bancaria`, { params: { year } }).then(response => response.data),
-          apiClient.get<MyPayments>(`${base}/mis-pagos`, { params: { year } }).then(response => response.data),
-        ]);
-        const bankData = bankResult.status === "fulfilled" ? bankResult.value : null;
-        setBank(bankData ?? emptyBank(year));
-        if (paymentsResult.status === "rejected") {
-          setMine(null);
-          setError(paymentsLoadError(paymentsResult.reason));
-          return;
-        }
-        const paymentsData = await resolveAnnualAmount(paymentsResult.value);
-        setMine({ ...paymentsData, bankAccount: bankData ?? paymentsData.bankAccount });
-      }
-    } catch {
-      setMine(null);
-      setError("La cuenta bancaria está disponible, pero falta configurar la cuota anual de este año.");
-    } finally {
-      if (!admin) setLoadingMine(false);
-      if (admin) setLoadingAdmin(false);
-    }
-  }, [admin, filter, year]);
-
-  useEffect(() => { void load(); }, [load]);
-
+    await resource.load(true);
+  }, [resource]);
+  useEffect(() => {
+    let active = true;
+    if (returned) {
+      setRefreshingReturn(true);
+      void load().finally(() => { if (active) setRefreshingReturn(false); });
+    } else setRefreshingReturn(false);
+    return () => { active = false; };
+  }, [returned, load]);
+  useEffect(() => {
+    setError(""); setChangingPlan(false); setExpandedInstallmentId(null);
+    setBankDrawerOpen(false); setBankConfigOpen(false);
+  }, [resource]);
+  useEffect(() => { paymentsSelection(user?.id, admin).set(year, filter); }, [user?.id, admin, year, filter]);
   useEffect(() => {
     if (!bankDrawerOpen && !bankConfigOpen) return;
     const modal = bankConfigOpen ? bankConfigRef.current : bankDrawerRef.current;
@@ -284,6 +189,7 @@ export const PaymentsPage = () => {
   }, [bankDrawerOpen, bankConfigOpen]);
 
   const mp = useMercadoPago(load, admin);
+  const preparing = (!cached.data && !cached.error) || refreshingReturn || mp.checkingAvailability;
 
   const flash = (message: string) => {
     setNotice(message);
@@ -319,7 +225,8 @@ export const PaymentsPage = () => {
     setBusy(true);
     setError("");
     try {
-      setMine(await resolveAnnualAmount((await apiClient.post<MyPayments>(`${base}/mi-plan`, { year, mode })).data));
+      const updated = await resolveAnnualAmount((await apiClient.post<MyPayments>(`${base}/mi-plan`, { year, mode })).data);
+      resource.set({ mine: updated, bank: cached.data?.bank ?? bank, reviews: [] });
       setChangingPlan(false);
       flash("Plan de pago guardado");
     } catch (reason) {
@@ -349,7 +256,10 @@ export const PaymentsPage = () => {
     event.preventDefault();
     setBusy(true);
     try {
-      setBank((await apiClient.put<BankAccount>(`${base}/cuenta-bancaria`, bank, { params: { year } })).data);
+      const savedBank = (await apiClient.put<BankAccount>(`${base}/cuenta-bancaria`, bank, { params: { year } })).data;
+      setBank(savedBank);
+      if (cached.data) resource.set({ ...cached.data, bank: savedBank });
+      else await load();
       setBankConfigOpen(false);
       flash("Datos bancarios guardados");
     } catch {
@@ -490,18 +400,18 @@ export const PaymentsPage = () => {
     </aside>
   </div>;
 
-  return <main className={`payments-page${admin ? "" : " payments-page--guardian"}`}>
+  return <><main className={`payments-page${admin ? "" : " payments-page--guardian"}`} inert={preparing} aria-busy={preparing}>
     <header className="payments-head">
       <div><span><FiCreditCard aria-hidden="true" /></span><div><h1>Pagos</h1></div></div>
       <label>Año escolar <select value={year} onChange={event => setYear(Number(event.target.value))}>{[yearNow - 1, yearNow, yearNow + 1].map(value => <option key={value}>{value}</option>)}</select></label>
     </header>
-    {(admin || loadingMine || !mine) && mercadoPagoDetails}
+    {(admin || (!mine && !preparing)) && mercadoPagoDetails}
     {notice && <div className="payments-toast" role="status"><FiCheck aria-hidden="true" />{notice}</div>}
-    {error && <p className="payments-error">{error}</p>}
+    {error && <div className="payments-error" role="alert"><p>{error}</p>{cached.error && <button type="button" onClick={() => void load()}>Reintentar</button>}</div>}
     {mp.message && <section className="payment-panel mp-return" role="status"><p>{mp.message}</p>{mp.returned && mp.paymentId && mp.canRetryReturn && <button disabled={mp.busy} onClick={() => void mp.retry()}>Actualizar estado del pago</button>}</section>}
-    {admin ? loadingAdmin ? <AdminPaymentsSkeleton /> : <>
+    {admin && (cached.data || cached.error) ? <>
       <section className="payments-admin-grid">
-        <aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><div><small>Vista del apoderado</small><h3>Transferencia bancaria</h3></div><button className="payment-preview__edit" type="button" aria-expanded={bankConfigOpen} onClick={() => setBankConfigOpen(current => !current)}><FiEdit3 aria-hidden="true" />{bankConfigOpen ? "Editando" : "Modificar datos"}</button></header><dl className="payment-preview__details">{adminBankRows.map(({ key, label, value, Icon, numeric }) => <div className="payment-preview__row" key={key}><Icon aria-hidden="true" /><dt>{label}</dt><dd className={numeric ? "is-numeric" : undefined}>{value}</dd></div>)}</dl><button className="copy-all payment-preview__copy" disabled={!bank.id} onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</button></aside>
+        <aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><div><small>Vista del apoderado</small><h3>Transferencia bancaria</h3></div><button className="payment-preview__edit" type="button" aria-expanded={bankConfigOpen} onClick={() => { setBankDraft(null); setBankConfigOpen(current => !current); }}><FiEdit3 aria-hidden="true" />{bankConfigOpen ? "Editando" : "Modificar datos"}</button></header><dl className="payment-preview__details">{adminBankRows.map(({ key, label, value, Icon, numeric }) => <div className="payment-preview__row" key={key}><Icon aria-hidden="true" /><dt>{label}</dt><dd className={numeric ? "is-numeric" : undefined}>{value}</dd></div>)}</dl><button className="copy-all payment-preview__copy" disabled={!bank.id} onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</button></aside>
         <section className={`payment-panel review-panel${adminHistoryOpen ? " is-open" : ""}`}><header><button className="review-panel__toggle" type="button" aria-expanded={adminHistoryOpen} aria-controls="admin-payment-history" onClick={() => setAdminHistoryOpen(current => !current)}><div><h2>Historial de cuotas</h2><p>{reviews.length} movimientos encontrados.</p></div><FiChevronRight aria-hidden="true" /></button></header>
           <div id="admin-payment-history" className="review-panel__content" aria-hidden={!adminHistoryOpen}><div className="review-panel__toolbar"><select aria-label="Filtrar pagos" value={filter} onChange={event => setFilter(event.target.value)}><option value="">Todos</option><option value="PROOF_SUBMITTED">Pendientes de revisión</option><option value="PAID">Pagados</option><option value="REJECTED">Rechazados</option></select></div><div className="review-list">{reviews.length === 0 ? <p className="empty-payments">No hay pagos en este filtro.</p> : reviews.map(item => <article key={item.id}><div><strong>{item.studentName}</strong><span>{item.guardianName} · {item.installment}</span></div><b>{money.format(item.amount)}</b><span className={statusClass(item.status)}>{friendly[item.status] ?? item.status}</span><div className="review-actions">{item.paymentMethod === "MERCADO_PAGO" ? <span>Mercado Pago</span> : <button onClick={() => void openProof(item.id)}><FiExternalLink aria-hidden="true" /> Ver</button>}{item.status === "PROOF_SUBMITTED" && <><button className="approve" disabled={busy} onClick={() => void review(item.id, true)}><FiCheck aria-hidden="true" /> Aprobar</button><button className="reject" disabled={busy} onClick={() => void review(item.id, false)}><FiX aria-hidden="true" /> Rechazar</button></>}</div></article>)}</div></div>
         </section>
@@ -513,7 +423,7 @@ export const PaymentsPage = () => {
           <button disabled={busy}>Guardar datos</button>
         </form>
       </div>}
-    </> : loadingMine ? <GuardianPaymentsSkeleton /> : mine ? <>
+    </> : mine ? <>
       <section className="payment-summary-strip" aria-label={`Cuota anual ${mine.schoolYear}`}>
         <div className="payment-summary-strip__metric"><small>Cuota anual {mine.schoolYear}</small><strong>{typeof mine.annualAmount === "number" && Number.isFinite(mine.annualAmount) ? money.format(mine.annualAmount) : "Monto no disponible"}</strong></div>
         <div className={`payment-summary-strip__metric payment-summary-strip__metric--student${studentNameDensity}`}><small>Alumno</small><h2>{mine.studentName}</h2><span>{planLabel}</span></div>
@@ -558,8 +468,8 @@ export const PaymentsPage = () => {
                     <b>{money.format(item.amount)}</b>
                     <span className={statusClass(item.status)}><i aria-hidden="true" />{friendly[item.status]}</span>
                     <div className="installment-actions">
-                      {item.status === "PENDIENTE" && <button className="mp-checkout" aria-label="Pagar con Mercado Pago" disabled={!mp.enabled || mp.checkingAvailability || mp.busy || uploadingInstallmentId !== null} onClick={() => void mp.checkout(item.id)}><FiCreditCard aria-hidden="true" />{mp.busy ? "Abriendo..." : `Pagar ${money.format(item.amount)}`}</button>}
-                      {canUploadProof && <label className="proof-upload"><FiUpload aria-hidden="true" />{uploadingInstallmentId === item.id ? "Enviando..." : "Subir comprobante"}<input type="file" accept="image/jpeg,image/png,application/pdf" disabled={uploadingInstallmentId !== null} onChange={event => void upload(item.id, event.target.files?.[0])} /></label>}
+                      {item.status === "PENDIENTE" && <button className="mp-checkout" aria-label="Pagar con Mercado Pago" disabled={busy || !mp.enabled || mp.checkingAvailability || mp.busy || uploadingInstallmentId !== null} onClick={() => void mp.checkout(item.id)}><FiCreditCard aria-hidden="true" />{mp.busy ? "Abriendo..." : `Pagar ${money.format(item.amount)}`}</button>}
+                      {canUploadProof && <label className="proof-upload"><FiUpload aria-hidden="true" />{uploadingInstallmentId === item.id ? "Enviando..." : "Subir comprobante"}<input type="file" accept="image/jpeg,image/png,application/pdf" disabled={busy || mp.busy || uploadingInstallmentId !== null} onChange={event => void upload(item.id, event.target.files?.[0])} /></label>}
                       {item.history.length > 0 && <button className="detail-toggle" aria-expanded={expanded} onClick={() => setExpandedInstallmentId(expanded ? null : item.id)}>{expanded ? "Ocultar detalle" : "Detalle"} <FiChevronRight aria-hidden="true" /></button>}
                     </div>
                   </div>
@@ -584,32 +494,5 @@ export const PaymentsPage = () => {
       </>}
       {renderBankDrawer()}
     </> : bank.id && <section className="bank-only-state"><aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><small>Datos del curso</small></header><div className="payment-preview__identity"><small>Datos para transferir</small><h3>{bank.accountHolderName}</h3><p>{bank.bankName} · {bank.accountType}</p></div><dl><dt>RUT</dt><dd>{bank.accountHolderRut}</dd><dt>Número de cuenta</dt><dd>{bank.accountNumber}</dd><dt>Correo</dt><dd>{bank.email}</dd></dl><button className="copy-all payment-preview__copy" onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</button></aside><div className="payment-panel bank-only-state__message"><h2>Falta configurar la cuota anual</h2><p>Cuando Tesorería defina el monto y las fechas para {year}, podrás elegir tu modalidad y ver tus cuotas aquí.</p></div></section>}
-  </main>;
+  </main>{preparing && <LoadingState message="Preparando tus pagos" />}</>;
 };
-
-const GuardianPaymentsSkeleton = () => <div className="payments-skeleton" role="status" aria-label="Cargando tus pagos">
-  <section className="payment-summary-strip">
-    {[0, 1, 2].map(item => <div className="payment-summary-strip__metric" key={item}><Skeleton width="6rem" height=".7rem" /><Skeleton width="8rem" height="1.4rem" /></div>)}
-    <div className="payment-summary-strip__progress"><Skeleton width="100%" height=".55rem" /><Skeleton width="7rem" height=".7rem" /></div>
-  </section>
-  <section className="installments-shell">
-    <header className="installments-shell__header"><Skeleton width="8rem" height="1.1rem" /><Skeleton width="9rem" height=".8rem" /></header>
-    <div className="installment-filters"><Skeleton width="5rem" height="2rem" /><Skeleton width="7rem" height="2rem" /><Skeleton width="6rem" height="2rem" /></div>
-    <div className="installment-table">{[0, 1, 2, 3].map(item => <div className="installment-row__main" key={item}><Skeleton width="9rem" height="1rem" /><Skeleton width="7rem" height="1rem" /><Skeleton width="4rem" height="1rem" /><Skeleton width="5rem" height="1.3rem" /><Skeleton width="7rem" height="2rem" /></div>)}</div>
-  </section>
-</div>;
-
-const AdminPaymentsSkeleton = () => <div className="payments-skeleton" role="status" aria-label="Cargando pagos">
-  <section className="payments-admin-grid">
-    <form className="payment-panel bank-form">
-      <header><div><Skeleton width="10rem" height="1.1rem" /><Skeleton width="14rem" height=".7rem" /></div></header>
-      {[0, 1, 2, 3, 4, 5].map(item => <label key={item}><Skeleton width="4.5rem" height=".65rem" /><Skeleton width="100%" height="2.5rem" /></label>)}
-      <Skeleton width="10rem" height="2.4rem" />
-    </form>
-    <aside className="payment-panel payment-preview"><Skeleton width="8rem" height=".65rem" /><Skeleton width="12rem" height="1.25rem" /><Skeleton width="9rem" height=".75rem" />{[0, 1, 2].map(item => <Skeleton key={item} width="100%" height="2rem" />)}</aside>
-  </section>
-  <section className="payment-panel review-panel">
-    <header><div><Skeleton width="8rem" height="1rem" /><Skeleton width="12rem" height=".7rem" /></div><Skeleton width="9rem" height="2.2rem" /></header>
-    <div className="review-list">{[0, 1, 2].map(item => <article key={item}><div><Skeleton width="8rem" height=".9rem" /><Skeleton width="12rem" height=".65rem" /></div><Skeleton width="6rem" height="1rem" /><Skeleton width="5rem" height="1.4rem" /><Skeleton width="8rem" height="2rem" /></article>)}</div>
-  </section>
-</div>;

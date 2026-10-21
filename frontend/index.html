@@ -72,30 +72,35 @@
       document.documentElement.dataset.theme = theme;
       document.documentElement.style.colorScheme = theme;
       document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue("--color-bg").trim();
-      document.documentElement.dataset.bootStartedAt = String(performance.now());
     })();
   </script>
 
 </head>
 
 <body>
-  <div id="app-boot-loader" role="status" aria-live="polite" aria-label="Cargando Tesorería Escolar">
-    <div class="boot-loader__content">
-      <div class="boot-loader__mark" aria-hidden="true">
-        <span class="boot-loader__ring"></span>
-        <span class="boot-loader__logo-placeholder"></span>
-        <img class="boot-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
+  <div id="app-boot-loader" class="app-loader" role="status" aria-live="polite" aria-hidden="true" aria-label="Cargando Tesorería Escolar">
+    <div class="app-loader__content">
+      <div class="app-loader__mark" aria-hidden="true">
+        <span class="app-loader__ring"></span>
+        <img class="app-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
           decoding="sync" fetchpriority="high"
-          onload="setTimeout(() => this.parentElement.classList.add('is-logo-ready'), Math.max(0, 700 - (performance.now() - Number(document.documentElement.dataset.bootStartedAt))))"
-          onerror="this.parentElement.classList.add('is-logo-failed')" />
+          onerror="this.hidden = true" />
       </div>
       <div>
-        <p class="boot-loader__title">Tesorería Escolar</p>
-        <p class="boot-loader__status">Preparando tu espacio <span class="boot-loader__dots" aria-hidden="true"><i></i><i></i><i></i></span></p>
+        <p class="app-loader__title">Tesorería Escolar</p>
+        <p class="app-loader__status">Preparando tu espacio <span class="app-loader__dots" aria-hidden="true"><i></i><i></i><i></i></span></p>
       </div>
     </div>
   </div>
   <div id="root"></div>
+  <script>
+    setTimeout(() => {
+      const loader = document.getElementById("app-boot-loader");
+      if (!loader || loader.classList.contains("is-leaving")) return;
+      loader.classList.add("is-visible");
+      loader.removeAttribute("aria-hidden");
+    }, 250);
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

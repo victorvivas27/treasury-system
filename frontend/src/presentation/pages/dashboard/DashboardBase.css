@@ -159,9 +159,6 @@
 .audit-actions .is-danger { background: var(--color-error-soft); color: var(--color-error); }
 .audit-actions button:disabled { opacity: .5; cursor: not-allowed; }
 .audit-checkbox input { width: 18px; height: 18px; accent-color: var(--color-accent); }
-.dashboard-chart-skeleton { height: 200px; }
-.dashboard-value-skeleton { width: 75%; height: 24px; }
-.dashboard-row-skeleton { height: 20px; }
 .business-dashboard button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   .dashboard-collapse-content, .dashboard-collapse-trigger > svg, .dashboard-year-select > button > svg { transition: none; }

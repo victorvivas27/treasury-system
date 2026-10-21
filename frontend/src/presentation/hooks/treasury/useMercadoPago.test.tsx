@@ -1,3 +1,4 @@
+import { mercadoPagoAvailability } from "./mercadoPagoAvailability";
 import { renderHook, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,7 +13,7 @@ const wrapper = ({ children }: { children: ReactNode }) => <MemoryRouter
   initialEntries={["/tesoreria/pagos?mp_return=1&payment_id=42&status=approved"]}>{children}</MemoryRouter>;
 
 describe("retorno de Mercado Pago", () => {
-  beforeEach(() => { vi.clearAllMocks(); vi.mocked(mercadoPagoRepository.available).mockResolvedValue(true); });
+  beforeEach(() => { mercadoPagoAvailability.clear(); vi.clearAllMocks(); vi.mocked(mercadoPagoRepository.available).mockResolvedValue(true); });
 
   it("consulta al backend y no confía en status=approved de la URL", async () => {
     vi.mocked(mercadoPagoRepository.reconcile).mockResolvedValue({ status: "PENDING", providerStatus: "rejected" });

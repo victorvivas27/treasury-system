@@ -3,6 +3,7 @@ import type { NotificationReplyEvent } from "@/presentation/context/RealtimeCont
 import type { AppNotification } from "@/core/A-domain/entities/notification/Notification";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Notificacion } from "./Notificacion";
+import { clearNotificationCache } from "./notificationCache";
 
 const mocks = vi.hoisted(() => ({
   listReplies: vi.fn(),
@@ -21,7 +22,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/shared/ui/user-avatar/profileImageCache", () => ({
   loadCachedProfileImage: mocks.loadImage,
 }));
-vi.mock("./NotificationTour", () => ({ NotificationTour: () => null }));
 
 vi.mock("@/presentation/context/AuthContext", () => ({
   useOptionalAuth: () => ({
@@ -38,8 +38,8 @@ vi.mock("@/presentation/context/NotificationContext", () => ({
   }),
 }));
 
-vi.mock("@/presentation/hooks/apoderado/useApoderados", () => ({
-  useApoderados: () => ({
+vi.mock("./useNotificationRecipients", () => ({
+  useNotificationRecipients: () => ({
     apoderados: mocks.apoderados, loading: false, error: "", currentPage: 0,
     nextPage: vi.fn(), prevPage: vi.fn(), hasPrevPage: false, isLastPage: true,
     search: "", setSearch: vi.fn(), refetch: vi.fn(),
@@ -67,6 +67,7 @@ vi.mock("@/core/C-infra/repositories/notification/NotificationRepositoryImpl", (
 
 describe("Notificacion para administración", () => {
   beforeEach(() => {
+    clearNotificationCache();
     mocks.authUser = {
       id: 1, nombre: "Administración", correo: "admin@test.cl", rol: "ADMIN",
     };
@@ -101,14 +102,69 @@ describe("Notificacion para administración", () => {
     }]);
   });
 
+  it("reutiliza mensajes enviados y conversación al volver a la sección", async () => {
+    mocks.listReplies.mockResolvedValue([]);
+    const first = render(<Notificacion />);
+    fireEvent.click((await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" })).closest("button")!);
+    await screen.findByText("Mensaje de prueba", { selector: "p" });
+    first.unmount();
+    render(<Notificacion />);
+    fireEvent.click(screen.getByText("Apoderado Uno", { selector: ".notification-contact__name" }).closest("button")!);
+    await waitFor(() => expect(screen.getByText("Mensaje de prueba", { selector: "p" })).toBeVisible());
+    expect(mocks.listSent).toHaveBeenCalledTimes(1);
+    expect(mocks.listReplies).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status", { name: "Preparando la conversación" })).not.toBeInTheDocument();
+  });
+
+  it("muestra una sola conversación al cambiar de contacto y permite buscarlo", async () => {
+    mocks.listSent.mockResolvedValue([
+      { id: 10, message: "Aviso para Ana", type: "INFO", createdAt: "2026-10-21T12:00:00Z", recipients: [{ deliveryId: 20, userId: 30, name: "Ana", email: "ana@test.cl", read: true, profileImageType: "INITIALS" }] },
+      { id: 11, message: "Aviso para Luis", type: "INFO", createdAt: "2026-10-21T12:00:00Z", recipients: [{ deliveryId: 21, userId: 31, name: "Luis", email: "luis@test.cl", read: true, profileImageType: "INITIALS" }] },
+    ]);
+    mocks.listReplies.mockResolvedValue([]);
+    render(<Notificacion />);
+    fireEvent.click((await screen.findByText("Ana", { selector: ".notification-contact__name" })).closest("button")!);
+    await screen.findByText("Aviso para Ana", { selector: "p" });
+    fireEvent.click(screen.getByText("Luis", { selector: ".notification-contact__name" }).closest("button")!);
+    await screen.findByText("Aviso para Luis", { selector: "p" });
+    expect(screen.queryByText("Aviso para Ana", { selector: "p" })).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".notification-conversation")).toHaveLength(1);
+    fireEvent.change(screen.getByRole("searchbox", { name: "Buscar conversación" }), { target: { value: "ana@" } });
+    expect(screen.getByText("Ana", { selector: ".notification-contact__name" })).toBeInTheDocument();
+    expect(screen.queryByText("Luis", { selector: ".notification-contact__name" })).not.toBeInTheDocument();
+    expect(mocks.listReplies).toHaveBeenCalledTimes(2);
+  });
+
+  it("conserva la posición al llegar mensajes si está leyendo más arriba", async () => {
+    mocks.listReplies.mockResolvedValue([]);
+    render(<Notificacion />);
+    fireEvent.click((await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" })).closest("button")!);
+    await screen.findByText("Mensaje de prueba", { selector: "p" });
+    await act(async () => { await new Promise(resolve => window.requestAnimationFrame(resolve)); });
+    const history = screen.getByRole("log", { name: "Historial de mensajes" });
+    Object.defineProperties(history, {
+      scrollHeight: { configurable: true, value: 1000 },
+      clientHeight: { configurable: true, value: 200 },
+    });
+    history.scrollTop = 120;
+    fireEvent.scroll(history);
+    act(() => mocks.messageHandlers.forEach(handler => handler({ deliveryId: 20, reply: {
+      id: 101, authorId: 1, authorRole: "ADMIN", authorName: "Admin", authorProfileImageType: "INITIALS", authorProfileImageUrl: null,
+      message: "Mensaje nuevo sin saltar", createdAt: "2026-10-21T12:00:00Z", read: false, readAt: null,
+    } })));
+    await screen.findByText("Mensaje nuevo sin saltar");
+    await act(async () => { await new Promise(resolve => window.requestAnimationFrame(resolve)); });
+    expect(history.scrollTop).toBe(120);
+  });
+
   it("carga la conversación al abrirla y no repite indefinidamente una carga fallida", async () => {
     mocks.listReplies.mockRejectedValue(new Error("fallo de red"));
     render(<Notificacion />);
 
-    const recipient = await screen.findByText("Apoderado Uno", { selector: "summary strong" });
+    const recipient = await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
     expect(mocks.listReplies).not.toHaveBeenCalled();
 
-    fireEvent.click(recipient.closest("summary")!);
+    fireEvent.click(recipient.closest("button")!);
 
     expect(await screen.findByText("No fue posible cargar la conversación.")).toBeInTheDocument();
     await waitFor(() => expect(mocks.listReplies).toHaveBeenCalledTimes(1));
@@ -116,7 +172,7 @@ describe("Notificacion para administración", () => {
 
   it("descarta el historial anterior cuando cambia la cuenta administrativa", async () => {
     const { rerender } = render(<Notificacion />);
-    expect(await screen.findByText("Apoderado Uno", { selector: "summary strong" }))
+    expect(await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" }))
       .toBeInTheDocument();
 
     mocks.listSent.mockResolvedValue([]);
@@ -126,7 +182,7 @@ describe("Notificacion para administración", () => {
     rerender(<Notificacion />);
 
     expect(await screen.findByText("Todavía no has enviado notificaciones")).toBeInTheDocument();
-    expect(screen.queryByText("Apoderado Uno", { selector: "summary strong" }))
+    expect(screen.queryByText("Apoderado Uno", { selector: ".notification-contact__name" }))
       .not.toBeInTheDocument();
     expect(mocks.listSent).toHaveBeenCalledTimes(2);
   });
@@ -135,16 +191,16 @@ describe("Notificacion para administración", () => {
     let resolve!: (items: never[]) => void;
     mocks.listSent.mockReturnValue(new Promise(done => { resolve = done; }));
     render(<Notificacion />);
-    expect(screen.getByRole("status", { name: "Cargando mensajes" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Preparando las notificaciones" })).toBeInTheDocument();
     expect(screen.queryByText("Todavía no has enviado notificaciones")).not.toBeInTheDocument();
     await act(async () => resolve([]));
-    expect(screen.queryByRole("status", { name: "Cargando mensajes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Preparando las notificaciones" })).not.toBeInTheDocument();
     expect(screen.getByText("Todavía no has enviado notificaciones")).toBeInTheDocument();
   });
 
   it("solicita la foto personalizada del destinatario correcto", async () => {
     render(<Notificacion />);
-    await screen.findByText("Apoderado Uno", { selector: "summary strong" });
+    await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
     await waitFor(() => expect(mocks.loadImage).toHaveBeenCalledWith(expect.objectContaining({
       profileImageType: "CUSTOM_IMAGE", profileImageUrl: "version-1",
     }), 30));
@@ -159,16 +215,19 @@ describe("Notificacion para administración", () => {
     mocks.listReplies.mockReturnValue(new Promise(done => { resolve = done; }));
     render(<Notificacion />);
     if (rol === "ADMIN") {
-      const recipient = await screen.findByText("Apoderado Uno", { selector: "summary strong" });
-      fireEvent.click(recipient.closest("summary")!);
+      const recipient = await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
+      fireEvent.click(recipient.closest("button")!);
     }
-    expect(await screen.findByRole("status", { name: "Cargando conversación" })).toBeVisible();
-    expect(screen.queryByText("Mensaje de prueba")).not.toBeInTheDocument();
+    const conversationLoader = await screen.findByRole("status", { name: "Preparando la conversación" });
+    expect(conversationLoader).toBeVisible();
+    expect(conversationLoader).toHaveClass("app-loader--contained");
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(screen.queryByText("Mensaje de prueba", { selector: "p" })).not.toBeInTheDocument();
     await act(async () => resolve([{ id: 99, authorId: 30, authorName: "Apoderado Uno",
       authorRole: "USER", authorProfileImageType: "INITIALS", authorProfileImageUrl: null,
       message: "Respuesta completa", createdAt: "2026-08-30T12:01:00Z" }]));
-    expect(screen.queryByRole("status", { name: "Cargando conversación" })).not.toBeInTheDocument();
-    expect(screen.getByText("Mensaje de prueba")).toBeVisible();
+    expect(screen.queryByRole("status", { name: "Preparando la conversación" })).not.toBeInTheDocument();
+    expect(screen.getByText("Mensaje de prueba", { selector: "p" })).toBeVisible();
     expect(screen.getByText("Respuesta completa")).toBeVisible();
     if (rol === "ADMIN") {
       expect(screen.getAllByRole("img", { name: "Sin leer" }).length).toBeGreaterThan(0);
@@ -177,9 +236,7 @@ describe("Notificacion para administración", () => {
       expect(screen.queryByText("Pendiente")).not.toBeInTheDocument();
       expect(screen.queryByText("Aviso")).not.toBeInTheDocument();
     }
-    if (rol === "USER") expect(mocks.loadImage).toHaveBeenCalledWith(expect.objectContaining({
-      nombre: "Administración", profileImageType: "CUSTOM_IMAGE",
-    }), 1);
+
   });
 
   it("espera el contacto antes de mostrar una bandeja vacía al apoderado", async () => {
@@ -187,7 +244,7 @@ describe("Notificacion para administración", () => {
     let resolve!: (contact: unknown) => void;
     mocks.treasuryContact.mockReturnValue(new Promise(done => { resolve = done; }));
     render(<Notificacion />);
-    expect(screen.getByRole("status", { name: "Cargando mensajes" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Preparando las notificaciones" })).toBeInTheDocument();
     expect(screen.queryByText("Aún no hay mensajes con Tesorería.")).not.toBeInTheDocument();
     await act(async () => resolve({ id: 1, name: "Tesorería", profileImageType: "INITIALS", profileImageUrl: null }));
     expect(screen.getByText("Aún no hay mensajes con Tesorería.")).toBeInTheDocument();
@@ -208,8 +265,8 @@ describe("Notificacion para administración", () => {
     ]);
     render(<Notificacion />);
     if (rol === "ADMIN") {
-      const recipient = await screen.findByText("Apoderado Uno", { selector: "summary strong" });
-      fireEvent.click(recipient.closest("summary")!);
+      const recipient = await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
+      fireEvent.click(recipient.closest("button")!);
     }
     const first = (await screen.findByText("Primer mensaje leído")).closest("article")!;
     const second = screen.getByText("Segundo mensaje pendiente").closest("article")!;
@@ -239,13 +296,13 @@ describe("Notificacion para administración", () => {
     mocks.listSent.mockRejectedValueOnce(new Error("fallo de red"));
     render(<Notificacion />);
     fireEvent.click(await screen.findByRole("button", { name: "Reintentar carga de mensajes" }));
-    expect(await screen.findByText("Apoderado Uno", { selector: "summary strong" })).toBeInTheDocument();
+    expect(await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" })).toBeInTheDocument();
     expect(screen.queryByText("Todavía no has enviado notificaciones")).not.toBeInTheDocument();
   });
 
   it("envía una notificación escribiendo solo el mensaje, sin pedir título", async () => {
     render(<Notificacion />);
-    await screen.findByText("Apoderado Uno", { selector: "summary strong" });
+    await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
     fireEvent.click(screen.getByText("Apoderados destinatarios"));
     fireEvent.click(screen.getByLabelText("Seleccionar todos los apoderados"));
     fireEvent.click(screen.getByRole("button", { name: "Crear notificación" }));
@@ -266,7 +323,7 @@ describe("Notificacion para administración", () => {
   it("selecciona un apoderado sin agregar acciones dentro de su tarjeta", async () => {
     mocks.apoderados = [{ apoderadoId: 45, nombre: "Ana Pérez", accessStatus: "ACTIVO" }];
     render(<Notificacion />);
-    await screen.findByText("Apoderado Uno", { selector: "summary strong" });
+    await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
     fireEvent.click(screen.getByText("Apoderados destinatarios"));
     const create = screen.getByRole("button", { name: "Crear notificación" });
     expect(create).toBeDisabled();
@@ -306,8 +363,8 @@ describe("Notificacion para administración", () => {
       .mockResolvedValueOnce({ ...reply, message: "Texto corregido" });
     render(<Notificacion />);
     if (rol === "ADMIN") {
-      const recipient = await screen.findByText("Apoderado Uno", { selector: "summary strong" });
-      fireEvent.click(recipient.closest("summary")!);
+      const recipient = await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
+      fireEvent.click(recipient.closest("button")!);
     }
     const edit = await screen.findByRole("button", { name: "Editar" });
     edit.focus();

@@ -20,8 +20,9 @@ if (testSuite && !['unit', 'integration'].includes(testSuite)) {
 // The rest of the stylesheet can keep loading without blocking the boot screen.
 const readCriticalStyles = () => {
   const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/global.css'), 'utf8')
-  const boot = css.match(/\/\* critical-boot:start[^]*?\*\/([^]*?)\/\* critical-boot:end \*\//)?.[1]
-  if (!boot) throw new Error('Missing critical boot styles in global.css')
+  const criticalBoot = css.match(/\/\* critical-boot:start[^]*?\*\/([^]*?)\/\* critical-boot:end \*\//)?.[1]
+  if (!criticalBoot) throw new Error('Missing critical boot styles in global.css')
+  const boot = criticalBoot + fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/LoadingState.css'), 'utf8')
 
   const roots = [...css.matchAll(/^(:root(?:\[data-theme="light"\])?) \{([^]*?)^\}/gm)]
     .map(([, selector, body]) => ({

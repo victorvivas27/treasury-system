@@ -1,3 +1,4 @@
+import { clearDashboardCache } from "./dashboardCache";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EventProfitCards } from "./EventProfitCards";
@@ -9,7 +10,7 @@ vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
 }));
 
 describe("EventProfitCards", () => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => { clearDashboardCache(); vi.resetAllMocks(); });
 
   it("muestra las dos ganancias con sus títulos, iconos y montos independientes", async () => {
     eventProfits.mockResolvedValue([

@@ -1,4 +1,6 @@
 import type { User } from "@/core/A-domain/entities/user/User";
+import { resetHomeCommunity } from "@/shared/community/homeCommunityEvents";
+import { resetDashboard } from "@/shared/treasury/dashboardEvents";
 import type { LoginResponse } from "@/core/A-domain/entities/auth/Auth";
 import { GetCurrentUserUseCase } from "@/core/B-application/use-cases/auth/GetCurrentUserUseCase";
 import { LoginUseCase } from "@/core/B-application/use-cases/auth/LoginUseCase";
@@ -84,16 +86,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (loading) return;
     const loader = document.getElementById("app-boot-loader");
     if (!loader) return;
-    let hideTimer: number | undefined;
     let removeTimer: number | undefined;
     const hideLoader = () => {
-      const startedAt = Number(document.documentElement.dataset.bootStartedAt ?? 0);
-      // Allow 700 ms of skeleton, 550 ms of logo fade-in, and a brief pause before leaving.
-      const remaining = Math.max(0, 1600 - (performance.now() - startedAt));
-      hideTimer = window.setTimeout(() => {
-        loader.classList.add("is-leaving");
-        removeTimer = window.setTimeout(() => loader.remove(), 400);
-      }, remaining);
+      if (!loader.classList.contains("is-visible")) {
+        loader.remove();
+        return;
+      }
+      loader.setAttribute("aria-hidden", "true");
+      loader.classList.add("is-leaving");
+      removeTimer = window.setTimeout(() => loader.remove(), 180);
     };
     const appStyles = document.querySelector("link[data-app-styles]");
     const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
@@ -101,7 +102,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     else window.addEventListener("app:styles-ready", hideLoader, { once: true });
     return () => {
       window.removeEventListener("app:styles-ready", hideLoader);
-      if (hideTimer !== undefined) window.clearTimeout(hideTimer);
       if (removeTimer !== undefined) window.clearTimeout(removeTimer);
     };
   }, [loading]);
@@ -117,6 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const clearSession = useCallback(() => {
+    resetHomeCommunity();
+    resetDashboard();
     hadActiveSession.current = false;
     clearAccessToken();
     clearCsrfToken();
@@ -223,6 +225,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await useCases.login.execute({ correo, password, organizationId });
       if (response.requiresOrganizationSelection) return response;
       if (!response.token || !response.user) throw new Error("Respuesta de login inválida");
+      resetHomeCommunity();
+      resetDashboard();
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
       setAccessToken(response.token);
       setCsrfToken(response.csrfToken);
@@ -241,6 +245,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
     if (!response.token || !response.user) throw new Error("Respuesta de sesión inválida");
+    resetHomeCommunity();
+    resetDashboard();
     localStorage.removeItem(MANUAL_LOGOUT_KEY);
     setAccessToken(response.token);
     setCsrfToken(response.csrfToken);

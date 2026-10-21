@@ -5,6 +5,7 @@
   grid-template-areas: "identity family" "account family";
 }
 .profile-page .profile-identity { grid-area: identity; padding: var(--space-4); }
+.profile-page .profile-identity .profile-avatar { flex-basis: 80px; width: 80px; height: 80px; }
 .profile-page .profile-summary { flex-direction: column; align-items: flex-start; }
 .profile-page .profile-name-row { flex-direction: column; align-items: flex-start; }
 .profile-page .profile-account-data { grid-area: account; flex-direction: column; align-items: stretch; }

@@ -1,4 +1,4 @@
-﻿@import "@/presentation/pages/home/style/HomeCommunityMobile.css" screen and (max-width: 680px);
+@import "@/presentation/pages/home/style/HomeCommunityMobile.css" screen and (max-width: 680px);
 
 .home-community {
   display: grid;
@@ -139,7 +139,7 @@
 .home-community__photo-heading { justify-content: center; }
 .home-community__photo-heading h2 { font-size: clamp(28px, 3vw, 38px); }
 .home-community__photo-heading p { margin-top: 6px; font-size: 14px; }
-.home-community__photo-placeholder, .home-community__loading {
+.home-community__photo-placeholder {
   display: grid;
   min-height: 200px;
   align-content: center;
@@ -239,7 +239,7 @@
 }
 .home-community__carousel-arrow.is-previous { left: 12px; }
 .home-community__carousel-arrow.is-next { right: 12px; }
-.home-community__carousel-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
+.home-community__carousel-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; min-height: 32px; align-items: center; }
 .home-community__carousel-dots button { display: grid; width: 32px; height: 32px; place-items: center; background: transparent; }
 .home-community__carousel-dots button::after { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--text-muted); content: ""; transition: width 420ms ease, background-color 300ms ease; }
 .home-community__carousel-dots button.is-active::after { width: 24px; background: var(--color-accent); }

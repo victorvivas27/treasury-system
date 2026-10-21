@@ -1,7 +1,8 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoHeartOutline } from "react-icons/io5";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import "./BoardMessage.css";
+import { boardMessageResource, useDashboardResource } from "./dashboardCache";
 import type { BoardMessageContent } from "@/core/A-domain/entities/treasury/BoardMessageContent";
 
 const defaultMessage: BoardMessageContent = {
@@ -22,29 +23,20 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const note = useRef<HTMLElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const drag = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
-  const [message, setMessage] = useState(defaultMessage);
+  const cached = useDashboardResource(boardMessageResource);
+  const message = cached.data ?? defaultMessage;
+  const loaded = Boolean(cached.data);
   const [draft, setDraft] = useState(defaultMessage);
-  const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    repository.getBoardMessage().then(value => {
-      if (active) { setMessage(value); setLoaded(true); }
-    }).catch(() => {
-      if (active) setError("No se pudo cargar el mensaje guardado. Recargá la página para intentar nuevamente.");
-    });
-    return () => { active = false; };
-  }, []);
 
   const save = async () => {
     if (!isAdmin || saving || fields.some(field => !draft[field.key].trim() || draft[field.key].length > field.max)) return;
     setSaving(true);
     setError("");
     try {
-      setMessage(await repository.saveBoardMessage({
+      boardMessageResource.set(await repository.saveBoardMessage({
         heading: draft.heading.trim(), title: draft.title.trim(),
         message: draft.message.trim(), signature: draft.signature.trim(),
       }));
@@ -98,7 +90,8 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
           }}>
           Editar</button>}
       </footer>
-      {isAdmin && !loaded && error && <p role="alert">{error}</p>}
+      {isAdmin && !loaded && cached.error && <p role="alert">No se pudo cargar el mensaje guardado. <button type="button"
+        onClick={() => void boardMessageResource.load(true)}>Reintentar</button></p>}
     </div>
   </section>
     {isAdmin && <dialog ref={dialog} className="board-message-modal" data-dashboard-capture-exclude
