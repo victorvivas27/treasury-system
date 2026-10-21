@@ -20,9 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+      contents: read
+      pull-requests: read
 
     outputs:
       number: ${{ steps.candidate.outputs.number }}
@@ -31,11 +30,23 @@ jobs:
       released: ${{ steps.release.outputs.releases_created }}
 
     steps:
+      - name: Create scoped Release Please token
+        id: release-please-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_PLEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+
       - name: Run Release Please
         id: release
         uses: googleapis/release-please-action@v5
         with:
-          token: ${{ github.token }}
+          token: ${{ steps.release-please-token.outputs.token }}
           target-branch: main
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
@@ -142,14 +153,14 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      checks: read
 
     outputs:
       released: ${{ steps.publish.outputs.releases_created }}
       tag_name: ${{ steps.release-ref.outputs.tag_name }}
 
     steps:
-      - name: Merge only the validated release commit
+      - name: Wait for required PR check and merge the validated release
         uses: actions/github-script@v8
         env:
           RELEASE_PR: ${{ needs.prepare.outputs.number }}
@@ -158,50 +169,95 @@ jobs:
 
         with:
           script: |
-            const { data: main } = await github.rest.git.getRef({
-              ...context.repo,
-              ref: 'heads/main',
-            });
+            const pullNumber = Number(process.env.RELEASE_PR);
+            const releaseSha = process.env.RELEASE_SHA;
+            const releaseBase = process.env.RELEASE_BASE;
+            const checkName = 'PR validation result';
+            const maxAttempts = 180;
+            const pollIntervalMs = 10_000;
 
-            if (main.object.sha !== process.env.RELEASE_BASE) {
-              throw new Error(
-                'main changed during validation; retry the release against the new base'
-              );
+            const getCurrentState = async () => {
+              const [{ data: main }, { data: pr }] = await Promise.all([
+                github.rest.git.getRef({ ...context.repo, ref: 'heads/main' }),
+                github.rest.pulls.get({ ...context.repo, pull_number: pullNumber }),
+              ]);
+              if (main.object.sha !== releaseBase || pr.base.sha !== releaseBase) {
+                throw new Error('main changed during validation; retry the release against the new base');
+              }
+              const eligible = pr.state === 'open' && !pr.draft && pr.base.ref === 'main' &&
+                pr.head.ref === 'release-please--branches--main' &&
+                pr.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}` &&
+                pr.labels.some(label => label.name === 'autorelease: pending');
+              if (!eligible) throw new Error('Not an eligible Release Please PR');
+              if (pr.head.sha !== releaseSha) {
+                throw new Error('Release PR head changed during validation; refusing to merge an unvalidated SHA');
+              }
+              return pr;
+            };
+
+            const matchingCheck = async mergeSha => {
+              if (!mergeSha) return null;
+              const { data } = await github.rest.checks.listForRef({
+                ...context.repo,
+                ref: mergeSha,
+                check_name: checkName,
+                filter: 'latest',
+                per_page: 100,
+              });
+              const matchingRuns = data.check_runs.filter(run => run.name === checkName &&
+                run.pull_requests?.some(link => link.number === pullNumber &&
+                  link.head?.sha === releaseSha && link.base?.sha === releaseBase));
+              return matchingRuns.reduce((latest, run) => !latest || run.id > latest.id ? run : latest, null);
+            };
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+              const pr = await getCurrentState();
+              const candidateMergeSha = pr.merge_commit_sha;
+              const check = await matchingCheck(candidateMergeSha);
+
+              if (check?.status === 'completed' && check.conclusion !== 'success') {
+                throw new Error(`${checkName} completed with conclusion: ${check.conclusion}`);
+              }
+
+              if (check?.status === 'completed' && check.conclusion === 'success') {
+                // Re-read every moving reference and the required check immediately before merge.
+                const latest = await getCurrentState();
+                if (latest.merge_commit_sha !== candidateMergeSha) {
+                  core.info('PR merge SHA changed while checking; waiting for validation on the new merge SHA.');
+                } else {
+                  const latestCheck = await matchingCheck(latest.merge_commit_sha);
+                  const currentMain = await github.rest.git.getRef({ ...context.repo, ref: 'heads/main' });
+                  const currentPr = await github.rest.pulls.get({ ...context.repo, pull_number: pullNumber });
+                  if (currentMain.data.object.sha !== releaseBase ||
+                      currentPr.data.base.sha !== releaseBase ||
+                      currentPr.data.head.sha !== releaseSha ||
+                      currentPr.data.merge_commit_sha !== candidateMergeSha) {
+                    throw new Error('Release PR or main changed after validation; refusing to merge');
+                  }
+                  if (latestCheck?.status === 'completed' && latestCheck.conclusion !== 'success') {
+                    throw new Error(`${checkName} completed with conclusion: ${latestCheck.conclusion}`);
+                  }
+                  if (latestCheck?.status === 'completed' && latestCheck.conclusion === 'success') {
+                    const { data: result } = await github.rest.pulls.merge({
+                      ...context.repo,
+                      pull_number: pullNumber,
+                      sha: releaseSha,
+                      merge_method: 'merge',
+                      commit_title: currentPr.data.title.trim(),
+                    });
+                    if (!result.merged) throw new Error(result.message);
+                    core.info(`Release PR #${pullNumber} merged successfully after ${checkName} passed on ${candidateMergeSha}.`);
+                    return;
+                  }
+                }
+              }
+
+              if (attempt === maxAttempts) {
+                throw new Error(`${checkName} was absent or still pending after ${maxAttempts * pollIntervalMs / 60_000} minutes`);
+              }
+              core.info(`${checkName} is absent or pending (attempt ${attempt}/${maxAttempts}); polling again.`);
+              await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
             }
-
-            const { data: pr } = await github.rest.pulls.get({
-              ...context.repo,
-              pull_number: Number(process.env.RELEASE_PR),
-            });
-
-            const isEligible =
-              pr.state === 'open' &&
-              !pr.draft &&
-              pr.base.ref === 'main' &&
-              pr.head.ref === 'release-please--branches--main' &&
-              pr.head.repo.full_name ===
-                `${context.repo.owner}/${context.repo.repo}` &&
-              pr.labels.some(
-                (label) => label.name === 'autorelease: pending'
-              );
-
-            if (!isEligible) {
-              throw new Error('Not an eligible Release Please PR');
-            }
-
-            const { data: result } = await github.rest.pulls.merge({
-              ...context.repo,
-              pull_number: pr.number,
-              sha: process.env.RELEASE_SHA,
-              merge_method: 'merge',
-              commit_title: pr.title.trim(),
-            });
-
-            if (!result.merged) {
-              throw new Error(result.message);
-            }
-
-            core.info(`Release PR #${pr.number} merged successfully.`);
 
       # Merges realizados con GITHUB_TOKEN no disparan nuevos
       # workflows de push. Por eso publicamos explícitamente.
@@ -238,6 +294,8 @@ jobs:
     name: Return released main to dev
     needs: publish
     uses: ./.github/workflows/10-sync-main-dev.yml
+    with:
+      already_validated: true
     permissions:
       contents: write
 

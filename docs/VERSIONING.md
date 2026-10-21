@@ -66,7 +66,10 @@ git commit -m "feat(api)!: reemplaza contrato de autenticación"     # MAJOR
 
 Formato: `<tipo>(<scope opcional>): <descripción>`. Scopes sugeridos: auth,
 sidebar, admin, administrations, reports, users, notifications, frontend, backend,
-api, database, security, ui, ci. Commitlint se ejecuta en GitHub; no se agregan hooks.
+api, database, security, ui, ci. Commitlint se ejecuta en GitHub y los hooks locales
+`.githooks/commit-msg` y `.githooks/pre-push` aplican las mismas reglas antes de
+crear commits y enviarlos. Activarlos una vez en cada clon con
+`git config core.hooksPath .githooks`; ver `docs/BRANCHING.md`.
 
 **El tamaño del PR no determina la versión.** Dos archivos con recuperación de
 contraseña son MINOR; 40 archivos que corrigen errores sin cambiar contratos pueden
@@ -84,8 +87,11 @@ PR debe expresar el mayor impacto y conservar los cambios incompatibles con `!` 
 `BREAKING CHANGE:`. Los commits convencionales originales permanecen en el historial.
 
 Release Please también utiliza merge commit. `10-sync-main-dev.yml` devuelve a dev
-los commits y versiones de main, incluyendo las releases creadas por el bot. Ver
-`docs/BRANCHING.md` para el flujo local y las comprobaciones de sincronización.
+los commits y versiones de main, incluyendo las releases creadas por el bot. Si dev
+es antecesora de main, usa fast-forward sin crear un commit de sincronización ni
+repetir CI sobre el mismo SHA ya validado. Si hay divergencia, mantiene el merge
+normal y ejecuta las cuatro suites sobre el resultado. Ver `docs/BRANCHING.md` para
+el flujo, la excepción histórica de commitlint y la propuesta de Ruleset.
 
 ## Primera release y operación de Actions
 
@@ -111,24 +117,38 @@ el PR y ejecuta directamente los workflows reutilizables sobre su SHA exacto:
 
 Solo si todos pasan se integra el PR mediante merge commit. Antes del merge se comprueba
 que main no haya cambiado y que el PR siga abierto, pertenezca a este repositorio,
-tenga la rama de Release Please y la etiqueta `autorelease: pending`. La API
-recibe el SHA validado y rechaza un head modificado. No se usa force ni bypass de
-protecciones. Si main cambia, el siguiente push encolado vuelve a preparar y validar
-la release. Un fallo deja el PR abierto y permite reintentar con workflow_dispatch.
+tenga la rama de Release Please y la etiqueta `autorelease: pending`. Ademas espera
+hasta 30 minutos a que `PR validation result` de la PR actual termine con `success`,
+vuelve a comprobar el check y las referencias de main/PR, y fusiona usando el SHA de
+cabeza validado. Si el check falta, falla, o cambia la cabeza/base/merge SHA, no publica.
+El Ruleset debe exigir que la rama este actualizada para que una actualizacion
+concurrente de main invalide el check y bloquee el merge.
 
-Se usa únicamente GITHUB_TOKEN; no hace falta un PAT ni cerrar/reabrir PRs. Como
-los eventos del bot no activan otros workflows, el mismo flujo llama a los checks,
-publica la release después del merge y despacha los despliegues y reportes existentes.
-Estos dispatch también funcionan con GITHUB_TOKEN. Los despliegues mantienen sus
-permisos, secretos y reglas del environment production. No se espera otro push del bot.
+### GitHub App para las PR de Release Please
 
-Los jobs de validación solo tienen contents read y checkout sin credenciales
-persistidas. Preparación/publicación tienen contents/pull-requests/issues write;
-el job que despacha workflows tiene actions write. La concurrencia serializa releases.
-GitHub ya permite crear PR con Actions. Si un ruleset exige aprobación humana o
-checks externos adicionales, GitHub rechazará el merge hasta que la política sea
-compatible con releases automáticas; este workflow no altera esas protecciones.
-La revisión de los PR funcionales sigue siendo independiente de la publicación.
+`06-release-please.yml` usa una instalacion de GitHub App para que las PR creadas o
+actualizadas por Release Please disparen los workflows `pull_request` sin aprobacion
+manual. El token se limita al repositorio actual, vive durante el job `prepare` y se
+revoca al terminar. No necesita ni debe recibir bypass del Ruleset. La fusion y la
+publicacion siguen usando el `GITHUB_TOKEN` del workflow, sujetos al PR y a sus checks.
+
+Crear una GitHub App dedicada e instalarla solo en `treasury-system` con estos
+permisos de repositorio:
+
+- **Contents: Read and write**, para crear/actualizar la rama de release.
+- **Pull requests: Read and write**, para abrir y actualizar la PR.
+- **Issues: Read and write**, para administrar la etiqueta `autorelease: pending`.
+- **Metadata: Read-only**, permiso obligatorio de GitHub.
+
+Guardar en **Settings -> Secrets and variables -> Actions**:
+
+- Variable `RELEASE_PLEASE_APP_CLIENT_ID`: Client ID de la App (no el App ID).
+- Secret `RELEASE_PLEASE_APP_PRIVATE_KEY`: clave privada PEM completa de la App.
+
+No guardar el token de instalacion: Actions lo genera en cada ejecucion mediante
+`actions/create-github-app-token`, limitado al repositorio y a esos tres permisos de
+escritura. No se necesita un PAT personal ni permiso de la App para modificar
+Rulesets o fusionar saltandose protecciones.
 
 ## Validación reproducible
 

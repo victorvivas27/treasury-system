@@ -8,24 +8,35 @@ const read = file => yaml.parse(fs.readFileSync(path.join(__dirname, '../.github
 const workflow = read('10-sync-main-dev.yml');
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
-function fixture({ integrated = false, conflict = false, verified = true } = {}) {
-  const merges = [], outputs = {};
-  let comparisons = 0;
+function fixture({ relation = 'diverged', conflict = false, verified = true, race = false, prevalidated = false } = {}) {
+  const merges = [], updates = [], outputs = {};
+  let mainUpdated = false;
   const github = { rest: {
-    git: { getRef: async ({ ref }) => ({ data: { object: { sha: ref === 'heads/main' ? 'main-sha' : 'dev-sha' } } }) },
+    git: {
+      getRef: async ({ ref }) => ({ data: { object: { sha: ref === 'heads/main' ? 'main-sha' : mainUpdated ? (relation === 'diverged' ? 'merge-sha' : 'main-sha') : 'dev-sha' } } }),
+      updateRef: async args => {
+        updates.push(args);
+        if (race) throw Object.assign(new Error('Not a fast-forward'), { status: 422 });
+        mainUpdated = true;
+      },
+    },
     repos: {
-      compareCommits: async () => ({ data: { merge_base_commit: {
-        sha: (++comparisons === 1 ? integrated : verified) ? 'main-sha' : 'old-base',
-      } } }),
+      compareCommits: async ({ base, head }) => {
+        if (base === 'main-sha' && (head === 'dev' || mainUpdated)) return { data: { merge_base_commit: { sha: mainUpdated ? (verified ? 'main-sha' : 'old-base') : relation === 'dev-ahead' ? 'main-sha' : 'old-base' } } };
+        if (head === 'main-sha') return { data: { merge_base_commit: { sha: relation === 'dev-behind' ? 'dev-sha' : 'old-base' } } };
+        return { data: { merge_base_commit: { sha: verified ? 'main-sha' : 'old-base' } } };
+      },
       merge: async args => {
         if (conflict) throw Object.assign(new Error('Merge conflict'), { status: 409 });
         merges.push(args);
+        mainUpdated = true;
       },
     },
   } };
-  return { merges, outputs, run: () => new AsyncFunction('github', 'context', 'core', workflow.jobs.sync.steps[0].with.script)(
+  return { merges, updates, outputs, run: () => new AsyncFunction('github', 'context', 'core', 'process', workflow.jobs.sync.steps[0].with.script)(
     github, { repo: { owner: 'owner', repo: 'repo' } },
     { info: () => {}, setOutput: (key, value) => { outputs[key] = value; } },
+    { env: { ALREADY_VALIDATED: String(prevalidated) } },
   ) };
 }
 
@@ -35,29 +46,54 @@ test('sync runs for main pushes, manual retries and bot releases', () => {
   assert.ok(Object.hasOwn(workflow.on, 'workflow_call'));
   assert.equal(read('06-release-please.yml').jobs['sync-dev'].uses, './.github/workflows/10-sync-main-dev.yml');
   assert.equal(read('06-release-please.yml').jobs['sync-dev'].needs, 'publish');
+  assert.equal(read('06-release-please.yml').jobs['sync-dev'].with.already_validated, true);
+  assert.equal(workflow.on.workflow_call.inputs.already_validated.default, false);
   assert.equal(workflow.jobs.sync.concurrency['cancel-in-progress'], false);
 });
 
-test('main is merged into dev using its pinned SHA without rewriting history', async () => {
+test('branches already in sync do not create a commit or rerun validations', async () => {
+  const f = fixture({ relation: 'dev-ahead' });
+  await f.run();
+  assert.equal(f.merges.length, 0);
+  assert.equal(f.updates.length, 0);
+  assert.deepEqual(f.outputs, { sha: 'dev-sha', requiresValidation: 'false' });
+});
+
+test('main push fast-forwards dev and retains validation when checks are not proven', async () => {
+  const f = fixture({ relation: 'dev-behind' });
+  await f.run();
+  assert.equal(f.merges.length, 0);
+  assert.equal(f.updates.length, 1);
+  assert.equal(f.updates[0].ref, 'heads/dev');
+  assert.equal(f.updates[0].sha, 'main-sha');
+  assert.equal(f.updates[0].force, false);
+  assert.deepEqual(f.outputs, { sha: 'main-sha', requiresValidation: 'true' });
+});
+
+test('release call fast-forwards dev without repeating checks already run on its candidate', async () => {
+  const f = fixture({ relation: 'dev-behind', prevalidated: true });
+  await f.run();
+  assert.equal(f.updates.length, 1);
+  assert.deepEqual(f.outputs, { sha: 'main-sha', requiresValidation: 'false' });
+});
+
+test('diverged branches use a normal merge and request full validation', async () => {
   const f = fixture();
   await f.run();
   assert.equal(f.merges.length, 1);
   assert.equal(f.merges[0].base, 'dev');
   assert.equal(f.merges[0].head, 'main-sha');
-  assert.equal(f.outputs.sha, 'dev-sha');
+  assert.equal(f.updates.length, 0);
+  assert.deepEqual(f.outputs, { sha: 'merge-sha', requiresValidation: 'true' });
 });
 
-test('already synchronized branches are idempotent', async () => {
-  const f = fixture({ integrated: true });
-  await f.run();
-  assert.equal(f.merges.length, 0);
-  assert.equal(f.outputs.sha, 'dev-sha');
-});
-
-test('content conflicts fail without reporting success or replacing dev', async () => {
-  const f = fixture({ conflict: true });
-  await assert.rejects(f.run, /Merge conflict/);
-  assert.deepEqual(f.outputs, {});
+test('merge conflicts and a concurrent fast-forward race fail safely', async () => {
+  const conflict = fixture({ conflict: true });
+  await assert.rejects(conflict.run, /Merge conflict/);
+  assert.deepEqual(conflict.outputs, {});
+  const race = fixture({ relation: 'dev-behind', race: true });
+  await assert.rejects(race.run, /Not a fast-forward/);
+  assert.deepEqual(race.outputs, {});
 });
 
 test('verification rejects a merge that did not preserve main ancestry', async () => {
@@ -66,22 +102,21 @@ test('verification rejects a merge that did not preserve main ancestry', async (
   assert.deepEqual(f.outputs, {});
 });
 
-test('bot merges explicitly validate the synchronized SHA in all reusable checks', () => {
+test('only divergent merge syncs run all reusable checks on the resulting SHA', () => {
   for (const job of ['frontend', 'backend', 'versioning', 'bruno']) {
     assert.equal(workflow.jobs[job].needs, 'sync');
+    assert.equal(workflow.jobs[job].if, "needs.sync.outputs.requiresValidation == 'true'");
     assert.equal(workflow.jobs[job].with.ref, '${{ needs.sync.outputs.sha }}');
     assert.ok(read(workflow.jobs[job].uses.split('/').pop()).concurrency.group.includes('${{ github.workflow }}'));
   }
 });
 
-test('commit validation exempts only the exact already published legacy message', () => {
+test('commit validation keeps the published legacy message exception exact', () => {
   const config = require('../frontend/.commitlintrc.cjs');
-  const legacy = 'Release/academic sidebar production (#213)\n\n' +
-    '* feat(academic): publish schedules, private architecture and navigation improvements\n\n' +
-    '* feat(schedule): mejorar validación y manejo de errores en la publicación del horario';
-  assert.equal(config.ignores[0](legacy), true);
-  assert.equal(config.ignores[0]('Release/academic sidebar production (#213)'), false);
-  assert.equal(config.ignores[0]('new invalid commit'), false);
-  assert.equal(config.ignores[0]('feat(schedule): new change'), false);
+  const ignores = config.ignores[0];
+  const historical = require('./validate-commit-message.cjs').HISTORICAL_INVALID_MESSAGE;
+  assert.equal(ignores(historical), false);
+  assert.equal(ignores(`${historical} extra`), false);
+  assert.equal(ignores('new invalid commit'), false);
   assert.deepEqual(config.rules, require('../frontend/.commitlintrc.json').rules);
 });
