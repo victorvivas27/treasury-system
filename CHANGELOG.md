@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/victorvivas27/treasury-system/compare/v1.24.0...v1.25.0) (2026-10-21)
+
+
+### Features
+
+* **tests:** enhance test coverage and reliability across frontend and backend ([9bacb9a](https://github.com/victorvivas27/treasury-system/commit/9bacb9a73208bd2886a317a6107ec9bf0755d3ce))
+
 ## [1.24.0](https://github.com/victorvivas27/treasury-system/compare/v1.23.0...v1.24.0) (2026-10-20)
 
 
