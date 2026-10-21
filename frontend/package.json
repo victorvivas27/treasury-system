@@ -12,8 +12,12 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:unit": "node scripts/run-test-suite.mjs unit",
+    "test:integration": "node scripts/run-test-suite.mjs integration",
+    "test:coverage:unit": "node scripts/run-test-suite.mjs unit --coverage",
+    "test:coverage:integration": "node scripts/run-test-suite.mjs integration --coverage",
     "test:single": "vitest --run --testNamePattern",
-    "test:coverage:open": "vitest run --coverage && start coverage/index.html",
+    "test:coverage:open": "vitest run --coverage && start coverage/combined/index.html",
     "demo:apoderado": "powershell -ExecutionPolicy Bypass -File scripts/run-apoderado-demo.ps1",
     "demo:apoderado:ui": "playwright test -c playwright.demo.config.ts --headed"
   },

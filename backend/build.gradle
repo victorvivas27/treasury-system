@@ -228,3 +228,50 @@ dependencyCheck {
 }
 
 check.dependsOn jacocoTestCoverageVerification
+
+// Separate execution data: these tasks never overwrite the combined test report.
+['unit', 'integration'].each { suite ->
+    def suiteTest = tasks.register("${suite}Test", Test) {
+        group = 'verification'
+        description = "Runs the ${suite} suite with independent coverage data."
+        testClassesDirs = sourceSets.test.output.classesDirs
+        classpath = sourceSets.test.runtimeClasspath
+        useJUnitPlatform {
+            if (suite == 'unit') {
+                excludeTags 'integration', 'postgres'
+            } else {
+                includeTags 'integration', 'postgres'
+                if (project.hasProperty('excludeTags')) {
+                    excludeTags project.property('excludeTags').split(',')
+                }
+            }
+        }
+    }
+    tasks.register("jacoco${suite.capitalize()}TestReport", JacocoReport) {
+        dependsOn suiteTest
+        executionData layout.buildDirectory.file("jacoco/${suite}Test.exec")
+        sourceDirectories.from sourceSets.main.allSource.srcDirs
+        // Keep runtime adapters, controllers and shared behavior visible.
+        classDirectories.from sourceSets.main.output.classesDirs.asFileTree.matching {
+            exclude '**/TesoreriaAppApplication.class', '**/*MapperImpl.class'
+        }
+        reports {
+            xml.required = true
+            html.required = true
+        }
+    }
+}
+
+tasks.register('jacocoCombinedTestReport', JacocoReport) {
+    dependsOn 'unitTest', 'integrationTest'
+    executionData layout.buildDirectory.file('jacoco/unitTest.exec'),
+            layout.buildDirectory.file('jacoco/integrationTest.exec')
+    sourceDirectories.from sourceSets.main.allSource.srcDirs
+    classDirectories.from sourceSets.main.output.classesDirs.asFileTree.matching {
+        exclude '**/TesoreriaAppApplication.class', '**/*MapperImpl.class'
+    }
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}

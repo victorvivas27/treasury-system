@@ -36,6 +36,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
         "app.storage.gcs.enabled=false", "spring.datasource.url=jdbc:h2:mem:sa04;DB_CLOSE_DELAY=-1",
         "MERCADO_PAGO_ACCESS_TOKEN=", "MERCADO_PAGO_WEBHOOK_SECRET=",

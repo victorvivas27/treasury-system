@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringJUnitConfig(TreasuryCacheIntegrationTest.TestConfig.class)
 class TreasuryCacheIntegrationTest {
     private static final int YEAR = 2026;

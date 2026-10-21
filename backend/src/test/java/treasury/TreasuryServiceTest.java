@@ -8,6 +8,9 @@ import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +44,65 @@ class TreasuryServiceTest {
                 LocalDateTime.now(), LocalDateTime.now());
         plan = new FamilyFeePlan(2L, 1L, 10L, PaymentMode.DOS_CUOTAS,
                 LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    @Test
+    void createsContributionConfigurationAndRecordsTheAudit() {
+        when(repository.findContributionConfig(2026, ContributionType.CEPA)).thenReturn(Optional.empty());
+        when(repository.saveContributionConfig(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.saveContributionConfig(2026, ContributionType.CEPA, "  CEPA  ",
+                true, BigDecimal.ZERO, "  Aporte voluntario  ", "admin@example.test");
+
+        assertAll(
+                () -> assertNull(result.id()),
+                () -> assertEquals("CEPA", result.name()),
+                () -> assertTrue(result.active()),
+                () -> assertEquals(BigDecimal.ZERO, result.referenceAmount()),
+                () -> assertEquals("Aporte voluntario", result.observations()),
+                () -> assertNotNull(result.createdAt()),
+                () -> assertEquals(result.createdAt(), result.updatedAt()));
+        verify(repository).saveAudit(argThat(audit -> audit.action().equals("CONFIGURAR_APORTE")
+                && audit.entityId().equals("CEPA-2026") && audit.performedBy().equals("admin@example.test")));
+    }
+
+    @Test
+    void updatesContributionConfigurationWithoutReplacingItsIdentityOrCreationDate() {
+        var created = LocalDateTime.of(2025, 1, 2, 10, 0);
+        var current = new ContributionConfig(12L, 2026, ContributionType.SOLIDARIA, "Previous", true,
+                BigDecimal.TEN, "Previous notes", created, created);
+        when(repository.findContributionConfig(2026, ContributionType.SOLIDARIA)).thenReturn(Optional.of(current));
+        when(repository.saveContributionConfig(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.saveContributionConfig(2026, ContributionType.SOLIDARIA, "Solidaria",
+                false, null, "  ", "admin@example.test");
+        assertAll(
+                () -> assertEquals(12L, result.id()),
+                () -> assertEquals(created, result.createdAt()),
+                () -> assertFalse(result.active()),
+                () -> assertNull(result.referenceAmount()),
+                () -> assertNull(result.observations()),
+                () -> assertFalse(result.updatedAt().isBefore(created)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidContributionConfigurations")
+    void rejectsInvalidContributionConfigurationBeforePersistence(int year, ContributionType type,
+                                                                  String name, BigDecimal amount) {
+        assertThrows(DomainException.class, () -> service.saveContributionConfig(year, type, name,
+                true, amount, null, "admin@example.test"));
+        verifyNoInteractions(repository);
+    }
+
+    static Stream<Arguments> invalidContributionConfigurations() {
+        return Stream.of(
+                Arguments.of(1999, ContributionType.CEPA, "CEPA", BigDecimal.TEN),
+                Arguments.of(2026, null, "CEPA", BigDecimal.TEN),
+                Arguments.of(2026, ContributionType.CEPA, null, BigDecimal.TEN),
+                Arguments.of(2026, ContributionType.CEPA, "", BigDecimal.TEN),
+                Arguments.of(2026, ContributionType.CEPA, "   ", BigDecimal.TEN),
+                Arguments.of(2026, ContributionType.CEPA, "CEPA", BigDecimal.ONE.negate()),
+                Arguments.of(2026, ContributionType.CEPA, "CEPA", new BigDecimal("1.5")));
     }
 
     @Test

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.datasource.url=jdbc:h2:mem:sa03stomp;DB_CLOSE_DELAY=-1",

@@ -11,6 +11,10 @@ const __dirname = path.dirname(__filename)
 const avatarCatalogModuleId = 'virtual:avatar-catalog'
 const resolvedAvatarCatalogModuleId = `\0${avatarCatalogModuleId}`
 const avatarFilePattern = /\.(avif|gif|jpe?g|png|svg|webp)$/i
+const testSuite = process.env.TEST_SUITE
+if (testSuite && !['unit', 'integration'].includes(testSuite)) {
+  throw new Error(`Unknown TEST_SUITE: ${testSuite}`)
+}
 
 // Derive the first-paint CSS from the same source as the application styles.
 // The rest of the stylesheet can keep loading without blocking the boot screen.
@@ -111,18 +115,25 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    maxWorkers: 1,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: testSuite === 'integration'
+      ? ['src/**/*.integration.test.{ts,tsx}']
+      : ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: testSuite === 'unit' ? ['src/**/*.integration.test.{ts,tsx}'] : [],
     // Opcional: Para que no intente procesar archivos CSS pesados en los tests
      reporters: ['dot'],  // o 'default', 'verbose', 'dot'
     css: true,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'], // 'html' genera una carpeta para ver el reporte visual
+      reporter: ['text-summary', 'json', 'json-summary', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      reportsDirectory: `coverage/${testSuite ?? 'combined'}`,
 
       clean: true, // Esto reemplaza al fallido --cleanOnRerender
             exclude: [
+        '**/*.{test,spec}.{ts,tsx}',
         // CSS y estilos
         '**/*.css',
         '**/*.scss',

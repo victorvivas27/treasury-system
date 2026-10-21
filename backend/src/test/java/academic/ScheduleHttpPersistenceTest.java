@@ -20,6 +20,7 @@ import java.util.UUID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
         "spring.config.import=", "spring.flyway.enabled=false",
         "spring.datasource.url=jdbc:h2:mem:academic-http;DB_CLOSE_DELAY=-1",

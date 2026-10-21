@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
         "app.storage.gcs.enabled=false", "spring.datasource.url=jdbc:h2:mem:sa07;DB_CLOSE_DELAY=-1",
         "app.refresh-token.reuse-grace-seconds=10",

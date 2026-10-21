@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /** Real Spring caching proxies and Caffeine; repository data is synthetic, tenant-specific. */
+@org.junit.jupiter.api.Tag("integration")
 @SpringJUnitConfig(TreasuryTenantCacheIntegrationTest.Config.class)
 class TreasuryTenantCacheIntegrationTest {
     private static final int YEAR = 2026;

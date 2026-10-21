@@ -91,15 +91,13 @@ cd backend
 .\gradlew.bat test -PexcludeTags=postgres pmdMain check
 ```
 
-Para PostgreSQL aislado propio, el test SA34PostgresWhatsAppTest requiere una base vacia y desechable, con autenticacion local de pruebas sin contrasena. Nunca apuntarlo a una base productiva: crea fixtures.
+SA34PostgresWhatsAppTest crea un PostgreSQL 16 efimero con Testcontainers y requiere Docker disponible. El contenedor genera sus credenciales de prueba; no requiere configurar una URL externa ni una base local sin contrasena.
 
 ```powershell
-$env:WHATSAPP_TEST_POSTGRES_URL='jdbc:postgresql://127.0.0.1:55434/treasury_task34'
-$env:WHATSAPP_TEST_POSTGRES_USER='treasury_test'
-.\gradlew.bat test --tests user.SA34PostgresWhatsAppTest
+.\gradlew.bat integrationTest --tests user.SA34PostgresWhatsAppTest
 ```
 
-La variante existente SA02PostgresInvitationTest permite ejecutar la misma regresion en PostgreSQL 16 con Testcontainers/Docker. Ambas verifican migraciones y segundo arranque con Hibernate validate.
+SA02PostgresInvitationTest tambien usa PostgreSQL 16 con Testcontainers/Docker. Ambas verifican migraciones y segundo arranque con Hibernate validate; la suite de integracion completa se ejecuta con `.\gradlew.bat integrationTest jacocoIntegrationTestReport`.
 
 La prueba con Meta Test Number, la presentacion/aprobacion de plantilla y las confirmaciones reales requieren la cuenta y configuracion del administrador; quedan pendientes hasta contar con ese acceso y autorizacion. No se prueban con destinatarios reales de produccion.
 

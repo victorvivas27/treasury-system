@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverters;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -21,7 +22,11 @@ public class DashboardSerializationInstrumentation implements WebMvcConfigurer {
     }
 
     @Override
-    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+        builder.configureMessageConvertersList(this::instrumentMessageConverters);
+    }
+
+    private void instrumentMessageConverters(List<HttpMessageConverter<?>> converters) {
         for (int index = 0; index < converters.size(); index++) {
             HttpMessageConverter<?> converter = converters.get(index);
             if (converter instanceof JacksonJsonHttpMessageConverter jackson) {
