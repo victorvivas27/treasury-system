@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = com.tesoreria.TesoreriaAppApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc

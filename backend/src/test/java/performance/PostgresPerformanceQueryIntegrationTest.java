@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("postgres")
 @Testcontainers
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class)
 @TestPropertySource(properties = {
         "spring.flyway.enabled=true",

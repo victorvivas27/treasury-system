@@ -19,6 +19,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest
 @ActiveProfiles("test")
 class TenantIsolationIntegrationTest {

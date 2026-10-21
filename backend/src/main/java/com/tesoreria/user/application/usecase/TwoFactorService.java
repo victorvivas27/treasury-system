@@ -69,7 +69,7 @@ public class TwoFactorService {
     }
 
     public boolean verifyBackupCode(User user, String code) {
-        if (user.getBackupCodes() == null || code == null) return false;
+        if (user.getBackupCodes() == null || code == null || code.isBlank()) return false;
         String[] codes = user.getBackupCodes().split(",");
         String normalizedCode = code.trim().toUpperCase(Locale.ROOT);
         for (int i = 0; i < codes.length; i++) {

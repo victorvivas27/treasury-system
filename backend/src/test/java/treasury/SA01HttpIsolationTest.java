@@ -34,6 +34,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Real Hibernate tenant filtering, H2, transaction manager, cache proxies and controller. */
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = com.tesoreria.TesoreriaAppApplication.class, properties = {
         "server.servlet.context-path=", "spring.config.import=", "spring.flyway.enabled=false",
         "spring.datasource.url=jdbc:h2:mem:tenant-cache-isolation;DB_CLOSE_DELAY=-1",

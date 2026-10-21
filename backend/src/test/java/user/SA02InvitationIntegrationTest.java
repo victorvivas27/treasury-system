@@ -48,6 +48,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
         "app.storage.gcs.enabled=false", "app.whatsapp.enabled=true", "app.whatsapp.provider=mock", "app.whatsapp.mode=test",
         "app.whatsapp.public-url=https://app.example", "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",

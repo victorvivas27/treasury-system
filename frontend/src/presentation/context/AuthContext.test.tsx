@@ -92,7 +92,7 @@ describe("AuthContext", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
     await act(() => result.current.login("admin@mail.com", "Password1!"));
 
-    act(() => window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)));
+    await act(async () => { window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)); });
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
@@ -100,8 +100,9 @@ describe("AuthContext", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Tu sesión terminó");
     expect(screen.getByRole("button", { name: "Cerrar aviso" })).toBeInTheDocument();
   });
-  it("[AuthContext #04] no debe avisar expiración si nunca hubo una sesión activa", () => {
-    renderHook(() => useAuth(), { wrapper });
+  it("[AuthContext #04] no debe avisar expiración si nunca hubo una sesión activa", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() => window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)));
 

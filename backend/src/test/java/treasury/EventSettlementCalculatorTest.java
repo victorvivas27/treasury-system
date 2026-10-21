@@ -11,6 +11,57 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EventSettlementCalculatorTest {
     @Test
+    void rejectsMissingOrNegativeRevenueAndCommonExpenses() {
+        var courses = List.of(new EventSettlementCalculator.CourseExpense("A", BigDecimal.ZERO));
+        assertAll(
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> EventSettlementCalculator.calculate(null, BigDecimal.ZERO, courses)),
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> EventSettlementCalculator.calculate(BigDecimal.ONE.negate(), BigDecimal.ZERO, courses)),
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> EventSettlementCalculator.calculate(BigDecimal.TEN, null, courses)),
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> EventSettlementCalculator.calculate(BigDecimal.TEN, BigDecimal.ONE.negate(), courses)),
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> EventSettlementCalculator.calculate(BigDecimal.TEN, BigDecimal.ZERO, null)));
+    }
+
+    @Test
+    void treatsMissingCourseExpensesAsZeroAndPreservesTheAccountingIdentity() {
+        var result = EventSettlementCalculator.calculate(new BigDecimal("101"), BigDecimal.TEN,
+                List.of(new EventSettlementCalculator.CourseExpense("A", null),
+                        new EventSettlementCalculator.CourseExpense("B", BigDecimal.ONE)));
+
+        assertAll(
+                () -> assertEquals(new BigDecimal("90"), result.distributable()),
+                () -> assertEquals(new BigDecimal("50"), result.grossShare()),
+                () -> assertEquals(BigDecimal.ZERO, result.courses().get(0).expenses()),
+                () -> assertEquals(new BigDecimal("45"), result.courses().get(0).netProfit()),
+                () -> assertEquals(new BigDecimal("45"), result.courses().get(1).netProfit()),
+                () -> assertEquals(result.distributable(), result.courses().stream()
+                        .map(EventSettlementCalculator.CourseResult::netProfit)
+                        .reduce(result.remainder(), BigDecimal::add)));
+    }
+
+    @Test
+    void distributesZeroWhenExpensesConsumeAllRevenue() {
+        var result = EventSettlementCalculator.calculate(BigDecimal.TEN, new BigDecimal("4"),
+                List.of(new EventSettlementCalculator.CourseExpense("A", new BigDecimal("6"))));
+        assertAll(
+                () -> assertEquals(BigDecimal.ZERO, result.distributable()),
+                () -> assertEquals(BigDecimal.ZERO, result.remainder()),
+                () -> assertEquals(BigDecimal.ZERO, result.courses().get(0).netProfit()),
+                () -> assertEquals(EventTransferStatus.PENDING, result.courses().get(0).transferStatus()));
+    }
+
+    @Test
+    void rejectsCourseExpensesThatExceedTheAvailableRevenue() {
+        assertThrows(IllegalArgumentException.class,
+                () -> EventSettlementCalculator.calculate(BigDecimal.TEN, BigDecimal.ONE,
+                        List.of(new EventSettlementCalculator.CourseExpense("A", BigDecimal.TEN))));
+    }
+
+    @Test
     void calcular_deberiaDividirIgualYDescontarElGastoSoloAlCurso() {
         var result = EventSettlementCalculator.calculate(new BigDecimal("900000"),
                 new BigDecimal("60000"), List.of(
