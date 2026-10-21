@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.0](https://github.com/victorvivas27/treasury-system/compare/v1.25.1...v1.26.0) (2026-10-21)
+
+
+### Features
+
+* add notification & stand caches with integration tests, plus expenses/incomes/payments/profile caches and dashboard/home event dispatchers for resets ([0aafcdc](https://github.com/victorvivas27/treasury-system/commit/0aafcdc097c0efca224759a772bb68f41164da01))
+* add notification & stand caches with integration tests, plus expenses/incomes/payments/profile caches and dashboard/home event dispatchers for resets ([1d36ca7](https://github.com/victorvivas27/treasury-system/commit/1d36ca7b09f8c23fcce33c9fb9c0f487377eb520))
+
 ## [1.25.1](https://github.com/victorvivas27/treasury-system/compare/v1.25.0...v1.25.1) (2026-10-21)
 
 
