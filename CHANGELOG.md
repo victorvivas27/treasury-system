@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.1](https://github.com/victorvivas27/treasury-system/compare/v1.25.0...v1.25.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* improve error handling in session storage operations ([2b909be](https://github.com/victorvivas27/treasury-system/commit/2b909bee0550366acc6d6ac6cdf2e17f4b0b42e6))
+
 ## [1.25.0](https://github.com/victorvivas27/treasury-system/compare/v1.24.0...v1.25.0) (2026-10-21)
 
 
