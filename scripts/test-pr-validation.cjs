@@ -35,8 +35,9 @@ test('only one workflow handles pull requests; existing workflows remain reusabl
     backend: children[2], bruno: children[3], versioning: children[4] })) {
     assert.equal(workflow.jobs[job].uses, `./.github/workflows/${file}`);
   }
-  const config = read(children[0]).jobs['validate-commits'].steps[1].with.configFile;
-  assert.ok(fs.existsSync(path.join(__dirname, '..', config)));
+  const validation = read(children[0]).jobs['validate-commits'].steps[1];
+  assert.match(validation.run, /validate-commit-message\.cjs --range/);
+  assert.equal(validation.env.BASE_SHA, '${{ github.event.pull_request.base.sha || github.event.before }}');
 });
 
 test('runs only applicable validations, including renamed files', async () => {

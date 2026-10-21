@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+node "$(git rev-parse --show-toplevel)/scripts/validate-commit-message.cjs" "$1"

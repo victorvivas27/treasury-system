@@ -69,11 +69,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validar commits con commitlint
-        uses: wagoid/commitlint-github-action@v5
-        with:
-          configFile: frontend/.commitlintrc.cjs
-          failOnErrors: true
+      - name: Validar mensajes de los commits por SHA
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.after || github.sha }}
+        run: |
+          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] && [ -n "$HEAD_SHA" ] && [ "$HEAD_SHA" != "0000000000000000000000000000000000000000" ]; then
+            node scripts/validate-commit-message.cjs --range "$BASE_SHA" "$HEAD_SHA"
+          else
+            node scripts/validate-commit-message.cjs --commit "$HEAD_SHA"
+          fi
 
       - name: Validar título del PR
         if: github.event_name == 'pull_request'

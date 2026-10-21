@@ -15,6 +15,8 @@ on:
       - "scripts/test-auto-release.cjs"
       - "scripts/test-pr-validation.cjs"
       - "scripts/test-branch-sync.cjs"
+      - "scripts/validate-commit-message.cjs"
+      - "scripts/test-commit-message.cjs"
       - "release-please-config.json"
       - ".release-please-manifest.json"
       - "VERSION"
@@ -49,4 +51,4 @@ jobs:
           RELEASE_TOOLS_DIR: ${{ runner.temp }}/release-tools
         run: |
           node scripts/test-versioning.cjs
-          node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs
+          node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs scripts/test-commit-message.cjs
