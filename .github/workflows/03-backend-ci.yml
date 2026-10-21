@@ -22,7 +22,7 @@ concurrency:
 jobs:
   build-and-test:
     name: Compilar, testear y verificar cobertura
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: backend
