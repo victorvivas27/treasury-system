@@ -1,3 +1,5 @@
+@import "../ui/loading/LoadingState.css";
+
 /* Design System: tema, escalas compartidas y roles de componentes.
  * Los detalles exclusivos de una pantalla viven en su propia hoja CSS.
  * Guía: ./README.md */
@@ -202,34 +204,6 @@
 
     body{min-height:100vh;min-height:100dvh}
     #root{min-height:100vh;min-height:100dvh}
-    #app-boot-loader{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:var(--color-bg);color:var(--text-boot);font-family:var(--font-family-loader);transition:opacity 380ms ease,visibility 380ms ease}
-    [data-theme="light"] #app-boot-loader{background:var(--color-bg);color:var(--text-boot)}
-    #app-boot-loader::before{content:"";position:absolute;width:min(72vw,520px);aspect-ratio:1;border-radius:var(--radius-round);background:radial-gradient(circle,rgba(37,99,235,.2),rgba(14,165,233,.07) 42%,transparent 70%);filter:blur(8px);animation:boot-breathe 2400ms ease-in-out infinite}
-    .boot-loader__content{position:relative;display:grid;justify-items:center;gap:18px;padding:32px;text-align:center}
-    .boot-loader__mark{position:relative;display:grid;width:106px;height:106px;place-items:center}
-    .boot-loader__ring{position:absolute;inset:0;border:2px solid rgba(56,189,248,.16);border-top-color:var(--palette-sky);border-right-color:#2563eb;border-radius:var(--radius-round);animation:boot-spin 1150ms cubic-bezier(.55,.15,.45,.85) infinite}
-    .boot-loader__ring::after{content:"";position:absolute;inset:8px;border:1px solid rgba(96,165,250,.18);border-bottom-color:#60a5fa;border-radius:var(--radius-round);animation:boot-spin 1800ms linear infinite reverse}
-    .boot-loader__logo-placeholder{position:absolute;width:68px;height:68px;border-radius:var(--radius-round);background:linear-gradient(110deg,rgba(56,189,248,.16) 25%,rgba(96,165,250,.18) 45%,rgba(56,189,248,.16) 65%);background-size:250% 100%;opacity:1;transition:opacity 550ms ease-out;animation:boot-logo-shimmer 2400ms ease-in-out infinite}
-    .boot-loader__logo{position:relative;opacity:0;transition:opacity 550ms ease-out;width:68px;height:68px;border-radius:var(--radius-round);object-fit:cover;filter:drop-shadow(0 10px 24px rgba(37,99,235,.32))}
-    .boot-loader__mark.is-logo-ready .boot-loader__logo{opacity:1}
-    .boot-loader__mark.is-logo-ready .boot-loader__logo-placeholder{opacity:0}
-    .boot-loader__mark.is-logo-failed .boot-loader__logo-placeholder{animation:none}
-    .boot-loader__title{margin:0;font-size:clamp(1.15rem,4vw,1.42rem);font-weight:750;letter-spacing:-0.025em}
-    .boot-loader__status{display:flex;align-items:center;gap:9px;margin:0;color:var(--text-boot-muted);font-size:0.82rem;font-weight:550;letter-spacing:0.02em}
-    [data-theme="light"] .boot-loader__status{color:var(--text-boot-muted)}
-    .boot-loader__dots{display:inline-flex;gap:4px}
-    .boot-loader__dots i{width:4px;height:4px;border-radius:var(--radius-round);background:var(--palette-sky);animation:boot-dot 1100ms ease-in-out infinite}
-    .boot-loader__dots i:nth-child(2){animation-delay:140ms}.boot-loader__dots i:nth-child(3){animation-delay:280ms}
-    #app-boot-loader.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
-    @keyframes boot-spin{to{transform:rotate(360deg)}}
-    @keyframes boot-logo-shimmer{from{background-position:100% 0}to{background-position:0 0}}
-    @keyframes boot-breathe{50%{transform:scale(1.08);opacity:0.78}}
-    @keyframes boot-dot{0%,70%,100%{transform:translateY(0);opacity:0.35}35%{transform:translateY(-4px);opacity:1}}
-    @media (prefers-reduced-motion:reduce){#app-boot-loader::before,.boot-loader__ring,.boot-loader__ring::after,.boot-loader__dots i,.boot-loader__logo-placeholder{animation:none}#app-boot-loader{transition-duration:120ms}.boot-loader__logo,.boot-loader__logo-placeholder{transition:none}}
-
-.app-reload-cover { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; background: var(--color-bg); color: var(--palette-sky); }
-.app-reload-cover__spinner { width: 42px; height: 42px; border: 3px solid rgba(56,189,248,.2); border-top-color: var(--palette-sky); border-radius: var(--radius-round); animation: boot-spin 1000ms linear infinite; }
-
 /* critical-boot:end */
 
 /* =========================================

@@ -1,3 +1,4 @@
+import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiLoader, FiSave, FiTrash2, FiUsers } from "react-icons/fi";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
@@ -39,14 +40,14 @@ export const BoardManagementPage = () => {
     const key = `${role}-${position}`; const code = selection[key];
     if (!code) { setError("Selecciona un apoderado para el cargo."); return; }
     setPending({ key, action: "save" });
-    try { await courseBoard.assign(role, position, code, year); await load(); setMessage("Directiva actualizada."); }
+    try { await courseBoard.assign(role, position, code, year); notifyHomeCommunityChanged(); await load(); setMessage("Directiva actualizada."); }
     catch { setError("No fue posible asignar el cargo. El apoderado puede estar asignado en otro cargo."); }
     finally { setPending(null); }
   };
   const remove = async (member?: BoardMember) => {
     if (!member || pending) return;
     setPending({ key: `${member.role}-${member.positionNumber}`, action: "remove" });
-    try { await courseBoard.delete(member.id); await load(); setMessage("Integrante quitado de la directiva."); }
+    try { await courseBoard.delete(member.id); notifyHomeCommunityChanged(); await load(); setMessage("Integrante quitado de la directiva."); }
     catch { setError("No fue posible quitar al integrante."); }
     finally { setPending(null); }
   };

@@ -235,38 +235,6 @@
   font-size: 0.82rem;
 }
 
-.birthday-card--loading {
-  --birthday-color: var(--border-color);
-  box-shadow: none;
-}
-
-.birthday-card--loading div,
-.birthday-card--loading span,
-.birthday-card--loading strong {
-  display: block;
-  min-height: 0.85rem;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--color-surface) 0%, var(--divider) 50%, var(--color-surface) 100%);
-  background-size: 200% 100%;
-  animation: birthdaySkeleton 1200ms infinite linear;
-}
-
-.birthday-card--loading div {
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 12px;
-}
-
-.birthday-card--loading strong {
-  grid-column: 1 / -1;
-  width: 58%;
-}
-
-@keyframes birthdaySkeleton {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
-}
-
 @media (max-width: 640px) {
   .birthday-section {
     padding: 0.7rem;

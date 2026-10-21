@@ -4,11 +4,11 @@ import { Link } from "react-router-dom";
 import { FiSliders } from "react-icons/fi";
 import { DAYS, TYPES, blockDurationLabel, mergeConsecutiveSubjects, timeLabel } from "@/core/A-domain/entities/academic/Schedule";
 import type { ScheduleBlock } from "@/core/A-domain/entities/academic/Schedule";
-import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
+import { usePublishedSchedule } from "@/presentation/hooks/academic/usePublishedSchedule";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
-import { ScheduleSkeleton } from "./ScheduleSkeleton";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleAgenda } from "./ScheduleAgenda";
 import { ScheduleBlockIcon } from "./ScheduleBlockIcon";
@@ -25,7 +25,8 @@ const preferredView = (key: string): View => {
   catch { return "day"; }
 };
 export function SchedulePage() {
-  const data = useSchedule(false);
+  const data = usePublishedSchedule();
+  const preparing = !data.ready && !data.error;
   const { user } = useAuth();
   const key = `academic.schedule.view.${user?.id ?? "anonymous"}`;
   const [preference, setPreference] = useState(() => ({ key, view: preferredView(key) }));
@@ -37,12 +38,12 @@ export function SchedulePage() {
   const boundaries = [...new Set(days.flatMap(day => day
     ? [day.entryTime, day.exitTime, ...day.blocks.flatMap(block => [block.startTime, block.endTime])] : []))].sort();
   const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
-  return <section className="schedule-page schedule-published">
+  return <><section className="schedule-page schedule-published" inert={preparing} aria-busy={preparing}>
     <header className="schedule-published-heading"><div><h1>Horario de clases</h1><p>Tu día, materia por materia.</p></div>{isAdminRole(user?.rol) && <Link className="schedule-manage-link" to="/admin/horario-clases">
       <FiSliders aria-hidden="true" /><span>Gestionar horario</span>
     </Link>}</header>
     <div className="schedule-published-toolbar"><div className="schedule-filters">
-    <ScheduleFilter label="Año escolar" loading={data.loading}><select value={data.year ?? ""} disabled={data.loading} onChange={event => data.setYear(Number(event.target.value))}>
+    <ScheduleFilter label="Año escolar" loading={false}><select value={data.year ?? ""} disabled={data.loading} onChange={event => data.setYear(Number(event.target.value))}>
       {data.periods.map(period => <option key={period.schoolYear} value={period.schoolYear}>{period.schoolYear} · {period.course}</option>)}
     </select></ScheduleFilter>
     </div>
@@ -61,8 +62,8 @@ export function SchedulePage() {
           aria-label={DAYS[index]} aria-pressed={dayNumber === index + 1} onClick={() => setDayNumber(index + 1)}><span>{label}</span><small>{days[index] ? `Salida ${timeLabel(days[index]!.exitTime)}` : "Sin jornada"}</small></button>)}
       </div>
     </div>}
-    {data.loading ? <ScheduleSkeleton view={view} dayNumber={dayNumber} /> : data.error ? <div role="alert">{data.error}<Button label="Reintentar" onClick={data.retry} /></div>
-      : !data.schedule.days.length ? <p role="status">Todavía no hay un horario publicado para este año. La administración lo publicará cuando esté listo.</p>
+    {data.error && <div role="alert">{data.error}<Button label="Reintentar" onClick={data.retry} /></div>}
+    {data.ready && (!data.schedule.days.length ? <p role="status">Todavía no hay un horario publicado para este año. La administración lo publicará cuando esté listo.</p>
       : view === "summary" ? <div className="schedule-agenda-week">{days.map((day, index) => <ScheduleAgenda day={day} index={index} compact key={index} />)}</div>
       : view === "day" ? <ScheduleAgenda day={days[dayNumber - 1]} index={dayNumber - 1} />
       : <div className="schedule-table-scroll" tabIndex={0} role="region" aria-label="Tabla semanal, desplazamiento horizontal y vertical">
@@ -84,6 +85,6 @@ export function SchedulePage() {
                 </span> : day && start >= day.entryTime && end <= day.exitTime ? "Libre" : "—"}</td>;
               })}</tr>;
           })}</tbody>
-        </table></div>}
-  </section>;
+        </table></div>)}
+  </section>{preparing && <LoadingState message="Preparando el horario de clases" />}</>;
 }

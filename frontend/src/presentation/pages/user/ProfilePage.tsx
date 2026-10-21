@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { TreasuryProfile } from "@/core/A-domain/entities/treasury/Treasury";
-import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
-import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
+import { clearProfileCache, getProfileResource } from "./profileCache";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { profileAvatars } from "virtual:avatar-catalog";
 import { FiBookOpen, FiCheck, FiClock, FiEdit2, FiHeart, FiPhone, FiUpload,
   FiLogOut, FiUser, FiUsers, FiX } from "react-icons/fi";
 import "./ProfilePage.css";
+
+export { clearProfileCache };
 
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency",
@@ -24,14 +25,9 @@ const shortDate = new Intl.DateTimeFormat("es-CL", {
   year: "numeric",
 });
 
-const PROFILE_CACHE_TTL_MS = 60_000;
 const LOGOUT_COUNTDOWN_MS = 3000;
 const LOGOUT_PROGRESS_INTERVAL_MS = 50;
-type ProfileCacheEntry = { data: TreasuryProfile; expiresAt: number };
-const profileCache = new Map<string, ProfileCacheEntry>();
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
-
-export const clearProfileCache = () => profileCache.clear();
 
 const ProfileAvatarOption = ({ avatar, index, disabled, onSelect }: {
   avatar: string; index: number; disabled: boolean; onSelect: () => void;
@@ -44,16 +40,6 @@ const ProfileAvatarOption = ({ avatar, index, disabled, onSelect }: {
       width="56" height="56" loading="lazy" decoding="async" fetchPriority="low"
       onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} />
   </button>;
-};
-
-const loadCachedProfile = async (key: string, load: () => Promise<TreasuryProfile>,
-  forceRefresh: boolean) => {
-  const cached = profileCache.get(key);
-  if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.data;
-
-  const data = await load();
-  profileCache.set(key, { data, expiresAt: Date.now() + PROFILE_CACHE_TTL_MS });
-  return data;
 };
 
 export const ProfilePage = () => {
@@ -70,16 +56,20 @@ export const ProfilePage = () => {
   const [photoError, setPhotoError] = useState("");
   const [photoSuccess, setPhotoSuccess] = useState("");
   const [photoProgress, setPhotoProgress] = useState(0);
-  const [familyProfile, setFamilyProfile] = useState<TreasuryProfile | null>(null);
-  const [familyLoading, setFamilyLoading] = useState(true);
-  const [familyError, setFamilyError] = useState("");
+  const profileYear = new Date().getFullYear();
+  const profileResource = useMemo(() => getProfileResource(user?.correo ?? "anonymous", profileYear),
+    [profileYear, user?.correo]);
+  const profileState = useDashboardResource(profileResource, false);
+  const familyProfile = profileState.data?.familyId ? profileState.data : null;
+  const familyLoading = Boolean(user?.correo && !profileState.data && !profileState.error);
+  const familyError = profileState.error
+    ? "No fue posible cargar los datos familiares. Intenta nuevamente." : "";
   const [reloadProfile, setReloadProfile] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   const [logoutProgress, setLogoutProgress] = useState(0);
   const logoutTimer = useRef<number | undefined>(undefined);
   const logoutProgressTimer = useRef<number | undefined>(undefined);
-  const treasury = useMemo(() => new TreasuryUseCases(new TreasuryRepositoryImpl()), []);
   const users = useMemo(() => new UserRepositoryImpl(), []);
 
   useEffect(() => {
@@ -127,7 +117,9 @@ export const ProfilePage = () => {
     };
     document.addEventListener("keydown", handleKey);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      const anotherOverlayOwnsScroll = document.querySelector(".app-loader, [aria-modal='true']");
+      document.body.style.overflow = previousOverflow === "hidden" && !anotherOverlayOwnsScroll
+        ? "" : previousOverflow;
       document.removeEventListener("keydown", handleKey);
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };
@@ -161,9 +153,8 @@ export const ProfilePage = () => {
         ...(phoneChanged && { telefono: normalizedPhone }),
       });
       syncUser(updatedUser);
-      if (phoneChanged) {
-        clearProfileCache();
-        setFamilyProfile(current => current ? { ...current, guardianPhone: normalizedPhone } : current);
+      if (phoneChanged && profileState.data) {
+        profileResource.set({ ...profileState.data, guardianPhone: normalizedPhone });
       }
       setEditingName(false);
     } catch {
@@ -244,39 +235,8 @@ export const ProfilePage = () => {
   useEffect(() => () => clearLogoutTimers(), []);
 
   useEffect(() => {
-    let active = true;
-    const loadFamilyProfile = async () => {
-      if (!user?.correo) {
-        setFamilyLoading(false);
-        return;
-      }
-      setFamilyLoading(true);
-      setFamilyError("");
-      const currentYear = new Date().getFullYear();
-      const cacheKey = `${user.correo}:${currentYear}`;
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const profile = await loadCachedProfile(cacheKey,
-            () => treasury.profile(currentYear), reloadProfile > 0);
-          if (active) setFamilyProfile(profile.familyId ? profile : null);
-          if (active) setFamilyLoading(false);
-          return;
-        } catch {
-          if (attempt === 0) {
-            await new Promise(resolve => window.setTimeout(resolve, 600));
-            continue;
-          }
-          if (active) {
-            setFamilyProfile(null);
-            setFamilyError("No fue posible cargar los datos familiares. Intenta nuevamente.");
-          }
-        }
-      }
-      if (active) setFamilyLoading(false);
-    };
-    void loadFamilyProfile();
-    return () => { active = false; };
-  }, [reloadProfile, treasury, user?.correo]);
+    if (user?.correo) void profileResource.load(reloadProfile > 0);
+  }, [profileResource, reloadProfile, user?.correo]);
 
   const name = user?.nombre ?? "Usuario";
   const pending = familyProfile?.obligations.filter(item => item.status === "PENDIENTE") ?? [];
@@ -320,41 +280,7 @@ export const ProfilePage = () => {
         </div>
       </section>
 
-      {familyLoading && <section className="profile-real-data profile-family-data profile-family-skeleton"
-        aria-label="Cargando vinculación familiar" role="status">
-        <header><div><span>Vinculación familiar</span>
-          <Skeleton width="6rem" height="1rem" /></div>
-          <Skeleton className="profile-badge-skeleton" /></header>
-        <dl className="profile-data-grid">
-          {["Alumno", "Parentesco", "Teléfono"].map(label => <div key={label}>
-            <dt>{label}</dt><dd><Skeleton width={label === "Alumno" ? "72%" : "58%"}
-              height=".74rem" /></dd></div>)}
-        </dl>
-        <aside className="profile-student-message profile-student-message-skeleton">
-          <Skeleton width="11rem" height=".6rem" />
-          <Skeleton width="78%" height=".72rem" />
-        </aside>
-        <div className="profile-contribution-statuses">
-          {["cepa", "solidarity"].map(type =>
-            <div className="profile-contribution-status profile-contribution-skeleton" key={type}>
-              <Skeleton width="5.5rem" height=".56rem" />
-              <Skeleton width="3.2rem" height=".65rem" />
-            </div>)}
-        </div>
-        <div className="profile-payment-status profile-payment-skeleton">
-          <div><Skeleton width="8.5rem" height=".62rem" />
-            <Skeleton width="6rem" height=".8rem" />
-            <div className="profile-course-installments">
-              {[0, 1].map(item => <span key={item}>
-                <Skeleton width="4.5rem" height=".62rem" />
-                <Skeleton width="3.8rem" height=".58rem" />
-                <Skeleton width="3.5rem" height=".58rem" />
-                <Skeleton width="3rem" height=".56rem" />
-              </span>)}
-            </div>
-          </div>
-        </div>
-      </section>}
+      {familyLoading && <LoadingState message="Preparando tu perfil" />}
 
       {!familyLoading && familyError && <section className="profile-family-feedback" role="alert">
         <p>{familyError}</p>

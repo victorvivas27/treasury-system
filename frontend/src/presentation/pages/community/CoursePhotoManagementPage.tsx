@@ -1,3 +1,4 @@
+import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useState } from "react";
 import { FiCamera, FiSave, FiTrash2, FiUpload } from "react-icons/fi";
 import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
@@ -31,17 +32,17 @@ export const CoursePhotoManagementPage = () => {
   const upload = async (file?: File) => {
     if (!file) return;
     setUploading(true);
-    try { await coursePhotos.upload(file, caption); setCaption(""); setMessage("Foto agregada a la galería."); await load(); }
+    try { await coursePhotos.upload(file, caption); notifyHomeCommunityChanged(); setCaption(""); setMessage("Foto agregada a la galería."); await load(); }
     catch { setError("No fue posible subir la foto. Usa JPG, PNG o WEBP y revisa que aún haya espacio."); }
     finally { setUploading(false); }
   };
   const save = async (photo: CoursePhoto) => {
-    try { await coursePhotos.update(photo.id, photo.caption ?? "", photo.displayOrder); setMessage("Foto actualizada."); await load(); }
+    try { await coursePhotos.update(photo.id, photo.caption ?? "", photo.displayOrder); notifyHomeCommunityChanged(); setMessage("Foto actualizada."); await load(); }
     catch { setError("No fue posible actualizar la foto."); }
   };
   const remove = async () => {
     if (!deletePhoto) return;
-    try { await coursePhotos.delete(deletePhoto.id); setMessage("Foto eliminada."); await load(); }
+    try { await coursePhotos.delete(deletePhoto.id); notifyHomeCommunityChanged(); setMessage("Foto eliminada."); await load(); }
     catch { setError("No fue posible eliminar la foto."); }
     finally { setDeletePhoto(undefined); }
   };

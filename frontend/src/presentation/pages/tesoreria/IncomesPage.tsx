@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { FiAlertTriangle, FiArrowDownCircle, FiArrowLeft, FiBarChart2, FiBookOpen, FiCalendar,
+import { FiAlertTriangle, FiArrowLeft, FiBarChart2, FiBookOpen, FiCalendar,
   FiCheck, FiClock, FiCreditCard, FiDollarSign, FiDownload, FiEdit3, FiEye, FiFilePlus,
   FiFileText, FiFilter, FiLoader, FiLogIn, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw,
   FiSave, FiSlash, FiTag, FiTrash2, FiUser, FiUsers, FiX }
@@ -15,16 +15,16 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
-import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { getIncomesResources, incomesSelection } from "./incomesCache";
+import { useDashboardResource } from "../dashboard/dashboardCache";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { chileDate } from "@/shared/date/chileDateTime";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
 import {
   INCOME_CATEGORIES, INCOME_PAYMENT_METHODS, incomeCategoryLabel, incomePaymentLabel,
 } from "@/shared/constants/IncomeConstants";
 import "./ExpensesPage.css";
 import "./IncomesPage.css";
-import "./IncomesSkeleton.css";
 import "./TreasuryMovementFilters.css";
 import { MovementFilterSelect } from "./MovementFilterSelect";
 
@@ -48,20 +48,15 @@ export const IncomesPage = () => {
   const { user } = useAuth();
   const canManage = isAdminRole(user?.rol);
   const [searchParams] = useSearchParams();
+  const selection = incomesSelection(user?.id, canManage);
   const [year, setYear] = useState(() => {
     const requestedYear = Number(searchParams.get("year"));
-    return years.includes(requestedYear) ? requestedYear : 2026;
+    return years.includes(requestedYear) ? requestedYear : selection.year;
   });
-  const [view, setView] = useState<IncomeView>("ALL");
-  const [items, setItems] = useState<TreasuryIncome[]>([]);
-  const [summary, setSummary] = useState(emptySummary);
-  const [feePayments, setFeePayments] = useState<TreasuryDashboardOverview["recentMovements"]>([]);
+  const [view, setView] = useState<IncomeView>(selection.view);
   const [incomePage, setIncomePage] = useState(1);
   const [selectedFee, setSelectedFee] = useState<TreasuryDashboardOverview["recentMovements"][number] | null>(null);
-  const [filters, setFilters] = useState<IncomeFilters>({
-    status: "ACTIVE",
-    sort: "DATE_DESC",
-  });
+  const [filters, setFilters] = useState<IncomeFilters>(selection.filters);
   const [form, setForm] = useState<IncomePayload>(initialForm(year));
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<TreasuryIncome | null>(null);
@@ -74,52 +69,23 @@ export const IncomesPage = () => {
   const [editing, setEditing] = useState<TreasuryIncome | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [managedCourse, setManagedCourse] = useState("");
-  const [managedCourseLoading, setManagedCourseLoading] = useState(canManage);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const resources = getIncomesResources(user?.id, canManage, year, filters);
+  const cached = useDashboardResource(resources.incomes);
+  const course = useDashboardResource(resources.course, canManage);
+  const items = cached.data?.items ?? [];
+  const summary = cached.data?.overview.finances ?? emptySummary;
+  const feePayments = cached.data?.overview.recentMovements.filter(item => item.type === "CUOTA") ?? [];
+  const managedCourse = course.data ?? "";
+  const initialLoading = (!cached.data && !cached.error) || (canManage && course.data === undefined && !course.error);
   const activeFilters = Object.entries(filters).filter(([key, value]) =>
     !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
-  const initialLoading = (loading && !hasLoaded) || managedCourseLoading;
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [incomes, overview] = await Promise.all([
-        repository.listIncomes(year, filters), repository.dashboardOverview(year),
-      ]);
-      setItems(incomes);
-      setSummary(overview.finances);
-      setFeePayments(overview.recentMovements.filter(item => item.type === "CUOTA"));
-      setIncomePage(1);
-    } catch {
-      setError("No fue posible cargar los ingresos. Intenta nuevamente.");
-    } finally {
-      setHasLoaded(true);
-      setLoading(false);
-    }
-  }, [year, filters]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 250);
-    return () => window.clearTimeout(timer);
-  }, [load]);
-
-  useEffect(() => {
-    if (!canManage) {
-      setManagedCourseLoading(false);
-      return;
-    }
-    setManagedCourseLoading(true);
-    repository.getManagedCourse()
-      .then(setManagedCourse)
-      .catch(() => setError("No fue posible cargar el curso administrado."))
-      .finally(() => setManagedCourseLoading(false));
-  }, [canManage]);
+  const load = useCallback(() => resources.incomes.load(true), [resources.incomes]);
+  useEffect(() => { Object.assign(selection, { year, filters, view }); }, [selection, year, filters, view]);
+  useEffect(() => { setIncomePage(1); }, [resources.incomes]);
 
   useEffect(() => {
     if (!detail) { setDocuments([]); return; }
@@ -288,19 +254,19 @@ export const IncomesPage = () => {
     finally { setSaving(false); }
   };
 
-  return <main className="expenses-page incomes-page">
+  return <>
+    {initialLoading && <LoadingState message="Preparando los ingresos" />}
+    <main className="expenses-page incomes-page" inert={initialLoading} aria-busy={initialLoading}>
+    {(cached.error || (canManage && course.error)) && <div role="alert">
+      <p>{cached.error ? "No fue posible cargar los ingresos. Intenta nuevamente." : "No fue posible cargar el curso administrado."}</p>
+      <button type="button" onClick={() => { void load(); if (canManage) void resources.course.load(true); }}>Reintentar</button>
+    </div>}
     <header className="expenses-header"><div>
       <h1>Ingresos</h1></div>
       {canManage && <button type="button" onClick={openCreate}>
         <FiPlus /> Registrar ingreso</button>}</header>
 
     <section className="income-summary" aria-label="Resumen financiero">
-      {initialLoading ? ["Saldo disponible", "Ingresos por cuotas", "Otros ingresos",
-        "Ingresos totales", "Total de egresos"].map(label =>
-        <article className="income-summary-card" key={label}>
-          <div><span>{label}</span><i><FiDollarSign aria-hidden="true" /></i></div>
-          <CardValueSkeleton /><small>Actualizando información</small>
-        </article>) : <>
       <article className={`income-summary-card income-summary-card--balance ${
         summary.availableBalance < 0 ? "is-negative" : ""}`}>
         <div><span>Saldo disponible</span><i><FiDollarSign aria-hidden="true" /></i></div>
@@ -321,7 +287,6 @@ export const IncomesPage = () => {
       <article className="income-summary-card income-summary-card--expenses is-expense">
         <div><span>Total de egresos</span><i><FiLogOut aria-hidden="true" /></i></div>
         <strong>{money.format(summary.totalExpenses)}</strong><small>Egresos activos</small></article>
-      </>}
     </section>
 
     <div className="income-controls">
@@ -381,9 +346,9 @@ export const IncomesPage = () => {
       </footer>
     </aside></div>}
 
-    {initialLoading ? <IncomeCardsSkeleton /> : incomeRows.length === 0
+    {!initialLoading && !cached.error && incomeRows.length === 0
       ? <p className="expenses-empty">No hay ingresos para los filtros seleccionados.</p>
-      : <section className="expenses-grid income-results" aria-label="Listado de ingresos">
+      : cached.data ? <section className="expenses-grid income-results" aria-label="Listado de ingresos">
         <span className="income-results__count">{incomeRows.length} ingresos</span>
         {visibleIncomes.map(item => <article className={`expense-card income-card ${item.status === "CANCELLED" ? "is-cancelled" : ""}`} key={item.key}>
           <header><span><FiCalendar aria-hidden="true" /> {item.date}</span>{item.status === "CANCELLED" && <b>Anulado</b>}</header>
@@ -400,7 +365,7 @@ export const IncomesPage = () => {
           onPrevious={() => setIncomePage(Math.max(1, currentIncomePage - 1))}
           onNext={() => setIncomePage(Math.min(incomePages, currentIncomePage + 1))}
           ariaLabel="Paginación de ingresos" />}
-      </section>}
+      </section> : null}
 
     {selectedFee && <div className="expense-modal-overlay"><section className="expense-detail-modal income-detail-modal"
       role="dialog" aria-modal="true" aria-labelledby="income-fee-title">
@@ -532,24 +497,5 @@ export const IncomesPage = () => {
       message={message} compact onClose={() => setMessage("")} />
     <ModalAlert isOpen={Boolean(error)} type="error" title="No fue posible completar la acción"
       message={error} onClose={() => setError("")} />
-  </main>;
+  </main></>;
 };
-
-const IncomeCardsSkeleton = () => (
-  <section className="expenses-grid" aria-label="Cargando ingresos" role="status">
-    {Array.from({ length: INCOME_PAGE_SIZE }, (_, index) => (
-      <article className="expense-card income-card income-card--skeleton" key={index}
-        aria-hidden="true">
-        <header><span><FiArrowDownCircle /> Ingreso extraordinario</span>
-          <div className="skeleton-block" /></header>
-        <div className="skeleton-block" /><div className="skeleton-block" />
-        <div className="income-details-skeleton">
-          {Array.from({ length: 4 }, (_, row) => <div className="skeleton-block" key={row} />)}
-        </div>
-        <footer className="income-card__footer"><div className="skeleton-block" />
-          <button type="button" className="loading-action-placeholder" disabled
-            aria-label="Ver detalle"><FiEye /></button></footer>
-      </article>
-    ))}
-  </section>
-);

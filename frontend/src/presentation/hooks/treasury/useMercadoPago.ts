@@ -1,27 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { mercadoPagoRepository } from "@/core/C-infra/repositories/treasury/MercadoPagoRepository";
+import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
+import { mercadoPagoAvailability } from "./mercadoPagoAvailability";
 
 export function useMercadoPago(reload: () => Promise<void>, admin: boolean) {
   const [params] = useSearchParams();
-  const [enabled, setEnabled] = useState(false);
-  const [checkingAvailability, setCheckingAvailability] = useState(true);
-  const [availabilityError, setAvailabilityError] = useState(false);
+  const availability = useDashboardResource(mercadoPagoAvailability);
+  const enabled = availability.data === true && !availability.error;
+  const checkingAvailability = availability.data === undefined && !availability.error;
+  const availabilityError = availability.error;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [canRetryReturn, setCanRetryReturn] = useState(false);
   const paymentId = params.get("payment_id") ?? params.get("collection_id");
   const returned = params.get("mp_return") === "1";
-
-  useEffect(() => {
-    let active = true;
-    setCheckingAvailability(true);
-    setAvailabilityError(false);
-    void mercadoPagoRepository.available().then(value => { if (active) setEnabled(value === true); })
-      .catch(() => { if (active) { setEnabled(false); setAvailabilityError(true); } })
-      .finally(() => { if (active) setCheckingAvailability(false); });
-    return () => { active = false; };
-  }, [admin]);
 
   const refresh = useCallback(async (id: string) => {
     const result = await mercadoPagoRepository.reconcile(id);

@@ -147,7 +147,7 @@ export function ScheduleManagementPage() {
     </div>
     {(validation || data.error) && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="alert" ref={validationNotice} tabIndex={-1}>{validation || data.error}</p>}
     {data.message && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="status">{data.message}</p>}
-    {data.loading ? <ScheduleSkeleton view="management" dayNumber={selectedDay} /> : <>
+    {data.loading ? <ScheduleSkeleton dayNumber={selectedDay} /> : <>
       {!data.periods.length && <p>No hay períodos escolares disponibles.</p>}
       {!data.editable && data.periods.length > 0 && <p>Este año histórico es de solo lectura.</p>}
       {!draft.days.length && <p>Sin horario cargado. Configura cada jornada para comenzar.</p>}

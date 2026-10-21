@@ -11,6 +11,7 @@ interface NotificationContextValue {
   notifications: AppNotification[];
   unreadCount: number;
   loading: boolean;
+  error: string;
   refresh: () => Promise<void>;
   markRead: (id: number) => Promise<void>;
   markAllRead: () => Promise<void>;
@@ -28,6 +29,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const identity = `${auth?.isAuthenticated}:${auth?.user?.id}`;
+  const session = useRef(identity);
+  session.current = identity;
+  const loadedSession = useRef<string | undefined>(undefined);
+  const pendingRefresh = useRef<{ identity: string; promise: Promise<void> } | undefined>(undefined);
+  const revision = useRef(0);
   const [pushStatus, setPushStatus] = useState<NotificationContextValue["pushStatus"]>("checking");
   const [pushLoading, setPushLoading] = useState(false);
   const unreadCountLoading = useRef(false);
@@ -53,44 +61,58 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const refresh = useCallback(async () => {
     if (!auth?.isAuthenticated) return;
-    setLoading(true);
-    try {
-      const [items, count] = await Promise.all([repository.listMine(), repository.unreadCount()]);
-      setNotifications(items); setUnreadCount(count);
-    } finally { setLoading(false); }
-  }, [auth?.isAuthenticated, repository]);
+    if (pendingRefresh.current?.identity === identity) return pendingRefresh.current.promise;
+    setLoading(loadedSession.current !== identity);
+    setError("");
+    const requestRevision = revision.current;
+    const promise = Promise.all([repository.listMine(), repository.unreadCount()]).then(([items, count]) => {
+      if (session.current !== identity || revision.current !== requestRevision) return;
+      setNotifications(items); setUnreadCount(count); loadedSession.current = identity;
+    }).catch(() => {
+      if (session.current === identity) setError("No fue posible actualizar tus notificaciones.");
+    }).finally(() => {
+      if (session.current === identity) setLoading(false);
+      if (pendingRefresh.current?.promise === promise) pendingRefresh.current = undefined;
+    });
+    pendingRefresh.current = { identity, promise };
+    return promise;
+  }, [auth?.isAuthenticated, identity, repository]);
 
   const refreshUnreadCount = useCallback(async () => {
     if (!auth?.isAuthenticated || unreadCountLoading.current) return;
     if (document.visibilityState !== "visible") return;
     unreadCountLoading.current = true;
     try {
-      setUnreadCount(await repository.unreadCount());
+      const count = await repository.unreadCount();
+      if (session.current === identity) setUnreadCount(count);
     } catch {
       // Keep the last known unread count if the refresh fails.
     } finally {
       unreadCountLoading.current = false;
     }
-  }, [auth?.isAuthenticated, repository]);
+  }, [auth?.isAuthenticated, identity, repository]);
 
   useEffect(() => {
     if (!auth?.isAuthenticated) {
-      setNotifications([]); setUnreadCount(0); setLoading(false); return;
+      setNotifications([]); setUnreadCount(0); setLoading(false); setError("");
+      loadedSession.current = undefined; return;
     }
+    if (loadedSession.current !== identity) { setNotifications([]); setUnreadCount(0); }
     void refresh();
     const timer = window.setInterval(() => void refreshUnreadCount(), 60_000);
     const visible = () => document.visibilityState === "visible" && void refresh();
     const unreadChanged = () => void refreshUnreadCount();
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("notification-unread-changed", unreadChanged);
-    window.addEventListener("notification-realtime-received", refresh);
+    const realtimeReceived = () => void refresh();
+    window.addEventListener("notification-realtime-received", realtimeReceived);
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("notification-unread-changed", unreadChanged);
-      window.removeEventListener("notification-realtime-received", refresh);
+      window.removeEventListener("notification-realtime-received", realtimeReceived);
     };
-  }, [auth?.isAuthenticated, refresh, refreshUnreadCount]);
+  }, [auth?.isAuthenticated, identity, refresh, refreshUnreadCount]);
 
   useEffect(() => {
     void syncAppBadge(auth?.isAuthenticated ? unreadCount : 0);
@@ -146,25 +168,30 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     } finally { setPushLoading(false); }
   };
 
-  const markRead = async (id: number) => {
+  const markRead = useCallback(async (id: number) => {
     const updated = await repository.markRead(id);
+    if (session.current !== identity) return;
+    revision.current += 1;
+    const wasUnread = notifications.some(item => item.id === id && !item.read);
     setNotifications(items => items.map(item => item.id === id ? updated : item));
-    setUnreadCount(count => updated.read ? Math.max(0, count - 1) : count);
-  };
-  const markAllRead = async () => {
+    if (wasUnread && updated.read) setUnreadCount(count => Math.max(0, count - 1));
+  }, [repository, identity, notifications]);
+  const markAllRead = useCallback(async () => {
     await repository.markAllRead();
+    if (session.current !== identity) return;
+    revision.current += 1;
     setNotifications(items => items.map(item => ({ ...item, read: true })));
     setUnreadCount(0);
-  };
+  }, [repository, identity]);
   const deleteNotification = async (id: number) => {
     await repository.deleteMine(id);
-    setNotifications(items => {
-      const deleted = items.find(item => item.id === id);
-      if (deleted && !deleted.read) setUnreadCount(count => Math.max(0, count - 1));
-      return items.filter(item => item.id !== id);
-    });
+    if (session.current !== identity) return;
+    revision.current += 1;
+    const deleted = notifications.find(item => item.id === id);
+    if (deleted && !deleted.read) setUnreadCount(count => Math.max(0, count - 1));
+    setNotifications(items => items.filter(item => item.id !== id));
   };
-  return <NotificationContext.Provider value={{ notifications, unreadCount, loading, refresh,
+  return <NotificationContext.Provider value={{ notifications, unreadCount, loading, error, refresh,
     markRead, markAllRead, deleteNotification, pushStatus, pushLoading, enablePush,
     disablePush }}>{children}</NotificationContext.Provider>;
 };

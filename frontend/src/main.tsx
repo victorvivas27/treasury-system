@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import '@/shared/pwa/installApp'
 import { createRoot } from 'react-dom/client'
+import { flushSync } from 'react-dom'
+import { LoadingState } from '@/shared/ui/loading/LoadingState'
 import App from '@/presentation/App'
 import '@/shared/style/ResponsiveDataList.css'
 import '@/shared/ui/skeleton/Skeleton.css'
@@ -15,13 +17,9 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
     const reloadWithAppBackground = () => {
       const cover = document.createElement('div')
-      cover.setAttribute('role', 'status')
-      cover.setAttribute('aria-label', 'Actualizando Tesorería Escolar')
-      cover.className = 'app-reload-cover'
-      const spinner = document.createElement('span')
-      spinner.className = 'app-reload-cover__spinner'
-      cover.appendChild(spinner)
       document.body.appendChild(cover)
+      const coverRoot = createRoot(cover)
+      flushSync(() => coverRoot.render(<LoadingState message="Actualizando tu espacio" />))
       requestAnimationFrame(() => requestAnimationFrame(() => window.location.reload()))
     }
 

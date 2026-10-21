@@ -9,8 +9,8 @@ const updateUser = vi.hoisted(() => vi.fn());
 const syncUser = vi.hoisted(() => vi.fn());
 const logout = vi.hoisted(() => vi.fn());
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
-vi.mock("@/core/B-application/use-cases/treasury/TreasuryUseCases", () => ({
-  TreasuryUseCases: class { profile = profile; },
+vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({
+  TreasuryRepositoryImpl: class { profile = profile; },
 }));
 vi.mock("@/core/C-infra/repositories/user/UserRepositoryImpl", () => ({
   UserRepositoryImpl: class { updateSelfProfile = updateUser; },
@@ -51,16 +51,12 @@ describe("ProfilePage", () => {
 
   const renderProfile = () => render(<MemoryRouter><ProfilePage /></MemoryRouter>);
 
-  it("muestra un skeleton con la estructura del perfil familiar", () => {
+  it("muestra el loader centralizado durante la carga inicial del perfil familiar", () => {
     profile.mockReturnValue(new Promise(() => undefined));
     const { container } = renderProfile();
 
-    expect(container.querySelector(".profile-family-skeleton")).toBeInTheDocument();
-    expect(container.querySelector(".profile-badge-skeleton")).toBeInTheDocument();
-    expect(container.querySelector(".profile-student-message-skeleton")).toBeInTheDocument();
-    expect(container.querySelectorAll(".profile-contribution-skeleton")).toHaveLength(2);
-    expect(container.querySelectorAll(".profile-payment-skeleton .profile-course-installments > span"))
-      .toHaveLength(2);
+    expect(container.querySelector(".app-loader")).toBeInTheDocument();
+    expect(container.querySelector(".profile-family-skeleton")).toBeNull();
   });
 
   it("reutiliza durante un minuto el perfil cargado para el mismo usuario y aÃ±o", async () => {

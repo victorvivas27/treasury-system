@@ -2,9 +2,10 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ExpensesPage } from "./ExpensesPage";
+import { clearExpensesCache } from "./expensesCache";
 
 const { repository, account } = vi.hoisted(() => ({
-  repository: { listExpenses: vi.fn(), financialSummary: vi.fn(), listExpenseDocuments: vi.fn(), uploadExpenseDocuments: vi.fn() },
+  repository: { listExpenses: vi.fn(), financialSummary: vi.fn(), listExpenseDocuments: vi.fn(), uploadExpenseDocuments: vi.fn(), createExpense: vi.fn() },
   account: { rol: "ADMIN" },
 }));
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: () => ({ user: account }) }));
@@ -13,11 +14,49 @@ vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({ 
 describe("ExpensesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearExpensesCache();
     account.rol = "ADMIN";
     repository.listExpenses.mockResolvedValue(Array.from({ length: 8 }, (_, index) => ({ id: index + 1, description: `Compra del curso ${index + 1}`, amount: 15000, expenseDate: "2026-10-19", status: "ACTIVE", category: "MATERIALS", registeredBy: "Tesorería", createdAt: "2026-10-19T12:00:00" })));
     repository.financialSummary.mockResolvedValue({ schoolYear: 2026, totalIncome: 150000, totalExpenses: 120000, availableBalance: 30000 });
     repository.listExpenseDocuments.mockResolvedValue([]);
     repository.uploadExpenseDocuments.mockResolvedValue(undefined);
+  });
+
+  it("shares the initial loader and reuses data on return", async () => {
+    const first = render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
+    expect(screen.getByRole("status", { name: "Preparando los egresos" })).toBeInTheDocument();
+    expect(document.querySelector(".skeleton-block")).toBeNull();
+    await screen.findByText("Compra del curso 1");
+    first.unmount();
+    render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
+    expect(screen.getByText("Compra del curso 1")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Preparando los egresos" })).not.toBeInTheDocument();
+    expect(repository.listExpenses).toHaveBeenCalledTimes(1);
+    expect(repository.financialSummary).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries a failed load without showing a misleading empty state", async () => {
+    repository.listExpenses.mockRejectedValueOnce(new Error("offline"));
+    render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
+    await screen.findByRole("alert");
+    expect(screen.queryByText("No hay egresos para los filtros seleccionados.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    await screen.findByText("Compra del curso 1");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("reloads the list and totals after registering an expense", async () => {
+    render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
+    await screen.findByText("Compra del curso 1");
+    repository.createExpense.mockResolvedValue({});
+    repository.listExpenses.mockResolvedValue([{ id: 10, description: "Material nuevo", amount: 5000, expenseDate: "2026-10-21", status: "ACTIVE", registeredBy: "Admin" }]);
+    fireEvent.click(screen.getByRole("button", { name: "Registrar egreso" }));
+    fireEvent.change(screen.getByLabelText("Descripción del egreso *"), { target: { value: "Material nuevo" } });
+    fireEvent.change(screen.getByLabelText("Monto *"), { target: { value: "5000" } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar egreso" }));
+    await screen.findByText("Material nuevo");
+    expect(repository.createExpense).toHaveBeenCalledWith(expect.objectContaining({ description: "Material nuevo", amount: 5000 }));
+    expect(repository.financialSummary).toHaveBeenCalledTimes(2);
   });
 
   it("paginates three expenses and preserves one empty slot on the final page", async () => {

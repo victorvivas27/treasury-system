@@ -112,13 +112,6 @@
 .stand-product-card__identity > img { width:1.8rem; height:1.8rem; flex:0 0 auto; object-fit:contain; }
 .stand-product-grid article .stand-product-card__category { justify-self: start; border-radius: var(--radius-pill); padding: 0.16rem 0.45rem; background: var(--color-accent-soft); color: var(--color-accent); font-weight: var(--font-weight-semibold); }
 .stand-product-grid article .stand-product-card__presentation { margin: 0; }
-.stand-panel-skeleton { min-height: 12rem; }
-.stand-panel-skeleton .stand-product-grid .stand-product-card--skeleton { align-content: start; min-height: 145px; overflow: hidden; resize: none; }
-.stand-product-card--skeleton .stand-product-card__heading > .skeleton-block:first-child { min-width: 0; }
-.stand-product-card--skeleton .stand-product-card__heading > .skeleton-block:last-child { flex: 0 0 4.2rem; }
-.stand-product-card--skeleton .stand-product-skeleton__category { border-radius: var(--radius-pill); }
-.stand-panel-skeleton .stand-sales-layout > article { display: grid; align-content: start; gap: var(--space-3); min-height: 14rem; border: 1px solid var(--border-color); border-radius: 0.9rem; padding: var(--space-4); background: var(--color-bg); }
-.stand-panel-skeleton .stand-summary__cards article { display: grid; gap: 0.65rem; }
 .stand-product-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .stand-product-edit { justify-self: start; display: inline-flex; align-items: center; gap: 0.3rem; }
 .stand-product-delete { background: var(--color-error) !important; color: white !important; }

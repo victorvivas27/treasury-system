@@ -81,12 +81,6 @@
 .profile-course-installments .is-pending { color:var(--color-warning); }
 .profile-payment-total { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); padding-top:var(--space-3); border-top:1px solid var(--border-color); font-size:var(--font-small); }
 .profile-payment-total b { color:var(--text-main); font-size:var(--font-size-xl); font-variant-numeric:tabular-nums; }
-.profile-family-skeleton .skeleton-block { display:block; max-width:100%; }
-.profile-badge-skeleton { width:7rem; height:1.4rem; border-radius:var(--radius-pill); }
-.profile-student-message-skeleton { display:grid; gap:var(--space-2); }
-.profile-contribution-skeleton { min-height:70px; }
-.profile-payment-skeleton { display:block; }
-.profile-payment-skeleton > div { display:grid; gap:var(--space-2); }
 .profile-page button:focus-visible, .profile-upload-button:focus-within { outline:2px solid var(--color-accent); outline-offset:3px; }
 .profile-edit-modal { max-height:calc(100dvh - 32px); }
 .profile-edit-modal__identity strong { overflow-wrap:anywhere; }

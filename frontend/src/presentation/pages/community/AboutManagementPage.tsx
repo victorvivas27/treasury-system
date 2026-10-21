@@ -1,3 +1,4 @@
+import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { FiAward, FiBookOpen, FiCompass, FiEdit2, FiEye, FiEyeOff, FiGift, FiHeart,
   FiMusic, FiPlus, FiSave, FiSmile, FiStar, FiSun, FiTarget, FiTrash2, FiUsers,
@@ -56,7 +57,7 @@ export const AboutManagementPage = () => {
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setSaving(true);
     try {
-      if (editingId) await about.update(editingId, form); else await about.create(form);
+      if (editingId) await about.update(editingId, form); else await about.create(form); notifyHomeCommunityChanged();
       setMessage(editingId ? "Contenido actualizado correctamente." : "Contenido creado correctamente.");
       setEditingId(undefined); setForm(emptyForm); await load();
     } catch { setError("No fue posible guardar el contenido. Revisa los campos e intenta nuevamente."); }
@@ -71,7 +72,7 @@ export const AboutManagementPage = () => {
   };
   const remove = async () => {
     if (!deleteItem) return;
-    try { await about.delete(deleteItem.id); setMessage("Contenido eliminado correctamente."); await load(); }
+    try { await about.delete(deleteItem.id); notifyHomeCommunityChanged(); setMessage("Contenido eliminado correctamente."); await load(); }
     catch { setError("No fue posible eliminar el contenido."); }
     finally { setDeleteItem(undefined); }
   };

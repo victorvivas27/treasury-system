@@ -8,25 +8,24 @@ import {
 } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
 import { useSearchParams } from "react-router-dom";
-import type { SchoolEvent, SchoolEventOption } from "@/core/A-domain/entities/treasury/Treasury";
+import type { SchoolEvent } from "@/core/A-domain/entities/treasury/Treasury";
 import type {
   Stand, StandPaymentMethod, StandProduct, StandSale, StandSalePayload, StandSummary,
 } from "@/core/A-domain/entities/stand/Stand";
-import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { StandRepositoryImpl } from "@/core/C-infra/repositories/stand/StandRepositoryImpl";
 import { StandUseCases } from "@/core/B-application/use-cases/stand/StandUseCases";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { standCache, readStandResource } from "./standCache";
 import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { StandSummaryPanel } from "./StandSummaryPanel";
-import { loadStandPanelData, type StandPanelTab } from "./standPanelData";
+import { type StandPanelTab } from "./standPanelData";
 import { printStandSalesReport } from "./standSalesReport";
 import "./StandManagementPage.css";
 
-const eventsRepository = new TreasuryRepositoryImpl();
 const stands = new StandUseCases(new StandRepositoryImpl());
 const money = new Intl.NumberFormat("es-CL", {
   style: "currency", currency: "CLP", maximumFractionDigits: 0,
@@ -71,72 +70,31 @@ const errorMessage = (error: unknown, fallback: string) => {
   return errors ? Object.values(errors).join(" ") : fallback;
 };
 
-const StandWorkspaceSkeleton = ({ readOnly = false }: { readOnly?: boolean }) => <section className="stand-workspace" role="status"
-  aria-label="Cargando eventos y stands">
-  <header className="stand-workspace__header"><div><span>Estado del stand</span>
-    <Skeleton width="11rem" height="1.4rem" /><Skeleton width="16rem" height=".8rem" />
-  </div>{!readOnly && <div className="stand-workspace__actions loading-action-placeholder">
-    <button type="button" disabled>Configurar</button><button type="button" disabled>Eliminar</button>
-  </div>}</header>
-  <div className="stand-page__selector">{Array.from({ length: 3 }, (_, index) =>
-    <Skeleton key={index} height="2.8rem" />)}</div>
-  <Skeleton height="14rem" />
-</section>;
-
-const StandPanelSkeleton = ({ tab }: { tab: Tab }) => <section
-  className={`stand-panel-skeleton stand-panel-skeleton--${tab}`}
-  role="status" aria-label={tab === "products" ? "Cargando productos"
-    : tab === "sales" ? "Cargando ventas" : "Cargando resumen"}>
-  {tab === "products" && <div className="stand-product-grid">
-    {Array.from({ length: 6 }, (_, index) => <article key={index} aria-hidden="true"
-      className="stand-product-card stand-product-card--skeleton">
-      <div className="stand-product-card__main">
-        <div className="stand-product-card__heading">
-          <Skeleton width="58%" height="1rem" />
-          <Skeleton width="4.2rem" height="1.1rem" />
-        </div>
-        <Skeleton className="stand-product-skeleton__category" width="5.5rem" height="1.15rem" />
-        <Skeleton width="72%" height=".7rem" />
-      </div>
-      <Skeleton width="88%" height=".7rem" />
-      <Skeleton width="54%" height=".7rem" />
-    </article>)}
-  </div>}
-  {tab === "sales" && <div className="stand-sales-layout">
-    {Array.from({ length: 2 }, (_, index) => <article key={index} aria-hidden="true">
-      <Skeleton width="46%" height="1rem" />
-      <Skeleton height="2.4rem" />
-      <Skeleton height="2.4rem" />
-      <Skeleton width="62%" height="2.1rem" />
-    </article>)}
-  </div>}
-  {tab === "summary" && <div className="stand-summary__cards">
-    {Array.from({ length: 4 }, (_, index) => <article key={index} aria-hidden="true">
-      <Skeleton width="65%" height=".75rem" />
-      <Skeleton width="82%" height="1.35rem" />
-    </article>)}
-  </div>}
-</section>;
-
 export const StandManagementPage = () => {
   const { user } = useAuth();
   const readOnly = user?.rol === "USER";
   const [searchParams] = useSearchParams();
   const requestedEventId = Number(searchParams.get("eventId"));
+  const cache = useMemo(() => standCache(user?.id, readOnly), [user?.id, readOnly]);
   const [year, setYear] = useState(() => {
     const requestedYear = Number(searchParams.get("year"));
     return Number.isInteger(requestedYear) && requestedYear >= 2026 && requestedYear <= 2035
-      ? requestedYear : new Date().getFullYear();
+      ? requestedYear : cache.selection.year;
   });
-  const [events, setEvents] = useState<Array<SchoolEvent | SchoolEventOption>>([]);
-  const [eventId, setEventId] = useState(0);
-  const [standList, setStandList] = useState<Stand[]>([]);
-  const [selected, setSelected] = useState<Stand>();
-  const [products, setProducts] = useState<StandProduct[]>([]);
-  const [sales, setSales] = useState<StandSale[]>([]);
-  const [summary, setSummary] = useState<StandSummary>();
-  const [tab, setTab] = useState<Tab>(readOnly || searchParams.get("tab") === "summary"
-    ? "summary" : "products");
+  const initialEvents = cache.events(year).getSnapshot().data;
+  const initialEventId = initialEvents?.some(item => item.id === requestedEventId) ? requestedEventId
+    : initialEvents?.some(item => item.id === cache.selection.eventId) ? cache.selection.eventId : initialEvents?.[0]?.id ?? 0;
+  const initialStands = initialEventId ? cache.list(initialEventId).getSnapshot().data : undefined;
+  const initialStand = initialStands?.find(item => item.id === cache.selection.standId) ?? initialStands?.[0];
+  const [tab, setTab] = useState<Tab>(readOnly || searchParams.get("tab") === "summary" ? "summary" : cache.selection.tab);
+  const initialPanel = initialStand ? cache.panel(initialStand.id, tab).getSnapshot().data : undefined;
+  const [events, setEvents] = useState(initialEvents ?? []);
+  const [eventId, setEventId] = useState(initialEventId);
+  const [standList, setStandList] = useState<Stand[]>(initialStands ?? []);
+  const [selected, setSelected] = useState<Stand | undefined>(initialStand);
+  const [products, setProducts] = useState<StandProduct[]>(initialPanel?.products ?? []);
+  const [sales, setSales] = useState<StandSale[]>(initialPanel?.sales ?? []);
+  const [summary, setSummary] = useState<StandSummary | undefined>(initialPanel?.summary);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [closeSummary, setCloseSummary] = useState<StandSummary>();
@@ -145,47 +103,52 @@ export const StandManagementPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [operationalLoading, setOperationalLoading] = useState(false);
-  const [loadedPanelKey, setLoadedPanelKey] = useState<string>();
-  const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
+  const [loadedPanelKey, setLoadedPanelKey] = useState<string | undefined>(initialPanel && initialStand ? `${initialStand.id}:${tab}` : undefined);
+  const [hasLoadedEvents, setHasLoadedEvents] = useState(Boolean(initialEvents));
+  const [loadedStandsEvent, setLoadedStandsEvent] = useState(initialStands ? initialEventId : 0);
+  const [loadError, setLoadError] = useState("");
+  const eventsRequest = useRef(0);
+  const standsRequest = useRef(0);
   const [feedback, setFeedback] = useState("");
   const [modalAnchor, setModalAnchor] = useState<{ top: number; left: number }>();
   const operationalRequest = useRef(0);
 
-  const loadEvents = useCallback(async () => {
+  const loadEvents = useCallback(async (force = false) => {
+    const request = ++eventsRequest.current;
     setLoading(true);
+    setLoadError("");
     try {
-      const data = readOnly
-        ? await eventsRepository.listEventOptions(year)
-        : await eventsRepository.listEvents(year);
-      const orderedEvents = [...data].sort((a, b) =>
-        a.eventDate.localeCompare(b.eventDate) || a.id - b.id);
+      const orderedEvents = await readStandResource(cache.events(year), force);
+      if (request !== eventsRequest.current) return;
+      const data = orderedEvents;
       setEvents(orderedEvents);
       setEventId(current => data.some(item => item.id === current) ? current
         : (orderedEvents.find(item => item.id === requestedEventId)?.id ?? orderedEvents[0]?.id ?? 0));
     } catch (error) {
-      setFeedback(errorMessage(error, "No fue posible cargar los eventos."));
+      if (request === eventsRequest.current) setLoadError(errorMessage(error, "No fue posible cargar los eventos."));
     } finally {
-      setHasLoadedEvents(true);
-      setLoading(false);
+      if (request === eventsRequest.current) { setHasLoadedEvents(true); setLoading(false); }
     }
-  }, [year, readOnly, requestedEventId]);
+  }, [year, cache, requestedEventId]);
 
-  const loadStands = useCallback(async () => {
+  const loadStands = useCallback(async (force = false) => {
+    const request = ++standsRequest.current;
     if (!eventId) {
       setStandList([]);
       setSelected(undefined);
       return;
     }
     try {
-      const data = await stands.list(eventId);
+      const data = await readStandResource(cache.list(eventId), force);
+      if (request !== standsRequest.current) return;
       setStandList(data);
       setSelected(current => data.find(item => item.id === current?.id) ?? data[0]);
     } catch (error) {
-      setFeedback(errorMessage(error, "No fue posible cargar los stands."));
-    }
-  }, [eventId]);
+      if (request === standsRequest.current) setLoadError(errorMessage(error, "No fue posible cargar los stands."));
+    } finally { if (request === standsRequest.current) setLoadedStandsEvent(eventId); }
+  }, [eventId, cache]);
 
-  const loadOperationalData = useCallback(async () => {
+  const loadOperationalData = useCallback(async (force = false) => {
     const request = ++operationalRequest.current;
     if (!selected) {
       setLoadedPanelKey(undefined);
@@ -196,7 +159,7 @@ export const StandManagementPage = () => {
     const panelKey = `${selected.id}:${panelTab}`;
     setOperationalLoading(true);
     try {
-      const data = await loadStandPanelData(stands, selected.id, panelTab, readOnly);
+      const data = await readStandResource(cache.panel(selected.id, panelTab), force);
       if (request !== operationalRequest.current) return;
       if (data.products) setProducts(data.products);
       if (data.sales) setSales(data.sales);
@@ -204,15 +167,16 @@ export const StandManagementPage = () => {
       setLoadedPanelKey(panelKey);
     } catch (error) {
       if (request !== operationalRequest.current) return;
-      setFeedback(errorMessage(error, "No fue posible actualizar el stand."));
+      setLoadError(errorMessage(error, "No fue posible actualizar el stand."));
     } finally {
       if (request === operationalRequest.current) setOperationalLoading(false);
     }
-  }, [selected?.id, readOnly, tab]);
+  }, [selected?.id, readOnly, tab, cache]);
 
-  useEffect(() => { void loadEvents(); }, [loadEvents]);
-  useEffect(() => { void loadStands(); }, [loadStands]);
-  useEffect(() => { void loadOperationalData(); }, [loadOperationalData]);
+  useEffect(() => { void loadEvents(); return () => { eventsRequest.current += 1; }; }, [loadEvents]);
+  useEffect(() => { void loadStands(); return () => { standsRequest.current += 1; }; }, [loadStands]);
+  useEffect(() => { void loadOperationalData(); return () => { operationalRequest.current += 1; }; }, [loadOperationalData]);
+  useEffect(() => { Object.assign(cache.selection, { year, eventId, standId: selected?.id, tab }); }, [cache, year, eventId, selected?.id, tab]);
   useEffect(() => {
     if (!feedback) return;
     const timer = window.setTimeout(() => setFeedback(""), 3500);
@@ -231,7 +195,7 @@ export const StandManagementPage = () => {
       const updated = await stands[action](selected.id);
       updateSelected(updated, action === "open" ? "Jornada abierta."
         : action === "close" ? "Jornada cerrada." : "Jornada reabierta.");
-      await loadOperationalData();
+      await loadOperationalData(true);
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible cambiar el estado."));
     }
@@ -252,7 +216,7 @@ export const StandManagementPage = () => {
     try {
       const updated = await stands.close(selected.id);
       updateSelected(updated, "Jornada cerrada y recaudación enviada al evento.");
-      await loadOperationalData();
+      await loadOperationalData(true);
       setCloseSummary(undefined);
     } catch (error) {
       setFeedback(errorMessage(error, "No fue posible cerrar la jornada."));
@@ -268,7 +232,7 @@ export const StandManagementPage = () => {
       await stands.delete(standToDelete.id);
       setStandToDelete(undefined);
       setSelected(undefined);
-      await loadStands();
+      await loadStands(true);
       setFeedback("Stand eliminado. Ahora puedes eliminar el evento si no tiene otros stands.");
     } catch (error) {
       setFeedback(errorMessage(error,
@@ -280,7 +244,11 @@ export const StandManagementPage = () => {
 
   const activeEvent = events.find(item => item.id === eventId);
 
-  return <main className={`stand-page${readOnly ? " stand-page--summary" : ""}`}>
+  const preparing = !loadError && ((!hasLoadedEvents) || (loading && !cache.events(year).getSnapshot().data) || (eventId !== 0 && loadedStandsEvent !== eventId)
+    || (selected && loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}`));
+  return <>
+    {preparing && <LoadingState message="Preparando el stand" />}
+    <main inert={Boolean(preparing)} aria-busy={Boolean(preparing)} className={`stand-page${readOnly ? " stand-page--summary" : ""}`}>
     <header className="stand-page__header">
       <div><h1>{readOnly ? "Resumen de stands" : "Ventas del stand"}</h1>
         <p>{readOnly ? "Consulta las ventas y la recaudación de cada stand."
@@ -299,7 +267,7 @@ export const StandManagementPage = () => {
       </div>
       <fieldset className="stand-event-picker">
         <legend>Elegí un evento</legend>
-        {loading ? <p role="status">Cargando eventos…</p> : events.length === 0
+        {loading && !hasLoadedEvents ? <p role="status">Cargando eventos…</p> : events.length === 0
           ? <p>No hay eventos en {year}.</p>
           : <div className="stand-event-choices">
             {events.map(item => <label className={`stand-event-choice${eventId === item.id ? " is-selected" : ""}`}
@@ -330,8 +298,8 @@ export const StandManagementPage = () => {
 
     </section>
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
-    {loading && !hasLoadedEvents ? <StandWorkspaceSkeleton readOnly={readOnly} />
-      : events.length === 0 ? <section className="stand-page__empty">
+    {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={async () => { setLoadError(""); await loadEvents(true); await loadStands(true); await loadOperationalData(true); }}>Reintentar</button></div>}
+    {!preparing && !loadError && events.length === 0 ? <section className="stand-page__empty">
         <FiAlertTriangle /><h2>{readOnly ? "No hay eventos para consultar" : "Primero crea un evento"}</h2>
         <p>{readOnly ? "Cuando exista un evento con stands, su resumen aparecerá aquí."
           : "Todo stand debe estar asociado a un evento existente."}</p>
@@ -396,8 +364,8 @@ export const StandManagementPage = () => {
                 setCreating(true);
               }}><FiPlus /> Crear stand</button>
               <button type="button" className="secondary" onClick={async () => {
-                await loadStands();
-                await loadOperationalData();
+                await loadStands(true);
+                await loadOperationalData(true);
               }} disabled={operationalLoading}><FiRefreshCw /> Recargar</button>
               {selected.status !== "CLOSED" &&
                 <button className="secondary" onClick={click => {
@@ -434,12 +402,11 @@ export const StandManagementPage = () => {
             <button className={tab === "summary" ? "is-active" : ""}
               onClick={() => setTab("summary")}><FiDollarSign /> Resumen</button>
           </nav>}
-          {loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}`
-            ? <StandPanelSkeleton tab={readOnly ? "summary" : tab} /> : <>
+          {loadedPanelKey === `${selected.id}:${readOnly ? "summary" : tab}` && <>
             {!readOnly && tab === "products" && <ProductsPanel stand={selected} products={products}
-              onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
+              onSaved={async message => { await loadOperationalData(true); setFeedback(message); }} />}
             {!readOnly && tab === "sales" && <SalesPanel stand={selected} products={products} sales={sales}
-              onSaved={async message => { await loadOperationalData(); setFeedback(message); }} />}
+              onSaved={async message => { await loadOperationalData(true); setFeedback(message); }} />}
             {(readOnly || tab === "summary") && summary && <StandSummaryPanel summary={summary} />}
           </>}
         </section>}
@@ -486,7 +453,7 @@ export const StandManagementPage = () => {
       event={events.find(item => item.id === eventId) as SchoolEvent | undefined}
       anchor={modalAnchor} onClose={() => { setCreating(false); setModalAnchor(undefined); }}
       onSaved={async value => {
-        setCreating(false); await loadStands(); setSelected(value); setFeedback("Stand creado.");
+        setCreating(false); await loadStands(true); setSelected(value); setFeedback("Stand creado.");
       }} />}
     {!readOnly && editing && selected && <StandForm eventId={eventId}
       event={events.find(item => item.id === eventId) as SchoolEvent | undefined} stand={selected}
@@ -494,7 +461,7 @@ export const StandManagementPage = () => {
       onSaved={async value => {
         setEditing(false); updateSelected(value, "Configuración actualizada.");
       }} />}
-  </main>;
+  </main></>;
 };
 
 const ProductsPanel = ({ stand, products, onSaved }: {

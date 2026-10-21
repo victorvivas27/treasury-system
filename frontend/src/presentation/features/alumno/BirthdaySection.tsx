@@ -5,7 +5,6 @@ import "./style/BirthdaySection.css";
 
 interface BirthdaySectionProps {
   alumnos: Alumno[];
-  loading?: boolean;
   today?: Date;
   maxItems?: number;
 }
@@ -60,7 +59,7 @@ const getTone = (daysUntil: number, index: number) => {
   return `tone-${(index % 10) + 1}`;
 };
 
-export const BirthdaySection = ({ alumnos, loading = false, today = new Date(), maxItems = 8 }: BirthdaySectionProps) => {
+export const BirthdaySection = ({ alumnos, today = new Date(), maxItems = 8 }: BirthdaySectionProps) => {
   const [selectedBirthday, setSelectedBirthday] = useState<BirthdayStudent | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -92,17 +91,7 @@ export const BirthdaySection = ({ alumnos, loading = false, today = new Date(), 
         <FiGift aria-hidden="true" />
       </header>
 
-      {loading ? (
-        <div className="birthday-section__grid" aria-label="Cargando cumpleaños">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <article className="birthday-card birthday-card--loading" key={index}>
-              <div />
-              <span />
-              <strong />
-            </article>
-          ))}
-        </div>
-      ) : birthdays.length > 0 ? (
+      {birthdays.length > 0 ? (
         <div className="birthday-section__grid">
           {birthdays.map((birthday, index) => {
             const { alumno, age, daysUntil, dateLabel } = birthday;

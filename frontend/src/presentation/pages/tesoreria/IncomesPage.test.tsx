@@ -2,9 +2,10 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IncomesPage } from "./IncomesPage";
+import { clearIncomesCache } from "./incomesCache";
 
 const { repository, account } = vi.hoisted(() => ({
-  repository: { listIncomes: vi.fn(), dashboardOverview: vi.fn(), getManagedCourse: vi.fn(), listIncomeDocuments: vi.fn(), uploadIncomeDocuments: vi.fn() },
+  repository: { listIncomes: vi.fn(), dashboardOverview: vi.fn(), getManagedCourse: vi.fn(), listIncomeDocuments: vi.fn(), uploadIncomeDocuments: vi.fn(), createIncome: vi.fn() },
   account: { rol: "ADMIN" },
 }));
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: () => ({ user: account }) }));
@@ -13,6 +14,7 @@ vi.mock("@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl", () => ({ 
 describe("IncomesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearIncomesCache();
     account.rol = "ADMIN";
     repository.getManagedCourse.mockResolvedValue("1A");
     repository.listIncomeDocuments.mockResolvedValue([]);
@@ -31,6 +33,47 @@ describe("IncomesPage", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Tipo de ingreso" }), { target: { value: "OTHER" } });
     expect(screen.getByText("Rifa del curso")).toBeInTheDocument();
     expect(screen.queryByText("Cuota de Sofía")).not.toBeInTheDocument();
+  });
+
+  it("uses the shared loader and reuses data and selected view after remount", async () => {
+    const first = render(<MemoryRouter><IncomesPage /></MemoryRouter>);
+    expect(screen.getByRole("status", { name: "Preparando los ingresos" })).toBeInTheDocument();
+    expect(document.querySelector(".skeleton-block")).toBeNull();
+    await screen.findByText("Rifa del curso");
+    fireEvent.change(screen.getByRole("combobox", { name: "Tipo de ingreso" }), { target: { value: "OTHER" } });
+    first.unmount();
+    render(<MemoryRouter><IncomesPage /></MemoryRouter>);
+    expect(screen.getByText("Rifa del curso")).toBeInTheDocument();
+    expect(screen.queryByText("Cuota de Sofía")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Preparando los ingresos" })).not.toBeInTheDocument();
+    expect(repository.listIncomes).toHaveBeenCalledTimes(1);
+    expect(repository.dashboardOverview).toHaveBeenCalledTimes(1);
+    expect(repository.getManagedCourse).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers retry after a failed load instead of displaying an empty result", async () => {
+    repository.listIncomes.mockRejectedValueOnce(new Error("offline"));
+    render(<MemoryRouter><IncomesPage /></MemoryRouter>);
+    await screen.findByRole("alert");
+    expect(screen.queryByText("No hay ingresos para los filtros seleccionados.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    await screen.findByText("Rifa del curso");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("refreshes the list after registering an income", async () => {
+    render(<MemoryRouter><IncomesPage /></MemoryRouter>);
+    await screen.findByText("Rifa del curso");
+    const existing = await repository.listIncomes();
+    repository.createIncome.mockResolvedValue({});
+    repository.listIncomes.mockResolvedValue([...existing, { ...existing[0], id: 3, description: "Donación nueva" }]);
+    fireEvent.click(screen.getByRole("button", { name: "Registrar ingreso" }));
+    fireEvent.change(screen.getByLabelText("Descripción del ingreso *"), { target: { value: "Donación nueva" } });
+    fireEvent.change(screen.getByLabelText("Monto *"), { target: { value: "5000" } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar ingreso" }));
+    await screen.findByText("Donación nueva");
+    expect(repository.createIncome).toHaveBeenCalledWith(expect.objectContaining({ description: "Donación nueva", amount: 5000 }));
+    expect(repository.dashboardOverview).toHaveBeenCalledTimes(2);
   });
 
   it("locks background scrolling while filtering and restores it on Escape", async () => {

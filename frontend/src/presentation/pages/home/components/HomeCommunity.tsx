@@ -1,17 +1,11 @@
-import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { FiAward, FiBookOpen, FiCamera, FiChevronLeft, FiChevronRight, FiCompass, FiGift, FiHeart, FiMusic,
   FiSmile, FiStar, FiSun, FiTarget, FiUsers } from "react-icons/fi";
-import type { AboutIcon, AboutSection } from "@/core/A-domain/entities/community/AboutSection";
-import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
-import type { BoardMember } from "@/core/A-domain/entities/community/BoardMember";
-import { AboutSectionUseCases } from "@/core/B-application/use-cases/community/AboutSectionUseCases";
-import { AboutSectionRepositoryImpl } from "@/core/C-infra/repositories/community/AboutSectionRepositoryImpl";
-import { coursePhotos } from "@/core/C-infra/repositories/community/CoursePhotoRepository";
-import { courseBoard } from "@/core/C-infra/repositories/community/CourseBoardRepository";
+import type { AboutIcon } from "@/core/A-domain/entities/community/AboutSection";
 import { useTheme } from "@/presentation/context/ThemeContext";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeCommunity.css";
+import { homeCommunityCache } from "../hooks/homeCommunityCache";
 
 const boardLabels = { PRESIDENTE: "Presidente/a", VICEPRESIDENTE: "Vicepresidente/a",
   SECRETARIA: "Secretario/a", TESORERO: "Tesorero/a", PASTORAL: "Pastoral",
@@ -22,7 +16,7 @@ const boardSlots = [
   { role: "PASTORAL", position: 1 }, { role: "PASTORAL", position: 2 },
   { role: "COORDINADOR_DEPORTIVO", position: 1 },
 ] as const;
-const about = new AboutSectionUseCases(new AboutSectionRepositoryImpl());
+
 const icons: Record<AboutIcon, typeof FiUsers> = {
   USERS: FiUsers, HEART: FiHeart, STAR: FiStar, BOOK: FiBookOpen,
   TARGET: FiTarget, SMILE: FiSmile,
@@ -101,11 +95,8 @@ const CommunityIcon = ({ file, name, speed = .85, fallback = null }: {
 };
 
 export const HomeCommunity = () => {
-  const [loading, setLoading] = useState(true);
-  const [photosLoading, setPhotosLoading] = useState(true);
-  const [sections, setSections] = useState<AboutSection[]>([]);
-  const [photos, setPhotos] = useState<(CoursePhoto & { url: string; contained: boolean })[]>([]);
-  const [board, setBoard] = useState<BoardMember[]>([]);
+  const { sections, photos, board } = useSyncExternalStore(
+    homeCommunityCache.subscribe, homeCommunityCache.getSnapshot);
   const [activePhoto, setActivePhoto] = useState(0);
   const dragStart = useRef<number | undefined>(undefined);
   const dragged = useRef(false);
@@ -116,39 +107,6 @@ export const HomeCommunity = () => {
   const moveBoard = (direction: number) => boardTrackRef.current?.scrollBy({
     left: direction * boardTrackRef.current.clientWidth * .78, behavior: "smooth",
   });
-  useEffect(() => {
-    let active = true;
-    const urls: string[] = [];
-    const load = async () => {
-      const [sectionResult, photoResult, boardResult] = await Promise.allSettled([
-        about.publicList(), coursePhotos.list(), courseBoard.list(),
-      ]);
-      if (!active) return;
-      setSections(sectionResult.status === "fulfilled" ? sectionResult.value : []);
-      setBoard(boardResult.status === "fulfilled" ? boardResult.value : []);
-      setLoading(false);
-      const loadedPhotos = photoResult.status === "fulfilled" ? photoResult.value : [];
-      const images = await Promise.allSettled(loadedPhotos.map(async photo => {
-        const url = await coursePhotos.loadImageUrl(photo);
-        if (!active) { URL.revokeObjectURL(url); return null; }
-        urls.push(url);
-        // Decode before displaying the gallery to avoid blank image flashes.
-        const contained = await new Promise<boolean>((resolve, reject) => {
-          const image = new Image();
-          image.onload = () => resolve(image.naturalWidth / image.naturalHeight < 1.1);
-          image.onerror = () => reject(new Error("Photo unavailable"));
-          image.src = url;
-        });
-        return { ...photo, url, contained };
-      }));
-      if (!active) return;
-      setPhotos(images.flatMap(result =>
-        result.status === "fulfilled" && result.value ? [result.value] : []));
-      setPhotosLoading(false);
-    };
-    void load();
-    return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)); };
-  }, []);
   useEffect(() => { setActivePhoto(current => Math.min(current, Math.max(0, photos.length - 1))); }, [photos.length]);
   useEffect(() => {
     if (photos.length < 2 || carouselPaused) return;
@@ -168,7 +126,7 @@ export const HomeCommunity = () => {
     return (activePhoto - index + photos.length) % photos.length === 1 ? "is-previous" : "";
   };
   return (
-  <div className="home-community" aria-busy={loading || photosLoading}>
+  <div className="home-community">
     <section id="sobre-nosotros" className="home-community__about" data-home-reveal
       data-home-scroll-repeat data-home-community-repeat>
       <header className="home-community__title-banner">
@@ -179,10 +137,7 @@ export const HomeCommunity = () => {
         </div>
       </header>
       <div className="home-community__about-grid">
-        {loading ? <div className="home-community__loading" role="status" aria-label="Cargando comunidad">
-          <Skeleton width="55%" height="1.5rem" />
-          <Skeleton height="1rem" /><Skeleton width="85%" height="1rem" />
-        </div> : sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured"
+        {sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured"
           data-card-number="01">
           <span className="home-community__card-icon"><FiUsers /></span><div><h2>Una comunidad organizada y conectada</h2>
           <p>Este espacio reúne la información del curso y facilita una comunicación clara entre
@@ -213,7 +168,7 @@ export const HomeCommunity = () => {
         <div><h2>Nuestros momentos</h2>
           <p>Historias compartidas que merecen quedarse con nosotros.</p></div>
       </header>
-      {photosLoading ? <div className="home-community__photo-placeholder" aria-label="Cargando fotos"><Skeleton width="100%" height="100%" /></div> : photos.length > 0 ? <div className="home-community__carousel" role="region"
+      {photos.length > 0 ? <div className="home-community__carousel" role="region"
         aria-roledescription="carrusel" aria-label="Nuestros momentos" tabIndex={0}
         onMouseEnter={() => setCarouselPaused(true)}
         onMouseLeave={event => setCarouselPaused(event.currentTarget.contains(document.activeElement))}
@@ -261,14 +216,12 @@ export const HomeCommunity = () => {
               aria-label="Ver foto siguiente" onClick={() => movePhoto(1)}><FiChevronRight /></button>
           </div>}
         </div>
-        {photos.length > 1 && <>
-          <div className="home-community__carousel-dots" aria-label="Seleccionar fotografía">
-            {photos.map((photo, index) => <button key={photo.id} type="button"
+          <div className="home-community__carousel-dots" aria-label={photos.length > 1 ? "Seleccionar fotografía" : undefined}>
+            {photos.length > 1 && photos.map((photo, index) => <button key={photo.id} type="button"
               className={index === activePhoto ? "is-active" : ""}
               aria-label={`Ver foto ${index + 1}`} aria-current={index === activePhoto ? "true" : undefined}
               onClick={() => showPhoto(index)} />)}
           </div>
-        </>}
       </div> : <div className="home-community__photo-placeholder" role="img"
           aria-label="Galería de fotos del curso pendiente de publicación">
           <FiCamera aria-hidden="true" /><span>Galería del curso</span>

@@ -1,3 +1,4 @@
+import { mercadoPagoAvailability } from "./mercadoPagoAvailability";
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios';
@@ -32,6 +33,7 @@ function openPanel(query = '', admin = false) {
 }
 
 beforeEach(() => {
+  mercadoPagoAvailability.clear();
   requests = [];
   reload.mockReset().mockResolvedValue(undefined);
   clearAccessToken();
