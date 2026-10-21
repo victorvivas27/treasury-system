@@ -46,7 +46,7 @@ export const FamiliaPage: FC = () => {
     try {
       window.sessionStorage.setItem(FAMILIES_RETURN_PAGE_KEY, String(currentPage));
     } catch {
-      undefined;
+      // Continue editing when session storage is unavailable.
     }
     navigate(`/family/edit/${id}`);
   };

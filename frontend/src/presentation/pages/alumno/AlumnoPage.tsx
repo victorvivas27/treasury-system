@@ -49,7 +49,7 @@ export const AlumnoPage: FC = () => {
     try {
       window.sessionStorage.setItem(STUDENTS_RETURN_PAGE_KEY, String(currentPage));
     } catch {
-      undefined;
+      // Continue editing when session storage is unavailable.
     }
     navigate(`/students/edit/${codigo}`);
   };

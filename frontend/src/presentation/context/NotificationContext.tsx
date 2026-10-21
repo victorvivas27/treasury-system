@@ -67,7 +67,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     try {
       setUnreadCount(await repository.unreadCount());
     } catch {
-      undefined;
+      // Keep the last known unread count if the refresh fails.
     } finally {
       unreadCountLoading.current = false;
     }
