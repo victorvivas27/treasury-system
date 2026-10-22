@@ -2,6 +2,11 @@ name: 02-Frontend CI
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Optional commit, tag or branch to validate
+        required: false
+        type: string
   workflow_call:
     inputs:
       ref:
@@ -15,6 +20,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: frontend-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -36,14 +42,22 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
 
+      - name: Reuse successful validation for identical inputs
+        id: validation
+        uses: ./.github/actions/reuse-validation
+        with:
+          suite: frontend
+
       # pnpm debe instalarse antes de configurar el caché de setup-node.
       - name: Install pnpm
+        if: steps.validation.outputs.reused != 'true'
         uses: pnpm/action-setup@v6
         with:
           version: 11.5.0
           run_install: false
 
       - name: Setup Node.js
+        if: steps.validation.outputs.reused != 'true'
         uses: actions/setup-node@v7
         with:
           node-version: "22"
@@ -51,27 +65,32 @@ jobs:
           cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Show versions
+        if: steps.validation.outputs.reused != 'true'
         run: |
           node --version
           pnpm --version
 
       - name: Install dependencies
+        if: steps.validation.outputs.reused != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Lint
+        if: steps.validation.outputs.reused != 'true'
         run: pnpm run lint
 
       - name: Run tests with coverage
+        if: steps.validation.outputs.reused != 'true'
         run: pnpm run test:coverage
 
       - name: Build
+        if: steps.validation.outputs.reused != 'true'
         run: pnpm run build
 
       - name: Upload coverage report
-        if: always()
+        if: steps.validation.outputs.reused != 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: frontend-coverage-report-${{ github.run_id }}
-          path: frontend/coverage
-          if-no-files-found: warn
-          retention-days: 1
+          name: frontend-validation-${{ steps.validation.outputs.key }}
+          path: frontend/coverage/combined
+          if-no-files-found: error
+          retention-days: 14

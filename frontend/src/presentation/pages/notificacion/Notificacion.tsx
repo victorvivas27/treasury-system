@@ -41,6 +41,7 @@ const AdminNotificationCenter = () => {
   const { apoderados, loading, error, currentPage, nextPage, prevPage, hasPrevPage,
     isLastPage, search, setSearch, retry } = useNotificationRecipients(recipientsOpen);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedNames, setSelectedNames] = useState<Map<number, string>>(new Map());
   const [selectAll, setSelectAll] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [sending, setSending] = useState(false);
@@ -80,9 +81,14 @@ const AdminNotificationCenter = () => {
     window.addEventListener("notification-realtime-received", refreshSent);
     return () => window.removeEventListener("notification-realtime-received", refreshSent);
   }, [loadSent]);
-  const toggle = (id: number, checked: boolean) => setSelectedIds(current => {
+  const toggle = (id: number, name: string, checked: boolean) => {
+    setSelectedNames(current => {
+      const next = new Map(current); if (checked) next.set(id, name); else next.delete(id); return next;
+    });
+    setSelectedIds(current => {
     const next = new Set(current); if (checked) next.add(id); else next.delete(id); return next;
-  });
+    });
+  };
   const send = async () => {
     if (!form.message.trim() || (!selectAll && !selectedIds.size)) return;
     setSending(true);
@@ -91,6 +97,7 @@ const AdminNotificationCenter = () => {
         title: "Mensaje de Tesorería", message: form.message.trim(), recipientIds: [...selectedIds],
         sendToAll: selectAll });
       setComposerOpen(false); setSelectedIds(new Set()); setSelectAll(false);
+      setSelectedNames(new Map());
       setForm({ message: "", type: "INFO" });
       await loadSent();
       setAlert({ open: true, message: `Notificación enviada a ${count} apoderado(s).`, type: "success" });
@@ -129,7 +136,7 @@ const AdminNotificationCenter = () => {
       <div className="notification-recipient-content">
       <header className="notification-recipient-toolbar">
         <label><input type="checkbox" checked={selectAll} onChange={event => {
-          setSelectAll(event.target.checked); if (event.target.checked) setSelectedIds(new Set());
+          setSelectAll(event.target.checked); if (event.target.checked) { setSelectedIds(new Set()); setSelectedNames(new Map()); }
         }} /> Seleccionar todos los apoderados</label>
         <input type="search" value={search} placeholder="Buscar apoderado" aria-label="Buscar apoderado"
           onChange={event => setSearch(event.target.value)} />
@@ -143,7 +150,7 @@ const AdminNotificationCenter = () => {
           <input type="checkbox" disabled={selectAll}
             aria-label={`Seleccionar a ${apoderado.nombre}`}
             checked={selectAll || selectedIds.has(apoderado.apoderadoId)}
-            onChange={event => toggle(apoderado.apoderadoId, event.target.checked)} />
+            onChange={event => toggle(apoderado.apoderadoId, apoderado.nombre, event.target.checked)} />
           <span><strong>{apoderado.nombre}</strong></span>
           <em className={`guardian-access guardian-access--${(apoderado.accessStatus ?? "SIN_ACCESO").toLowerCase()}`}>
             {apoderado.accessStatus === "ACTIVO" ? "Activo" : apoderado.accessStatus === "INVITACION_PENDIENTE"
@@ -190,18 +197,20 @@ const AdminNotificationCenter = () => {
               <UserAvatar fallbackName={activeGroup.name}
                 user={{ nombre: activeGroup.name, profileImageType: activeGroup.profileImageType, profileImageUrl: activeGroup.profileImageUrl }}
                 customImageUserId={activeGroup.userId} />
-              <div><strong>{activeGroup.name}</strong><small>{activeGroup.email}</small></div>
+              <div><strong>Conversación con {activeGroup.name}</strong><small>Apoderado · {activeGroup.email}</small></div>
             </header>
             <NotificationConversation key={activeGroup.userId}
               deliveryId={activeGroup.messages[activeGroup.messages.length - 1].deliveryId}
               deliveryIds={activeGroup.messages.map(item => item.deliveryId)}
-              repository={repository} isAdmin initialScrollToBottom
+              repository={repository} isAdmin initialScrollToBottom recipientName={activeGroup.name}
             notificationItems={activeGroup.messages.map(({
               notification: item, read }) => ({ id: `notification-${item.id}`,
               createdAt: item.createdAt, content: <article
               className={`sent-notification chat-bubble chat-bubble--outgoing sent-notification--${
                 item.type.toLowerCase()}`}>
               <header className="sent-notification__message-meta">
+                <strong className="notification-message-author"><UserAvatar className="notification-message-avatar"
+                  user={auth?.user ?? null} /><span>Tú <small>· Tesorería</small></span></strong>
                 <MessageReadStatus read={read} />
                 <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("es-CL", {
                   day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit",
@@ -225,12 +234,17 @@ const AdminNotificationCenter = () => {
     </section>
     <ModalConfirm isOpen={composerOpen} title="Nueva notificación"
       containerClassName="notification-compose-modal"
-      message={selectAll ? "Se enviará a todos los apoderados con acceso."
-        : `${selectedIds.size} destinatario(s) seleccionado(s).`}
+      message={selectAll ? "Enviar a todos los apoderados con acceso."
+        : selectedIds.size === 1 ? `Enviar a ${[...selectedNames.values()][0]}.`
+          : `Enviar a ${selectedIds.size} apoderados.`}
       confirmLabel="Enviar" isLoading={sending} compact
       confirmIcon={<FiSend />}
       confirmDisabled={!form.message.trim()}
       onCancel={() => setComposerOpen(false)} onConfirm={() => void send()}>
+      {!selectAll && selectedIds.size > 1 && <details className="notification-compose-recipients">
+        <summary>Ver destinatarios ({selectedIds.size})</summary>
+        <ul>{[...selectedNames].map(([id, name]) => <li key={id}>{name}</li>)}</ul>
+      </details>}
       <div className="notification-form">
         <label><span className="notification-form__field-heading"><span>Mensaje</span>
           <small aria-live="polite">{form.message.length}/2000</small></span>
@@ -264,6 +278,7 @@ const GuardianInbox = () => {
   const firstMessageRef = useRef<HTMLTextAreaElement>(null);
   const repository = useMemo(() => new NotificationRepositoryImpl(), []);
   const orderedNotifications = useMemo(() => [...notifications].reverse(), [notifications]);
+  const recipientName = orderedNotifications[orderedNotifications.length - 1]?.senderName || treasuryContact?.name || "Tesorería";
   useEffect(() => {
     if (!loading && unreadCount > 0 && document.visibilityState === "visible") {
       void markAllRead().catch(() => setStartError("No fue posible actualizar la lectura de los mensajes."));
@@ -311,17 +326,18 @@ const GuardianInbox = () => {
           </div>
         </section>
         <section className="notifications-empty-conversation__chat-section">
-        <h2>Conversación</h2>
+        <h2>Conversación con {recipientName}</h2>
         <p className="notifications-empty-conversation__state">Aún no hay mensajes con Tesorería.</p>
         {contact.error && <div role="alert" className="notification-conversation__error">No fue posible cargar el contacto de Tesorería.<button type="button" onClick={() => void contactResource.load(true)}>Reintentar contacto</button></div>}
         {startError && <p className="notification-conversation__error">{startError}</p>}
         <form className="notification-reply-form" onSubmit={event => {
           event.preventDefault(); void startConversation();
         }}>
+          <span className="notification-composer-recipient">Enviar a <strong>{recipientName}</strong> · Tesorería del curso</span>
           <textarea ref={firstMessageRef} maxLength={2000} value={firstMessage}
             onChange={event => setFirstMessage(event.target.value)}
             placeholder="Escribe un mensaje a Tesorería" aria-label="Mensaje para Tesorería" />
-          <button type="submit" disabled={!firstMessage.trim() || startingConversation}>
+          <button type="submit" aria-label={`Enviar a ${recipientName}`} disabled={!firstMessage.trim() || startingConversation}>
             <FiSend /> {startingConversation ? "Enviando…" : "Enviar"}
           </button>
         </form>
@@ -331,7 +347,7 @@ const GuardianInbox = () => {
         key={orderedNotifications[orderedNotifications.length - 1].id}
         deliveryId={orderedNotifications[orderedNotifications.length - 1].id}
         deliveryIds={orderedNotifications.map(item => item.id)}
-        repository={repository} isAdmin={false} initialScrollToBottom
+        repository={repository} isAdmin={false} initialScrollToBottom recipientName={recipientName}
         notificationItems={orderedNotifications.map(item => ({ id: `notification-${item.id}`,
           createdAt: item.createdAt, content: <article
         className={`notification-card chat-bubble chat-bubble--incoming notification-card--${item.type.toLowerCase()} ${
@@ -339,6 +355,10 @@ const GuardianInbox = () => {
         onClick={() => !item.read && void markRead(item.id).catch(() => setStartError("No fue posible marcar el mensaje como leído."))}>
         <span className="notification-card__icon"><IoNotificationsOutline aria-hidden="true" /></span>
         <div className="notification-card__content">
+          <strong className="notification-message-author"><UserAvatar className="notification-message-avatar"
+            user={{ nombre: item.senderName || "Tesorería", profileImageType: item.senderProfileImageType,
+              profileImageUrl: item.senderProfileImageUrl }} customImageUserId={item.senderId} />
+            <span>{item.senderName || "Tesorería"}<small> · Tesorería</small></span></strong>
           <header><span className="notification-card__type">{labels[item.type]}
             <span className={`notification-card__read-status ${item.read ? "is-read" : ""}`}>
               {!item.read && <button type="button" className="notification-card__read-action"

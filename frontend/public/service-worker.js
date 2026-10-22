@@ -4,6 +4,10 @@ const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
   '/icono-tesoreria.png',
+  '/icons/icono-tesoreria-dark-180.png',
+  '/icons/icono-tesoreria-dark-192.png',
+  '/icons/icono-tesoreria-dark-512.png',
+  '/icons/icono-tesoreria-dark-maskable-512.png',
 ]
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image'])
 

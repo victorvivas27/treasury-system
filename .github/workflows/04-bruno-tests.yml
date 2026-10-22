@@ -2,6 +2,11 @@ name: 04-Bruno API Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Optional commit, tag or branch to validate
+        required: false
+        type: string
   workflow_call:
     inputs:
       ref:
@@ -15,6 +20,7 @@ on:
       - ".github/workflows/04-bruno-tests.yml"
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: bruno-api-tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -55,7 +61,14 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
 
+      - name: Reuse successful validation for identical inputs
+        id: validation
+        uses: ./.github/actions/reuse-validation
+        with:
+          suite: bruno
+
       - name: Setup JDK 17
+        if: steps.validation.outputs.reused != 'true'
         uses: actions/setup-java@v6
         with:
           java-version: "17"
@@ -63,23 +76,27 @@ jobs:
           cache: gradle
 
       - name: Setup pnpm
+        if: steps.validation.outputs.reused != 'true'
         uses: pnpm/action-setup@v6
         with:
           version: 11.5.0
           run_install: false
 
       - name: Setup Node.js
+        if: steps.validation.outputs.reused != 'true'
         uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Build backend
+        if: steps.validation.outputs.reused != 'true'
         working-directory: backend
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon bootJar
 
       - name: Start backend
+        if: steps.validation.outputs.reused != 'true'
         working-directory: backend
         run: |
           java -jar build/libs/*.jar > backend.log 2>&1 &
@@ -109,6 +126,7 @@ jobs:
           exit 1
 
       - name: Prepare Bruno environment
+        if: steps.validation.outputs.reused != 'true'
         run: |
           mkdir -p api-tests/environments
           cat > api-tests/environments/local.yml <<EOF
@@ -117,16 +135,31 @@ jobs:
           EOF
 
       - name: Run Bruno tests
+        if: steps.validation.outputs.reused != 'true'
         working-directory: api-tests
         run: pnpm dlx @usebruno/cli run "./apoderado" --env local
 
       - name: Show backend logs
-        if: failure()
+        if: failure() && steps.validation.outputs.reused != 'true'
         run: cat backend/backend.log || true
 
       - name: Stop backend
-        if: always()
+        if: always() && steps.validation.outputs.reused != 'true'
         run: |
           if [[ -f backend/backend.pid ]]; then
             kill "$(cat backend/backend.pid)" 2>/dev/null || true
           fi
+
+      - name: Record successful validation
+        if: steps.validation.outputs.reused != 'true'
+        env:
+          VALIDATION_KEY: ${{ steps.validation.outputs.key }}
+        run: printf '%s\n' "$VALIDATION_KEY" > validation-receipt.txt
+      - name: Upload validation receipt
+        if: steps.validation.outputs.reused != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: bruno-validation-${{ steps.validation.outputs.key }}
+          path: validation-receipt.txt
+          if-no-files-found: error
+          retention-days: 14

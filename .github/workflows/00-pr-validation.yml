@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pull-requests: read
 
 concurrency:
@@ -35,7 +36,7 @@ jobs:
             });
             const paths = files.flatMap(file => [file.filename, file.previous_filename].filter(Boolean));
             // GitHub limits this endpoint to 3,000 files; validate everything if truncated.
-            const all = files.length >= 3000 || paths.some(path => path.startsWith('.github/workflows/'));
+            const all = files.length >= 3000 || paths.some(path => path.startsWith('.github/') || /^scripts\/(ci-validation|test-ci-validation)\.cjs$/.test(path));
             const frontend = all || paths.some(path => path.startsWith('frontend/'));
             const backend = all || paths.some(path => path.startsWith('backend/'));
             const bruno = backend || paths.some(path => path.startsWith('api-tests/'));
@@ -44,7 +45,8 @@ jobs:
               'VERSION', 'CHANGELOG.md', 'frontend/package.json', 'backend/build.gradle',
             ]);
             const versioning = all || paths.some(path => versionFiles.has(path) ||
-              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation|test-branch-sync|validate-commit-message|test-commit-message)\.cjs$/.test(path));
+              path.startsWith('.githooks/') || path.startsWith('frontend/.commitlintrc') ||
+              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation|test-branch-sync|ci-validation|test-ci-validation|validate-commit-message|test-commit-message)\.cjs$/.test(path));
             for (const [name, value] of Object.entries({ frontend, backend, bruno, versioning })) {
               core.setOutput(name, String(value));
             }

@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: coverage-pages
@@ -17,7 +18,7 @@ concurrency:
 
 jobs:
   build-reports:
-    name: Test and assemble HTML reports
+    name: Assemble already validated HTML reports
     runs-on: ubuntu-24.04
 
     steps:
@@ -27,45 +28,48 @@ jobs:
           ref: ${{ github.event.inputs.release_ref || 'main' }}
           persist-credentials: false
 
-      - name: Setup JDK 17
-        uses: actions/setup-java@v6
+      - name: Find coverage matching the release inputs
+        id: reports
+        uses: actions/github-script@v8
         with:
-          java-version: "17"
-          distribution: temurin
-          cache: gradle
+          script: |
+            const { currentFingerprint, findArtifact } = require(`${process.env.GITHUB_WORKSPACE}/scripts/ci-validation.cjs`);
+            for (const suite of ['frontend', 'backend']) {
+              const key = currentFingerprint(suite);
+              let artifact;
+              // The PR result can turn green just before its workflow is marked
+              // completed. Allow that short finalization window without retesting.
+              for (let attempt = 0; attempt < 6; attempt += 1) {
+                artifact = await findArtifact({ github, context, suite, key });
+                if (artifact) break;
+                if (attempt < 5) await new Promise(resolve => setTimeout(resolve, 5000));
+              }
+              if (!artifact) throw new Error(`No successful ${suite} coverage matches this release. Run its CI workflow on the release ref to generate it; reports never rerun tests implicitly.`);
+              core.setOutput(`${suite}_artifact`, artifact.id);
+              core.setOutput(`${suite}_run`, artifact.workflow_run.id);
+            }
 
-      - name: Generate backend coverage report
-        working-directory: backend
-        run: |
-          chmod +x ./gradlew
-          ./gradlew test jacocoTestReport jacocoTestCoverageVerification
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
+      - name: Download validated frontend coverage
+        uses: actions/download-artifact@v8
         with:
-          version: 11.5.0
-          run_install: false
+          artifact-ids: ${{ steps.reports.outputs.frontend_artifact }}
+          run-id: ${{ steps.reports.outputs.frontend_run }}
+          github-token: ${{ github.token }}
+          path: public/frontend
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Download validated backend coverage
+        uses: actions/download-artifact@v8
         with:
-          node-version: "22"
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate frontend coverage report
-        working-directory: frontend
-        run: pnpm test:coverage
+          artifact-ids: ${{ steps.reports.outputs.backend_artifact }}
+          run-id: ${{ steps.reports.outputs.backend_run }}
+          github-token: ${{ github.token }}
+          path: public/backend
 
       - name: Assemble Pages site
         run: |
           mkdir -p public/backend public/frontend
-          cp -R backend/build/reports/jacoco/test/html/. public/backend/
-          cp -R frontend/coverage/combined/. public/frontend/
+          test -f public/backend/index.html
+          test -f public/frontend/index.html
           cp .github/pages/index.html public/index.html
           touch public/.nojekyll
 

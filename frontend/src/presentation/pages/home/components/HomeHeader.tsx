@@ -136,6 +136,9 @@ export const HomeHeader = ({
         aria-label={isAuthenticated ? "Navegación de la comunidad" : "Acceso a la plataforma"}>
         {isAuthenticated ? (
           <>
+            <div className="public-home__menu-heading">
+              <strong>Tu comunidad</strong>
+            </div>
             {isSuperAdmin && (
               <Link to="/administrations" onClick={closeMobileMenu}>
                 <span className="public-home__nav-icon"><FiShield aria-hidden="true" /></span><span>Administraciones</span>

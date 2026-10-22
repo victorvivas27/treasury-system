@@ -14,6 +14,11 @@ on:
       - "scripts/test-versioning.cjs"
       - "scripts/test-auto-release.cjs"
       - "scripts/test-pr-validation.cjs"
+      - "scripts/ci-validation.cjs"
+      - "scripts/test-ci-validation.cjs"
+      - ".github/actions/**"
+      - ".githooks/**"
+      - "frontend/.commitlintrc*"
       - "scripts/test-branch-sync.cjs"
       - "scripts/validate-commit-message.cjs"
       - "scripts/test-commit-message.cjs"
@@ -24,9 +29,15 @@ on:
       - "frontend/package.json"
       - "backend/build.gradle"
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Optional commit, tag or branch to validate
+        required: false
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: versioning-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -41,14 +52,37 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+
+      - name: Reuse successful validation for identical inputs
+        id: validation
+        uses: ./.github/actions/reuse-validation
+        with:
+          suite: versioning
       - uses: actions/setup-node@v7
+        if: steps.validation.outputs.reused != 'true'
         with:
           node-version: '22'
       - name: Install isolated validation tools
+        if: steps.validation.outputs.reused != 'true'
         run: npm install --prefix "$RUNNER_TEMP/release-tools" --no-audit --no-fund --ignore-scripts release-please@17.3.0 ajv@8 yaml@2
       - name: Validate versions, configuration, workflows and release scenarios
+        if: steps.validation.outputs.reused != 'true'
         env:
           RELEASE_TOOLS_DIR: ${{ runner.temp }}/release-tools
         run: |
           node scripts/test-versioning.cjs
-          node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs scripts/test-commit-message.cjs
+          node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs scripts/test-commit-message.cjs scripts/test-ci-validation.cjs
+
+      - name: Record successful validation
+        if: steps.validation.outputs.reused != 'true'
+        env:
+          VALIDATION_KEY: ${{ steps.validation.outputs.key }}
+        run: printf '%s\n' "$VALIDATION_KEY" > validation-receipt.txt
+      - name: Upload validation receipt
+        if: steps.validation.outputs.reused != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: versioning-validation-${{ steps.validation.outputs.key }}
+          path: validation-receipt.txt
+          if-no-files-found: error
+          retention-days: 14

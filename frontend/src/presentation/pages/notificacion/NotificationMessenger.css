@@ -48,9 +48,21 @@
 .notification-conversation__heading strong { font-size: 14px; }
 .notification-conversation__heading span { font-size: 11px; color: var(--text-muted); }
 .notification-chat-panel .notification-reply-form { padding-top: 10px; border-top: 1px solid var(--border-color); }
-@media (max-width: 768px) {
-  .main-content:has(> .notifications-page) > .public-home__footer { display: none; }
-}
+.notification-message-author { display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; min-width: 0; box-sizing: border-box; margin-bottom: 8px; padding: 0; border: 0; background: transparent; color: var(--text-muted); font-size: 10px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.notification-message-author > span { min-width: 0; }
+.notification-message-author > .notification-message-avatar { width: 20px; height: 20px; min-width: 20px; min-height: 20px; flex: 0 0 20px; font-size: 8px; }
+.notification-message-author small { color: var(--text-muted); font-size: inherit; font-weight: 400; }
+.notification-conversation__heading > div { min-width: 0; }
+.notification-conversation__heading strong { white-space: normal; overflow-wrap: anywhere; }
+.notification-conversation__heading small { display: block; margin-top: 3px; color: var(--text-muted); font-size: 11px; }
+.notification-chat-header > div > strong { white-space: normal; overflow-wrap: anywhere; }
+.notification-composer-recipient { grid-column: 1 / -1; min-width: 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.notification-composer-recipient strong { color: var(--text-main); font-weight: 600; }
+.notification-compose-recipients { margin-bottom: 12px; color: var(--text-muted); font-size: 12px; }
+.notification-compose-recipients summary { cursor: pointer; }
+.notification-compose-recipients ul { max-height: 120px; overflow-y: auto; scrollbar-width: none; padding-left: 20px; overflow-wrap: anywhere; }
+.notification-compose-recipients ul::-webkit-scrollbar { display: none; }
+.notification-compose-recipients li + li { margin-top: 6px; }
 @media (max-width: 600px) {
   .notifications-inbox .notification-card,
   .sent-user-group__messages .sent-notification,

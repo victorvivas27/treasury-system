@@ -2,6 +2,11 @@ name: 03-Backend CI
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Optional commit, tag or branch to validate
+        required: false
+        type: string
   workflow_call:
     inputs:
       ref:
@@ -14,6 +19,7 @@ on:
       - ".github/workflows/03-backend-ci.yml"
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: backend-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -33,7 +39,14 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
 
+      - name: Reuse successful validation for identical inputs
+        id: validation
+        uses: ./.github/actions/reuse-validation
+        with:
+          suite: backend
+
       - name: Configurar JDK 17
+        if: steps.validation.outputs.reused != 'true'
         uses: actions/setup-java@v6
         with:
           java-version: '17'
@@ -41,18 +54,18 @@ jobs:
           cache: gradle
 
       - name: Dar permisos a gradlew
+        if: steps.validation.outputs.reused != 'true'
         run: chmod +x ./gradlew
 
-      - name: Compilar proyecto
-        run: ./gradlew clean compileJava
-
       - name: Ejecutar tests y generar cobertura
-        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+        if: steps.validation.outputs.reused != 'true'
+        run: ./gradlew check jacocoTestReport jacocoTestCoverageVerification
 
       - name: Subir reporte de cobertura como artefacto
+        if: steps.validation.outputs.reused != 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: backend-jacoco-report-${{ github.run_id }}
+          name: backend-validation-${{ steps.validation.outputs.key }}
           path: backend/build/reports/jacoco/test/html
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 14

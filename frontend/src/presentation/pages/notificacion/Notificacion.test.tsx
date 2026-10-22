@@ -102,6 +102,46 @@ describe("Notificacion para administración", () => {
     }]);
   });
 
+  it.each(["ADMIN", "USER"])("identifica autor y destinatario para %s", async rol => {
+    mocks.authUser = { ...mocks.authUser, id: rol === "ADMIN" ? 1 : 30, rol };
+    mocks.notifications = [{ id: 20, title: "Aviso", message: "Mensaje inicial", type: "INFO",
+      read: true, readAt: null, createdAt: "2026-08-30T12:00:00Z", senderId: 1,
+      senderName: "Ana López", senderProfileImageType: "INITIALS", senderProfileImageUrl: null }];
+    const base = { authorProfileImageType: "INITIALS", authorProfileImageUrl: null,
+      createdAt: "2026-08-30T12:01:00Z", updatedAt: null, read: false, readAt: null };
+    mocks.listReplies.mockResolvedValue([
+      { ...base, id: 91, authorId: 1, authorName: "Ana López", authorRole: "ADMIN", message: "Respuesta de Tesorería" },
+      { ...base, id: 92, authorId: 30, authorName: "Apoderado Uno", authorRole: "USER", message: "Respuesta del apoderado" },
+    ]);
+    render(<Notificacion />);
+    if (rol === "ADMIN") fireEvent.click((await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" })).closest("button")!);
+    const recipient = rol === "ADMIN" ? "Apoderado Uno" : "Ana López";
+    expect(await screen.findByText(`Conversación con ${recipient}`)).toBeVisible();
+    const own = (await screen.findByText(rol === "ADMIN" ? "Respuesta de Tesorería" : "Respuesta del apoderado")).closest("article")!;
+    const received = screen.getByText(rol === "ADMIN" ? "Respuesta del apoderado" : "Respuesta de Tesorería").closest("article")!;
+    expect(own).toHaveClass("is-own");
+    expect(own.querySelector(".notification-message-author")).toHaveTextContent("Tú");
+    expect(received).toHaveClass("is-received");
+    expect(received.querySelector(".notification-message-author")).toHaveTextContent(recipient);
+    expect(screen.getByRole("button", { name: `Enviar a ${recipient}` })).toBeInTheDocument();
+    if (rol === "USER") expect(screen.getByText("Mensaje inicial").closest("article")!.querySelector(".notification-message-author")).toHaveTextContent("Ana López");
+  });
+
+  it("permite revisar los nombres antes de enviar a varios apoderados", async () => {
+    mocks.apoderados = [{ apoderadoId: 45, nombre: "Ana Pérez", accessStatus: "ACTIVO" },
+      { apoderadoId: 46, nombre: "Luis Soto", accessStatus: "ACTIVO" }];
+    render(<Notificacion />);
+    await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
+    fireEvent.click(screen.getByLabelText("Seleccionar a Ana Pérez"));
+    fireEvent.click(screen.getByLabelText("Seleccionar a Luis Soto"));
+    fireEvent.click(screen.getByRole("button", { name: "Crear notificación" }));
+    expect(screen.getByText("Enviar a 2 apoderados.")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Ver destinatarios (2)"));
+    const list = screen.getByText("Ver destinatarios (2)").closest("details")!;
+    expect(within(list).getByText("Ana Pérez")).toBeVisible();
+    expect(within(list).getByText("Luis Soto")).toBeVisible();
+  });
+
   it("reutiliza mensajes enviados y conversación al volver a la sección", async () => {
     mocks.listReplies.mockResolvedValue([]);
     const first = render(<Notificacion />);

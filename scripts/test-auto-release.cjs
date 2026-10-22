@@ -49,11 +49,11 @@ function fixture({ main = 'base-sha', candidate = pr(), merged = true, checkStat
     },
   } }, checkQueries };
 }
-test('merge waits for all release validation workflows', () => {
-  assert.deepEqual(workflow.jobs.publish.needs, ['prepare', 'frontend', 'backend', 'versioning', 'bruno']);
-  assert.equal(workflow.jobs.publish.if, undefined); // Default success() gate; no always() bypass.
+test('release reuses the required PR validation instead of running duplicate suites', () => {
+  assert.equal(workflow.jobs.publish.needs, 'prepare');
+  assert.equal(workflow.jobs.publish.if.trim(), "needs.prepare.outputs.number != ''");
   for (const job of ['frontend', 'backend', 'versioning', 'bruno']) {
-    assert.equal(workflow.jobs[job].with.ref, '${{ needs.prepare.outputs.sha }}');
+    assert.equal(workflow.jobs[job], undefined);
   }
   const token = workflow.jobs.prepare.steps.find(step => step.id === 'release-please-token');
   assert.equal(token.uses, 'actions/create-github-app-token@v3');
