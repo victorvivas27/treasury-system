@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.0](https://github.com/victorvivas27/treasury-system/compare/v1.26.0...v1.27.0) (2026-10-22)
+
+
+### Features
+
+* add HomeWelcome with dynamic course settings, tests, accessibil… ([46a9de4](https://github.com/victorvivas27/treasury-system/commit/46a9de41437af847164cf95f394364e3dc989c1d))
+* add HomeWelcome with dynamic course settings, tests, accessibility improvements, community assets, SingleLineFitText, and responsive styles for HomeWelcome/AboutCylinder. ([6b86ba0](https://github.com/victorvivas27/treasury-system/commit/6b86ba082f669941e686c2fb8970cacf3a26eace))
+
 ## [1.26.0](https://github.com/victorvivas27/treasury-system/compare/v1.25.1...v1.26.0) (2026-10-21)
 
 
