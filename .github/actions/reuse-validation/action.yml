@@ -1,0 +1,35 @@
+name: Reuse successful validation
+description: Reuse a successful CI artifact only when all tracked suite inputs match.
+inputs:
+  suite:
+    description: frontend, backend, bruno or versioning
+    required: true
+outputs:
+  key:
+    description: Hash of the suite inputs
+    value: ${{ steps.lookup.outputs.key }}
+  reused:
+    description: A successful matching validation already exists
+    value: ${{ steps.lookup.outputs.reused }}
+runs:
+  using: composite
+  steps:
+    - id: lookup
+      uses: actions/github-script@v8
+      env:
+        VALIDATION_SUITE: ${{ inputs.suite }}
+      with:
+        script: |
+          const { currentFingerprint, findArtifact } = require(`${process.env.GITHUB_WORKSPACE}/scripts/ci-validation.cjs`);
+          const suite = process.env.VALIDATION_SUITE;
+          const key = currentFingerprint(suite);
+          let artifact;
+          try {
+            artifact = await findArtifact({ github, context, suite, key });
+          } catch (error) {
+            // A lookup outage is not proof of success: fall back to real checks.
+            core.warning(`Validation lookup unavailable; running ${suite}: ${error.message}`);
+          }
+          core.setOutput('key', key);
+          core.setOutput('reused', String(Boolean(artifact)));
+          core.info(artifact ? `Reusing ${suite} validation from run ${artifact.workflow_run.id}` : `No successful matching ${suite} validation; running checks`);

@@ -99,54 +99,10 @@ jobs:
             core.info(`Release SHA: ${pr.head.sha}`);
             core.info(`Base SHA: ${pr.base.sha}`);
 
-  frontend:
-    name: Validate frontend
-    needs: prepare
-    if: needs.prepare.outputs.number != ''
-
-    uses: ./.github/workflows/02-frontend-ci.yml
-
-    with:
-      ref: ${{ needs.prepare.outputs.sha }}
-
-  backend:
-    name: Validate backend
-    needs: prepare
-    if: needs.prepare.outputs.number != ''
-
-    uses: ./.github/workflows/03-backend-ci.yml
-
-    with:
-      ref: ${{ needs.prepare.outputs.sha }}
-
-  versioning:
-    name: Validate versioning
-    needs: prepare
-    if: needs.prepare.outputs.number != ''
-
-    uses: ./.github/workflows/05-versioning-ci.yml
-
-    with:
-      ref: ${{ needs.prepare.outputs.sha }}
-
-  bruno:
-    name: Validate API contract
-    needs: prepare
-    if: needs.prepare.outputs.number != ''
-
-    uses: ./.github/workflows/04-bruno-tests.yml
-
-    with:
-      ref: ${{ needs.prepare.outputs.sha }}
-
   publish:
     name: Merge and publish release
-    needs:
-      - prepare
-      - frontend
-      - backend
-      - versioning
-      - bruno
+    needs: prepare
+    if: needs.prepare.outputs.number != ''
 
     runs-on: ubuntu-24.04
 
@@ -298,6 +254,7 @@ jobs:
       already_validated: true
     permissions:
       contents: write
+      actions: read
 
   deploy:
     name: Trigger production workflows

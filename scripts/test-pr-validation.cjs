@@ -56,6 +56,8 @@ test('runs only applicable validations, including renamed files', async () => {
 test('workflow changes and truncated file lists validate all areas', async () => {
   const expected = { frontend: 'true', backend: 'true', bruno: 'true', versioning: 'true' };
   assert.deepEqual(await select([{ filename: '.github/workflows/00-pr-validation.yml' }]), expected);
+  assert.deepEqual(await select([{ filename: '.github/actions/reuse-validation/action.yml' }]), expected);
+  assert.deepEqual(await select([{ filename: 'scripts/ci-validation.cjs' }]), expected);
   assert.deepEqual(await select(Array.from({ length: 3000 }, () => ({ filename: 'docs/item.md' }))), expected);
 });
 
