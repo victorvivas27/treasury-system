@@ -10,11 +10,13 @@ import { useDashboardResource } from "../dashboard/dashboardCache";
 import { notificationCache } from "./notificationCache";
 import { MessageReadStatus } from "./MessageReadStatus";
 import { MessageEditModal } from "./MessageEditModal";
+import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 
-export const NotificationConversation = ({ deliveryId, deliveryIds, repository, isAdmin, notificationItems,
+export const NotificationConversation = ({ deliveryId, deliveryIds, repository, isAdmin, notificationItems, recipientName,
   active = true, initialScrollToBottom = false }: {
   deliveryId: number; deliveryIds: number[]; repository: NotificationRepositoryImpl; isAdmin: boolean;
   notificationItems: Array<{ id: string; createdAt: string; content: ReactNode }>;
+  recipientName: string;
   active?: boolean;
   initialScrollToBottom?: boolean;
 }) => {
@@ -168,7 +170,7 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
   }, [initialScrollToBottom, loaded, timeline.length]);
   const initialLoading = !loaded && !error;
   const panel = <div className="notification-conversation">
-    {!isAdmin && <header className="notification-conversation__heading"><strong>Tesorería</strong><span>Mensajes del curso</span></header>}
+    {!isAdmin && <header className="notification-conversation__heading"><div><strong>Conversación con {recipientName}</strong><small>Tesorería del curso</small></div></header>}
     <div inert={initialLoading && active} className="notification-conversation__content">
       <div ref={timelineRef} aria-busy={initialLoading} tabIndex={0}
         role="log" aria-label="Historial de mensajes" aria-live="polite"
@@ -182,6 +184,13 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
         aria-label={auth?.user?.id === item.message.authorId ? "Mensaje enviado" : `Mensaje de ${item.message.authorName}`}
         className={`notification-reply ${isAdminRole(item.message.authorRole) ? "is-admin" : "is-guardian"} ${auth?.user?.id === item.message.authorId ? "is-own" : "is-received"}`}>
         <header>
+          <strong className="notification-message-author"><UserAvatar className="notification-message-avatar"
+            user={{ nombre: item.message.authorName, profileImageType: item.message.authorProfileImageType,
+              profileImageUrl: item.message.authorProfileImageUrl }} customImageUserId={item.message.authorId} />
+            <span>{auth?.user?.id === item.message.authorId ? "Tú" : item.message.authorName}
+            {isAdminRole(item.message.authorRole) && <small> · Tesorería</small>}
+            </span>
+          </strong>
           <span className="notification-reply__meta"><MessageReadStatus read={item.message.read} /><time dateTime={item.message.createdAt}>{new Date(item.message.createdAt).toLocaleString("es-CL", {
             day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
           })}</time>
@@ -204,11 +213,12 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
       <form className="notification-reply-form" onSubmit={event => {
         event.preventDefault(); void submit();
       }}>
+        <span className="notification-composer-recipient">Enviar a <strong>{recipientName}</strong></span>
         <textarea ref={composerRef} disabled={initialLoading || sending} aria-label={isAdmin ? "Responder al apoderado" : "Responder a administración"}
           placeholder={isAdmin ? "Escribe una respuesta al apoderado…" : "Escribe una respuesta a administración…"}
           maxLength={2000} rows={1} value={draft}
           onChange={event => setDraft(event.target.value)} />
-        <button type="submit" aria-label="Responder" aria-busy={sending}
+        <button type="submit" aria-label={`Enviar a ${recipientName}`} title={`Enviar a ${recipientName}`} aria-busy={sending}
           disabled={initialLoading || !draft.trim() || sending}><FiSend aria-hidden="true" />
           <span className="notification-composer__send-label">{sending ? "Enviando…" : "Responder"}</span></button>
       </form>

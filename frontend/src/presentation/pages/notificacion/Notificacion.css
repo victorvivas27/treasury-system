@@ -503,44 +503,7 @@
     height: 17px;
   }
   .notification-composer__send-label { display: none; }
-  .main-content:has(> .notifications-page) > .public-home__footer {
-    min-height: 72px;
-    padding-block: 12px;
-    margin-top: 0;
-  }
-  .main-content:has(> .notifications-page) .public-home__footer-content {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 12px;
-  }
-  .main-content:has(> .notifications-page) .public-home__footer-brand p,
-  .main-content:has(> .notifications-page) .public-home__signature-icon,
-  .main-content:has(> .notifications-page) .public-home__signature-glow,
-  .main-content:has(> .notifications-page) .public-home__signature-code { display: none; }
-  .main-content:has(> .notifications-page) .public-home__footer-home-link { font-size: 13px; gap: 8px; }
-  .main-content:has(> .notifications-page) .public-home__footer-home-link img { width: 30px; height: 30px; }
-  .main-content:has(> .notifications-page) .public-home__signature {
-    grid-column: auto;
-    grid-row: auto;
-    justify-self: center;
-    width: auto;
-    padding: 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    transform: none;
-    display: block;
-  }
-  .main-content:has(> .notifications-page) .public-home__signature-stage { min-height: 0; }
-  .main-content:has(> .notifications-page) .public-home__signature-rendered {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-  .main-content:has(> .notifications-page) .public-home__signature-copy strong,
-  .main-content:has(> .notifications-page) .public-home__copyright { font-size: 11px; }
-  .main-content:has(> .notifications-page) .public-home__signature-copy small { font-size: 9px; }
-  .main-content:has(> .notifications-page) .public-home__signature-links { gap: 4px 10px; }
-  .main-content:has(> .notifications-page) .public-home__signature-links a { font-size: 10px; }
+
 }
 @media (max-width: 1000px) {
   .notification-recipient-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
