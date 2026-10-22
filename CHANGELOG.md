@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.28.0](https://github.com/victorvivas27/treasury-system/compare/v1.27.0...v1.28.0) (2026-10-22)
+
+
+### Features
+
+* **frontend:** improve mobile installation and notification identity ([a540d62](https://github.com/victorvivas27/treasury-system/commit/a540d62bbf50eaefe92f12a51ca9545ff2701cd0))
+* **frontend:** improve mobile installation and notification identity ([f53a9d3](https://github.com/victorvivas27/treasury-system/commit/f53a9d383ef2f2b15132abb2fc92828f620a4442))
+* implementar reutilización de validaciones exitosas en flujos de trabajo CI y agregar documentación sobre el proceso ([ed8db67](https://github.com/victorvivas27/treasury-system/commit/ed8db67b45f112ee586f9485203ae0ff26daee1a))
+
 ## [1.27.0](https://github.com/victorvivas27/treasury-system/compare/v1.26.0...v1.27.0) (2026-10-22)
 
 
