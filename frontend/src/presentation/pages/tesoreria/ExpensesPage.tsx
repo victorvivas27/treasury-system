@@ -1,3 +1,4 @@
+import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FiAlertTriangle, FiArrowLeft, FiBriefcase, FiCalendar, FiCheck, FiClock,
@@ -87,22 +88,9 @@ export const ExpensesPage = () => {
   useEffect(() => { Object.assign(selection, { year, filters }); }, [selection, year, filters]);
   useEffect(() => { setPage(1); }, [resource]);
 
-  useEffect(() => {
-    if (!formOpen && !detail && !filtersOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || saving || documentsUploading || confirmSave || confirmCancel) return;
-      setFormOpen(false);
-      setDetail(null);
-      setFiltersOpen(false);
-    };
-    window.addEventListener("keydown", closeWithEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeWithEscape);
-    };
-  }, [formOpen, detail, filtersOpen, saving, documentsUploading, confirmSave, confirmCancel]);
+  const formDialog = useDialogFocus(formOpen, () => setFormOpen(false), saving || documentsUploading || confirmCancel || confirmSave);
+  const detailDialog = useDialogFocus(Boolean(detail), () => setDetail(null), saving || documentsUploading || confirmCancel || confirmSave);
+  const filterDialog = useDialogFocus(filtersOpen, () => setFiltersOpen(false));
 
   useEffect(() => {
     if (!detail) { setDocuments([]); return; }
@@ -261,6 +249,7 @@ export const ExpensesPage = () => {
       </button>}
     </header>
 
+    {cached.data ? (
     <section className="expenses-summary" aria-label="Resumen financiero">
       <article className={`expense-summary-card expense-summary-card--balance ${
         summary.availableBalance < 0 ? "is-negative" : "is-balance"}`}>
@@ -275,6 +264,7 @@ export const ExpensesPage = () => {
         <div><span>Total de egresos</span><i><FiLogOut /></i></div>
         <strong>-{money.format(summary.totalExpenses)}</strong><small>Solo egresos activos</small></article>
     </section>
+    ) : !initialLoading && <p role="status">Resumen financiero no disponible.</p>}
 
     <div className="expense-filter-toolbar"><button type="button"
       className="expense-filter-trigger" aria-haspopup="dialog" aria-controls="expense-filters" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(true)}>
@@ -282,7 +272,7 @@ export const ExpensesPage = () => {
 
     {filtersOpen && <div className="expense-filter-backdrop movement-filter-backdrop" onClick={() => setFiltersOpen(false)}>
     <aside id="expense-filters" className="expenses-filters" aria-label="Filtros de egresos" role="dialog"
-      aria-modal="true" onClick={event => event.stopPropagation()}>
+      ref={filterDialog} tabIndex={-1} aria-modal="true" onClick={event => event.stopPropagation()}>
       <header><div><FiFilter /><h2>Filtros</h2></div><button type="button"
         aria-label="Cerrar filtros" onClick={() => setFiltersOpen(false)}><FiX /></button></header>
       <label className="expense-filter-search movement-filter-search"><span>Buscar</span><input placeholder="Descripción, proveedor o comprobante"
@@ -341,7 +331,7 @@ export const ExpensesPage = () => {
       </section> : null}
 
     {formOpen && <div className="expense-modal-overlay">
-      <section className="expense-form-modal" role="dialog" aria-modal="true" aria-labelledby="expense-form-title">
+      <section ref={formDialog} tabIndex={-1} className="expense-form-modal" role="dialog" aria-modal="true" aria-labelledby="expense-form-title">
         <header><div><span>{editing ? "Corrección auditada" : "Nuevo registro"}</span>
           <h2 id="expense-form-title">{editing ? "Corregir egreso" : "Registrar egreso"}</h2></div>
           <button type="button" aria-label="Cerrar" onClick={() => setFormOpen(false)}><FiX /></button></header>
@@ -379,7 +369,7 @@ export const ExpensesPage = () => {
 
     {detail && <div className="expense-modal-overlay" onMouseDown={(e) =>
       e.target === e.currentTarget && setDetail(null)}>
-      <section className="expense-detail-modal" role="dialog" aria-modal="true" aria-labelledby="expense-detail-title">
+      <section className="expense-detail-modal" role="dialog" aria-modal="true" ref={detailDialog} tabIndex={-1} aria-labelledby="expense-detail-title">
         <button type="button" aria-label="Cerrar" onClick={() => setDetail(null)}><FiX /></button>
         {detail.status === "CANCELLED" && <span className="expense-detail-status is-cancelled">Anulado</span>}
         <h2 id="expense-detail-title">{detail.description}</h2><strong>-{money.format(detail.amount)}</strong>

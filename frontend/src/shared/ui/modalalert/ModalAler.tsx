@@ -1,6 +1,7 @@
+import { useDialogFocus, useDialogAnchor } from "../dialog/useDialogFocus";
 import { Button } from "../button/Button";
 import "./ModalAlert.css";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,6 +30,10 @@ export const ModalAlert = ({
   anchor,
   compact = false,
 }: ModalProps) => {
+  const dialogRef = useDialogFocus(isOpen && variant === "modal", onClose);
+  useDialogAnchor(dialogRef, isOpen, anchor);
+  const titleId = useId();
+  const messageId = useId();
   useEffect(() => {
     if (isOpen && autoCloseTime > 0) {
       const timer = setTimeout(() => {
@@ -45,6 +50,10 @@ export const ModalAlert = ({
       className={`modal-overlay ${variant === "toast" ? "modal-overlay--toast" : ""} ${
         anchor ? "modal-overlay--anchored" : ""}`}
       onClick={onClose}
+      ref={dialogRef}
+      tabIndex={-1}
+      aria-labelledby={titleId}
+      aria-describedby={messageId}
       aria-modal={variant === "modal" ? "true" : undefined}
       role={variant === "modal" ? "dialog" : type === "error" ? "alert" : "status"}
     >
@@ -66,13 +75,13 @@ export const ModalAlert = ({
           <span className="modal-icon" aria-hidden="true">
             {type === "success" ? "✔" : "✖"}
           </span>
-          <h3 className="modal-title">
+          <h3 id={titleId} className="modal-title">
             {title ?? (type === "success" ? "¡Logrado!" : "Hubo un error")}
           </h3>
         </header>
 
         <main className="modal-body">
-          <p>{message}</p>
+          <p id={messageId}>{message}</p>
         </main>
 
         <footer className="modal-footer">

@@ -56,7 +56,7 @@ describe("FeedbackState Component", () => {
       actionText: "Reintentar",
       onRefresh: () => { }
     });
-    expect(screen.getByRole("button", { name: /intentar de nuevo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
   });
 
   it('[FeedbackState #08] Debe disparar la función onRefresh al hacer clic en el botón.', () => {

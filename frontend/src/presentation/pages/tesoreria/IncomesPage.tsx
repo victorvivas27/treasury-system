@@ -1,3 +1,4 @@
+import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FiAlertTriangle, FiArrowLeft, FiBarChart2, FiBookOpen, FiCalendar,
@@ -148,23 +149,10 @@ export const IncomesPage = () => {
     }
   }, [managedCourse, formOpen, editing, form.course]);
 
-  useEffect(() => {
-    if (!formOpen && !detail && !selectedFee && !filtersOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || saving || documentsUploading || confirmCancel) return;
-      setFormOpen(false);
-      setDetail(null);
-      setSelectedFee(null);
-      setFiltersOpen(false);
-    };
-    window.addEventListener("keydown", onEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onEscape);
-    };
-  }, [formOpen, detail, selectedFee, filtersOpen, saving, documentsUploading, confirmCancel]);
+  const formDialog = useDialogFocus(formOpen, () => setFormOpen(false), saving || documentsUploading || confirmCancel);
+  const detailDialog = useDialogFocus(Boolean(detail), () => setDetail(null), saving || documentsUploading || confirmCancel);
+  const filterDialog = useDialogFocus(filtersOpen, () => setFiltersOpen(false));
+  const feeDialog = useDialogFocus(Boolean(selectedFee), () => setSelectedFee(null));
 
   const incomeRows = useMemo(() => {
     const ordinary = view === "FEES" ? [] : items.map(income => ({
@@ -266,6 +254,7 @@ export const IncomesPage = () => {
       {canManage && <button type="button" onClick={openCreate}>
         <FiPlus /> Registrar ingreso</button>}</header>
 
+    {cached.data ? (
     <section className="income-summary" aria-label="Resumen financiero">
       <article className={`income-summary-card income-summary-card--balance ${
         summary.availableBalance < 0 ? "is-negative" : ""}`}>
@@ -288,6 +277,7 @@ export const IncomesPage = () => {
         <div><span>Total de egresos</span><i><FiLogOut aria-hidden="true" /></i></div>
         <strong>{money.format(summary.totalExpenses)}</strong><small>Egresos activos</small></article>
     </section>
+    ) : !initialLoading && <p role="status">Resumen financiero no disponible.</p>}
 
     <div className="income-controls">
       <label className="income-type-filter">Tipo
@@ -303,7 +293,7 @@ export const IncomesPage = () => {
     {filtersOpen && <div className="income-filter-backdrop movement-filter-backdrop"
       onClick={() => setFiltersOpen(false)}>
     <aside id="income-filters" className="expenses-filters" aria-label="Filtros de ingresos" role="dialog"
-      aria-modal="true" onClick={event => event.stopPropagation()}>
+      ref={filterDialog} tabIndex={-1} aria-modal="true" onClick={event => event.stopPropagation()}>
       <header><div><FiFilter aria-hidden="true" /><h2>Filtros</h2></div>
         <button type="button" aria-label="Cerrar filtros"
           onClick={() => setFiltersOpen(false)}><FiX /></button></header>
@@ -368,13 +358,13 @@ export const IncomesPage = () => {
       </section> : null}
 
     {selectedFee && <div className="expense-modal-overlay"><section className="expense-detail-modal income-detail-modal"
-      role="dialog" aria-modal="true" aria-labelledby="income-fee-title">
+      role="dialog" aria-modal="true" ref={feeDialog} tabIndex={-1} aria-labelledby="income-fee-title">
       <button type="button" aria-label="Cerrar" onClick={() => setSelectedFee(null)}><FiX /></button>
       <span className="expense-detail-status">Pago de cuota</span>
       <h2 id="income-fee-title">{selectedFee.description}</h2><strong className="income-amount">+{money.format(selectedFee.amount)}</strong>
       <dl><div><dt>Fecha</dt><dd>{selectedFee.date}</dd></div><div><dt>Estado</dt><dd>Pagado</dd></div></dl>
     </section></div>}
-    {formOpen && <div className="expense-modal-overlay"><section className="expense-form-modal"
+    {formOpen && <div className="expense-modal-overlay"><section ref={formDialog} tabIndex={-1} className="expense-form-modal"
       role="dialog" aria-modal="true" aria-labelledby="income-form-title">
       <header><div><span>{editing ? "Corrección auditada" : "Nuevo registro"}</span>
         <h2 id="income-form-title">{editing ? "Corregir ingreso" : "Registrar ingreso"}</h2></div>
@@ -421,7 +411,7 @@ export const IncomesPage = () => {
       </form></section></div>}
 
     {detail && <div className="expense-modal-overlay"><section className="expense-detail-modal income-detail-modal"
-      role="dialog" aria-modal="true" aria-labelledby="income-detail-title">
+      role="dialog" aria-modal="true" ref={detailDialog} tabIndex={-1} aria-labelledby="income-detail-title">
       <button type="button" aria-label="Cerrar" onClick={() => setDetail(null)}><FiX /></button>
       {detail.status === "CANCELLED" && <span className="expense-detail-status is-cancelled">Anulado</span>}
       <h2 id="income-detail-title">{detail.description}</h2><strong className="income-amount">+{money.format(detail.amount)}</strong>

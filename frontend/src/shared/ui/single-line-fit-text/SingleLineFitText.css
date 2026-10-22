@@ -3,7 +3,8 @@
   min-width: 0;
   width: 100%;
   overflow: visible;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .single-line-fit-text > span {
@@ -11,5 +12,6 @@
   width: auto;
   max-width: 100%;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

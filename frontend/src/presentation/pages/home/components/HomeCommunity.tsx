@@ -1,7 +1,6 @@
+import { AboutCylinder } from "./AboutCylinder";
 import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
-import { FiAward, FiBookOpen, FiCamera, FiChevronLeft, FiChevronRight, FiCompass, FiGift, FiHeart, FiMusic,
-  FiSmile, FiStar, FiSun, FiTarget, FiUsers } from "react-icons/fi";
-import type { AboutIcon } from "@/core/A-domain/entities/community/AboutSection";
+import { FiCamera, FiChevronLeft, FiChevronRight, FiUsers } from "react-icons/fi";
 import { useTheme } from "@/presentation/context/ThemeContext";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeCommunity.css";
@@ -17,11 +16,6 @@ const boardSlots = [
   { role: "COORDINADOR_DEPORTIVO", position: 1 },
 ] as const;
 
-const icons: Record<AboutIcon, typeof FiUsers> = {
-  USERS: FiUsers, HEART: FiHeart, STAR: FiStar, BOOK: FiBookOpen,
-  TARGET: FiTarget, SMILE: FiSmile,
-  AWARD: FiAward, COMPASS: FiCompass, GIFT: FiGift, MUSIC: FiMusic, SUN: FiSun,
-};
 const Lottie = lazy(() => import("lottie-react").then(module => ({ default: module.Lottie })));
 const animationRequests = new Map<string, Promise<object>>();
 const loadAnimation = (file: string) => {
@@ -102,7 +96,6 @@ export const HomeCommunity = () => {
   const dragged = useRef(false);
   const [carouselPaused, setCarouselPaused] = useState(false);
   const [carouselCycle, setCarouselCycle] = useState(0);
-  const [expandedCard, setExpandedCard] = useState<number>();
   const boardTrackRef = useRef<HTMLDivElement>(null);
   const moveBoard = (direction: number) => boardTrackRef.current?.scrollBy({
     left: direction * boardTrackRef.current.clientWidth * .78, behavior: "smooth",
@@ -132,34 +125,10 @@ export const HomeCommunity = () => {
       <header className="home-community__title-banner">
         <CommunityIcon file="Heart" name="heart" />
         <div>
-          <span>Nuestro manifiesto</span>
           <h2>Lo que nos mueve</h2>
         </div>
       </header>
-      <div className="home-community__about-grid">
-        {sections.length === 0 ? <article className="home-community__about-card is-turquoise is-featured"
-          data-card-number="01">
-          <span className="home-community__card-icon"><FiUsers /></span><div><h2>Una comunidad organizada y conectada</h2>
-          <p>Este espacio reúne la información del curso y facilita una comunicación clara entre
-            las familias y su directiva.</p></div></article> : sections.map((section, index) => {
-          const Icon = icons[section.icon] ?? FiUsers;
-          return <article key={section.id} style={{ "--card-delay": `calc(${index} * 170ms)` } as CSSProperties}
-            data-card-number={String(index + 1).padStart(2, "0")}
-            className={`home-community__about-card is-${section.accentColor.toLowerCase()} ${section.featured ? "is-featured" : ""}`}>
-            <span className="home-community__card-icon"><Icon aria-hidden="true" /></span>
-            <div><h3>{section.title}</h3>
-              <p id={`home-about-${section.id}`} className={expandedCard === section.id ? "is-expanded" : ""}>
-                {section.description}</p>
-              {section.description.length > 120 && <button className="home-community__read-more"
-                type="button" aria-expanded={expandedCard === section.id}
-                aria-controls={`home-about-${section.id}`} onClick={() => setExpandedCard(current =>
-                  current === section.id ? undefined : section.id)}>
-                {expandedCard === section.id ? "Ver menos" : "Leer más"}
-              </button>}
-              {section.highlightedPhrase && <blockquote>“{section.highlightedPhrase}”</blockquote>}</div>
-          </article>;
-        })}
-      </div>
+      <AboutCylinder sections={sections} />
     </section>
 
     <section id="fotos-del-curso" className="home-community__content" data-home-reveal>

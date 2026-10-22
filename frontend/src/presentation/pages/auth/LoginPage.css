@@ -52,3 +52,9 @@
 .login-form .login-invitation { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .login-form .auth-text-link { justify-self: center; padding: 4px; color: var(--color-accent); font-size: 13px; }
 :where(.login-page) .login-back-button { margin: 20px 0 0; }
+
+/* Validation occupies its natural height, including long server messages. */
+.login-form .form-group,
+.login-form .form-group:has(.password-input) { padding-bottom: 0; }
+.login-form .form-group > .error-message { position: static; margin-top: .375rem; font-size: .8125rem; line-height: 1.45; }
+.login-organization-slot:empty { display: none; }

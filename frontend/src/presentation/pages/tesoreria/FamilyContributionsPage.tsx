@@ -1,3 +1,5 @@
+import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
+import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { FiAlertCircle, FiAward, FiCheck, FiCheckCircle, FiClock, FiHeart,
   FiFilter, FiSearch, FiUsers, FiX } from "react-icons/fi";
@@ -48,6 +50,7 @@ export const FamilyContributionsPage = () => {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [paymentDate, setPaymentDate] = useState(today);
@@ -56,6 +59,8 @@ export const FamilyContributionsPage = () => {
   const [page, setPage] = useState(1);
   const activeFilters = [search.trim(), course, cepaStatus, solidarityStatus]
     .filter(Boolean).length;
+  const selectedDialog = useDialogFocus(Boolean(selected), () => setSelected(null), saving || Boolean(pendingAction));
+  const filterDialog = useDialogFocus(filtersOpen, () => setFiltersOpen(false));
   const initialLoading = loading && !hasLoaded;
 
   const load = useCallback(async () => {
@@ -76,8 +81,9 @@ export const FamilyContributionsPage = () => {
       ]);
       setItems(families);
       setSummary(totals);
+      setLoadError("");
     } catch {
-      setError("No fue posible cargar los aportes. Intenta nuevamente.");
+      setLoadError("No fue posible cargar los aportes. Intenta nuevamente.");
     } finally {
       setHasLoaded(true);
       setLoading(false);
@@ -147,7 +153,8 @@ export const FamilyContributionsPage = () => {
   };
 
   return (
-    <main className="contributions-page">
+    <main className="contributions-page" aria-busy={loading}>
+      {loading && <p className="sr-only" role="status">Cargando aportes...</p>}
       <header className="contributions-page__header">
         <div>
           <h1>Cuota CEPA y Fondo de Apoyo por Fallecimiento</h1>
@@ -158,12 +165,13 @@ export const FamilyContributionsPage = () => {
         </div>
       </header>
 
+      {loadError && <FeedbackState message={loadError} actionText="Reintentar" onRefresh={() => void load()} />}
       <section className="contributions-summary" aria-label="Resumen de aportes">
         {initialLoading ? ["Total familias", "CEPA pagada", "CEPA pendiente",
           "Fondo de Apoyo por Fallecimiento pagado", "Fondo de Apoyo por Fallecimiento pendiente", "Completamente al día"].map(label =>
           <article className="contribution-summary-skeleton" key={label}>
             <div><span>{label}</span></div><CardValueSkeleton />
-          </article>) : <>
+          </article>) : loadError ? <p role="status">Resumen de aportes no disponible.</p> : <>
           <SummaryCard label="Total familias" value={summary.totalFamilies} tone="families"
             icon={<FiUsers />} />
           <SummaryCard label="CEPA" statusLabel="Pagada" value={summary.cepaPaid} tone="cepa-paid"
@@ -190,7 +198,7 @@ export const FamilyContributionsPage = () => {
       {filtersOpen && <div className="contributions-filter-backdrop"
         onClick={() => setFiltersOpen(false)}>
       <aside className="contributions-filters" aria-label="Filtros" role="dialog"
-        aria-modal="true" onClick={event => event.stopPropagation()}>
+        ref={filterDialog} tabIndex={-1} aria-modal="true" onClick={event => event.stopPropagation()}>
         <header><div><FiFilter aria-hidden="true" /><h2>Filtros</h2></div>
           <button type="button" aria-label="Cerrar filtros"
             onClick={() => setFiltersOpen(false)}><FiX /></button></header>
@@ -223,7 +231,7 @@ export const FamilyContributionsPage = () => {
 
       {initialLoading ? (
         <ContributionsSkeleton />
-      ) : items.length === 0 ? (
+      ) : loadError ? null : items.length === 0 ? (
         <p className="contributions-page__empty">No hay familias para los filtros seleccionados.</p>
       ) : (
         <section className="contributions-grid" aria-label="Familias">
@@ -265,7 +273,7 @@ export const FamilyContributionsPage = () => {
       {selected && (
         <div className="contribution-modal-backdrop" role="presentation"
           onMouseDown={(event) => event.target === event.currentTarget && setSelected(null)}>
-          <section className="contribution-modal" role="dialog" aria-modal="true"
+          <section ref={selectedDialog} tabIndex={-1} className="contribution-modal" role="dialog" aria-modal="true"
             aria-labelledby="contribution-modal-title">
             <button className="contribution-modal__close" type="button"
               aria-label="Cerrar" onClick={() => setSelected(null)}><FiX /></button>

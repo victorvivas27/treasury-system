@@ -1,0 +1,7 @@
+@media (min-width: 1024px) {
+  .home-welcome { width: min(var(--content-max), calc(100% - 3rem)); grid-template-columns: minmax(0, 1fr); align-items: start; gap: 12px; margin-top: 56px; margin-bottom: 64px; padding: 64px 32px; }
+  .home-welcome__message { padding-left: 0; max-width: 680px; }
+  .home-welcome__watermark { width: 320px; height: 320px; right: 24px; }
+  .home-welcome__identity strong { font-size: 12px; }
+  .home-welcome p { font-size: 15px; }
+}

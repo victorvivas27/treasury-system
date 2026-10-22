@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./Tooltip.css";
 
@@ -13,12 +13,10 @@ type TooltipProps = {
 
 type Coordinates = { left: number; top: number };
 const GAP = 8;
-const CLICK_VISIBLE_TIME = 2000;
-const tooltipDisabledForDevice = () => typeof window.matchMedia === "function"
-  && window.matchMedia("(max-width: 680px), (hover: none), (pointer: coarse)").matches;
-
 export const Tooltip = ({ content, position = "top", className = "", disabled = false }: TooltipProps) => {
+  const tooltipId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const tooltipRef = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
   const [coordinates, setCoordinates] = useState<Coordinates>({ left: 0, top: 0 });
@@ -54,51 +52,39 @@ export const Tooltip = ({ content, position = "top", className = "", disabled = 
   useEffect(() => {
     const anchor = markerRef.current?.parentElement;
     if (!anchor || disabled) return;
-    setVisible(false);
-    let hideTimeout: ReturnType<typeof setTimeout> | undefined;
     let hovered = false;
-    const clearHideTimeout = () => {
-      if (hideTimeout) clearTimeout(hideTimeout);
-      hideTimeout = undefined;
+    let focused = false;
+    const description = anchor.getAttribute("aria-describedby");
+    anchor.setAttribute("aria-describedby", [description, tooltipId].filter(Boolean).join(" "));
+    const show = () => { clearTimeout(hideTimer.current); setVisible(true); };
+    const enter = () => { hovered = true; show(); };
+    const leave = () => { hovered = false; if (!focused) hideTimer.current = setTimeout(() => setVisible(false), 150); };
+    const focus = () => { focused = true; show(); };
+    const blur = () => { focused = false; if (!hovered) setVisible(false); };
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !anchor.contains(event.target) && !tooltipRef.current?.contains(event.target)) setVisible(false);
     };
-    const show = () => {
-      clearHideTimeout();
-      if (tooltipDisabledForDevice()) {
-        setVisible(false);
-        return;
-      }
-      setVisible(true);
-    };
-    const hide = () => {
-      clearHideTimeout();
-      setVisible(false);
-    };
-    const showOnHover = () => {
-      hovered = true;
-      show();
-    };
-    const hideOnLeave = () => {
-      hovered = false;
-      hide();
-    };
-    const showTemporarily = () => {
-      show();
-      hideTimeout = setTimeout(() => {
-        const supportsHover = typeof window.matchMedia !== "function"
-          || window.matchMedia("(hover: hover)").matches;
-        if (!hovered || !supportsHover) setVisible(false);
-      }, CLICK_VISIBLE_TIME);
-    };
-    anchor.addEventListener("mouseenter", showOnHover);
-    anchor.addEventListener("mouseleave", hideOnLeave);
-    anchor.addEventListener("click", showTemporarily);
+    const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") setVisible(false); };
+    anchor.addEventListener("mouseenter", enter);
+    anchor.addEventListener("mouseleave", leave);
+    anchor.addEventListener("focusin", focus);
+    anchor.addEventListener("focusout", blur);
+    anchor.addEventListener("click", show);
+    document.addEventListener("keydown", dismiss);
+    document.addEventListener("pointerdown", outside);
     return () => {
-      clearHideTimeout();
-      anchor.removeEventListener("mouseenter", showOnHover);
-      anchor.removeEventListener("mouseleave", hideOnLeave);
-      anchor.removeEventListener("click", showTemporarily);
+      anchor.removeEventListener("mouseenter", enter);
+      anchor.removeEventListener("mouseleave", leave);
+      anchor.removeEventListener("focusin", focus);
+      anchor.removeEventListener("focusout", blur);
+      anchor.removeEventListener("click", show);
+      document.removeEventListener("keydown", dismiss);
+      document.removeEventListener("pointerdown", outside);
+      clearTimeout(hideTimer.current);
+      if (description) anchor.setAttribute("aria-describedby", description);
+      else anchor.removeAttribute("aria-describedby");
     };
-  }, [disabled]);
+  }, [disabled, tooltipId]);
 
   useLayoutEffect(() => {
     if (!visible || disabled) return;
@@ -113,9 +99,13 @@ export const Tooltip = ({ content, position = "top", className = "", disabled = 
 
   return <>
     <span ref={markerRef} className="ui-tooltip__marker" aria-hidden="true" />
+    {!visible && !disabled && <span id={tooltipId} hidden>{content}</span>}
     {visible && !disabled && createPortal(
-      <span ref={tooltipRef} className={`ui-tooltip ui-tooltip--${position} ${className}`.trim()}
-        style={coordinates} role="tooltip">{content}</span>,
+      <span id={tooltipId} ref={tooltipRef} className={`ui-tooltip ui-tooltip--${position} ${className}`.trim()}
+        style={coordinates} role="tooltip"
+        onMouseEnter={() => { clearTimeout(hideTimer.current); setVisible(true); }} onMouseLeave={() => {
+          if (!markerRef.current?.parentElement?.contains(document.activeElement)) setVisible(false);
+        }}>{content}</span>,
       document.body,
     )}
   </>;

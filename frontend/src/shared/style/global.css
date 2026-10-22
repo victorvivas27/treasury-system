@@ -61,6 +61,7 @@
   --color-active: #374151;
   --color-bg: #0A0F1A;
   --color-elevated: var(--color-surface);
+  --color-danger-surface: #b91c1c;
   --color-error: #EF4444;
   --color-error-soft: rgba(239, 68, 68, 0.12);
   --color-hover: #1F2937;
@@ -75,7 +76,7 @@
   --color-warning: #F59E0B;
   --color-warning-soft: rgba(245, 158, 11, 0.12);
   --divider: #051e57;
-  --focus-ring: rgba(14, 235, 205, 0.42);
+  --focus-ring: var(--color-accent);
   --icon-accent: var(--color-accent);
   --icon-muted: #94A3B8;
   --icon-on-accent: #061512;
@@ -105,7 +106,7 @@
   --font-family-mono-ui: ui-monospace, "Cascadia Mono", monospace;
   --font-family-monospace: monospace;
   --font-family-serif: Georgia,"Times New Roman",serif;
-  --font-h1: var(--font-size-md);
+  --font-h1: var(--font-size-xl);
   --font-h2: var(--font-size-lg);
   --font-h3: var(--font-size-md);
   --font-h4: var(--font-size-sm);
@@ -138,27 +139,28 @@
   --shadow-sidebar-collapsed: 1px 0 12px rgba(34, 48, 68, 0.08);
   --shadow-sidebar-submenu: 0 18px 44px rgba(34, 48, 68, 0.16);
   --border-color: #a5b4be;
-  --color-accent: #0f766e;
+  --color-accent: #095e57;
   --color-accent-soft: rgba(15, 118, 110, 0.1);
   --color-active: #b2c5ce;
   --color-bg: #c1cdd5;
-  --color-error: #c63737;
+  --color-error: #9f2525;
   --color-error-soft: rgba(198, 55, 55, 0.1);
   --color-hover: #bdcdd6;
-  --color-info: #2466b1;
+  --color-info: #1e5794;
   --color-info-soft: rgba(36, 102, 177, 0.1);
   --color-primary: #24547a;
-  --color-success: #187a3c;
+  --color-success: #115f29;
   --color-success-soft: rgba(24, 122, 60, 0.11);
   --color-surface: #d1dce2;
-  --color-warning: #9a5c05;
+  --color-warning: #764800;
   --color-warning-soft: rgba(154, 92, 5, 0.1);
   --divider: #afbec8;
-  --focus-ring: rgba(15, 118, 110, 0.28);
-  --icon-accent: #0f766e;
-  --icon-muted: #64748b;
+  --focus-ring: var(--color-accent);
+  --icon-accent: #095e57;
+  --icon-muted: #566474;
   --icon-on-accent: #ffffff;
   --overlay: rgba(24, 30, 36, 0.35);
+  --palette-violet: #5b359f;
   --sidebar-icon: #64748b;
   --sidebar-icon-active: #0f766e;
   --sidebar-submenu-arrow-bg: #d1dce2;
@@ -166,9 +168,9 @@
   --sidebar-submenu-text: #334155;
   --sidebar-text: #475569;
   --text-boot: #172033;
-  --text-boot-muted: #64748b;
+  --text-boot-muted: #475569;
   --text-main: #182230;
-  --text-muted: #566474;
+  --text-muted: #475569;
   --text-on-accent: #ffffff;
 }
 
@@ -349,7 +351,7 @@ textarea:-webkit-autofill:active {
 
 ::placeholder {
   color: var(--text-muted);
-  opacity: 0.86;
+  opacity: 1;
 }
 
 :focus-visible {
@@ -424,20 +426,18 @@ a {
 /* Reserva estable para validaciones: evita saltos de layout al mostrar errores. */
 .form-group {
   position: relative;
-  padding-bottom: 24px;
+  padding-bottom: 0;
 }
 
 .form-group > .error-message {
-  position: absolute;
-  right: 0;
-  bottom: 2px;
-  left: 0;
-  overflow: hidden;
+  position: static;
+  display: block;
+  margin-top: .375rem;
   color: var(--color-error);
-  font-size: 0.6rem;
-  line-height: 16px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: .8125rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .form-group > .error-message:not(:empty) {
@@ -465,4 +465,11 @@ input, select, textarea { font-size: var(--font-body); }
 /* Bloquea el documento mientras un modal compartido o nativo está abierto. */
 body:has(.modal-overlay, .modal-confirm-overlay, .profile-edit-backdrop, dialog[open]) {
   overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-message, .error-message-alumno, .error-message-apoderado, .login-floating-label {
+    animation: none !important;
+    transition: none !important;
+  }
 }

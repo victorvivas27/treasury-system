@@ -33,7 +33,7 @@ describe("Arquitectura integrada", () => {
     await screen.findByText(/No se pudo cargar el gráfico/);
     expect(screen.queryByTitle("Gráfico: Componentes")).not.toBeInTheDocument();
     expect(screen.queryByTitle("Gráfico: Login")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Intentar de nuevo/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     await screen.findByTitle("Gráfico: Login");
   });
 

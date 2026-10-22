@@ -1,8 +1,8 @@
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { FiAward, FiBookOpen, FiCompass, FiEdit2, FiEye, FiEyeOff, FiGift, FiHeart,
-  FiMusic, FiPlus, FiSave, FiSmile, FiStar, FiSun, FiTarget, FiTrash2, FiUsers,
-  FiX } from "react-icons/fi";
+import { FiEdit2, FiEye, FiEyeOff, FiPlus, FiSave, FiTrash2, FiX } from "react-icons/fi";
+import { communityIconLabels } from '@/shared/ui/community-icons/CommunityIcon';
+import { communityImage } from '@/shared/ui/community-icons/communityImages';
 import type { AboutAccent, AboutIcon, AboutSection,
   AboutSectionPayload } from "@/core/A-domain/entities/community/AboutSection";
 import { AboutSectionUseCases } from "@/core/B-application/use-cases/community/AboutSectionUseCases";
@@ -15,19 +15,9 @@ const about = new AboutSectionUseCases(new AboutSectionRepositoryImpl());
 const emptyForm: AboutSectionPayload = { title: "", description: "", displayOrder: 0,
   visible: true, icon: "USERS", accentColor: "TURQUOISE", highlightedPhrase: null,
   featured: false };
-const iconOptions: Array<{ value: AboutIcon; label: string; icon: typeof FiUsers }> = [
-  { value: "USERS", label: "Comunidad", icon: FiUsers },
-  { value: "HEART", label: "Corazón", icon: FiHeart },
-  { value: "STAR", label: "Estrella", icon: FiStar },
-  { value: "BOOK", label: "Historia", icon: FiBookOpen },
-  { value: "TARGET", label: "Meta", icon: FiTarget },
-  { value: "SMILE", label: "Alegría", icon: FiSmile },
-  { value: "AWARD", label: "Logros", icon: FiAward },
-  { value: "COMPASS", label: "Nuestro rumbo", icon: FiCompass },
-  { value: "GIFT", label: "Celebración", icon: FiGift },
-  { value: "MUSIC", label: "Creatividad", icon: FiMusic },
-  { value: "SUN", label: "Energía", icon: FiSun },
-];
+const iconOptions = (Object.keys(communityIconLabels) as AboutIcon[]).map(value => ({
+  value, label: communityIconLabels[value],
+}));
 const colorOptions: Array<{ value: AboutAccent; label: string }> = [
   { value: "TURQUOISE", label: "Turquesa" }, { value: "BLUE", label: "Azul" },
   { value: "PURPLE", label: "Morado" }, { value: "ORANGE", label: "Naranjo" },
@@ -93,10 +83,10 @@ export const AboutManagementPage = () => {
           value={form.highlightedPhrase ?? ""} onChange={event => setForm({ ...form,
             highlightedPhrase: event.target.value || null })} /></label>
       <fieldset className="about-admin__icons"><legend>Elige un ícono</legend><div>
-        {iconOptions.map(({ value, label, icon: Icon }) => <label key={value}
+        {iconOptions.map(({ value, label }) => <label key={value}
           className={form.icon === value ? "selected" : ""} title={label}>
           <input type="radio" name="about-icon" value={value} checked={form.icon === value}
-            onChange={() => setForm({ ...form, icon: value })} /><Icon /><span>{label}</span>
+            onChange={() => setForm({ ...form, icon: value })} /><img src={communityImage(value)} alt="" width={40} height={40} /><span>{label}</span>
         </label>)}</div></fieldset>
       <fieldset className="about-admin__colors"><legend>Color de la tarjeta</legend><div>
         {colorOptions.map(({ value, label }) => <label key={value} title={label}

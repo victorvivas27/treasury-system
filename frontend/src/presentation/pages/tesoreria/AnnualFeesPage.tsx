@@ -1,3 +1,4 @@
+import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
   FiEye, FiFileText, FiLayers, FiRefreshCw, FiSave, FiSettings, FiSlash, FiTrendingUp, FiUpload, FiUsers,
@@ -59,6 +60,7 @@ export const AnnualFeesPage = () => {
   const [planPage, setPlanPage] = useState(1);
   const [obligationPage, setObligationPage] = useState(1);
   const [configOpen, setConfigOpen] = useState(false);
+  const configDialog = useDialogFocus(configOpen, () => setConfigOpen(false), fees.loading);
   const currentConfig = fees.configs.find(config => config.year === fees.year);
   const planPages = Math.max(1, Math.ceil(fees.plans.length / PLAN_PAGE_SIZE));
   const visiblePlans = useMemo(() => fees.plans.slice(
@@ -497,7 +499,7 @@ export const AnnualFeesPage = () => {
         onNext={() => setObligationPage(page => page + 1)}
         ariaLabel="Paginación de obligaciones por familia" />}
     </section>
-    {configOpen && <aside className="annual-config-modal" role="dialog" aria-modal="true"
+    {configOpen && <aside ref={configDialog} tabIndex={-1} className="annual-config-modal" role="dialog" aria-modal="true"
       aria-labelledby="annual-config-title" onClick={() => !fees.loading && setConfigOpen(false)}>
       <form className="treasury-panel treasury-config-form" onSubmit={saveConfig}
         onClick={event => event.stopPropagation()}>

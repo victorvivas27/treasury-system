@@ -155,7 +155,7 @@
 
 .modal-confirm-footer .base-button.button-danger {
   border-color: var(--color-error);
-  background-color: var(--color-error);
+  background-color: var(--color-danger-surface);
   color: #fff;
 }
 
@@ -268,3 +268,12 @@
 .modal-confirm-overlay--anchored .modal-confirm-body{padding:0.35rem 0;font-size:0.65rem}
 .modal-confirm-overlay--anchored .modal-confirm-footer{gap:0.35rem;padding-top:0.4rem}
 .modal-confirm-overlay--anchored .modal-confirm-footer button{min-height:30px;padding:var(--space-1) var(--space-2);font-size:0.65rem}
+
+.modal-confirm-overlay .modal-confirm-body p { font-size: .8125rem; overflow-wrap: anywhere; }
+.modal-confirm-overlay .modal-confirm-footer button { font-size: .8125rem; min-height: 34px; }
+@media (pointer: coarse) {
+  .modal-confirm-overlay .modal-confirm-footer button { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-confirm-container { animation: none; }
+}

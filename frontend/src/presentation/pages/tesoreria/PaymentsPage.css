@@ -169,7 +169,7 @@
 }
 
 .payment-summary-strip__metric--student h2 {
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .payment-summary-strip__progress {
@@ -1535,7 +1535,7 @@
   }
 
   .payment-summary-strip__metric--student h2 {
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
     font-size: 0.98rem;
     line-height: 1.08;
   }
@@ -1922,4 +1922,23 @@
     left: 0.5rem;
     justify-content: center;
   }
+}
+
+/* Readable labels for payment actions at every viewport. */
+.payments-page .installment-filters button,
+.payments-page .installment-actions > .proof-upload,
+.payments-page .installment-actions > .proof-link,
+.payments-page .installment-actions > .detail-toggle { font-size: .8125rem; white-space: normal; overflow-wrap: anywhere; }
+@media (pointer: coarse) {
+  .payments-page .installment-filters button,
+  .payments-page .installment-actions > button { min-height: 44px; }
+}
+/* Respond to the available content width beside the sidebar. */
+.payments-page { container: payments / inline-size; grid-template-columns: minmax(0, 1fr); }
+@container payments (max-width: 760px) {
+  .payment-summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .payment-summary-strip__metric, .payment-summary-strip__progress { min-width: 0; padding: .75rem; border-left: 0; }
+  .payment-summary-strip__progress { border-top: 1px solid var(--border-color); }
+  .installments-shell__header { flex-wrap: wrap; }
+  .installments-shell__actions { flex-wrap: wrap; }
 }

@@ -61,6 +61,8 @@ export const CrearApoderadoForm = () => {
           <input
             id="nombre_input"
             name="nombre"
+            aria-invalid={Boolean(fieldErrors.nombre)}
+            aria-describedby={fieldErrors.nombre ? "apoderado-nombre-error" : undefined}
             value={formData.nombre}
             onChange={handleChange}
             placeholder="Juan Carlos Perez Example"
@@ -71,7 +73,7 @@ export const CrearApoderadoForm = () => {
             Nombre completo
           </label>
           {fieldErrors.nombre && (
-            <span className="error-message-apoderado">{fieldErrors.nombre}</span>
+            <span id="apoderado-nombre-error" role="alert" className="error-message-apoderado">{fieldErrors.nombre}</span>
           )}
         </div>
 
@@ -80,6 +82,8 @@ export const CrearApoderadoForm = () => {
           <input
             id="email_input"
             name="email"
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "apoderado-email-error" : undefined}
             value={formData.email}
             onChange={handleChange}
             placeholder="ejemplo@email.com"
@@ -90,7 +94,7 @@ export const CrearApoderadoForm = () => {
             Email
           </label>
           {fieldErrors.email && (
-            <span className="error-message-apoderado">{fieldErrors.email}</span>
+            <span id="apoderado-email-error" role="alert" className="error-message-apoderado">{fieldErrors.email}</span>
           )}
         </div>
 

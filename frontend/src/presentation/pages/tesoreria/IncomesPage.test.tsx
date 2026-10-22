@@ -81,7 +81,7 @@ describe("IncomesPage", () => {
     await screen.findByText("Rifa del curso");
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     expect(document.body.style.overflow).toBe("hidden");
-    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(document.body.style.overflow).not.toBe("hidden");
   });
