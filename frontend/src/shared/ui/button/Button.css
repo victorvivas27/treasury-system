@@ -155,7 +155,7 @@
    ========================================================= */
 
 .button-danger {
-  background-color: var(--color-error);
+  background-color: var(--color-danger-surface);
   color: #fff;
   border-color: var(--color-error);
 
@@ -167,13 +167,13 @@
 }
 
 .button-danger:hover {
-  background-color: var(--color-error);
+  background-color: var(--color-danger-surface);
   border-color: var(--color-error);
   color: #fff;
 }
 
 .button-danger:active {
-  background-color: var(--color-error);
+  background-color: var(--color-danger-surface);
   border-color: var(--color-error);
   transform: scale(0.96);
 }

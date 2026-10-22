@@ -51,4 +51,15 @@ describe("FamilyContributionsPage", () => {
     expect(screen.queryByText("Familia FAM-1")).not.toBeInTheDocument();
     expect(screen.getByText("Página 2 de 2")).toBeInTheDocument();
   });
+it('shows a persistent retry after a failed load without inventing zero totals or an empty result', async () => {
+  contributionSummary.mockRejectedValueOnce(new Error('offline'));
+  render(<FamilyContributionsPage />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los aportes');
+  expect(screen.queryByText('No hay familias para los filtros seleccionados.')).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('Resumen de aportes no disponible.');
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+  await screen.findByText('Familia FAM-1');
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
 });

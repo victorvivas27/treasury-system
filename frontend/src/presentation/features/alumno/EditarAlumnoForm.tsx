@@ -47,6 +47,8 @@ export const EditarAlumnoForm = () => {
             <input
               id="nombre_input"
               name="nombre"
+              aria-invalid={Boolean(fieldErrors.nombre)}
+              aria-describedby={fieldErrors.nombre ? "alumno-edit-nombre-error" : undefined}
               value={formData.nombre}
               onChange={handleChange}
               placeholder="Juan Carlos Perez"
@@ -54,7 +56,7 @@ export const EditarAlumnoForm = () => {
             />
           </SkeletonWrapper>
           <label htmlFor="nombre_input" className="floating-label form-label">Nombre completo</label>
-          {fieldErrors.nombre && <span className="error-message">{fieldErrors.nombre}</span>}
+          {fieldErrors.nombre && <span id="alumno-edit-nombre-error" className="error-message" role="alert">{fieldErrors.nombre}</span>}
         </div>
 
         {/* Campo Curso */}
@@ -67,6 +69,8 @@ export const EditarAlumnoForm = () => {
             <select
               id="curso_input"
               name="curso"
+              aria-invalid={Boolean(fieldErrors.curso || coursesError)}
+              aria-describedby={fieldErrors.curso || coursesError ? "alumno-edit-curso-error" : undefined}
               value={formData.curso}
               onChange={handleChange}
               disabled={initialLoading || loadingCourses || Boolean(coursesError)}
@@ -82,7 +86,7 @@ export const EditarAlumnoForm = () => {
           </SkeletonWrapper>
           <label htmlFor="curso_input" className="floating-label form-label">Curso</label>
           {(fieldErrors.curso || coursesError) && (
-            <span className="error-message">{fieldErrors.curso || coursesError}</span>
+            <span id="alumno-edit-curso-error" className="error-message" role="alert">{fieldErrors.curso || coursesError}</span>
           )}
         </div>
 
@@ -95,6 +99,8 @@ export const EditarAlumnoForm = () => {
             <input
               id="fecha_nacimiento_input"
               name="fechaNacimiento"
+              aria-invalid={Boolean(fieldErrors.fechaNacimiento)}
+              aria-describedby={fieldErrors.fechaNacimiento ? "alumno-edit-fechaNacimiento-error" : undefined}
               type="date"
               value={formData.fechaNacimiento ?? ""}
               onChange={handleChange}
@@ -104,7 +110,7 @@ export const EditarAlumnoForm = () => {
           <label htmlFor="fecha_nacimiento_input" className="floating-label form-label">
             Fecha de nacimiento
           </label>
-          {fieldErrors.fechaNacimiento && <span className="error-message">{fieldErrors.fechaNacimiento}</span>}
+          {fieldErrors.fechaNacimiento && <span id="alumno-edit-fechaNacimiento-error" className="error-message" role="alert">{fieldErrors.fechaNacimiento}</span>}
         </div>
 
         <div className="form-group floating-group alumno-edit-form__group">
@@ -129,6 +135,8 @@ export const EditarAlumnoForm = () => {
             <textarea
               id="observacion_input"
               name="observacion"
+              aria-invalid={Boolean(fieldErrors.observacion)}
+              aria-describedby={fieldErrors.observacion ? "alumno-edit-observacion-error" : undefined}
               value={formData.observacion ?? ""}
               onChange={handleChange}
               placeholder="Ej.: Mati es alérgico al maní"
@@ -139,7 +147,7 @@ export const EditarAlumnoForm = () => {
           <label htmlFor="observacion_input" className="floating-label form-label">
             Mensaje / descripción (opcional)
           </label>
-          {fieldErrors.observacion && <span className="error-message">{fieldErrors.observacion}</span>}
+          {fieldErrors.observacion && <span id="alumno-edit-observacion-error" className="error-message" role="alert">{fieldErrors.observacion}</span>}
         </div>
 
         <div className="form-actions alumno-edit-form__actions">

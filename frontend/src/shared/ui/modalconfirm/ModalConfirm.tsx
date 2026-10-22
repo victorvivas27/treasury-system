@@ -1,6 +1,7 @@
+import { useDialogFocus, useDialogAnchor } from "../dialog/useDialogFocus";
 import { Button } from "../button/Button";
 import "./ModalConfirm.css";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 interface ModalConfirmProps {
   isOpen: boolean;
@@ -41,6 +42,10 @@ export const ModalConfirm = ({
   anchor,
   containerClassName = "",
 }: ModalConfirmProps) => {
+  const dialogRef = useDialogFocus(isOpen, onCancel, isLoading);
+  useDialogAnchor(dialogRef, isOpen, anchor);
+  const titleId = useId();
+  const messageId = useId();
   if (!isOpen) return null;
 
   return (
@@ -50,6 +55,11 @@ export const ModalConfirm = ({
       onClick={() => {
         if (!isLoading) onCancel();
       }}
+      ref={dialogRef}
+      tabIndex={-1}
+      aria-labelledby={titleId}
+      aria-describedby={messageId}
+      aria-busy={isLoading}
       aria-modal="true"
       role="dialog"
     >
@@ -63,11 +73,11 @@ export const ModalConfirm = ({
             ⚠
           </span>
 
-          <h3 className="modal-confirm-title">{title}</h3>
+          <h3 id={titleId} className="modal-confirm-title">{title}</h3>
         </header>
 
         <main className="modal-confirm-body">
-          <p>{message}</p>
+          <p id={messageId}>{message}</p>
           {children && <div className="modal-confirm-content">{children}</div>}
         </main>
 

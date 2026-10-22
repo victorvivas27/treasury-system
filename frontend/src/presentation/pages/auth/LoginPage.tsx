@@ -1,4 +1,4 @@
-import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
+import { PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
@@ -79,7 +79,10 @@ export const LoginPage = () => {
       validationErrors.organization = "Seleccione un curso";
     }
     setFieldErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0) {
+      document.getElementById(`login-${Object.keys(validationErrors)[0]}`)?.focus();
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -126,7 +129,6 @@ export const LoginPage = () => {
                 value={credentials[name]} onChange={event => updateCredential(name, event.target.value)}
                 aria-invalid={Boolean(fieldErrors[name])}
                 aria-describedby={[
-                  name === "password" && "login-password-guidance",
                   fieldErrors[name] && `login-${name}-error`,
                 ].filter(Boolean).join(" ") || undefined}
                 required />
@@ -139,7 +141,7 @@ export const LoginPage = () => {
                 {showPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
               </button>}
             </span>
-            {fieldErrors[name] && <span id={`login-${name}-error`} className="error-message">
+            {fieldErrors[name] && <span id={`login-${name}-error`} className="error-message" role="alert">
               {fieldErrors[name]}
             </span>}
           </div>
@@ -171,11 +173,10 @@ export const LoginPage = () => {
                 </select>
               </span>
               {fieldErrors.organization && (
-                <span id="login-organization-error" className="error-message">{fieldErrors.organization}</span>
+                <span id="login-organization-error" className="error-message" role="alert">{fieldErrors.organization}</span>
               )}
             </div>
           )}
-          <PasswordStrength id="login-password-guidance" password={password} />
         </div>
         {error && <p className="form-submit-message is-visible" role="alert" aria-live="polite">{error}</p>}
         <div className="login-form-actions">

@@ -20,7 +20,7 @@ export const FeedbackState: FC<FeedbackStateProps> = ({
 
 }) => {
   return (
-    <section className={`feedback-state feedback-state--${type}`}>
+    <section role={type === "error" ? "alert" : "status"} className={`feedback-state feedback-state--${type}`}>
       {icon && <div className="empty-state__icon">{icon}</div>}
       <div className="feedback-state__container">
         <h2 className="feedback-state__title">{title}</h2>
@@ -29,7 +29,7 @@ export const FeedbackState: FC<FeedbackStateProps> = ({
         {actionText && onRefresh && (
 
           <Button
-            label="Intentar de nuevo"
+            label={actionText}
             onClick={onRefresh}
             size="medium"
             variant="danger"

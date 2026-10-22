@@ -31,3 +31,6 @@
 .about-admin__list footer { display:flex; gap:0.4rem; }.about-admin__list footer button { display:flex; align-items:center; gap:0.3rem; padding:0.45rem 0.6rem; border-radius:0.45rem; background:var(--color-accent-soft); color:var(--text-main); }.about-admin__list footer .danger { color:var(--color-error); }
 .about-admin__empty { padding:var(--space-8); text-align:center; }
 @media(max-width:680px){.about-admin{padding: var(--page-padding)}.about-admin__form-row{align-items:flex-start;flex-direction:column}.about-admin__form-row>label:first-child{width:100%}.about-admin__list article{grid-template-columns:auto 1fr}.about-admin__list footer{grid-column:1/-1;justify-content:flex-end}}
+.about-admin__icons label > svg { flex-shrink: 0; width: 28px; height: 28px; }
+
+.about-admin__icons label > img { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }

@@ -168,3 +168,7 @@ textarea.form-input-alumno {
     white-space: normal;
   }
 }
+
+/* Full validation messages remain readable at zoom and on narrow screens. */
+.form-group-alumno { min-width: 0; padding-bottom: 0; }
+.form-group-alumno > .error-message-alumno { position: static; display: block; margin-top: .375rem; font-size: .8125rem; line-height: 1.45; white-space: normal; overflow: visible; overflow-wrap: anywhere; }

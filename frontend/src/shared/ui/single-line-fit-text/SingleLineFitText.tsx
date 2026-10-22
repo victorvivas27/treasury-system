@@ -7,7 +7,7 @@ interface SingleLineFitTextProps {
   minFontSize?: number;
 }
 
-export const SingleLineFitText = ({ children, className = "", minFontSize = 7 }: SingleLineFitTextProps) => {
+export const SingleLineFitText = ({ children, className = "", minFontSize = 12 }: SingleLineFitTextProps) => {
   const containerRef = useRef<HTMLSpanElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const maxFontSize = useRef<number | undefined>(undefined);
@@ -22,12 +22,12 @@ export const SingleLineFitText = ({ children, className = "", minFontSize = 7 }:
       if (!maxFontSize.current) {
         maxFontSize.current = Number.parseFloat(window.getComputedStyle(text).fontSize) || 13;
       }
-      const maximum = maxFontSize.current;
+      const maximum = Math.max(12, minFontSize, maxFontSize.current);
       text.style.fontSize = `${maximum}px`;
       const available = container.clientWidth;
       const required = text.scrollWidth;
       const next = available > 0 && required > available
-        ? Math.max(minFontSize, maximum * available / required)
+        ? Math.max(12, minFontSize, maximum * available / required)
         : maximum;
       text.style.fontSize = `${next}px`;
       setFontSize(next);

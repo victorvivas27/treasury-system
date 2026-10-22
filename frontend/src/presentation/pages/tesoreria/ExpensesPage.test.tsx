@@ -90,7 +90,7 @@ describe("ExpensesPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Ver detalle de Compra del curso 1" }));
     expect(screen.queryByRole("button", { name: "Registrar egreso" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Adjuntar comprobante")).not.toBeInTheDocument();
-    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(document.body.style.overflow).not.toBe("hidden");
   });

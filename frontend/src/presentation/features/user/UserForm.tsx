@@ -111,11 +111,13 @@ export const UserForm = ({
           {showFieldIcons && <FiUser className="login-field-icon" aria-hidden="true" />}
           <input id="user-form-nombre"
             className={`form-input ${errors.nombre ? "input-error" : ""}`}
-            name="nombre" placeholder="Ej.: Ana Pérez" autoComplete="name"
+            name="nombre"
+            aria-invalid={Boolean(errors.nombre)}
+            aria-describedby={errors.nombre ? "user-nombre-error" : undefined} placeholder="Ej.: Ana Pérez" autoComplete="name"
             value={formData.nombre} onChange={handleChange} />
           <label htmlFor="user-form-nombre" className="login-floating-label">Nombre</label>
         </span>
-        {errors.nombre && <span className="error-message">{errors.nombre}</span>}
+        {errors.nombre && <span id="user-nombre-error" className="error-message" role="alert">{errors.nombre}</span>}
       </div>
 
       <div className="form-group">
@@ -123,11 +125,13 @@ export const UserForm = ({
           {showFieldIcons && <FiMail className="login-field-icon" aria-hidden="true" />}
           <input id="user-form-correo"
             className={`form-input ${errors.correo ? "input-error" : ""}`}
-            name="correo" type="email" placeholder="Ej.: nombre@correo.cl"
+            name="correo"
+            aria-invalid={Boolean(errors.correo)}
+            aria-describedby={errors.correo ? "user-correo-error" : undefined} type="email" placeholder="Ej.: nombre@correo.cl"
             autoComplete="email" value={formData.correo} onChange={handleChange} />
           <label htmlFor="user-form-correo" className="login-floating-label">Correo</label>
         </span>
-        {errors.correo && <span className="error-message">{errors.correo}</span>}
+        {errors.correo && <span id="user-correo-error" className="error-message" role="alert">{errors.correo}</span>}
       </div>
 
       {children}
@@ -141,7 +145,8 @@ export const UserForm = ({
             name="password"
             type={showPassword ? "text" : "password"}
             placeholder="Ej.: ClaveSegura1!"
-            aria-describedby="user-password-guidance"
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={["user-password-guidance", errors.password && "user-password-error"].filter(Boolean).join(" ")}
             autoComplete="new-password"
             value={formData.password ?? ""}
             onChange={handleChange}
@@ -157,7 +162,7 @@ export const UserForm = ({
             {showPassword ? <TfiEye aria-hidden="true" /> : <RxEyeClosed aria-hidden="true" />}
           </button>
         </span>
-        {errors.password && <span className="error-message">{errors.password}</span>}
+        {errors.password && <span id="user-password-error" className="error-message" role="alert">{errors.password}</span>}
         <span className="password-input-wrapper login-floating-field">
           {showFieldIcons && <FiLock className="login-field-icon" aria-hidden="true" />}
           <input

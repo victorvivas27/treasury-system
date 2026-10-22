@@ -26,6 +26,8 @@ export const CrearAlumnoForm = () => {
           <input
             id="nombre_input"
             name="nombre"
+            aria-invalid={Boolean(fieldErrors.nombre)}
+            aria-describedby={fieldErrors.nombre ? "alumno-nombre-error" : undefined}
             value={formData.nombre}
             onChange={handleChange}
             placeholder="Jorge Luis Example"
@@ -35,7 +37,7 @@ export const CrearAlumnoForm = () => {
             Nombre completo
           </label>
           {fieldErrors.nombre && (
-            <span className="error-message-alumno">{fieldErrors.nombre}</span>
+            <span id="alumno-nombre-error" role="alert" className="error-message-alumno">{fieldErrors.nombre}</span>
           )}
         </div>
 
@@ -44,6 +46,8 @@ export const CrearAlumnoForm = () => {
           <select
             id="curso_input"
             name="curso"
+            aria-invalid={Boolean(fieldErrors.curso || coursesError)}
+            aria-describedby={fieldErrors.curso || coursesError ? "alumno-curso-error" : undefined}
             value={formData.curso}
             onChange={handleChange}
             disabled={loadingCourses || Boolean(coursesError)}
@@ -60,7 +64,7 @@ export const CrearAlumnoForm = () => {
             Curso
           </label>
           {(fieldErrors.curso || coursesError) && (
-            <span className="error-message-alumno">{fieldErrors.curso || coursesError}</span>
+            <span id="alumno-curso-error" role="alert" className="error-message-alumno">{fieldErrors.curso || coursesError}</span>
           )}
         </div>
 
@@ -68,6 +72,8 @@ export const CrearAlumnoForm = () => {
           <input
             id="fecha_nacimiento_input"
             name="fechaNacimiento"
+            aria-invalid={Boolean(fieldErrors.fechaNacimiento)}
+            aria-describedby={fieldErrors.fechaNacimiento ? "alumno-fechaNacimiento-error" : undefined}
             type="date"
             value={formData.fechaNacimiento ?? ""}
             onChange={handleChange}
@@ -77,7 +83,7 @@ export const CrearAlumnoForm = () => {
             Fecha de nacimiento
           </label>
           {fieldErrors.fechaNacimiento && (
-            <span className="error-message-alumno">{fieldErrors.fechaNacimiento}</span>
+            <span id="alumno-fechaNacimiento-error" role="alert" className="error-message-alumno">{fieldErrors.fechaNacimiento}</span>
           )}
         </div>
 
@@ -97,6 +103,8 @@ export const CrearAlumnoForm = () => {
           <textarea
             id="observacion_input"
             name="observacion"
+            aria-invalid={Boolean(fieldErrors.observacion)}
+            aria-describedby={fieldErrors.observacion ? "alumno-observacion-error" : undefined}
             value={formData.observacion ?? ""}
             onChange={handleChange}
             placeholder="Ej.: Mati es alérgico al maní"
@@ -107,7 +115,7 @@ export const CrearAlumnoForm = () => {
             Mensaje / descripción (opcional)
           </label>
           {fieldErrors.observacion && (
-            <span className="error-message-alumno">{fieldErrors.observacion}</span>
+            <span id="alumno-observacion-error" role="alert" className="error-message-alumno">{fieldErrors.observacion}</span>
           )}
         </div>
 

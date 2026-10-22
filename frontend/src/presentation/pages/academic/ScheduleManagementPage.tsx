@@ -40,7 +40,6 @@ export function ScheduleManagementPage() {
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [deleteText, setDeleteText] = useState("");
-  const focusBeforeDialog = useRef<HTMLElement | null>(null);
   const validationNotice = useRef<HTMLParagraphElement | null>(null);
   const preservedDraft = useRef<{ schedule: Schedule; dirty: boolean } | null>(null);
   useEffect(() => {
@@ -65,24 +64,9 @@ export function ScheduleManagementPage() {
     return () => window.removeEventListener("beforeunload", prevent);
   }, [dirty]);
   useEffect(() => {
-    if (!confirmation) return;
-    focusBeforeDialog.current = document.activeElement as HTMLElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const dialog = document.querySelector<HTMLElement>(".schedule-confirm");
-    dialog?.querySelector<HTMLElement>("input, button")?.focus();
-    const keyboard = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { event.preventDefault(); setConfirmation(null); }
-      if (event.key === "Tab") {
-        const buttons = dialog?.querySelectorAll<HTMLElement>("input:not(:disabled), button:not(:disabled)");
-        if (!buttons?.length) return;
-        const first = buttons[0], last = buttons[buttons.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-      }
-    };
-    document.addEventListener("keydown", keyboard);
-    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", keyboard); focusBeforeDialog.current?.focus(); };
+    if (confirmation?.deleteStep === 2) {
+      document.querySelector<HTMLElement>(".schedule-confirm input")?.focus();
+    }
   }, [confirmation]);
   const change = (days: ScheduleDay[]) => { setDraft({ days }); setDirty(true); setValidation(""); if (saveResult !== "success") setSaveResult(null); };
   const updateDay = (day: ScheduleDay) => change([...draft.days.filter(value => value.dayOfWeek !== day.dayOfWeek), day].sort((a, b) => a.dayOfWeek - b.dayOfWeek));

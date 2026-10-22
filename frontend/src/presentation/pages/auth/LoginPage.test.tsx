@@ -209,3 +209,14 @@ describe("LoginPage", () => {
     })).toBeInTheDocument();
   });
 });
+
+it("keeps password policy while removing the strength evaluation from login", () => {
+  const login = vi.fn();
+  vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+  render(<MemoryRouter><LoginPage /></MemoryRouter>);
+  expect(screen.queryByText(/Fortaleza orientativa/)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+  expect(screen.getByLabelText("Correo")).toHaveFocus();
+  expect(screen.getByLabelText("Contraseña")).toHaveAccessibleDescription("Use 8 caracteres, mayúscula, minúscula, número y especial");
+  expect(login).not.toHaveBeenCalled();
+});

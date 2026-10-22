@@ -1,0 +1,52 @@
+/* Scoped to the manifesto carousel; surrounding Home sections keep their layout. */
+.home-community__about .about-cylinder { position: relative; --cylinder-radius: 230px; min-width: 0; width: 100%; overflow: clip; padding-block: 4px 12px; }
+.about-cylinder__stage { position: relative; width: 100%; perspective: 2500px; touch-action: pan-y pinch-zoom; cursor: default; user-select: none; isolation: isolate; }
+.about-cylinder__stage.is-dragging { cursor: default; }
+.about-cylinder__ring { position: relative; display: grid; padding-block: 12px 28px; transform-style: preserve-3d; transform: rotateX(-5deg) rotateZ(var(--drag-tilt, 0deg)); transition: rotate 240ms ease; }
+.home-community__about .about-cylinder__card { position: relative; grid-area: 1 / 1; justify-self: center; width: 220px; height: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid color-mix(in srgb, var(--card-accent) 32%, var(--border-color)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 8%, var(--color-surface)), var(--color-surface)); box-shadow: inset 0 2px var(--card-accent), 0 18px 34px rgb(0 0 0 / 24%); transform: translate3d(calc(var(--card-x) * var(--cylinder-radius)), 0, calc(var(--card-z) * var(--cylinder-radius))) rotateY(var(--card-yaw)); opacity: var(--card-fade); backface-visibility: hidden; transition: border-color 220ms ease, box-shadow 220ms ease; cursor: default; }
+.home-community__about .about-cylinder__card.is-current { border-color: var(--card-accent); box-shadow: inset 0 2px var(--card-accent), 0 20px 40px rgb(0 0 0 / 35%); cursor: inherit; }
+.about-cylinder__card-header { display: flex; align-items: center; gap: 9px; }
+.home-community__about .about-cylinder__card .home-community__card-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 0; background: none; font-size: 36px; }
+.home-community__about .about-cylinder__card h3 { font-size: 15px; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.about-cylinder__body { min-height: 0; flex: 0 0 auto; overflow: visible; touch-action: pan-y pinch-zoom; }
+.home-community__about .about-cylinder__body p { font-size: 13px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.home-community__about .about-cylinder__body blockquote { margin: 12px 0 0; padding-left: 10px; border-left: 2px solid var(--card-accent); color: var(--text-main); font: italic 13px/1.5 var(--font-family-serif); overflow-wrap: anywhere; }
+.about-cylinder__body.is-expanded { user-select: text; cursor: auto; }
+.about-cylinder__read-more { align-self: flex-start; flex-shrink: 0; min-height: 36px; padding: 6px 0; color: var(--card-accent); font: 650 13px/1.4 var(--font-main); text-decoration: underline; text-underline-offset: 4px; }
+.home-community .about-cylinder__announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.about-cylinder :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+.home-community__about.is-visible .about-cylinder { animation: about-cylinder-rise 600ms cubic-bezier(.22,1,.36,1) both; }
+@keyframes about-cylinder-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) { .home-community__about.is-visible .about-cylinder { animation: none; } .about-cylinder__ring { transform: none; } .about-cylinder *, .about-cylinder *::before { transition: none !important; } }
+
+.about-cylinder__ring { pointer-events: none; }
+.home-community__about .about-cylinder__card { pointer-events: auto; }
+.about-cylinder__body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+.about-cylinder__read-more { cursor: default; }
+.about-message-overlay { position: fixed; inset: 0; z-index: 10000; background: rgb(0 0 0 / 65%); backdrop-filter: blur(4px); }
+.about-message-panel { position: fixed; width: min(320px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--color-accent); border-radius: 12px; background: var(--color-surface); color: var(--text-main); box-shadow: 0 20px 60px #0008; animation: about-message-open 220ms ease-out both; }
+.about-message-panel header { display: flex; align-items: flex-start; gap: 12px; }
+.about-message-panel h3 { flex: 1; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.about-message-panel button { flex-shrink: 0; min-width: 32px; min-height: 32px; color: var(--text-main); font-size: 24px; cursor: default; }
+.about-message-content { min-height: 0; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; margin-top: 12px; font-size: 14px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+.about-message-content::-webkit-scrollbar { display: none; }
+.about-message-content blockquote { margin: 14px 0 0; padding-left: 10px; border-left: 2px solid var(--color-accent); }
+.about-message-panel :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.home-community.about-message-overlay { margin: 0; padding: 0; width: auto; max-width: none; }
+.about-message-overlay { --card-accent: var(--color-accent); }
+.about-message-overlay .about-message-panel { border-color: color-mix(in srgb, var(--card-accent) 55%, var(--border-color)); background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 8%, var(--color-surface)), var(--color-surface)); box-shadow: inset 0 2px var(--card-accent), 0 20px 60px #0008; }
+.about-message-icon { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; background: none; color: var(--card-accent); font-size: 17px; }
+.about-message-overlay .about-message-content blockquote { border-color: var(--card-accent); font-style: italic; }
+.about-message-panel button:hover { background: color-mix(in srgb, var(--card-accent) 12%, transparent); border-radius: 8px; }
+@keyframes about-message-open { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .about-message-panel { animation: none; } }
+
+.about-cylinder__desktop-controls { display: none; }
+.home-community__card-icon > svg, .about-message-icon > svg { width: 100%; height: 100%; display: block; }
+
+/* Community artwork sits behind the message, never beside the title. */
+.about-cylinder__watermark, .about-message__watermark { position: absolute; right: 8px; bottom: 12px; width: 170px; height: 170px; object-fit: contain; opacity: .10; pointer-events: none; user-select: none; }
+.about-cylinder__card > :not(.about-cylinder__watermark), .about-message-panel > :not(.about-message__watermark) { position: relative; z-index: 1; }
+.about-message__watermark { width: min(220px, 80%); height: 220px; opacity: .08; }

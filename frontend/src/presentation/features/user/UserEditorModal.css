@@ -38,7 +38,7 @@
 .users-page .user-editor-modal .user-form__password-input { gap: 10px; }
 .users-page .user-editor-modal .user-form__account-status { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0; }
 .users-page .user-editor-modal .checkbox-label { min-height: 28px; gap: 6px; font-size: 11px; }
-.users-page .user-editor-modal .user-form .error-message { position: static; font-size: 10px; white-space: normal; }
+.users-page .user-editor-modal .user-form .error-message { position: static; font-size: .8125rem; white-space: normal; }
 .users-page .user-editor-modal .form-label { font-size: 11px; }
 .users-page .user-editor-modal .password-strength { padding: 0; font-size: 10px; }
 .users-page .user-editor-modal .password-strength__requirements { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 8px; }

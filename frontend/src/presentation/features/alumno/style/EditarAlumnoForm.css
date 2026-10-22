@@ -165,3 +165,6 @@
   min-height: 72px;
   resize: vertical;
 }
+
+.alumno-edit-form__group > .floating-label { top: 0; transform: translateY(-65%); background: var(--color-surface); }
+.alumno-edit-form__group > .error-message { font-size: .8125rem; }
