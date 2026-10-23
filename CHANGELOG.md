@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/victorvivas27/treasury-system/compare/v1.29.0...v1.30.0) (2026-10-23)
+
+
+### Features
+
+* **tests:** agregar pruebas para LoginPage y HomeHeader; mejorar validaciones y accesibilidad ([ee68700](https://github.com/victorvivas27/treasury-system/commit/ee68700b3efd28026447aee1a7c4bff3cdf21fc4))
+
 ## [1.29.0](https://github.com/victorvivas27/treasury-system/compare/v1.28.0...v1.29.0) (2026-10-23)
 
 
