@@ -4,7 +4,7 @@
   padding: 0.65rem 0.8rem;
   border-radius: 16px;
   background-color: var(--color-surface);
-  box-shadow: 0 4px 18px rgb(0 0 0 / 5%);
+  box-shadow: 0 4px 18px var(--tone-neutral-dark-001);
 }
 
 .familia-header {

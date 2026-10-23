@@ -55,7 +55,7 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: var(--color-accent);
-  color: var(--color-primary);
+  color: var(--text-on-accent);
   cursor: pointer;
   font-size: 0.66rem;
 }

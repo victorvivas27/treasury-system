@@ -149,7 +149,7 @@ export function ScheduleManagementPage() {
           return <article className="schedule-day schedule-daily-editor" key={`${data.year}:${name}`} aria-label={`Jornada · ${name}`}>
             <div className="schedule-daily-heading"><h2>{name}</h2><span>Salida <strong>{day ? timeLabel(day.exitTime) || "--:--" : "--:--"}</strong></span></div>
             {!day ? <Button label="Configurar jornada" onClick={() => updateDay({ dayOfWeek: number, entryTime: "", exitTime: "", blocks: [] })} /> : <>
-              {ingress && <div className="schedule-ingress schedule-editor-block" style={{ "--schedule-type-color": "#64748b" } as CSSProperties}>
+              {ingress && <div className="schedule-ingress schedule-editor-block" style={{ "--schedule-type-color": "var(--schedule-ingress-color)" } as CSSProperties}>
                 <span className="schedule-ingress-time">{ingress.start} – {ingress.end}</span><strong>Ingreso</strong>
               </div>}
               {orderedBlocks(day).sort((a, b) => {

@@ -6,7 +6,7 @@
 .sidebar-footer-icon-wrap { position: relative; display: grid; place-items: center; flex: 0 0 18px; }
 .sidebar-footer-chat-motion { display: grid; place-items: center; }
 .sidebar-footer-icon { width: 18px; height: 18px; color: var(--sidebar-item-color, var(--sidebar-icon)); }
-.sidebar-footer-badge { position: absolute; top: -7px; right: -9px; min-width: 15px; height: 15px; padding: 0 3px; display: grid; place-items: center; border-radius: 8px; background: var(--color-error); color: white; font-size: 9px; font-weight: 700; border: 2px solid var(--color-sidebar); }
+.sidebar-footer-badge { position: absolute; top: -7px; right: -9px; min-width: 15px; height: 15px; padding: 0 3px; display: grid; place-items: center; border-radius: 8px; background: var(--color-error); color: var(--tone-neutral-light-038); font-size: 9px; font-weight: 700; border: 2px solid var(--color-sidebar); }
 .sidebar-user { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 10px 8px 4px; border-top: 1px solid var(--border-color); border-radius: 7px; color: var(--text-main); text-decoration: none; }
 .sidebar-user-avatar { width: 32px; height: 32px; min-width: 32px; min-height: 32px; flex: 0 0 32px; }
 .sidebar-user-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }

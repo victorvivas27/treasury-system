@@ -64,13 +64,13 @@
 .events-header>button{min-height:34px;padding:0.35rem 0.65rem;gap:0.3rem;font-size:0.72rem}
 .events-header__actions{display:flex;align-items:center;gap:0.4rem}
 .events-header__actions button{display:flex;min-height:34px;align-items:center;justify-content:center;border-radius:var(--radius-md);padding:0.35rem 0.65rem;background:var(--color-accent);color:var(--color-bg);font-size:0.72rem;font-weight:var(--font-weight-bold)}
-.events-header__actions button:last-child{background:var(--color-info);color:var(--color-primary)}
+.events-header__actions button:last-child{background:var(--color-info);color:var(--text-on-info)}
 .events-toolbar{margin:var(--space-3) 0}
 .events-toolbar label{gap:0.18rem;font-size: var(--font-label)}
 .events-toolbar select{width:105px;min-height:32px;border:1px solid var(--border-color);border-radius:var(--radius-md);padding:var(--space-1) 0.45rem;background:var(--color-input);color:var(--text-main);font:inherit;font-size: var(--font-body)}
 .events-year-select{position:relative;display:grid;gap:0.18rem;width:105px;color:var(--text-muted);font-size:0.65rem}
 .events-toolbar .events-year-select>button{display:flex;width:105px;height:32px;min-height:32px;align-items:center;justify-content:space-between;border:1px solid var(--border-color);border-radius:var(--radius-md);padding:var(--space-1) 0.55rem;background:var(--color-input);color:var(--text-main);font:inherit;font-size:0.72rem}
-.events-year-select__menu{position:absolute;z-index:40;top:calc(100% + 2px);right:0;left:0;overflow-y:auto;max-height:9rem;border:1px solid var(--border-color);border-radius:7px;padding:2px;background:var(--color-surface);box-shadow:0 8px 20px rgb(0 0 0 / 14%)}
+.events-year-select__menu{position:absolute;z-index:40;top:calc(100% + 2px);right:0;left:0;overflow-y:auto;max-height:9rem;border:1px solid var(--border-color);border-radius:7px;padding:2px;background:var(--color-surface);box-shadow:0 8px 20px var(--tone-neutral-dark-007)}
 .events-toolbar .events-year-select__menu button{display:block;width:100%;height:18px;min-height:18px;border:0;border-radius:3px;padding:0 var(--space-2);background:transparent;color:var(--text-main);font:inherit;font-size:0.68rem;line-height:18px;text-align:left}
 .events-year-select__menu button:hover,.events-year-select__menu button[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 12%,transparent);color:var(--color-accent)}
 .event-summary h2{font-size: var(--font-h2);line-height:1.2}
@@ -105,7 +105,7 @@
 .event-modal--compact fieldset legend{font-size:0.68rem}
 .event-modal--compact footer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.4rem;margin-top:0.15rem}
 .event-modal--compact footer button{display:flex;width:100%;min-height:32px;align-items:center;justify-content:center;gap:0.3rem;padding:0.3rem 0.6rem;font-size:0.68rem}
-.event-modal--compact footer button:first-child{background:var(--color-info);color:var(--color-primary)}
+.event-modal--compact footer button:first-child{background:var(--color-info);color:var(--text-on-info)}
 .event-modal--compact footer button:last-child{background:var(--color-accent);color:var(--color-bg)}
 .event-summary .event-actions{display:grid;width:min(330px,100%);grid-template-columns:repeat(2,minmax(0,1fr));gap:0.4rem}
 .event-summary .event-actions button{width:100%;min-height:34px;justify-content:center;padding:0.35rem 0.55rem;font-size:0.68rem;white-space:nowrap}
@@ -171,7 +171,7 @@
 .settlement-modal-content .settlement-warning{margin:0;border-color:var(--color-warning);color:var(--color-warning)}
 .settlement-modal-content footer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.35rem;margin-top:0.1rem}
 .settlement-modal-content footer button{display:flex;min-height:30px;align-items:center;justify-content:center;gap:var(--space-1);border-radius:var(--radius-md);padding:var(--space-1) 0.4rem;font-size:0.6rem;font-weight:var(--font-weight-bold)}
-.settlement-modal-content footer button:first-child{background:var(--color-info);color:var(--color-primary)}
+.settlement-modal-content footer button:first-child{background:var(--color-info);color:var(--text-on-info)}
 .settlement-modal-content footer button:last-child{background:var(--color-accent);color:var(--color-bg)}
 .settlement-modal-content footer button:disabled{cursor:not-allowed;opacity:0.45}
 .event-finance-actions{display:grid;gap:0.45rem;margin-top:0.65rem;border:1px solid color-mix(in srgb,var(--color-success) 25%,var(--border-color));border-radius:var(--radius-md);padding:0.6rem;background:color-mix(in srgb,var(--color-success) 6%,var(--color-input))}

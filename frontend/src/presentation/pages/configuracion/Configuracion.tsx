@@ -10,6 +10,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./Configuracion.css";
+import { PaletteSelector } from "./PaletteSelector";
 
 const THEME_OPTIONS: Array<{
   value: ThemePreference;
@@ -143,6 +144,7 @@ export const Configuracion = () => {
         </fieldset>
 
         <p className="theme-description">{selectedOption.description}</p>
+        <PaletteSelector />
       </article>
 
 

@@ -10,18 +10,15 @@ const viewport = (mobile: boolean) => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("useSidebarBehavior", () => {
-  it("starts expanded on desktop and keeps navigation visible after choosing a destination", () => {
+  it("starts compact and stays open on desktop navigation until dismissed", () => {
     viewport(false);
     const { result } = renderHook(useSidebarBehavior);
-    expect(result.current.sidebarState).toBe("expanded");
-    act(() => result.current.onNavLinkClick());
-    expect(result.current.sidebarState).toBe("expanded");
-    act(() => result.current.onToggleSidebar());
-    expect(result.current.sidebarState).toBe("icons");
-    act(() => result.current.onNavLinkClick());
     expect(result.current.sidebarState).toBe("icons");
     act(() => result.current.onToggleSidebar());
+    act(() => result.current.onNavLinkClick());
     expect(result.current.sidebarState).toBe("expanded");
+    act(() => result.current.closeSidebar());
+    expect(result.current.sidebarState).toBe("icons");
   });
   it("opens directly on mobile, locks scrolling and closes after navigation or Escape", () => {
     viewport(true);
@@ -47,6 +44,6 @@ describe("useSidebarBehavior", () => {
     act(() => { media.matches = true; change(); });
     expect(result.current.sidebarState).toBe("hidden");
     act(() => { media.matches = false; change(); });
-    expect(result.current.sidebarState).toBe("expanded");
+    expect(result.current.sidebarState).toBe("icons");
   });
 });

@@ -156,12 +156,12 @@
 .modal-confirm-footer .base-button.button-danger {
   border-color: var(--color-error);
   background-color: var(--color-danger-surface);
-  color: #fff;
+  color: var(--tone-neutral-light-038);
 }
 
 .modal-confirm-footer .base-button.button-danger .button-label,
 .modal-confirm-footer .base-button.button-danger .button-icon > svg {
-  color: #fff;
+  color: var(--tone-neutral-light-038);
 }
 
 .modal-confirm-container:hover {

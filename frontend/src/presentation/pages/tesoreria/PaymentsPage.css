@@ -89,7 +89,7 @@
   border-radius: 10px;
   padding: 0.55rem var(--space-3);
   background: var(--color-success);
-  color: white;
+  color: var(--tone-neutral-light-038);
   font-size: 0.78rem;
   box-shadow: var(--shadow-elevated);
 }
@@ -109,8 +109,8 @@
 }
 
 .payments-page--guardian {
-  --mp-blue-soft: #1597c7;
-  --mp-yellow-soft: #ffe45c;
+  --mp-blue-soft: var(--tone-info-019);
+  --mp-yellow-soft: var(--tone-warning-019);
   width: min(1240px, 100%);
   gap: var(--space-4);
 }
@@ -501,7 +501,7 @@
     color-mix(in srgb, var(--mp-blue-soft) 72%, var(--color-surface)),
     color-mix(in srgb, var(--mp-yellow-soft) 18%, var(--mp-blue-soft))
   );
-  color: #f8fbff;
+  color: var(--tone-neutral-light-024);
 }
 
 .proof-link,
@@ -653,7 +653,7 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: color-mix(in srgb, black 0%, transparent);
+  background: color-mix(in srgb, var(--tone-neutral-dark-030) 0%, transparent);
   opacity: 0;
   transition:
     opacity 180ms ease,
@@ -663,7 +663,7 @@
 .bank-drawer-backdrop.is-open {
   pointer-events: auto;
   opacity: 1;
-  background: color-mix(in srgb, black 64%, transparent);
+  background: color-mix(in srgb, var(--tone-neutral-dark-030) 64%, transparent);
   backdrop-filter: blur(4px);
 }
 
@@ -679,7 +679,7 @@
   border: 1px solid color-mix(in srgb, var(--color-accent) 42%, var(--border-color));
   border-radius: 16px;
   background: color-mix(in srgb, var(--color-surface) 92%, var(--color-bg));
-  box-shadow: 0 24px 70px color-mix(in srgb, black 42%, transparent);
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--tone-neutral-dark-030) 42%, transparent);
   color: var(--text-main);
   animation: bank-drawer-in 750ms cubic-bezier(.16, 1, .3, 1) both;
 }
@@ -894,7 +894,7 @@
 }
 
 .bank-drawer__copy:hover {
-  background: color-mix(in srgb, var(--color-accent) 88%, white);
+  background: color-mix(in srgb, var(--color-accent) 88%, var(--tone-neutral-light-038));
   box-shadow: 0 8px 18px color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
@@ -1093,7 +1093,7 @@
   min-height: 40px;
   border-radius: 10px;
   background: var(--color-accent);
-  color: white;
+  color: var(--tone-neutral-light-038);
   font-weight: var(--font-weight-bold);
 }
 
@@ -1104,7 +1104,7 @@
   display: grid;
   place-items: center;
   padding: 18px;
-  background: color-mix(in srgb, black 62%, transparent);
+  background: color-mix(in srgb, var(--tone-neutral-dark-030) 62%, transparent);
   backdrop-filter: blur(4px);
 }
 
@@ -1115,7 +1115,7 @@
   max-height: calc(100dvh - 36px);
   overflow-y: auto;
   border-color: color-mix(in srgb, var(--color-accent) 42%, var(--border-color));
-  box-shadow: 0 24px 70px color-mix(in srgb, black 42%, transparent);
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--tone-neutral-dark-030) 42%, transparent);
   animation: bank-config-drop-in 780ms cubic-bezier(.18, .86, .22, 1.08) both;
 }
 .bank-config-modal > header { align-items: stretch; flex-direction: column; }

@@ -64,14 +64,19 @@
   <link rel="stylesheet" href="/src/shared/style/global.css" />
   <script>
     (() => {
-      const saved = localStorage.getItem("app-theme");
+      const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
+      const saved = read("app-theme");
       const preference = ["dark", "light", "system"].includes(saved) ? saved : "dark";
       const theme = preference === "system"
         ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
         : preference;
       document.documentElement.dataset.theme = theme;
+      // Vite derives this allowlist from theme.css, including critical first-paint styles.
+      const palettes = /* app-palette-ids */ [];
+      const savedPalette = read("app-palette");
+      document.documentElement.dataset.palette = palettes.includes(savedPalette) ? savedPalette : "original";
       document.documentElement.style.colorScheme = theme;
-      document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue("--color-bg").trim();
+      document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).backgroundColor;
     })();
   </script>
 

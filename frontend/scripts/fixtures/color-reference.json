@@ -1,0 +1,2108 @@
+[
+  {
+    "name": "--tone-accent-001",
+    "rgba": [
+      9,
+      94,
+      87,
+      1
+    ]
+  },
+  {
+    "name": "--tone-accent-002",
+    "rgba": [
+      15,
+      118,
+      110,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-accent-003",
+    "rgba": [
+      15,
+      118,
+      110,
+      1
+    ]
+  },
+  {
+    "name": "--tone-accent-004",
+    "rgba": [
+      8,
+      127,
+      116,
+      1
+    ]
+  },
+  {
+    "name": "--tone-accent-005",
+    "rgba": [
+      20,
+      184,
+      166,
+      1
+    ]
+  },
+  {
+    "name": "--tone-accent-006",
+    "rgba": [
+      32,
+      188,
+      213,
+      1
+    ]
+  },
+  {
+    "name": "--tone-accent-007",
+    "rgba": [
+      45,
+      212,
+      191,
+      1
+    ]
+  },
+  {
+    "name": "--tone-accent-008",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.07
+    ]
+  },
+  {
+    "name": "--tone-accent-009",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.08
+    ]
+  },
+  {
+    "name": "--tone-accent-010",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-accent-011",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-accent-012",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.22
+    ]
+  },
+  {
+    "name": "--tone-accent-013",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.25
+    ]
+  },
+  {
+    "name": "--tone-accent-014",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.35
+    ]
+  },
+  {
+    "name": "--tone-accent-015",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.48
+    ]
+  },
+  {
+    "name": "--tone-accent-016",
+    "rgba": [
+      14,
+      235,
+      205,
+      0.5
+    ]
+  },
+  {
+    "name": "--tone-accent-017",
+    "rgba": [
+      14,
+      235,
+      205,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-001",
+    "rgba": [
+      159,
+      37,
+      37,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-002",
+    "rgba": [
+      185,
+      28,
+      28,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-003",
+    "rgba": [
+      197,
+      34,
+      31,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-004",
+    "rgba": [
+      198,
+      55,
+      55,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-error-005",
+    "rgba": [
+      194,
+      65,
+      12,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-006",
+    "rgba": [
+      217,
+      45,
+      32,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-007",
+    "rgba": [
+      220,
+      38,
+      38,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-008",
+    "rgba": [
+      219,
+      39,
+      119,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-009",
+    "rgba": [
+      208,
+      107,
+      50,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-010",
+    "rgba": [
+      239,
+      68,
+      68,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-error-011",
+    "rgba": [
+      239,
+      68,
+      68,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-error-012",
+    "rgba": [
+      239,
+      68,
+      68,
+      0.13
+    ]
+  },
+  {
+    "name": "--tone-error-013",
+    "rgba": [
+      239,
+      68,
+      68,
+      0.24
+    ]
+  },
+  {
+    "name": "--tone-error-014",
+    "rgba": [
+      239,
+      68,
+      68,
+      0.5
+    ]
+  },
+  {
+    "name": "--tone-error-015",
+    "rgba": [
+      239,
+      68,
+      68,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-016",
+    "rgba": [
+      236,
+      72,
+      153,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-017",
+    "rgba": [
+      212,
+      119,
+      73,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-018",
+    "rgba": [
+      255,
+      77,
+      77,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-019",
+    "rgba": [
+      249,
+      115,
+      22,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-020",
+    "rgba": [
+      248,
+      113,
+      113,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-021",
+    "rgba": [
+      255,
+      112,
+      86,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-022",
+    "rgba": [
+      251,
+      113,
+      133,
+      1
+    ]
+  },
+  {
+    "name": "--tone-error-023",
+    "rgba": [
+      244,
+      114,
+      182,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-001",
+    "rgba": [
+      67,
+      56,
+      168,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-002",
+    "rgba": [
+      91,
+      53,
+      159,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-003",
+    "rgba": [
+      36,
+      102,
+      177,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-info-004",
+    "rgba": [
+      36,
+      102,
+      177,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-005",
+    "rgba": [
+      124,
+      58,
+      237,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-006",
+    "rgba": [
+      101,
+      87,
+      216,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-007",
+    "rgba": [
+      37,
+      99,
+      235,
+      0.2
+    ]
+  },
+  {
+    "name": "--tone-info-008",
+    "rgba": [
+      37,
+      99,
+      235,
+      0.32
+    ]
+  },
+  {
+    "name": "--tone-info-009",
+    "rgba": [
+      37,
+      99,
+      235,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-010",
+    "rgba": [
+      124,
+      92,
+      231,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-011",
+    "rgba": [
+      99,
+      102,
+      241,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-012",
+    "rgba": [
+      2,
+      132,
+      199,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-013",
+    "rgba": [
+      82,
+      118,
+      223,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-014",
+    "rgba": [
+      139,
+      92,
+      246,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-015",
+    "rgba": [
+      59,
+      130,
+      246,
+      0.06
+    ]
+  },
+  {
+    "name": "--tone-info-016",
+    "rgba": [
+      59,
+      130,
+      246,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-info-017",
+    "rgba": [
+      59,
+      130,
+      246,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-018",
+    "rgba": [
+      168,
+      85,
+      247,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-019",
+    "rgba": [
+      21,
+      151,
+      199,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-020",
+    "rgba": [
+      33,
+      150,
+      243,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-021",
+    "rgba": [
+      139,
+      132,
+      255,
+      0.35000000000000003
+    ]
+  },
+  {
+    "name": "--tone-info-022",
+    "rgba": [
+      78,
+      155,
+      239,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-023",
+    "rgba": [
+      14,
+      165,
+      233,
+      0.07
+    ]
+  },
+  {
+    "name": "--tone-info-024",
+    "rgba": [
+      14,
+      165,
+      233,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-025",
+    "rgba": [
+      0,
+      162,
+      255,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-026",
+    "rgba": [
+      167,
+      139,
+      250,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-027",
+    "rgba": [
+      96,
+      165,
+      250,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-info-028",
+    "rgba": [
+      96,
+      165,
+      250,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-029",
+    "rgba": [
+      181,
+      138,
+      239,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-030",
+    "rgba": [
+      79,
+      175,
+      255,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-031",
+    "rgba": [
+      169,
+      154,
+      255,
+      1
+    ]
+  },
+  {
+    "name": "--tone-info-032",
+    "rgba": [
+      56,
+      189,
+      248,
+      0.16
+    ]
+  },
+  {
+    "name": "--tone-info-033",
+    "rgba": [
+      56,
+      189,
+      248,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-001",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.05
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-002",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.08
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-003",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-004",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.11
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-005",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-006",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.13333333333333333
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-007",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.14
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-008",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.15
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-009",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.16
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-010",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-011",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.2
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-012",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.24
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-013",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.28
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-014",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.3
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-015",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.32
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-016",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.35000000000000003
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-017",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.38
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-018",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.4
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-019",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.45
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-020",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.46
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-021",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.48
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-022",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.5
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-023",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.5333333333333333
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-024",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.55
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-025",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.58
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-026",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.6
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-027",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.62
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-028",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.65
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-029",
+    "rgba": [
+      0,
+      0,
+      0,
+      0.75
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-030",
+    "rgba": [
+      0,
+      0,
+      0,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-031",
+    "rgba": [
+      2,
+      4,
+      9,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-032",
+    "rgba": [
+      2,
+      6,
+      23,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-033",
+    "rgba": [
+      2,
+      6,
+      23,
+      0.28
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-034",
+    "rgba": [
+      2,
+      8,
+      23,
+      0.72
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-035",
+    "rgba": [
+      2,
+      8,
+      23,
+      0.76
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-036",
+    "rgba": [
+      4,
+      9,
+      18,
+      0.6
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-037",
+    "rgba": [
+      6,
+      12,
+      22,
+      0.96
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-038",
+    "rgba": [
+      8,
+      12,
+      19,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-039",
+    "rgba": [
+      8,
+      13,
+      24,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-040",
+    "rgba": [
+      8,
+      15,
+      26,
+      0.98
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-041",
+    "rgba": [
+      10,
+      15,
+      26,
+      0.62
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-042",
+    "rgba": [
+      10,
+      15,
+      26,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-043",
+    "rgba": [
+      11,
+      16,
+      25,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-044",
+    "rgba": [
+      6,
+      21,
+      18,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-045",
+    "rgba": [
+      10,
+      18,
+      30,
+      0.98
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-046",
+    "rgba": [
+      7,
+      21,
+      18,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-047",
+    "rgba": [
+      12,
+      20,
+      37,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-048",
+    "rgba": [
+      15,
+      23,
+      42,
+      0.14
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-049",
+    "rgba": [
+      15,
+      23,
+      42,
+      0.3
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-050",
+    "rgba": [
+      17,
+      24,
+      39,
+      0.62
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-051",
+    "rgba": [
+      17,
+      24,
+      39,
+      0.9
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-052",
+    "rgba": [
+      17,
+      24,
+      39,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-053",
+    "rgba": [
+      20,
+      29,
+      43,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-054",
+    "rgba": [
+      24,
+      30,
+      36,
+      0.35
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-055",
+    "rgba": [
+      23,
+      31,
+      45,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-056",
+    "rgba": [
+      23,
+      32,
+      51,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-057",
+    "rgba": [
+      24,
+      34,
+      48,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-058",
+    "rgba": [
+      23,
+      38,
+      60,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-059",
+    "rgba": [
+      31,
+      41,
+      55,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-060",
+    "rgba": [
+      36,
+      44,
+      56,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-061",
+    "rgba": [
+      38,
+      45,
+      56,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-062",
+    "rgba": [
+      34,
+      48,
+      68,
+      0.08
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-063",
+    "rgba": [
+      34,
+      48,
+      68,
+      0.16
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-064",
+    "rgba": [
+      34,
+      48,
+      68,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-065",
+    "rgba": [
+      48,
+      57,
+      70,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-066",
+    "rgba": [
+      51,
+      62,
+      80,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-067",
+    "rgba": [
+      51,
+      65,
+      85,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-068",
+    "rgba": [
+      55,
+      65,
+      81,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-069",
+    "rgba": [
+      66,
+      77,
+      94,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-070",
+    "rgba": [
+      71,
+      85,
+      105,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-071",
+    "rgba": [
+      89,
+      98,
+      114,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-072",
+    "rgba": [
+      86,
+      100,
+      116,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-073",
+    "rgba": [
+      89,
+      108,
+      137,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-074",
+    "rgba": [
+      101,
+      113,
+      131,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-075",
+    "rgba": [
+      104,
+      115,
+      133,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-076",
+    "rgba": [
+      100,
+      116,
+      139,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-dark-077",
+    "rgba": [
+      100,
+      130,
+      164,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-001",
+    "rgba": [
+      122,
+      135,
+      155,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-002",
+    "rgba": [
+      133,
+      134,
+      136,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-003",
+    "rgba": [
+      148,
+      156,
+      168,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-004",
+    "rgba": [
+      148,
+      163,
+      184,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-005",
+    "rgba": [
+      148,
+      163,
+      184,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-006",
+    "rgba": [
+      156,
+      163,
+      175,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-007",
+    "rgba": [
+      156,
+      163,
+      175,
+      0.14
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-008",
+    "rgba": [
+      156,
+      163,
+      175,
+      0.16
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-009",
+    "rgba": [
+      156,
+      163,
+      175,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-010",
+    "rgba": [
+      156,
+      163,
+      175,
+      0.2
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-011",
+    "rgba": [
+      156,
+      163,
+      175,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-012",
+    "rgba": [
+      165,
+      180,
+      190,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-013",
+    "rgba": [
+      175,
+      190,
+      200,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-014",
+    "rgba": [
+      178,
+      197,
+      206,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-015",
+    "rgba": [
+      189,
+      205,
+      214,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-016",
+    "rgba": [
+      193,
+      205,
+      213,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-017",
+    "rgba": [
+      209,
+      214,
+      223,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-018",
+    "rgba": [
+      209,
+      220,
+      226,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-019",
+    "rgba": [
+      229,
+      231,
+      235,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-020",
+    "rgba": [
+      226,
+      232,
+      240,
+      0.86
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-021",
+    "rgba": [
+      226,
+      232,
+      240,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-022",
+    "rgba": [
+      241,
+      245,
+      249,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-023",
+    "rgba": [
+      248,
+      250,
+      252,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-024",
+    "rgba": [
+      248,
+      251,
+      255,
+      1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-025",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.03
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-026",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.04
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-027",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.07058823529411765
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-028",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-029",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-030",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.12549019607843137
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-031",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.13
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-032",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.13333333333333333
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-033",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.14
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-034",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.18
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-035",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.2
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-036",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.35000000000000003
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-037",
+    "rgba": [
+      255,
+      255,
+      255,
+      0.85
+    ]
+  },
+  {
+    "name": "--tone-neutral-light-038",
+    "rgba": [
+      255,
+      255,
+      255,
+      1
+    ]
+  },
+  {
+    "name": "--tone-primary-001",
+    "rgba": [
+      5,
+      30,
+      87,
+      1
+    ]
+  },
+  {
+    "name": "--tone-primary-002",
+    "rgba": [
+      41,
+      36,
+      99,
+      1
+    ]
+  },
+  {
+    "name": "--tone-primary-003",
+    "rgba": [
+      30,
+      58,
+      95,
+      1
+    ]
+  },
+  {
+    "name": "--tone-primary-004",
+    "rgba": [
+      36,
+      84,
+      122,
+      1
+    ]
+  },
+  {
+    "name": "--tone-primary-005",
+    "rgba": [
+      30,
+      87,
+      148,
+      1
+    ]
+  },
+  {
+    "name": "--tone-primary-006",
+    "rgba": [
+      67,
+      98,
+      133,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-001",
+    "rgba": [
+      17,
+      95,
+      41,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-002",
+    "rgba": [
+      24,
+      122,
+      60,
+      0.11
+    ]
+  },
+  {
+    "name": "--tone-success-003",
+    "rgba": [
+      22,
+      128,
+      58,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-004",
+    "rgba": [
+      21,
+      128,
+      61,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-005",
+    "rgba": [
+      34,
+      160,
+      107,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-006",
+    "rgba": [
+      40,
+      167,
+      69,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-007",
+    "rgba": [
+      117,
+      185,
+      71,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-008",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.06
+    ]
+  },
+  {
+    "name": "--tone-success-009",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-success-010",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-success-011",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.13
+    ]
+  },
+  {
+    "name": "--tone-success-012",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.25
+    ]
+  },
+  {
+    "name": "--tone-success-013",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.3
+    ]
+  },
+  {
+    "name": "--tone-success-014",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.35
+    ]
+  },
+  {
+    "name": "--tone-success-015",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.45
+    ]
+  },
+  {
+    "name": "--tone-success-016",
+    "rgba": [
+      34,
+      197,
+      94,
+      0.5
+    ]
+  },
+  {
+    "name": "--tone-success-017",
+    "rgba": [
+      34,
+      197,
+      94,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-018",
+    "rgba": [
+      73,
+      193,
+      139,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-019",
+    "rgba": [
+      37,
+      211,
+      102,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-020",
+    "rgba": [
+      132,
+      204,
+      22,
+      1
+    ]
+  },
+  {
+    "name": "--tone-success-021",
+    "rgba": [
+      74,
+      222,
+      128,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-001",
+    "rgba": [
+      118,
+      72,
+      0,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-002",
+    "rgba": [
+      139,
+      90,
+      43,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-003",
+    "rgba": [
+      154,
+      92,
+      5,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-warning-004",
+    "rgba": [
+      161,
+      98,
+      7,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-005",
+    "rgba": [
+      180,
+      83,
+      9,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-006",
+    "rgba": [
+      217,
+      119,
+      6,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-007",
+    "rgba": [
+      217,
+      144,
+      36,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-008",
+    "rgba": [
+      255,
+      139,
+      67,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-009",
+    "rgba": [
+      251,
+      146,
+      60,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-010",
+    "rgba": [
+      245,
+      158,
+      11,
+      0.1
+    ]
+  },
+  {
+    "name": "--tone-warning-011",
+    "rgba": [
+      245,
+      158,
+      11,
+      0.12
+    ]
+  },
+  {
+    "name": "--tone-warning-012",
+    "rgba": [
+      245,
+      158,
+      11,
+      0.14
+    ]
+  },
+  {
+    "name": "--tone-warning-013",
+    "rgba": [
+      245,
+      158,
+      11,
+      0.3
+    ]
+  },
+  {
+    "name": "--tone-warning-014",
+    "rgba": [
+      245,
+      158,
+      11,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-015",
+    "rgba": [
+      234,
+      179,
+      8,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-016",
+    "rgba": [
+      234,
+      179,
+      68,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-017",
+    "rgba": [
+      251,
+      191,
+      36,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-018",
+    "rgba": [
+      245,
+      198,
+      77,
+      1
+    ]
+  },
+  {
+    "name": "--tone-warning-019",
+    "rgba": [
+      255,
+      228,
+      92,
+      1
+    ]
+  }
+]

@@ -156,7 +156,7 @@
 
 .button-danger {
   background-color: var(--color-danger-surface);
-  color: #fff;
+  color: var(--tone-neutral-light-038);
   border-color: var(--color-error);
 
   transition:
@@ -169,7 +169,7 @@
 .button-danger:hover {
   background-color: var(--color-danger-surface);
   border-color: var(--color-error);
-  color: #fff;
+  color: var(--tone-neutral-light-038);
 }
 
 .button-danger:active {
@@ -193,14 +193,14 @@
 .button-danger .button-label,
 .button-danger .button-icon--left > svg,
 .button-danger .button-icon--right > svg {
-  color: #fff;
+  color: var(--tone-neutral-light-038);
   transition: color var(--duration-fast) ease;
 }
 
 .button-danger:hover .button-label,
 .button-danger:hover .button-icon--left > svg,
 .button-danger:hover .button-icon--right > svg {
-  color: #fff;
+  color: var(--tone-neutral-light-038);
 }
 
 

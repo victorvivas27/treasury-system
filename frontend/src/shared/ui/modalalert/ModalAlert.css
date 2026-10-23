@@ -213,7 +213,7 @@
   width: min(19rem, calc(100vw - 2rem));
   grid-template-columns: auto minmax(0, 1fr);
   border-radius: var(--radius-md);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 16%);
+  box-shadow: 0 6px 20px var(--tone-neutral-dark-009);
   pointer-events: auto;
 }
 

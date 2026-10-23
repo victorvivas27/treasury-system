@@ -37,8 +37,20 @@ const lottieColor = (value: string) => {
     const full = hex.length === 3 ? hex.split("").map(item => item + item).join("") : hex;
     return [0, 2, 4].map(index => Number.parseInt(full.slice(index, index + 2), 16) / 255);
   }
-  const channels = normalized.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [0, 0, 0];
-  return channels.map(channel => channel / 255);
+  // Resolve CSS relative colors before converting to Lottie's sRGB channels.
+  const probe = document.createElement("span");
+  probe.style.color = normalized;
+  probe.style.display = "none";
+  document.body.append(probe);
+  const resolved = getComputedStyle(probe).color;
+  probe.remove();
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 1;
+  const context = canvas.getContext("2d");
+  if (!context) return [0, 0, 0];
+  context.fillStyle = resolved;
+  context.fillRect(0, 0, 1, 1);
+  return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(channel => channel / 255);
 };
 
 const themedCommunityAnimation = (animation: object) => {
@@ -75,10 +87,16 @@ const CommunityIcon = ({ file, name, speed = .85, fallback = null }: {
   const [animationData, setAnimationData] = useState<object>();
   useEffect(() => {
     let active = true;
-    loadAnimation(file)
-      .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
-      .catch(() => undefined);
-    return () => { active = false; };
+    const refreshColors = () => {
+      loadAnimation(file)
+        .then(animation => { if (active) setAnimationData(themedCommunityAnimation(animation)); })
+        .catch(() => undefined);
+    };
+    refreshColors();
+    const observer = new MutationObserver(refreshColors);
+    observer.observe(document.documentElement, { attributes: true,
+      attributeFilter: ["data-theme", "data-palette", "style"] });
+    return () => { active = false; observer.disconnect(); };
   }, [file, resolvedTheme]);
   return <span className={`home-community__${name}-icon`} aria-hidden="true">
     <Suspense fallback={fallback}>

@@ -3,8 +3,8 @@
 .about-cylinder__stage { position: relative; width: 100%; perspective: 2500px; touch-action: pan-y pinch-zoom; cursor: default; user-select: none; isolation: isolate; }
 .about-cylinder__stage.is-dragging { cursor: default; }
 .about-cylinder__ring { position: relative; display: grid; padding-block: 12px 28px; transform-style: preserve-3d; transform: rotateX(-5deg) rotateZ(var(--drag-tilt, 0deg)); transition: rotate 240ms ease; }
-.home-community__about .about-cylinder__card { position: relative; grid-area: 1 / 1; justify-self: center; width: 220px; height: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid color-mix(in srgb, var(--card-accent) 32%, var(--border-color)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 8%, var(--color-surface)), var(--color-surface)); box-shadow: inset 0 2px var(--card-accent), 0 18px 34px rgb(0 0 0 / 24%); transform: translate3d(calc(var(--card-x) * var(--cylinder-radius)), 0, calc(var(--card-z) * var(--cylinder-radius))) rotateY(var(--card-yaw)); opacity: var(--card-fade); backface-visibility: hidden; transition: border-color 220ms ease, box-shadow 220ms ease; cursor: default; }
-.home-community__about .about-cylinder__card.is-current { border-color: var(--card-accent); box-shadow: inset 0 2px var(--card-accent), 0 20px 40px rgb(0 0 0 / 35%); cursor: inherit; }
+.home-community__about .about-cylinder__card { position: relative; grid-area: 1 / 1; justify-self: center; width: 220px; height: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid color-mix(in srgb, var(--card-accent) 32%, var(--border-color)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 8%, var(--color-surface)), var(--color-surface)); box-shadow: inset 0 2px var(--card-accent), 0 18px 34px var(--tone-neutral-dark-012); transform: translate3d(calc(var(--card-x) * var(--cylinder-radius)), 0, calc(var(--card-z) * var(--cylinder-radius))) rotateY(var(--card-yaw)); opacity: var(--card-fade); backface-visibility: hidden; transition: border-color 220ms ease, box-shadow 220ms ease; cursor: default; }
+.home-community__about .about-cylinder__card.is-current { border-color: var(--card-accent); box-shadow: inset 0 2px var(--card-accent), 0 20px 40px var(--tone-neutral-dark-016); cursor: inherit; }
 .about-cylinder__card-header { display: flex; align-items: center; gap: 9px; }
 .home-community__about .about-cylinder__card .home-community__card-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 0; background: none; font-size: 36px; }
 .home-community__about .about-cylinder__card h3 { font-size: 15px; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
@@ -25,8 +25,8 @@
 .about-cylinder__body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 .about-cylinder__read-more { cursor: default; }
-.about-message-overlay { position: fixed; inset: 0; z-index: 10000; background: rgb(0 0 0 / 65%); backdrop-filter: blur(4px); }
-.about-message-panel { position: fixed; width: min(320px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--color-accent); border-radius: 12px; background: var(--color-surface); color: var(--text-main); box-shadow: 0 20px 60px #0008; animation: about-message-open 220ms ease-out both; }
+.about-message-overlay { position: fixed; inset: 0; z-index: 10000; background: var(--tone-neutral-dark-028); backdrop-filter: blur(4px); }
+.about-message-panel { position: fixed; width: min(320px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--color-accent); border-radius: 12px; background: var(--color-surface); color: var(--text-main); box-shadow: 0 20px 60px var(--tone-neutral-dark-023); animation: about-message-open 220ms ease-out both; }
 .about-message-panel header { display: flex; align-items: flex-start; gap: 12px; }
 .about-message-panel h3 { flex: 1; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
 .about-message-panel button { flex-shrink: 0; min-width: 32px; min-height: 32px; color: var(--text-main); font-size: 24px; cursor: default; }
@@ -36,7 +36,7 @@
 .about-message-panel :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .home-community.about-message-overlay { margin: 0; padding: 0; width: auto; max-width: none; }
 .about-message-overlay { --card-accent: var(--color-accent); }
-.about-message-overlay .about-message-panel { border-color: color-mix(in srgb, var(--card-accent) 55%, var(--border-color)); background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 8%, var(--color-surface)), var(--color-surface)); box-shadow: inset 0 2px var(--card-accent), 0 20px 60px #0008; }
+.about-message-overlay .about-message-panel { border-color: color-mix(in srgb, var(--card-accent) 55%, var(--border-color)); background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 8%, var(--color-surface)), var(--color-surface)); box-shadow: inset 0 2px var(--card-accent), 0 20px 60px var(--tone-neutral-dark-023); }
 .about-message-icon { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; background: none; color: var(--card-accent); font-size: 17px; }
 .about-message-overlay .about-message-content blockquote { border-color: var(--card-accent); font-style: italic; }
 .about-message-panel button:hover { background: color-mix(in srgb, var(--card-accent) 12%, transparent); border-radius: 8px; }

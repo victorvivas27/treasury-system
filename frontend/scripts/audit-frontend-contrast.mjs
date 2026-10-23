@@ -19,8 +19,16 @@ for(const theme of ['dark','light'])for(const [width,height]of[[1216,552],[390,8
  await expect(page.getByRole('heading',{name:'Iniciar sesión'})).toBeVisible();
  await expect(page.getByText(/Fortaleza orientativa/)).toHaveCount(0);
  const tokens=await page.evaluate(()=>{
-   const style=getComputedStyle(document.documentElement);
-   return Object.fromEntries(['--color-bg','--color-surface','--text-main','--text-muted','--color-accent','--color-error','--color-success','--color-info','--color-warning','--color-danger-surface','--text-on-accent','--focus-ring'].map(key=>[key,style.getPropertyValue(key).trim()]));
+   const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+   const context=canvas.getContext('2d',{willReadFrequently:true});
+   const probe=document.createElement('span');document.body.append(probe);
+   const resolved=key=>{
+     probe.style.color=`var(${key})`;
+     context.clearRect(0,0,1,1);context.fillStyle=getComputedStyle(probe).color;context.fillRect(0,0,1,1);
+     return `rgb(${[...context.getImageData(0,0,1,1).data].slice(0,3).join(' ')})`;
+   };
+   const tokens=Object.fromEntries(['--color-bg','--color-surface','--text-main','--text-muted','--color-accent','--color-error','--color-success','--color-info','--color-warning','--color-danger-surface','--text-on-accent','--focus-ring'].map(key=>[key,resolved(key)]));
+   probe.remove();return tokens;
  });
  const pairs=[];
  for(const background of ['--color-bg','--color-surface'])for(const text of ['--text-main','--text-muted','--color-accent','--color-error','--color-success','--color-info','--color-warning']){
@@ -33,7 +41,11 @@ for(const theme of ['dark','light'])for(const [width,height]of[[1216,552],[390,8
  await expect(page.locator('#login-correo-error')).toBeVisible();
  await expect(page.locator('#login-password-error')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- const errorStyle=await page.locator('#login-correo-error').evaluate(el=>({color:getComputedStyle(el).color,opacity:getComputedStyle(el).opacity}));
+ const errorStyle=await page.locator('#login-correo-error').evaluate(el=>{
+   const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+   const context=canvas.getContext('2d');context.fillStyle=getComputedStyle(el).color;context.fillRect(0,0,1,1);
+   return {color:`rgb(${[...context.getImageData(0,0,1,1).data].slice(0,3).join(' ')})`,opacity:getComputedStyle(el).opacity};
+ });
  expect(Number(errorStyle.opacity)).toBe(1);
  expect(contrast(errorStyle.color,tokens['--color-surface'])).toBeGreaterThanOrEqual(4.5);
  await page.screenshot({path:`${output}/login-${theme}-${width}.png`,fullPage:true});

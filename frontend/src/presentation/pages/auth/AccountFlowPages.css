@@ -59,14 +59,14 @@
   width: 100%;
   margin: 0;
   border: 1px solid var(--color-accent);
-  color: var(--color-primary);
+  color: var(--text-on-accent);
   font-weight: var(--font-weight-bold);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 14%);
+  box-shadow: 0 4px 12px var(--tone-neutral-dark-007);
   transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 .auth-flow__action:hover:not(:disabled) {
   filter: brightness(1.12);
-  box-shadow: 0 6px 16px rgb(0 0 0 / 20%);
+  box-shadow: 0 6px 16px var(--tone-neutral-dark-011);
   transform: translateY(-1px);
 }
 .auth-flow__action:focus-visible {

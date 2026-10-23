@@ -19,14 +19,15 @@ if (testSuite && !['unit', 'integration'].includes(testSuite)) {
 // Derive the first-paint CSS from the same source as the application styles.
 // The rest of the stylesheet can keep loading without blocking the boot screen.
 const readCriticalStyles = () => {
-  const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/global.css'), 'utf8')
+  const globalCss = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/global.css'), 'utf8')
+  const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/theme.css'), 'utf8') + '\n' + globalCss
   const criticalBoot = css.match(/\/\* critical-boot:start[^]*?\*\/([^]*?)\/\* critical-boot:end \*\//)?.[1]
   if (!criticalBoot) throw new Error('Missing critical boot styles in global.css')
   const boot = criticalBoot + fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/LoadingState.css'), 'utf8')
 
-  const roots = [...css.matchAll(/^(:root(?:\[data-theme="light"\])?) \{([^]*?)^\}/gm)]
+  const roots = [...css.matchAll(/^(:root[^{]*) \{([^]*?)^\}/gm)]
     .map(([, selector, body]) => ({
-      selector,
+      selector: selector.split(',').map(part => part.trim()).filter(part => part.startsWith(':root')).join(','),
       declarations: [...body.matchAll(/^\s*(--[\w-]+):\s*([^;]+);/gm)]
         .map(([, name, value]) => ({ name, value })),
     }))
@@ -94,7 +95,10 @@ export default defineConfig({
       transformIndexHtml: {
         order: 'post',
         handler(html) {
-          return html.replace('<meta name="app-critical-styles" />', readCriticalStyles()).replace(
+          const themeCss = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/theme.css'), 'utf8')
+          const paletteIds = [...new Set([...themeCss.matchAll(/data-palette="([\w-]+)"/g)].map(match => match[1]))]
+          return html.replace('/* app-palette-ids */ []', JSON.stringify(paletteIds))
+            .replace('<meta name="app-critical-styles" />', readCriticalStyles()).replace(
             /<link rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g,
             (_, href: string) => `<link rel="preload" as="style" href="${href}" data-app-styles onload="this.onload=null;this.rel='stylesheet';document.documentElement.dataset.appStyles='ready';window.dispatchEvent(new Event('app:styles-ready'))"><noscript><link rel="stylesheet" href="${href}"></noscript>`,
           )

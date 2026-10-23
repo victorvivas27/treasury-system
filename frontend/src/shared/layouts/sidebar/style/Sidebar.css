@@ -66,7 +66,7 @@
   .sidebar-control-bar .sidebar-toggle-mobile { display: block; }
   .sidebar-control-bar .sidebar-toggle-desktop { display: none; }
   .sidebar { --sidebar-expanded-width: min(280px, calc(100vw - 48px)); --sidebar-row-height: 44px; top: calc(48px + env(safe-area-inset-top, 0px)); height: calc(100dvh - 48px - env(safe-area-inset-top, 0px)); }
-  .sidebar-backdrop { display: block; position: fixed; inset: calc(48px + env(safe-area-inset-top, 0px)) 0 0; z-index: 49; border: 0; background: rgb(0 0 0 / 35%); cursor: pointer; }
+  .sidebar-backdrop { display: block; position: fixed; inset: calc(48px + env(safe-area-inset-top, 0px)) 0 0; z-index: 49; border: 0; background: var(--tone-neutral-dark-016); cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sidebar, .sidebar * { transition: none !important; animation: none !important; }
@@ -74,28 +74,28 @@
 
 /* Functional icon colors stay consistent in expanded and compact navigation. */
 .sidebar {
-  --nav-blue: #60a5fa;
-  --nav-sky: #38bdf8;
-  --nav-violet: #a78bfa;
-  --nav-pink: #f472b6;
-  --nav-green: #4ade80;
-  --nav-teal: #2dd4bf;
-  --nav-orange: #fb923c;
-  --nav-amber: #fbbf24;
-  --nav-red: #f87171;
-  --nav-slate: #94a3b8;
+  --nav-blue: var(--tone-info-028);
+  --nav-sky: var(--tone-info-033);
+  --nav-violet: var(--tone-info-026);
+  --nav-pink: var(--tone-error-023);
+  --nav-green: var(--tone-success-021);
+  --nav-teal: var(--tone-accent-007);
+  --nav-orange: var(--tone-warning-009);
+  --nav-amber: var(--tone-warning-017);
+  --nav-red: var(--tone-error-020);
+  --nav-slate: var(--tone-neutral-light-005);
 }
 :root[data-theme="light"] .sidebar {
-  --nav-blue: #2563eb;
-  --nav-sky: #0284c7;
-  --nav-violet: #7c3aed;
-  --nav-pink: #db2777;
-  --nav-green: #15803d;
-  --nav-teal: #0f766e;
-  --nav-orange: #c2410c;
-  --nav-amber: #a16207;
-  --nav-red: #dc2626;
-  --nav-slate: #64748b;
+  --nav-blue: var(--tone-info-009);
+  --nav-sky: var(--tone-info-012);
+  --nav-violet: var(--tone-info-005);
+  --nav-pink: var(--tone-error-008);
+  --nav-green: var(--tone-success-004);
+  --nav-teal: var(--tone-accent-003);
+  --nav-orange: var(--tone-error-005);
+  --nav-amber: var(--tone-warning-004);
+  --nav-red: var(--tone-error-007);
+  --nav-slate: var(--tone-neutral-dark-076);
 }
 .sidebar [href="/dashboard"] { --sidebar-item-color: var(--nav-blue); }
 .sidebar [href="/birthdays"] { --sidebar-item-color: var(--nav-pink); }
