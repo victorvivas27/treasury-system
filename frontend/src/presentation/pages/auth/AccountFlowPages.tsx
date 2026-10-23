@@ -8,6 +8,7 @@ import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { FiMail } from "react-icons/fi";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
+import loginIllustration from "@/assets/community-icons/principal_login.webp";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
@@ -25,11 +26,14 @@ const recoveryErrorMessage = (error: unknown) => {
   return "No fue posible actualizar la contraseña. Intenta nuevamente.";
 };
 
-const Shell = ({ title, message, children }: {
-  title: string; message?: string; children?: React.ReactNode;
+const Shell = ({ title, message, children, illustrated = false }: {
+  title: string; message?: string; children?: React.ReactNode; illustrated?: boolean;
 }) => (
-  <main className="auth-flow">
-    <section className="auth-flow__card">
+  <main className={`auth-flow${illustrated ? " login-page invitation-page" : ""}`}>
+    {illustrated && <div className="login-illustration" aria-hidden="true">
+      <img src={loginIllustration} alt="" width="1536" height="1024" fetchPriority="high" />
+    </div>}
+    <section className={`auth-flow__card${illustrated ? " login-panel" : ""}`}>
       <header className="auth-flow__header">
         <BrandLogo className="auth-flow__logo" />
         <h1>{title}</h1>
@@ -153,10 +157,14 @@ export const ForgotPasswordPage = () => {
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
     <main className="form-page-container login-page">
+      <div className="login-illustration" aria-hidden="true">
+        <img src={loginIllustration} alt="" width="1536" height="1024" fetchPriority="high" />
+      </div>
+      <section className="login-panel" aria-labelledby="recovery-title">
       <header className="form-page-header login-page-header">
         <BrandLogo className="login-brand-logo" />
         <div className="login-page-header__copy">
-          <h1 className="form-page-header__title">Olvidé mi contraseña</h1>
+          <h1 id="recovery-title" className="form-page-header__title">Olvidé mi contraseña</h1>
           <p className="form-page-header__subtitle">Recupera el acceso a tu cuenta</p>
         </div>
       </header>
@@ -209,8 +217,9 @@ export const ForgotPasswordPage = () => {
         <div className="recovery-feedback">
           {message && <p className="form-submit-message is-visible" role="alert">{message}</p>}
         </div>
-      </form>
       <ButtonBack className="login-back-button" />
+      </form>
+      </section>
     </main>
     <div className="recovery-confirmation">
       <ModalAlert isOpen={Boolean(successMessage)} message={successMessage}
@@ -267,7 +276,7 @@ export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean
   };
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
-    <Shell title={invitation ? "Aceptar invitación" : "Crear nueva contraseña"} message={message}>
+    <Shell title={invitation ? "Aceptar invitación" : "Crear nueva contraseña"} message={message} illustrated={invitation}>
       {invitation && !invitationValid && !message && <p role="status">Validando invitacion...</p>}
       {invitationValid && <form onSubmit={submit}>
         <div className="auth-flow__password-row">

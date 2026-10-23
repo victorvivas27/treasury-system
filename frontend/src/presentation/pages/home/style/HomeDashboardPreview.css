@@ -127,6 +127,30 @@
 .home-dashboard-device { min-width: 0; }
 .home-dashboard-device__status, .home-dashboard-device__home { display: none; }
 .home-dashboard:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.home-dashboard__cashflow .flow-ribbon-scroll { overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
+.home-dashboard__cashflow .flow-ribbon-scroll::-webkit-scrollbar { display: none; }
+.home-dashboard__cashflow .flow-ribbon { width: 100%; min-width: 270px; grid-template-columns: repeat(3, minmax(90px, 1fr)); grid-template-rows: auto 32px auto; }
+.home-dashboard__cashflow .flow-ribbon-month { grid-row: span 3; }
+.home-dashboard__cashflow .flow-ribbon-entry { margin-inline: 5px; padding: 5px; }
+.home-dashboard__cashflow .flow-ribbon-entry--income { margin-bottom: 12px; }
+.home-dashboard__cashflow .flow-ribbon-entry--expense { margin-top: 12px; }
+.home-dashboard__cashflow .flow-ribbon-entry::after { height: 16px; }
+.home-dashboard__cashflow .flow-ribbon-total { margin-bottom: 5px; }
+.home-dashboard__cashflow .flow-ribbon-total small { font-size: 7px; }
+.home-dashboard__cashflow .flow-ribbon-total strong { font-size: 11px; white-space: nowrap; }
+.home-dashboard__cashflow .flow-ribbon-entry li { font-size: 8px; }
+.home-dashboard__cashflow .flow-ribbon-entry li b { white-space: nowrap; }
+.home-dashboard__cashflow .flow-ribbon-station { padding-inline: 12px; }
+.home-dashboard__cashflow .flow-ribbon-station h3 { padding: 0; font-size: 10px; }
+.home-dashboard__cashflow .flow-ribbon-station h3 small { font-size: 8px; }
+.home-dashboard__cashflow .flow-ribbon-balance, .home-dashboard__cashflow .flow-ribbon-balance small { font-size: 8px; }
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .home-dashboard__panel-content:not([hidden]) .home-dashboard__recaudacion > div > span { transform-origin: left; animation: preview-progress-grow 1600ms ease both; }
+}
+@keyframes preview-progress-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .home-dashboard *, .home-dashboard.is-visible .home-dashboard__timeline i { animation: none; transition: none; }
+}
 /* Landscape tablet on desktop; phone frame below remains independent. */
 @media (min-width: 1024px) {
   .home-dashboard-device {

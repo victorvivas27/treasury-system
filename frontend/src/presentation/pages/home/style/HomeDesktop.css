@@ -20,7 +20,7 @@
   grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
   min-height: calc(100svh - 72px);
   box-sizing: border-box;
-  gap: 48px;
+  gap: 40px;
   padding: 28px 0;
 }
 .public-home--guest .public-home__hero-copy { text-align: left; }
@@ -73,3 +73,22 @@
 .public-home--guest .public-home__feature-icon { width: 36px; height: 36px; font-size: 20px; }
 .public-home--guest .public-home__feature-grid h3 { margin: 14px 0 8px; font-size: 16px; }
 .public-home--guest .public-home__feature-grid p { margin: 0; font-size: 14px; line-height: 1.6; }
+
+/* Keep the opening composition comfortable in the 1216 × 552 desktop viewport. */
+.public-home.public-home--guest .public-home__hero {
+  min-height: calc(100svh - 56px);
+  padding-block: 24px;
+}
+.public-home.public-home--guest .public-home__hero-copy h1 {
+  margin-block: 16px;
+  font-size: clamp(36px, 3.3vw, 44px);
+  line-height: 1.15;
+}
+.public-home--guest .public-home__hero-copy > p {
+  max-width: 460px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.public-home--guest .public-home__hero-actions { gap: 16px; margin-top: 20px; }
+.public-home--guest .public-home__trust { margin-top: 16px; }
+.public-home--guest .home-dashboard-device { width: 100%; max-width: 500px; }

@@ -1,5 +1,38 @@
 .cashflow-refresh{margin-left:auto;flex-shrink:0;display:grid;place-items:center;width: 30px;height: 30px;border:1px solid var(--divider);border-radius:8px;background:var(--color-bg);color:var(--text-main);cursor:pointer}
 .cashflow-refresh:disabled{opacity:.5;cursor:wait}
+.flow-ribbon-month-button { display: block; width: 100%; min-height: 32px; border: 0; padding: 4px 0; background: transparent; color: inherit; font: inherit; text-transform: inherit; cursor: pointer; }
+.flow-ribbon-month-button { -webkit-tap-highlight-color: transparent; }
+.flow-ribbon-month-button:hover, .flow-ribbon-month-button:active { background: transparent; }
+.flow-ribbon-month-button:focus-visible { outline: none; }
+.cashflow-detail-popover { position: fixed; z-index: 1100; }
+.cashflow-detail-cord { position: fixed; inset: 0; z-index: 0; width: 100vw; height: 100dvh; overflow: visible; pointer-events: none; color: var(--color-accent); }
+.cashflow-detail-cord path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 1; animation: cashflow-cord-draw 240ms ease-out both; }
+.cashflow-detail-cord circle { fill: currentColor; }
+.cashflow-detail-popover .cashflow-detail { z-index: 1; }
+.cashflow-detail-popover .cashflow-detail { border: 1px solid var(--color-accent); }
+@keyframes cashflow-cord-draw { from { stroke-dashoffset: 1; opacity: 0; } to { stroke-dashoffset: 0; opacity: .8; } }
+@media (prefers-reduced-motion: reduce) { .cashflow-detail-cord path { animation: none; } }
+.cashflow-detail-popover .cashflow-detail { position: fixed; top: 16px; left: 16px; animation: cashflow-detail-appear 180ms ease-out both; }
+@keyframes cashflow-detail-appear { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .cashflow-detail-popover .cashflow-detail { animation: none; } }
+.cashflow-detail { display: flex; flex-direction: column; width: min(240px, calc(100vw - 24px)); max-height: min(280px, calc(100dvh - 24px)); box-sizing: border-box; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--color-surface); color: var(--text-main); box-shadow: var(--shadow-card); }
+.cashflow-detail > header { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 8px; }
+.cashflow-detail > header small { color: var(--text-muted); font-size: 11px; }
+.cashflow-detail > header h2 { margin: 2px 0 0; font-size: 15px; text-transform: capitalize; }
+.cashflow-detail > header button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--radius-md); background: var(--color-bg); color: var(--text-main); cursor: pointer; }
+.cashflow-detail > header button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.cashflow-detail__body { min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.cashflow-detail__body::-webkit-scrollbar { display: none; }
+.cashflow-detail__group { padding-block: 8px; border-top: 1px solid var(--border-color); }
+.cashflow-detail__group h3 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin: 0 0 6px; font-size: 12px; }
+.cashflow-detail__group--income h3 strong, .cashflow-detail .is-positive { color: var(--color-success); }
+.cashflow-detail__group--expense h3 strong, .cashflow-detail .is-negative { color: var(--color-error); }
+.cashflow-detail__group dl { display: grid; gap: 6px; margin: 0; font-size: 11px; }
+.cashflow-detail__group dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.cashflow-detail__group dt { min-width: 0; overflow-wrap: anywhere; color: var(--text-muted); }
+.cashflow-detail__group dd { flex-shrink: 0; margin: 0; font-variant-numeric: tabular-nums; }
+.cashflow-detail__group p { margin: 0; font-size: 12px; color: var(--text-muted); }
+.cashflow-detail > footer { display: flex; flex-shrink: 0; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border-color); font-size: 12px; }
 .cashflow-summary>span{position:relative}
 .cashflow-summary-action{display:grid;gap:0.15rem;min-width:0;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:none;cursor:pointer}
 .cashflow-summary-action::after{content:"";position:absolute;inset:0;border-radius:inherit}
@@ -69,6 +102,25 @@
 
 
 .flow-ribbon-station{margin-right: -14px;padding-inline: 16px 20px;background:linear-gradient(110deg,color-mix(in srgb,var(--color-accent) 28%,var(--color-surface)),color-mix(in srgb,var(--color-info) 20%,var(--color-surface)))}
+.flow-ribbon-station:has(.flow-ribbon-month-button:hover),
+.flow-ribbon-station:has(.flow-ribbon-month-button:focus-visible),
+.flow-ribbon-station:has(.flow-ribbon-month-button[aria-expanded="true"]) {
+  background: linear-gradient(110deg, color-mix(in srgb, var(--color-accent) 48%, var(--color-surface)), color-mix(in srgb, var(--color-info) 32%, var(--color-surface)));
+  border-color: var(--color-accent);
+}
+.flow-ribbon-station { --flow-tip: 18px; --flow-notch: 14px; }
+.flow-ribbon-month:first-child .flow-ribbon-station { --flow-notch: 0px; }
+.flow-ribbon-station:has(.flow-ribbon-month-button:hover)::after,
+.flow-ribbon-station:has(.flow-ribbon-month-button:focus-visible)::after,
+.flow-ribbon-station:has(.flow-ribbon-month-button[aria-expanded="true"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--color-accent);
+  clip-path: polygon(0 0, calc(100% - var(--flow-tip)) 0, 100% 50%, calc(100% - var(--flow-tip)) 100%, 0 100%, var(--flow-notch) 50%, 0 0, 1px 1px, calc(var(--flow-notch) + 1px) 50%, 1px calc(100% - 1px), calc(100% - var(--flow-tip) - 1px) calc(100% - 1px), calc(100% - 2px) 50%, calc(100% - var(--flow-tip) - 1px) 1px, 1px 1px);
+}
+.flow-ribbon-station:has(.flow-ribbon-month-button:focus-visible)::before { height: 3px; opacity: 1; }
 
 @media(min-width:701px){
   .dashboard-panel--cashflow{min-width:0}
@@ -102,3 +154,70 @@
 .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry li b,
 .business-dashboard .dashboard-panel--cashflow .flow-ribbon-balance strong { white-space: nowrap; overflow-wrap: normal; }
 .business-dashboard .dashboard-panel--cashflow .flow-ribbon-legend small { display: block; }
+.business-dashboard .dashboard-panel--cashflow .flow-ribbon { grid-template-rows: auto minmax(44px, auto) auto; }
+.business-dashboard .dashboard-panel--cashflow .flow-ribbon-month { grid-row: span 3; }
+.business-dashboard .dashboard-panel--cashflow .flow-ribbon-station h3 { padding-block: 0; }
+.business-dashboard .dashboard-panel--cashflow .flow-ribbon-month-button { min-height: 44px; }
+
+/* Desktop expands with its container; all months remain visible without lateral scrolling.
+ * Narrower screens keep the existing horizontal timeline unchanged. */
+@media (min-width: 1024px) {
+  .business-dashboard .dashboard-panel--cashflow { container: cashflow / inline-size; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-scroll { overflow: visible; max-width: 100%; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(var(--flow-month-count), minmax(0, 1fr));
+    grid-auto-rows: auto;
+    row-gap: 8px;
+  }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-month { min-width: 0; padding-bottom: 16px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-station { margin-right: 0; padding-inline: clamp(1px, calc(24px / var(--flow-month-count)), 8px); }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry { margin-inline: clamp(1px, calc(24px / var(--flow-month-count)), 6px); padding-inline: clamp(1px, calc(24px / var(--flow-month-count)), 8px); }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-total strong,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-station h3 { font-size: clamp(9px, calc(14cqi / var(--flow-month-count)), 18px); }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry li,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-total small,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-balance,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-balance small,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-station h3 small { font-size: clamp(9px, calc(12cqi / var(--flow-month-count)), 15px); }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-total strong,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry li b,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-balance strong { white-space: nowrap; overflow-wrap: normal; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-legend small { display: none; }
+}
+
+/* Compact phone timeline: preserve complete amounts and the month touch target. */
+@media (max-width: 680px) {
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon {
+    width: max(100%, calc(var(--flow-month-count) * 84px));
+    min-width: calc(var(--flow-month-count) * 84px);
+    grid-template-columns: repeat(var(--flow-month-count), minmax(84px, 1fr));
+    grid-template-rows: auto 32px auto;
+  }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry { margin-inline: 2px; padding: 2px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry--income { margin-bottom: 4px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry--expense { margin-top: 4px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-entry::after { height: 8px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-total { margin-bottom: 0; gap: 2px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-total small,
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-station h3 small { font-size: 9px; letter-spacing: 0; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-total strong { font-size: 11px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-station { --flow-tip: 10px; --flow-notch: 8px; margin-right: -8px; padding-inline: 5px 9px; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 8px 50%); }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-month:first-child .flow-ribbon-station { --flow-notch: 0px; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%); }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-month:last-child .flow-ribbon-station { margin-right: 0; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-station h3 { font-size: 10px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-node { width: 3px; height: 3px; margin-right: 6px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-scroll { padding-block: 4px; }
+  .business-dashboard .dashboard-panel--cashflow .flow-ribbon-month-button { min-height: 32px; padding-block: 2px; }
+  .cashflow-detail { width: min(184px, calc(100vw - 24px)); padding: 7px; }
+  .cashflow-detail > header { gap: 6px; padding-bottom: 6px; }
+  .cashflow-detail > header small { font-size: 9px; }
+  .cashflow-detail > header h2 { font-size: 13px; }
+  .cashflow-detail > header button { width: 24px; height: 24px; }
+  .cashflow-detail__group { padding-block: 5px; }
+  .cashflow-detail__group h3 { font-size: 10px; margin-bottom: 3px; }
+  .cashflow-detail__group dl { gap: 3px; font-size: 10px; }
+  .cashflow-detail__group dl > div { gap: 6px; }
+  .cashflow-detail > footer { font-size: 10px; padding-top: 5px; }
+}

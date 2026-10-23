@@ -20,3 +20,25 @@
 .login-page .login-back-button .button-back__animation { width: 22px; height: 22px; background: transparent; }
 .login-page .login-back-button .button-icon svg,
 .login-page .login-back-button .button-back__animation > div { width: 22px !important; height: 22px !important; }
+
+/* The portrait illustration stays complete and grows upward from the bottom. */
+.form-page-container.login-page,
+.auth-flow.invitation-page {
+  width: 100%;
+  min-height: 100svh;
+  box-sizing: border-box;
+  padding: 24px 16px;
+  background-color: var(--color-bg);
+  background-image: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 85%, transparent), color-mix(in srgb, var(--color-bg) 25%, transparent) 65%, transparent), url("../../../assets/community-icons/iamagen_login_móvil.webp");
+  background-size: 100% 100%, contain;
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+}
+.login-page .login-panel { width: min(100%, 440px); margin-inline: auto; }
+.invitation-page .auth-flow__card { width: min(100%, var(--form-max)); }
+.login-page .login-form,
+.invitation-page .auth-flow__card {
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}

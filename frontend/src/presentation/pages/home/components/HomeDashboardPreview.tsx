@@ -1,14 +1,12 @@
 ﻿import { useState, type ReactNode } from "react";
 import { FiActivity, FiCheckCircle, FiChevronDown, FiClock, FiDollarSign,
-  FiGift, FiLogIn, FiLogOut, FiMessageSquare, FiPieChart, FiTrendingUp, FiUsers } from "react-icons/fi";
+  FiGift, FiLogIn, FiLogOut, FiMessageSquare, FiPieChart, FiUsers } from "react-icons/fi";
 import { MdBoy, MdGirl } from "react-icons/md";
 import "../style/HomeDashboardPreview.css";
+import { useEffect, useRef } from "react";
+import { usePreviewDemo } from "../hooks/usePreviewDemo";
+import { HomeCashflowPreview } from "./HomeCashflowPreview";
 
-const months = [
-  { name: "Marzo", income: "$480.000", expense: "$80.000", balance: "$400.000" },
-  { name: "Abril", income: "$600.000", expense: "$120.000", balance: "$480.000" },
-  { name: "Mayo", income: "$600.000", expense: "$240.000", balance: "$360.000" },
-];
 const panels = [
   { title: "Cuota anual", icon: FiPieChart, content: <>
     <div className="home-dashboard__quota"><span className="home-dashboard__donut"><b>32<small>familias</small></b></span>
@@ -39,15 +37,40 @@ const panels = [
 function Metric({ label, value, icon, tone }: {
   label: string; value: string; icon: ReactNode; tone?: string;
 }) {
+  const [display, setDisplay] = useState(value);
+  const previous = useRef(value);
+  useEffect(() => {
+    const from = Number(previous.current.replace(/\D/g, ""));
+    const to = Number(value.replace(/\D/g, ""));
+    previous.current = value;
+    if (from === to || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplay(value);
+      return;
+    }
+    let frame = 0;
+    let start: number | undefined;
+    const update = (time: number) => {
+      start ??= time;
+      const progress = Math.min((time - start) / 1000, 1);
+      const amount = Math.round(from + (to - from) * (1 - (1 - progress) ** 3));
+      setDisplay(`${value.startsWith("$") ? "$" : ""}${amount.toLocaleString("es-CL")}`);
+      if (progress < 1) frame = requestAnimationFrame(update);
+    };
+    frame = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
   return <div className={`home-dashboard__metric ${tone ? `is-${tone}` : ""}`}>
-    <span>{label}{icon}</span><strong>{value}</strong>
+    <span>{label}{icon}</span><strong>{display}</strong>
   </div>;
 }
 
 export function HomeDashboardPreview() {
   const [activePanel, setActivePanel] = useState<number | null>(null);
+  const { viewport, eligible, step } = usePreviewDemo(setActivePanel);
+  const payments = eligible ? step : 0;
+  const money = (amount: number) => `$${amount.toLocaleString("es-CL")}`;
   const year = new Date().getFullYear();
-  return <div className="home-dashboard public-home__preview-enter" data-home-preview-reveal
+  return <div ref={viewport} className="home-dashboard public-home__preview-enter" data-home-preview-reveal
     role="region" tabIndex={0} aria-label="Vista previa del dashboard de la app con datos ficticios">
     <header className="home-dashboard__header">
       <div><span>Vista previa · Datos ficticios</span><strong>Hola, María</strong></div>
@@ -56,15 +79,15 @@ export function HomeDashboardPreview() {
     <div className="home-dashboard__summary">
       <section className="home-dashboard__money" aria-label="Dinero del curso">
         <h2>Dinero del curso</h2><div>
-          <Metric label="Saldo disponible" value="$1.240.000" icon={<FiDollarSign />} tone="income" />
-          <Metric label="Ingresos totales" value="$1.680.000" icon={<FiLogIn />} tone="income" />
+          <Metric label="Saldo disponible" value={money(1240000 + payments * 15000)} icon={<FiDollarSign />} tone="income" />
+          <Metric label="Ingresos totales" value={money(1680000 + payments * 15000)} icon={<FiLogIn />} tone="income" />
           <Metric label="Egresos activos" value="$440.000" icon={<FiLogOut />} tone="expense" />
         </div>
       </section>
       <section className="home-dashboard__fees" aria-label="Cuotas del curso">
         <h2>Cuotas del curso</h2><div>
-          <Metric label="Cuotas pagadas" value="37" icon={<FiCheckCircle />} />
-          <Metric label="Cuotas pendientes" value="7" icon={<FiClock />} />
+          <Metric label="Cuotas pagadas" value={String(37 + payments)} icon={<FiCheckCircle />} />
+          <Metric label="Cuotas pendientes" value={String(7 - payments)} icon={<FiClock />} />
         </div>
       </section>
     </div>
@@ -74,14 +97,7 @@ export function HomeDashboardPreview() {
         <small><span><MdBoy aria-hidden="true" />18 niños</span><span><MdGirl aria-hidden="true" />16 niñas</span></small></div>
       <div className="home-dashboard__birthday"><FiGift aria-hidden="true" /><div><span>Próximo cumpleaños</span><b>Martina</b><small>8 de junio</small></div></div>
     </section>
-    <section className="home-dashboard__flow" aria-labelledby="preview-flow-title">
-      <h2 id="preview-flow-title"><FiTrendingUp aria-hidden="true" />Ingresos y egresos en el tiempo</h2>
-      <div className="home-dashboard__timeline">{months.map(month => <div key={month.name}>
-        <span className="is-income">{month.income}</span><strong><i />{month.name}</strong>
-        <span className="is-expense">{month.expense}</span><small>Balance <b>{month.balance}</b></small>
-      </div>)}</div>
-      <div className="home-dashboard__legend"><span>Ingresos</span><span>Egresos</span></div>
-    </section>
+    <HomeCashflowPreview payments={payments} year={year} />
     <div className="home-dashboard__panels">{panels.map(({ title, icon: Icon, content }, index) => (
       <section key={title}>
         <h2><button type="button" aria-expanded={activePanel === index} aria-controls={`preview-panel-${index}`}

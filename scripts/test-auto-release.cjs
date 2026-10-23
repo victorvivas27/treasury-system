@@ -165,6 +165,50 @@ test('deployment dispatch preserves all existing release-dependent workflows', a
   assert.ok(calls.every(call => call.inputs.release_ref === 'v1.0.0'));
 });
 
+test('both publication routes activate the shared release result, but failures and absent releases do not', async () => {
+  const result = workflow.jobs['release-result'];
+  assert.deepEqual(result.needs, ['prepare', 'publish']);
+  assert.equal(workflow.jobs.prepare.outputs.tag_name, '${{ steps.release.outputs.tag_name }}');
+  assert.deepEqual(workflow.jobs.deploy.needs, ['release-result']);
+  for (const job of ['deploy', 'sync-dev']) {
+    const canContinue = new Function('needs', 'always', 'cancelled', `return ${workflow.jobs[job].if};`);
+    assert.equal(canContinue({ 'release-result': { result: 'success' } }, () => true, () => false), true);
+    assert.equal(canContinue({ 'release-result': { result: 'skipped' } }, () => true, () => false), false);
+    assert.equal(canContinue({ 'release-result': { result: 'failure' } }, () => true, () => false), false);
+    assert.equal(canContinue({ 'release-result': { result: 'success' } }, () => true, () => true), false);
+  }
+  assert.equal(workflow.jobs.deploy.steps[0].env.RELEASE_REF, '${{ needs.release-result.outputs.tag_name }}');
+  const eligible = new Function('needs', 'always', 'cancelled', `return ${result.if};`);
+  const cases = [
+    ['success', 'true', 'skipped', '', true],
+    ['success', '', 'success', 'true', true],
+    ['success', '', 'skipped', '', false],
+    ['success', '', 'success', 'false', false],
+    ['failure', 'true', 'skipped', '', false],
+    ['success', 'true', 'failure', '', false],
+    ['success', 'true', 'cancelled', '', false],
+  ];
+  for (const [prepareResult, prepared, publishResult, published, expected] of cases) {
+    const needs = {
+      prepare: { result: prepareResult, outputs: { released: prepared } },
+      publish: { result: publishResult, outputs: { released: published } },
+    };
+    assert.equal(eligible(needs, () => true, () => false), expected);
+    assert.equal(eligible(needs, () => true, () => true), false);
+  }
+  const script = result.steps[0].with.script;
+  for (const env of [
+    { PREPARE_RELEASED: 'true', PREPARE_TAG: 'v1.30.0', PUBLISH_RELEASED: '' },
+    { PREPARE_RELEASED: '', PUBLISH_RELEASED: 'true', PUBLISH_TAG: 'v1.30.0' },
+  ]) {
+    const outputs = {};
+    await run(script, {}, env, { setOutput: (key, value) => { outputs[key] = value; } });
+    assert.deepEqual(outputs, { tag_name: 'v1.30.0' });
+  }
+  await assert.rejects(run(script, {}, { PREPARE_RELEASED: 'true' }), /without an exact tag/);
+  await assert.rejects(run(script, {}, { PUBLISH_RELEASED: 'true' }), /without an exact tag/);
+});
+
 test('production workflows are manual-only and serialize by service', () => {
   for (const [file, candidate] of productionWorkflows) {
     assert.ok(candidate.on.workflow_dispatch, file);
