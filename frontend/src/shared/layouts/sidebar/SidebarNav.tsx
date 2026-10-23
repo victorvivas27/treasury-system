@@ -113,6 +113,10 @@ export const SidebarNav = ({
     };
   }, [openGroup]);
 
+  useEffect(() => {
+    if (isCollapsed) setOpenGroup(null);
+  }, [isCollapsed]);
+
   /* =========================================================
      LINKS VISIBLES DE TESORERÍA
      ========================================================= */
@@ -161,7 +165,6 @@ export const SidebarNav = ({
      ========================================================= */
 
   const handleClick = () => {
-    setOpenGroup(null);
     onNavLinkClick();
   };
 

@@ -61,22 +61,22 @@
 }
 
 .apoderados-table .guardian-access--activo {
-  color: #16803a;
-  border-color: color-mix(in srgb, #16803a 35%, transparent);
-  background: color-mix(in srgb, #16803a 12%, transparent);
+  color: var(--tone-success-003);
+  border-color: color-mix(in srgb, var(--tone-success-003) 35%, transparent);
+  background: color-mix(in srgb, var(--tone-success-003) 12%, transparent);
 }
 
 .apoderados-table .guardian-access--invitacion_pendiente {
-  color: #b45309;
-  border-color: color-mix(in srgb, #d97706 38%, transparent);
-  background: color-mix(in srgb, #d97706 12%, transparent);
+  color: var(--tone-warning-005);
+  border-color: color-mix(in srgb, var(--tone-warning-006) 38%, transparent);
+  background: color-mix(in srgb, var(--tone-warning-006) 12%, transparent);
 }
 
 .apoderados-table .guardian-access--sin_acceso,
 .apoderados-table .guardian-access--bloqueado {
-  color: #c5221f;
-  border-color: color-mix(in srgb, #d92d20 35%, transparent);
-  background: color-mix(in srgb, #d92d20 10%, transparent);
+  color: var(--tone-error-003);
+  border-color: color-mix(in srgb, var(--tone-error-006) 35%, transparent);
+  background: color-mix(in srgb, var(--tone-error-006) 10%, transparent);
 }
 
 .apoderados-table__text {

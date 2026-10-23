@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint . -D no-unused-vars",
+    "lint": "oxlint . -D no-unused-vars && node scripts/check-color-tokens.mjs",
+    "check:colors": "node scripts/check-color-tokens.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",

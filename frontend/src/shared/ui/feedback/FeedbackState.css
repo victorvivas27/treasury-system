@@ -36,7 +36,7 @@ font-size: var(--font-size-4xl);  /* Tamaño del ícono */
 
 /* Colores Dinámicos para el Texto */
 .feedback-state--error {
-  --feedback-color: var(--color-error, #ff4d4d);
+  --feedback-color: var(--color-error, var(--tone-error-018));
 }
 
 .feedback-state--warning {
@@ -44,7 +44,7 @@ font-size: var(--font-size-4xl);  /* Tamaño del ícono */
 }
 
 .feedback-state--info {
-  --feedback-color: var(--color-accent, #00a2ff);
+  --feedback-color: var(--color-accent, var(--tone-info-025));
 }
 
 .feedback-state__title {

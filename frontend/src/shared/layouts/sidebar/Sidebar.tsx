@@ -34,6 +34,14 @@ export const Sidebar: FC<SidebarProps> = ({ headerContent, onCloseSidebar, isSid
     </div>
     {isSidebarOpen && <button className="sidebar-backdrop" type="button" tabIndex={-1} aria-label="Cerrar menú" onClick={onCloseSidebar ?? onToggleSidebar} />}
     <aside
+      onPointerLeave={event => {
+        if (event.pointerType !== "mouse") return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        // Loading overlays can change the hit target without moving the mouse.
+        if (event.clientX >= bounds.left && event.clientX < bounds.right &&
+            event.clientY >= bounds.top && event.clientY < bounds.bottom) return;
+        onCloseSidebar?.();
+      }}
       id="app-sidebar" aria-label="Menú principal" inert={isHidden} aria-hidden={isHidden}
       data-state={isHidden ? "hidden" : isSidebarOpen ? "expanded" : "icons"} className={`sidebar flex-col ${!isSidebarOpen ? "sidebar--collapsed" : ""}`}>
       <SidebarHeader isCollapsed={!isSidebarOpen} />

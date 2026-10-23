@@ -7,21 +7,33 @@ const isMobileViewport = () => window.matchMedia(mobileQuery).matches;
 export const useSidebarBehavior = () => {
   const [mobile, setMobile] = useState(isMobileViewport);
   const [sidebarState, setSidebarState] = useState<SidebarState>(() =>
-    isMobileViewport() ? "hidden" : "expanded");
+    isMobileViewport() ? "hidden" : "icons");
 
   useEffect(() => {
     const media = window.matchMedia(mobileQuery);
     const update = () => {
       setMobile(media.matches);
-      setSidebarState(media.matches ? "hidden" : "expanded");
+      setSidebarState(media.matches ? "hidden" : "icons");
     };
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
 
   const closeSidebar = useCallback(() => {
-    if (mobile) setSidebarState("hidden");
+    setSidebarState(mobile ? "hidden" : "icons");
   }, [mobile]);
+
+  useEffect(() => {
+    if (mobile || sidebarState !== "expanded") return;
+    const closeAfterLeaving = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      const bounds = document.getElementById("app-sidebar")?.getBoundingClientRect();
+      if (bounds && (event.clientX < bounds.left || event.clientX >= bounds.right ||
+          event.clientY < bounds.top || event.clientY >= bounds.bottom)) closeSidebar();
+    };
+    document.addEventListener("pointermove", closeAfterLeaving);
+    return () => document.removeEventListener("pointermove", closeAfterLeaving);
+  }, [mobile, sidebarState, closeSidebar]);
 
   useEffect(() => {
     if (!mobile || sidebarState !== "expanded") return;
@@ -65,7 +77,7 @@ export const useSidebarBehavior = () => {
     isSidebarOpen: sidebarState === "expanded",
     isLocked: sidebarState === "expanded",
     onToggleSidebar,
-    onNavLinkClick: closeSidebar,
+    onNavLinkClick: () => { if (mobile) closeSidebar(); },
     closeSidebar,
   };
 };

@@ -5,17 +5,17 @@
   z-index: 1200;
   width: max-content;
   max-width: min(220px, calc(100vw - 1rem));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 62%, white 12%);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 62%, var(--tone-neutral-light-038) 12%);
   border-radius: 0.55rem;
   padding: 0.42rem 0.62rem;
   background: linear-gradient(135deg,
-    color-mix(in srgb, var(--color-accent) 38%, #172033) 0%,
-    color-mix(in srgb, var(--color-accent) 14%, #111827) 58%,
-    #111827 100%);
-  color: #f8fafc;
-  box-shadow: 0 10px 30px rgb(2 6 23 / 28%),
+    color-mix(in srgb, var(--color-accent) 38%, var(--tone-neutral-dark-056)) 0%,
+    color-mix(in srgb, var(--color-accent) 14%, var(--tone-neutral-dark-052)) 58%,
+    var(--tone-neutral-dark-052) 100%);
+  color: var(--tone-neutral-light-023);
+  box-shadow: 0 10px 30px var(--tone-neutral-dark-033),
     0 3px 10px color-mix(in srgb, var(--color-accent) 24%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 13%);
+    inset 0 1px 0 var(--tone-neutral-light-031);
   font-size: .8125rem;
   font-weight: 650;
   letter-spacing: 0.005em;
@@ -28,8 +28,8 @@
   position: absolute;
   width: 0.55rem;
   height: 0.55rem;
-  border: solid color-mix(in srgb, var(--color-accent) 50%, white 8%);
-  background: color-mix(in srgb, var(--color-accent) 24%, #141d2b);
+  border: solid color-mix(in srgb, var(--color-accent) 50%, var(--tone-neutral-light-038) 8%);
+  background: color-mix(in srgb, var(--color-accent) 24%, var(--tone-neutral-dark-053));
   content: "";
   transform: rotate(45deg);
 }

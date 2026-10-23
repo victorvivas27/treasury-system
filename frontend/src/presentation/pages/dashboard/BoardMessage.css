@@ -35,7 +35,7 @@
   color: var(--text-main);
   box-shadow: var(--shadow-card);
 }
-.board-message-modal::backdrop { background: rgb(0 0 0 / .5); }
+.board-message-modal::backdrop { background: var(--tone-neutral-dark-022); }
 .board-message-modal form { display: grid; gap: 0.8rem; }
 .board-message-modal h2 { margin: 0 0 var(--space-2); font-size: var(--font-h2); }
 .board-message-drag-handle { cursor: grab; touch-action: none; user-select: none; }
@@ -54,7 +54,7 @@
 }
 .board-message-modal small { text-align: right; color: var(--text-muted); }
 .board-message-modal footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); }
-.board-message-modal button[type="submit"] { background: var(--color-primary); color: var(--icon-on-accent); }
+.board-message-modal button[type="submit"] { background: var(--color-primary); color: var(--text-on-primary); }
 
 .dashboard-board-message .board-message-edit {
   position: static;

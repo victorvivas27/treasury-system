@@ -55,15 +55,15 @@
 }
 
 .alumnos-table__gender.is-masculino {
-  color: #2563eb;
+  color: var(--tone-info-009);
 }
 
 .alumnos-table__gender.is-femenino {
-  color: #db2777;
+  color: var(--tone-error-008);
 }
 
 .alumnos-table__gender.is-otros {
-  color: #7c3aed;
+  color: var(--tone-info-005);
   font-size: 1.3rem;
 }
 

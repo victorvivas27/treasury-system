@@ -126,15 +126,15 @@
 .home-community .is-turquoise { --card-accent: var(--color-accent); }
 .home-community .is-blue { --card-accent: var(--palette-blue); }
 .home-community .is-purple { --card-accent: var(--palette-violet); }
-.home-community .is-orange { --card-accent: #f59e0b; }
+.home-community .is-orange { --card-accent: var(--tone-warning-014); }
 .home-community .is-pink { --card-accent: var(--palette-pink); }
 .home-community .is-green { --card-accent: var(--palette-green); }
-.home-community .is-red { --card-accent: #ef4444; }
-.home-community .is-yellow { --card-accent: #eab308; }
-.home-community .is-indigo { --card-accent: #6366f1; }
-.home-community .is-coral { --card-accent: #fb7185; }
+.home-community .is-red { --card-accent: var(--tone-error-015); }
+.home-community .is-yellow { --card-accent: var(--tone-warning-015); }
+.home-community .is-indigo { --card-accent: var(--tone-info-011); }
+.home-community .is-coral { --card-accent: var(--tone-error-022); }
 .home-community .is-sky { --card-accent: var(--palette-sky); }
-.home-community .is-lime { --card-accent: #84cc16; }
+.home-community .is-lime { --card-accent: var(--tone-success-020); }
 
 .home-community__photo-heading { justify-content: center; }
 .home-community__photo-heading h2 { font-size: clamp(28px, 3vw, 38px); }
@@ -268,7 +268,7 @@
   opacity: 0;
 }
 .home-community__content.is-visible .home-community__board article { animation: board-card-arrive 760ms var(--board-delay, 0ms) cubic-bezier(.16, 1, .3, 1) forwards; }
-.home-community__board article.is-presidente { --board-accent: #f59e0b; }
+.home-community__board article.is-presidente { --board-accent: var(--tone-warning-014); }
 .home-community__board article.is-vicepresidente { --board-accent: var(--palette-violet); }
 .home-community__board article.is-secretaria { --board-accent: var(--palette-sky); }
 .home-community__board article.is-tesorero { --board-accent: var(--palette-green); }

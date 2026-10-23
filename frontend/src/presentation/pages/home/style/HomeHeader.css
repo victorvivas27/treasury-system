@@ -14,7 +14,7 @@
   padding-inline: max(var(--space-6), calc((100% - 1180px) / 2));
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
   background: color-mix(in srgb, var(--color-bg) 86%, transparent);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+  box-shadow: 0 8px 24px var(--tone-neutral-dark-002);
   backdrop-filter: blur(14px);
   animation: home-header-in 650ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -45,7 +45,7 @@
 
 .public-home__brand:hover img {
   transform: rotate(-7deg) scale(1.08);
-  filter: drop-shadow(0 0 10px rgba(14, 235, 205, 0.35));
+  filter: drop-shadow(0 0 10px var(--tone-accent-014));
 }
 
 .public-home__account {
@@ -327,7 +327,7 @@
     border: 1px solid var(--border-color);
     border-radius: 10px;
     background: var(--color-sidebar);
-    box-shadow: 0 12px 32px rgb(0 0 0 / 16%);
+    box-shadow: 0 12px 32px var(--tone-neutral-dark-009);
     scrollbar-width: none;
     backdrop-filter: blur(18px);
     opacity: 0;

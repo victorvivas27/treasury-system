@@ -56,11 +56,11 @@
 .administration-card > footer button.danger:hover:not(:disabled) { background:color-mix(in srgb,var(--color-error) 12%,transparent); border-color:var(--color-error); color:var(--color-error); }
 .administration-card > footer button.success { color:var(--color-success); border-color:var(--color-success); background:transparent; }
 .administration-card > footer button.success:hover:not(:disabled) { background:color-mix(in srgb,var(--color-success) 12%,transparent); border-color:var(--color-success); color:var(--color-success); }
-.administration-card > footer .administration-delete-button { border-color:var(--color-error); background:var(--color-error); color:#fff; }
-.administration-card > footer .administration-delete-button:hover:not(:disabled) { background:color-mix(in srgb,var(--color-error) 75%, transparent); border-color:color-mix(in srgb,var(--color-error) 75%, transparent); color:#fff; }
+.administration-card > footer .administration-delete-button { border-color:var(--color-error); background:var(--color-error); color:var(--tone-neutral-light-038); }
+.administration-card > footer .administration-delete-button:hover:not(:disabled) { background:color-mix(in srgb,var(--color-error) 75%, transparent); border-color:color-mix(in srgb,var(--color-error) 75%, transparent); color:var(--tone-neutral-light-038); }
 .administration-card > footer button:disabled { cursor:not-allowed; opacity:0.45; }
-.administration-admin-panel { position:fixed; z-index:1000; inset:0; display:grid; place-items:center; padding:var(--space-4); background:rgb(0 0 0 / 58%); backdrop-filter:blur(5px); }
-.administration-admin-panel form { display:flex; width:min(100%,30rem); flex-direction:column; gap:0.9rem; padding:1.25rem; border:1px solid var(--border-color); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:0 24px 70px rgb(0 0 0 / 35%); }
+.administration-admin-panel { position:fixed; z-index:1000; inset:0; display:grid; place-items:center; padding:var(--space-4); background:var(--tone-neutral-dark-025); backdrop-filter:blur(5px); }
+.administration-admin-panel form { display:flex; width:min(100%,30rem); flex-direction:column; gap:0.9rem; padding:1.25rem; border:1px solid var(--border-color); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:0 24px 70px var(--tone-neutral-dark-016); }
 .administration-admin-panel header { display:flex; justify-content:space-between; gap:var(--space-4); }
 .administration-admin-panel header p,.administration-admin-panel header h2 { margin:0; }.administration-admin-panel header p { color:var(--text-muted); font-size:0.72rem; }.administration-admin-panel header h2 { margin-top:0.2rem; font-size: var(--font-h2); }
 .administration-admin-panel header > button { border:0; background:transparent; color:var(--text-muted); font-size:1.4rem; cursor:pointer; }
@@ -76,7 +76,7 @@
 .administration-delete-warning > svg { width:1.35rem; height:1.35rem; flex:0 0 auto; margin-top:0.1rem; }
 .administration-delete-warning strong { font-size:0.82rem; }.administration-delete-warning p { margin:var(--space-1) 0 0; color:var(--text-muted); font-size:0.74rem; line-height:1.45; }
 .administration-delete-value { display:block; width:max-content; max-width:100%; overflow:hidden; border-radius:0.35rem; padding:var(--space-1) 0.4rem; background:var(--color-bg); color:var(--color-error); font-family:var(--font-family-monospace); font-size:0.78rem; text-overflow:ellipsis; white-space:nowrap; }
-.administration-delete-panel .button-danger { border:1px solid var(--color-error); background:var(--color-error); color:#fff; }
+.administration-delete-panel .button-danger { border:1px solid var(--color-error); background:var(--color-error); color:var(--tone-neutral-light-038); }
 .administration-delete-panel .button-danger:hover:not(:disabled) { background:var(--color-error); border-color:var(--color-error); }
 @media (max-width:760px) {
   .administrations-page { padding: var(--page-padding); }.administrations-header { align-items:stretch; flex-direction:column; }

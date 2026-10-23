@@ -121,8 +121,8 @@ textarea.form-input-apoderado {
 
 .telefono-control-apoderado:focus-within {
   border-color: var(--text-muted);
-  background: color-mix(in srgb, var(--color-bg) 92%, white 8%);
-  box-shadow: 0 0 0 3px rgb(148 163 184 / 18%);
+  background: color-mix(in srgb, var(--color-bg) 92%, var(--tone-neutral-light-038) 8%);
+  box-shadow: 0 0 0 3px var(--tone-neutral-light-004);
 }
 
 .telefono-control-apoderado.input-error-apoderado {

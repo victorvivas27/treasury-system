@@ -1,5 +1,5 @@
 ﻿/* A compact, interactive representation of the real dashboard groups and timeline. */
-.home-dashboard { min-width: 0; box-sizing: border-box; padding: 14px; border: 1px solid var(--border-color); border-radius: 20px; background: var(--color-bg); box-shadow: 0 20px 56px rgb(0 0 0 / 20%); color: var(--text-main); }
+.home-dashboard { min-width: 0; box-sizing: border-box; padding: 14px; border: 1px solid var(--border-color); border-radius: 20px; background: var(--color-bg); box-shadow: 0 20px 56px var(--tone-neutral-dark-011); color: var(--text-main); }
 .home-dashboard h2, .home-dashboard p { margin: 0; }
 .home-dashboard svg { flex-shrink: 0; }
 .home-dashboard__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
@@ -135,10 +135,10 @@
     width: calc(100% - 24px);
     margin: 12px auto;
     padding: 20px 13px;
-    border: 3px solid #657183;
+    border: 3px solid var(--tone-neutral-dark-074);
     border-radius: 28px;
-    background: linear-gradient(135deg, #303946, #0b1019 35%, #171f2d 80%, #424d5e);
-    box-shadow: 12px 22px 46px rgb(0 0 0 / 28%), inset 0 0 0 1px #ffffff20;
+    background: linear-gradient(135deg, var(--tone-neutral-dark-065), var(--tone-neutral-dark-043) 35%, var(--tone-neutral-dark-055) 80%, var(--tone-neutral-dark-069));
+    box-shadow: 12px 22px 46px var(--tone-neutral-dark-013), inset 0 0 0 1px var(--tone-neutral-light-030);
     transform: perspective(1200px) rotateY(-8deg) rotateZ(-2deg);
     transform-origin: center;
   }
@@ -149,9 +149,9 @@
     left: calc(50% - 3px);
     width: 6px;
     height: 6px;
-    border: 1px solid #596c89;
+    border: 1px solid var(--tone-neutral-dark-073);
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #436285, #080d18 65%);
+    background: radial-gradient(circle at 35% 35%, var(--tone-primary-006), var(--tone-neutral-dark-039) 65%);
   }
   .home-dashboard-device::after {
     content: "";
@@ -161,7 +161,7 @@
     width: 3px;
     height: 40px;
     border-radius: 0 3px 3px 0;
-    background: #7a879b;
+    background: var(--tone-neutral-light-001);
   }
   .home-dashboard-device .home-dashboard {
     width: 100%;
@@ -169,7 +169,7 @@
     max-height: 370px;
     overflow-y: auto;
     scrollbar-width: none;
-    border: 1px solid #333e50;
+    border: 1px solid var(--tone-neutral-dark-066);
     border-radius: 14px;
     padding: 12px;
     box-shadow: none;
@@ -177,13 +177,13 @@
   .home-dashboard-device .home-dashboard::-webkit-scrollbar { display: none; }
 }
 @media (max-width: 680px) {
-  .home-dashboard-device { position: relative; box-sizing: border-box; width: min(330px, calc(100% - 32px)); margin: 24px auto 30px; padding: 7px; border: 3px solid #596272; border-radius: 38px; background: linear-gradient(135deg, #262d38, #080c13 45%, #242c38); box-shadow: 12px 22px 40px rgb(0 0 0 / 28%), inset 0 0 0 1px #ffffff22; transform: rotate(-2.5deg); transform-origin: center; }
-  .home-dashboard-device::before { content: ""; position: absolute; right: -5px; top: 106px; width: 3px; height: 42px; border-radius: 0 3px 3px 0; background: #687385; }
-  .home-dashboard-device::after { content: ""; position: absolute; left: -5px; top: 92px; width: 3px; height: 58px; border-radius: 3px 0 0 3px; background: #687385; }
-  .home-dashboard-device__status { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; height: 30px; padding-inline: 14px; color: #f1f5f9; }
+  .home-dashboard-device { position: relative; box-sizing: border-box; width: min(330px, calc(100% - 32px)); margin: 24px auto 30px; padding: 7px; border: 3px solid var(--tone-neutral-dark-071); border-radius: 38px; background: linear-gradient(135deg, var(--tone-neutral-dark-061), var(--tone-neutral-dark-038) 45%, var(--tone-neutral-dark-060)); box-shadow: 12px 22px 40px var(--tone-neutral-dark-013), inset 0 0 0 1px var(--tone-neutral-light-032); transform: rotate(-2.5deg); transform-origin: center; }
+  .home-dashboard-device::before { content: ""; position: absolute; right: -5px; top: 106px; width: 3px; height: 42px; border-radius: 0 3px 3px 0; background: var(--tone-neutral-dark-075); }
+  .home-dashboard-device::after { content: ""; position: absolute; left: -5px; top: 92px; width: 3px; height: 58px; border-radius: 3px 0 0 3px; background: var(--tone-neutral-dark-075); }
+  .home-dashboard-device__status { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; height: 30px; padding-inline: 14px; color: var(--tone-neutral-light-022); }
   .home-dashboard-device__status > span { display: flex; gap: 5px; align-items: center; font-size: 10px; font-weight: 700; }
-  .home-dashboard-device__status > i { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); width: 72px; height: 19px; border-radius: 20px; background: #020409; box-shadow: inset 0 1px 2px #ffffff12; }
-  .home-dashboard-device__status > i::after { content: ""; position: absolute; top: 6px; right: 9px; width: 6px; height: 6px; border: 1px solid #17263c; border-radius: 50%; background: #0c1425; }
+  .home-dashboard-device__status > i { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); width: 72px; height: 19px; border-radius: 20px; background: var(--tone-neutral-dark-031); box-shadow: inset 0 1px 2px var(--tone-neutral-light-027); }
+  .home-dashboard-device__status > i::after { content: ""; position: absolute; top: 6px; right: 9px; width: 6px; height: 6px; border: 1px solid var(--tone-neutral-dark-058); border-radius: 50%; background: var(--tone-neutral-dark-047); }
   .home-dashboard-device .home-dashboard { width: 100%; max-height: 580px; padding: 10px; overflow-y: auto; scrollbar-width: none; border-radius: 24px; box-shadow: none; }
   .home-dashboard-device .home-dashboard::-webkit-scrollbar { display: none; }
   .home-dashboard-device .home-dashboard__metric > strong { font-size: 12px; }
@@ -194,6 +194,6 @@
   .home-dashboard-device .home-dashboard__panels button { font-size: 11px; }
   .home-dashboard-device .home-dashboard__hint { font-size: 8px; }
   .home-dashboard-device__home { display: flex; justify-content: center; padding: 10px 0 4px; }
-  .home-dashboard-device__home > span { width: 90px; height: 4px; border-radius: 4px; background: #d1d6df; }
+  .home-dashboard-device__home > span { width: 90px; height: 4px; border-radius: 4px; background: var(--tone-neutral-light-017); }
 }
 

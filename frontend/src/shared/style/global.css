@@ -1,3 +1,4 @@
+@import "./theme.css";
 @import "../ui/loading/LoadingState.css";
 
 /* Design System: tema, escalas compartidas y roles de componentes.
@@ -14,12 +15,6 @@
   --radius-pill: 999px;
   --radius-round: 50%;
   --radius-sm: 0.25rem;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 14px 35px rgba(0, 0, 0, 0.35);
-  --shadow-nav-active: inset 3px 0 0 var(--color-accent);
-  --shadow-sidebar: 8px 0 28px rgb(2 6 23 / 18%);
-  --shadow-sidebar-collapsed: 1px 0 10px color-mix(in srgb, var(--color-primary) 25%, transparent);
-  --shadow-sidebar-submenu: 0 16px 40px rgb(0 0 0 / 32%), inset 0 1px 0 rgb(255 255 255 / 18%);
   /* Componentes y layout */
   --content-max: 1180px;
   --control-height: 38px;
@@ -54,50 +49,6 @@
   --duration-slow: 400ms;
   --ease-out: ease-out;
   --ease-standard: ease;
-  /* Tema y colores */
-  --border-color: #858688;
-  --color-accent: #0eebcd;
-  --color-accent-soft: rgba(14, 235, 205, 0.12);
-  --color-active: #374151;
-  --color-bg: #0A0F1A;
-  --color-elevated: var(--color-surface);
-  --color-danger-surface: #b91c1c;
-  --color-error: #EF4444;
-  --color-error-soft: rgba(239, 68, 68, 0.12);
-  --color-hover: #1F2937;
-  --color-info: #3B82F6;
-  --color-info-soft: rgba(59, 130, 246, 0.12);
-  --color-input: var(--color-surface);
-  --color-primary: #1E3A5F;
-  --color-sidebar: var(--color-surface);
-  --color-success: #22C55E;
-  --color-success-soft: rgba(34, 197, 94, 0.12);
-  --color-surface: #111827;
-  --color-warning: #F59E0B;
-  --color-warning-soft: rgba(245, 158, 11, 0.12);
-  --divider: #051e57;
-  --focus-ring: var(--color-accent);
-  --icon-accent: var(--color-accent);
-  --icon-muted: #94A3B8;
-  --icon-on-accent: #061512;
-  --overlay: rgba(0, 0, 0, 0.6);
-  --palette-blue: #3b82f6;
-  --palette-green: #22c55e;
-  --palette-orange: #f97316;
-  --palette-pink: #ec4899;
-  --palette-sky: #38bdf8;
-  --palette-violet: #8b5cf6;
-  --sidebar-icon: var(--color-accent);
-  --sidebar-icon-active: var(--color-warning);
-  --sidebar-submenu-arrow-bg: rgb(8 15 26 / 98%);
-  --sidebar-submenu-bg: linear-gradient(145deg, rgb(10 18 30 / 98%), rgb(6 12 22 / 96%));
-  --sidebar-submenu-text: rgb(226 232 240 / 86%);
-  --sidebar-text: #9CA3AF;
-  --text-boot: #f8fafc;
-  --text-boot-muted: #94a3b8;
-  --text-main: #E5E7EB;
-  --text-muted: #9CA3AF;
-  --text-on-accent: #061512;
   /* Tipografía */
   --font-body: var(--font-size-md);
   --font-button: var(--font-small);
@@ -129,49 +80,6 @@
   --font-weight-semibold: 600;
   --heading-leading: 1.25;
   --leading-body: 1.5;
-}
-
-:root[data-theme="light"] {
-  --shadow-card: 0 8px 24px rgba(34, 48, 68, 0.08);
-  --shadow-elevated: 0 18px 44px rgba(34, 48, 68, 0.18);
-  --shadow-nav-active: inset 3px 0 0 var(--icon-accent);
-  --shadow-sidebar: 8px 0 28px rgba(34, 48, 68, 0.08);
-  --shadow-sidebar-collapsed: 1px 0 12px rgba(34, 48, 68, 0.08);
-  --shadow-sidebar-submenu: 0 18px 44px rgba(34, 48, 68, 0.16);
-  --border-color: #a5b4be;
-  --color-accent: #095e57;
-  --color-accent-soft: rgba(15, 118, 110, 0.1);
-  --color-active: #b2c5ce;
-  --color-bg: #c1cdd5;
-  --color-error: #9f2525;
-  --color-error-soft: rgba(198, 55, 55, 0.1);
-  --color-hover: #bdcdd6;
-  --color-info: #1e5794;
-  --color-info-soft: rgba(36, 102, 177, 0.1);
-  --color-primary: #24547a;
-  --color-success: #115f29;
-  --color-success-soft: rgba(24, 122, 60, 0.11);
-  --color-surface: #d1dce2;
-  --color-warning: #764800;
-  --color-warning-soft: rgba(154, 92, 5, 0.1);
-  --divider: #afbec8;
-  --focus-ring: var(--color-accent);
-  --icon-accent: #095e57;
-  --icon-muted: #566474;
-  --icon-on-accent: #ffffff;
-  --overlay: rgba(24, 30, 36, 0.35);
-  --palette-violet: #5b359f;
-  --sidebar-icon: #64748b;
-  --sidebar-icon-active: #0f766e;
-  --sidebar-submenu-arrow-bg: #d1dce2;
-  --sidebar-submenu-bg: linear-gradient(145deg, #d1dce2, #c1cdd5);
-  --sidebar-submenu-text: #334155;
-  --sidebar-text: #475569;
-  --text-boot: #172033;
-  --text-boot-muted: #475569;
-  --text-main: #182230;
-  --text-muted: #475569;
-  --text-on-accent: #ffffff;
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -215,6 +123,12 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Preserve native geometry while giving all selectable controls a palette role.
+ * Component-specific accents retain their more specific selectors. */
+input[type="checkbox"], input[type="radio"], input[type="range"], progress {
+  accent-color: var(--control-accent);
 }
 
 html {

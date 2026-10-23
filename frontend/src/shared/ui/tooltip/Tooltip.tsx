@@ -18,6 +18,7 @@ export const Tooltip = ({ content, position = "top", className = "", disabled = 
   const markerRef = useRef<HTMLSpanElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const tooltipRef = useRef<HTMLSpanElement>(null);
+  const keyboardFocused = useRef(false);
   const [visible, setVisible] = useState(false);
   const [coordinates, setCoordinates] = useState<Coordinates>({ left: 0, top: 0 });
 
@@ -51,20 +52,29 @@ export const Tooltip = ({ content, position = "top", className = "", disabled = 
 
   useEffect(() => {
     const anchor = markerRef.current?.parentElement;
-    if (!anchor || disabled) return;
+    if (disabled) {
+      clearTimeout(hideTimer.current);
+      keyboardFocused.current = false;
+      setVisible(false);
+      return;
+    }
+    if (!anchor) return;
     let hovered = false;
     let focused = false;
+    let pointerInteraction = false;
     const description = anchor.getAttribute("aria-describedby");
     anchor.setAttribute("aria-describedby", [description, tooltipId].filter(Boolean).join(" "));
     const show = () => { clearTimeout(hideTimer.current); setVisible(true); };
     const enter = () => { hovered = true; show(); };
     const leave = () => { hovered = false; if (!focused) hideTimer.current = setTimeout(() => setVisible(false), 150); };
-    const focus = () => { focused = true; show(); };
-    const blur = () => { focused = false; if (!hovered) setVisible(false); };
+    const focus = () => { focused = !pointerInteraction; keyboardFocused.current = focused; show(); };
+    const pointerDown = () => { pointerInteraction = true; focused = false; keyboardFocused.current = false; };
+    const blur = () => { pointerInteraction = false; focused = false; keyboardFocused.current = false; if (!hovered) setVisible(false); };
     const outside = (event: PointerEvent) => {
       if (event.target instanceof Node && !anchor.contains(event.target) && !tooltipRef.current?.contains(event.target)) setVisible(false);
     };
     const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") setVisible(false); };
+    anchor.addEventListener("pointerdown", pointerDown);
     anchor.addEventListener("mouseenter", enter);
     anchor.addEventListener("mouseleave", leave);
     anchor.addEventListener("focusin", focus);
@@ -73,6 +83,7 @@ export const Tooltip = ({ content, position = "top", className = "", disabled = 
     document.addEventListener("keydown", dismiss);
     document.addEventListener("pointerdown", outside);
     return () => {
+      anchor.removeEventListener("pointerdown", pointerDown);
       anchor.removeEventListener("mouseenter", enter);
       anchor.removeEventListener("mouseleave", leave);
       anchor.removeEventListener("focusin", focus);
@@ -104,7 +115,7 @@ export const Tooltip = ({ content, position = "top", className = "", disabled = 
       <span id={tooltipId} ref={tooltipRef} className={`ui-tooltip ui-tooltip--${position} ${className}`.trim()}
         style={coordinates} role="tooltip"
         onMouseEnter={() => { clearTimeout(hideTimer.current); setVisible(true); }} onMouseLeave={() => {
-          if (!markerRef.current?.parentElement?.contains(document.activeElement)) setVisible(false);
+          if (!keyboardFocused.current) setVisible(false);
         }}>{content}</span>,
       document.body,
     )}

@@ -43,4 +43,27 @@ describe("Configuración de apariencia", () => {
     expect(screen.getByRole("radio", { name: /Claro/ })).toBeChecked();
     expect(screen.getByText("Seleccionado")).toBeInTheDocument();
   });
+
+  it("ofrece cuatro paletas con previsualización y selección independiente del modo", async () => {
+    const user = userEvent.setup();
+    render(<ThemeProvider><Configuracion /></ThemeProvider>);
+    expect(screen.getByRole("radio", { name: "Original", exact: true })).toBeChecked();
+    expect(document.querySelectorAll(".palette-preview > i")).toHaveLength(32);
+    await user.click(screen.getByRole("radio", { name: "Verde esmeralda y dorado", exact: true }));
+    expect(localStorage.getItem("app-palette")).toBe("green-turquoise");
+    expect(screen.getByRole("radio", { name: /Oscuro/ })).toBeChecked();
+    await user.click(screen.getByRole("radio", { name: /Claro/ }));
+    expect(screen.getByRole("radio", { name: "Verde esmeralda y dorado", exact: true })).toBeChecked();
+  });
+
+  it("permite cambiar paleta con flechas y anuncia la selección", async () => {
+    const user = userEvent.setup();
+    render(<ThemeProvider><Configuracion /></ThemeProvider>);
+    screen.getByRole("radio", { name: "Original", exact: true }).focus();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Azul y lima", exact: true })).toBeChecked();
+    expect(screen.getByText("Paleta activa: Azul y lima")).toBeInTheDocument();
+    expect(document.documentElement).toHaveAttribute("data-palette", "blue-lime");
+    expect(screen.getByRole("radio", { name: /Oscuro/ })).toBeChecked();
+  });
 });

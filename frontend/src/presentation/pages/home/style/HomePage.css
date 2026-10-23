@@ -5,7 +5,7 @@
   position: relative;
   min-height: 100vh;
   overflow: clip;
-  background: radial-gradient(circle at 76% 12%, rgba(14,235,205,.1), transparent 24rem), var(--color-bg);
+  background: radial-gradient(circle at 76% 12%, var(--tone-accent-010), transparent 24rem), var(--color-bg);
   color: var(--text-main);
 }
 

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "./ThemeContext";
 import { THEME_STORAGE_KEY } from "./theme";
+import { PALETTES, PALETTE_STORAGE_KEY } from "./palette";
 
 type ChangeListener = (event: MediaQueryListEvent) => void;
 
@@ -33,10 +34,12 @@ const createMatchMedia = (initialMatches: boolean) => {
 };
 
 const ThemeProbe = () => {
-  const { themePreference, resolvedTheme, setThemePreference } = useTheme();
+  const { themePreference, resolvedTheme, setThemePreference, palette, setPalette } = useTheme();
   return (
     <>
       <output>{`${themePreference}:${resolvedTheme}`}</output>
+      <output data-testid="palette">{palette}</output>
+      {PALETTES.map(option => <button key={option.id} onClick={() => setPalette(option.id)}>{option.name}</button>)}
       <button onClick={() => setThemePreference("light")}>Claro</button>
       <button onClick={() => setThemePreference("dark")}>Oscuro</button>
       <button onClick={() => setThemePreference("system")}>Sistema</button>
@@ -48,6 +51,7 @@ describe("ThemeProvider", () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.dataset.theme = "";
+    document.documentElement.dataset.palette = "";
   });
 
   it("usa oscuro cuando no existe preferencia y ante un valor inválido", () => {
@@ -100,5 +104,50 @@ describe("ThemeProvider", () => {
 
     unmount();
     expect(media.listeners.size).toBe(0);
+  });
+
+  it.each(PALETTES)("restaura $id independientemente del modo", ({ id }) => {
+    vi.stubGlobal("matchMedia", createMatchMedia(true).matchMedia);
+    localStorage.setItem(THEME_STORAGE_KEY, "light");
+    localStorage.setItem(PALETTE_STORAGE_KEY, id);
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    expect(screen.getByTestId("palette")).toHaveTextContent(id);
+    expect(document.documentElement).toHaveAttribute("data-palette", id);
+    expect(screen.getByText("light:light")).toBeInTheDocument();
+  });
+
+  it.each([null, "unknown", "toString", "__proto__"])("usa Original ante %s", value => {
+    vi.stubGlobal("matchMedia", createMatchMedia(false).matchMedia);
+    if (value !== null) localStorage.setItem(PALETTE_STORAGE_KEY, value);
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    expect(document.documentElement).toHaveAttribute("data-palette", "original");
+  });
+
+  it("persiste paleta y modo sin sobrescribir la otra preferencia", async () => {
+    const media = createMatchMedia(false);
+    vi.stubGlobal("matchMedia", media.matchMedia);
+    const user = userEvent.setup();
+    localStorage.setItem(THEME_STORAGE_KEY, "system");
+    const view = render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    await user.click(screen.getByRole("button", { name: "Violeta y coral" }));
+    expect(localStorage.getItem(PALETTE_STORAGE_KEY)).toBe("violet-coral");
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("system");
+    act(() => media.change(true));
+    expect(screen.getByText("system:dark")).toBeInTheDocument();
+    expect(document.documentElement).toHaveAttribute("data-palette", "violet-coral");
+    view.unmount();
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    expect(screen.getByTestId("palette")).toHaveTextContent("violet-coral");
+  });
+
+  it("sincroniza otra pestaña y restaura valores inválidos sin alterar el modo", () => {
+    vi.stubGlobal("matchMedia", createMatchMedia(false).matchMedia);
+    localStorage.setItem(THEME_STORAGE_KEY, "light");
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    act(() => window.dispatchEvent(new StorageEvent("storage", { key: PALETTE_STORAGE_KEY, newValue: "blue-lime" })));
+    expect(document.documentElement).toHaveAttribute("data-palette", "blue-lime");
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
+    act(() => window.dispatchEvent(new StorageEvent("storage", { key: PALETTE_STORAGE_KEY, newValue: "invalid" })));
+    expect(document.documentElement).toHaveAttribute("data-palette", "original");
   });
 });

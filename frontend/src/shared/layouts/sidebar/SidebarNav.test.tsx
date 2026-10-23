@@ -61,13 +61,12 @@ describe("Shared sidebar group interaction", () => {
     expect(button(group)).toHaveFocus();
   });
 
-  it.each(groups)("%s closes on navigation, outside click and repeated toggle", group => {
+  it.each(groups)("%s stays open on navigation and closes on outside click or repeated toggle", group => {
     const { button, section, navigate } = setup();
     fireEvent.click(button(group));
     fireEvent.click(section(group).querySelector("a")!);
     expect(navigate).toHaveBeenCalledOnce();
-    expect(button(group)).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(button(group));
+    expect(button(group)).toHaveAttribute("aria-expanded", "true");
     fireEvent.pointerDown(document.body);
     expect(button(group)).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(button(group));

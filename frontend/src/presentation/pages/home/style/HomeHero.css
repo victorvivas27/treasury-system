@@ -36,10 +36,10 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  border: 1px solid rgba(14, 235, 205, .25);
+  border: 1px solid var(--tone-accent-013);
   border-radius: var(--radius-pill);
   padding: 0.45rem 0.8rem;
-  background: rgba(14, 235, 205, .07);
+  background: var(--tone-accent-008);
   color: var(--color-accent);
   font-size: var(--font-small);
   font-weight: var(--font-weight-bold);
@@ -70,17 +70,17 @@
 
 .public-home__preview {
   position: relative;
-  border: 1px solid rgba(156, 163, 175, .2);
+  border: 1px solid var(--tone-neutral-light-010);
   border-radius: 1.4rem;
   padding: clamp(1.1rem, 2vw, 1.6rem);
-  background: rgba(17, 24, 39, .9);
-  box-shadow: 0 35px 90px rgba(0, 0, 0, .38);
+  background: var(--tone-neutral-dark-051);
+  box-shadow: 0 35px 90px var(--tone-neutral-dark-017);
   transition: transform 450ms cubic-bezier(.2, .8, .2, 1), box-shadow 450ms ease;
 }
 
 .public-home__preview:hover {
   transform: translateY(-8px);
-  box-shadow: 0 48px 110px rgba(0, 0, 0, .46);
+  box-shadow: 0 48px 110px var(--tone-neutral-dark-020);
 }
 
 .public-home__preview-top {
@@ -144,12 +144,12 @@
   border: 1px solid var(--divider);
   border-radius: 0.65rem;
   padding: 0.55rem 0.65rem;
-  background: rgba(10, 15, 26, .62);
+  background: var(--tone-neutral-dark-041);
 }
 
 .public-home__dashboard-kpis article.is-featured {
-  border-color: rgba(14, 235, 205, .5);
-  background: linear-gradient(135deg, rgba(14, 235, 205, .12), rgba(10, 15, 26, .62));
+  border-color: var(--tone-accent-016);
+  background: linear-gradient(135deg, var(--tone-accent-011), var(--tone-neutral-dark-041));
 }
 
 .public-home__dashboard-kpis article.is-positive strong {
@@ -192,7 +192,7 @@
   border: 1px solid var(--divider);
   border-radius: 0.7rem;
   padding: 0.6rem;
-  background: rgba(10, 15, 26, .62);
+  background: var(--tone-neutral-dark-041);
 }
 
 .public-home__dashboard-panels header {
@@ -226,7 +226,7 @@
 }
 
 .public-home__cashflow .income-area {
-  fill: rgba(34, 197, 94, .13);
+  fill: var(--tone-success-011);
   opacity: 0;
 }
 

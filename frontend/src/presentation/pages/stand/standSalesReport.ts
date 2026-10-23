@@ -1,3 +1,4 @@
+import standSalesReportStyles from "./standSalesReport.css?inline";
 import type { Stand, StandSale } from "@/core/A-domain/entities/stand/Stand";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
 
@@ -29,18 +30,7 @@ export const buildStandSalesReport = (stand: Stand, sales: StandSale[], issuedAt
   }).join("");
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
     <title>Historial de ventas - ${escapeHtml(stand.name)} - ${escapeHtml(stand.date)}</title>
-    <style>
-    @page{size:A4 portrait;margin:14mm}
-    *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#172a38;margin:0;font-size:10px;line-height:1.45}
-    main{max-width:900px;margin:auto;padding:24px}header{border-bottom:3px solid #187b77;padding-bottom:14px;margin-bottom:16px}
-    h1{font-size:24px;margin:4px 0}h2{font-size:15px;margin:4px 0}p{margin:5px 0}.eyebrow{color:#187b77;font-weight:bold;letter-spacing:1px;text-transform:uppercase}
-    .totals{display:flex;gap:24px;background:#eef6f5;padding:12px;margin:16px 0}.totals strong{display:block;font-size:17px}
-    table{width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}th{background:#eef6f5;text-align:left;font-size:9px;text-transform:uppercase}
-    th,td{padding:9px 6px;border-bottom:1px solid #d6e2e2;vertical-align:top;overflow-wrap:anywhere}tr{break-inside:avoid}td>div+div{margin-top:5px}
-    small{display:block;color:#53636e;font-size:9px;margin-top:3px}.amount{text-align:right;white-space:nowrap}.cancelled{color:#a02b38;font-weight:bold}
-    footer{margin-top:16px;color:#53636e;font-size:9px}.toolbar{padding:12px;background:#eef6f5;text-align:center;font-size:13px}.toolbar button{background:#187b77;color:white;border:0;padding:10px 18px;border-radius:6px;cursor:pointer}
-    @media print{.toolbar{display:none}main{padding:0;max-width:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-    </style></head><body><div class="toolbar"><button id="save-pdf" type="button">Guardar como PDF / Imprimir</button>
+    <style>${standSalesReportStyles}</style></head><body><div class="toolbar"><button id="save-pdf" type="button">Guardar como PDF / Imprimir</button>
     <p>Selecciona “Guardar como PDF” como destino en la ventana de impresión.</p></div>
     <main><header><span class="eyebrow">${escapeHtml(stand.eventName)}</span><h1>Historial de ventas</h1>
     <h2>${escapeHtml(stand.name)}</h2><p>Fecha del stand: ${escapeHtml(stand.date)} · Responsable: ${escapeHtml(stand.responsible)}</p>
