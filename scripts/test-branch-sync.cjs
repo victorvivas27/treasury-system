@@ -45,7 +45,7 @@ test('sync runs for main pushes, manual retries and bot releases', () => {
   assert.ok(Object.hasOwn(workflow.on, 'workflow_dispatch'));
   assert.ok(Object.hasOwn(workflow.on, 'workflow_call'));
   assert.equal(read('06-release-please.yml').jobs['sync-dev'].uses, './.github/workflows/10-sync-main-dev.yml');
-  assert.equal(read('06-release-please.yml').jobs['sync-dev'].needs, 'publish');
+  assert.equal(read('06-release-please.yml').jobs['sync-dev'].needs, 'release-result');
   assert.equal(read('06-release-please.yml').jobs['sync-dev'].with.already_validated, true);
   assert.equal(workflow.on.workflow_call.inputs.already_validated.default, false);
   assert.equal(workflow.jobs.sync.concurrency['cancel-in-progress'], false);

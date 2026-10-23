@@ -28,6 +28,7 @@ jobs:
       sha: ${{ steps.candidate.outputs.sha }}
       base: ${{ steps.candidate.outputs.base }}
       released: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
 
     steps:
       - name: Create scoped Release Please token
@@ -246,9 +247,38 @@ jobs:
 
             core.setOutput('tag_name', release.tag_name);
 
+  release-result:
+    name: Resolve release published in either stage
+    needs: [prepare, publish]
+    if: >-
+      always() && !cancelled() &&
+      needs.prepare.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped') &&
+      (needs.prepare.outputs.released == 'true' || needs.publish.outputs.released == 'true')
+    runs-on: ubuntu-24.04
+    outputs:
+      tag_name: ${{ steps.release-ref.outputs.tag_name }}
+    steps:
+      - name: Resolve exact published tag
+        id: release-ref
+        uses: actions/github-script@v8
+        env:
+          PREPARE_RELEASED: ${{ needs.prepare.outputs.released }}
+          PREPARE_TAG: ${{ needs.prepare.outputs.tag_name }}
+          PUBLISH_RELEASED: ${{ needs.publish.outputs.released }}
+          PUBLISH_TAG: ${{ needs.publish.outputs.tag_name }}
+        with:
+          script: |
+            const tag = process.env.PUBLISH_RELEASED === 'true'
+              ? process.env.PUBLISH_TAG
+              : process.env.PREPARE_RELEASED === 'true' ? process.env.PREPARE_TAG : '';
+            if (!tag) throw new Error('A release was published without an exact tag; refusing to dispatch production workflows.');
+            core.setOutput('tag_name', tag);
+
   sync-dev:
     name: Return released main to dev
-    needs: publish
+    needs: release-result
+    if: always() && !cancelled() && needs['release-result'].result == 'success'
     uses: ./.github/workflows/10-sync-main-dev.yml
     with:
       already_validated: true
@@ -260,15 +290,8 @@ jobs:
     name: Trigger production workflows
 
     needs:
-      - prepare
-      - publish
-
-    if: >-
-      always() &&
-      !cancelled() &&
-      needs.publish.result == 'success' &&
-      needs.publish.outputs.released == 'true' &&
-      needs.publish.outputs.tag_name != ''
+      - release-result
+    if: always() && !cancelled() && needs['release-result'].result == 'success'
 
     runs-on: ubuntu-24.04
 
@@ -279,7 +302,7 @@ jobs:
       - name: Trigger deployments and coverage reports
         uses: actions/github-script@v8
         env:
-          RELEASE_REF: ${{ needs.publish.outputs.tag_name }}
+          RELEASE_REF: ${{ needs.release-result.outputs.tag_name }}
         with:
           script: |
             const workflows = [

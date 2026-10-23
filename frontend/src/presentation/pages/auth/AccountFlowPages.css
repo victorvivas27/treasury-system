@@ -1,4 +1,10 @@
 .auth-flow { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--color-bg); }
+@media (max-width: 1023px) {
+  .auth-flow.invitation-page { width: 100%; margin: 0; box-sizing: border-box; padding: 24px; }
+}
+@media (max-width: 480px) {
+  .auth-flow.invitation-page { padding: 12px; }
+}
 .auth-flow__card { width: min(100%, var(--form-max)); display: grid; gap: 20px; padding: var(--card-padding); text-align: center;
   background: var(--color-surface); border: 1px solid var(--border-color); border-radius: var(--radius-card); }
 .auth-flow__logo { width: 80px; height: 80px; object-fit: contain; margin: auto; }

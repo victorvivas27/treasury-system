@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiRefreshCw, FiTrendingUp } from "react-icons/fi";
 import type { TreasuryDashboardOverview } from "@/core/A-domain/entities/treasury/Treasury";
 import { buildCashflowTimeline } from "./buildCashflowTimeline";
+import { CashflowMonthPopover, type CashflowDetailAnchor } from "./CashflowMonthPopover";
 import "./CashflowTimeline.css";
 
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
@@ -16,7 +17,9 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
   const expense = months.reduce((sum, month) => sum + month.expense, 0);
   const today = new Date();
   const currentMonth = today.getFullYear() === year ? today.getMonth() + 1 : undefined;
-  const firstBalance = useRef<HTMLDivElement>(null);
+  const firstMonth = useRef<HTMLButtonElement>(null);
+  const [detail, setDetail] = useState<{ month: number; anchor: CashflowDetailAnchor } | null>(null);
+  const selectedMonth = months.find(month => month.month === detail?.month);
 
   if (!months.length) return null;
 
@@ -31,8 +34,8 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
       <span><Link className="cashflow-summary-action" to={`/tesoreria/gastos?year=${year}`}><small>Egresos</small><strong>{money.format(expense)}</strong></Link></span>
       <span className={income < expense ? "is-negative" : "is-positive"}>
         <button className="cashflow-summary-action" type="button" onClick={() => {
-          firstBalance.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
-          firstBalance.current?.focus({ preventScroll: true });
+          firstMonth.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+          firstMonth.current?.focus({ preventScroll: true });
         }}><small>Balance anual</small><strong>{money.format(income - expense)}</strong></button></span>
     </div>
     <div className="flow-ribbon-legend">
@@ -45,14 +48,21 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
           aria-label={`${month.name} de ${year}`}>
           <FlowDetails kind="income" total={month.income} groups={month.incomes} />
           <div className="flow-ribbon-station">
-            <h3><span className="flow-ribbon-node" aria-hidden="true" />{month.name}<small>{currentMonth === month.month ? "Mes actual" : `${String(month.month).padStart(2, "0")} / ${year}`}</small></h3>
+            <h3><button className="flow-ribbon-month-button" type="button" aria-haspopup="dialog"
+              aria-expanded={detail?.month === month.month}
+              ref={month === months[0] ? firstMonth : undefined}
+              aria-label={`Ver movimientos de ${month.name} de ${year}`} onClick={event => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const chart = event.currentTarget.closest(".dashboard-panel--cashflow")!.getBoundingClientRect();
+                setDetail({ month: month.month, anchor: { top: rect.top, left: rect.left, right: rect.right,
+                  chartTop: chart.top, chartBottom: chart.bottom, chartLeft: chart.left, chartRight: chart.right } });
+              }}><span className="flow-ribbon-node" aria-hidden="true" />{month.name}<small>{currentMonth === month.month ? "Mes actual" : `${String(month.month).padStart(2, "0")} / ${year}`}</small></button></h3>
           </div>
           <FlowDetails kind="expense" total={month.expense} groups={month.expenses} />
-          <div className="flow-ribbon-balance" ref={month === months[0] ? firstBalance : undefined} tabIndex={-1}><small>Balance</small><strong
-            className={month.income < month.expense ? "is-negative" : "is-positive"}>{money.format(month.income - month.expense)}</strong></div>
         </section>)}
       </div>
     </div>
+    {selectedMonth && <CashflowMonthPopover month={selectedMonth} year={year} anchor={detail?.anchor} onClose={() => setDetail(null)} />}
   </article>;
 }
 
@@ -61,7 +71,6 @@ function FlowDetails({ kind, total, groups }: { kind: "income" | "expense"; tota
   return <div className={`flow-ribbon-entry flow-ribbon-entry--${kind}${groups.length ? "" : " is-empty"}`}>
     {groups.length ? <>
       <div className="flow-ribbon-total"><small>{income ? "Ingresos" : "Egresos"}</small><strong>{money.format(total)}</strong></div>
-      <ul>{groups.map(([concept, amount]) => <li key={concept}><span>{concept}</span><b>{money.format(amount)}</b></li>)}</ul>
     </> : <p>{income ? "Sin ingresos" : "Sin egresos"}</p>}
   </div>;
 }

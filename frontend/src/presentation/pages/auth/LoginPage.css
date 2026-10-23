@@ -4,6 +4,8 @@
 
 /* Shared login controls; layout differences live in the two viewport files. */
 .login-page { width: min(480px, calc(100% - 32px)); margin: 0 auto; padding-block: 32px; box-sizing: border-box; }
+.login-illustration { display: none; }
+.login-panel { min-width: 0; width: 100%; }
 :where(.login-page) .login-page-header { display: flex; align-items: center; gap: 16px; margin: 0 0 24px; text-align: left; }
 .login-page-header__copy { min-width: 0; }
 :where(.login-page) .login-brand-logo { width: 64px; height: 64px; flex: 0 0 auto; margin: 0; object-fit: contain; }
@@ -52,6 +54,7 @@
 .login-form .login-invitation { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .login-form .auth-text-link { justify-self: center; padding: 4px; color: var(--color-accent); font-size: 13px; }
 :where(.login-page) .login-back-button { margin: 20px 0 0; }
+.login-page .login-form .login-back-button { justify-self: start; margin: 0; }
 
 /* Validation occupies its natural height, including long server messages. */
 .login-form .form-group,

@@ -1,4 +1,4 @@
-import { PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
+import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
@@ -11,6 +11,7 @@ import { FiLock, FiLogIn, FiMail } from "react-icons/fi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
+import loginIllustration from "@/assets/community-icons/principal_login.webp";
 import "./LoginPage.css";
 
 const FIELDS = [
@@ -121,10 +122,14 @@ export const LoginPage = () => {
 
   return (
     <main className="form-page-container login-page">
+      <div className="login-illustration" aria-hidden="true">
+        <img src={loginIllustration} alt="" width="1536" height="1024" fetchPriority="high" />
+      </div>
+      <section className="login-panel" aria-labelledby="login-title">
       <header className="form-page-header login-page-header">
         <BrandLogo className="login-brand-logo" />
         <div className="login-page-header__copy">
-          <h1 className="form-page-header__title">Iniciar sesión</h1>
+          <h1 id="login-title" className="form-page-header__title">Iniciar sesión</h1>
           <p className="form-page-header__subtitle">Accede a Tesorería Escolar</p>
         </div>
       </header>
@@ -139,6 +144,7 @@ export const LoginPage = () => {
                 value={credentials[name]} onChange={event => updateCredential(name, event.target.value)}
                 aria-invalid={Boolean(fieldErrors[name])}
                 aria-describedby={[
+                  name === "password" && "login-password-guidance",
                   fieldErrors[name] && `login-${name}-error`,
                 ].filter(Boolean).join(" ") || undefined}
                 required />
@@ -154,6 +160,7 @@ export const LoginPage = () => {
             {fieldErrors[name] && <span id={`login-${name}-error`} className="error-message" role="alert">
               {fieldErrors[name]}
             </span>}
+            {name === "password" && <PasswordStrength id="login-password-guidance" password={credentials.password} />}
           </div>
         ))}
         <div className="login-organization-slot">
@@ -201,8 +208,9 @@ export const LoginPage = () => {
         </div>
         <p className="login-invitation">El acceso se habilita mediante una invitación enviada por la administración.</p>
         <Link className="auth-text-link" to="/olvide-password">¿Olvidaste tu contraseña?</Link>
-      </form>
       <ButtonBack className="login-back-button" />
+      </form>
+      </section>
     </main>
   );
 };

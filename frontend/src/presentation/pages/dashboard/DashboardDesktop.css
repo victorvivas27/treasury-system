@@ -1,5 +1,9 @@
 /* Desktop reference: 1216 × 552 CSS px; expandable details remain in two columns. */
-.business-dashboard { padding-top: var(--space-4); }
+.business-dashboard {
+  width: calc(100% - 2 * var(--page-padding));
+  max-width: none;
+  padding-top: var(--space-4);
+}
 .business-dashboard__header { margin-bottom: var(--space-4); }
 .business-dashboard__header h1 { font-size: var(--font-size-xl); }
 .dashboard-kpis { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--space-3); margin-bottom: var(--space-4); }

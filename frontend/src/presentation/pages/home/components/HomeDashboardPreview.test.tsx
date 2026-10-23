@@ -28,5 +28,13 @@ describe("HomeDashboardPreview", () => {
     expect(screen.getByRole("heading", { name: "Ingresos y egresos en el tiempo" })).toBeVisible();
     expect(screen.getByText("Alumnos activos")).toBeVisible();
     expect(screen.getByText("Próximo cumpleaños")).toBeVisible();
+    expect(screen.getByText("Balance anual")).toBeVisible();
+    expect(document.querySelectorAll(".home-dashboard__cashflow .flow-ribbon-station")).toHaveLength(3);
+    const flow = within(screen.getByRole("region", { name: "Ingresos y egresos en el tiempo" }));
+    expect(flow.queryByText("Insumos kermés")).not.toBeInTheDocument();
+    fireEvent.click(flow.getByRole("button", { name: /Ver movimientos de Marzo/ }));
+    expect(within(screen.getByRole("dialog")).getByText("Insumos kermés")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar detalle mensual" }));
+    expect(document.querySelector(".home-dashboard__bars")).toBeNull();
   });
 });

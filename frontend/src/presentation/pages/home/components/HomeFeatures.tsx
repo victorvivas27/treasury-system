@@ -1,6 +1,9 @@
 ﻿import { useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { HomeInstallGuide } from "./HomeInstallGuide";
+import communityFamilies from "@/assets/community-icons/community-families.webp";
+import communityGoals from "@/assets/community-icons/community-goals.webp";
+import communityLearning from "@/assets/community-icons/community-learning.webp";
 import { FiArrowRight, FiBarChart2, FiCalendar, FiCheck, FiCheckCircle, FiCoffee, FiFileText, FiHeart, FiUsers } from "react-icons/fi";
 import "../style/HomeFeatures.css";
 import "../style/HomeTour.css";
@@ -129,11 +132,26 @@ export const HomeFeatures = () => {
       </section>
 
       <section className="home-tour__section home-tour__closing" aria-labelledby="start-title" data-home-reveal>
+        <div className="home-tour__closing-art" aria-hidden="true">
+          <img src={communityFamilies} alt="" loading="lazy" width="104" height="104" />
+          <img src={communityGoals} alt="" loading="lazy" width="88" height="88" />
+          <img src={communityLearning} alt="" loading="lazy" width="96" height="96" />
+        </div>
+        <div className="home-tour__closing-copy">
         <span className="home-tour__overline">De conocerla a usarla</span>
         <h2 id="start-title">El próximo paso es entrar a tu curso.</h2>
-        <p>Inicia sesión con tu cuenta. Si aún no tienes acceso, consulta a la administración de tu curso para recibir tu invitación.</p>
+        <p>Tu comunidad, sus proyectos y las cuentas del curso. Todo listo para encontrarse en un mismo lugar.</p>
+        </div>
+        <div className="home-tour__closing-access">
+          <span className="home-tour__closing-access-icon"><FiUsers aria-hidden="true" /></span>
+          <h3>Tu curso te espera</h3>
+          <p>Inicia sesión con tu cuenta.</p>
         <Link className="home-tour__button" to="/login">Iniciar sesión <FiArrowRight aria-hidden="true" /></Link>
+        </div>
+        <div className="home-tour__closing-footer">
+          <p><FiCheckCircle aria-hidden="true" /><span>¿Aún no tienes acceso? Consulta a la administración de tu curso para recibir tu invitación.</span></p>
         <div className="home-tour__install"><HomeInstallGuide /></div>
+        </div>
       </section>
     </div>
   );

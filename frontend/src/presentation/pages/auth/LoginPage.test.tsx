@@ -270,13 +270,18 @@ describe("LoginPage", () => {
   });
 });
 
-it("keeps password policy while removing the strength evaluation from login", () => {
+it("shows password requirements and updates checks while keeping validation", () => {
   const login = vi.fn();
   vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
   render(<MemoryRouter><LoginPage /></MemoryRouter>);
-  expect(screen.queryByText(/Fortaleza orientativa/)).not.toBeInTheDocument();
+  expect(screen.getByText(/Fortaleza orientativa/)).toBeInTheDocument();
+  const requirements = screen.getByRole("list", { name: "Condiciones de la contraseña" });
+  expect(requirements.querySelectorAll(".is-met")).toHaveLength(0);
   fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
   expect(screen.getByLabelText("Correo")).toHaveFocus();
-  expect(screen.getByLabelText("Contraseña")).toHaveAccessibleDescription("Use 8 caracteres, mayúscula, minúscula, número y especial");
+  expect(screen.getByLabelText("Contraseña")).toHaveAccessibleDescription(expect.stringContaining("Use 8 caracteres, mayúscula, minúscula, número y especial"));
   expect(login).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Password1!" } });
+  expect(requirements.querySelectorAll(".is-met")).toHaveLength(5);
+  expect(screen.getByText("Fuerte")).toBeInTheDocument();
 });
