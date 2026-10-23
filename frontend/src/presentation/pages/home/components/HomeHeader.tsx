@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import {
-  FiCalendar, FiCamera, FiEdit3, FiHeart, FiGitBranch,
-  FiLogIn, FiLogOut, FiMenu, FiShield, FiUsers, FiX,
+  FiCalendar, FiCamera, FiHeart, FiGitBranch,
+  FiLogIn, FiLogOut, FiMenu, FiShield, FiUsers, FiX, FiChevronDown,
 } from "react-icons/fi";
 import type { User } from "@/core/A-domain/entities/user/User";
 import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
@@ -11,13 +11,12 @@ import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { HomeInstallGuide } from "./HomeInstallGuide";
 import "../style/HomeHeader.css";
 
-const MOBILE_MENU_AUTO_CLOSE_MS = 4000;
 const SECTION_IDS = ["sobre-nosotros", "fotos-del-curso", "contacto", "directiva"] as const;
 type SectionId = (typeof SECTION_IDS)[number];
 
 const COMMUNITY_LINKS = [
   { id: "sobre-nosotros", label: "Lo que nos mueve", icon: FiHeart,
-    editTo: "/admin/sobre-nosotros", editLabel: "Editar Lo que nos mueve", editIcon: FiEdit3 },
+    editTo: "/admin/sobre-nosotros", editLabel: "Editar Lo que nos mueve", editIcon: FiHeart },
   { id: "fotos-del-curso", label: "Fotos del curso", icon: FiCamera,
     editTo: "/admin/fotos-del-curso", editLabel: "Editar fotos del curso", editIcon: FiCamera },
   { id: "directiva", label: "Directiva", icon: FiUsers,
@@ -41,8 +40,56 @@ export const HomeHeader = ({
   );
   const [activeSection, setActiveSection] = useState<SectionId>("sobre-nosotros");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCompactNavigation, setIsCompactNavigation] = useState(() => window.matchMedia("(max-width: 1023px)").matches);
   const headerRef = useRef<HTMLElement | null>(null);
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const administrationRef = useRef<HTMLDetailsElement | null>(null);
+  const administrationExit = useRef<Animation | null>(null);
+  const closeAdministration = () => {
+    const details = administrationRef.current;
+    if (!details?.open || administrationExit.current) return;
+    const panel = details.querySelector<HTMLElement>(".public-home__administration-links");
+    if (!panel?.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      details.open = false;
+      return;
+    }
+    panel.inert = true;
+    const animation = panel.animate([
+      { opacity: 1, transform: "translateY(0) scale(1)" },
+      { opacity: 0, transform: "translateY(-6px) scale(.98)" },
+    ], { duration: 160, easing: "cubic-bezier(.4, 0, 1, 1)", fill: "forwards" });
+    administrationExit.current = animation;
+    animation.onfinish = () => {
+      details.open = false;
+      panel.inert = false;
+      administrationExit.current = null;
+      animation.cancel();
+    };
+  };
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    closeAdministration();
+  };
+
+  useEffect(() => {
+    const closeOnOutside = (event: PointerEvent) => {
+      const details = administrationRef.current;
+      if (details && !details.contains(event.target as Node)) closeAdministration();
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      const details = administrationRef.current;
+      if (event.key === "Escape" && details?.open) {
+        closeAdministration();
+        details.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", closeOnOutside);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutside);
+      window.removeEventListener("keydown", closeOnEscape);
+      administrationExit.current?.cancel();
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated || !("IntersectionObserver" in window)) return;
@@ -68,20 +115,20 @@ export const HomeHeader = ({
     };
     window.addEventListener("keydown", handleEscape);
     document.addEventListener("pointerdown", handlePointerDown);
-    const timer = window.setTimeout(() => setIsMobileMenuOpen(false), MOBILE_MENU_AUTO_CLOSE_MS);
     return () => {
-      window.clearTimeout(timer);
       window.removeEventListener("keydown", handleEscape);
       document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)");
     const handleResize = () => {
-      if (window.innerWidth >= 1024) setIsMobileMenuOpen(false);
+      setIsCompactNavigation(media.matches);
+      setIsMobileMenuOpen(false);
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    media.addEventListener("change", handleResize);
+    return () => media.removeEventListener("change", handleResize);
   }, []);
 
   const getSectionProps = (section: SectionId) => ({
@@ -94,6 +141,26 @@ export const HomeHeader = ({
     closeMobileMenu();
     onLogout?.();
   };
+
+  const administrationLinks = (
+    <div className="public-home__administration-links">
+      {isSuperAdmin && <Link to="/administrations" onClick={closeMobileMenu}>
+        <span className="public-home__nav-icon public-home__nav-icon--administrations"><FiShield aria-hidden="true" /></span><span>Administraciones</span>
+      </Link>}
+      {isSuperAdmin && architectureAccess.allowed && <Link to="/admin/arquitectura"
+        title="Arquitectura del sistema" aria-label="Arquitectura del sistema" onClick={closeMobileMenu}>
+        <span className="public-home__nav-icon public-home__nav-icon--architecture"><FiGitBranch aria-hidden="true" /></span><span>Arquitectura del sistema</span>
+      </Link>}
+      {isAdmin && <Link to="/admin/horario-clases" onClick={closeMobileMenu}>
+        <span className="public-home__nav-icon public-home__nav-icon--schedule"><FiCalendar aria-hidden="true" /></span><span>Gestionar horario de clases</span>
+      </Link>}
+      {isAdmin && COMMUNITY_LINKS.map(({ id, editTo, editLabel, editIcon: EditIcon }) => (
+        <Link key={id} to={editTo} onClick={closeMobileMenu}>
+          <span className={`public-home__nav-icon public-home__nav-icon--${id}`}><EditIcon aria-hidden="true" /></span><span>{editLabel}</span>
+        </Link>
+      ))}
+    </div>
+  );
 
   return (
     <header ref={headerRef} className="public-home__header">
@@ -116,13 +183,6 @@ export const HomeHeader = ({
           aria-expanded={isMobileMenuOpen} aria-controls="public-home-menu"
           onClick={() => setIsMobileMenuOpen(open => !open)}>
           <span className="public-home__menu-icon-shell">
-            {isMobileMenuOpen && (
-              <svg className="public-home__menu-timer" viewBox="0 0 40 40" aria-hidden="true">
-                <circle className="public-home__menu-timer-track" cx="20" cy="20" r="17.5" />
-                <circle className="public-home__menu-timer-progress" cx="20" cy="20" r="17.5"
-                  pathLength="100" transform="rotate(-90 20 20)" />
-              </svg>
-            )}
             {isMobileMenuOpen
               ? <FiX className="public-home__menu-icon" aria-hidden="true" />
               : <FiMenu className="public-home__menu-icon" aria-hidden="true" />}
@@ -139,39 +199,38 @@ export const HomeHeader = ({
             <div className="public-home__menu-heading">
               <strong>Tu comunidad</strong>
             </div>
-            {isSuperAdmin && (
-              <Link to="/administrations" onClick={closeMobileMenu}>
-                <span className="public-home__nav-icon"><FiShield aria-hidden="true" /></span><span>Administraciones</span>
-              </Link>
-            )}
-            {isSuperAdmin && architectureAccess.allowed && (
-              <Link to="/admin/arquitectura" title="Arquitectura del sistema"
-                aria-label="Arquitectura del sistema" onClick={closeMobileMenu}>
-                <span className="public-home__nav-icon"><FiGitBranch aria-hidden="true" /></span><span>Arquitectura del sistema</span>
-              </Link>
-            )}
-            {isAdmin && (
-              <Link to="/admin/horario-clases" onClick={closeMobileMenu}>
-                <span className="public-home__nav-icon"><FiCalendar aria-hidden="true" /></span><span>Gestionar horario de clases</span>
-              </Link>
-            )}
-            {COMMUNITY_LINKS.map(({ id, label, icon: Icon, editTo, editLabel, editIcon: EditIcon }) => (
-              isAdmin ? (
-                <Link key={id} to={editTo} onClick={closeMobileMenu}>
-                  <span className="public-home__nav-icon"><EditIcon aria-hidden="true" /></span><span>{editLabel}</span>
-                </Link>
-              ) : (
-                <a key={id} href={`#${id}`} {...getSectionProps(id)}>
-                  <span className="public-home__nav-icon"><Icon aria-hidden="true" /></span><span>{label}</span>
-                </a>
-              )
-            ))}
             <Link className="public-home__system-access" to="/dashboard" onClick={closeMobileMenu}>
               <BrandLogo className="public-home__system-access-logo" alt="" src="/icono-gestion-curso.png" />
               <span>Gestion del curso</span>
             </Link>
+            {(isAdmin || isSuperAdmin) && (isCompactNavigation ? (
+              <div className="public-home__administration-mobile">
+                <p className="public-home__administration-heading">Administración</p>
+                {administrationLinks}
+              </div>
+            ) : (
+              <details ref={administrationRef} className="public-home__administration"
+                onBlur={event => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    closeAdministration();
+                  }
+                }}>
+                <summary onClick={event => {
+                  if (administrationRef.current?.open) {
+                    event.preventDefault();
+                    closeAdministration();
+                  }
+                }}><FiShield aria-hidden="true" /><span>Administrar</span><FiChevronDown aria-hidden="true" /></summary>
+                {administrationLinks}
+              </details>
+            ))}
+            {!isAdmin && COMMUNITY_LINKS.map(({ id, label, icon: Icon }) => (
+                <a key={id} href={`#${id}`} {...getSectionProps(id)}>
+                  <span className={`public-home__nav-icon public-home__nav-icon--${id}`}><Icon aria-hidden="true" /></span><span>{label}</span>
+                </a>
+            ))}
             <button className="public-home__logout" type="button" onClick={handleLogout}>
-              <span className="public-home__nav-icon"><FiLogOut aria-hidden="true" /></span><span>Cerrar sesión</span>
+              <span className="public-home__nav-icon public-home__nav-icon--logout"><FiLogOut aria-hidden="true" /></span><span>Cerrar sesión</span>
             </button>
           </>
         ) : (

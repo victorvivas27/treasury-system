@@ -9,6 +9,66 @@ vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("lottie-react", () => ({ Lottie: () => <span data-testid="back-animation" /> }));
 
 describe("LoginPage", () => {
+  const fillWithoutEvents = (correo: string, password: string) => {
+    (screen.getByLabelText("Correo") as HTMLInputElement).value = correo;
+    (screen.getByLabelText("Contraseña") as HTMLInputElement).value = password;
+  };
+
+  it("identifica las credenciales con atributos estándar y estables", () => {
+    vi.mocked(useAuth).mockReturnValue({ login: vi.fn(), loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    const correo = screen.getByLabelText("Correo");
+    const password = screen.getByLabelText("Contraseña");
+    expect(correo).toHaveAttribute("type", "email");
+    expect(correo).toHaveAttribute("autocomplete", "username");
+    expect(correo).toHaveAttribute("name", "correo");
+    expect(correo).toHaveAttribute("id", "login-correo");
+    expect(password).toHaveAttribute("autocomplete", "current-password");
+    expect(password).toHaveAttribute("name", "password");
+    expect(password).toHaveAttribute("id", "login-password");
+    expect(correo.closest("form")).toBe(password.closest("form"));
+  });
+
+  it("envía y sincroniza credenciales sin onChange y conserva la selección de curso", async () => {
+    const login = vi.fn().mockResolvedValue({
+      requiresOrganizationSelection: true,
+      organizationOptions: [{ id: 4, name: "4A", slug: "4a" }, { id: 5, name: "5A", slug: "5a" }],
+    });
+    vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fillWithoutEvents("user@mail.com", " Password1! ");
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+    const select = await screen.findByLabelText("Selecciona el curso");
+    expect(login).toHaveBeenLastCalledWith("user@mail.com", " Password1! ", undefined);
+    expect(screen.getByLabelText("Correo")).toHaveValue("user@mail.com");
+    expect(screen.getByLabelText("Contraseña")).toHaveValue(" Password1! ");
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar contraseña" }));
+    expect(screen.getByLabelText("Contraseña")).toHaveValue(" Password1! ");
+    fireEvent.change(select, { target: { value: "5" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+    await waitFor(() => expect(login).toHaveBeenLastCalledWith("user@mail.com", " Password1! ", 5));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Ingresar" })).toBeEnabled());
+    fillWithoutEvents("another@mail.com", "OtherPassword2!");
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+    await waitFor(() => expect(login).toHaveBeenLastCalledWith("another@mail.com", "OtherPassword2!", undefined));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Ingresar" })).toBeEnabled());
+  });
+
+  it("valida los valores reales autocompletados aunque el estado anterior sea válido", () => {
+    const login = vi.fn();
+    vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "user@mail.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Password1!" } });
+    fillWithoutEvents("invalid", "1234");
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+    expect(screen.getByText("Ingrese un correo válido")).toBeInTheDocument();
+    expect(screen.getByText(/Use 8 caracteres/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Correo")).toHaveValue("invalid");
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("1234");
+    expect(login).not.toHaveBeenCalled();
+  });
+
   it("informa el alta por invitación sin ofrecer autoinscripción", () => {
     vi.mocked(useAuth).mockReturnValue({ login: vi.fn(), loading: false } as unknown as ReturnType<typeof useAuth>);
     render(<MemoryRouter><LoginPage /></MemoryRouter>);
