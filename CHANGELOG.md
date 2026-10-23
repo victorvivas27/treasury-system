@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.29.0](https://github.com/victorvivas27/treasury-system/compare/v1.28.0...v1.29.0) (2026-10-23)
+
+
+### Features
+
+* **frontend:** agregar paletas dinámicas, mejorar contraste y correg… ([e226580](https://github.com/victorvivas27/treasury-system/commit/e22658011548efa4e688c0a3310c4a0ae5fff49a))
+* **frontend:** agregar paletas dinámicas, mejorar contraste y corregir sidebar y tooltips; validar con 824 pruebas, lint y build ([3d1fad5](https://github.com/victorvivas27/treasury-system/commit/3d1fad557645a734c7acd4fcc610ebe1fcb7f6dd))
+
 ## [1.28.0](https://github.com/victorvivas27/treasury-system/compare/v1.27.0...v1.28.0) (2026-10-22)
 
 
