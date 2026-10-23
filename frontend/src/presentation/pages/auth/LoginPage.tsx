@@ -14,7 +14,7 @@ import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import "./LoginPage.css";
 
 const FIELDS = [
-  { name: "correo", label: "Correo", type: "email", placeholder: "Ej.: nombre@correo.cl", autoComplete: "email", Icon: FiMail },
+  { name: "correo", label: "Correo", type: "email", placeholder: "Ej.: nombre@correo.cl", autoComplete: "username", Icon: FiMail },
   { name: "password", label: "Contraseña", type: "password", placeholder: "Ej.: ClaveSegura1!", autoComplete: "current-password", Icon: FiLock },
 ] as const;
 
@@ -45,7 +45,6 @@ const loginErrorMessage = (error: unknown) => {
 
 export const LoginPage = () => {
   const [credentials, setCredentials] = useState({ correo: "", password: "" });
-  const { correo, password } = credentials;
   const [organizationId, setOrganizationId] = useState("");
   const [organizationOptions, setOrganizationOptions] = useState<LoginOrganizationOption[]>([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -64,9 +63,20 @@ export const LoginPage = () => {
     setOrganizationId("");
     setFieldErrors(current => ({ ...current, [name]: "", organization: "" }));
   };
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting) return;
+    // Password managers may fill the inputs without notifying React.
+    const formData = new FormData(event.currentTarget);
+    const correo = String(formData.get("correo") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const credentialsChanged = correo !== credentials.correo || password !== credentials.password;
+    const selectedOrganizationId = credentialsChanged ? "" : organizationId;
+    setCredentials({ correo, password });
+    if (credentialsChanged) {
+      setOrganizationOptions([]);
+      setOrganizationId("");
+    }
     setError(null);
     const validationErrors: Record<string, string> = {};
     if (!EMAIL_PATTERN.test(correo.trim())) {
@@ -75,7 +85,7 @@ export const LoginPage = () => {
     if (!PASSWORD_PATTERN.test(password)) {
       validationErrors.password = "Use 8 caracteres, mayúscula, minúscula, número y especial";
     }
-    if (organizationOptions.length > 0 && !organizationId) {
+    if (!credentialsChanged && organizationOptions.length > 0 && !selectedOrganizationId) {
       validationErrors.organization = "Seleccione un curso";
     }
     setFieldErrors(validationErrors);
@@ -88,7 +98,7 @@ export const LoginPage = () => {
       setSubmitting(true);
       loginPerformance.start();
       const response = await login(correo.trim(), password,
-        organizationId ? Number(organizationId) : undefined);
+        selectedOrganizationId ? Number(selectedOrganizationId) : undefined);
       if (response.requiresOrganizationSelection) {
         const options = response.organizationOptions ?? [];
         setOrganizationOptions(options);

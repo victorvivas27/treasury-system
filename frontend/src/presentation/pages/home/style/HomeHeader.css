@@ -69,9 +69,8 @@
 
 .public-home__account-name {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .public-home__nav {
@@ -263,42 +262,6 @@
     transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .public-home__menu-timer {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 36px; height: 36px;
-    overflow: visible;
-    pointer-events: none;
-  }
-
-  .public-home__menu-timer circle {
-    fill: none;
-    stroke-width: 2.25;
-  }
-
-  .public-home__menu-timer-track {
-    stroke: color-mix(in srgb, var(--color-accent) 22%, var(--border-color));
-  }
-
-  .public-home__menu-timer-progress {
-    stroke: var(--color-accent);
-    stroke-dasharray: 100;
-    stroke-dashoffset: 0;
-    stroke-linecap: round;
-    animation: public-home-menu-countdown 4000ms linear forwards;
-  }
-
-  @keyframes public-home-menu-countdown {
-    from {
-      stroke-dashoffset: 0;
-    }
-
-    to {
-      stroke-dashoffset: 100;
-    }
-  }
-
   .public-home__menu-toggle:hover,
   .public-home__menu-toggle[aria-expanded="true"] {
     border-color: var(--color-accent);
@@ -376,10 +339,10 @@
 
   .public-home__nav.is-authenticated > .public-home__system-access {
     min-height: 44px;
-    margin-top: 6px;
+    margin-top: 0;
     border: 0;
-    border-top: 1px solid var(--border-color);
-    border-radius: 0 0 7px 7px;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 7px 7px 0 0;
     background: transparent;
     color: var(--sidebar-text);
     font-weight: 500;
@@ -564,13 +527,90 @@
   .public-home__header,
   .public-home__menu-toggle,
   .public-home__menu-icon,
-  .public-home__menu-timer-progress,
   .public-home__nav.is-authenticated {
     animation: none;
     transition-duration: 1ms;
   }
 }
 /* Guest installation belongs to the navbar flow, alongside sign-in. */
+.public-home__administration { position: relative; flex-shrink: 0; }
+.public-home__administration > summary {
+  display: flex; align-items: center; gap: 8px; min-height: 44px;
+  padding: 4px 10px; border-radius: 10px; box-sizing: border-box;
+  color: var(--text-main); font-size: 14px; font-weight: var(--font-weight-semibold);
+  list-style: none; cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.public-home__administration > summary::-webkit-details-marker { display: none; }
+.public-home__administration > summary:hover,
+.public-home__administration[open] > summary { background: var(--color-hover); color: var(--color-accent); }
+.public-home__administration > summary:focus-visible,
+.public-home__administration-links > a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.public-home__administration > summary > svg { width: 18px; height: 18px; flex-shrink: 0; }
+.public-home__administration > summary > svg:last-child { transition: transform 160ms ease; }
+.public-home__administration[open] > summary > svg:last-child { transform: rotate(180deg); }
+.public-home__administration-links {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 1;
+  display: grid; width: min(280px, calc(100vw - 32px)); padding: 8px;
+  box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 10px;
+  background: var(--color-sidebar); box-shadow: var(--shadow-card);
+  max-height: calc(100dvh - 100px); overflow-y: auto; scrollbar-width: none;
+  transform-origin: top right;
+}
+.public-home__administration[open] .public-home__administration-links {
+  animation: home-administration-enter 200ms cubic-bezier(.16, 1, .3, 1) both;
+}
+@keyframes home-administration-enter {
+  from { opacity: 0; transform: translateY(-6px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-home__administration > summary,
+  .public-home__administration > summary > svg:last-child { transition: none; }
+  .public-home__administration[open] .public-home__administration-links { animation: none; }
+}
+.public-home__administration-links::-webkit-scrollbar { display: none; }
+.public-home__administration-links > a {
+  display: flex; align-items: center; gap: 10px; min-height: 44px;
+  padding: 7px 12px; box-sizing: border-box; border-radius: 7px;
+  color: var(--sidebar-text); font-size: 14px; line-height: 1.3;
+}
+.public-home__administration-links > a:hover { background: var(--color-hover); }
+.public-home__administration-links .public-home__nav-icon {
+  display: inline-flex; width: 18px; height: 18px; flex: 0 0 18px; color: var(--sidebar-icon);
+}
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--sobre-nosotros { color: var(--palette-pink); }
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--fotos-del-curso { color: var(--palette-violet); }
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--directiva { color: var(--palette-green); }
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--schedule { color: var(--palette-blue); }
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--administrations { color: var(--color-warning); }
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--architecture { color: var(--palette-sky); }
+.public-home__header .public-home__nav .public-home__nav-icon.public-home__nav-icon--logout { color: var(--palette-orange); }
+@media (min-width: 1024px) {
+  .public-home__account { flex: 1 1 auto; font-size: 14px; padding-block: 8px; }
+  .public-home__nav.is-authenticated { flex: 0 0 auto; overflow: visible; gap: 8px; }
+  .public-home__nav.is-authenticated > a,
+  .public-home__nav.is-authenticated > .public-home__logout { flex: 0 0 auto; font-size: 13px; white-space: nowrap; }
+}
+@media (max-width: 1023px) {
+  .public-home__administration-links { position: static; width: 100%; max-height: none; border: 0; box-shadow: none; padding: 0; }
+  .public-home__nav.is-authenticated {
+    left: 12px; right: 12px; width: auto;
+    max-height: calc(100dvh - 120px); padding: 8px;
+    border-radius: 14px; gap: 0;
+  }
+  .public-home__menu-heading { margin: 0; padding: 4px 10px 7px; font-size: 12px; }
+  .public-home__administration-heading {
+    margin: 0; padding: 6px 10px 2px; font-size: 10px;
+    font-weight: var(--font-weight-semibold); color: var(--text-muted);
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .public-home__administration-links { gap: 0; background: transparent; }
+  .public-home__administration-links > a { min-height: 44px; padding: 5px 10px; border-radius: 8px; }
+  .public-home__nav.is-authenticated > a,
+  .public-home__nav.is-authenticated .public-home__logout { padding: 5px 10px; }
+  .public-home__nav.is-authenticated .public-home__logout { margin-top: 2px; border-radius: 0 0 8px 8px; }
+}
 .public-home--guest .public-home__nav { gap: 12px; }
 .public-home--guest .public-home__nav .install-launcher {
   position: static;
