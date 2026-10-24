@@ -5,8 +5,7 @@ import {
 } from "@/shared/constants/Icons";
 
 import "./style/SidebarNav.css";
-import { FiCalendar } from "react-icons/fi";
-import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
+import { FiCalendar, FiCamera, FiHeart, FiUsers } from "react-icons/fi";
 
 import {
   NavLink,
@@ -48,7 +47,6 @@ const ADMIN_PATHS = new Set([
   "/students",
   "/parents",
   "/family",
-  "/admin/mejoras",
 ]);
 
 const MANAGEMENT_PATHS = new Set([
@@ -56,7 +54,6 @@ const MANAGEMENT_PATHS = new Set([
   "/students",
   "/family",
   "/users",
-  "/admin/mejoras",
 ]);
 
 
@@ -80,7 +77,6 @@ export const SidebarNav = ({
 
   const currentRole =
     role ?? auth?.user?.rol;
-  const architectureAccess = useArchitectureAccess(auth?.user?.id, currentRole);
 
   const location = useLocation();
   type MenuGroup = "management" | "academic" | "treasury";
@@ -148,12 +144,12 @@ export const SidebarNav = ({
         isAdminRole(currentRole),
     ),
   );
-  if (architectureAccess.allowed) visibleManagementLinks.push({
-    path: "/admin/arquitectura", label: "Arquitectura del sistema", icon: ICONS.dashboard,
-  });
-  if (isAdminRole(currentRole)) visibleManagementLinks.push({
-    path: "/admin/horario-clases", label: "Gestión del horario", icon: FiCalendar,
-  });
+  if (isAdminRole(currentRole)) visibleManagementLinks.push(
+    { path: "/admin/horario-clases", label: "Gestión del horario", icon: FiCalendar },
+    { path: "/admin/sobre-nosotros", label: "Lo que nos mueve", icon: FiHeart },
+    { path: "/admin/fotos-del-curso", label: "Fotos del curso", icon: FiCamera },
+    { path: "/admin/directiva", label: "Directiva", icon: FiUsers },
+  );
 
   const isManagementActive = visibleManagementLinks.some((link) =>
     location.pathname.startsWith(link.path),

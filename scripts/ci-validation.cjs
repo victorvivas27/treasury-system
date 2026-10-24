@@ -13,7 +13,8 @@ function fingerprint(suite, listing) {
     const file = entry.slice(entry.indexOf('\t') + 1);
     if (file.startsWith('.github/') || file.startsWith('scripts/')) return true;
     if (!file.includes('/')) return true;
-    if (file.startsWith('frontend/')) return suite === 'frontend' || (suite === 'versioning' &&
+    if (file.startsWith('frontend/')) return suite === 'frontend' || (suite === 'backend' &&
+      ['frontend/package.json', 'frontend/pnpm-lock.yaml'].includes(file)) || (suite === 'versioning' &&
       (file === 'frontend/package.json' || file.startsWith('frontend/.commitlintrc')));
     if (file.startsWith('backend/')) return suite === 'backend' || suite === 'bruno' ||
       (suite === 'versioning' && file === 'backend/build.gradle');
@@ -21,7 +22,8 @@ function fingerprint(suite, listing) {
     // Unknown configuration directories are shared inputs, not silently ignored.
     return !file.startsWith('docs/') && !file.startsWith('.agents/');
   }).sort();
-  return createHash('sha256').update(`validation-v1:${suite}\0${entries.join('\0')}`).digest('hex');
+  const version = ['frontend', 'backend'].includes(suite) ? 2 : 1;
+  return createHash('sha256').update(`validation-v${version}:${suite}\0${entries.join('\0')}`).digest('hex');
 }
 
 function currentFingerprint(suite) {

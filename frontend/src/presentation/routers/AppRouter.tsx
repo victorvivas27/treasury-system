@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import { MainLayout } from "@/shared/layouts/MainLayout";
+import { AdministrationLayout } from "@/shared/layouts/AdministrationLayout";
 import { HomePage } from "../pages/home/HomePage";
 import { DashboardPage } from "@/presentation/pages/dashboard/DashboardPage";
 import { ApoderadoPage } from "@/presentation/pages/apoderado/ApoderadoPage";
@@ -40,6 +41,7 @@ import { ArchitectureRoute } from "../components/ArchitectureRoute";
 import { ArchitecturePage } from "../pages/architecture/ArchitecturePage";
 import { SchedulePage } from "../pages/academic/SchedulePage";
 import { ScheduleManagementPage } from "../pages/academic/ScheduleManagementPage";
+import { QualityReportsPage } from "../pages/quality/QualityReportsPage";
 
 export const AppRouter = () => {
   return (
@@ -82,7 +84,6 @@ export const AppRouter = () => {
           <Route path="students" element={<AlumnoPage />} />
           <Route path="parents" element={<ApoderadoPage />} />
           <Route path="family" element={<FamiliaPage />} />
-          <Route path="admin/mejoras" element={<ImprovementAdminPage />} />
           <Route path="parents/new" element={< ApoderadoCrearFormPage/>} />
           <Route path="/parents/edit/:apoderadoId" element={<ApoderadoEditFormPage />} />
           <Route path="students/new" element={<AlumnoCrearFormPage />} />
@@ -90,13 +91,19 @@ export const AppRouter = () => {
           <Route path="family/new" element={<FamiliaCrearFormPage/>} />
           <Route path="/family/edit/:familiaId" element={<FamiliaEditFormPage />} />
         </Route>
+        <Route path="configuration" element={<Configuracion />} />
+      </Route>
+      <Route element={<AdministrationLayout />}>
+        <Route element={<AdminRoute />}>
+          <Route path="admin/reportes-calidad" element={<QualityReportsPage />} />
+          <Route path="admin/mejoras" element={<ImprovementAdminPage />} />
+        </Route>
         <Route element={<SuperAdminRoute />}>
           <Route path="administrations" element={<AdministrationsPage />} />
         </Route>
         <Route element={<ArchitectureRoute />}>
           <Route path="admin/arquitectura" element={<ArchitecturePage />} />
         </Route>
-        <Route path="configuration" element={<Configuracion />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

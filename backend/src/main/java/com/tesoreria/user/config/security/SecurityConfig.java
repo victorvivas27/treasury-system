@@ -60,6 +60,8 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .hasRole("ADMIN")
                         .requestMatchers("/api/v1/organizations/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/api/v1/admin/quality-reports", "/api/v1/admin/quality-reports/**")
+                        .hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/api/v1/admin/architecture", "/api/v1/admin/architecture/**")
                         .hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/academic/schedules/*/draft")

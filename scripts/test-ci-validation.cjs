@@ -38,7 +38,7 @@ test('changes invalidate all affected suites, including deleted files and shared
     'frontend/src/App.tsx': ['frontend'],
     'backend/src/App.java': ['backend', 'bruno'],
     'api-tests/test.yml': ['bruno'],
-    'frontend/package.json': ['frontend', 'versioning'],
+    'frontend/package.json': ['frontend', 'backend', 'versioning'],
     'backend/build.gradle': ['backend', 'bruno', 'versioning'],
     'frontend/.commitlintrc.cjs': ['frontend', 'versioning'],
     '.githooks/commit-msg': ['frontend', 'backend', 'bruno', 'versioning'],
@@ -103,7 +103,7 @@ test('lookup failures cannot silently authorize reuse', async () => {
   await assert.rejects(findArtifact({ github, context, suite: 'frontend', key: 'key' }), /API unavailable/);
 });
 
-test('coverage and receipts are recorded only after successful validation', () => {
+test('validation artifacts retain diagnostics while only successful workflows can be reused', () => {
   for (const [suite, file] of Object.entries({ frontend: '02-frontend-ci.yml', backend: '03-backend-ci.yml',
     bruno: '04-bruno-tests.yml', versioning: '05-versioning-ci.yml' })) {
     const candidate = workflow(file);
@@ -113,7 +113,9 @@ test('coverage and receipts are recorded only after successful validation', () =
     assert.ok(lookup > 0);
     assert.equal(steps[lookup].with.suite, suite);
     const upload = steps.find(step => step.uses === 'actions/upload-artifact@v7');
-    assert.equal(upload.if, "steps.validation.outputs.reused != 'true'");
+    assert.equal(upload.if, ['frontend', 'backend'].includes(suite)
+      ? "always() && steps.tests.outcome != 'skipped' && steps.validation.outputs.reused != 'true'"
+      : "steps.validation.outputs.reused != 'true'");
     assert.equal(upload.with.name, `${suite}-validation-` + '${{ steps.validation.outputs.key }}');
     assert.equal(upload.with['if-no-files-found'], 'error');
     assert.equal(upload.with['retention-days'], '${{ github.retention_days > 14 && 14 || github.retention_days }}');
@@ -132,6 +134,21 @@ test('reports download matching existing coverage without compiling or rerunning
   assert.equal(steps.filter(step => step.uses === 'actions/download-artifact@v8').length, 2);
   assert.ok(!steps.some(step => /gradlew|pnpm|npm install|vitest/.test(step.run ?? '')));
   assert.ok(steps.find(step => step.id === 'reports').with.script.includes('currentFingerprint(suite)'));
+  assert.ok(steps.filter(step => step.uses === 'actions/download-artifact@v8')
+    .every(step => step.with.path.startsWith('evidence/')));
+  assert.ok(steps.some(step => step.run?.includes('assemble-public-coverage.mjs')));
+});
+
+test('private Allure publication is manual, uses attributed artifacts, and enforces private storage', () => {
+  const candidate = workflow('11-publish-allure.yml');
+  assert.deepEqual(Object.keys(candidate.on), ['workflow_dispatch']);
+  const steps = candidate.jobs.publish.steps;
+  assert.equal(steps.filter(step => step.uses === 'actions/download-artifact@v8').length, 2);
+  assert.ok(!steps.some(step => /gradlew|vitest|pnpm|npm install/.test(step.run ?? '')));
+  assert.ok(steps.some(step => step.run?.includes('value(public_access_prevention)')));
+  const upload = steps.find(step => step.name === 'Upload private HTML then update catalog');
+  assert.ok(upload.run.indexOf('private-reports/reports') < upload.run.indexOf('private-reports/catalog.json'));
+  assert.ok(!upload.run.includes('publicRead'));
 });
 
 test('report resolution waits for workflow finalization and preserves artifact provenance', async () => {

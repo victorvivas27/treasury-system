@@ -20,7 +20,7 @@ describe("HomeHeader", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated isAdmin /></MemoryRouter>);
     fireEvent.click(screen.getByLabelText(/abrir menú/i));
     expect(screen.queryByText("Administrar")).not.toBeInTheDocument();
-    const link = screen.getByRole("link", { name: "Editar Directiva" });
+    const link = screen.getByRole("link", { name: "Reportes de calidad" });
     expect(link.closest("details")).toBeNull();
     fireEvent.click(link);
     expect(screen.getByLabelText(/abrir menú/i)).toHaveAttribute("aria-expanded", "false");
@@ -60,7 +60,7 @@ describe("HomeHeader", () => {
     fireEvent.pointerDown(document.body);
     expect(details).not.toHaveAttribute("open");
     fireEvent.click(summary);
-    fireEvent.click(screen.getByRole("link", { name: "Editar Directiva" }));
+    fireEvent.click(screen.getByRole("link", { name: "Reportes de calidad" }));
     expect(details).not.toHaveAttribute("open");
     expect(screen.getByRole("link", { name: /gestion del curso/i })).toHaveAttribute("href", "/dashboard");
   });
@@ -109,10 +109,22 @@ describe("HomeHeader", () => {
     expect(screen.queryByRole("link", { name: /iniciar sesión/i })).not.toBeInTheDocument();
   });
 
-  it("envía al administrador a editar el contenido de Lo que nos mueve", () => {
+  it("agrupa funciones globales en Administrar y deja las ediciones del curso fuera", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated isAdmin /></MemoryRouter>);
-    expect(screen.getByRole("link", { name: /editar lo que nos mueve/i }))
-      .toHaveAttribute("href", "/admin/sobre-nosotros");
+    fireEvent.click(screen.getByText("Administrar"));
+    expect(screen.getByRole("link", { name: "Gestión de Mejoras" })).toHaveAttribute("href", "/admin/mejoras");
+    expect(screen.getByRole("link", { name: "Reportes de calidad" })).toHaveAttribute("href", "/admin/reportes-calidad");
+    for (const path of ["/admin/sobre-nosotros", "/admin/fotos-del-curso", "/admin/directiva", "/admin/horario-clases"]) {
+      expect(document.querySelector(`a[href="${path}"]`)).toBeNull();
+    }
+  });
+
+  it("oculta las herramientas globales a visitantes y usuarios comunes", () => {
+    const { rerender } = render(<MemoryRouter><HomeHeader /></MemoryRouter>);
+    expect(screen.queryByText("Reportes de calidad")).not.toBeInTheDocument();
+    rerender(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
+    expect(screen.queryByText("Reportes de calidad")).not.toBeInTheDocument();
+    expect(screen.queryByText("Gestión de Mejoras")).not.toBeInTheDocument();
   });
 
   it("identifica la sesión y permite cerrarla", () => {

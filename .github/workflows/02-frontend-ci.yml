@@ -16,6 +16,7 @@ on:
     branches: [dev]
     paths:
       - "frontend/**"
+      - "scripts/**"
       - ".github/workflows/02-frontend-ci.yml"
 
 permissions:
@@ -79,18 +80,21 @@ jobs:
         run: pnpm run lint
 
       - name: Run tests with coverage
+        id: tests
         if: steps.validation.outputs.reused != 'true'
-        run: pnpm run test:coverage
+        env:
+          INPUT_FINGERPRINT: ${{ steps.validation.outputs.key }}
+        run: node ../scripts/allure-ci.mjs frontend
 
       - name: Build
         if: steps.validation.outputs.reused != 'true'
         run: pnpm run build
 
       - name: Upload coverage report
-        if: steps.validation.outputs.reused != 'true'
+        if: always() && steps.tests.outcome != 'skipped' && steps.validation.outputs.reused != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: frontend-validation-${{ steps.validation.outputs.key }}
-          path: frontend/coverage/combined
+          path: frontend/build/allure/ci-evidence
           if-no-files-found: error
           retention-days: ${{ github.retention_days > 14 && 14 || github.retention_days }}

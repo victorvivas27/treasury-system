@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import {
-  FiCalendar, FiCamera, FiHeart, FiGitBranch,
+  FiBarChart2, FiTool, FiCamera, FiHeart, FiGitBranch,
   FiLogIn, FiLogOut, FiMenu, FiShield, FiUsers, FiX, FiChevronDown,
 } from "react-icons/fi";
 import type { User } from "@/core/A-domain/entities/user/User";
@@ -15,12 +15,9 @@ const SECTION_IDS = ["sobre-nosotros", "fotos-del-curso", "contacto", "directiva
 type SectionId = (typeof SECTION_IDS)[number];
 
 const COMMUNITY_LINKS = [
-  { id: "sobre-nosotros", label: "Lo que nos mueve", icon: FiHeart,
-    editTo: "/admin/sobre-nosotros", editLabel: "Editar Lo que nos mueve", editIcon: FiHeart },
-  { id: "fotos-del-curso", label: "Fotos del curso", icon: FiCamera,
-    editTo: "/admin/fotos-del-curso", editLabel: "Editar fotos del curso", editIcon: FiCamera },
-  { id: "directiva", label: "Directiva", icon: FiUsers,
-    editTo: "/admin/directiva", editLabel: "Editar Directiva", editIcon: FiUsers },
+  { id: "sobre-nosotros", label: "Lo que nos mueve", icon: FiHeart },
+  { id: "fotos-del-curso", label: "Fotos del curso", icon: FiCamera },
+  { id: "directiva", label: "Directiva", icon: FiUsers },
 ] as const;
 
 interface HomeHeaderProps {
@@ -29,10 +26,11 @@ interface HomeHeaderProps {
   isSuperAdmin?: boolean;
   user?: (Pick<User, "nombre" | "profileImageType" | "profileImageUrl"> & { id?: number }) | null;
   onLogout?: () => void;
+  showCommunityLinks?: boolean;
 }
 
 export const HomeHeader = ({
-  isAuthenticated = false, isAdmin = false, isSuperAdmin = false, user, onLogout,
+  isAuthenticated = false, isAdmin = false, isSuperAdmin = false, user, onLogout, showCommunityLinks = true,
 }: HomeHeaderProps) => {
   const architectureAccess = useArchitectureAccess(
     isAuthenticated ? user?.id : undefined,
@@ -151,14 +149,14 @@ export const HomeHeader = ({
         title="Arquitectura del sistema" aria-label="Arquitectura del sistema" onClick={closeMobileMenu}>
         <span className="public-home__nav-icon public-home__nav-icon--architecture"><FiGitBranch aria-hidden="true" /></span><span>Arquitectura del sistema</span>
       </Link>}
-      {isAdmin && <Link to="/admin/horario-clases" onClick={closeMobileMenu}>
-        <span className="public-home__nav-icon public-home__nav-icon--schedule"><FiCalendar aria-hidden="true" /></span><span>Gestionar horario de clases</span>
-      </Link>}
-      {isAdmin && COMMUNITY_LINKS.map(({ id, editTo, editLabel, editIcon: EditIcon }) => (
-        <Link key={id} to={editTo} onClick={closeMobileMenu}>
-          <span className={`public-home__nav-icon public-home__nav-icon--${id}`}><EditIcon aria-hidden="true" /></span><span>{editLabel}</span>
+      {(isAdmin || isSuperAdmin) && <>
+        <Link to="/admin/mejoras" onClick={closeMobileMenu}>
+          <span className="public-home__nav-icon"><FiTool aria-hidden="true" /></span><span>Gestión de Mejoras</span>
         </Link>
-      ))}
+        <Link to="/admin/reportes-calidad" onClick={closeMobileMenu}>
+          <span className="public-home__nav-icon"><FiBarChart2 aria-hidden="true" /></span><span>Reportes de calidad</span>
+        </Link>
+      </>}
     </div>
   );
 
@@ -224,7 +222,7 @@ export const HomeHeader = ({
                 {administrationLinks}
               </details>
             ))}
-            {!isAdmin && COMMUNITY_LINKS.map(({ id, label, icon: Icon }) => (
+            {showCommunityLinks && !isAdmin && COMMUNITY_LINKS.map(({ id, label, icon: Icon }) => (
                 <a key={id} href={`#${id}`} {...getSectionProps(id)}>
                   <span className={`public-home__nav-icon public-home__nav-icon--${id}`}><Icon aria-hidden="true" /></span><span>{label}</span>
                 </a>
