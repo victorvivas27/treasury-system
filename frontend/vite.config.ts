@@ -12,7 +12,12 @@ const avatarCatalogModuleId = 'virtual:avatar-catalog'
 const resolvedAvatarCatalogModuleId = `\0${avatarCatalogModuleId}`
 const avatarFilePattern = /\.(avif|gif|jpe?g|png|svg|webp)$/i
 const testSuite = process.env.TEST_SUITE
-if (testSuite && !['unit', 'integration'].includes(testSuite)) {
+const allureRunDir = process.env.TREASURY_ALLURE_RUN_DIR
+if (allureRunDir && (!testSuite || !['unit', 'integration', 'combined'].includes(testSuite) ||
+  path.dirname(path.resolve(allureRunDir)) !== path.resolve(__dirname, `build/allure/${testSuite}`))) {
+  throw new Error('Allure requires a unit/integration run directory under frontend/build/allure/<suite>')
+}
+if (testSuite && !['unit', 'integration', 'combined'].includes(testSuite)) {
   throw new Error(`Unknown TEST_SUITE: ${testSuite}`)
 }
 
@@ -122,13 +127,24 @@ export default defineConfig({
     globals: true,
     maxWorkers: 1,
     environment: 'jsdom',
-    setupFiles: './src/setupTests.ts',
+    setupFiles: allureRunDir
+      ? ['./src/setupTests.ts', 'allure-vitest/setup', './scripts/allure.setup.mjs']
+      : './src/setupTests.ts',
     include: testSuite === 'integration'
       ? ['src/**/*.integration.test.{ts,tsx}']
       : ['src/**/*.{test,spec}.{ts,tsx}'],
     exclude: testSuite === 'unit' ? ['src/**/*.integration.test.{ts,tsx}'] : [],
     // Opcional: Para que no intente procesar archivos CSS pesados en los tests
-     reporters: ['dot'],  // o 'default', 'verbose', 'dot'
+    reporters: allureRunDir ? [
+      'dot',
+      'json',
+      ['allure-vitest/reporter', {
+        resultsDir: path.join(allureRunDir, 'allure-results'),
+        globalLabels: [{ name: 'parentSuite', value: `Frontend ${testSuite}` }],
+        environmentInfo: JSON.parse(fs.readFileSync(path.join(allureRunDir, 'environment.json'), 'utf8')),
+      }],
+    ] : ['dot'],
+    outputFile: allureRunDir ? { json: path.join(allureRunDir, 'vitest.json') } : undefined,
     css: true,
     coverage: {
       provider: 'v8',

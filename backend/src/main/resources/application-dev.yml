@@ -28,6 +28,8 @@ spring:
         format_sql: true
 
 app:
+  allure:
+    directory: ${ALLURE_REPORTS_DIRECTORY:build/allure/local-reports}
   bootstrap:
     allow-local-without-key: true
   jwt:

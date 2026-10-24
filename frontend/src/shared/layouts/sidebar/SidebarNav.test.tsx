@@ -22,6 +22,18 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("Shared sidebar group interaction", () => {
+  it("keeps course tools in management and excludes global administration", () => {
+    const { button, container } = setup();
+    fireEvent.click(button("management"));
+    for (const path of ["/parents", "/students", "/family", "/users", "/admin/horario-clases",
+      "/admin/sobre-nosotros", "/admin/fotos-del-curso", "/admin/directiva"]) {
+      expect(container.querySelector(`a[href="${path}"]`)).not.toBeNull();
+    }
+    for (const path of ["/admin/mejoras", "/admin/reportes-calidad", "/admin/arquitectura", "/administrations"]) {
+      expect(container.querySelector(`a[href="${path}"]`)).toBeNull();
+    }
+  });
+
   it("switches between groups without a countdown circle", () => {
     const { button, container } = setup();
     for (const group of [...groups, "management"] as const) {
@@ -40,7 +52,7 @@ describe("Shared sidebar group interaction", () => {
     fireEvent.pointerLeave(section(group));
     advance(60000);
     expect(button(group)).toHaveAttribute("aria-expanded", "true");
-    expect(section(group).querySelector("circle")).toBeNull();
+    expect(section(group).querySelector(".sidebar-treasury-timer")).toBeNull();
   });
 
   it.each(groups)("%s supports keyboard opening, Tab, Escape and focus restoration", async group => {

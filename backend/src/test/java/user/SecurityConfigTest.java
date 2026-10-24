@@ -47,6 +47,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class SecurityConfigTest {
     @Test
+    void qualityReportsRequireAdministratorForCatalogAndContent() throws Exception {
+        String base = "/api/v1/admin/quality-reports";
+        for (String route : List.of(base, base + "/missing/content")) {
+            mockMvc.perform(get(route)).andExpect(status().isUnauthorized());
+            mockMvc.perform(get(route).header("Authorization", "Bearer " + tokenFor("user@mail.com")))
+                    .andExpect(status().isForbidden());
+        }
+        for (String email : List.of("admin@mail.com", "superadmin@mail.com")) {
+            String token = tokenFor(email);
+            mockMvc.perform(get(base).header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.configured").value(false))
+                    .andExpect(header().string("Cache-Control", "no-store"));
+            mockMvc.perform(get(base + "/missing/content").header("Authorization", "Bearer " + token))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
     void architectureRequiresOwnerForCatalogAndEveryDiagramAndIsNotPublicStaticContent() throws Exception {
         String base = "/api/v1/admin/architecture";
         String ownerToken = tokenFor("superadmin@mail.com");

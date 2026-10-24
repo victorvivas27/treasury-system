@@ -55,7 +55,7 @@ jobs:
           artifact-ids: ${{ steps.reports.outputs.frontend_artifact }}
           run-id: ${{ steps.reports.outputs.frontend_run }}
           github-token: ${{ github.token }}
-          path: public/frontend
+          path: evidence/frontend
 
       - name: Download validated backend coverage
         uses: actions/download-artifact@v8
@@ -63,10 +63,11 @@ jobs:
           artifact-ids: ${{ steps.reports.outputs.backend_artifact }}
           run-id: ${{ steps.reports.outputs.backend_run }}
           github-token: ${{ github.token }}
-          path: public/backend
+          path: evidence/backend
 
       - name: Assemble Pages site
         run: |
+          node scripts/assemble-public-coverage.mjs evidence public
           mkdir -p public/backend public/frontend
           test -f public/backend/index.html
           test -f public/frontend/index.html

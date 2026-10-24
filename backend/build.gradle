@@ -20,6 +20,12 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    // Resolved only for explicitly activated Allure suites, never ordinary CI.
+    allureTestRuntime {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom testRuntimeClasspath
+    }
 }
 
 repositories {
@@ -84,6 +90,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
+    allureTestRuntime platform('io.qameta.allure:allure-bom:3.0.0')
+    allureTestRuntime 'io.qameta.allure:allure-jupiter'
 }
 
 tasks.named('test') {
@@ -273,5 +281,49 @@ tasks.register('jacocoCombinedTestReport', JacocoReport) {
     reports {
         xml.required = true
         html.required = true
+    }
+}
+
+// No plugin or AspectJ agent is needed for basic Jupiter results.
+if (providers.gradleProperty('allureRunDir').isPresent() || providers.gradleProperty('allureSuite').isPresent()) {
+    def suite = providers.gradleProperty('allureSuite').getOrElse('')
+    def requestedRunDir = providers.gradleProperty('allureRunDir').getOrElse('')
+    if (!(suite in ['unit', 'integration', 'combined']) || !requestedRunDir ||
+            project.hasProperty('includeTags') || project.hasProperty('excludeTags')) {
+        throw new GradleException('Allure requires an explicit unit/integration run directory and unchanged tag selection.')
+    }
+    def runDir = file(requestedRunDir).canonicalFile
+    def allowedRoot = layout.buildDirectory.dir("allure/${suite}").get().asFile.canonicalFile
+    if (runDir.parentFile != allowedRoot || !runDir.isDirectory()) {
+        throw new GradleException('Allure run must be an existing direct child of backend/build/allure/<suite>.')
+    }
+    tasks.named(suite == 'combined' ? 'test' : "${suite}Test", Test) {
+        classpath = files(sourceSets.test.output, sourceSets.main.output, configurations.allureTestRuntime)
+        systemProperty 'allure.results.directory', new File(runDir, 'allure-results').absolutePath
+        systemProperty 'allure.label.layer', "backend-${suite}"
+        reports.junitXml.outputLocation = new File(runDir, 'junit-xml')
+        reports.html.outputLocation = new File(runDir, 'junit-html')
+        jacoco.destinationFile = new File(runDir, 'jacoco.exec')
+        inputs.property('allureRunDir', runDir.absolutePath)
+        outputs.upToDateWhen { false }
+        outputs.cacheIf { false }
+        afterSuite { descriptor, result ->
+            if (!descriptor.parent) {
+                def counts = [total: result.testCount, passed: result.successfulTestCount,
+                              failed: result.failedTestCount, skipped: result.skippedTestCount]
+                new File(runDir, 'junit-summary.json').text = groovy.json.JsonOutput.prettyPrint(
+                        groovy.json.JsonOutput.toJson(counts))
+            }
+        }
+    }
+    tasks.named(suite == 'combined' ? 'jacocoTestReport' : "jacoco${suite.capitalize()}TestReport", JacocoReport) {
+        executionData.setFrom(new File(runDir, 'jacoco.exec'))
+        reports.xml.outputLocation = new File(runDir, 'coverage-source/jacoco.xml')
+        reports.html.outputLocation = new File(runDir, 'coverage-source/html')
+    }
+    if (suite == 'combined') {
+        tasks.named('jacocoTestCoverageVerification', JacocoCoverageVerification) {
+            executionData.setFrom(new File(runDir, 'jacoco.exec'))
+        }
     }
 }

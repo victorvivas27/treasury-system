@@ -56,10 +56,14 @@ app:
     provider: ${EMAIL_PROVIDER:gmail}
     from: ${EMAIL_FROM:}
   storage:
+    # Allure uses its own private bucket; never serve reports from a public bucket.
     gcs:
       enabled: ${GCS_ENABLED:false}
       bucket-name: ${GCS_BUCKET_NAME:}
       max-file-size-mb: ${GCS_MAX_FILE_SIZE_MB:10}
+  allure:
+    bucket: ${ALLURE_REPORTS_BUCKET:}
+    directory: ${ALLURE_REPORTS_DIRECTORY:}
   web-push:
     enabled: ${WEB_PUSH_ENABLED:false}
     public-key: ${WEB_PUSH_PUBLIC_KEY:}

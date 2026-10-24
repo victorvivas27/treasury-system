@@ -1,5 +1,7 @@
 # 08. Quality gates, Docker y CI
 
+Allure: [guía de ejecución, CI y publicación privada](../../docs/ALLURE.md), gestionada en [Task 38](38-implementacion-progresiva-allure-report-3.md). CI reutiliza las ejecuciones combinadas y conserva gates; la publicación privada y sección ADMIN están implementadas, pendientes de configurar almacenamiento y validar remotamente. Pages excluye la evidencia privada Allure.
+
 ## Backend
 
 PMD 6.55.0, JaCoCo 0.8.12 y cobertura mínima 70 % sobre clases incluidas. `pmdTest` está deshabilitado; ruleset en `backend/config/pmd/ruleset.xml`.

@@ -56,7 +56,6 @@ export const SIDEBAR_LINKS = [
       { label: "Cumplea\u00f1os", path: "/birthdays", icon: ICONS.birthdays },
       { label: "Familia", path: "/family", icon: ICONS.familia },
       { label: "Usuarios", path: "/users", icon: ICONS.usuarios },
-      { label: "Gestión de Mejoras", path: "/admin/mejoras", icon: ICONS.improvements },
     ],
   },
   {

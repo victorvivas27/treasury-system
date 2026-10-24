@@ -1,5 +1,7 @@
 # 06. Pruebas
 
+Allure para las cuatro suites locales y suites combinadas CI: [guía operativa](../../docs/ALLURE.md) y [Task 38](38-implementacion-progresiva-allure-report-3.md). Incluye cobertura por corrida y sus límites; no sustituye los gates existentes ni la meta de Task 36. La publicación privada está implementada y pendiente de activación/validación remota.
+
 ## Backend
 
 JUnit 5 y Mockito. Dominio/calculadores sin Spring; servicios con `@ExtendWith(MockitoExtension.class)`. `AuthControllerTest` y `UserControllerTest` usan MockMvc standalone. `SecurityConfigTest` usa `@SpringBootTest(classes = TesoreriaAppApplication.class)` y `@AutoConfigureMockMvc`.
