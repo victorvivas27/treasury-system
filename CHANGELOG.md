@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.33.0](https://github.com/victorvivas27/treasury-system/compare/v1.32.0...v1.33.0) (2026-10-24)
+
+
+### Features
+
+* **allure:** integrar reportes de calidad en administración y CI ([eaf9967](https://github.com/victorvivas27/treasury-system/commit/eaf99674a57b658f62f4959e5f0e74af840e0eba))
+* **allure:** integrar reportes de calidad en administración y CI ([19744c9](https://github.com/victorvivas27/treasury-system/commit/19744c984c2279e01c35bde17ce14b51d66450f9))
+
 ## [1.32.0](https://github.com/victorvivas27/treasury-system/compare/v1.31.0...v1.32.0) (2026-10-24)
 
 
