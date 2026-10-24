@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.31.0](https://github.com/victorvivas27/treasury-system/compare/v1.30.0...v1.31.0) (2026-10-23)
+
+
+### Features
+
+* **ui:** rediseñar acceso responsive, animar demo del home y compactar gráfica mensual con tooltips conectados ([fb77a19](https://github.com/victorvivas27/treasury-system/commit/fb77a19b17ccd8944e2adbcbc60fef507d8d111f))
+* **ui:** rediseñar acceso responsive, animar demo del home y compactar gráfica mensual con tooltips conectados ([9cf2e6e](https://github.com/victorvivas27/treasury-system/commit/9cf2e6e81ecbedafcee41eb384637090c8cae5be))
+
 ## [1.30.0](https://github.com/victorvivas27/treasury-system/compare/v1.29.0...v1.30.0) (2026-10-23)
 
 
