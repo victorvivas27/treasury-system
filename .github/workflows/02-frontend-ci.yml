@@ -23,7 +23,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: frontend-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: frontend-ci-${{ github.workflow }}-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -93,4 +93,4 @@ jobs:
           name: frontend-validation-${{ steps.validation.outputs.key }}
           path: frontend/coverage/combined
           if-no-files-found: error
-          retention-days: 14
+          retention-days: ${{ github.retention_days > 14 && 14 || github.retention_days }}

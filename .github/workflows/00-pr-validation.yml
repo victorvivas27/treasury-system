@@ -36,7 +36,12 @@ jobs:
             });
             const paths = files.flatMap(file => [file.filename, file.previous_filename].filter(Boolean));
             // GitHub limits this endpoint to 3,000 files; validate everything if truncated.
-            const all = files.length >= 3000 || paths.some(path => path.startsWith('.github/') || /^scripts\/(ci-validation|test-ci-validation)\.cjs$/.test(path));
+            // Shared inputs participate in every suite fingerprint. Release PRs also
+            // ensure coverage exists even when earlier artifacts have expired.
+            const release = context.payload.pull_request.head?.ref === 'release-please--branches--main';
+            const shared = path => !path.includes('/') ||
+              (!['frontend/', 'backend/', 'api-tests/', 'docs/', '.agents/'].some(prefix => path.startsWith(prefix)));
+            const all = release || files.length >= 3000 || paths.some(shared);
             const frontend = all || paths.some(path => path.startsWith('frontend/'));
             const backend = all || paths.some(path => path.startsWith('backend/'));
             const bruno = backend || paths.some(path => path.startsWith('api-tests/'));

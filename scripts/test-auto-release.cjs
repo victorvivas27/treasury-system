@@ -15,7 +15,7 @@ const run = (script, github, env = {}, core = {}, timer = (resolve) => setTimeou
     github,
     context,
     { env },
-    { info: () => {}, ...core },
+    { info: () => {}, setOutput: () => {}, ...core },
     timer,
   );
 const mergeScript = workflow.jobs.publish.steps[0].with.script;
@@ -73,7 +73,10 @@ test('release reuses the required PR validation instead of running duplicate sui
 });
 test('successful required check is revalidated and merge is bound to the tested SHA', async () => {
   const { github, calls, checkQueries } = fixture();
-  await run(mergeScript, github, env);
+  const outputs = {};
+  await run(mergeScript, github, env, { setOutput: (key, value) => { outputs[key] = value; } });
+  assert.deepEqual(outputs, { merged: 'true' });
+  assert.equal(workflow.jobs.publish.steps.find(step => step.id === 'publish').if, "steps.merge.outputs.merged == 'true'");
   assert.equal(calls.length, 1);
   assert.equal(calls[0].sha, 'tested-sha');
   assert.equal(calls[0].commit_title, 'chore(main): release 1.0.0');
@@ -105,7 +108,7 @@ test('changed PR SHA after successful validation prevents merge', async () => {
     return current;
   };
   const { github, calls } = fixture({ candidate });
-  await assert.rejects(run(mergeScript, github, env), /head changed during validation/);
+  await run(mergeScript, github, env);
   assert.equal(calls.length, 0);
 });
 test('changed PR base after successful validation prevents merge', async () => {
@@ -115,13 +118,24 @@ test('changed PR base after successful validation prevents merge', async () => {
     return current;
   };
   const { github, calls } = fixture({ candidate });
-  await assert.rejects(run(mergeScript, github, env), /main changed during validation/);
+  await run(mergeScript, github, env);
   assert.equal(calls.length, 0);
 });
 test('main changing during CI prevents merge', async () => {
   const { github, calls } = fixture({ main: 'new-main' });
-  await assert.rejects(run(mergeScript, github, env), /main changed/);
+  const outputs = {};
+  await run(mergeScript, github, env, { setOutput: (key, value) => { outputs[key] = value; } });
+  assert.deepEqual(outputs, {});
   assert.equal(calls.length, 0);
+});
+
+test('a base change in the final merge window skips publication', async () => {
+  const candidate = read => ({ ...pr(), base: { ref: 'main', sha: read >= 3 ? 'new-main' : 'base-sha' } });
+  const { github, calls } = fixture({ candidate });
+  const outputs = {};
+  await run(mergeScript, github, env, { setOutput: (key, value) => { outputs[key] = value; } });
+  assert.equal(calls.length, 0);
+  assert.deepEqual(outputs, {});
 });
 test('closed, draft, unlabelled, foreign and unrelated PRs cannot be merged', async () => {
   for (const mutate of [
@@ -154,7 +168,10 @@ test('a release branch behind main cannot start validation', async () => {
     pulls: { list: async () => ({ data: [pr()] }) },
     repos: { compareCommits: async () => ({ data: { merge_base_commit: { sha: 'old-base' } } }) },
   } };
-  await assert.rejects(run(workflow.jobs.prepare.steps.find(step => step.id === 'candidate').with.script, github), /behind main/);
+  const outputs = {};
+  await run(workflow.jobs.prepare.steps.find(step => step.id === 'candidate').with.script, github, {},
+    { setOutput: (key, value) => { outputs[key] = value; } });
+  assert.deepEqual(outputs, {});
 });
 test('deployment dispatch preserves all existing release-dependent workflows', async () => {
   const calls = [];

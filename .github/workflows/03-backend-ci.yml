@@ -22,7 +22,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: backend-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: backend-ci-${{ github.workflow }}-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -68,4 +68,4 @@ jobs:
           name: backend-validation-${{ steps.validation.outputs.key }}
           path: backend/build/reports/jacoco/test/html
           if-no-files-found: error
-          retention-days: 14
+          retention-days: ${{ github.retention_days > 14 && 14 || github.retention_days }}
