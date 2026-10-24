@@ -47,6 +47,39 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class SecurityConfigTest {
     @Test
+    void appearancePreferencesArePrivatePerAccountAndIncludeSuperAdmins() throws Exception {
+        String base = "/api/v1/users/me/preferences/appearance";
+        mockMvc.perform(get(base)).andExpect(status().isUnauthorized());
+
+        String userToken = tokenFor("user@mail.com");
+        mockMvc.perform(get(base).header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.themePreference").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.palette").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.fontFamily").value(org.hamcrest.Matchers.nullValue()));
+
+        mockMvc.perform(put(base).header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"themePreference\":\"light\",\"palette\":\"violet-coral\","
+                                + "\"fontFamily\":\"space-mono\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.themePreference").value("light"))
+                .andExpect(jsonPath("$.palette").value("violet-coral"))
+                .andExpect(jsonPath("$.fontFamily").value("space-mono"));
+
+        mockMvc.perform(get(base).header("Authorization", "Bearer " + tokenFor("admin@mail.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.palette").value(org.hamcrest.Matchers.nullValue()));
+        mockMvc.perform(get(base).header("Authorization", "Bearer " + tokenFor("superadmin@mail.com")))
+                .andExpect(status().isOk());
+        mockMvc.perform(put(base).header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"themePreference\":\"light\",\"palette\":\"invalid\","
+                                + "\"fontFamily\":\"space-mono\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void qualityReportsRequireAdministratorForCatalogAndContent() throws Exception {
         String base = "/api/v1/admin/quality-reports";
         for (String route : List.of(base, base + "/missing/content")) {

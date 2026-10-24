@@ -129,6 +129,8 @@ public class SecurityConfig {
                         .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}/profile")
                         .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/users/me/preferences/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "USER")
                         .requestMatchers("/api/v1/users/me/**")
                         .hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}/profile-image/content")

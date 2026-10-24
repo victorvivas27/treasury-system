@@ -11,6 +11,7 @@ import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import "./Configuracion.css";
 import { PaletteSelector } from "./PaletteSelector";
+import { FontFamilySelector } from "./FontFamilySelector";
 
 const THEME_OPTIONS: Array<{
   value: ThemePreference;
@@ -145,6 +146,7 @@ export const Configuracion = () => {
 
         <p className="theme-description">{selectedOption.description}</p>
         <PaletteSelector />
+        <FontFamilySelector />
       </article>
 
 

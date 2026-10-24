@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "./ThemeContext";
 import { THEME_STORAGE_KEY } from "./theme";
 import { PALETTES, PALETTE_STORAGE_KEY } from "./palette";
+import { FONT_FAMILY_STORAGE_KEY, FONT_FAMILIES } from "./typography";
 
 type ChangeListener = (event: MediaQueryListEvent) => void;
 
@@ -34,12 +35,14 @@ const createMatchMedia = (initialMatches: boolean) => {
 };
 
 const ThemeProbe = () => {
-  const { themePreference, resolvedTheme, setThemePreference, palette, setPalette } = useTheme();
+  const { themePreference, resolvedTheme, setThemePreference, palette, setPalette, fontFamily, setFontFamily } = useTheme();
   return (
     <>
       <output>{`${themePreference}:${resolvedTheme}`}</output>
       <output data-testid="palette">{palette}</output>
+      <output data-testid="font-family">{fontFamily}</output>
       {PALETTES.map(option => <button key={option.id} onClick={() => setPalette(option.id)}>{option.name}</button>)}
+      {FONT_FAMILIES.map(option => <button key={option.id} onClick={() => setFontFamily(option.id)}>{option.name}</button>)}
       <button onClick={() => setThemePreference("light")}>Claro</button>
       <button onClick={() => setThemePreference("dark")}>Oscuro</button>
       <button onClick={() => setThemePreference("system")}>Sistema</button>
@@ -52,6 +55,7 @@ describe("ThemeProvider", () => {
     localStorage.clear();
     document.documentElement.dataset.theme = "";
     document.documentElement.dataset.palette = "";
+    document.documentElement.dataset.fontFamily = "";
   });
 
   it("usa oscuro cuando no existe preferencia y ante un valor inválido", () => {
@@ -138,6 +142,53 @@ describe("ThemeProvider", () => {
     view.unmount();
     render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
     expect(screen.getByTestId("palette")).toHaveTextContent("violet-coral");
+  });
+
+  it("persiste la tipografía independientemente del modo y la paleta", async () => {
+    vi.stubGlobal("matchMedia", createMatchMedia(false).matchMedia);
+    localStorage.setItem(THEME_STORAGE_KEY, "light");
+    localStorage.setItem(PALETTE_STORAGE_KEY, "blue-lime");
+    const user = userEvent.setup();
+    const view = render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+
+    await user.click(screen.getByRole("button", { name: "JetBrains Mono — Developer" }));
+    expect(screen.getByTestId("font-family")).toHaveTextContent("jetbrains-mono");
+    expect(localStorage.getItem(FONT_FAMILY_STORAGE_KEY)).toBe("jetbrains-mono");
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
+    expect(localStorage.getItem(PALETTE_STORAGE_KEY)).toBe("blue-lime");
+    expect(document.documentElement).toHaveAttribute("data-font-family", "jetbrains-mono");
+    expect(document.documentElement).toHaveAttribute("data-palette", "blue-lime");
+
+    view.unmount();
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    expect(screen.getByTestId("font-family")).toHaveTextContent("jetbrains-mono");
+  });
+
+  it.each([null, "unknown", "toString", "__proto__"])("usa tipografía actual ante %s", value => {
+    vi.stubGlobal("matchMedia", createMatchMedia(false).matchMedia);
+    if (value !== null) localStorage.setItem(FONT_FAMILY_STORAGE_KEY, value);
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    expect(screen.getByTestId("font-family")).toHaveTextContent("default");
+    expect(document.documentElement).toHaveAttribute("data-font-family", "default");
+  });
+
+  it.each(["inter", "roboto", "poppins"])("migra la preferencia anterior %s a Actual", previous => {
+    vi.stubGlobal("matchMedia", createMatchMedia(false).matchMedia);
+    localStorage.setItem(FONT_FAMILY_STORAGE_KEY, previous);
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    expect(screen.getByTestId("font-family")).toHaveTextContent("default");
+    expect(document.documentElement).toHaveAttribute("data-font-family", "default");
+    expect(localStorage.getItem(FONT_FAMILY_STORAGE_KEY)).toBe("default");
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(PALETTE_STORAGE_KEY)).toBeNull();
+  });
+
+  it("sincroniza cambios tipográficos recibidos desde otra pestaña", () => {
+    vi.stubGlobal("matchMedia", createMatchMedia(false).matchMedia);
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+    act(() => window.dispatchEvent(new StorageEvent("storage", { key: FONT_FAMILY_STORAGE_KEY, newValue: "space-mono" })));
+    expect(screen.getByTestId("font-family")).toHaveTextContent("space-mono");
+    expect(document.documentElement).toHaveAttribute("data-font-family", "space-mono");
   });
 
   it("sincroniza otra pestaña y restaura valores inválidos sin alterar el modo", () => {

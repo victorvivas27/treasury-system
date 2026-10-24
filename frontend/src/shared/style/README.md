@@ -20,9 +20,9 @@ El negro límite de las sombras se obtiene con luminosidad/croma cero: es un lí
 
 ### Paletas dinámicas y contraste
 
-`data-palette` y `app-palette` identifican la paleta; `data-theme` y `app-theme` mantienen el modo claro/oscuro/sistema de forma independiente. `palette.ts` contiene el catálogo, mientras que los únicos valores cromáticos configurables están en `theme.css`. Se conserva el identificador interno `green-turquoise` para Verde esmeralda y dorado por compatibilidad con la selección ya persistida.
+`data-palette` y `app-palette` identifican la paleta; `data-theme` y `app-theme` mantienen el modo claro/oscuro/sistema de forma independiente. `data-font-family` y `app-font-family` seleccionan la familia tipográfica de forma independiente. `palette.ts` y `typography.ts` contienen los catálogos; los valores cromáticos configurables están en `theme.css`, y las familias locales en `typography.css`. Se conserva el identificador interno `green-turquoise` para Verde esmeralda y dorado por compatibilidad con la selección ya persistida.
 
-El arranque inline restaura y valida ambas preferencias antes de iniciar React. Vite genera el CSS crítico y la lista de identificadores desde `theme.css`. ThemeProvider aplica los cambios sin recargar y sincroniza `theme-color`, preferencias entre pestañas y los cambios del modo sistema. Las animaciones comunitarias observan `data-palette` además de `data-theme`.
+El arranque inline restaura y valida tema, paleta y tipografía antes de iniciar React. Vite genera el CSS crítico desde `theme.css`, `typography.css` y `global.css`, además de obtener la lista de paletas desde `theme.css`. ThemeProvider aplica los cambios sin recargar y sincroniza `theme-color`, preferencias entre pestañas y los cambios del modo sistema. Las fuentes WOFF2 se sirven localmente con `font-display: swap`; las muestras tipográficas cargan las alternativas al abrir Configuración. Las licencias OFL están junto a sus archivos en `src/assets/fonts/{jetbrains-mono,space-mono,ibm-plex-mono}`. Las animaciones comunitarias observan `data-palette` además de `data-theme`.
 
 `--recipe-neutral-dark` y `--recipe-neutral-light` reducen la saturación de las superficies de las paletas nuevas; Original conserva su escala calibrada. Estos dos roles, más `--text-on-primary` y `--text-on-info`, explican las cuatro variables derivadas adicionales. No son bases independientes.
 
@@ -55,6 +55,8 @@ El sistema requiere soporte de colores relativos OKLCH. La validación realizada
 | Identidad cromática y ambos modos | Las ocho `--base-*` de `theme.css` |
 | Títulos y texto | `--font-h1` a `--font-h4`, `--font-body`, `--font-small` |
 | Etiquetas y botones | `--font-label`, `--font-button` |
+| Familia de la interfaz | `--font-family-primary`, seleccionada desde Configuración |
+| Interlineado y espaciado tipográfico | `--leading-body`, `--heading-leading`, `--font-letter-spacing` según la familia |
 | Escala de texto | `--font-size-xs` a `--font-size-4xl` |
 | Espacios comunes | `--space-1` a `--space-16` (escala de ocho pasos) |
 | Espacio según su función | `--page-padding`, `--section-gap`, `--card-padding`, `--form-gap` |
