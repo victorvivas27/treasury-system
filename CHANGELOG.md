@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0](https://github.com/victorvivas27/treasury-system/compare/v1.31.0...v1.32.0) (2026-10-24)
+
+
+### Features
+
+* **ci:** mejorar la gestión de la concurrencia y la retención de artefactos en los flujos de trabajo de CI ([c2ce2d2](https://github.com/victorvivas27/treasury-system/commit/c2ce2d257b12729b73ef3836c9438aa4bcaccbef))
+
 ## [1.31.0](https://github.com/victorvivas27/treasury-system/compare/v1.30.0...v1.31.0) (2026-10-23)
 
 
