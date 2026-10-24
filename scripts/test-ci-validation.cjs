@@ -116,7 +116,8 @@ test('coverage and receipts are recorded only after successful validation', () =
     assert.equal(upload.if, "steps.validation.outputs.reused != 'true'");
     assert.equal(upload.with.name, `${suite}-validation-` + '${{ steps.validation.outputs.key }}');
     assert.equal(upload.with['if-no-files-found'], 'error');
-    assert.equal(upload.with['retention-days'], 14);
+    assert.equal(upload.with['retention-days'], '${{ github.retention_days > 14 && 14 || github.retention_days }}');
+    assert.ok(candidate.concurrency.group.includes('${{ github.run_id }}'));
     for (const step of steps.slice(lookup + 1).filter(step => step.run &&
         !step.name?.includes('logs') && !step.name?.includes('Stop'))) {
       assert.equal(step.if, "steps.validation.outputs.reused != 'true'", `${file}: ${step.name}`);

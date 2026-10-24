@@ -12,11 +12,11 @@ const children = ['01-commit-lint.yml', '02-frontend-ci.yml', '03-backend-ci.yml
   '04-bruno-tests.yml', '05-versioning-ci.yml'];
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
-async function select(files) {
+async function select(files, head = 'feature') {
   const outputs = {};
   await new AsyncFunction('github', 'context', 'core', workflow.jobs.changes.steps[0].with.script)(
     { rest: { pulls: { listFiles: {} } }, paginate: async () => files },
-    { repo: { owner: 'owner', repo: 'repo' }, payload: { pull_request: { number: 1 } } },
+    { repo: { owner: 'owner', repo: 'repo' }, payload: { pull_request: { number: 1, head: { ref: head } } } },
     { setOutput: (name, value) => { outputs[name] = value; } },
   );
   return outputs;
@@ -45,7 +45,7 @@ test('runs only applicable validations, including renamed files', async () => {
     { frontend: 'true', backend: 'false', bruno: 'false', versioning: 'false' });
   assert.deepEqual(await select([{ filename: 'backend/src/Service.java' }]),
     { frontend: 'false', backend: 'true', bruno: 'true', versioning: 'false' });
-  assert.deepEqual(await select([{ filename: 'README.md' }]),
+  assert.deepEqual(await select([{ filename: 'docs/README.md' }]),
     { frontend: 'false', backend: 'false', bruno: 'false', versioning: 'false' });
   assert.equal((await select([{ filename: 'api-tests/test.yml' }])).bruno, 'true');
   assert.equal((await select([{ filename: 'VERSION' }])).versioning, 'true');
@@ -58,6 +58,9 @@ test('workflow changes and truncated file lists validate all areas', async () =>
   assert.deepEqual(await select([{ filename: '.github/workflows/00-pr-validation.yml' }]), expected);
   assert.deepEqual(await select([{ filename: '.github/actions/reuse-validation/action.yml' }]), expected);
   assert.deepEqual(await select([{ filename: 'scripts/ci-validation.cjs' }]), expected);
+  assert.deepEqual(await select([{ filename: 'VERSION' }]), expected);
+  assert.deepEqual(await select([{ filename: '.githooks/commit-msg' }]), expected);
+  assert.deepEqual(await select([{ filename: 'docs/release.md' }], 'release-please--branches--main'), expected);
   assert.deepEqual(await select(Array.from({ length: 3000 }, () => ({ filename: 'docs/item.md' }))), expected);
 });
 

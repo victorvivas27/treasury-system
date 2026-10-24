@@ -40,7 +40,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: versioning-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: versioning-ci-${{ github.workflow }}-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -85,4 +85,4 @@ jobs:
           name: versioning-validation-${{ steps.validation.outputs.key }}
           path: validation-receipt.txt
           if-no-files-found: error
-          retention-days: 14
+          retention-days: ${{ github.retention_days > 14 && 14 || github.retention_days }}
