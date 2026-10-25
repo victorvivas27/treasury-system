@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { QualityReportCatalog } from "@/core/A-domain/entities/quality/QualityReport";
+import type { CoverageMetric, QualityReport, QualityReportCatalog } from "@/core/A-domain/entities/quality/QualityReport";
 import { QualityReportUseCases } from "@/core/B-application/use-cases/quality/QualityReportUseCases";
 import { QualityReportRepositoryImpl } from "@/core/C-infra/repositories/quality/QualityReportRepositoryImpl";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
@@ -7,6 +7,44 @@ import { Button } from "@/shared/ui/button/Button";
 import "./QualityReportsPage.css";
 
 export const qualityReportUseCases = new QualityReportUseCases(new QualityReportRepositoryImpl());
+const coverageMetricLabels: Record<string, string> = {
+  lines: "Líneas",
+  branches: "Ramas",
+  functions: "Funciones",
+  methods: "Métodos",
+};
+const coverageMetricOrder = ["lines", "branches", "functions", "methods"];
+const coverageNumber = new Intl.NumberFormat("es-CL");
+
+const CoverageChart = ({ report }: { report: QualityReport }) => {
+  const metrics = coverageMetricOrder.flatMap(key => {
+    const metric = report.coverage[key];
+    return metric && Number.isFinite(metric.percent) && Number.isFinite(metric.covered) &&
+      Number.isFinite(metric.total) && metric.total > 0 ? [[key, metric] as [string, CoverageMetric]] : [];
+  });
+
+  return <section className="quality-coverage" aria-label={`Cobertura de código ${report.application}`}>
+    <h3>Cobertura de código</h3>
+    {metrics.length ? <>
+      <div className="quality-coverage__scale" aria-hidden="true"><span>0 %</span><span>100 %</span></div>
+      <ul className="quality-coverage__metrics">
+        {metrics.map(([key, metric]) => {
+          const percent = Math.min(100, Math.max(0, metric.percent));
+          const label = coverageMetricLabels[key];
+          return <li key={key}>
+            <div className="quality-coverage__label"><span>{label}</span><strong>{metric.percent.toFixed(2)} %</strong></div>
+            <div className="quality-coverage__track" role="progressbar" aria-label={`Cobertura de ${label}`}
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+              <span style={{ width: `${percent}%` }} />
+            </div>
+            <small>{coverageNumber.format(metric.covered)} de {coverageNumber.format(metric.total)} cubiertos</small>
+          </li>;
+        })}
+      </ul>
+    </> : <p className="quality-coverage__empty">No hay métricas de cobertura disponibles.</p>}
+  </section>;
+};
+
 // No same-origin, network, forms or popups: report code cannot read the app session.
 const isolate = (html: string) => html
   // Allure 3.22.1 builds a base URL from location.origin, which is "null" in srcdoc.
@@ -48,19 +86,22 @@ export const QualityReportsPage = () => {
   const active = catalog?.reports.find(report => report.id === selected);
   return <section className="quality-reports-page">
     <header><p>Administración</p><h1>Reportes de calidad</h1>
-      <p>Resultados de pruebas y cobertura de código por ejecución.</p></header>
+      <p>La cobertura de código se muestra abajo; el reporte Allure detalla los resultados de las pruebas.</p></header>
     {error && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => setAttempt(value => value + 1)} />}
     {loading && <p role="status">Cargando reporte…</p>}
     {catalog && !catalog.reports.length && !error && <p role="status">{catalog.configured
       ? "Todavía no hay reportes publicados." : "Los reportes estarán disponibles cuando se configure su almacenamiento privado."}</p>}
     {!!catalog?.reports.length && <div className="quality-report-list" aria-label="Reportes disponibles">
       {catalog.reports.map(report => <article key={report.id}>
-        <div><h2>{report.application === "frontend" ? "Frontend" : "Backend"} · {report.suite === "combined" ? "Suite completa" : report.suite}</h2>
-          <p><time dateTime={report.generatedAt}>{new Date(report.generatedAt).toLocaleString("es-CL")}</time></p>
-          <p>{report.tests.passed}/{report.tests.total} pruebas aprobadas · Líneas: {report.coverage.lines?.percent.toFixed(2) ?? "—"} %</p>
-          <small>Revisión {report.sha.slice(0, 8)}</small></div>
-        <Button label="Abrir reporte" ariaLabel={`Abrir reporte ${report.application} ${report.id}`}
-          variant={selected === report.id ? "primary" : "secondary"} size="small" onClick={() => setSelected(report.id)} />
+        <div className="quality-report-card__header">
+          <div><h2>{report.application === "frontend" ? "Frontend" : "Backend"} · {report.suite === "combined" ? "Suite completa" : report.suite}</h2>
+            <p><time dateTime={report.generatedAt}>{new Date(report.generatedAt).toLocaleString("es-CL")}</time></p>
+            <p>{report.tests.passed}/{report.tests.total} pruebas aprobadas</p>
+            <small>Revisión {report.sha.slice(0, 8)}</small></div>
+          <Button label="Abrir reporte" ariaLabel={`Abrir reporte ${report.application} ${report.id}`}
+            variant={selected === report.id ? "primary" : "secondary"} size="small" onClick={() => setSelected(report.id)} />
+        </div>
+        <CoverageChart report={report} />
       </article>)}
     </div>}
     {html && active && <div className="quality-report-viewer">
@@ -69,7 +110,7 @@ export const QualityReportsPage = () => {
       <iframe id="quality-report-frame" title={`Allure ${active.application}`} srcDoc={html}
         sandbox="allow-scripts allow-downloads" allow="fullscreen" referrerPolicy="no-referrer" />
     </div>}
-    <p className="quality-report-note">La cobertura mide código ejecutado; el porcentaje de éxito de Allure mide pruebas aprobadas.
-      Las coberturas de distintas suites no se suman.</p>
+    <p className="quality-report-note">La cobertura mide código ejecutado; el porcentaje de pruebas aprobadas es otra métrica.
+      Las coberturas de distintas ejecuciones no se suman.</p>
   </section>;
 };

@@ -66,4 +66,21 @@ describe("Configuración de apariencia", () => {
     expect(document.documentElement).toHaveAttribute("data-palette", "blue-lime");
     expect(screen.getByRole("radio", { name: /Oscuro/ })).toBeChecked();
   });
+
+  it("ofrece solo las tipografías definitivas y las aplica sin alterar tema ni paleta", async () => {
+    const user = userEvent.setup();
+    render(<ThemeProvider><Configuracion /></ThemeProvider>);
+    expect(screen.getByRole("radio", { name: "Actual", exact: true })).toBeChecked();
+    await user.click(screen.getByRole("radio", { name: "Space Mono — Futurista", exact: true }));
+    expect(screen.getByRole("radio", { name: "Space Mono — Futurista", exact: true })).toBeChecked();
+    expect(screen.getByText("Tipografía activa: Space Mono — Futurista")).toBeInTheDocument();
+    expect(document.documentElement).toHaveAttribute("data-font-family", "space-mono");
+    expect(document.querySelectorAll(".font-family-selector input[type=radio]")).toHaveLength(4);
+    expect(document.querySelectorAll(".font-family-option__sample")).toHaveLength(4);
+    expect(screen.queryByRole("radio", { name: "Inter" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: "Roboto" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: "Poppins" })).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Original", exact: true })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Oscuro/ })).toBeChecked();
+  });
 });

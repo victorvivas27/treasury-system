@@ -9,11 +9,11 @@ function App() {
 
   return (
     <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider>
           <RealtimeProvider><NotificationProvider><AppRouter /></NotificationProvider></RealtimeProvider>
-        </AuthProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

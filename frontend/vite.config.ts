@@ -25,10 +25,11 @@ if (testSuite && !['unit', 'integration', 'combined'].includes(testSuite)) {
 // The rest of the stylesheet can keep loading without blocking the boot screen.
 const readCriticalStyles = () => {
   const globalCss = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/global.css'), 'utf8')
-  const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/theme.css'), 'utf8') + '\n' + globalCss
+  const typographyCss = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/typography.css'), 'utf8')
+  const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/theme.css'), 'utf8') + '\n' + typographyCss + '\n' + globalCss
   const criticalBoot = css.match(/\/\* critical-boot:start[^]*?\*\/([^]*?)\/\* critical-boot:end \*\//)?.[1]
   if (!criticalBoot) throw new Error('Missing critical boot styles in global.css')
-  const boot = criticalBoot + fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/LoadingState.css'), 'utf8')
+  const boot = criticalBoot + fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/LoadingState.css'), 'utf8') + '\nbody{font-family:var(--font-main);line-height:var(--leading-body);letter-spacing:var(--font-letter-spacing)}'
 
   const roots = [...css.matchAll(/^(:root[^{]*) \{([^]*?)^\}/gm)]
     .map(([, selector, body]) => ({
@@ -37,6 +38,7 @@ const readCriticalStyles = () => {
         .map(([, name, value]) => ({ name, value })),
     }))
   const required = new Set([...boot.matchAll(/var\((--[\w-]+)/g)].map(match => match[1]))
+  required.add('--font-family-serif')
   for (const name of required) {
     const definitions = roots.flatMap(root => root.declarations.filter(declaration => declaration.name === name))
     if (!definitions.length) throw new Error(`Missing boot style variable: ${name}`)

@@ -75,6 +75,9 @@
       const palettes = /* app-palette-ids */ [];
       const savedPalette = read("app-palette");
       document.documentElement.dataset.palette = palettes.includes(savedPalette) ? savedPalette : "original";
+      const fontFamilies = ["default", "jetbrains-mono", "space-mono", "ibm-plex-mono"];
+      const savedFontFamily = read("app-font-family");
+      document.documentElement.dataset.fontFamily = fontFamilies.includes(savedFontFamily) ? savedFontFamily : "default";
       document.documentElement.style.colorScheme = theme;
       document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).backgroundColor;
     })();
