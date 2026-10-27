@@ -1,0 +1,673 @@
+{
+    "state":  "initial complete regression before final added tests",
+    "coverageGate":  "passed",
+    "pmd":  "passed",
+    "suites":  [
+                   {
+                       "skipped":  0,
+                       "name":  "academic.ScheduleHttpPersistenceTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "academic.SchedulePostgresTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "academic.ScheduleValidationTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoServiceTest$CreateTests",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoServiceTest$DeleteTests",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoServiceTest$FindTests",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoServiceTest$UpdateTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoTest$ConstructorTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoTest$CursoTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoTest$NombreTest",
+                       "tests":  9,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "alumno.AlumnoTest$ObservacionTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoControllerTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoServiceTest$CreateTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoServiceTest$DeleteTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoServiceTest$FindTests",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoServiceTest$UpdateTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoTest$ConstructorTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoTest$EmailTest",
+                       "tests":  20,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoTest$NombreTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoTest$ObservacionesTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "apoderado.ApoderadoTest$TelefonoTest",
+                       "tests":  10,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "architecture.ArchitectureAccessTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "architecture.ArchitectureCatalogServiceTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.organization.OrganizationEmailBrandingServiceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.organization.OrganizationSchoolPeriodServiceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.organization.OrganizationServiceTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.organization.TenantIsolationIntegrationTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.organization.TenantUserDetailsTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.shared.infrastructure.config.CorsConfigTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.shared.infrastructure.time.ApplicationTimeZoneConfigTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.application.usecase.BoardMessageServiceTest",
+                       "tests":  5,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.application.usecase.ExpenseDocumentServiceTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.application.usecase.IncomeDocumentServiceTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.application.usecase.MercadoPagoServiceTest",
+                       "tests":  11,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.application.usecase.MercadoPagoWebhookTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.application.usecase.TransferPaymentServiceTest",
+                       "tests":  26,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.treasury.infrastructure.adapter.out.MercadoPagoHttpGatewayTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.user.application.usecase.ProfileImageServiceTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "com.tesoreria.user.application.usecase.UserAppearancePreferencesServiceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "community.AboutSectionServiceTest",
+                       "tests":  5,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "community.CourseBoardServiceTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "community.CoursePhotoServiceTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "familia.FamiliaTest",
+                       "tests":  8,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "improvement.ImprovementSuggestionServiceTest",
+                       "tests":  10,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.NotificationServiceTest",
+                       "tests":  19,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.SA03PostgresStompTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.SA03RealtimePublisherTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.SA03StompConsumerTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.SA03StompIntegrationTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.SA03WebSocketAuthTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.WebPushSubscriptionServiceTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "notification.WebSocketAuthInterceptorTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "performance.PostgresPerformanceQueryIntegrationTest",
+                       "tests":  7,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "quality.QualityReportServiceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "stand.StandProductTest",
+                       "tests":  37,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "stand.StandServiceTest",
+                       "tests":  17,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.EventSettlementCalculatorTest",
+                       "tests":  8,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.ManagedCourseServiceTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01HttpIsolationTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01PostgresHttpTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01PostgresPersistenceTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01PostgresRollbackTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01PostgresTransactionTest",
+                       "tests":  17,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01RollbackAdversarialTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SA01TransactionIsolationTest",
+                       "tests":  16,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.SchoolEventServiceTest",
+                       "tests":  18,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TenantCacheKeysIndependentTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TreasuryCacheIntegrationTest",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TreasuryIncomeLifecycleTest",
+                       "tests":  23,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TreasuryServiceTest",
+                       "tests":  41,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TreasuryTenantCacheIntegrationTest",
+                       "tests":  10,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TreasuryTenantCachePersistenceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "treasury.TreasuryValidationTest",
+                       "tests":  29,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.AccountRecoveryServiceTest",
+                       "tests":  9,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.AuthControllerTest",
+                       "tests":  9,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.AuthFlowRateLimiterTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.AuthServiceTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.ClientIpResolverTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.CourseMembershipIntegrationTest",
+                       "tests":  1,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.CustomUserDetailsServiceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.EmailImagesTest",
+                       "tests":  38,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.GmailEmailAdapterTest",
+                       "tests":  8,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.JwtServiceTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.LoginRateLimiterTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.Phase3PostgresSecurityTest",
+                       "tests":  9,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.PostgresInvitationIntegrationTest",
+                       "tests":  35,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.RefreshTokenServiceTest",
+                       "tests":  14,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.RegistrationRateLimiterTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA02InvitationIntegrationTest",
+                       "tests":  34,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA02PostgresInvitationTest",
+                       "tests":  37,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA03AccountSecurityTest",
+                       "tests":  5,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA04PostgresProfileSecurityTest",
+                       "tests":  27,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA04ProfileSecurityIntegrationTest",
+                       "tests":  27,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA04UserServiceTest",
+                       "tests":  11,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA05PostgresSessionSecurityTest",
+                       "tests":  13,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA05SessionSecurityIntegrationTest",
+                       "tests":  13,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA06PasswordSessionIntegrationTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA06PostgresPasswordSessionTest",
+                       "tests":  6,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA07PostgresRefreshReuseTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SA07RefreshReuseIntegrationTest",
+                       "tests":  4,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SecurityConfigTest",
+                       "tests":  31,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SuperAdminPostgresProtectionTest",
+                       "tests":  40,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.SuperAdminProtectionIntegrationTest",
+                       "tests":  27,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.TokenRevocationServiceTest",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.TwoFactorServiceTest",
+                       "tests":  5,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.UserControllerTest",
+                       "tests":  8,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.UserServiceTest$BootstrapAdminTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.UserServiceTest$CreateTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.UserServiceTest$DeleteTests",
+                       "tests":  2,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.UserServiceTest$FindAndListTests",
+                       "tests":  3,
+                       "failures":  0
+                   },
+                   {
+                       "skipped":  0,
+                       "name":  "user.UserServiceTest$UpdateTests",
+                       "tests":  4,
+                       "failures":  0
+                   }
+               ]
+}

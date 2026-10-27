@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-26",
+  "scope": "Current working tree; H2 and MockMvc, not production account changes",
+  "backend": {
+    "suites": [
+      {
+        "name": "user.AuthFlowRateLimiterTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "checkAndRecord_deberiaSepararAcciones()",
+          "checkAndRecord_deberiaLimitarSolicitudesRepetidasNormalizandoCorreo()"
+        ]
+      },
+      {
+        "name": "user.AuthServiceTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "refreshShouldRejectInvalidToken()",
+          "loginShouldAuthenticateByOrganizationAndReturnUserId()",
+          "loginWithoutOrganizationShouldEnterDirectlyWhenOnlyOnePasswordMatches()",
+          "loginShouldRegisterFailureAndHideDetails()",
+          "loginWithoutOrganizationShouldAskForCourseWhenPasswordMatchesMultipleUsers()",
+          "refreshShouldRenewValidToken()"
+        ]
+      },
+      {
+        "name": "user.JwtServiceTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "isTokenValid_deberiaRechazarOtroUsuario()",
+          "generateToken_deberiaCrearUnTokenDistintoEnCadaLogin()",
+          "generateToken_deberiaIncluirOrganizacionSinRomperTokensAnteriores()",
+          "constructor_deberiaRechazarSecretCorto()",
+          "parseToken_deberiaPermitirValidarClaimsYaVerificados()",
+          "generateToken_deberiaCrearTokenValido()"
+        ]
+      },
+      {
+        "name": "user.LoginRateLimiterTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "deberiaBloquearLuegoDeTresIntentosFallidos()",
+          "success_deberiaLimpiarIntentos()"
+        ]
+      },
+      {
+        "name": "user.RefreshTokenServiceTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "rotate_rechazaTokenExpirado()",
+          "revoke_conCsrfValido_revocaFamiliaPersistente()",
+          "[1] enabled = \"false\", unlocked = \"true\", organizationActive = \"true\"",
+          "[2] enabled = \"true\", unlocked = \"false\", organizationActive = \"true\"",
+          "[3] enabled = \"true\", unlocked = \"true\", organizationActive = \"false\"",
+          "rotate_reutilizacionConcurrenteDentroDeGraciaNoInvalidaFamilia()",
+          "rotate_invalidaTokenAnteriorYEmiteUnoNuevo()",
+          "isFamilyActive_consultaSesionPersistente()",
+          "rotate_reutilizacionFueraDeGraciaInvalidaFamilia()",
+          "issue_guardaHashYEntregaTokens()",
+          "familyBelongsToTheAccountInTheAccessToken()",
+          "revoke_marcaTokenComoUsadoYAdmiteCookieAusente()",
+          "issuanceRejectsMismatchedAccountOrOrganization()",
+          "rotate_conCsrfInvalido_rechazaSinRotar()"
+        ]
+      },
+      {
+        "name": "user.SA03AccountSecurityTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "selfUsesAccountIdAndOrganizationNotEmail()",
+          "revokingADoesNotRevokeB()",
+          "httpAllowsOnlyMatchingGlobalSuperAdminForNullTenant()",
+          "httpRejectsMixedTenantMissingIdAndUnknownAccount()",
+          "httpResolvesBDespiteSameEmailAndLowerIdA()"
+        ]
+      },
+      {
+        "name": "user.SA04ProfileSecurityIntegrationTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "serviceProxyDeniesUserAdministrativeUpdateEvenWithoutController()",
+          "omittedOrNullAdministrativeStatesPreserveDisabledAndLockedAccount()",
+          "userCannotInvokeAdministrativeUpdateStateOrRoleOperations()",
+          "selfDoesNotAuthorizeAnotherAccountOrTenantEvenWithSameEmail()",
+          "ordinaryAdminCannotAlterGlobalSuperAdminStates()",
+          "adminCanDisableEnableLockAndUnlockThroughExistingOperations()",
+          "administrativeUpdateCannotMassAssignRoleTenantOrInternalSecurityFields()",
+          "originalAttackWithoutProfileFieldIsRejectedAndNeverRestoresStates()",
+          "phoneUpdatePersistsOnlyGuardianInAuthenticatedCourse()",
+          "adminOfAnotherOrganizationCannotEditAccount()",
+          "invalidProfileIsRejectedWithoutPersistence()",
+          "signedJwtAndManuallyInjectedJsonCannotChangeAccountSecurity()",
+          "unauthenticatedClientCannotUseEitherUpdateContract()",
+          "invalidPhoneRequestDoesNotChangeNameOrGuardian()",
+          "signedJwtCanUpdateAllowedProfileField()",
+          "superAdminRetainsGlobalAdministrationAndUsesSameProfileAllowlist()",
+          "adminCanBlockAndUnblockActiveUserButCannotBypassInvitationForDisabledUser()",
+          "[1] injectedFields = \"\\\"enabled\\\":true\"",
+          "[2] injectedFields = \"\\\"accountNonLocked\\\":true\"",
+          "[3] injectedFields = \"\\\"enabled\\\":true,\\\"accountNonLocked\\\":true\"",
+          "[4] injectedFields = \"\\\"rol\\\":\\\"ADMIN\\\",\\\"roles\\\":[\\\"ADMIN\\\"],\\\"authorities\\\":[\\\"ROLE_ADMIN\\\"]\"",
+          "[5] injectedFields = \"\\\"organizationId\\\":999,\\\"tenantId\\\":999\"",
+          "[6] injectedFields = \"\\\"id\\\":999,\\\"userId\\\":999\"",
+          "[7] injectedFields = \"\\\"code\\\":\\\"USR-ATTACK\\\"\"",
+          "[8] injectedFields = \"\\\"emailVerifiedAt\\\":\\\"2026-01-01T00:00:00\\\",\\\"invitationAcceptedAt\\\":\\\"2026-01-01T00:00:00\\\",\\\"invitedGuardianId\\\":999\"",
+          "[9] injectedFields = \"\\\"password\\\":\\\"AttackPass1!\\\",\\\"totpEnabled\\\":false,\\\"totpSecret\\\":\\\"ATTACK\\\",\\\"backupCodes\\\":\\\"ATTACK\\\"\"",
+          "[10] injectedFields = \"\\\"correo\\\":\\\"attack@mail.com\\\",\\\"profileImageUrl\\\":\\\"https://attacker.invalid/image\\\",\\\"profileImageType\\\":\\\"CUSTOM_IMAGE\\\"\""
+        ]
+      },
+      {
+        "name": "user.SA05SessionSecurityIntegrationTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "ownDeactivationFailureRollsBackWithoutRevokingActorSession()",
+          "[1] field = \"enabled\"",
+          "[2] field = \"account_non_locked\"",
+          "[3] field = \"organization\"",
+          "accessTokenCannotBorrowAnotherAccountsActiveFamily()",
+          "[1] operation = \"issue\"",
+          "[2] operation = \"rotate\"",
+          "ordinaryAdminCannotRevokeAnotherOrganizationsAccount()",
+          "[1] field = \"enabled\"",
+          "[2] field = \"accountNonLocked\"",
+          "verifiedUserMustLogInAgainAfterAdministrativeUnlock()",
+          "stateEndpointRevokesSessionsAndNoOpProfileEditKeepsHealthySession()",
+          "directIssueRejectsUnverifiedUserAndAllowsGlobalSuperAdmin()"
+        ]
+      },
+      {
+        "name": "user.SecurityAuditEvidenceTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "normalUserCannotUseAdministrativeOperations()",
+          "invitationFilterLimitsTwentiethAttemptByIp()",
+          "ordinaryAdminCanDeleteGlobalSuperAdmin_OBSERVED_DEFECT()",
+          "totpEnabledAccountGetsFullSessionWithOnlyPassword_OBSERVED_DEFECT()",
+          "recoveryExposesCourseChoicesBeforeRateLimit_OBSERVED_DEFECT()"
+        ]
+      },
+      {
+        "name": "user.SecurityConfigTest",
+        "tests": 31,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "gestionStand_deberiaAceptarTokenAdministrador()",
+          "administradorComun_noDeberiaPoderOtorgarRolSuperAdmin()",
+          "administracionTesoreria_deberiaRechazarUsuarioComun()",
+          "qualityReportsRequireAdministratorForCatalogAndContent()",
+          "architectureRequiresOwnerForCatalogAndEveryDiagramAndIsNotPublicStaticContent()",
+          "usuario_deberiaPoderActualizarSuPropioPerfil()",
+          "corsPreflight_deberiaPermitirLoginDesdeTryCloudflare()",
+          "gananciasEventos_deberiaPermitirResumenAutenticadoSinAbrirLaAdministracion()",
+          "dominiosEscolares_deberianRechazarUsuarioNoAdmin()",
+          "usuario_noDeberiaPoderModificarIngresosNiEgresos()",
+          "adjuntosSinStorage_deberiaResponderListaVaciaAlAdministrador()",
+          "usuario_noDeberiaPoderActualizarUnPerfilAjeno()",
+          "notificaciones_deberiaPermitirAlApoderadoIniciarYResponderConAdminYSuperAdmin()",
+          "mercadoPagoRequiresSessionAndAllowsGuardianEndpoints()",
+          "usersCreate_deberiaRequerirAdmin()",
+          "dominiosEscolares_deberianPermitirAdministrador()",
+          "usuario_deberiaPoderConsultarAvatarDeQuienEnviaUnaNotificacion()",
+          "securityConfig_deberiaHabilitarSeguridadDeMetodos()",
+          "cuotaAnual_deberiaPermitirLecturaAlApoderadoSinPermitirCambios()",
+          "usuario_deberiaPoderConsultarCumpleanosDeAlumnos()",
+          "login_deberiaSerPublico()",
+          "invitacionApoderado_deberiaAceptarTokenAdministrador()",
+          "users_deberiaRequerirAutenticacion()",
+          "resumenStand_deberiaPermitirLecturaPeroNoEscrituraAUsuarioComun()",
+          "usuario_deberiaPoderConsultarIngresosEgresosYAdjuntos()",
+          "appearancePreferencesArePrivatePerAccountAndIncludeSuperAdmins()",
+          "rutaNoDeclarada_deberiaPermanecerCerrada()",
+          "accessTokenConFamiliaRevocada_deberiaRequerirNuevaAutenticacion()",
+          "swagger_deberiaRequerirAdministrador()",
+          "resumenTesoreria_deberiaPermitirUsuarioAutenticado()",
+          "organizaciones_deberianSerExclusivasDelSuperAdministrador()"
+        ]
+      },
+      {
+        "name": "user.TokenRevocationServiceTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "isRevoked_deberiaDescartarTokenExpirado()",
+          "revoke_deberiaInvalidarTokenHastaSuExpiracion()"
+        ]
+      },
+      {
+        "name": "user.TwoFactorServiceTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "cases": [
+          "rejectsMissingMalformedOrIncorrectAuthenticatorCodes()",
+          "generatesTenBackupCodesWithTheExpectedAlphabetAndRoundTripsStorage()",
+          "leavesStoredCodesUnchangedWhenVerificationFails()",
+          "consumesOnlyTheMatchingCodeAndPreventsReuse()",
+          "generatesSecretsAndPngQrCodesForAuthenticatorEnrollment()"
+        ]
+      }
+    ],
+    "tests": 118,
+    "failures": 0,
+    "errors": 0
+  },
+  "frontend": {
+    "files": 6,
+    "tests": 36,
+    "failures": 0
+  },
+  "audit_evidence_warning": "OBSERVED_DEFECT tests intentionally assert the observed insecure behavior to demonstrate findings. Passing does not mean the defect is fixed."
+}

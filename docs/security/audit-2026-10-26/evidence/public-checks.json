@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-26",
+  "method": "Three anonymous GET requests; only response headers recorded",
+  "responses": [
+    {
+      "url": "https://tesoreriaescolar.app/",
+      "status": 200,
+      "server": "Netlify",
+      "contentSecurityPolicy": null,
+      "contentSecurityPolicyReportOnly": null,
+      "strictTransportSecurity": "max-age=31536000",
+      "xFrameOptions": null,
+      "xContentTypeOptions": null,
+      "referrerPolicyHeader": null
+    },
+    {
+      "url": "https://treasury-frontend-up7er2jb7q-tl.a.run.app/",
+      "status": 200,
+      "server": "Google Frontend",
+      "contentSecurityPolicy": null,
+      "contentSecurityPolicyReportOnly": null,
+      "strictTransportSecurity": null,
+      "xFrameOptions": null,
+      "xContentTypeOptions": null,
+      "referrerPolicyHeader": null
+    },
+    {
+      "url": "https://backend-up7er2jb7q-tl.a.run.app/tesoreria/api/v1/community/about",
+      "status": 200,
+      "server": "Google Frontend",
+      "contentSecurityPolicy": "default-src 'self'; img-src 'self' blob: data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      "strictTransportSecurity": "max-age=31536000 ; includeSubDomains",
+      "xFrameOptions": "DENY",
+      "xContentTypeOptions": "nosniff",
+      "referrerPolicyHeader": "no-referrer"
+    }
+  ],
+  "cloudRunReadOnly": {
+    "project": "treasury-system-app-vivas",
+    "service": "backend",
+    "region": "southamerica-west1",
+    "ingress": "all",
+    "maxScale": "20",
+    "cloudArmorInventory": "Unavailable: Compute Engine API disabled in this project. No API enabled and no infrastructure modified."
+  },
+  "limitations": [
+    "Frontend index.html includes a no-referrer meta tag; absence of the HTTP header alone does not establish a Referer leak.",
+    "No inventory of Netlify private configuration or policies in other projects.",
+    "No production authentication, writes or load tests."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+    "failures":  0,
+    "backendCheckTests":  750,
+    "pmd":  "passed",
+    "coverageGate":  "passed",
+    "build":  "passed",
+    "frontendTests":  57,
+    "lint":  "passed",
+    "frontendFiles":  6,
+    "postgres":  [
+                     {
+                         "suite":  "user.SA04PostgresProfileSecurityTest",
+                         "skipped":  0,
+                         "tests":  27,
+                         "failures":  0
+                     },
+                     {
+                         "suite":  "user.SA05PostgresSessionSecurityTest",
+                         "skipped":  0,
+                         "tests":  13,
+                         "failures":  0
+                     },
+                     {
+                         "suite":  "user.SA06PostgresPasswordSessionTest",
+                         "skipped":  0,
+                         "tests":  6,
+                         "failures":  0
+                     },
+                     {
+                         "suite":  "user.SA07PostgresRefreshReuseTest",
+                         "skipped":  0,
+                         "tests":  4,
+                         "failures":  0
+                     },
+                     {
+                         "suite":  "user.SuperAdminPostgresProtectionTest",
+                         "skipped":  0,
+                         "tests":  40,
+                         "failures":  0
+                     }
+                 ]
+}
