@@ -6,6 +6,9 @@ import { LoadingState } from '@/shared/ui/loading/LoadingState'
 import App from '@/presentation/App'
 import '@/shared/style/ResponsiveDataList.css'
 import '@/shared/ui/skeleton/Skeleton.css'
+import { captureInitialAccountLinkToken, isAccountLinkPath } from '@/shared/security/accountLinkToken'
+
+captureInitialAccountLinkToken()
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -31,6 +34,8 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
         return
       }
       if (reloading) return
+      // A PWA update must not discard the account-link credential held only in memory.
+      if (isAccountLinkPath(window.location.pathname)) return
 
       const controllerVersion = navigator.serviceWorker.controller?.scriptURL
       if (controllerVersion && sessionStorage.getItem('pwa-controller-version') === controllerVersion) {

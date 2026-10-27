@@ -1,8 +1,9 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAccountLinkToken } from "@/presentation/hooks/useAccountLinkToken";
 import { AuthRepositoryImpl } from "@/core/C-infra/repositories/auth/AuthRepositoryImpl";
-import type { LoginOrganizationOption } from "@/core/A-domain/entities/auth/Auth";
 import { Button } from "@/shared/ui/button/Button";
 import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { FiMail } from "react-icons/fi";
@@ -67,18 +68,17 @@ export const CheckEmailPage = () => {
 
 export const VerifyEmailPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
-  const [params] = useSearchParams();
+  const token = useAccountLinkToken();
   const [state, setState] = useState("Verificando tu correo...");
   const processedTokenRef = useRef<string | null>(null);
   useEffect(() => {
-    const token = params.get("token");
     if (!token) { setState("El enlace no es válido."); return; }
     if (processedTokenRef.current === token) return;
     processedTokenRef.current = token;
     repository.verifyEmail(token)
       .then(response => setState(response.message))
       .catch(() => setState("El enlace es inválido, venció o ya fue utilizado."));
-  }, [params, repository]);
+  }, [token, repository]);
   return <Shell title="Verificar correo" message={state}>
     <Link to="/login">Ir al inicio de sesión</Link>
   </Shell>;
@@ -88,8 +88,6 @@ export const ForgotPasswordPage = () => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [organizationId, setOrganizationId] = useState("");
-  const [organizationOptions, setOrganizationOptions] = useState<LoginOrganizationOption[]>([]);
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -105,9 +103,8 @@ export const ForgotPasswordPage = () => {
   }, [retrySeconds]);
   useEffect(() => {
     if (!successMessage) return;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = overflow; };
+    const unlockScroll = lockBodyScroll();
+    return () => { unlockScroll(); };
   }, [successMessage]);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -115,35 +112,23 @@ export const ForgotPasswordPage = () => {
     setMessage("");
     const errors = {
       email: validateRecoveryEmail(email),
-      organization: organizationOptions.length && !organizationOptions.some(option => String(option.id) === organizationId)
-        ? "Seleccione un curso válido" : "",
     };
     setFieldErrors(errors);
     if (Object.values(errors).some(Boolean)) {
-      document.getElementById(errors.email ? "recovery-email" : "recovery-organization")?.focus();
+      document.getElementById("recovery-email")?.focus();
       return;
     }
     requestingRef.current = true;
     setLoading(true);
     try {
-      const response = await repository.forgotPassword(
-        email.trim(), organizationId ? Number(organizationId) : undefined);
-      if (response.requiresOrganizationSelection) {
-        const options = Array.isArray(response.organizationOptions) ? response.organizationOptions.filter(option =>
-          Number.isSafeInteger(option.id) && option.id > 0 && typeof option.name === "string" && option.name.trim()) : [];
-        setOrganizationOptions(options);
-        setOrganizationId(options[0]?.id ? String(options[0].id) : "");
-        setMessage(options.length ? "" : "No fue posible cargar los cursos. Intenta nuevamente.");
-        return;
-      }
+      const response = await repository.forgotPassword(email.trim());
       if (typeof response.message !== "string" || !response.message.trim()) throw new Error("Invalid recovery response");
       setSuccessMessage(response.message);
     }
     catch (error) {
       const failure = passwordRecoveryFailure(error);
       setFieldErrors(failure.fields ?? {});
-      setMessage(failure.message || (failure.fields?.organization && !organizationOptions.length
-        ? failure.fields.organization : ""));
+      setMessage(failure.message);
       if (failure.retryAt) {
         retryDeadline.current = failure.retryAt;
         setRetrySeconds(Math.max(1, Math.ceil((failure.retryAt - Date.now()) / 1000)));
@@ -180,8 +165,6 @@ export const ForgotPasswordPage = () => {
               onBlur={() => setFieldErrors(current => ({ ...current, email: validateRecoveryEmail(email) }))}
               onChange={event => {
                 setEmail(event.target.value);
-                setOrganizationOptions([]);
-                setOrganizationId("");
                 setFieldErrors({});
                 setMessage("");
               }} />
@@ -192,23 +175,6 @@ export const ForgotPasswordPage = () => {
             {fieldErrors.email}
           </span>}
         </div>
-        {organizationOptions.length > 0 && <div className="form-group">
-          <label htmlFor="recovery-organization" className="login-organization-label">Curso</label>
-          <select id="recovery-organization" className="form-input login-organization-select"
-            value={organizationId} required disabled={loading || Boolean(successMessage)} aria-invalid={Boolean(fieldErrors.organization)}
-            aria-describedby={fieldErrors.organization ? "recovery-organization-error" : undefined}
-            onChange={event => {
-              setOrganizationId(event.target.value);
-              setFieldErrors(current => ({ ...current, organization: "" }));
-            }}>
-            {organizationOptions.map(organization => <option key={organization.id} value={organization.id}>
-              {organization.slug === "default" ? "Administración general" : organization.name}
-            </option>)}
-          </select>
-          {fieldErrors.organization && <span id="recovery-organization-error" className="error-message" role="alert">
-            {fieldErrors.organization}
-          </span>}
-        </div>}
         <div className="login-form-actions">
           <Button type="submit" label={retrySeconds ? `Reintentar en ${retrySeconds} s` : "Enviar instrucciones"}
             loading={loading} disabled={retrySeconds > 0 || Boolean(successMessage)}
@@ -230,15 +196,12 @@ export const ForgotPasswordPage = () => {
 
 export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean }) => {
   const repository = useMemo(() => new AuthRepositoryImpl(), []);
-  const [params] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [token] = useState(() => new URLSearchParams(location.hash.slice(1)).get("token") ?? params.get("token") ?? "");
+  const token = useAccountLinkToken();
   const [invitationValid, setInvitationValid] = useState(!invitation);
   useEffect(() => {
     if (!invitation) return;
     let active = true;
-    window.history.replaceState(window.history.state, "", window.location.pathname);
     repository.validateInvitation(token).then(() => { if (active) setInvitationValid(true); })
       .catch(error => { if (active) setMessage(recoveryErrorMessage(error)); });
     return () => { active = false; };
@@ -276,7 +239,7 @@ export const ResetPasswordPage = ({ invitation = false }: { invitation?: boolean
   };
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
-    <Shell title={invitation ? "Aceptar invitación" : "Crear nueva contraseña"} message={message} illustrated={invitation}>
+    <Shell title={invitation ? "Aceptar invitación" : "Crear nueva contraseña"} message={message} illustrated>
       {invitation && !invitationValid && !message && <p role="status">Validando invitacion...</p>}
       {invitationValid && <form onSubmit={submit}>
         <div className="auth-flow__password-row">
