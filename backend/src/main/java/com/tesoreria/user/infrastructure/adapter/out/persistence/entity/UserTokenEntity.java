@@ -54,10 +54,6 @@ public class UserTokenEntity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "invitation_channel", length = 16)
-    private String invitationChannel;
-    public String getInvitationChannel() { return invitationChannel; }
-    public void setInvitationChannel(String value) { invitationChannel = value; }
 
     public Long getId() {
         return id;

@@ -54,7 +54,7 @@ class SchedulePostgresTest extends ScheduleHttpPersistenceTest {
                 "--MERCADO_PAGO_ORGANIZATION_ID=0", "--MERCADO_PAGO_COLLECTOR_ID=",
                 "--MERCADO_PAGO_RETURN_URL=", "--MERCADO_PAGO_WEBHOOK_URL=")) {
             assertNotNull(restarted.getBean(jakarta.persistence.EntityManagerFactory.class));
-            assertEquals("53", restarted.getBean(Flyway.class).info().current().getVersion().toString());
+            assertEquals("58", restarted.getBean(Flyway.class).info().current().getVersion().toString());
         }
     }
 }

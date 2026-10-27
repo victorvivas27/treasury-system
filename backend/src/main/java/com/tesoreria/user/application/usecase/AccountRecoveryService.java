@@ -34,13 +34,12 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class AccountRecoveryService {
-    private static final String WHATSAPP_CHANNEL = "WHATSAPP";
-    private static final int UNIQUE_ACCOUNT_COUNT = 1;
+    private static final String VERIFICATION_ACTION = "verification";
+    private static final String RESET_ACTION = "password-reset";
     private static final String GENERIC_VERIFICATION =
             "Si el correo corresponde a una cuenta pendiente, recibirás un nuevo enlace de verificación.";
     private static final String GENERIC_RESET =
@@ -50,9 +49,14 @@ public class AccountRecoveryService {
     private final EmailOutPort email;
     private final PasswordEncoder passwordEncoder;
     private final AuthFlowRateLimiter rateLimiter;
+    @Autowired private SecurityMailQueue mailQueue;
+    public void setMailQueue(SecurityMailQueue queue) { this.mailQueue = queue; }
     private final RefreshTokenService sessions;
     private final SecureRandom secureRandom = new SecureRandom();
     private final String frontendUrl;
+    // Temporary v1.34.0 rollout bridge; retain query links until frontend promotion.
+    @Value("${app.security.account-link-fragments-enabled:false}")
+    private boolean accountLinkFragmentsEnabled;
     private final CurrentOrganizationService currentOrganization;
     private final OrganizationEmailBrandingService emailBranding;
     private final ApoderadoJpaRepository guardians;
@@ -94,12 +98,6 @@ public class AccountRecoveryService {
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public User inviteGuardian(Long guardianId) {
-        return inviteGuardian(guardianId, null, 24 * 60);
-    }
-
-    @Transactional
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public User inviteGuardian(Long guardianId, java.util.function.Consumer<GuardianInvitation> delivery, long minutes) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || authentication.getAuthorities().stream().noneMatch(a ->
@@ -130,6 +128,7 @@ public class AccountRecoveryService {
                 .filter(ApoderadoEntity::isActivo).orElseThrow(() -> invitationDenied(
                         "El apoderado debe estar activo y registrado en el curso de la sesión."));
         String normalized = normalize(guardian.getEmail());
+        rateLimiter.checkInvitation(normalized, organizationId);
         User user = users.findByCorreoAndOrganizationId(normalized, organizationId).orElseGet(() -> {
             // Disabled account has no usable password until the invitation is accepted.
             String disabledHash = "$2a$10$" + ".".repeat(53);
@@ -155,21 +154,11 @@ public class AccountRecoveryService {
         user.setInvitedGuardianId(guardianId);
         user.setEnabled(false);
         user = users.save(user);
-        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, minutes, true, guardian);
-        if (delivery == null) {
-            requireDelivery(sendPasswordReset(user, frontendUrl + "/aceptar-invitacion?token=" + rawToken));
-        } else {
-            UserTokenEntity invitationToken = tokens.findByTokenHashAndType(hash(rawToken), UserTokenType.ACCOUNT_INVITATION)
-                    .orElseThrow(this::invalidToken);
-            invitationToken.setInvitationChannel(WHATSAPP_CHANNEL);
-            tokens.save(invitationToken);
-            delivery.accept(new GuardianInvitation(user, guardian, rawToken, hash(rawToken)));
-        }
+        String rawToken = issue(user.getId(), UserTokenType.ACCOUNT_INVITATION, 24 * 60, true, guardian);
+        requireDelivery(email.sendGuardianInvitationEmail(user.getCorreo(), user.getNombre(),
+                accountLink("/aceptar-invitacion", rawToken),
+                emailBranding == null ? null : emailBranding.find(user.getOrganizationId())));
         return user;
-    }
-
-    public boolean sendGuardianInvitationEmail(GuardianInvitation invitation, String publicUrl) {
-        return sendPasswordReset(invitation.user(), publicUrl + "/aceptar-invitacion#token=" + invitation.rawToken());
     }
 
     @Transactional
@@ -197,13 +186,7 @@ public class AccountRecoveryService {
     public String resendVerification(String address, Long organizationId) {
         String normalized = normalize(address);
         rateLimiter.checkAndRecord("verification", normalized);
-        findForPublicEmailFlow(normalized, organizationId)
-                .filter(user -> user.getEmailVerifiedAt() == null && user.getInvitationAcceptedAt() != null)
-                .ifPresent(user -> {
-            String rawToken = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, true);
-            requireDelivery(sendVerification(user,
-                    frontendUrl + "/verificar-correo?token=" + rawToken));
-        });
+        mailQueue.enqueue("verification", normalized);
         return GENERIC_VERIFICATION;
     }
 
@@ -220,23 +203,37 @@ public class AccountRecoveryService {
     @Transactional
     public PasswordResetRequestResult requestPasswordReset(String address, Long organizationId) {
         String normalized = normalize(address);
-        if (organizationId == null) {
-            List<User> matches = users.findAllByCorreo(normalized);
-            if (matches.size() > UNIQUE_ACCOUNT_COUNT) {
-                return new PasswordResetRequestResult(GENERIC_RESET, true,
-                        matches.stream().map(User::getOrganizationId).toList());
+        rateLimiter.checkAndRecord("password-reset", normalized);
+        mailQueue.enqueue("password-reset", normalized);
+        return new PasswordResetRequestResult(GENERIC_RESET);
+    }
+
+    /** Invoked only by the persistent mail worker, outside the public response. */
+    @Transactional
+    public void deliverPublicMail(String action, String address) {
+        List<User> matches = users.findAllByCorreo(address);
+        if (VERIFICATION_ACTION.equals(action)) {
+            for (User user : matches) {
+                if (user.getEmailVerifiedAt() == null && user.getInvitationAcceptedAt() != null) {
+                    String raw = issue(user.getId(), UserTokenType.EMAIL_VERIFICATION, 24 * 60, false);
+                    requireDelivery(sendVerification(user, accountLink("/verificar-correo", raw)));
+                }
             }
+            return;
         }
-        rateLimiter.checkAndRecord("password-reset",
-                normalized + (organizationId == null ? "" : ":" + organizationId));
-        findForPublicEmailFlow(normalized, organizationId)
+        if (!RESET_ACTION.equals(action)) throw new IllegalArgumentException("Unsupported security mail action");
+        var eligible = matches.stream().filter(user -> Boolean.TRUE.equals(user.getAccountNonLocked()))
                 .filter(user -> user.getRol() != RoleEnum.USER || Boolean.TRUE.equals(user.getEnabled()))
-                .ifPresent(user -> {
-            String rawToken = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
-            requireDelivery(sendPasswordReset(user,
-                    frontendUrl + "/restablecer-password?token=" + rawToken));
-        });
-        return new PasswordResetRequestResult(GENERIC_RESET, false, List.of());
+                .filter(user -> user.getOrganizationId() == null || organizations.findById(user.getOrganizationId())
+                        .map(organization -> organization.isActive()).orElse(false)).toList();
+        var links = new java.util.ArrayList<com.tesoreria.user.core.model.RecoveryLink>();
+        for (User user : eligible) {
+            String raw = issue(user.getId(), UserTokenType.PASSWORD_RESET, 60, false);
+            String course = user.getOrganizationId() == null ? "Administración general"
+                    : organizations.findById(user.getOrganizationId()).map(organization -> organization.getName()).orElse("Tu curso");
+            links.add(new com.tesoreria.user.core.model.RecoveryLink(course, accountLink("/restablecer-password", raw)));
+        }
+        if (!links.isEmpty()) requireDelivery(email.sendRecoverySummary(address, eligible.get(0).getNombre(), links));
     }
 
     @Transactional
@@ -272,9 +269,7 @@ public class AccountRecoveryService {
         tokens.save(token);
         tokens.markAllUsed(token.getUserId(), token.getType(), token.getUsedAt());
         sessions.revokeAllForUser(user.getId());
-        boolean notified = sendPasswordChanged(user, LocalDateTime.now());
-        // A WhatsApp invitation must not depend on mailbox delivery to activate the account.
-        if (!WHATSAPP_CHANNEL.equals(token.getInvitationChannel())) requireDelivery(notified);
+        requireDelivery(sendPasswordChanged(user, LocalDateTime.now()));
     }
 
     @Transactional
@@ -352,19 +347,15 @@ public class AccountRecoveryService {
         }
     }
 
+    private String accountLink(String path, String token) {
+        return frontendUrl + path + (accountLinkFragmentsEnabled ? "#token=" : "?token=") + token;
+    }
+
     private boolean sendVerification(User user, String link) {
         if (emailBranding == null) {
             return email.sendVerificationEmail(user.getCorreo(), user.getNombre(), link);
         }
         return email.sendVerificationEmail(user.getCorreo(), user.getNombre(), link,
-                emailBranding.find(user.getOrganizationId()));
-    }
-
-    private boolean sendPasswordReset(User user, String link) {
-        if (emailBranding == null) {
-            return email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(), link);
-        }
-        return email.sendPasswordResetEmail(user.getCorreo(), user.getNombre(), link,
                 emailBranding.find(user.getOrganizationId()));
     }
 
@@ -374,14 +365,6 @@ public class AccountRecoveryService {
         }
         return email.sendPasswordChangedEmail(user.getCorreo(), user.getNombre(), changedAt,
                 emailBranding.find(user.getOrganizationId()));
-    }
-
-    private Optional<User> findForPublicEmailFlow(String emailAddress, Long organizationId) {
-        if (organizationId != null) {
-            return users.findByCorreoAndOrganizationId(emailAddress, organizationId);
-        }
-        List<User> matches = users.findAllByCorreo(emailAddress);
-        return matches.size() == UNIQUE_ACCOUNT_COUNT ? Optional.of(matches.get(0)) : Optional.empty();
     }
 
     private String issue(Long userId, UserTokenType type, long minutes, boolean replaceExisting) {
@@ -410,9 +393,6 @@ public class AccountRecoveryService {
         return raw;
     }
 
-    public record GuardianInvitation(User user, ApoderadoEntity guardian, String rawToken, String tokenHash) {
-        @Override public String toString() { return "GuardianInvitation[redacted]"; }
-    }
 
     @Transactional
     public void validateInvitation(String rawToken) {
@@ -473,9 +453,5 @@ public class AccountRecoveryService {
                 UserErrorCode.EMAIL_DELIVERY.getStatus(), "No fue posible enviar el correo. Intenta nuevamente.");
     }
 
-    public record PasswordResetRequestResult(
-            String message,
-            boolean requiresOrganizationSelection,
-            List<Long> organizationIds) {
-    }
+    public record PasswordResetRequestResult(String message) { }
 }

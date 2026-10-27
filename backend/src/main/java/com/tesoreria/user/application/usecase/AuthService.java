@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 public class AuthService {
     private static final int UNIQUE_ACCOUNT_COUNT = 1;
@@ -25,6 +26,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final LoginRateLimiter rateLimiter;
     private final PasswordEncoder passwordEncoder;
+    private final String missingAccountHash;
 
     public AuthService(
             UserRepositoryOutPort users,
@@ -37,6 +39,7 @@ public class AuthService {
         this.jwtService = jwtService;
         this.rateLimiter = rateLimiter;
         this.passwordEncoder = passwordEncoder;
+        this.missingAccountHash = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
     public LoginResult login(String correo, String password, Long organizationId) {
@@ -102,7 +105,11 @@ public class AuthService {
                     .orElseThrow(() -> new BadCredentialsException("bad"));
         }
         Optional<User> scoped = users.findByCorreoAndOrganizationId(normalized, organizationId);
-        User user = scoped.orElseThrow(() -> new BadCredentialsException("bad"));
+        if (scoped.isEmpty()) {
+            passwordEncoder.matches(password, missingAccountHash);
+            throw new BadCredentialsException("bad");
+        }
+        User user = scoped.orElseThrow();
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException("bad");
         }
@@ -111,7 +118,9 @@ public class AuthService {
     }
 
     private List<User> matchingEnabledUsers(String correo, String password) {
-        return users.findAllByCorreo(correo).stream()
+        List<User> candidates = users.findAllByCorreo(correo);
+        if (candidates.isEmpty()) passwordEncoder.matches(password, missingAccountHash);
+        return candidates.stream()
                 .filter(user -> passwordEncoder.matches(password, user.getPassword()))
                 .filter(user -> {
                     UserDetails details = userDetailsService.loadUserById(user.getId());

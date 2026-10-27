@@ -16,6 +16,8 @@ import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserToke
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserTokenJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,6 +52,7 @@ class AccountRecoveryServiceTest {
     @Mock
     private com.tesoreria.user.application.usecase.RefreshTokenService sessions;
     private AccountRecoveryService service;
+    @Mock private com.tesoreria.user.application.usecase.SecurityMailQueue mailQueue;
     @Mock
     private ApoderadoJpaRepository guardians;
     @Mock
@@ -59,18 +62,7 @@ class AccountRecoveryServiceTest {
     void setUp() {
         service = new AccountRecoveryService(users, tokens, email, passwordEncoder,
                 rateLimiter, "https://app.example", null, null, guardians, organizations, sessions);
-    }
-
-    @Test
-    void combinedInvitationEmailReusesTokenWithoutIssuingAnother() {
-        User user = new User();
-        user.setCorreo("ana@example.com");
-        user.setNombre("Ana");
-        var invitation = new AccountRecoveryService.GuardianInvitation(user, null, "shared-token", "hash");
-        when(email.sendPasswordResetEmail("ana@example.com", "ANA",
-                "https://local.example/aceptar-invitacion#token=shared-token")).thenReturn(true);
-        assertTrue(service.sendGuardianInvitationEmail(invitation, "https://local.example"));
-        verifyNoInteractions(tokens, users);
+        service.setMailQueue(mailQueue);
     }
 
     @Test
@@ -199,20 +191,55 @@ class AccountRecoveryServiceTest {
         return token;
     }
 
-    @Test
-    void forgotPassword_deberiaConservarCodigosAnteriores() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void forgotPassword_deberiaConservarCodigosAnteriores(boolean fragments) {
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "accountLinkFragmentsEnabled", fragments);
         User user = org.mockito.Mockito.mock(User.class);
         when(user.getId()).thenReturn(7L);
-        when(user.getCorreo()).thenReturn("user@example.com");
         when(user.getNombre()).thenReturn("User");
+        when(user.getAccountNonLocked()).thenReturn(true);
+        when(user.getOrganizationId()).thenReturn(null);
         when(users.findAllByCorreo("user@example.com")).thenReturn(List.of(user));
-        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString()))
+        when(email.sendRecoverySummary(anyString(), anyString(), anyList()))
                 .thenReturn(true);
 
         service.forgotPassword("user@example.com");
+        verify(mailQueue).enqueue("password-reset", "user@example.com");
+        service.deliverPublicMail("password-reset", "user@example.com");
 
         verify(tokens, never()).deleteByUserIdAndType(7L, UserTokenType.PASSWORD_RESET);
         verify(tokens).save(any(UserTokenEntity.class));
+        verify(email).sendRecoverySummary(eq("user@example.com"), eq("User"), argThat(links ->
+                links.size() == 1 && links.get(0).url().startsWith(
+                        "https://app.example/restablecer-password" + (fragments ? "#" : "?") + "token=")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void verificationDeliveryUsesSelectedTransportAndStoresOnlyTheHash(boolean fragments) {
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "accountLinkFragmentsEnabled", fragments);
+        User user = new User();
+        user.setId(7L);
+        user.setCorreo("user@example.com");
+        user.setNombre("User");
+        user.setInvitationAcceptedAt(java.time.LocalDateTime.now());
+        when(users.findAllByCorreo(user.getCorreo())).thenReturn(List.of(user));
+        when(email.sendVerificationEmail(eq(user.getCorreo()), eq(user.getNombre()), anyString())).thenReturn(true);
+
+        service.deliverPublicMail("verification", user.getCorreo());
+
+        var link = org.mockito.ArgumentCaptor.forClass(String.class);
+        var saved = org.mockito.ArgumentCaptor.forClass(UserTokenEntity.class);
+        verify(email).sendVerificationEmail(eq(user.getCorreo()), eq(user.getNombre()), link.capture());
+        verify(tokens).save(saved.capture());
+        var uri = java.net.URI.create(link.getValue());
+        if (fragments) assertNull(uri.getRawQuery()); else assertNull(uri.getRawFragment());
+        assertEquals("/verificar-correo", uri.getPath());
+        String credential = fragments ? uri.getFragment() : uri.getQuery();
+        assertTrue(credential.startsWith("token="));
+        assertNotEquals(credential.substring(6), saved.getValue().getTokenHash());
+        assertEquals(64, saved.getValue().getTokenHash().length());
     }
 
     @Test

@@ -25,6 +25,14 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
+    @Test void missingAccountsStillPerformPasswordWorkAndReturnTheSamePublicError() {
+        when(passwordEncoder.encode(org.mockito.ArgumentMatchers.anyString())).thenReturn("dummy-hash");
+        var protectedService = new AuthService(users, detailsService, jwtService, rateLimiter, passwordEncoder);
+        var plain = assertThrows(DomainException.class, () -> protectedService.login("missing@example.test", "wrong"));
+        var scoped = assertThrows(DomainException.class, () -> protectedService.login("missing@example.test", "wrong", 5L));
+        assertEquals(401, plain.getStatus().value()); assertEquals(plain.getMessage(), scoped.getMessage());
+        org.mockito.Mockito.verify(passwordEncoder, org.mockito.Mockito.times(2)).matches("wrong", "dummy-hash");
+    }
     @Mock
     private UserRepositoryOutPort users;
     @Mock

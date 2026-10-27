@@ -36,6 +36,7 @@ public class RefreshTokenService {
     private final JwtService jwtService;
     private final long expirationSeconds;
     private final long reuseGraceSeconds;
+    @Autowired private SharedSecurityLimiter securityLimits;
 
     public RefreshTokenService(UserTokenJpaRepository tokenRepository, UserJpaRepository userRepository,
             CustomUserDetailsService userDetailsService, JwtService jwtService,
@@ -125,6 +126,7 @@ public class RefreshTokenService {
         UUID tokenFamilyId = current.getTokenFamilyId() == null
                 ? UUID.randomUUID()
                 : current.getTokenFamilyId();
+        if (securityLimits != null) securityLimits.check("refresh-family", 60, 60, tokenFamilyId.toString());
         current.setTokenFamilyId(tokenFamilyId);
         current.setUsedAt(now);
         current.setLastUsedAt(now);

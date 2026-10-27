@@ -1,0 +1,3 @@
+# Preserve binary fixtures and historical migration bytes on every platform.
+*.pdf binary
+backend/migration-history/*.sql -text

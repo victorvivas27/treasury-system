@@ -59,6 +59,7 @@ public class AuthController {
     private static final String REFRESH_COOKIE = "treasury_refresh";
     private static final String CSRF_COOKIE = "treasury_csrf";
     private static final String CSRF_HEADER = "X-CSRF-Token";
+    @Autowired private com.tesoreria.user.config.security.ClientIpResolver addresses;
 
     @Autowired
     public AuthController(
@@ -193,9 +194,7 @@ public class AuthController {
             @Valid @RequestBody EmailRequestDTO request) {
         var result = accountRecoveryService.requestPasswordReset(request.email(), request.organizationId());
         return ResponseEntity.ok(new MessageResponseDTO(
-                result.message(),
-                result.requiresOrganizationSelection(),
-                recoveryOrganizationOptions(result.organizationIds())));
+                result.message()));
     }
 
     public record InvitationValidation(@jakarta.validation.constraints.NotBlank
@@ -298,18 +297,6 @@ public class AuthController {
                 .toList();
     }
 
-    private List<LoginOrganizationOptionDTO> recoveryOrganizationOptions(List<Long> organizationIds) {
-        return organizationIds.stream()
-                .map(organizationId -> {
-                    if (organizationId == null || organizationService == null) {
-                        return new LoginOrganizationOptionDTO(organizationId, "Administración general");
-                    }
-                    var organization = organizationService.requireActive(organizationId);
-                    return new LoginOrganizationOptionDTO(organization.getId(), displayName(organization));
-                })
-                .toList();
-    }
-
     private String displayName(com.tesoreria.organization.infrastructure.persistence.OrganizationEntity value) {
         return value.getCourseName() == null || value.getCourseName().isBlank()
                 ? value.getName()
@@ -369,10 +356,6 @@ public class AuthController {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
+        return addresses == null ? request.getRemoteAddr() : addresses.resolve(request);
     }
 }
