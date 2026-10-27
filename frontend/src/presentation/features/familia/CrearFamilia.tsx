@@ -1,3 +1,4 @@
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import { useCreateFamilia } from "@/presentation/hooks/familia/useCreateFamilia";
 
 import { FAMILIA_ICONS } from "@/shared/constants/Icons";
@@ -107,7 +108,7 @@ export const CrearFamilia = () => {
   return (
     <main className="familia-create">
 
-      <form className="familia-create__form" onSubmit={(e) => {
+      <form inert={loading} aria-busy={loading} className="familia-create__form" onSubmit={(e) => {
         e.preventDefault();
         handleActionSubmit();
       }}>
@@ -264,6 +265,7 @@ export const CrearFamilia = () => {
         </div>
       </form>
 
+      {loading && <LoadingState message="Guardando los datos" />}
       <ModalAlert
         isOpen={modal.isOpen}
         message={modal.message}

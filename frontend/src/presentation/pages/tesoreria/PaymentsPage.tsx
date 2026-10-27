@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -164,8 +165,7 @@ export const PaymentsPage = () => {
     if (!bankDrawerOpen && !bankConfigOpen) return;
     const modal = bankConfigOpen ? bankConfigRef.current : bankDrawerRef.current;
     const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     modal?.focus();
     const handleModalKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -182,7 +182,7 @@ export const PaymentsPage = () => {
     };
     window.addEventListener("keydown", handleModalKey);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       window.removeEventListener("keydown", handleModalKey);
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };

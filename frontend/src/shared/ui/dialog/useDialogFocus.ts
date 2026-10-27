@@ -1,7 +1,7 @@
-﻿import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
+import { lockBodyScroll } from "./scrollLock";
+import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
 
 const dialogs: HTMLElement[] = [];
-let originalOverflow = "";
 /** Focus only the top dialog; preserve its trigger and the document scroll state. */
 export function useDialogFocus(open: boolean, onClose: () => void, blocked = false) {
   const ref = useRef<HTMLElement>(null);
@@ -13,8 +13,7 @@ export function useDialogFocus(open: boolean, onClose: () => void, blocked = fal
     const dialog = ref.current;
     if (!open || !dialog) return;
     const previous = document.activeElement as HTMLElement | null;
-    if (!dialogs.length) originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const unlockScroll = lockBodyScroll();
     dialogs.push(dialog);
     const active = () => dialogs.at(-1) === dialog;
     const focusable = () => Array.from(dialog.querySelectorAll<HTMLElement>(
@@ -48,7 +47,7 @@ export function useDialogFocus(open: boolean, onClose: () => void, blocked = fal
       if (index >= 0) dialogs.splice(index, 1);
       document.removeEventListener('keydown', keydown);
       document.removeEventListener('focusin', focusin);
-      document.body.style.overflow = dialogs.length ? 'hidden' : originalOverflow;
+      unlockScroll();
       if (previous?.isConnected) previous.focus();
     };
   }, [open]);

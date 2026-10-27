@@ -117,12 +117,6 @@
   }
 }
 
-.guardian-invitation-fields { display: grid; gap: 0.65rem; text-align: left; }
-.guardian-invitation-fields label { display: grid; gap: 0.3rem; font-size: var(--font-label); }
-.guardian-invitation-fields label:has(input[type="checkbox"]) { display: flex; align-items: flex-start; }
-.guardian-invitation-fields input:not([type="checkbox"]), .guardian-invitation-fields select { box-sizing: border-box; width: 100%; min-width: 0; padding: 0.45rem; border: 1px solid var(--border-color); border-radius: 0.4rem; background: var(--color-input); color: var(--text-main); font: inherit; }
-.guardian-invitation-fields p { margin: 0; font-size: var(--font-size-xs); }
 
-.modal-confirm-container .guardian-invitation-fields input[type="checkbox"] { box-sizing: border-box; width: 1rem; height: 1rem; min-height: 1rem; flex: 0 0 1rem; padding: 0; margin: 0.1rem 0 0; accent-color: var(--color-accent); }
 
 .modal-confirm-container.modal-confirm-container--compact.guardian-invitation-modal { box-sizing: border-box; width: min(280px, calc(100vw - 24px)); max-width: var(--modal-edit-max); }

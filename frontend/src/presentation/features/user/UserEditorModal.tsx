@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useId, useLayoutEffect, useRef, type ReactNode } from "react";
 import "./UserEditorModal.css";
 
@@ -12,8 +13,7 @@ export function UserEditorModal({ title, description, busy, onClose, children }:
     if (!element) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const anchor = trigger?.getBoundingClientRect();
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     if (typeof element.showModal === "function") element.showModal();
     else element.setAttribute("open", "");
     if (anchor && window.innerWidth > 768) {
@@ -24,7 +24,7 @@ export function UserEditorModal({ title, description, busy, onClose, children }:
     }
     return () => {
       if (typeof element.close === "function") element.close();
-      document.body.style.overflow = previous;
+      unlockScroll();
       trigger?.focus();
     };
   }, []);

@@ -4,7 +4,7 @@ import { CreateAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/fam
 import { CreateFamiliaUseCase } from "@/core/B-application/use-cases/familia/create/CreateFamiliaUseCase";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
 import axios from "axios";
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAlumnos } from "../alumno/useAlumnos";
 import { useApoderados } from "../apoderado/useApoderados";
@@ -47,6 +47,8 @@ export const useCreateFamilia = () => {
     apoderados: [...(initialFormState.apoderados ?? [])],
   });
 
+  const submitting = useRef(false);
+  const completed = useRef(false);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
@@ -62,9 +64,6 @@ export const useCreateFamilia = () => {
   const closeModal = () => {
     setModal((prev) => ({ ...prev, isOpen: false }));
 
-    if (modal.type === "success") {
-      navigate("/family");
-    }
   };
 
   const handleHeaderChange = (
@@ -205,14 +204,8 @@ export const useCreateFamilia = () => {
     });
   };
 
-  const resetForm = () => {
-    setFormData({
-      ...initialFormState,
-      apoderados: [...(initialFormState.apoderados ?? [])],
-    });
-  };
-
   const handleActionSubmit = async () => {
+    if (submitting.current) return;
     const validationErrors: Record<string, string> = {};
 
     if (!formData.alumnoId) {
@@ -241,6 +234,7 @@ export const useCreateFamilia = () => {
     setFieldErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
+    submitting.current = true;
     setLoading(true);
 
     const repository = new FamiliaRepositoryImpl();
@@ -254,8 +248,8 @@ export const useCreateFamilia = () => {
 
     try {
       await useCase.execute(payload);
-      showAlert("¡Familia creada con éxito!", "success");
-      resetForm();
+      completed.current = true;
+      navigate("/family", { replace: true, state: { successMessage: "Familia creada con éxito." } });
     } catch (error: unknown) {
       if (!axios.isAxiosError(error) || !error.response) {
         showAlert("Ocurrió un error inesperado", "error");
@@ -283,7 +277,10 @@ export const useCreateFamilia = () => {
 
       showAlert(message || "Error al procesar la solicitud", "error");
     } finally {
-      setLoading(false);
+      if (!completed.current) {
+        submitting.current = false;
+        setLoading(false);
+      }
     }
   };
 

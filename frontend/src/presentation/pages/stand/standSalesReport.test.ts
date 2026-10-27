@@ -1,8 +1,33 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Stand, StandSale } from "@/core/A-domain/entities/stand/Stand";
-import { buildStandSalesReport } from "./standSalesReport";
+import { buildStandSalesReport, printStandSalesReport } from "./standSalesReport";
 
 describe("stand sales report", () => {
+  it("imprime un documento independiente sin acceso al opener", () => {
+    const doc = document.implementation.createHTMLDocument();
+    const print = vi.fn();
+    const popup = { document: doc, opener: window, print, focus: vi.fn() };
+    const open = vi.spyOn(window, "open").mockReturnValue(popup as unknown as Window);
+    try {
+      printStandSalesReport({ name: "Stand", eventName: "Evento", date: "2026-10-27", responsible: "Directiva" } as Stand, []);
+      expect(popup.opener).toBeNull();
+      expect(doc.querySelector("style")).not.toBeNull();
+      expect(doc.querySelector("script")).toBeNull();
+      doc.getElementById("save-pdf")!.click();
+      expect(print).toHaveBeenCalledTimes(2);
+    } finally { open.mockRestore(); }
+  });
+  it("escapa atributos, etiquetas y texto en los campos editables sin crear elementos ejecutables", () => {
+    const attack = '"><img src=x onerror=alert(1)><script>alert(2)</script>&';
+    const stand = { name: attack, eventName: attack, date: "2026-10-27", responsible: attack } as Stand;
+    const sales = [{ id: 1, soldAt: "2026-10-27T10:00:00Z", total: 1000, status: "CANCELLED",
+      paymentMethod: "CASH", registeredBy: attack, observation: attack, cancellationReason: attack,
+      items: [{ quantity: 1, productName: attack, variant: attack, unitPrice: 1000, subtotal: 1000 }],
+    }] as StandSale[];
+    const html = new DOMParser().parseFromString(buildStandSalesReport(stand, sales), "text/html");
+    expect(html.querySelectorAll("script, img, [onerror]")).toHaveLength(0);
+    expect(html.body.textContent).toContain(attack);
+  });
   it("exporta todo el historial, ordena ventas y excluye anuladas del total", () => {
     const stand = { name: "La Risa Pizza", eventName: "Fiesta de la Familia",
       date: "2026-09-07", responsible: "Directiva" } as Stand;

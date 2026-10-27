@@ -96,16 +96,12 @@ describe("useCreateAlumno", () => {
       await result.current.handleActionSubmit();
     });
 
-    expect(result.current.modal.message).toBe("¡Datos guardados con éxito!");
-    expect(result.current.modal.type).toBe("success");
-    expect(result.current.formData).toEqual({
-      nombre: "",
-      curso: "",
-      observacion: "",
-      fechaNacimiento: "",
-      genero: "OTROS",
-      apoderadoId: 0,
+    expect(mockNavigate).toHaveBeenCalledWith("/students", {
+      replace: true, state: { successMessage: "Alumno creado con \u00e9xito." },
     });
+    expect(result.current.modal.isOpen).toBe(false);
+    expect(result.current.formData.nombre).toBe("Juan");
+    expect(result.current.loading).toBe(true);
   });
 
   it("[useCreateAlumno #04] Debe manejar errores de validación del servidor", async () => {
@@ -150,7 +146,8 @@ describe("useCreateAlumno", () => {
       await submitPromise;
     });
 
-    expect(result.current.loading).toBe(false);
+    expect(result.current.loading).toBe(true);
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it("[useCreateAlumno #06] Debe llamar correctamente al caso de uso con los datos del formulario", async () => {
@@ -180,7 +177,7 @@ describe("useCreateAlumno", () => {
     });
   });
 
-  it("[useCreateAlumno #07] Debe cerrar el modal y navegar a /students si la creación fue exitosa", () => {
+  it("[useCreateAlumno #07] Debe cerrar el mensaje sin volver a navegar", () => {
     const { result } = renderHook(() => useCreateAlumno(), { wrapper: MemoryRouter });
 
     act(() => {
@@ -195,7 +192,7 @@ describe("useCreateAlumno", () => {
     });
 
     expect(result.current.modal.isOpen).toBe(false);
-    expect(mockNavigate).toHaveBeenCalledWith("/students");
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("[useCreateAlumno #08] Debe limpiar el error de campo cuando cambia su valor", async () => {

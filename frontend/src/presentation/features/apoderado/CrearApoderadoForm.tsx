@@ -1,3 +1,4 @@
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 // components/apoderado/CrearApoderadoForm.tsx
 import { Button } from "@/shared/ui/button/Button";
 import "./style/CrearApoderadoForm.css";
@@ -38,7 +39,7 @@ export const CrearApoderadoForm = () => {
     handleChange,
     handleActionSubmit,
     navigate,
-    setModal,
+    closeModal,
   } = useCreateApoderado();
   const [countryCode, setCountryCode] = useState("CL");
   const selectedCountry = LATAM_COUNTRIES.find((country) => country.code === countryCode) ?? LATAM_COUNTRIES[0];
@@ -55,7 +56,7 @@ export const CrearApoderadoForm = () => {
 
   return (
     <main>
-      <form className="form-card-apoderado">
+      <form inert={loading} aria-busy={loading} onSubmit={event => { event.preventDefault(); void handleActionSubmit(); }} className="form-card-apoderado">
         {/* Campo Nombre */}
         <div className="form-group-apoderado">
           <input
@@ -170,7 +171,8 @@ export const CrearApoderadoForm = () => {
             variant="primary"
             size="medium"
             className="form-actions-apoderado__create-button"
-            onClick={handleActionSubmit}
+            type="submit"
+            onClick={() => {}}
             loading={loading}
             label={loading ? "Creando Apoderado" : "Crear Apoderado"}
             icon={<APODERADOS_ICONS.addCircle />}
@@ -186,16 +188,12 @@ export const CrearApoderadoForm = () => {
         </div>
       </form>
 
+      {loading && <LoadingState message="Guardando los datos" />}
       <ModalAlert
         isOpen={modal.isOpen}
         message={modal.message}
         type={modal.type}
-        onClose={() => {
-          setModal(prev => ({ ...prev, isOpen: false }));
-          if (modal.type === "success") {
-            navigate("/parents");
-          }
-        }}
+        onClose={closeModal}
         autoCloseTime={2000}
         variant={modal.type === "success" ? "toast" : "modal"}
       />

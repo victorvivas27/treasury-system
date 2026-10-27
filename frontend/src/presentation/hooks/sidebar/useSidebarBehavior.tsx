@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useCallback, useEffect, useState } from "react";
 
 export type SidebarState = "hidden" | "icons" | "expanded";
@@ -37,8 +38,7 @@ export const useSidebarBehavior = () => {
 
   useEffect(() => {
     if (!mobile || sidebarState !== "expanded") return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     const toggle = document.querySelector<HTMLButtonElement>(".sidebar-state-toggle");
     const sidebar = document.getElementById("app-sidebar");
     sidebar?.querySelector<HTMLElement>("a, button")?.focus();
@@ -62,7 +62,7 @@ export const useSidebarBehavior = () => {
     };
     document.addEventListener("keydown", escape);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       document.removeEventListener("keydown", escape);
     };
   }, [mobile, sidebarState]);
