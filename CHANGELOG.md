@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.35.1](https://github.com/victorvivas27/treasury-system/compare/v1.35.0...v1.35.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **frontend:** bloquear el fondo antes de mostrar los diálogos de confirmación ([7fc8a5e](https://github.com/victorvivas27/treasury-system/commit/7fc8a5ec2d47dae396075254a4f4afc2167af9bf))
+* **frontend:** bloquear el fondo antes de mostrar los diálogos de confirmación ([0baa8cd](https://github.com/victorvivas27/treasury-system/commit/0baa8cd705aeec789447f6bfa1809d3470937062))
+* **frontend:** lock confirmation dialogs before paint ([7d982b1](https://github.com/victorvivas27/treasury-system/commit/7d982b1b103fd89977184fcf6bd392de07e5022f))
+
 ## [1.35.0](https://github.com/victorvivas27/treasury-system/compare/v1.34.0...v1.35.0) (2026-10-27)
 
 
