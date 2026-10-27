@@ -15,6 +15,16 @@ import java.util.List;
 
 public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from UserEntity u where u.rol = com.tesoreria.user.core.constant.RoleEnum.SUPER_ADMIN order by u.id")
+    List<UserEntity> lockSuperAdministrators();
+
+    @Query("select count(u) from UserEntity u where u.rol = com.tesoreria.user.core.constant.RoleEnum.SUPER_ADMIN "
+            + "and u.id <> :id and u.enabled = true and u.accountNonLocked = true "
+            + "and (u.organizationId is null or exists (select o.id from OrganizationEntity o "
+            + "where o.id = u.organizationId and o.active = true))")
+    long countAvailableSuperAdministratorsExcluding(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from UserEntity u where u.id = :id")
     Optional<UserEntity> findByIdForSessionUpdate(Long id);
 

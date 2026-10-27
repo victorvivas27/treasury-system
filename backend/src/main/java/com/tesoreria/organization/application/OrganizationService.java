@@ -4,6 +4,8 @@ import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.user.core.constant.RoleEnum;
+import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +23,16 @@ public class OrganizationService {
     private final OrganizationJpaRepository organizations;
     private final OrganizationResourceCleaner resourceCleaner;
     private final OrganizationSchoolPeriodService schoolPeriods;
+    private final UserRepositoryOutPort users;
 
     public OrganizationService(OrganizationJpaRepository organizations,
                                OrganizationResourceCleaner resourceCleaner,
-                               OrganizationSchoolPeriodService schoolPeriods) {
+                               OrganizationSchoolPeriodService schoolPeriods,
+                               UserRepositoryOutPort users) {
         this.organizations = organizations;
         this.resourceCleaner = resourceCleaner;
         this.schoolPeriods = schoolPeriods;
+        this.users = users;
     }
 
     @Transactional(readOnly = true)
@@ -92,6 +97,7 @@ public class OrganizationService {
 
     @Transactional
     public OrganizationEntity setActive(Long id, boolean active) {
+        if (!active) protectSuperAdministrators(id);
         OrganizationEntity organization = organizations.findById(id).orElseThrow(() ->
                 new DomainException(ORGANIZATION_FIELD, HttpStatus.NOT_FOUND,
                         "Organización no encontrada"));
@@ -134,6 +140,7 @@ public class OrganizationService {
 
     @Transactional
     public void delete(Long id, String organizationName, String confirmation) {
+        protectSuperAdministrators(id);
         OrganizationEntity organization = require(id);
         if (organization.getType() != OrganizationType.COURSE
                 || DefaultOrganizationProvider.DEFAULT_SLUG.equals(organization.getSlug())) {
@@ -153,5 +160,14 @@ public class OrganizationService {
         organizations.delete(organization);
         organizations.flush();
         resourceCleaner.deleteAfterCommit(storedObjects);
+    }
+
+    private void protectSuperAdministrators(Long organizationId) {
+        users.lockSuperAdministrators();
+        if (!users.findByRolAndOrganizationId(
+                RoleEnum.SUPER_ADMIN, organizationId).isEmpty()) {
+            throw new DomainException(ORGANIZATION_FIELD, HttpStatus.CONFLICT,
+                    "No se puede eliminar o desactivar una organización con cuentas SUPER_ADMIN");
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
 import com.tesoreria.shared.domain.exception.DomainException;
+import com.tesoreria.user.core.port.out.UserRepositoryOutPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,11 +36,13 @@ class OrganizationServiceTest {
     private OrganizationResourceCleaner resourceCleaner;
     @Mock
     private OrganizationSchoolPeriodService schoolPeriods;
+    @Mock
+    private UserRepositoryOutPort users;
     private OrganizationService service;
 
     @BeforeEach
     void setUp() {
-        service = new OrganizationService(organizations, resourceCleaner, schoolPeriods);
+        service = new OrganizationService(organizations, resourceCleaner, schoolPeriods, users);
     }
 
     @Test
