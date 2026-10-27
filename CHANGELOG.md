@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.0](https://github.com/victorvivas27/treasury-system/compare/v1.33.0...v1.34.0) (2026-10-25)
+
+
+### Features
+
+* Agrega gráficos de cobertura y actualiza tipografías ([6b6c2e9](https://github.com/victorvivas27/treasury-system/commit/6b6c2e9349eae795573e1d48c25fdbdf74b18bc5))
+
 ## [1.33.0](https://github.com/victorvivas27/treasury-system/compare/v1.32.0...v1.33.0) (2026-10-24)
 
 
