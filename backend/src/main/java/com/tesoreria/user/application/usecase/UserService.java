@@ -27,6 +27,7 @@ import java.util.UUID;
 
 public class UserService implements UserUseCase {
     private static final String NOT_FOUND_SUFFIX = " no encontrado";
+    private static final String ADMIN_AUTHORIZATION = "hasRole('ADMIN')";
     private final UserRepositoryOutPort repository;
     private final PasswordEncoder passwordEncoder;
     private final DefaultOrganizationProvider defaultOrganization;
@@ -67,6 +68,7 @@ public class UserService implements UserUseCase {
     public User create(User user) {
         if (user.getRol() == RoleEnum.USER) throw invitationRequired();
         assertSuperAdminRoleAllowed(user.getRol());
+        if (user.getRol() == RoleEnum.SUPER_ADMIN) repository.lockSuperAdministrators();
         if (currentOrganization != null && !currentOrganization.isSuperAdmin()) {
             user.setOrganizationId(currentOrganization.getId());
         } else if (user.getOrganizationId() == null && defaultOrganization != null) {
@@ -151,11 +153,15 @@ public class UserService implements UserUseCase {
 
     @Override
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(ADMIN_AUTHORIZATION)
     public User update(Long id, AdminUserUpdate changes, Long authenticatedUserId) {
+        repository.lockSuperAdministrators();
         if (sessions != null) sessions.lockAccount(id);
         User existing = findById(id);
         assertSuperAdminRoleAllowed(existing.getRol());
+        if (Boolean.FALSE.equals(changes.enabled()) || Boolean.FALSE.equals(changes.accountNonLocked())) {
+            protectLastSuperAdministrator(existing);
+        }
         // Validate profile values before mutating the loaded account.
         User profile = new User();
         profile.setNombre(changes.nombre());
@@ -212,10 +218,14 @@ public class UserService implements UserUseCase {
 
     @Override
     @Transactional
+    @PreAuthorize(ADMIN_AUTHORIZATION)
     public User changeRole(Long id, RoleEnum role, Long authenticatedUserId) {
+        repository.lockSuperAdministrators();
+        if (sessions != null) sessions.lockAccount(id);
         User existing = findById(id);
         assertSuperAdminRoleAllowed(role);
         assertSuperAdminRoleAllowed(existing.getRol());
+        if (role != RoleEnum.SUPER_ADMIN) protectLastSuperAdministrator(existing);
         if (existing.getId().equals(authenticatedUserId)) {
             throw new DomainException(
                     UserErrorCode.OWN_ROLE.getField(),
@@ -233,8 +243,13 @@ public class UserService implements UserUseCase {
 
     @Override
     @Transactional
+    @PreAuthorize(ADMIN_AUTHORIZATION)
     public void delete(Long id) {
+        repository.lockSuperAdministrators();
+        if (sessions != null) sessions.lockAccount(id);
         User existing = findById(id);
+        assertSuperAdminRoleAllowed(existing.getRol());
+        protectLastSuperAdministrator(existing);
         if (existing.getRol() == RoleEnum.ADMIN && adminCount(existing.getOrganizationId()) <= 1) {
             throw lastAdminError();
         }
@@ -242,11 +257,13 @@ public class UserService implements UserUseCase {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(ADMIN_AUTHORIZATION)
     public User cambiarEstado(Long id, boolean activo, Long authenticatedUserId) {
+        repository.lockSuperAdministrators();
         if (sessions != null) sessions.lockAccount(id);
         User user = findById(id);
         assertSuperAdminRoleAllowed(user.getRol());
+        if (!activo) protectLastSuperAdministrator(user);
         validateStateChange(user, activo, authenticatedUserId);
         user.setEnabled(activo);
         User saved = repository.save(user);
@@ -302,6 +319,14 @@ public class UserService implements UserUseCase {
                 && !currentOrganization.isSuperAdmin()) {
             throw new DomainException("role", org.springframework.http.HttpStatus.FORBIDDEN,
                     "Solo un superadministrador puede gestionar ese rol");
+        }
+    }
+
+    private void protectLastSuperAdministrator(User user) {
+        if (user.getRol() == RoleEnum.SUPER_ADMIN
+                && repository.countAvailableSuperAdministratorsExcluding(user.getId()) == 0) {
+            throw new DomainException("role", org.springframework.http.HttpStatus.CONFLICT,
+                    "Debe conservar al menos un superadministrador habilitado y desbloqueado");
         }
     }
 }

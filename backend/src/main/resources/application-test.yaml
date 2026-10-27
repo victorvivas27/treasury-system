@@ -2,6 +2,8 @@ server:
   port: 5055
 
 app:
+  security:
+    mail-worker-enabled: false
   jwt:
     secret: test-only-secret-key-with-at-least-32-characters
     expiration-ms: 60000

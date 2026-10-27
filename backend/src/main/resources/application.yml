@@ -28,11 +28,16 @@ spring:
       max-request-size: ${GCS_MAX_FILE_SIZE_MB:10}MB
 
 server:
+  forward-headers-strategy: none
   port: ${PORT:5055}
   servlet:
     context-path: /tesoreria
 
 app:
+  security:
+    trusted-proxies: ${SECURITY_TRUSTED_PROXIES:}
+    # Temporary rollout bridge: enable only after the fragment-compatible frontend is live.
+    account-link-fragments-enabled: ${ACCOUNT_LINK_USE_FRAGMENT:false}
   architecture:
     owner-user-id: ${ARCHITECTURE_OWNER_USER_ID:0}
   time-zone: ${APP_TIME_ZONE:America/Santiago}
@@ -55,6 +60,7 @@ app:
   email:
     provider: ${EMAIL_PROVIDER:gmail}
     from: ${EMAIL_FROM:}
+    assets-base-url: ${EMAIL_ASSETS_BASE_URL:https://storage.googleapis.com/treasury-system-app-vivas-email-assets/email/v1}
   storage:
     # Allure uses its own private bucket; never serve reports from a public bucket.
     gcs:
@@ -69,19 +75,3 @@ app:
     public-key: ${WEB_PUSH_PUBLIC_KEY:}
     private-key: ${WEB_PUSH_PRIVATE_KEY:}
     subject: ${WEB_PUSH_SUBJECT:mailto:tesoreria@example.com}
-
-  whatsapp:
-    enabled: ${WHATSAPP_ENABLED:false}
-    mode: ${WHATSAPP_MODE:test}
-    provider: ${WHATSAPP_PROVIDER:mock}
-    access-token: ${WHATSAPP_ACCESS_TOKEN:}
-    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
-    business-account-id: ${WHATSAPP_BUSINESS_ACCOUNT_ID:}
-    template-invitation: ${WHATSAPP_TEMPLATE_INVITATION:}
-    template-language: ${WHATSAPP_TEMPLATE_LANGUAGE:es_CL}
-    api-version: ${WHATSAPP_API_VERSION:}
-    public-url: ${APP_PUBLIC_URL:}
-    test-recipients: ${WHATSAPP_TEST_RECIPIENTS:}
-    app-secret: ${WHATSAPP_APP_SECRET:}
-    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
-    invitation-hours: ${WHATSAPP_INVITATION_HOURS:24}

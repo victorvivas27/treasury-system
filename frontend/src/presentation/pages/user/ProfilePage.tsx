@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserRepositoryImpl";
@@ -92,8 +93,7 @@ export const ProfilePage = () => {
   useEffect(() => {
     if (!editingName) return;
     const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     const modal = editModalRef.current;
     modal?.querySelector<HTMLButtonElement>(".profile-edit-modal__close")?.focus();
     const handleKey = (event: KeyboardEvent) => {
@@ -117,9 +117,7 @@ export const ProfilePage = () => {
     };
     document.addEventListener("keydown", handleKey);
     return () => {
-      const anotherOverlayOwnsScroll = document.querySelector(".app-loader, [aria-modal='true']");
-      document.body.style.overflow = previousOverflow === "hidden" && !anotherOverlayOwnsScroll
-        ? "" : previousOverflow;
+      unlockScroll();
       document.removeEventListener("keydown", handleKey);
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };

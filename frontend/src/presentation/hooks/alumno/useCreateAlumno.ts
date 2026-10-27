@@ -2,7 +2,7 @@ import { CreateAlumnoUseCase } from "@/core/B-application/use-cases/alumno/creat
 import type { CreateAlumnoDTO } from "@/core/A-domain/entities/alumno/Alumno";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
 import axios from "axios";
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useManagedCourses } from "./useManagedCourses";
 
@@ -20,6 +20,8 @@ export const useCreateAlumno = () => {
   const [formData, setFormData] = useState<CreateAlumnoDTO & { apoderadoId?: number }>({
     ...initialFormState,
   });
+  const submitting = useRef(false);
+  const completed = useRef(false);
   const [loading, setLoading] = useState(false);
   const { courses, loadingCourses, coursesError } = useManagedCourses();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -40,7 +42,6 @@ export const useCreateAlumno = () => {
 
   const closeModal = () => {
     setModal((prev) => ({ ...prev, isOpen: false }));
-    if (modal.type === "success") navigate("/students");
   };
 
   const handleChange = (
@@ -62,6 +63,8 @@ export const useCreateAlumno = () => {
   };
 
   const handleActionSubmit = async () => {
+    if (submitting.current) return;
+    submitting.current = true;
     setLoading(true);
     setFieldErrors({});
 
@@ -71,9 +74,8 @@ export const useCreateAlumno = () => {
     try {
       await useCase.execute(formData);
 
-      showAlert("¡Datos guardados con éxito!", "success");
-      setFormData(initialFormState);
-      setFieldErrors({});
+      completed.current = true;
+      navigate("/students", { replace: true, state: { successMessage: "Alumno creado con éxito." } });
     } catch (error: any) {
       if (!axios.isAxiosError(error) || !error.response) {
         showAlert("Ocurrió un error inesperado", "error");
@@ -89,7 +91,10 @@ export const useCreateAlumno = () => {
 
       showAlert(message || "Error al procesar la solicitud", "error");
     } finally {
-      setLoading(false);
+      if (!completed.current) {
+        submitting.current = false;
+        setLoading(false);
+      }
     }
   };
 

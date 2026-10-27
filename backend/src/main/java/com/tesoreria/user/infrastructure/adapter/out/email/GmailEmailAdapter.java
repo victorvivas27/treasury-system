@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,16 +20,30 @@ import java.time.LocalDateTime;
 @Component
 @ConditionalOnProperty(name = "app.email.provider", havingValue = "gmail", matchIfMissing = true)
 public class GmailEmailAdapter implements EmailOutPort {
+    @Override
+    public boolean sendRecoverySummary(String email, String name, java.util.List<com.tesoreria.user.core.model.RecoveryLink> links) {
+        return send(email, name, "Recupera tu acceso a Tesorería Escolar", EmailTemplates.recoverySummary(name, links), null);
+    }
     private static final int QUOTED_VALUE_MIN_LENGTH = 2;
     private static final int SINGLE_ADDRESS_COUNT = 1;
     private final JavaMailSender mailSender;
     private final String from;
+    private final EmailImages images;
 
     public GmailEmailAdapter(
             JavaMailSender mailSender,
-            @Value("${app.email.from:}") String from) {
+            String from) {
+        this(mailSender, from, EmailImages.DEFAULT_BASE_URL);
+    }
+
+    @Autowired
+    public GmailEmailAdapter(
+            JavaMailSender mailSender,
+            @Value("${app.email.from:}") String from,
+            @Value("${app.email.assets-base-url:}") String assetsBaseUrl) {
         this.mailSender = mailSender;
         this.from = from;
+        this.images = new EmailImages(assetsBaseUrl);
     }
 
     @Override
@@ -41,6 +56,13 @@ public class GmailEmailAdapter implements EmailOutPort {
                                          OrganizationEmailBranding branding) {
         return send(email, name, "Verifica tu correo para activar tu cuenta",
                 EmailTemplates.verification(name, link), branding);
+    }
+
+    @Override
+    public boolean sendGuardianInvitationEmail(String email, String name, String link,
+                                               OrganizationEmailBranding branding) {
+        return send(email, name, "Te damos la bienvenida a Tesorer\u00eda Escolar",
+                EmailTemplates.guardianInvitation(name, link), branding);
     }
 
     @Override
@@ -72,7 +94,7 @@ public class GmailEmailAdapter implements EmailOutPort {
         if (from == null || from.isBlank()) return false;
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
             helper.setFrom(parseFrom(branding));
             if (branding != null && branding.replyToEmail() != null
                     && !branding.replyToEmail().isBlank()) {
@@ -80,7 +102,8 @@ public class GmailEmailAdapter implements EmailOutPort {
             }
             helper.setTo(new InternetAddress(to, repairUtf8Mojibake(recipientName), "UTF-8"));
             helper.setSubject(subject);
-            helper.setText(html, true);
+            String resolvedHtml = images.resolve(html);
+            helper.setText(resolvedHtml, true);
             mailSender.send(message);
             return true;
         } catch (MessagingException | MailException | UnsupportedEncodingException exception) {

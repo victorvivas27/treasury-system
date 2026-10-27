@@ -144,11 +144,16 @@
 }
 
 .usuarios-role {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0.4rem 0.5rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
   border: 1px solid transparent;
   font-size: 0.72rem;
   font-weight: 750;
-  letter-spacing: 0.055em;
-  line-height: 1;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
 }
 
 .usuarios-role.is-admin {

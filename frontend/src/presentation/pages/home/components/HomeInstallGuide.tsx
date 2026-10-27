@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FiArrowLeft, FiDownload, FiX } from "react-icons/fi";
@@ -45,13 +46,12 @@ export const HomeInstallGuide = () => {
   useEffect(() => {
     if (!visible) return;
     const previousFocus = triggerRef.current;
-    const previousOverflow = document.body.style.overflow;
+    const unlockScroll = lockBodyScroll();
     const dialog = dialogRef.current;
     dialog?.showModal();
-    document.body.style.overflow = "hidden";
     return () => {
       dialog?.close();
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       previousFocus?.focus();
     };
   }, [visible]);

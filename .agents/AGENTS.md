@@ -30,6 +30,7 @@ Treasury System integra backend Spring Boot, frontend React/Vite, PostgreSQL, pr
 6. [Pruebas](tasks/06-testing.md)
 7. [Bruno](tasks/07-bruno-api-tests.md)
 8. [Quality gates, Docker y CI](tasks/08-quality-operations.md)
+9. [Archivos .md ](tasks/39-Limpieza-y-reorganización-definitiva-de-documentación-GitHub.md)
 
 Leer siempre `01`, después las áreas afectadas y finalizar con `08`.
 
@@ -130,3 +131,5 @@ No asumir que es el único tamaño admitido: conservar el comportamiento respons
 **Implementar → mostrar → recibir comentarios → ajustar → obtener aprobación → validar.**
 
 Priorizar ciclos rápidos durante la evaluación visual, sin omitir comprobaciones críticas ni comprometer la seguridad, la integridad de los datos o la calidad final.
+
+## No crear automáticamente archivos .md por cada tarea o modificación.

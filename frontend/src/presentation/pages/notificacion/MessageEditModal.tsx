@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FiEdit2 } from "react-icons/fi";
@@ -21,8 +22,7 @@ export const MessageEditModal = ({ message, anchor, onSave, onClose }: {
   useLayoutEffect(() => {
     const dialog = dialogRef.current!;
     const previousFocus = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     dialog.showModal();
     const position = () => {
       const rect = anchor?.getBoundingClientRect();
@@ -44,7 +44,7 @@ export const MessageEditModal = ({ message, anchor, onSave, onClose }: {
       resize.disconnect();
       window.removeEventListener("resize", position);
       dialog.close();
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, [anchor]);

@@ -44,6 +44,17 @@ jobs:
             "${{ secrets.GCP_REGION }}-docker.pkg.dev" \
             --quiet
 
+      - name: Verify existing backend service
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          REGION: ${{ secrets.GCP_REGION }}
+          SERVICE: ${{ secrets.CLOUD_RUN_BACKEND_SERVICE }}
+        run: |
+          gcloud run services describe "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --format='value(metadata.name)' > /dev/null
+
       - name: Build backend image
         working-directory: backend
         env:
@@ -68,50 +79,11 @@ jobs:
           service: ${{ secrets.CLOUD_RUN_BACKEND_SERVICE }}
           image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ github.event.inputs.release_ref || github.sha }}
 
-          flags: >-
-            --service-account=${{ secrets.RUNTIME_SERVICE_ACCOUNT }}
-            --allow-unauthenticated
-            --port=8080
-
-          env_vars_update_strategy: overwrite
-
-          env_vars: |-
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_PORT=${{ secrets.DB_PORT }}
-            DB_NAME=${{ secrets.DB_NAME }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            APP_PROFILE=${{ secrets.APP_PROFILE }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            JWT_EXPIRATION_MS=1800000
-            REFRESH_TOKEN_EXPIRATION_SECONDS=2592000
-            REFRESH_COOKIE_SECURE=true
-            REFRESH_COOKIE_SAME_SITE=${{ secrets.REFRESH_COOKIE_SAME_SITE }}
-            APP_CORS_ALLOWED_ORIGINS=${{ secrets.APP_CORS_ALLOWED_ORIGINS }}
-            EMAIL_PROVIDER=${{ secrets.EMAIL_PROVIDER }}
-            GMAIL_USER=${{ secrets.GMAIL_USER }}
-            GMAIL_APP_PASSWORD=${{ secrets.GMAIL_APP_PASSWORD }}
-            EMAIL_FROM=${{ secrets.EMAIL_FROM }}
-            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-            APP_PUBLIC_URL=https://tesoreriaescolar.app
-            WHATSAPP_ENABLED=false
-            WHATSAPP_MODE=production
-            WHATSAPP_PROVIDER=meta
-            WEB_PUSH_ENABLED=true
-            WEB_PUSH_PUBLIC_KEY=${{ secrets.WEB_PUSH_PUBLIC_KEY }}
-            WEB_PUSH_PRIVATE_KEY=${{ secrets.WEB_PUSH_PRIVATE_KEY }}
-            WEB_PUSH_SUBJECT=${{ secrets.WEB_PUSH_SUBJECT }}
-            GCS_ENABLED=true
-            GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}
-            GCS_MAX_FILE_SIZE_MB=10
-            ALLURE_REPORTS_BUCKET=${{ vars.ALLURE_REPORTS_BUCKET }}
-            MERCADO_PAGO_ACCESS_TOKEN=${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }}
-            MERCADO_PAGO_WEBHOOK_SECRET=${{ secrets.MERCADO_PAGO_WEBHOOK_SECRET }}
-            MERCADO_PAGO_ORGANIZATION_ID=${{ secrets.MERCADO_PAGO_ORGANIZATION_ID }}
-            MERCADO_PAGO_COLLECTOR_ID=${{ secrets.MERCADO_PAGO_COLLECTOR_ID }}
-            MERCADO_PAGO_RETURN_URL=${{ secrets.MERCADO_PAGO_RETURN_URL }}
-            MERCADO_PAGO_WEBHOOK_URL=${{ secrets.MERCADO_PAGO_WEBHOOK_URL }}
-            MERCADO_PAGO_TEST_MODE=false
+          # Image-only release: do not resend stale/empty values from GitHub.
+          # Keep runtime configuration, trusted proxies and secret bindings in Cloud Run.
+          # ACCOUNT_LINK_USE_FRAGMENT stays false until the compatible frontend is live.
+          env_vars_update_strategy: merge
+          secrets_update_strategy: merge
 
       - name: Show deployed backend URL
         run: |

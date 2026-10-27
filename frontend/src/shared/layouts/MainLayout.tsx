@@ -1,3 +1,4 @@
+import { RouteSuccessToast } from "@/shared/ui/modalalert/RouteSuccessToast";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/shared/layouts/sidebar/Sidebar";
 import "./MainLayout.css";
@@ -29,6 +30,7 @@ const auth = useOptionalAuth();
         <Outlet />
         <AppFooter />
       </section>
+      <RouteSuccessToast />
       {auth?.user && <ImprovementCenter />}
     </main>
   );

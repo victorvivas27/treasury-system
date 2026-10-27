@@ -33,6 +33,11 @@ public interface UserRepositoryOutPort {
     boolean existsByCorreoAndOrganizationId(String correo, Long organizationId);
 
     long countByRol(RoleEnum rol);
+
+    // Acquire in ID order, before individual account locks, until transaction completion.
+    void lockSuperAdministrators();
+
+    long countAvailableSuperAdministratorsExcluding(Long id);
     long countByRolAndOrganizationId(RoleEnum rol, Long organizationId);
 
     List<User> findByRolAndOrganizationId(RoleEnum rol, Long organizationId);

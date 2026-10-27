@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import "./LoadingState.css";
 import { useEffect, useState } from "react";
 
@@ -12,9 +13,8 @@ export const LoadingState = ({ message = "Preparando tu espacio", variant = "ful
   }, [delayMs]);
   useEffect(() => {
     if (variant === "contained") return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = previousOverflow; };
+    const unlockScroll = lockBodyScroll();
+    return () => { unlockScroll(); };
   }, [variant]);
   if (!visible) return null;
   return (

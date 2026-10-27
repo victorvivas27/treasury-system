@@ -130,6 +130,16 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     }
 
     @Override
+    public void lockSuperAdministrators() {
+        repository.lockSuperAdministrators();
+    }
+
+    @Override
+    public long countAvailableSuperAdministratorsExcluding(Long id) {
+        return repository.countAvailableSuperAdministratorsExcluding(id);
+    }
+
+    @Override
     public long countByRolAndOrganizationId(RoleEnum rol, Long organizationId) {
         return repository.countByRolAndOrganizationId(rol, organizationId);
     }

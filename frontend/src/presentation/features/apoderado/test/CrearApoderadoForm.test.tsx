@@ -22,6 +22,7 @@ describe("CrearApoderadoForm", () => {
     handleActionSubmit: mockHandleActionSubmit,
     navigate: mockNavigate,
     setModal: mockSetModal,
+    closeModal: () => mockSetModal((prev: any) => ({ ...prev, isOpen: false })),
   };
 
   const renderForm = (hookOverrides = {}) => {

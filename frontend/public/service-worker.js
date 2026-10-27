@@ -10,6 +10,11 @@ const APP_SHELL = [
   '/icons/icono-tesoreria-dark-maskable-512.png',
 ]
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image'])
+const ACCOUNT_LINK_PATHS = new Set(['/restablecer-password', '/aceptar-invitacion', '/verificar-correo'])
+const isAccountLinkPath = (pathname) => {
+  try { return ACCOUNT_LINK_PATHS.has(decodeURIComponent(pathname).toLowerCase().replace(/\/+$/, '')) }
+  catch { return false }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -51,7 +56,7 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     const networkResponse = fetch(request, { cache: 'no-store' }).then((response) => {
-      if (response.ok && response.type === 'basic') {
+      if (response.ok && response.type === 'basic' && !isAccountLinkPath(url.pathname)) {
         // Clone before respondWith can consume the original response body.
         const responseToCache = response.clone()
         void caches.open(CACHE_VERSION).then((cache) => cache.put('/', responseToCache))

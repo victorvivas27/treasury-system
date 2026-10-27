@@ -1,3 +1,4 @@
+import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import { Button } from "@/shared/ui/button/Button";
 import { useCreateAlumno } from "@/presentation/hooks/alumno/useCreateAlumno";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -7,6 +8,7 @@ import "./style/CrearAlumnoForm.css";
 export const CrearAlumnoForm = () => {
   const {
     formData,
+    loading,
     fieldErrors,
     courses = [],
     loadingCourses = false,
@@ -20,7 +22,7 @@ export const CrearAlumnoForm = () => {
 
   return (
     <main>
-      <form className="form-card-alumno">
+      <form inert={loading} aria-busy={loading} onSubmit={event => { event.preventDefault(); void handleActionSubmit(); }} className="form-card-alumno">
         {/* Campo Nombre */}
         <div className="form-group-alumno">
           <input
@@ -123,8 +125,10 @@ export const CrearAlumnoForm = () => {
           <Button
             variant="primary"
             size="medium"
-            onClick={handleActionSubmit}
-            label={"Crear Alumno"}
+            type="submit"
+            onClick={() => {}}
+            loading={loading}
+            label={loading ? "Creando Alumno" : "Crear Alumno"}
             icon={<ALUMNOS_ICONS.addCircle />}
           />
 
@@ -138,6 +142,7 @@ export const CrearAlumnoForm = () => {
         </div>
       </form>
 
+      {loading && <LoadingState message="Guardando los datos" />}
       <ModalAlert
         isOpen={modal.isOpen}
         message={modal.message}

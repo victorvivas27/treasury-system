@@ -1,8 +1,9 @@
 import { StrictMode } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AxiosError, AxiosHeaders } from "axios";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { captureInitialAccountLinkToken, releaseInitialAccountLinkToken } from "@/shared/security/accountLinkToken";
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./AccountFlowPages";
 
 const verifyEmail = vi.hoisted(() => vi.fn());
@@ -78,6 +79,49 @@ describe("VerifyEmailPage", () => {
   });
 });
 
+describe("enlaces privados sin persistencia del token", () => {
+  afterEach(() => {
+    releaseInitialAccountLinkToken();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it.each(["?token=legacy-proof", "#token=fragment-proof"])("verifica correo con %s tras limpiar la URL antes de React", async (suffix) => {
+    verifyEmail.mockReset().mockResolvedValue({ message: "Correo verificado" });
+    window.history.replaceState(null, "", `/verificar-correo${suffix}`);
+    captureInitialAccountLinkToken();
+    expect(window.location.href).not.toContain("token=");
+    render(<StrictMode><BrowserRouter><VerifyEmailPage /></BrowserRouter></StrictMode>);
+    expect(await screen.findByText("Correo verificado")).toBeInTheDocument();
+    expect(verifyEmail).toHaveBeenCalledTimes(1);
+    expect(verifyEmail).toHaveBeenCalledWith(suffix.includes("legacy") ? "legacy-proof" : "fragment-proof");
+  });
+
+  it.each([
+    ["/restablecer-password", false, "Actualizar contrase\u00f1a"],
+    ["/aceptar-invitacion", true, "Activar mi cuenta"],
+  ] as const)("conserva en memoria el token nuevo y antiguo de %s", async (path, invitation, action) => {
+    resetPassword.mockReset().mockResolvedValue(undefined);
+    validateInvitation.mockReset().mockResolvedValue(undefined);
+    window.history.replaceState(null, "", `${path}#token=memory-proof`);
+    captureInitialAccountLinkToken();
+    render(<StrictMode><BrowserRouter><ResetPasswordPage invitation={invitation} /></BrowserRouter></StrictMode>);
+    fireEvent.change(await screen.findByLabelText("Nueva contrase\u00f1a"), { target: { value: "Changed1!" } });
+    fireEvent.change(screen.getByLabelText("Repite tu contrase\u00f1a"), { target: { value: "Changed1!" } });
+    fireEvent.click(screen.getByRole("button", { name: action }));
+    await waitFor(() => expect(resetPassword).toHaveBeenCalledWith("memory-proof", "Changed1!"));
+    expect(window.location.href).not.toContain("token=");
+  });
+
+  it("mantiene limpio un enlace rechazado y no establece una sesi\u00f3n", async () => {
+    verifyEmail.mockReset().mockRejectedValue(new Error("expired or used"));
+    window.history.replaceState(null, "", "/verificar-correo?token=expired-proof");
+    render(<StrictMode><BrowserRouter><VerifyEmailPage /></BrowserRouter></StrictMode>);
+    expect(await screen.findByText(/El enlace es inv\u00e1lido, venci\u00f3 o ya fue utilizado/)).toBeInTheDocument();
+    expect(window.location.href).not.toContain("token=");
+    expect(establishSession).not.toHaveBeenCalled();
+  });
+});
+
 const renderRecovery = () => render(
   <MemoryRouter initialEntries={["/login", "/olvide-password"]} initialIndex={1}>
     <Routes>
@@ -109,7 +153,7 @@ describe("ForgotPasswordPage", () => {
   });
 
   it("impide envíos duplicados y cambios de correo mientras procesa", async () => {
-    let resolve!: (value: { requiresOrganizationSelection: boolean; organizationOptions: { id: number; name: string }[] }) => void;
+    let resolve!: (value: { message: string }) => void;
     forgotPassword.mockReset().mockImplementation(() => new Promise(done => { resolve = done; }));
     renderRecovery();
     const email = screen.getByLabelText("Correo");
@@ -118,8 +162,8 @@ describe("ForgotPasswordPage", () => {
     fireEvent.submit(email.closest("form")!);
     expect(forgotPassword).toHaveBeenCalledTimes(1);
     expect(email).toBeDisabled();
-    await act(async () => { resolve({ requiresOrganizationSelection: true, organizationOptions: [{ id: 4, name: "4A" }] }); });
-    expect(email).toBeEnabled();
+    await act(async () => { resolve({ message: "Si existe una cuenta, recibirás instrucciones." }); });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("avisa si el servidor no entrega cursos utilizables", async () => {
@@ -127,7 +171,7 @@ describe("ForgotPasswordPage", () => {
     renderRecovery();
     fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "usuario@example.test" } });
     fireEvent.click(screen.getByRole("button", { name: "Enviar instrucciones" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("No fue posible cargar los cursos");
+    expect(await screen.findByRole("alert")).toHaveTextContent("No fue posible procesar la solicitud");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -159,23 +203,16 @@ describe("ForgotPasswordPage", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("conserva la selección de curso y la descarta si cambia el correo", async () => {
-    forgotPassword.mockReset().mockResolvedValue({
-      requiresOrganizationSelection: true,
-      organizationOptions: [{ id: 4, name: "4A" }, { id: 5, name: "5A" }],
-    });
+  it("no muestra cursos ni pide una segunda solicitud para la recuperación multicurso", async () => {
+    forgotPassword.mockReset().mockResolvedValue({ message: "Si existe una cuenta, recibirás instrucciones.",
+      requiresOrganizationSelection: false, organizationOptions: [] });
     renderRecovery();
     fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "usuario@example.test" } });
     fireEvent.click(screen.getByRole("button", { name: "Enviar instrucciones" }));
-    const course = await screen.findByLabelText("Curso");
-    fireEvent.change(course, { target: { value: "5" } });
-    fireEvent.click(screen.getByRole("button", { name: "Enviar instrucciones" }));
-    await waitFor(() => expect(forgotPassword).toHaveBeenLastCalledWith("usuario@example.test", 5));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Enviar instrucciones" })).toBeEnabled());
-    fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "otro@example.test" } });
+    await screen.findByRole("dialog");
     expect(screen.queryByLabelText("Curso")).not.toBeInTheDocument();
+    expect(forgotPassword).toHaveBeenCalledExactlyOnceWith("usuario@example.test");
   });
-
   it("muestra el error de envío y permite volver con el botón compartido", async () => {
     forgotPassword.mockReset().mockRejectedValue(new Error("offline"));
     renderRecovery();

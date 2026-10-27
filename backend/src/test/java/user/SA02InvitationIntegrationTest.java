@@ -50,8 +50,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = TesoreriaAppApplication.class, properties = {
-        "app.storage.gcs.enabled=false", "app.whatsapp.enabled=true", "app.whatsapp.provider=mock", "app.whatsapp.mode=test",
-        "app.whatsapp.public-url=https://app.example", "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",
+        "app.security.account-link-fragments-enabled=true",
+        "app.storage.gcs.enabled=false",
+        "spring.datasource.url=jdbc:h2:mem:sa02;DB_CLOSE_DELAY=-1",
         "MERCADO_PAGO_ACCESS_TOKEN=", "MERCADO_PAGO_WEBHOOK_SECRET=",
         "MERCADO_PAGO_ORGANIZATION_ID=0", "MERCADO_PAGO_COLLECTOR_ID=",
         "MERCADO_PAGO_RETURN_URL=", "MERCADO_PAGO_WEBHOOK_URL="
@@ -65,6 +66,7 @@ class SA02InvitationIntegrationTest {
     @Autowired UserJpaRepository users;
     @Autowired UserTokenJpaRepository tokens;
     @Autowired AccountRecoveryService recovery;
+    @Autowired com.tesoreria.user.application.usecase.SecurityMailQueue mailQueue;
     @Autowired CustomUserDetailsService details;
     @Autowired JwtService jwt;
     @Autowired com.tesoreria.user.config.security.TokenRevocationService revocations;
@@ -72,7 +74,6 @@ class SA02InvitationIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository students;
     @MockitoBean EmailOutPort email;
-    @MockitoBean com.tesoreria.messaging.core.InvitationMessagePort whatsappMessages;
 
 
     private final ConcurrentHashMap<String, String> links = new ConcurrentHashMap<>();
@@ -88,9 +89,15 @@ class SA02InvitationIntegrationTest {
     @BeforeEach
     void prepare() {
         links.clear();
+        when(email.sendGuardianInvitationEmail(anyString(), anyString(), anyString(), any()))
+                .thenAnswer(call -> { links.put(call.getArgument(0), call.getArgument(2)); return true; });
         when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), any()))
                 .thenAnswer(call -> { links.put(call.getArgument(0), call.getArgument(2)); return true; });
         when(email.sendPasswordChangedEmail(anyString(), anyString(), any(), any())).thenReturn(true);
+        when(email.sendRecoverySummary(anyString(), anyString(), anyList())).thenAnswer(call -> {
+            java.util.List<com.tesoreria.user.core.model.RecoveryLink> recoveryLinks = call.getArgument(2);
+            links.put(call.getArgument(0), recoveryLinks.get(0).url()); return true;
+        });
         when(email.sendVerificationEmail(anyString(), anyString(), anyString(), any())).thenReturn(true);
         courseA = course();
         courseB = course();
@@ -108,109 +115,6 @@ class SA02InvitationIntegrationTest {
     @AfterEach
     void clearContext() {
         SecurityContextHolder.clearContext();
-    }
-
-    @Test
-    void invitationChannelsRequireAdminAndExposeOnlyAvailability() throws Exception {
-        String path = "/api/v1/apoderados/canales-invitacion";
-        mvc.perform(get(path)).andExpect(status().isUnauthorized());
-        mvc.perform(get(path).header("Authorization", bearer(ordinary))).andExpect(status().isForbidden());
-        mvc.perform(get(path).header("Authorization", bearer(adminA)))
-                .andExpect(status().isOk()).andExpect(content().json("{\"whatsappEnabled\":true}"));
-    }
-
-    @Test
-    void combinedInvitationSharesOneTokenAndActivatesOnlyOnce() throws Exception {
-        String raw = inviteWhatsApp(true);
-        assertEquals("https://app.example/aceptar-invitacion#token=" + raw, links.get(guardianA.getEmail()));
-        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + raw + "\",\"newPassword\":\"Activated1!\"}"))
-                .andExpect(status().isOk());
-        assertTrue(invited(guardianA).getEnabled());
-        reject(raw);
-    }
-
-    @Test
-    void combinedInvitationKeepsTokenUsableWhenEmailFails() throws Exception {
-        when(email.sendPasswordResetEmail(anyString(), anyString(), anyString(), any())).thenReturn(false);
-        String raw = inviteWhatsApp(true);
-        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + raw + "\"}")).andExpect(status().isNoContent());
-        assertFalse(invited(guardianA).getEnabled());
-    }
-
-    @Test
-    void whatsappInvitationActivatesExistingAccountOnceWithoutExposingToken() throws Exception {
-        String raw = inviteWhatsApp();
-        UserEntity pending = invited(guardianA);
-        assertFalse(pending.getEnabled());
-        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + raw + "\"}")).andExpect(status().isNoContent());
-        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + raw + "\",\"newPassword\":\"weak\"}"))
-                .andExpect(status().isBadRequest());
-        assertFalse(invited(guardianA).getEnabled());
-        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + raw + "\",\"newPassword\":\"Activated1!\"}"))
-                .andExpect(status().isOk());
-        assertTrue(invited(guardianA).getEnabled());
-        assertTrue(encoder.matches("Activated1!", invited(guardianA).getPassword()));
-        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + raw + "\"}")).andExpect(status().is4xxClientError());
-        reject(raw);
-        mvc.perform(get(whatsappPath()).header("Authorization", bearer(adminA)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVATED"));
-    }
-
-    @Test
-    void whatsappResendReusesUserInvalidatesOldTokenAndRejectsExpiredLinks() throws Exception {
-        String first = inviteWhatsApp();
-        Long accountId = invited(guardianA).getId();
-        mvc.perform(post(whatsappPath()).header("Authorization", bearer(adminA))
-                .contentType(MediaType.APPLICATION_JSON).content(whatsappConsent())).andExpect(status().isTooManyRequests());
-        jdbc.update("UPDATE guardian_whatsapp_invitations SET created_at = ? WHERE guardian_id = ?",
-                LocalDateTime.now().minusMinutes(2), guardianA.getApoderadoId());
-        String second = inviteWhatsApp();
-        assertNotEquals(first, second);
-        assertEquals(accountId, invited(guardianA).getId());
-        reject(first);
-        jdbc.update("UPDATE user_tokens SET expires_at = ? WHERE token_hash = ?", LocalDateTime.now().minusMinutes(1), hash(second));
-        mvc.perform(post("/api/v1/auth/validate-invitation").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + second + "\"}")).andExpect(status().is4xxClientError());
-        reject(second);
-        assertFalse(invited(guardianA).getEnabled());
-    }
-
-    @Test
-    void whatsappRoutesRequireAdministratorAndCorrectTenant() throws Exception {
-        mvc.perform(get(whatsappPath())).andExpect(status().isUnauthorized());
-        mvc.perform(post(whatsappPath()).contentType(MediaType.APPLICATION_JSON).content(whatsappConsent()))
-                .andExpect(status().isUnauthorized());
-        mvc.perform(post(whatsappPath()).header("Authorization", bearer(ordinary))
-                .contentType(MediaType.APPLICATION_JSON).content(whatsappConsent())).andExpect(status().isForbidden());
-        mvc.perform(get(whatsappPath()).header("Authorization", bearer(adminB))).andExpect(status().isNotFound());
-    }
-
-    private String whatsappPath() { return "/api/v1/apoderados/" + guardianA.getCodigo() + "/invitacion-whatsapp"; }
-    private String whatsappConsent() {
-        return "{\"authorized\":true,\"source\":\"Signed form\",\"authorizedAt\":\"2026-01-01T10:00:00\"}";
-    }
-    private String inviteWhatsApp() throws Exception {
-        return inviteWhatsApp(false);
-    }
-    private String inviteWhatsApp(boolean sendEmail) throws Exception {
-        jdbc.update("UPDATE apoderados SET telefono = ? WHERE apoderado_id = ?", "+56912345678", guardianA.getApoderadoId());
-        when(whatsappMessages.sendInvitation(anyString(), anyString(), anyString(), anyString())).thenAnswer(call -> {
-            links.put("whatsapp", call.getArgument(3));
-            return new com.tesoreria.messaging.core.InvitationMessagePort.SendResult("wamid." + UUID.randomUUID(), null, false);
-        });
-        mvc.perform(post(whatsappPath()).header("Authorization", bearer(adminA))
-                .contentType(MediaType.APPLICATION_JSON).content(sendEmail
-                        ? whatsappConsent().replace("}", ",\"sendEmail\":true}") : whatsappConsent()))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.deliveryStatus").value("ACCEPTED"))
-                .andExpect(jsonPath("$.deliveredAt").isEmpty()).andExpect(jsonPath("$.token").doesNotExist());
-        assertNotNull(links.get("whatsapp"));
-        return links.get("whatsapp");
     }
 
     @Test
@@ -263,7 +167,7 @@ class SA02InvitationIntegrationTest {
         assertEquals(courseA, ((Number) context.get("invitation_organization_id")).longValue());
         assertEquals(guardianA.getEmail().toLowerCase(), context.get("invitation_email"));
         assertNotEquals(raw, context.get("token_hash"));
-        assertTrue(links.get(guardianA.getEmail()).contains("/aceptar-invitacion?token="));
+        assertTrue(links.get(guardianA.getEmail()).contains("/aceptar-invitacion#token="));
     }
 
     @Test
@@ -594,6 +498,68 @@ class SA02InvitationIntegrationTest {
     }
 
     @Test
+    void phase4VerificationFragmentIsConsumedOnceUnderConcurrentRequests() throws Exception {
+        String invitation = invite(guardianA, adminA);
+        recovery.resetPassword(invitation, "Authorized1!");
+        UserEntity activated = invited(guardianA);
+        jdbc.update("UPDATE users SET email_verified_at=NULL WHERE id=?", activated.getId());
+        when(email.sendVerificationEmail(anyString(), anyString(), anyString(), any()))
+                .thenAnswer(call -> { links.put(call.getArgument(0), call.getArgument(2)); return true; });
+        recovery.deliverPublicMail("verification", activated.getCorreo());
+        String url = links.get(activated.getCorreo());
+        assertTrue(url.contains("/verificar-correo#token="));
+        assertNull(java.net.URI.create(url).getRawQuery());
+        String raw = java.net.URI.create(url).getFragment().substring(6);
+        assertSingleConcurrentCompletion(() -> recovery.verifyEmail(raw));
+        assertThrows(com.tesoreria.shared.domain.exception.DomainException.class, () -> recovery.verifyEmail(raw));
+        assertNotNull(invited(guardianA).getEmailVerifiedAt());
+    }
+
+    @Test
+    void phase4RecoveryFragmentIsConsumedOnceUnderConcurrentRequests() throws Exception {
+        recovery.resetPassword(invite(guardianA, adminA), "Authorized1!");
+        recovery.deliverPublicMail("password-reset", guardianA.getEmail());
+        String url = links.get(guardianA.getEmail());
+        assertTrue(url.contains("/restablecer-password#token="));
+        assertNull(java.net.URI.create(url).getRawQuery());
+        String raw = java.net.URI.create(url).getFragment().substring(6);
+        assertSingleConcurrentCompletion(() -> recovery.resetPassword(raw, "RecoveredPhase4!"));
+        reject(raw);
+        assertTrue(encoder.matches("RecoveredPhase4!", invited(guardianA).getPassword()));
+    }
+
+    @Test
+    void phase4ExpiredUsedAndRevokedVerificationTokensAreRejected() throws Exception {
+        recovery.resetPassword(invite(guardianA, adminA), "Authorized1!");
+        String raw = legacyToken(invited(guardianA), UserTokenType.EMAIL_VERIFICATION);
+        jdbc.update("UPDATE user_tokens SET expires_at=? WHERE token_hash=?", LocalDateTime.now().minusMinutes(1), hash(raw));
+        assertThrows(com.tesoreria.shared.domain.exception.DomainException.class, () -> recovery.verifyEmail(raw));
+        jdbc.update("UPDATE user_tokens SET expires_at=?, used_at=? WHERE token_hash=?", LocalDateTime.now().plusMinutes(10), LocalDateTime.now(), hash(raw));
+        assertThrows(com.tesoreria.shared.domain.exception.DomainException.class, () -> recovery.verifyEmail(raw));
+        jdbc.update("UPDATE user_tokens SET used_at=NULL, revoked_at=? WHERE token_hash=?", LocalDateTime.now(), hash(raw));
+        assertThrows(com.tesoreria.shared.domain.exception.DomainException.class, () -> recovery.verifyEmail(raw));
+    }
+
+    private void assertSingleConcurrentCompletion(Runnable operation) throws Exception {
+        var executor = Executors.newFixedThreadPool(2);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        java.util.concurrent.Callable<Integer> attempt = () -> {
+            ready.countDown();
+            assertTrue(start.await(10, TimeUnit.SECONDS));
+            try { operation.run(); return 1; }
+            catch (com.tesoreria.shared.domain.exception.DomainException rejected) { return 0; }
+        };
+        try {
+            var first = executor.submit(attempt);
+            var second = executor.submit(attempt);
+            assertTrue(ready.await(10, TimeUnit.SECONDS));
+            start.countDown();
+            assertEquals(1, first.get(30, TimeUnit.SECONDS) + second.get(30, TimeUnit.SECONDS));
+        } finally { start.countDown(); executor.shutdownNow(); }
+    }
+
+    @Test
     void forgotPasswordAndOldResetCannotActivatePendingAccount() throws Exception {
         invite(guardianA, adminA);
         UserEntity pending = invited(guardianA);
@@ -615,6 +581,7 @@ class SA02InvitationIntegrationTest {
         recovery.resetPassword(invitation, "Authorized1!");
         UserEntity activated = invited(guardianA);
         recovery.forgotPassword(activated.getCorreo(), courseA);
+        assertTrue(mailQueue.deliverOne());
         String raw = links.get(activated.getCorreo()).split("token=")[1];
         recovery.resetPassword(raw, "Recovered1!");
         UserEntity recovered = invited(guardianA);
@@ -652,6 +619,8 @@ class SA02InvitationIntegrationTest {
                 .header("Authorization", bearer(adminA)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"activo\":true}"))
                 .andExpect(status().isForbidden());
+        // A legitimate new invitation is sent after the short resend cooldown.
+        jdbc.update("UPDATE security_rate_buckets SET expires_at=CURRENT_TIMESTAMP");
         String renewed = invite(guardianA, adminA);
         recovery.resetPassword(renewed, "Renewed1!");
         assertTrue(invited(guardianA).getEnabled());

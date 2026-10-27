@@ -2,7 +2,7 @@ import { CreateApoderadoUseCase } from "@/core/B-application/use-cases/apoderado
 import type { CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import axios from "axios";
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateTelefono } from "@/shared/validation/apoderadoValidation";
 
@@ -19,6 +19,8 @@ export const useCreateApoderado = () => {
     ...initialFormState,
   });
 
+  const submitting = useRef(false);
+  const completed = useRef(false);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [modal, setModal] = useState({
@@ -33,7 +35,6 @@ export const useCreateApoderado = () => {
 
   const closeModal = () => {
     setModal((prev) => ({ ...prev, isOpen: false }));
-    if (modal.type === "success") navigate("/parents");
   };
 
   const handleChange = (
@@ -52,6 +53,7 @@ export const useCreateApoderado = () => {
   };
 
   const handleActionSubmit = async () => {
+    if (submitting.current) return;
     setFieldErrors({});
 
     const telefonoError = validateTelefono(formData.telefono);
@@ -60,6 +62,7 @@ export const useCreateApoderado = () => {
       return;
     }
 
+    submitting.current = true;
     setLoading(true);
 
     const repository = new ApoderadoRepositoryImpl();
@@ -68,9 +71,8 @@ export const useCreateApoderado = () => {
     try {
       await useCase.execute(formData);
 
-      showAlert("¡Datos guardados con éxito!", "success");
-      setFormData(initialFormState);
-      setFieldErrors({});
+      completed.current = true;
+      navigate("/parents", { replace: true, state: { successMessage: "Apoderado creado con éxito." } });
       
     } catch (error: any) {
       if (!axios.isAxiosError(error) || !error.response) {
@@ -86,7 +88,10 @@ export const useCreateApoderado = () => {
       }
       showAlert(message || "Error al procesar la solicitud", "error");
     } finally {
-      setLoading(false);
+      if (!completed.current) {
+        submitting.current = false;
+        setLoading(false);
+      }
     }
   };
 

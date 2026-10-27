@@ -47,6 +47,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<StandardErrorResponse> handleDomainException(DomainException e) {
+        if (e instanceof com.tesoreria.user.core.exception.SecurityLimitException limited) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", Long.toString(limited.getRetryAfter()))
+                    .body(new StandardErrorResponse(429, Map.of("rateLimit", limited.getMessage()), LocalDateTime.now()));
+        }
         Map<String, String> errors = new HashMap<>();
         if (e.getField() != null) {
             errors.put(e.getField(), e.getMessage());

@@ -1,3 +1,4 @@
+import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import { useEffect, useRef, useState } from "react";
 import { FiCalendar, FiGift, FiStar } from "react-icons/fi";
@@ -66,12 +67,11 @@ export const BirthdaySection = ({ alumnos, today = new Date(), maxItems = 8 }: B
     if (!selectedBirthday) return;
     const dialog = dialogRef.current;
     const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     dialog?.showModal();
     return () => {
       dialog?.close();
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };
   }, [selectedBirthday]);
