@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.35.0](https://github.com/victorvivas27/treasury-system/compare/v1.34.0...v1.35.0) (2026-10-27)
+
+
+### Features
+
+* **auth:** add shared security limits and email invitations with V58 rollout ([1b03fe4](https://github.com/victorvivas27/treasury-system/commit/1b03fe4cea88bc31e7e9faaef7fd024f988575e0))
+
+
+### Bug Fixes
+
+* **ci:** isolate private production bridge compatibility tests ([a085607](https://github.com/victorvivas27/treasury-system/commit/a085607556d47c6e835028a0fd72cb46aceefe73))
+* **ci:** isolate private production bridge compatibility tests ([aaec6be](https://github.com/victorvivas27/treasury-system/commit/aaec6bebfa84275f78eb8a18c3ecd0f315930f62))
+* **frontend:** improve forms, navigation, loading and account invitations ([15b7ad6](https://github.com/victorvivas27/treasury-system/commit/15b7ad697ab02980244707aab1e3a00cb23c3841))
+* **security:** harden account links and headers while preserving deployment config ([21f99da](https://github.com/victorvivas27/treasury-system/commit/21f99daae901b74f4094541cee0aa36c1f786cd3))
+* **security:** protect super administrators and the last global account ([97326fc](https://github.com/victorvivas27/treasury-system/commit/97326fc0d1cb15c8898a299892fcece26a10fc0a))
+
 ## [1.34.0](https://github.com/victorvivas27/treasury-system/compare/v1.33.0...v1.34.0) (2026-10-25)
 
 
