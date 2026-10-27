@@ -1,0 +1,96 @@
+{
+    "recordedAt":  "2026-10-26T17:12:11.8192736-03:00",
+    "engine":  "PostgreSQL 16.14",
+    "image":  "postgres:16-alpine",
+    "environment":  "Disposable local Testcontainers databases; no production access",
+    "schema":  "Existing Flyway scripts V1-V55 in empty disposable databases; Hibernate validate",
+    "result":  "BUILD SUCCESSFUL",
+    "totals":  {
+                   "skipped":  0,
+                   "errors":  0,
+                   "tests":  90,
+                   "failures":  0
+               },
+    "suites":  [
+                   {
+                       "suite":  "user.SA04PostgresProfileSecurityTest",
+                       "tests":  27,
+                       "failures":  0,
+                       "errors":  0,
+                       "skipped":  0
+                   },
+                   {
+                       "suite":  "user.SA05PostgresSessionSecurityTest",
+                       "tests":  13,
+                       "failures":  0,
+                       "errors":  0,
+                       "skipped":  0
+                   },
+                   {
+                       "suite":  "user.SA06PostgresPasswordSessionTest",
+                       "tests":  6,
+                       "failures":  0,
+                       "errors":  0,
+                       "skipped":  0
+                   },
+                   {
+                       "suite":  "user.SA07PostgresRefreshReuseTest",
+                       "tests":  4,
+                       "failures":  0,
+                       "errors":  0,
+                       "skipped":  0
+                   },
+                   {
+                       "suite":  "user.SuperAdminPostgresProtectionTest",
+                       "tests":  40,
+                       "failures":  0,
+                       "errors":  0,
+                       "skipped":  0
+                   }
+               ],
+    "events":  [
+                   "PHASE1_ENGINE PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+                   "PHASE1_TIMEOUT sqlstate=55P03 rollback=verified subsequentRequest=200 deadlocks=0",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_ORGANIZATION_RACE delete statuses=[409, 204] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_ORGANIZATION_RACE disable statuses=[409, 204] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/delete iteration=0 statuses=[204, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/delete iteration=1 statuses=[409, 204] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/delete iteration=2 statuses=[409, 204] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE disable/disable iteration=0 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE disable/disable iteration=1 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE disable/disable iteration=2 statuses=[409, 200] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE put-disable/put-disable iteration=0 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE put-disable/put-disable iteration=1 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE put-disable/put-disable iteration=2 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE lock/lock iteration=0 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE lock/lock iteration=1 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE lock/lock iteration=2 statuses=[200, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/disable iteration=0 statuses=[204, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/disable iteration=1 statuses=[409, 200] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/disable iteration=2 statuses=[204, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/lock iteration=0 statuses=[204, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/lock iteration=1 statuses=[204, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0",
+                   "PHASE1_RACE delete/lock iteration=2 statuses=[204, 409] available=1",
+                   "PHASE1_LOCKS blocked=2 deadlocks=0"
+               ]
+}

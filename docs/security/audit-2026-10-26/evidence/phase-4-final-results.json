@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-27",
+  "status": "implemented-validated-locally-not-deployed",
+  "backend": {
+    "command": "gradlew.bat check",
+    "tests": 989,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "postgres": {
+      "tests": 227,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pmd": "passed",
+    "jacocoGate": "passed"
+  },
+  "phase1": [
+    {
+      "name": "TEST-user.SuperAdminPostgresProtectionTest.xml",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "TEST-user.SuperAdminProtectionIntegrationTest.xml",
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "phase3": [
+    {
+      "name": "TEST-user.Phase3PostgresSecurityTest.xml",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "frontend": {
+    "command": "pnpm test:run",
+    "files": 125,
+    "tests": 873,
+    "failures": 0,
+    "skipped": 0,
+    "source": "Final Vitest terminal output; 367.75 seconds",
+    "lint": "passed",
+    "build": "passed"
+  },
+  "headerGenerator": {
+    "command": "node --test scripts/security-headers.node-test.mjs",
+    "tests": 2,
+    "failures": 0
+  },
+  "browser": {
+    "stats": {
+      "startTime": "2026-10-27T11:30:25.320Z",
+      "duration": 19476.053,
+      "expected": 16,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "engine": "Chromium",
+    "viewport": {
+      "width": 1216,
+      "height": 552
+    },
+    "nginxVersion": "1.29.8",
+    "source": "frontend/build/security-browser/results.json",
+    "allureArtifacts": "existing private frontend/backend reports generated 2026-10-24; rendering compatibility only",
+    "transport": "API/STOMP mocked; real compiled frontend, nginx, sandbox and service worker",
+    "badgeLimitation": "OS badge bridge stubbed to avoid headless BadgeService IPC crash"
+  },
+  "security": {
+    "cspEnforced": "frame-ancestors 'none'; object-src 'none'",
+    "fullCsp": "Report-Only",
+    "globalUnsafeEval": false,
+    "hstsFrontend": "not enabled; pending verification of real HTTPS/domains",
+    "legacyQueryLinks": true,
+    "tokenPersistence": "memory only",
+    "nginxAccessLogFixtureTokensFoundInReviewedOutput": false
+  },
+  "production": {
+    "deployed": false,
+    "migrationsExecuted": false,
+    "newMigrations": false,
+    "remoteConfigurationVerified": false
+  },
+  "warnings": [
+    "Existing lottie-web eval and bundle size warnings",
+    "Old query links may still appear in upstream/history records",
+    "No real SMTP delivery or native OS badge validation"
+  ]
+}

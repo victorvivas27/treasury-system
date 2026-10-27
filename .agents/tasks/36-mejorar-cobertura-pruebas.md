@@ -79,7 +79,7 @@ La ejecución backend del 20/10/2026 informó 647 pruebas: 594 aprobadas, 12 fal
 
 1. Tesorería y pagos: cálculos, anulaciones, duplicados, transacciones y rollback.
 2. Seguridad: autenticación, renovación de tokens, permisos y aislamiento entre organizaciones.
-3. Mercado Pago, correo y WhatsApp: fallos, tiempos de espera y reintentos.
+3. Mercado Pago y correo: fallos, tiempos de espera y reintentos.
 4. Frontend crítico: formularios, errores de API, sesiones vencidas y envíos duplicados.
 5. Alumnos, apoderados, familias, eventos, stands y horarios.
 

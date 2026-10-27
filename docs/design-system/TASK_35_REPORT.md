@@ -169,6 +169,5 @@ docs/design-system/TASK_35_REPORT.md
 ```
 
 Los otros archivos modificados que ya aparecían en `git status` antes de comenzar
-(WhatsApp, sidebar, login, horario y comunidad) no deben atribuirse íntegramente
 a esta tarea. En las hojas que coinciden con esta migración se conservaron esas
 ediciones y solo se aplicaron cambios de estilos adicionales.

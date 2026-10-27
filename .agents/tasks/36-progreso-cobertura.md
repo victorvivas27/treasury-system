@@ -29,7 +29,6 @@ Se conserva la verificación histórica backend del 70 %; no se reduce ningún u
 
 Una prueba de 2FA reprodujo un defecto: una cadena vacía era aceptada después de consumir el último código de respaldo. El servicio ahora rechaza códigos vacíos o compuestos solo por espacios antes de comparar.
 
-Las 41 omisiones iniciales de integración correspondían a `SA34PostgresWhatsAppTest`, condicionada a una URL externa. Se sustituye esa condición por un PostgreSQL efímero de Testcontainers, con credenciales generadas por el contenedor, para ejecutar los escenarios automáticamente.
 
 ### Validación frontend
 
@@ -61,7 +60,6 @@ Se añaden 52 casos de prueba. Validación final: **1.423 pruebas aprobadas, cer
 
 Porcentajes redondeados a dos decimales desde los contadores, sobre el alcance amplio descrito arriba. Backend combinado: 73,78 % de líneas, 52,69 % de ramas y 68,14 % de métodos. La integración frontend todavía cubre solo sesión y pagos, por lo que su cobertura global es baja aunque el hook de pagos supere la meta individual.
 
-La ejecución backend final incluyó `unitTest integrationTest jacocoUnitTestReport jacocoIntegrationTestReport jacocoCombinedTestReport pmdMain bootJar` y terminó sin advertencias de incompatibilidad entre clases y datos JaCoCo. Los 41 casos antes omitidos de WhatsApp/PostgreSQL ahora pasan con Testcontainers.
 
 `node scripts/check-test-coverage.mjs` reconoce los cuatro reportes. La variante `--check` devuelve fallo, como corresponde, mientras la cobertura global no alcanza 89 %. `git diff --check` y las comprobaciones sintácticas de los scripts Node pasan.
 

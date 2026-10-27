@@ -1,5 +1,5 @@
 import { lockBodyScroll } from "./scrollLock";
-import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
+import { useLayoutEffect, useRef, type RefObject } from 'react';
 
 const dialogs: HTMLElement[] = [];
 /** Focus only the top dialog; preserve its trigger and the document scroll state. */
@@ -9,7 +9,7 @@ export function useDialogFocus(open: boolean, onClose: () => void, blocked = fal
   const blockedRef = useRef(blocked);
   closeRef.current = onClose;
   blockedRef.current = blocked;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!open || !dialog) return;
     const previous = document.activeElement as HTMLElement | null;

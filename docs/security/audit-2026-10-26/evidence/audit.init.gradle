@@ -1,0 +1,6 @@
+// Optional audit evidence only. Not part of the ordinary test suite.
+allprojects {
+    plugins.withId('java') {
+        sourceSets.test.java.srcDir(file('../docs/security/audit-2026-10-26/evidence'))
+    }
+}
