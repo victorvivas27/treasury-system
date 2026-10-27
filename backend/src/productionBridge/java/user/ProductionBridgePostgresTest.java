@@ -39,8 +39,6 @@ import static org.mockito.Mockito.*;
 
 /** Only synthetic data. Runs the exact immutable production image on an isolated Docker network. */
 @Tag("postgres")
-// This release-only fixture pulls a private production image, unavailable to ordinary CI runners.
-@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named = "TREASURY_RUN_PRODUCTION_BRIDGE_TEST", matches = "true")
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ProductionBridgePostgresTest {

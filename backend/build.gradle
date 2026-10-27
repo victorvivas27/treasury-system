@@ -94,6 +94,27 @@ dependencies {
     allureTestRuntime 'io.qameta.allure:allure-jupiter'
 }
 
+// Release compatibility uses a private historical image; it is an explicit suite,
+// not a conditionally skipped part of normal CI's zero-skip test inventory.
+sourceSets {
+    productionBridge {
+        java.srcDir 'src/productionBridge/java'
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations {
+    productionBridgeImplementation.extendsFrom testImplementation
+    productionBridgeRuntimeOnly.extendsFrom testRuntimeOnly
+}
+tasks.register('productionBridgeTest', Test) {
+    group = 'verification'
+    description = 'Tests v1.34.0 rollback and V54 to V58 on isolated PostgreSQL 18.6; requires private image access.'
+    testClassesDirs = sourceSets.productionBridge.output.classesDirs
+    classpath = sourceSets.productionBridge.runtimeClasspath
+    useJUnitPlatform()
+}
+
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
@@ -196,6 +217,11 @@ tasks.withType(Pmd).configureEach {
 }
 
 tasks.named('pmdTest') {
+    enabled = false
+}
+
+// Apply the existing test-source policy to the explicit compatibility suite too.
+tasks.named('pmdProductionBridge') {
     enabled = false
 }
 
