@@ -1,0 +1,9 @@
+# Server-side enforcement requires branch rules with code-owner review enabled.
+/.github/ @victorvivas27
+/.githooks/ @victorvivas27
+/scripts/security/ @victorvivas27
+/scripts/ci-validation.cjs @victorvivas27
+/scripts/validate-release-evidence.mjs @victorvivas27
+/scripts/allure-ci.mjs @victorvivas27
+/scripts/validate-commit-message.cjs @victorvivas27
+/.gitignore @victorvivas27

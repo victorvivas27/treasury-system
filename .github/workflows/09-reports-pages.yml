@@ -17,7 +17,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validation:
+    name: Validate pinned release and coverage
+    uses: ./.github/workflows/12-release-validation.yml
+    permissions:
+      contents: read
+      actions: read
+    with:
+      ref: ${{ inputs.release_ref || 'main' }}
+
   build-reports:
+    needs: validation
     name: Assemble already validated HTML reports
     runs-on: ubuntu-24.04
 
@@ -25,43 +35,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.inputs.release_ref || 'main' }}
+          ref: ${{ needs.validation.outputs.sha }}
           persist-credentials: false
-
-      - name: Find coverage matching the release inputs
-        id: reports
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const { currentFingerprint, findArtifact } = require(`${process.env.GITHUB_WORKSPACE}/scripts/ci-validation.cjs`);
-            for (const suite of ['frontend', 'backend']) {
-              const key = currentFingerprint(suite);
-              let artifact;
-              // The PR result can turn green just before its workflow is marked
-              // completed. Allow that short finalization window without retesting.
-              for (let attempt = 0; attempt < 6; attempt += 1) {
-                artifact = await findArtifact({ github, context, suite, key });
-                if (artifact) break;
-                if (attempt < 5) await new Promise(resolve => setTimeout(resolve, 5000));
-              }
-              if (!artifact) throw new Error(`No successful ${suite} coverage matches this release. Run its CI workflow on the release ref to generate it; reports never rerun tests implicitly.`);
-              core.setOutput(`${suite}_artifact`, artifact.id);
-              core.setOutput(`${suite}_run`, artifact.workflow_run.id);
-            }
 
       - name: Download validated frontend coverage
         uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ steps.reports.outputs.frontend_artifact }}
-          run-id: ${{ steps.reports.outputs.frontend_run }}
+          artifact-ids: ${{ needs.validation.outputs.frontend_artifact }}
+          run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: evidence/frontend
 
       - name: Download validated backend coverage
         uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ steps.reports.outputs.backend_artifact }}
-          run-id: ${{ steps.reports.outputs.backend_run }}
+          artifact-ids: ${{ needs.validation.outputs.backend_artifact }}
+          run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: evidence/backend
 

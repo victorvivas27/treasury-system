@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createRequire } = require('node:module');
-const { fingerprint, currentFingerprint, findArtifact } = require('./ci-validation.cjs');
+const { fingerprint, currentFingerprint, findArtifact, validateEvidence } = require('./ci-validation.cjs');
 const yaml = createRequire(path.join(process.env.RELEASE_TOOLS_DIR, 'package.json'))('yaml');
 const workflow = file => yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows', file), 'utf8'));
 const listing = files => Object.entries(files).map(([file, blob]) => `100644 blob ${blob}\t${file}`).join('\0');
@@ -11,6 +11,8 @@ const inputs = { 'frontend/src/App.tsx': 'front', 'backend/src/App.java': 'back'
   'api-tests/test.yml': 'api', '.github/workflows/00-pr-validation.yml': 'workflow',
   'scripts/ci-validation.cjs': 'helper', 'VERSION': 'version', 'frontend/package.json': 'package',
   'backend/build.gradle': 'gradle', 'frontend/.commitlintrc.cjs': 'commit-config',
+  'frontend/pnpm-workspace.yaml': 'workspace',
+  'docs/architecture/modules/01-auth-security/login.html': 'diagram',
   '.githooks/commit-msg': 'hook' };
 
 test('equal tracked inputs reuse validation across commit IDs and ordering', () => {
@@ -39,6 +41,8 @@ test('changes invalidate all affected suites, including deleted files and shared
     'backend/src/App.java': ['backend', 'bruno'],
     'api-tests/test.yml': ['bruno'],
     'frontend/package.json': ['frontend', 'backend', 'versioning'],
+    'frontend/pnpm-workspace.yaml': ['frontend', 'backend'],
+    'docs/architecture/modules/01-auth-security/login.html': ['backend', 'bruno'],
     'backend/build.gradle': ['backend', 'bruno', 'versioning'],
     'frontend/.commitlintrc.cjs': ['frontend', 'versioning'],
     '.githooks/commit-msg': ['frontend', 'backend', 'bruno', 'versioning'],
@@ -127,13 +131,19 @@ test('validation artifacts retain diagnostics while only successful workflows ca
   }
 });
 
-test('reports download matching existing coverage without compiling or rerunning tests', () => {
+test('reports wait for release validation and download its exact artifact IDs', () => {
   const reports = workflow('09-reports-pages.yml');
   const steps = reports.jobs['build-reports'].steps;
   assert.equal(reports.permissions.actions, 'read');
   assert.equal(steps.filter(step => step.uses === 'actions/download-artifact@v8').length, 2);
   assert.ok(!steps.some(step => /gradlew|pnpm|npm install|vitest/.test(step.run ?? '')));
-  assert.ok(steps.find(step => step.id === 'reports').with.script.includes('currentFingerprint(suite)'));
+  assert.equal(reports.jobs['build-reports'].needs, 'validation');
+  assert.equal(reports.jobs.validation.uses, './.github/workflows/12-release-validation.yml');
+  for (const suite of ['frontend', 'backend']) {
+    const download = steps.find(step => step.with?.path === `evidence/${suite}`);
+    assert.equal(download.with['artifact-ids'], '${{ needs.validation.outputs.' + suite + '_artifact }}');
+    assert.equal(download.with['run-id'], '${{ github.run_id }}');
+  }
   assert.ok(steps.filter(step => step.uses === 'actions/download-artifact@v8')
     .every(step => step.with.path.startsWith('evidence/')));
   assert.ok(steps.some(step => step.run?.includes('assemble-public-coverage.mjs')));
@@ -151,32 +161,86 @@ test('private Allure publication is manual, uses attributed artifacts, and enfor
   assert.ok(!upload.run.includes('publicRead'));
 });
 
-test('report resolution waits for workflow finalization and preserves artifact provenance', async () => {
-  const script = workflow('09-reports-pages.yml').jobs['build-reports'].steps.find(step => step.id === 'reports').with.script;
-  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-  const outputs = {}, requests = [];
-  let lookups = 0;
-  await new AsyncFunction('require', 'process', 'github', 'context', 'core', 'setTimeout', script)(
-    () => ({ currentFingerprint: suite => `${suite}-key`, findArtifact: async args => {
-      requests.push(args);
-      if (++lookups === 1) return null; // Workflow still finalizing after its result job.
-      return { id: args.suite === 'frontend' ? 11 : 22, workflow_run: { id: 42 } };
-    } }),
-    { env: { GITHUB_WORKSPACE: '/repo' } }, {}, context,
-    { setOutput: (name, value) => { outputs[name] = value; } }, resolve => resolve(),
-  );
-  assert.equal(requests.length, 3);
-  assert.deepEqual(outputs, { frontend_artifact: 11, frontend_run: 42, backend_artifact: 22, backend_run: 42 });
-  assert.ok(requests.every(args => args.key === `${args.suite}-key`));
+test('release validation pins one commit, forces both suites and gates every deployment', () => {
+  const gate = workflow('12-release-validation.yml');
+  assert.equal(gate.permissions.actions, 'read');
+  assert.deepEqual(gate.jobs.evidence.needs, ['protected-files', 'resolve', 'frontend', 'backend']);
+  for (const suite of ['frontend', 'backend']) {
+    assert.equal(gate.jobs[suite].needs, 'resolve');
+    assert.equal(gate.jobs[suite].with.ref, '${{ needs.resolve.outputs.sha }}');
+    assert.equal(gate.jobs[suite].with.force, true);
+  }
+  for (const file of ['07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml', '11-publish-allure.yml']) {
+    const candidate = workflow(file);
+    const consumer = Object.values(candidate.jobs).find(job => job.needs === 'validation');
+    assert.ok(consumer, file);
+    assert.equal(candidate.jobs.validation.uses, './.github/workflows/12-release-validation.yml');
+    const checkout = consumer.steps.find(step => step.uses === 'actions/checkout@v7');
+    assert.equal(checkout.with.ref, '${{ needs.validation.outputs.sha }}');
+    assert.ok(!JSON.stringify(consumer).includes('github.event.inputs.release_ref'));
+  }
 });
 
-test('reports fail explicitly when proof is missing rather than publishing unrelated coverage', async () => {
-  const script = workflow('09-reports-pages.yml').jobs['build-reports'].steps.find(step => step.id === 'reports').with.script;
+test('pushes to either delivery branch cannot skip changed fingerprint inputs', () => {
+  for (const file of ['02-frontend-ci.yml', '03-backend-ci.yml']) {
+    const candidate = workflow(file);
+    assert.deepEqual(candidate.on.push.branches, ['dev', 'main']);
+    assert.equal(candidate.on.push.paths, undefined);
+    assert.equal(candidate.on.workflow_call.inputs.force.default, false);
+    assert.ok(candidate.on.workflow_call.outputs.artifact);
+  }
+});
+
+test('forced release validation ignores cached artifacts but still fingerprints the checkout', async () => {
+  const action = yaml.parse(fs.readFileSync(path.join(__dirname,
+    '../.github/actions/reuse-validation/action.yml'), 'utf8'));
+  const script = action.runs.steps[0].with.script;
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-  let lookups = 0;
-  await assert.rejects(new AsyncFunction('require', 'process', 'github', 'context', 'core', 'setTimeout', script)(
-    () => ({ currentFingerprint: () => 'missing', findArtifact: async () => { lookups += 1; return null; } }),
-    { env: { GITHUB_WORKSPACE: '/repo' } }, {}, context, {}, resolve => resolve(),
-  ), /No successful frontend coverage matches this release/);
-  assert.equal(lookups, 6);
+  for (const force of ['true', 'false']) {
+    const outputs = {};
+    let calls = 0;
+    await new AsyncFunction('require', 'process', 'github', 'context', 'core', script)(
+      () => ({ currentFingerprint: () => 'exact-key', findArtifact: async () => {
+        calls += 1;
+        return { workflow_run: { id: 42 } };
+      } }),
+      { env: { GITHUB_WORKSPACE: '/repo', VALIDATION_SUITE: 'frontend', FORCE_VALIDATION: force } },
+      {}, context, { setOutput: (key, value) => { outputs[key] = value; }, info: () => {},
+        warning: message => assert.fail(message) },
+    );
+    assert.equal(calls, force === 'true' ? 0 : 1);
+    assert.deepEqual(outputs, { key: 'exact-key', reused: force === 'true' ? 'false' : 'true' });
+  }
+});
+
+test('release evidence rejects stale SHAs, wrong fingerprints, invalid receipts and failed or partial tests', () => {
+  const counts = { total: 3, passed: 3, failed: 0, skipped: 0, todo: 0 };
+  const coverage = { status: 'available', sha: 'b'.repeat(40), runId: 'run', application: 'frontend',
+    suite: 'combined', scope: 'complete', dirty: false, manifestSha256: 'c'.repeat(64) };
+  const valid = {
+    suite: 'frontend', key: 'a'.repeat(64), sha: 'b'.repeat(40), workflowRunId: '42',
+    receipt: { schema: 1, valid: true, application: 'frontend', suite: 'combined',
+      sha: 'b'.repeat(40), fingerprint: 'a'.repeat(64), workflowRunId: '42', runId: 'run',
+      tests: counts, coverage },
+    record: { application: 'frontend', suite: 'combined', scope: 'complete', dirty: false,
+      sha: 'b'.repeat(40), runId: 'run', exitCode: 0, runnerExitCode: 0,
+      counts: { matches: true, reportMatches: true, runner: counts }, coverage },
+  };
+  assert.doesNotThrow(() => validateEvidence(valid));
+  for (const change of [
+    { sha: 'c'.repeat(40) }, { key: 'c'.repeat(64) }, { workflowRunId: '43' },
+    { receipt: { ...valid.receipt, valid: false } },
+    { record: { ...valid.record, dirty: true } },
+    { record: { ...valid.record, scope: 'partial' } },
+    { record: { ...valid.record, exitCode: 1 } },
+    { record: { ...valid.record, runnerExitCode: 1 } },
+    { record: { ...valid.record, coverage: { status: 'unavailable' } } },
+    { record: { ...valid.record, coverage: { ...coverage, sha: 'd'.repeat(40) } } },
+    { receipt: { ...valid.receipt, coverage: { ...coverage, runId: 'older' } } },
+    { receipt: { ...valid.receipt, coverage: { ...coverage, manifestSha256: 'd'.repeat(64) } } },
+    { receipt: { ...valid.receipt, tests: { ...counts, skipped: 1 } } },
+    { receipt: { ...valid.receipt, tests: { ...counts, failed: 1 } } },
+    { receipt: { ...valid.receipt, tests: { ...counts, total: 0, passed: 0 } } },
+    { record: { ...valid.record, counts: { ...valid.record.counts, matches: false } } },
+  ]) assert.throws(() => validateEvidence({ ...valid, ...change }));
 });

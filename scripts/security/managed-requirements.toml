@@ -1,0 +1,12 @@
+# Install only under %ProgramData%\OpenAI\Codex with administrator-only writes.
+# The installer appends absolute managed-hook paths. No local/plugin hooks run.
+allowed_approval_policies = ["untrusted"]
+allowed_sandbox_modes = ["read-only", "workspace-write"]
+allow_managed_hooks_only = true
+
+[features]
+hooks = true
+plugins = false
+
+[marketplaces]
+restrict_to_allowed_sources = true

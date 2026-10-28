@@ -15,6 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  protected-files:
+    uses: ./.github/workflows/13-protected-files.yml
+
   changes:
     name: Select validations
     runs-on: ubuntu-24.04
@@ -43,11 +46,13 @@ jobs:
               (!['frontend/', 'backend/', 'api-tests/', 'docs/', '.agents/'].some(prefix => path.startsWith(prefix)));
             const all = release || files.length >= 3000 || paths.some(shared);
             const frontend = all || paths.some(path => path.startsWith('frontend/'));
-            const backend = all || paths.some(path => path.startsWith('backend/'));
+            const backend = all || paths.some(path => path.startsWith('backend/') ||
+              (path.startsWith('docs/architecture/modules/01-auth-security/') && path.endsWith('.html')) ||
+              ['frontend/package.json', 'frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml'].includes(path));
             const bruno = backend || paths.some(path => path.startsWith('api-tests/'));
             const versionFiles = new Set([
               'release-please-config.json', '.release-please-manifest.json',
-              'VERSION', 'CHANGELOG.md', 'frontend/package.json', 'backend/build.gradle',
+              'VERSION', 'CHANGELOG', 'frontend/package.json', 'backend/build.gradle',
             ]);
             const versioning = all || paths.some(path => versionFiles.has(path) ||
               path.startsWith('.githooks/') || path.startsWith('frontend/.commitlintrc') ||
@@ -97,7 +102,7 @@ jobs:
 
   result:
     name: PR validation result
-    needs: [changes, commits, frontend, backend, bruno, versioning]
+    needs: [protected-files, changes, commits, frontend, backend, bruno, versioning]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -109,7 +114,7 @@ jobs:
           script: |
             const results = JSON.parse(process.env.VALIDATION_RESULTS);
             for (const [name, job] of Object.entries(results)) {
-              const required = name === 'changes' || name === 'commits';
+              const required = ['protected-files', 'changes', 'commits'].includes(name);
               if (job.result !== 'success' && (required || job.result !== 'skipped')) {
                 core.setFailed(`${name}: ${job.result}`);
               }

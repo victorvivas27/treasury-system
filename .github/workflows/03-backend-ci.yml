@@ -12,14 +12,21 @@ on:
       ref:
         required: true
         type: string
+      force:
+        description: Generate fresh evidence for a pinned release
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      artifact:
+        description: Fresh coverage artifact ID
+        value: ${{ jobs.build-and-test.outputs.artifact }}
+      key:
+        description: Validated input fingerprint
+        value: ${{ jobs.build-and-test.outputs.key }}
   push:
-    branches: [dev]
-    paths:
-      - "backend/**"
-      - "scripts/**"
-      - "frontend/package.json"
-      - "frontend/pnpm-lock.yaml"
-      - ".github/workflows/03-backend-ci.yml"
+    branches: [dev, main]
+
 permissions:
   contents: read
   actions: read
@@ -32,6 +39,9 @@ jobs:
   build-and-test:
     name: Compilar, testear y verificar cobertura
     runs-on: ubuntu-24.04
+    outputs:
+      artifact: ${{ steps.coverage.outputs.artifact-id }}
+      key: ${{ steps.validation.outputs.key }}
     defaults:
       run:
         working-directory: backend
@@ -47,6 +57,7 @@ jobs:
         uses: ./.github/actions/reuse-validation
         with:
           suite: backend
+          force: ${{ inputs.force || false }}
 
       - name: Configurar JDK 17
         if: steps.validation.outputs.reused != 'true'
@@ -89,9 +100,11 @@ jobs:
 
       - name: Subir reporte de cobertura como artefacto
         if: always() && steps.tests.outcome != 'skipped' && steps.validation.outputs.reused != 'true'
+        id: coverage
         uses: actions/upload-artifact@v7
         with:
           name: backend-validation-${{ steps.validation.outputs.key }}
+          overwrite: true
           path: backend/build/allure/ci-evidence
           if-no-files-found: error
           retention-days: ${{ github.retention_days > 14 && 14 || github.retention_days }}

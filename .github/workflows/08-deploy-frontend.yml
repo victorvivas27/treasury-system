@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   id-token: write
 
 concurrency:
@@ -17,7 +18,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validation:
+    name: Validate pinned release and coverage
+    uses: ./.github/workflows/12-release-validation.yml
+    permissions:
+      contents: read
+      actions: read
+    with:
+      ref: ${{ inputs.release_ref || 'main' }}
+
   build-and-deploy:
+    needs: validation
     name: Build, publish and deploy frontend
     runs-on: ubuntu-24.04
 
@@ -25,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.inputs.release_ref || 'main' }}
+          ref: ${{ needs.validation.outputs.sha }}
           persist-credentials: false
 
       - name: Authenticate to Google Cloud
@@ -44,7 +55,7 @@ jobs:
       - name: Build frontend image
         working-directory: frontend
         env:
-          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/treasury-frontend:${{ github.event.inputs.release_ref || github.sha }}
+          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/treasury-frontend:${{ needs.validation.outputs.sha }}
         run: |
           docker build \
             --build-arg VITE_API_URL="${{ secrets.VITE_API_URL }}" \
@@ -54,7 +65,7 @@ jobs:
 
       - name: Publish frontend image
         env:
-          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/treasury-frontend:${{ github.event.inputs.release_ref || github.sha }}
+          IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/treasury-frontend:${{ needs.validation.outputs.sha }}
         run: docker push "$IMAGE_URI"
 
       - name: Deploy frontend to Cloud Run
@@ -64,7 +75,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           region: ${{ secrets.GCP_REGION }}
           service: ${{ secrets.CLOUD_RUN_FRONTEND_SERVICE }}
-          image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/treasury-frontend:${{ github.event.inputs.release_ref || github.sha }}
+          image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/treasury-frontend:${{ needs.validation.outputs.sha }}
           flags: >-
             --service-account=${{ secrets.RUNTIME_SERVICE_ACCOUNT }}
             --allow-unauthenticated

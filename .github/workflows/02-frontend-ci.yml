@@ -12,12 +12,20 @@ on:
       ref:
         required: true
         type: string
+      force:
+        description: Generate fresh evidence for a pinned release
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      artifact:
+        description: Fresh coverage artifact ID
+        value: ${{ jobs.validate-frontend.outputs.artifact }}
+      key:
+        description: Validated input fingerprint
+        value: ${{ jobs.validate-frontend.outputs.key }}
   push:
-    branches: [dev]
-    paths:
-      - "frontend/**"
-      - "scripts/**"
-      - ".github/workflows/02-frontend-ci.yml"
+    branches: [dev, main]
 
 permissions:
   contents: read
@@ -31,6 +39,9 @@ jobs:
   validate-frontend:
     name: Lint, Test, Build and Coverage
     runs-on: ubuntu-24.04
+    outputs:
+      artifact: ${{ steps.coverage.outputs.artifact-id }}
+      key: ${{ steps.validation.outputs.key }}
 
     defaults:
       run:
@@ -48,6 +59,7 @@ jobs:
         uses: ./.github/actions/reuse-validation
         with:
           suite: frontend
+          force: ${{ inputs.force || false }}
 
       # pnpm debe instalarse antes de configurar el caché de setup-node.
       - name: Install pnpm
@@ -92,9 +104,11 @@ jobs:
 
       - name: Upload coverage report
         if: always() && steps.tests.outcome != 'skipped' && steps.validation.outputs.reused != 'true'
+        id: coverage
         uses: actions/upload-artifact@v7
         with:
           name: frontend-validation-${{ steps.validation.outputs.key }}
+          overwrite: true
           path: frontend/build/allure/ci-evidence
           if-no-files-found: error
           retention-days: ${{ github.retention_days > 14 && 14 || github.retention_days }}

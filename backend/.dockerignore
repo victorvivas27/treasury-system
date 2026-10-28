@@ -12,3 +12,32 @@ bin
 
 *.log
 hs_err_pid*
+
+# Private Markdown and agent configuration never enter build contexts.
+**/*.[mM][dD]
+**/.agents
+**/.codex
+**/.claude
+**/.cursor
+**/.gemini
+**/.windsurf
+**/.agent-security
+**/.cline
+**/.roo
+**/.continue
+**/.opencode
+**/.clinerules
+**/.ai
+**/.skills
+**/.prompts
+**/.aws
+**/.ssh
+**/.gnupg
+**/.mcp.json
+**/.cursorrules
+**/.windsurfrules
+**/.aider.conf.yml
+**/.aider.conf.yaml
+/skills
+/prompts
+/agent-config

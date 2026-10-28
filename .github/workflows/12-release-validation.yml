@@ -1,0 +1,99 @@
+name: 12-Validate Release Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, tag or branch to validate without deploying
+        required: true
+        default: main
+        type: string
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+    outputs:
+      sha:
+        description: Immutable validated release commit
+        value: ${{ jobs.resolve.outputs.sha }}
+      frontend_artifact:
+        description: Verified frontend coverage artifact
+        value: ${{ jobs.frontend.outputs.artifact }}
+      backend_artifact:
+        description: Verified backend coverage artifact
+        value: ${{ jobs.backend.outputs.artifact }}
+      frontend_key:
+        description: Frontend input fingerprint
+        value: ${{ jobs.frontend.outputs.key }}
+      backend_key:
+        description: Backend input fingerprint
+        value: ${{ jobs.backend.outputs.key }}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  protected-files:
+    uses: ./.github/workflows/13-protected-files.yml
+
+  resolve:
+    needs: protected-files
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      - id: commit
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  frontend:
+    needs: resolve
+    uses: ./.github/workflows/02-frontend-ci.yml
+    with:
+      ref: ${{ needs.resolve.outputs.sha }}
+      force: true
+
+  backend:
+    needs: resolve
+    uses: ./.github/workflows/03-backend-ci.yml
+    with:
+      ref: ${{ needs.resolve.outputs.sha }}
+      force: true
+
+  evidence:
+    needs: [protected-files, resolve, frontend, backend]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Reject protected files in the selected release
+        run: node scripts/security/protected-files.cjs --tree HEAD
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.frontend.outputs.artifact }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: evidence/frontend
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.backend.outputs.artifact }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: evidence/backend
+      - name: Verify exact release provenance and coverage integrity
+        env:
+          FRONTEND_KEY: ${{ needs.frontend.outputs.key }}
+          BACKEND_KEY: ${{ needs.backend.outputs.key }}
+          RELEASE_SHA: ${{ needs.resolve.outputs.sha }}
+        run: node scripts/validate-release-evidence.mjs evidence

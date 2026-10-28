@@ -4,6 +4,9 @@ inputs:
   suite:
     description: frontend, backend, bruno or versioning
     required: true
+  force:
+    description: Run fresh checks instead of reusing earlier workflow artifacts
+    default: 'false'
 outputs:
   key:
     description: Hash of the suite inputs
@@ -18,6 +21,7 @@ runs:
       uses: actions/github-script@v8
       env:
         VALIDATION_SUITE: ${{ inputs.suite }}
+        FORCE_VALIDATION: ${{ inputs.force }}
       with:
         script: |
           const { currentFingerprint, findArtifact } = require(`${process.env.GITHUB_WORKSPACE}/scripts/ci-validation.cjs`);
@@ -25,7 +29,9 @@ runs:
           const key = currentFingerprint(suite);
           let artifact;
           try {
-            artifact = await findArtifact({ github, context, suite, key });
+            if (process.env.FORCE_VALIDATION !== 'true') {
+              artifact = await findArtifact({ github, context, suite, key });
+            }
           } catch (error) {
             // A lookup outage is not proof of success: fall back to real checks.
             core.warning(`Validation lookup unavailable; running ${suite}: ${error.message}`);

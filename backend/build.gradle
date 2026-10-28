@@ -115,6 +115,15 @@ tasks.register('productionBridgeTest', Test) {
     useJUnitPlatform()
 }
 
+// Keep ordinary tests independent of private development .env imports. The
+// explicit production compatibility suite supplies its own historical runtime.
+tasks.withType(Test).configureEach {
+    if (name != 'productionBridgeTest') {
+        environment 'APP_PROFILE', 'test'
+        environment 'DEV_FLYWAY_LOCATIONS', 'classpath:db/migration'
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
