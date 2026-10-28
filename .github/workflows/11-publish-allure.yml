@@ -17,7 +17,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validation:
+    name: Validate pinned release and coverage
+    uses: ./.github/workflows/12-release-validation.yml
+    permissions:
+      contents: read
+      actions: read
+    with:
+      ref: ${{ inputs.release_ref || 'main' }}
+
   publish:
+    needs: validation
     runs-on: ubuntu-24.04
     environment: quality-reports
     permissions:
@@ -27,37 +37,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.release_ref }}
+          ref: ${{ needs.validation.outputs.sha }}
           persist-credentials: false
-
-      - name: Locate already validated reports
-        id: reports
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const { currentFingerprint, findArtifact } = require(`${process.env.GITHUB_WORKSPACE}/scripts/ci-validation.cjs`);
-            for (const suite of ['frontend', 'backend']) {
-              const key = currentFingerprint(suite);
-              const artifact = await findArtifact({ github, context, suite, key });
-              if (!artifact) throw new Error(`Missing ${suite} CI evidence. Run its CI on the selected ref; publication never reruns tests.`);
-              const { data: source } = await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: artifact.workflow_run.id });
-              core.setOutput(`${suite}_artifact`, artifact.id);
-              core.setOutput(`${suite}_run`, source.id);
-              core.setOutput(`${suite}_sha`, source.head_sha);
-              core.setOutput(`${suite}_key`, key);
-            }
 
       - uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ steps.reports.outputs.frontend_artifact }}
-          run-id: ${{ steps.reports.outputs.frontend_run }}
+          artifact-ids: ${{ needs.validation.outputs.frontend_artifact }}
+          run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: evidence/frontend
 
       - uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ steps.reports.outputs.backend_artifact }}
-          run-id: ${{ steps.reports.outputs.backend_run }}
+          artifact-ids: ${{ needs.validation.outputs.backend_artifact }}
+          run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: evidence/backend
 
@@ -91,12 +84,12 @@ jobs:
 
       - name: Assemble attributed immutable HTML
         env:
-          FRONTEND_KEY: ${{ steps.reports.outputs.frontend_key }}
-          BACKEND_KEY: ${{ steps.reports.outputs.backend_key }}
-          FRONTEND_SHA: ${{ steps.reports.outputs.frontend_sha }}
-          BACKEND_SHA: ${{ steps.reports.outputs.backend_sha }}
-          FRONTEND_RUN: ${{ steps.reports.outputs.frontend_run }}
-          BACKEND_RUN: ${{ steps.reports.outputs.backend_run }}
+          FRONTEND_KEY: ${{ needs.validation.outputs.frontend_key }}
+          BACKEND_KEY: ${{ needs.validation.outputs.backend_key }}
+          FRONTEND_SHA: ${{ needs.validation.outputs.sha }}
+          BACKEND_SHA: ${{ needs.validation.outputs.sha }}
+          FRONTEND_RUN: ${{ github.run_id }}
+          BACKEND_RUN: ${{ github.run_id }}
         shell: bash
         run: |
           set -euo pipefail

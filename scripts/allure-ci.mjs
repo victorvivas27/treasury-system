@@ -24,7 +24,8 @@ try {
     cpSync(path.join(run, frontend ? 'coverage/detail' : 'coverage/detail/html'), staging, { recursive: true });
   }
   cpSync(run, path.join(staging, 'allure'), { recursive: true });
-  const valid = exitCode === 0 && record.exitCode === 0 && record.scope === 'complete' &&
+  const valid = exitCode === 0 && record.exitCode === 0 && record.runnerExitCode === 0 &&
+    !record.dirty && record.scope === 'complete' &&
     record.counts?.matches && record.counts?.reportMatches && record.counts?.runner?.skipped === 0 &&
     (record.counts?.runner?.todo ?? 0) === 0 && record.coverage.status === 'available';
   const receipt = { schema: 1, application, suite: 'combined', sha: record.sha,

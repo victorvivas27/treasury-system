@@ -22,9 +22,9 @@ async function select(files, head = 'feature') {
   return outputs;
 }
 
-test('only one workflow handles pull requests; existing workflows remain reusable', () => {
+test('one PR orchestrator and the independent security gate handle pull requests', () => {
   const triggered = fs.readdirSync(root).filter(file => read(file).on.pull_request);
-  assert.deepEqual(triggered, ['00-pr-validation.yml']);
+  assert.deepEqual(triggered, ['00-pr-validation.yml', '13-protected-files.yml']);
   assert.deepEqual(workflow.on.pull_request.branches, ['dev', 'main']);
   for (const file of children) {
     assert.ok(Object.hasOwn(read(file).on, 'workflow_call'), file);
@@ -48,6 +48,12 @@ test('runs only applicable validations, including renamed files', async () => {
   assert.deepEqual(await select([{ filename: 'docs/README.md' }]),
     { frontend: 'false', backend: 'false', bruno: 'false', versioning: 'false' });
   assert.equal((await select([{ filename: 'api-tests/test.yml' }])).bruno, 'true');
+  for (const filename of ['frontend/package.json', 'frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml',
+    'docs/architecture/modules/01-auth-security/login.html']) {
+    const selection = await select([{ filename }]);
+    assert.equal(selection.backend, 'true', filename);
+    assert.equal(selection.bruno, 'true', filename);
+  }
   assert.equal((await select([{ filename: 'VERSION' }])).versioning, 'true');
   assert.equal((await select([{ filename: 'scripts/test-pr-validation.cjs' }])).versioning, 'true');
   assert.equal((await select([{ filename: 'docs/old.tsx', previous_filename: 'frontend/src/old.tsx' }])).frontend, 'true');
@@ -66,7 +72,7 @@ test('workflow changes and truncated file lists validate all areas', async () =>
 
 test('final result rejects failures, cancellations and skipped required jobs', async () => {
   assert.equal(workflow.jobs.result.if, 'always()');
-  assert.deepEqual(workflow.jobs.result.needs, ['changes', 'commits', 'frontend', 'backend', 'bruno', 'versioning']);
+  assert.deepEqual(workflow.jobs.result.needs, ['protected-files', 'changes', 'commits', 'frontend', 'backend', 'bruno', 'versioning']);
   const run = async results => {
     const failures = [];
     await new AsyncFunction('process', 'core', workflow.jobs.result.steps[0].with.script)(
@@ -80,6 +86,8 @@ test('final result rejects failures, cancellations and skipped required jobs', a
   assert.deepEqual(await run({ ...base, frontend: { result: 'failure' } }), ['frontend: failure']);
   assert.deepEqual(await run({ ...base, frontend: { result: 'cancelled' } }), ['frontend: cancelled']);
   assert.deepEqual(await run({ ...base, commits: { result: 'skipped' } }), ['commits: skipped']);
+  assert.deepEqual(await run({ ...base, 'protected-files': { result: 'skipped' } }), ['protected-files: skipped']);
+  assert.deepEqual(await run({ ...base, 'protected-files': { result: 'failure' } }), ['protected-files: failure']);
 });
 
 test('promotion title comes from the exact latest dev commit and drops the commit body', async () => {

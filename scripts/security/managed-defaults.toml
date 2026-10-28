@@ -1,0 +1,7 @@
+# Administrator-installed defaults. Requirements enforce the security allowlists.
+approval_policy = "untrusted"
+sandbox_mode = "workspace-write"
+project_doc_max_bytes = 0
+
+[sandbox_workspace_write]
+network_access = false

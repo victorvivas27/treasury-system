@@ -6,6 +6,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   case "$local_sha" in
     0000000000000000000000000000000000000000) continue ;;
   esac
+  node "$(git rev-parse --show-toplevel)/scripts/security/protected-files.cjs" --range "${remote_sha:-0000000000000000000000000000000000000000}" "$local_sha"
   if [ -n "$remote_sha" ] && [ "$remote_sha" != "0000000000000000000000000000000000000000" ]; then
     commits=$(git rev-list "$local_sha" "^$remote_sha")
   else

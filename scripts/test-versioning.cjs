@@ -51,7 +51,7 @@ const cases = [
       assert.equal(updates.VERSION.trim(), expected);
       assert.equal(JSON.parse(updates['frontend/package.json']).version, expected);
       assert.ok(updates['backend/build.gradle'].includes(`version = '${expected}'`));
-      assert.ok(updates['CHANGELOG.md'].includes(expected));
+      assert.ok(updates['CHANGELOG'].includes(expected));
       assert.equal(new TagName(pr.version).toString(), `v${expected}`);
     }
     console.log(`PASS ${name}: ${expected ?? 'sin release'}`);

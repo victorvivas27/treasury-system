@@ -16,6 +16,7 @@ on:
       - "scripts/test-pr-validation.cjs"
       - "scripts/ci-validation.cjs"
       - "scripts/test-ci-validation.cjs"
+      - "scripts/security/**"
       - ".github/actions/**"
       - ".githooks/**"
       - "frontend/.commitlintrc*"
@@ -25,7 +26,7 @@ on:
       - "release-please-config.json"
       - ".release-please-manifest.json"
       - "VERSION"
-      - "CHANGELOG.md"
+      - "CHANGELOG"
       - "frontend/package.json"
       - "backend/build.gradle"
   workflow_dispatch:
@@ -72,6 +73,8 @@ jobs:
         run: |
           node scripts/test-versioning.cjs
           node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs scripts/test-commit-message.cjs scripts/test-ci-validation.cjs
+          node --test scripts/validate-release-evidence.test.mjs
+          node --test scripts/security/security.test.cjs
 
       - name: Record successful validation
         if: steps.validation.outputs.reused != 'true'
