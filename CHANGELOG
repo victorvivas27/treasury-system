@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.0](https://github.com/victorvivas27/treasury-system/compare/v1.37.0...v1.38.0) (2026-10-28)
+
+
+### Features
+
+* agregar validación y selección de evidencia para lanzamientos ([b11fdcf](https://github.com/victorvivas27/treasury-system/commit/b11fdcff2a1cc9966e6f7c461b2b59174995c108))
+
 ## [1.37.0](https://github.com/victorvivas27/treasury-system/compare/v1.36.0...v1.37.0) (2026-10-28)
 
 
