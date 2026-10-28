@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.0](https://github.com/victorvivas27/treasury-system/compare/v1.38.0...v1.39.0) (2026-10-28)
+
+
+### Features
+
+* actualizar flujos de trabajo para validar y sincronizar ramas, eliminando referencias a 'main' ([f935eda](https://github.com/victorvivas27/treasury-system/commit/f935eda280149f6a76de06944f4e7b303a3bb9f7))
+
 ## [1.38.0](https://github.com/victorvivas27/treasury-system/compare/v1.37.0...v1.38.0) (2026-10-28)
 
 
