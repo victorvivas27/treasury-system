@@ -8,6 +8,27 @@ on:
         required: false
         default: main
 
+  workflow_call:
+    inputs:
+      release_ref:
+        type: string
+        default: main
+      validated_sha:
+        type: string
+        default: ''
+      frontend_artifact:
+        type: string
+        default: ''
+      backend_artifact:
+        type: string
+        default: ''
+      frontend_key:
+        type: string
+        default: ''
+      backend_key:
+        type: string
+        default: ''
+
 permissions:
   contents: read
   actions: read
@@ -26,6 +47,11 @@ jobs:
       actions: read
     with:
       ref: ${{ inputs.release_ref || 'main' }}
+      validated_sha: ${{ inputs.validated_sha || '' }}
+      frontend_artifact: ${{ inputs.frontend_artifact || '' }}
+      backend_artifact: ${{ inputs.backend_artifact || '' }}
+      frontend_key: ${{ inputs.frontend_key || '' }}
+      backend_key: ${{ inputs.backend_key || '' }}
 
   build-and-deploy:
     needs: validation

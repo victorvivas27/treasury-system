@@ -56,6 +56,8 @@ test('runs only applicable validations, including renamed files', async () => {
   }
   assert.equal((await select([{ filename: 'VERSION' }])).versioning, 'true');
   assert.equal((await select([{ filename: 'scripts/test-pr-validation.cjs' }])).versioning, 'true');
+  assert.equal((await select([{ filename: 'scripts/select-release-evidence.cjs' }])).versioning, 'true');
+  assert.equal((await select([{ filename: 'scripts/test-release-evidence-selection.cjs' }])).versioning, 'true');
   assert.equal((await select([{ filename: 'docs/old.tsx', previous_filename: 'frontend/src/old.tsx' }])).frontend, 'true');
 });
 

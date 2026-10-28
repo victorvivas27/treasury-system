@@ -8,21 +8,31 @@ const read = file => yaml.parse(fs.readFileSync(path.join(__dirname, '../.github
 const workflow = read('10-sync-main-dev.yml');
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
-function fixture({ relation = 'diverged', conflict = false, verified = true, race = false, prevalidated = false } = {}) {
-  const merges = [], updates = [], outputs = {};
+function fixture({ relation = 'diverged', conflict = false, verified = true, race = false,
+  prevalidated = false, staleRef = false, emptyMergeResponse = false } = {}) {
+  const merges = [], updates = [], outputs = {}, reads = [];
   let mainUpdated = false;
   const github = { rest: {
     git: {
-      getRef: async ({ ref }) => ({ data: { object: { sha: ref === 'heads/main' ? 'main-sha' : mainUpdated ? (relation === 'diverged' ? 'merge-sha' : 'main-sha') : 'dev-sha' } } }),
+      getRef: async ({ ref }) => {
+        reads.push(ref);
+        return { data: { object: { sha: ref === 'heads/main' ? 'main-sha'
+          : mainUpdated && !staleRef ? (relation === 'diverged' ? 'merge-sha' : 'main-sha') : 'dev-sha' } } };
+      },
       updateRef: async args => {
         updates.push(args);
         if (race) throw Object.assign(new Error('Not a fast-forward'), { status: 422 });
         mainUpdated = true;
+        return { data: { object: { sha: 'main-sha' } } };
       },
     },
     repos: {
       compareCommits: async ({ base, head }) => {
-        if (base === 'main-sha' && (head === 'dev' || mainUpdated)) return { data: { merge_base_commit: { sha: mainUpdated ? (verified ? 'main-sha' : 'old-base') : relation === 'dev-ahead' ? 'main-sha' : 'old-base' } } };
+        if (base === 'main-sha') {
+          const included = (verified && ['main-sha', 'merge-sha'].includes(head))
+            || (['dev', 'dev-sha'].includes(head) && relation === 'dev-ahead');
+          return { data: { merge_base_commit: { sha: included ? 'main-sha' : 'old-base' } } };
+        }
         if (head === 'main-sha') return { data: { merge_base_commit: { sha: relation === 'dev-behind' ? 'dev-sha' : 'old-base' } } };
         return { data: { merge_base_commit: { sha: verified ? 'main-sha' : 'old-base' } } };
       },
@@ -30,10 +40,11 @@ function fixture({ relation = 'diverged', conflict = false, verified = true, rac
         if (conflict) throw Object.assign(new Error('Merge conflict'), { status: 409 });
         merges.push(args);
         mainUpdated = true;
+        return { data: emptyMergeResponse ? undefined : { sha: 'merge-sha' } };
       },
     },
   } };
-  return { merges, updates, outputs, run: () => new AsyncFunction('github', 'context', 'core', 'process', workflow.jobs.sync.steps[0].with.script)(
+  return { merges, updates, outputs, reads, run: () => new AsyncFunction('github', 'context', 'core', 'process', workflow.jobs.sync.steps[0].with.script)(
     github, { repo: { owner: 'owner', repo: 'repo' } },
     { info: () => {}, setOutput: (key, value) => { outputs[key] = value; } },
     { env: { ALREADY_VALIDATED: String(prevalidated) } },
@@ -85,6 +96,28 @@ test('diverged branches use a normal merge and request full validation', async (
   assert.equal(f.merges[0].head, 'main-sha');
   assert.equal(f.updates.length, 0);
   assert.deepEqual(f.outputs, { sha: 'merge-sha', requiresValidation: 'true' });
+});
+
+for (const relation of ['dev-behind', 'diverged']) {
+  test(`sync verifies the returned commit even when getRef remains stale (${relation})`, async () => {
+    const f = fixture({ relation, staleRef: true });
+    await f.run();
+    assert.equal(f.outputs.sha, relation === 'dev-behind' ? 'main-sha' : 'merge-sha');
+    assert.equal(f.outputs.requiresValidation, 'true');
+    assert.equal(f.reads.filter(ref => ref === 'heads/dev').length, 1);
+  });
+}
+
+test('a concurrent no-op merge with an empty response still verifies the current dev commit', async () => {
+  const f = fixture({ emptyMergeResponse: true });
+  await f.run();
+  assert.deepEqual(f.outputs, { sha: 'merge-sha', requiresValidation: 'true' });
+});
+
+test('an empty already-validated input retains validation on push', async () => {
+  const f = fixture({ relation: 'dev-behind', prevalidated: '' });
+  await f.run();
+  assert.equal(f.outputs.requiresValidation, 'true');
 });
 
 test('merge conflicts and a concurrent fast-forward race fail safely', async () => {

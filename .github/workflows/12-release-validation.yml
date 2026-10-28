@@ -13,22 +13,37 @@ on:
       ref:
         required: true
         type: string
+      validated_sha:
+        type: string
+        default: ''
+      frontend_artifact:
+        type: string
+        default: ''
+      backend_artifact:
+        type: string
+        default: ''
+      frontend_key:
+        type: string
+        default: ''
+      backend_key:
+        type: string
+        default: ''
     outputs:
       sha:
         description: Immutable validated release commit
         value: ${{ jobs.resolve.outputs.sha }}
       frontend_artifact:
         description: Verified frontend coverage artifact
-        value: ${{ jobs.frontend.outputs.artifact }}
+        value: ${{ jobs.evidence.outputs.frontend_artifact }}
       backend_artifact:
         description: Verified backend coverage artifact
-        value: ${{ jobs.backend.outputs.artifact }}
+        value: ${{ jobs.evidence.outputs.backend_artifact }}
       frontend_key:
         description: Frontend input fingerprint
-        value: ${{ jobs.frontend.outputs.key }}
+        value: ${{ jobs.evidence.outputs.frontend_key }}
       backend_key:
         description: Backend input fingerprint
-        value: ${{ jobs.backend.outputs.key }}
+        value: ${{ jobs.evidence.outputs.backend_key }}
 
 permissions:
   contents: read
@@ -43,6 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       sha: ${{ steps.commit.outputs.sha }}
+      reuse: ${{ steps.commit.outputs.reuse }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -50,9 +66,16 @@ jobs:
           persist-credentials: false
       - id: commit
         shell: bash
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        env:
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
+          FRONTEND_ARTIFACT: ${{ inputs.frontend_artifact }}
+          BACKEND_ARTIFACT: ${{ inputs.backend_artifact }}
+          FRONTEND_KEY: ${{ inputs.frontend_key }}
+          BACKEND_KEY: ${{ inputs.backend_key }}
+        run: node scripts/select-release-evidence.cjs
 
   frontend:
+    if: needs.resolve.outputs.reuse != 'true'
     needs: resolve
     uses: ./.github/workflows/02-frontend-ci.yml
     with:
@@ -60,6 +83,7 @@ jobs:
       force: true
 
   backend:
+    if: needs.resolve.outputs.reuse != 'true'
     needs: resolve
     uses: ./.github/workflows/03-backend-ci.yml
     with:
@@ -67,6 +91,16 @@ jobs:
       force: true
 
   evidence:
+    if: >-
+      always() && !cancelled() && needs.resolve.result == 'success' &&
+      needs['protected-files'].result == 'success' &&
+      ((needs.resolve.outputs.reuse == 'true' && needs.frontend.result == 'skipped' && needs.backend.result == 'skipped') ||
+       (needs.frontend.result == 'success' && needs.backend.result == 'success'))
+    outputs:
+      frontend_artifact: ${{ steps.selected.outputs.frontend_artifact }}
+      backend_artifact: ${{ steps.selected.outputs.backend_artifact }}
+      frontend_key: ${{ steps.selected.outputs.frontend_key }}
+      backend_key: ${{ steps.selected.outputs.backend_key }}
     needs: [protected-files, resolve, frontend, backend]
     runs-on: ubuntu-24.04
     steps:
@@ -79,21 +113,29 @@ jobs:
           node-version: '22'
       - name: Reject protected files in the selected release
         run: node scripts/security/protected-files.cjs --tree HEAD
+      - name: Select artifacts from this workflow run
+        id: selected
+        env:
+          FRONTEND_ARTIFACT: ${{ needs.resolve.outputs.reuse == 'true' && inputs.frontend_artifact || needs.frontend.outputs.artifact }}
+          BACKEND_ARTIFACT: ${{ needs.resolve.outputs.reuse == 'true' && inputs.backend_artifact || needs.backend.outputs.artifact }}
+          FRONTEND_KEY: ${{ needs.resolve.outputs.reuse == 'true' && inputs.frontend_key || needs.frontend.outputs.key }}
+          BACKEND_KEY: ${{ needs.resolve.outputs.reuse == 'true' && inputs.backend_key || needs.backend.outputs.key }}
+        run: node scripts/select-release-evidence.cjs --outputs
       - uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ needs.frontend.outputs.artifact }}
+          artifact-ids: ${{ steps.selected.outputs.frontend_artifact }}
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: evidence/frontend
       - uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ needs.backend.outputs.artifact }}
+          artifact-ids: ${{ steps.selected.outputs.backend_artifact }}
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: evidence/backend
       - name: Verify exact release provenance and coverage integrity
         env:
-          FRONTEND_KEY: ${{ needs.frontend.outputs.key }}
-          BACKEND_KEY: ${{ needs.backend.outputs.key }}
+          FRONTEND_KEY: ${{ steps.selected.outputs.frontend_key }}
+          BACKEND_KEY: ${{ steps.selected.outputs.backend_key }}
           RELEASE_SHA: ${{ needs.resolve.outputs.sha }}
         run: node scripts/validate-release-evidence.mjs evidence

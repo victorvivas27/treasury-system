@@ -293,40 +293,65 @@ jobs:
       contents: write
       actions: read
 
-  deploy:
-    name: Trigger production workflows
-
-    needs:
-      - release-result
+  validate-release:
+    name: Validate the final release once
+    needs: [release-result]
     if: always() && !cancelled() && needs['release-result'].result == 'success'
-
-    runs-on: ubuntu-24.04
-
+    uses: ./.github/workflows/12-release-validation.yml
+    with:
+      ref: ${{ needs.release-result.outputs.tag_name }}
     permissions:
-      actions: write
+      contents: read
+      actions: read
 
-    steps:
-      - name: Trigger deployments and coverage reports
-        uses: actions/github-script@v8
-        env:
-          RELEASE_REF: ${{ needs.release-result.outputs.tag_name }}
-        with:
-          script: |
-            const workflows = [
-              '07-deploy-backend.yml',
-              '08-deploy-frontend.yml',
-              '09-reports-pages.yml',
-            ];
+  deploy-backend:
+    needs: [release-result, validate-release]
+    if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'
+    uses: ./.github/workflows/07-deploy-backend.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    with:
+      release_ref: ${{ needs.release-result.outputs.tag_name }}
+      validated_sha: ${{ needs.validate-release.outputs.sha }}
+      frontend_artifact: ${{ needs.validate-release.outputs.frontend_artifact }}
+      backend_artifact: ${{ needs.validate-release.outputs.backend_artifact }}
+      frontend_key: ${{ needs.validate-release.outputs.frontend_key }}
+      backend_key: ${{ needs.validate-release.outputs.backend_key }}
 
-            for (const workflow_id of workflows) {
-              core.info(`Triggering ${workflow_id}`);
+  deploy-frontend:
+    needs: [release-result, validate-release]
+    if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'
+    uses: ./.github/workflows/08-deploy-frontend.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    with:
+      release_ref: ${{ needs.release-result.outputs.tag_name }}
+      validated_sha: ${{ needs.validate-release.outputs.sha }}
+      frontend_artifact: ${{ needs.validate-release.outputs.frontend_artifact }}
+      backend_artifact: ${{ needs.validate-release.outputs.backend_artifact }}
+      frontend_key: ${{ needs.validate-release.outputs.frontend_key }}
+      backend_key: ${{ needs.validate-release.outputs.backend_key }}
 
-              await github.rest.actions.createWorkflowDispatch({
-                ...context.repo,
-                workflow_id,
-                ref: 'main',
-                inputs: {
-                  release_ref: process.env.RELEASE_REF,
-                },
-              });
-            }
+  publish-reports:
+    needs: [release-result, validate-release]
+    if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'
+    uses: ./.github/workflows/09-reports-pages.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      pages: write
+    with:
+      release_ref: ${{ needs.release-result.outputs.tag_name }}
+      validated_sha: ${{ needs.validate-release.outputs.sha }}
+      frontend_artifact: ${{ needs.validate-release.outputs.frontend_artifact }}
+      backend_artifact: ${{ needs.validate-release.outputs.backend_artifact }}
+      frontend_key: ${{ needs.validate-release.outputs.frontend_key }}
+      backend_key: ${{ needs.validate-release.outputs.backend_key }}

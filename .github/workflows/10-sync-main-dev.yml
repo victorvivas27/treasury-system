@@ -40,52 +40,58 @@ jobs:
               ...context.repo, ref: 'heads/main',
             });
             const mainSha = main.object.sha;
+            const { data: dev } = await github.rest.git.getRef({
+              ...context.repo, ref: 'heads/dev',
+            });
             const { data: mainInDev } = await github.rest.repos.compareCommits({
-              ...context.repo, base: mainSha, head: 'dev',
+              ...context.repo, base: mainSha, head: dev.object.sha,
             });
             if (mainInDev.merge_base_commit.sha === mainSha) {
-              const { data: dev } = await github.rest.git.getRef({
-                ...context.repo, ref: 'heads/dev',
-              });
               core.setOutput('sha', dev.object.sha);
               core.setOutput('requiresValidation', 'false');
               core.info(`dev already includes main ${mainSha}; no update needed`);
               return;
             }
 
-            const { data: dev } = await github.rest.git.getRef({
-              ...context.repo, ref: 'heads/dev',
-            });
             const { data: devInMain } = await github.rest.repos.compareCommits({
               ...context.repo, base: dev.object.sha, head: mainSha,
             });
             let requiresValidation = process.env.ALREADY_VALIDATED !== 'true';
+            let syncedSha;
             if (devInMain.merge_base_commit.sha === dev.object.sha) {
               // Move the branch ref only when this is a strict fast-forward.
               // force:false makes a concurrent/non-FF update fail safely.
-              await github.rest.git.updateRef({
+              const { data: updatedDev } = await github.rest.git.updateRef({
                 ...context.repo, ref: 'heads/dev', sha: mainSha, force: false,
               });
+              syncedSha = updatedDev.object.sha;
             } else {
               // Preserve both histories; conflicts fail safely without replacing dev.
-              await github.rest.repos.merge({
+              const { data: mergedDev } = await github.rest.repos.merge({
                 ...context.repo, base: 'dev', head: mainSha,
                 commit_message: 'chore(branches): sync main into dev',
               });
+              syncedSha = mergedDev?.sha;
               requiresValidation = true;
             }
-            const { data: syncedDev } = await github.rest.git.getRef({
-              ...context.repo, ref: 'heads/dev',
-            });
+            // Verify the immutable commit returned by the write. An immediate
+            // getRef read can still return the pre-update branch head.
+            if (!syncedSha) {
+              // A concurrent sync can make the merge a 204 no-op without a SHA.
+              const { data: currentDev } = await github.rest.git.getRef({
+                ...context.repo, ref: 'heads/dev',
+              });
+              syncedSha = currentDev.object.sha;
+            }
             const { data: verified } = await github.rest.repos.compareCommits({
-              ...context.repo, base: mainSha, head: syncedDev.object.sha,
+              ...context.repo, base: mainSha, head: syncedSha,
             });
             if (verified.merge_base_commit.sha !== mainSha) {
               throw new Error('main was not integrated into dev; refusing to report success');
             }
-            core.setOutput('sha', syncedDev.object.sha);
+            core.setOutput('sha', syncedSha);
             core.setOutput('requiresValidation', String(requiresValidation));
-            core.info(`dev includes main ${mainSha}; ${requiresValidation ? 'validating merge' : 'fast-forward already validated'} at ${syncedDev.object.sha}`);
+            core.info(`dev includes main ${mainSha}; ${requiresValidation ? 'validating merge' : 'fast-forward already validated'} at ${syncedSha}`);
 
   # GITHUB_TOKEN merges do not trigger push or PR workflows.
   # Run all checks explicitly on the synchronized commit.
