@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.37.0](https://github.com/victorvivas27/treasury-system/compare/v1.36.0...v1.37.0) (2026-10-28)
+
+
+### Features
+
+* add authentication illustration and private routes ([7a53cfc](https://github.com/victorvivas27/treasury-system/commit/7a53cfc1bae8da7b13cb7face5c5aea61e25f99a))
+* mejorar formato de salida de memoria en registros ([2cbdf3b](https://github.com/victorvivas27/treasury-system/commit/2cbdf3beecdfb2d69a14ebf8ec9e9829eb55e1a7))
+* mejorar formato de salida de memoria en registros ([9bef644](https://github.com/victorvivas27/treasury-system/commit/9bef6446f434707a5c5887a446ecf9be45943c22))
+
 ## [1.36.0](https://github.com/victorvivas27/treasury-system/compare/v1.35.1...v1.36.0) (2026-10-28)
 
 
