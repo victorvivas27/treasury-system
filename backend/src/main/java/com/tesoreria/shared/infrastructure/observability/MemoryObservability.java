@@ -31,6 +31,7 @@ public class MemoryObservability {
     private static final int CRITICAL_MASK = 2;
     private static final int WARNING_PERCENT = 80;
     private static final int CRITICAL_PERCENT = 90;
+    private static final String MEMORY_ROW_FORMAT = "  %-12s %12s usados | %12s reservados | %12s maximo%n";
     private final MemoryMXBean memory = ManagementFactory.getMemoryMXBean();
     private final ThreadMXBean threads = ManagementFactory.getThreadMXBean();
     private final List<GarbageCollectorMXBean> collectors = ManagementFactory.getGarbageCollectorMXBeans();
@@ -191,7 +192,7 @@ public class MemoryObservability {
                             LoggingEventBuilder builder) {
         builder.addKeyValue("event", event).addKeyValue("stage", stage);
         values.forEach(builder::addKeyValue);
-        builder.log(readableSummary(stage, values));
+        builder.setMessage(() -> readableSummary(stage, values)).log();
     }
 
     static String readableSummary(String stage, Map<String, Object> values) {
@@ -199,10 +200,7 @@ public class MemoryObservability {
                 ? " | ALERTA: umbral " + values.get("threshold_percent") + "%" : "";
         return String.format(Locale.ROOT,
                 "Memoria [%s]%s%n"
-                        + "  %-12s %12s usados | %12s reservados | %12s maximo%n"
-                        + "  %-12s %12s usados | %12s reservados | %12s maximo%n"
-                        + "  %-12s %12s usados | %12s reservados | %12s maximo%n"
-                        + "  %-12s %12s usados | %12s reservados | %12s maximo%n"
+                        + MEMORY_ROW_FORMAT.repeat(4)
                         + "  Contenedor: %s / %s | Uso: %s%n"
                         + "  Hilos: %s activos | %s daemon | %s pico | GC: %s ciclos, %s ms",
                 stage, alert,
