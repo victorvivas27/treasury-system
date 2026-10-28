@@ -56,7 +56,7 @@ jobs:
             ]);
             const versioning = all || paths.some(path => versionFiles.has(path) ||
               path.startsWith('.githooks/') || path.startsWith('frontend/.commitlintrc') ||
-              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation|test-branch-sync|ci-validation|test-ci-validation|validate-commit-message|test-commit-message)\.cjs$/.test(path));
+              /^scripts\/(check-version|test-versioning|test-auto-release|test-pr-validation|test-branch-sync|ci-validation|test-ci-validation|select-release-evidence|test-release-evidence-selection|validate-commit-message|test-commit-message)\.cjs$/.test(path));
             for (const [name, value] of Object.entries({ frontend, backend, bruno, versioning })) {
               core.setOutput(name, String(value));
             }

@@ -173,28 +173,38 @@ test('a release branch behind main cannot start validation', async () => {
     { setOutput: (key, value) => { outputs[key] = value; } });
   assert.deepEqual(outputs, {});
 });
-test('deployment dispatch preserves all existing release-dependent workflows', async () => {
-  const calls = [];
-  const github = { rest: { actions: { createWorkflowDispatch: async args => { calls.push(args); } } } };
-  await run(workflow.jobs.deploy.steps[0].with.script, github, { RELEASE_REF: 'v1.0.0' });
-  assert.deepEqual(calls.map(call => call.workflow_id), ['07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml']);
-  assert.ok(calls.every(call => call.ref === 'main'));
-  assert.ok(calls.every(call => call.inputs.release_ref === 'v1.0.0'));
+test('production consumers share one final validation in the same run', () => {
+  assert.equal(workflow.jobs['validate-release'].uses, './.github/workflows/12-release-validation.yml');
+  assert.equal(workflow.jobs.deploy, undefined);
+  for (const [id, file] of [['deploy-backend', '07-deploy-backend.yml'], ['deploy-frontend', '08-deploy-frontend.yml'], ['publish-reports', '09-reports-pages.yml']]) {
+    const job = workflow.jobs[id];
+    assert.deepEqual(job.needs, ['release-result', 'validate-release']);
+    assert.equal(job.uses, './.github/workflows/' + file);
+    assert.equal(job.secrets, 'inherit');
+    assert.equal(job.with.validated_sha, '${{ needs.validate-release.outputs.sha }}');
+    for (const field of ['frontend_artifact', 'backend_artifact', 'frontend_key', 'backend_key']) {
+      assert.equal(job.with[field], '${{ needs.validate-release.outputs.' + field + ' }}');
+    }
+    const eligible = new Function('needs', 'always', 'cancelled', 'return ' + job.if);
+    for (const result of ['success', 'failure', 'skipped', 'cancelled']) {
+      assert.equal(eligible({ 'release-result': { result: 'success' }, 'validate-release': { result } }, () => true, () => false), result === 'success');
+    }
+  }
 });
 
 test('both publication routes activate the shared release result, but failures and absent releases do not', async () => {
   const result = workflow.jobs['release-result'];
   assert.deepEqual(result.needs, ['prepare', 'publish']);
   assert.equal(workflow.jobs.prepare.outputs.tag_name, '${{ steps.release.outputs.tag_name }}');
-  assert.deepEqual(workflow.jobs.deploy.needs, ['release-result']);
-  for (const job of ['deploy', 'sync-dev']) {
+  assert.deepEqual(workflow.jobs['validate-release'].needs, ['release-result']);
+  for (const job of ['validate-release', 'sync-dev']) {
     const canContinue = new Function('needs', 'always', 'cancelled', `return ${workflow.jobs[job].if};`);
     assert.equal(canContinue({ 'release-result': { result: 'success' } }, () => true, () => false), true);
     assert.equal(canContinue({ 'release-result': { result: 'skipped' } }, () => true, () => false), false);
     assert.equal(canContinue({ 'release-result': { result: 'failure' } }, () => true, () => false), false);
     assert.equal(canContinue({ 'release-result': { result: 'success' } }, () => true, () => true), false);
   }
-  assert.equal(workflow.jobs.deploy.steps[0].env.RELEASE_REF, '${{ needs.release-result.outputs.tag_name }}');
+  assert.equal(workflow.jobs['validate-release'].with.ref, '${{ needs.release-result.outputs.tag_name }}');
   const eligible = new Function('needs', 'always', 'cancelled', `return ${result.if};`);
   const cases = [
     ['success', 'true', 'skipped', '', true],
@@ -226,9 +236,13 @@ test('both publication routes activate the shared release result, but failures a
   await assert.rejects(run(script, {}, { PUBLISH_RELEASED: 'true' }), /without an exact tag/);
 });
 
-test('production workflows are manual-only and serialize by service', () => {
+test('production workflows support manual and reusable calls and serialize by service', () => {
   for (const [file, candidate] of productionWorkflows) {
     assert.ok(candidate.on.workflow_dispatch, file);
+    assert.ok(candidate.on.workflow_call, file);
+    for (const field of ['validated_sha', 'frontend_artifact', 'backend_artifact', 'frontend_key', 'backend_key']) {
+      assert.equal(candidate.jobs.validation.with[field], '${{ inputs.' + field + " || '' }}");
+    }
     assert.equal(candidate.on.release, undefined, file);
     assert.equal(candidate.concurrency['cancel-in-progress'], false, file);
   }
