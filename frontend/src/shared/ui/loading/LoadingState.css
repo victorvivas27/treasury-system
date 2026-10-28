@@ -5,7 +5,6 @@
 .app-loader--contained .app-loader__mark{width:64px;height:64px}
 .app-loader--contained .app-loader__logo{width:40px;height:40px}
 .app-loader--contained .app-loader__title{display:none}
-#app-boot-loader:not(.is-visible){opacity:0;visibility:hidden;pointer-events:none}
 .app-loader::before{content:"";position:absolute;width:min(72vw,520px);aspect-ratio:1;border-radius:var(--radius-round);background:radial-gradient(circle,var(--tone-info-007),var(--tone-info-023) 42%,transparent 70%);filter:blur(8px);animation:boot-breathe 2400ms ease-in-out infinite}
 .app-loader__content{position:relative;display:grid;justify-items:center;gap:18px;padding:32px;text-align:center}
 .app-loader__mark{position:relative;display:grid;width:106px;height:106px;place-items:center}

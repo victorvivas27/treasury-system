@@ -1,0 +1,86 @@
+{
+  "baseUrl": "https://storage.googleapis.com/treasury-system-app-vivas-email-assets/app/v1",
+  "images": {
+    "loginDesktop": {
+      "file": "principal_login.c2d5379cedab.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 262546,
+      "source": "frontend/src/assets/community-icons/principal_login.webp",
+      "originalBytes": 1141332,
+      "sha256": "c2d5379cedab5952850c1b1b8770bdc40dc77a8472633d3cb31c78a9a09b55b7"
+    },
+    "loginMobile": {
+      "file": "imagen_login_movil.386da4b44bbd.webp",
+      "width": 945,
+      "height": 1473,
+      "bytes": 267862,
+      "source": "frontend/src/assets/community-icons/imagen_login_movil.webp",
+      "originalBytes": 1137450,
+      "sha256": "386da4b44bbdd9cf535abc83f61296e125b8d8e3f24d050c2ecee9997f66e27e"
+    },
+    "communityFamilies": {
+      "file": "community-families.964087b30878.webp",
+      "width": 640,
+      "height": 633,
+      "bytes": 79602,
+      "source": "frontend/src/assets/community-icons/community-families.webp",
+      "originalBytes": 758698,
+      "sha256": "964087b308780dec08996857fc936930a94ec30dfee3e96938effb3cad567cc0"
+    },
+    "communityCare": {
+      "file": "community-care.0583051b5e57.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 72194,
+      "source": "frontend/src/assets/community-icons/community-care.webp",
+      "originalBytes": 640434,
+      "sha256": "0583051b5e57b69d95bfe9d6ca274a3977181e7fbde8444556b4b1f77b4382f8"
+    },
+    "communityParticipation": {
+      "file": "community-participation.875d73bd115d.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 77482,
+      "source": "frontend/src/assets/community-icons/community-participation.webp",
+      "originalBytes": 709474,
+      "sha256": "875d73bd115db65dd4370b349155a7ece41f29426d7c1a3cc3daba37a47b16e5"
+    },
+    "communityLearning": {
+      "file": "community-learning.9caa768101c8.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 82884,
+      "source": "frontend/src/assets/community-icons/community-learning.webp",
+      "originalBytes": 751722,
+      "sha256": "9caa768101c889de92a8bb971eda2372f918e1587b3880bb44bbf9a3db720d93"
+    },
+    "communityGoals": {
+      "file": "community-goals.0bdd1d6da063.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 87386,
+      "source": "frontend/src/assets/community-icons/community-goals.webp",
+      "originalBytes": 785350,
+      "sha256": "0bdd1d6da063a5050ad3dbaeaaf579742b0d418d2b9a67bb3d6a878450dfcc45"
+    },
+    "communityJoy": {
+      "file": "community-joy.e71154a7d460.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 86546,
+      "source": "frontend/src/assets/community-icons/community-joy.webp",
+      "originalBytes": 749826,
+      "sha256": "e71154a7d4601d8bc25fa2286269c9a0dcfa37a393d9386220498e607ec5ddb5"
+    },
+    "communityTree": {
+      "file": "community-tree.12d13c6735a3.webp",
+      "width": 640,
+      "height": 640,
+      "bytes": 99748,
+      "source": "frontend/src/assets/community-icons/community-tree.webp",
+      "originalBytes": 872112,
+      "sha256": "12d13c6735a3a6cd2a0b54c76788965a4fc3fd40f02858daf616ae08ef5c2f65"
+    }
+  }
+}

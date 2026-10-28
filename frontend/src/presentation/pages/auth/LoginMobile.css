@@ -29,7 +29,7 @@
   box-sizing: border-box;
   padding: 24px 16px;
   background-color: var(--color-bg);
-  background-image: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 85%, transparent), color-mix(in srgb, var(--color-bg) 25%, transparent) 65%, transparent), url("../../../assets/community-icons/imagen_login_movil.webp");
+  background-image: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 85%, transparent), color-mix(in srgb, var(--color-bg) 25%, transparent) 65%, transparent), var(--auth-mobile-image);
   background-size: 100% 100%, contain;
   background-position: center, center bottom;
   background-repeat: no-repeat;

@@ -19,9 +19,9 @@
   <link rel="canonical" href="https://tesoreriaescolar.app/" />
   <link rel="image_src" href="https://tesoreriaescolar.app/icono-tesoreria.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icono-tesoreria-dark-180.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icono-tesoreria-dark-192.png" />
-  <link rel="preload" as="image" href="/icono-tesoreria-loader.png" fetchpriority="high" />
+  <link rel="apple-touch-icon" sizes="1254x1254" href="/icono-tesoreria.png" />
+  <link rel="icon" type="image/png" sizes="1254x1254" href="/icono-tesoreria.png" />
+  <link rel="preload" as="image" href="/icono-tesoreria.png" fetchpriority="high" />
 
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_CL" />
@@ -86,29 +86,14 @@
 </head>
 
 <body>
-  <div id="app-boot-loader" class="app-loader" role="status" aria-live="polite" aria-hidden="true" aria-label="Cargando Tesorería Escolar">
-    <div class="app-loader__content">
-      <div class="app-loader__mark" aria-hidden="true">
-        <span class="app-loader__ring"></span>
-        <img class="app-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
-          decoding="sync" fetchpriority="high"
-          onerror="this.hidden = true" />
-      </div>
-      <div>
-        <p class="app-loader__title">Tesorería Escolar</p>
-        <p class="app-loader__status">Preparando tu espacio <span class="app-loader__dots" aria-hidden="true"><i></i><i></i><i></i></span></p>
-      </div>
+  <div id="app-boot-loader" class="app-startup is-visible" role="status" aria-label="Abriendo Tesorería Escolar">
+    <div class="app-startup__motion" aria-hidden="true">
+      <span class="app-startup__orbit"></span>
+      <span class="app-startup__orbit app-startup__orbit--inner"></span>
+      <span class="app-startup__core"></span>
     </div>
   </div>
   <div id="root"></div>
-  <script>
-    setTimeout(() => {
-      const loader = document.getElementById("app-boot-loader");
-      if (!loader || loader.classList.contains("is-leaving")) return;
-      loader.classList.add("is-visible");
-      loader.removeAttribute("aria-hidden");
-    }, 250);
-  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

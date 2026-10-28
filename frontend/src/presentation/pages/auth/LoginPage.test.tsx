@@ -198,7 +198,7 @@ describe("LoginPage", () => {
     );
   });
 
-  it.each(["token-guardado", null])("[LoginPage #07] delega la restauración de sesión al loader de arranque (token: %s)", (token) => {
+  it.each(["token-guardado", null])("[LoginPage #07] muestra el formulario sin permitir ingreso mientras restaura la sesión (token: %s)", (token) => {
     vi.mocked(useAuth).mockReturnValue({
       login: vi.fn(),
       token,
@@ -206,9 +206,11 @@ describe("LoginPage", () => {
       isAuthenticated: false,
     } as unknown as ReturnType<typeof useAuth>);
 
-    const { container } = render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole("heading", { name: "Iniciar sesión" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Correo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ingresar" })).toBeDisabled();
   });
 
   it("[LoginPage #08] muestra la selección de curso después de la contraseña", async () => {

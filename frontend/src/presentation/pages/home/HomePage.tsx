@@ -23,7 +23,6 @@ export const HomePage = () => {
   }, [loading, isAuthenticated]);
   useHomeReveal(`${loading}-${isAuthenticated}-${detailsReady}`);
 
-  if (loading) return null;
   if (isAuthenticated && !ready && error) return <main className="home-entry-error" role="alert">
     <FeedbackState title="No pudimos abrir el inicio" message={error}
       actionText="Reintentar" onRefresh={() => void homeCommunityCache.load()} /></main>;

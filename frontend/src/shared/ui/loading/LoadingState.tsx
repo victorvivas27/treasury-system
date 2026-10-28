@@ -22,7 +22,7 @@ export const LoadingState = ({ message = "Preparando tu espacio", variant = "ful
     <div className="app-loader__content">
       <div className="app-loader__mark" aria-hidden="true">
         <span className="app-loader__ring" />
-        <img className="app-loader__logo" src="/icono-tesoreria-loader.png" alt="" width="68" height="68"
+        <img className="app-loader__logo" src="/icono-tesoreria.png" alt="" width="68" height="68"
           decoding="sync" fetchPriority="high" onError={event => { event.currentTarget.hidden = true; }} />
       </div>
       <div>

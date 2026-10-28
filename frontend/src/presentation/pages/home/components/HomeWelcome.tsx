@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TreasuryRepositoryImpl } from '@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl';
-import communityTree from '@/assets/community-icons/community-tree.webp';
+import { publicImages } from '@/shared/assets/publicImages';
 import '../style/HomeWelcome.css';
 import '../style/HomeWelcomeDesktop.css';
 
@@ -35,7 +35,7 @@ export function HomeWelcome() {
   }, []);
 
   return <section ref={section} className={`home-welcome${visible ? ' is-in-view' : ''}`} aria-labelledby="home-welcome-title">
-    <img className="home-welcome__watermark" src={communityTree} alt="" aria-hidden="true" />
+    <img className="home-welcome__watermark" src={publicImages.communityTree} alt="" aria-hidden="true" />
     <div className="home-welcome__identity">
       <div>
         <strong>{course ? `Curso ${course.replace(/^Curso\s+/i, '').trim()}` : 'Familias del curso'}</strong>

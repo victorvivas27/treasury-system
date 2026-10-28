@@ -72,7 +72,7 @@ public class NotificationPushPublisher {
 
     private String payload(PushRequestedEvent event, long unread) {
         PushPayload value = new PushPayload(event.title(), truncate(event.message()), event.tag(),
-                event.path(), unread, "/icono-tesoreria.png", "/favicon-tesoreria-v3.png");
+                event.path(), unread, "/icono-tesoreria.png", "/icono-tesoreria.png");
         try {
             return objectMapper.writeValueAsString(value);
         } catch (JacksonException exception) {

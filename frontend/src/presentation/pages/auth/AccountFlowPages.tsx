@@ -9,7 +9,7 @@ import { ButtonBack } from "@/shared/ui/buttonback/ButtonBack";
 import { FiMail } from "react-icons/fi";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
-import loginIllustration from "@/assets/community-icons/principal_login.webp";
+import { AuthIllustration, authIllustrationStyle } from "./AuthIllustration";
 import { RxEyeClosed } from "react-icons/rx";
 import { TfiEye } from "react-icons/tfi";
 import axios from "axios";
@@ -30,10 +30,9 @@ const recoveryErrorMessage = (error: unknown) => {
 const Shell = ({ title, message, children, illustrated = false }: {
   title: string; message?: string; children?: React.ReactNode; illustrated?: boolean;
 }) => (
-  <main className={`auth-flow${illustrated ? " login-page invitation-page" : ""}`}>
-    {illustrated && <div className="login-illustration" aria-hidden="true">
-      <img src={loginIllustration} alt="" width="1536" height="1024" fetchPriority="high" />
-    </div>}
+  <main className={`auth-flow${illustrated ? " login-page invitation-page" : ""}`}
+    style={illustrated ? authIllustrationStyle : undefined}>
+    {illustrated && <AuthIllustration />}
     <section className={`auth-flow__card${illustrated ? " login-panel" : ""}`}>
       <header className="auth-flow__header">
         <BrandLogo className="auth-flow__logo" />
@@ -141,10 +140,8 @@ export const ForgotPasswordPage = () => {
   };
   const returnToLogin = () => navigate("/login", { replace: true });
   return <>
-    <main className="form-page-container login-page">
-      <div className="login-illustration" aria-hidden="true">
-        <img src={loginIllustration} alt="" width="1536" height="1024" fetchPriority="high" />
-      </div>
+    <main className="form-page-container login-page" style={authIllustrationStyle}>
+      <AuthIllustration />
       <section className="login-panel" aria-labelledby="recovery-title">
       <header className="form-page-header login-page-header">
         <BrandLogo className="login-brand-logo" />

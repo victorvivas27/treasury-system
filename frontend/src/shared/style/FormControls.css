@@ -1,0 +1,28 @@
+/* Shared controls must be available before any route-specific stylesheet. */
+.form-input {
+  width: 100%;
+  padding: var(--control-padding);
+  background: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 200ms;
+}
+
+.form-input:focus {
+  border-color: var(--color-accent);
+}
+
+.form-input::placeholder {
+  color: transparent;
+  transition: color 300ms ease;
+}
+
+.form-input:focus::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input.input-error {
+  border-color: var(--color-error) !important;
+}
