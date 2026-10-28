@@ -9,7 +9,7 @@ const workflow = read('10-sync-main-dev.yml');
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
 function fixture({ relation = 'diverged', conflict = false, verified = true, race = false,
-  prevalidated = false, staleRef = false, emptyMergeResponse = false } = {}) {
+  prevalidated = false, validatedSha = 'main-sha', staleRef = false, emptyMergeResponse = false } = {}) {
   const merges = [], updates = [], outputs = {}, reads = [];
   let mainUpdated = false;
   const github = { rest: {
@@ -47,17 +47,18 @@ function fixture({ relation = 'diverged', conflict = false, verified = true, rac
   return { merges, updates, outputs, reads, run: () => new AsyncFunction('github', 'context', 'core', 'process', workflow.jobs.sync.steps[0].with.script)(
     github, { repo: { owner: 'owner', repo: 'repo' } },
     { info: () => {}, setOutput: (key, value) => { outputs[key] = value; } },
-    { env: { ALREADY_VALIDATED: String(prevalidated) } },
+    { env: { ALREADY_VALIDATED: String(prevalidated), VALIDATED_SHA: validatedSha } },
   ) };
 }
 
-test('sync runs for main pushes, manual retries and bot releases', () => {
-  assert.deepEqual(workflow.on.push.branches, ['main']);
+test('sync is called by the validated main coordinator or a manual retry', () => {
+  assert.equal(workflow.on.push, undefined);
   assert.ok(Object.hasOwn(workflow.on, 'workflow_dispatch'));
   assert.ok(Object.hasOwn(workflow.on, 'workflow_call'));
   assert.equal(read('06-release-please.yml').jobs['sync-dev'].uses, './.github/workflows/10-sync-main-dev.yml');
-  assert.equal(read('06-release-please.yml').jobs['sync-dev'].needs, 'release-result');
+  assert.deepEqual(read('06-release-please.yml').jobs['sync-dev'].needs, ['main-checks', 'release-result', 'validate-release']);
   assert.equal(read('06-release-please.yml').jobs['sync-dev'].with.already_validated, true);
+  assert.equal(read('06-release-please.yml').jobs['sync-dev'].with.validated_sha, '${{ needs.validate-release.outputs.sha || needs.main-checks.outputs.sha }}');
   assert.equal(workflow.on.workflow_call.inputs.already_validated.default, false);
   assert.equal(workflow.jobs.sync.concurrency['cancel-in-progress'], false);
 });
@@ -68,6 +69,14 @@ test('branches already in sync do not create a commit or rerun validations', asy
   assert.equal(f.merges.length, 0);
   assert.equal(f.updates.length, 0);
   assert.deepEqual(f.outputs, { sha: 'dev-sha', requiresValidation: 'false' });
+});
+
+test('a missing or stale validated SHA cannot skip fast-forward validation', async () => {
+  for (const validatedSha of ['', 'previous-main-sha']) {
+    const f = fixture({ relation: 'dev-behind', prevalidated: true, validatedSha });
+    await f.run();
+    assert.equal(f.outputs.requiresValidation, 'true');
+  }
 });
 
 test('main push fast-forwards dev and retains validation when checks are not proven', async () => {

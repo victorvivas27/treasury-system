@@ -196,15 +196,17 @@ test('both publication routes activate the shared release result, but failures a
   const result = workflow.jobs['release-result'];
   assert.deepEqual(result.needs, ['prepare', 'publish']);
   assert.equal(workflow.jobs.prepare.outputs.tag_name, '${{ steps.release.outputs.tag_name }}');
-  assert.deepEqual(workflow.jobs['validate-release'].needs, ['release-result']);
-  for (const job of ['validate-release', 'sync-dev']) {
+  assert.deepEqual(workflow.jobs['validate-release'].needs, ['release-result', 'main-checks']);
+  for (const job of ['validate-release']) {
     const canContinue = new Function('needs', 'always', 'cancelled', `return ${workflow.jobs[job].if};`);
-    assert.equal(canContinue({ 'release-result': { result: 'success' } }, () => true, () => false), true);
-    assert.equal(canContinue({ 'release-result': { result: 'skipped' } }, () => true, () => false), false);
-    assert.equal(canContinue({ 'release-result': { result: 'failure' } }, () => true, () => false), false);
-    assert.equal(canContinue({ 'release-result': { result: 'success' } }, () => true, () => true), false);
+    const needs = result => ({ 'release-result': { result }, 'main-checks': { result: 'success' } });
+    assert.equal(canContinue(needs('success'), () => true, () => false), true);
+    assert.equal(canContinue(needs('skipped'), () => true, () => false), false);
+    assert.equal(canContinue(needs('failure'), () => true, () => false), false);
+    assert.equal(canContinue(needs('success'), () => true, () => true), false);
+    assert.equal(canContinue({ ...needs('success'), 'main-checks': { result: 'failure' } }, () => true, () => false), false);
   }
-  assert.equal(workflow.jobs['validate-release'].with.ref, '${{ needs.release-result.outputs.tag_name }}');
+  assert.equal(workflow.jobs['validate-release'].with.ref, '${{ needs.main-checks.outputs.sha }}');
   const eligible = new Function('needs', 'always', 'cancelled', `return ${result.if};`);
   const cases = [
     ['success', 'true', 'skipped', '', true],
@@ -245,5 +247,100 @@ test('production workflows support manual and reusable calls and serialize by se
     }
     assert.equal(candidate.on.release, undefined, file);
     assert.equal(candidate.concurrency['cancel-in-progress'], false, file);
+  }
+});
+
+
+test('one main coordinator replaces independent push workflows and tag checks', () => {
+  const root = path.join(__dirname, '../.github/workflows');
+  const definitions = fs.readdirSync(root).map(file => [file, yaml.parse(fs.readFileSync(path.join(root, file), 'utf8'))]);
+  const matchesPush = branch => definitions.filter(([, candidate]) => {
+    if (!Object.hasOwn(candidate.on, 'push')) return false;
+    const trigger = candidate.on.push;
+    return !trigger?.branches || trigger.branches.includes(branch);
+  }).map(([file]) => file);
+  assert.deepEqual(matchesPush('main'), ['06-release-please.yml']);
+  assert.deepEqual(matchesPush('release-please--branches--main'), []);
+  for (const [, candidate] of definitions) {
+    if (Object.hasOwn(candidate.on, 'push')) assert.ok(candidate.on.push.branches?.length);
+  }
+  const checks = workflow.jobs['main-checks'];
+  assert.equal(checks.uses, './.github/workflows/14-main-validation.yml');
+  assert.equal(checks.with.ref, '${{ needs.release-result.outputs.tag_name || github.sha }}');
+  const main = definitions.find(([file]) => file === '14-main-validation.yml')[1];
+  assert.deepEqual(Object.keys(main.on), ['workflow_call']);
+  for (const suite of ['frontend', 'backend']) {
+    const eligible = new Function('inputs', 'return ' + main.jobs[suite].if);
+    assert.equal(eligible({ release: true }), false);
+    assert.equal(eligible({ release: false }), true);
+    assert.equal(main.jobs[suite].with.force, undefined);
+    assert.equal(main.jobs[suite].with.ref, '${{ needs.commits.outputs.sha }}');
+  }
+  for (const suite of ['versioning', 'bruno', 'protected-files']) assert.ok(main.jobs[suite]);
+  assert.equal(main.jobs['protected-files'].with.ref, '${{ needs.commits.outputs.sha }}');
+});
+
+test('main checks cover ordinary pushes and releases but reject failed and superseded runs', () => {
+  const eligible = new Function('needs', 'always', 'cancelled', 'return ' + workflow.jobs['main-checks'].if);
+  for (const [release, current, expected] of [['success', 'false', true], ['skipped', 'true', true], ['skipped', 'false', false], ['failure', 'true', false]]) {
+    const needs = { prepare: { result: 'success' }, publish: { result: 'skipped' }, 'main-target': { result: 'success', outputs: { current } }, 'release-result': { result: release } };
+    assert.equal(eligible(needs, () => true, () => false), expected);
+    assert.equal(eligible(needs, () => true, () => true), false);
+    needs.publish.result = 'failure';
+    assert.equal(eligible(needs, () => true, () => false), false);
+  }
+});
+
+test('synchronization waits for all applicable main checks, including final release evidence', () => {
+  const eligible = new Function('needs', 'always', 'cancelled', 'return ' + workflow.jobs['sync-dev'].if);
+  for (const [main, release, evidence, expected] of [
+    ['success', 'success', 'success', true], ['success', 'skipped', 'skipped', true],
+    ['failure', 'success', 'success', false], ['success', 'success', 'failure', false],
+    ['success', 'success', 'skipped', false], ['success', 'failure', 'skipped', false],
+    ['cancelled', 'skipped', 'skipped', false],
+  ]) {
+    const needs = { 'main-checks': { result: main }, 'release-result': { result: release }, 'validate-release': { result: evidence } };
+    assert.equal(eligible(needs, () => true, () => false), expected);
+    assert.equal(eligible(needs, () => true, () => true), false);
+  }
+});
+
+test('superseded main commits defer to the newer queued run', async () => {
+  for (const sha of ['selected-sha', 'newer-sha']) {
+    const outputs = {};
+    await run(workflow.jobs['main-target'].steps[0].with.script,
+      { rest: { git: { getRef: async () => ({ data: { object: { sha } } }) } } },
+      { EXPECTED_SHA: 'selected-sha' }, { setOutput: (key, value) => { outputs[key] = value; } });
+    assert.deepEqual(outputs, { current: String(sha === 'selected-sha') });
+  }
+});
+
+
+test('coordinator dependencies are acyclic and reusable calls declare their inputs', () => {
+  const root = path.join(__dirname, '../.github/workflows');
+  for (const file of fs.readdirSync(root)) {
+    const candidate = yaml.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+    const active = new Set();
+    const visited = new Set();
+    const visit = id => {
+      assert.ok(candidate.jobs[id], file + ': unknown dependency ' + id);
+      assert.ok(!active.has(id), file + ': circular dependency ' + id);
+      if (visited.has(id)) return;
+      active.add(id);
+      const job = candidate.jobs[id];
+      for (const dependency of [].concat(job.needs ?? [])) visit(dependency);
+      active.delete(id);
+      visited.add(id);
+      if (job.uses?.startsWith('./.github/workflows/')) {
+        const child = yaml.parse(fs.readFileSync(path.join(root, path.basename(job.uses)), 'utf8'));
+        assert.ok(Object.hasOwn(child.on, 'workflow_call'), job.uses);
+        const declared = child.on.workflow_call?.inputs ?? {};
+        for (const input of Object.keys(job.with ?? {})) assert.ok(Object.hasOwn(declared, input), job.uses + ': undeclared input ' + input);
+        for (const [input, definition] of Object.entries(declared)) {
+          if (definition.required) assert.ok(Object.hasOwn(job.with ?? {}, input), job.uses + ': missing input ' + input);
+        }
+      }
+    };
+    for (const id of Object.keys(candidate.jobs)) visit(id);
   }
 });

@@ -1,8 +1,6 @@
 name: 10 - Sync main into dev
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -11,6 +9,10 @@ on:
         required: false
         type: boolean
         default: false
+      validated_sha:
+        description: Exact main commit covered by the successful coordinator
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -34,6 +36,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           ALREADY_VALIDATED: ${{ inputs.already_validated }}
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
         with:
           script: |
             const { data: main } = await github.rest.git.getRef({
@@ -56,7 +59,8 @@ jobs:
             const { data: devInMain } = await github.rest.repos.compareCommits({
               ...context.repo, base: dev.object.sha, head: mainSha,
             });
-            let requiresValidation = process.env.ALREADY_VALIDATED !== 'true';
+            let requiresValidation = process.env.ALREADY_VALIDATED !== 'true' ||
+              process.env.VALIDATED_SHA !== mainSha;
             let syncedSha;
             if (devInMain.merge_base_commit.sha === dev.object.sha) {
               // Move the branch ref only when this is a strict fast-forward.

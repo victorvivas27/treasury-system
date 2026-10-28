@@ -28,7 +28,7 @@ test('one PR orchestrator and the independent security gate handle pull requests
   assert.deepEqual(workflow.on.pull_request.branches, ['dev', 'main']);
   for (const file of children) {
     assert.ok(Object.hasOwn(read(file).on, 'workflow_call'), file);
-    assert.ok(read(file).on.push, file);
+    if (read(file).on.push) assert.ok(!read(file).on.push.branches.includes('main'), file);
     assert.notEqual(read(file).concurrency.group, workflow.concurrency.group, file);
   }
   for (const [job, file] of Object.entries({ commits: children[0], frontend: children[1],
