@@ -83,28 +83,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const validatedToken = useRef<string | null>(null);
 
   useEffect(() => {
-    if (loading) return;
     const loader = document.getElementById("app-boot-loader");
-    if (!loader) return;
+    const root = document.getElementById("root");
+    if (!loader || !root) return;
     let removeTimer: number | undefined;
+    let paintFrame: number | undefined;
     const hideLoader = () => {
-      if (!loader.classList.contains("is-visible")) {
-        loader.remove();
-        return;
-      }
-      loader.setAttribute("aria-hidden", "true");
-      loader.classList.add("is-leaving");
-      removeTimer = window.setTimeout(() => loader.remove(), 180);
+      const appStyles = document.querySelector("link[data-app-styles]");
+      const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
+      if (!root.firstElementChild || !stylesReady || paintFrame !== undefined) return;
+      paintFrame = window.requestAnimationFrame(() => {
+        loader.setAttribute("aria-hidden", "true");
+        loader.classList.add("is-leaving");
+        removeTimer = window.setTimeout(() => loader.remove(), 180);
+        observer.disconnect();
+      });
     };
-    const appStyles = document.querySelector("link[data-app-styles]");
-    const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
-    if (stylesReady) hideLoader();
-    else window.addEventListener("app:styles-ready", hideLoader, { once: true });
+    const observer = new MutationObserver(hideLoader);
+    observer.observe(root, { childList: true, subtree: true });
+    window.addEventListener("app:styles-ready", hideLoader);
+    hideLoader();
     return () => {
+      observer.disconnect();
       window.removeEventListener("app:styles-ready", hideLoader);
+      if (paintFrame !== undefined) window.cancelAnimationFrame(paintFrame);
       if (removeTimer !== undefined) window.clearTimeout(removeTimer);
     };
-  }, [loading]);
+  }, []);
 
   const useCases = useMemo(() => {
     const repository = new AuthRepositoryImpl();

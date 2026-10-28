@@ -16,22 +16,10 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icons/icono-tesoreria-dark-192.png",
-      "sizes": "192x192",
+      "src": "/icono-tesoreria.png",
+      "sizes": "1254x1254",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/icono-tesoreria-dark-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icono-tesoreria-dark-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }

@@ -11,7 +11,7 @@ import { FiLock, FiLogIn, FiMail } from "react-icons/fi";
 import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
-import loginIllustration from "@/assets/community-icons/principal_login.webp";
+import { AuthIllustration, authIllustrationStyle } from "./AuthIllustration";
 import "./LoginPage.css";
 
 const FIELDS = [
@@ -66,7 +66,7 @@ export const LoginPage = () => {
   };
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting) return;
+    if (submitting || sessionLoading) return;
     // Password managers may fill the inputs without notifying React.
     const formData = new FormData(event.currentTarget);
     const correo = String(formData.get("correo") ?? "");
@@ -117,14 +117,11 @@ export const LoginPage = () => {
     }
   };
 
-  if (sessionLoading && !submitting) return null;
-  if (isAuthenticated) return <Navigate to={destination} replace />;
+  if (!sessionLoading && isAuthenticated) return <Navigate to={destination} replace />;
 
   return (
-    <main className="form-page-container login-page">
-      <div className="login-illustration" aria-hidden="true">
-        <img src={loginIllustration} alt="" width="1536" height="1024" fetchPriority="high" />
-      </div>
+    <main className="form-page-container login-page" style={authIllustrationStyle}>
+      <AuthIllustration />
       <section className="login-panel" aria-labelledby="login-title">
       <header className="form-page-header login-page-header">
         <BrandLogo className="login-brand-logo" />
@@ -201,6 +198,7 @@ export const LoginPage = () => {
             type="submit"
             onClick={() => {}}
             loading={submitting}
+            disabled={sessionLoading}
             label={submitting ? "Ingresando..." : "Ingresar"}
             icon={<FiLogIn aria-hidden="true" />}
             size="medium"

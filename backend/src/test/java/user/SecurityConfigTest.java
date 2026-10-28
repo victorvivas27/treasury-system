@@ -37,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
+        "logging.structured.format.console=logstash",
         "app.storage.gcs.enabled=false",
         "MERCADO_PAGO_ACCESS_TOKEN=",
         "MERCADO_PAGO_WEBHOOK_SECRET=",

@@ -4,10 +4,6 @@ const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
   '/icono-tesoreria.png',
-  '/icons/icono-tesoreria-dark-180.png',
-  '/icons/icono-tesoreria-dark-192.png',
-  '/icons/icono-tesoreria-dark-512.png',
-  '/icons/icono-tesoreria-dark-maskable-512.png',
 ]
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image'])
 const ACCOUNT_LINK_PATHS = new Set(['/restablecer-password', '/aceptar-invitacion', '/verificar-correo'])
@@ -133,7 +129,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: payload.body || 'Tienes una nueva notificación.',
     icon: payload.icon || '/icono-tesoreria.png',
-    badge: payload.badge || '/favicon-tesoreria-v3.png',
+    badge: payload.badge || '/icono-tesoreria.png',
     tag: `treasury-${payload.tag || Date.now()}`,
     renotify: true,
     data: { url: payload.url || '/notifications' },

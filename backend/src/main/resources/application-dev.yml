@@ -36,6 +36,8 @@ app:
     secret: ${JWT_SECRET:development-only-jwt-secret-must-not-be-used-in-production}
 
 logging:
+  pattern:
+    console: "%clr(%d{HH:mm:ss}){faint} %clr(%-5level) %clr(%logger{24}){cyan} - %msg%n%wEx"
   level:
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF

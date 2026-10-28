@@ -4,6 +4,7 @@
 
 /* Shared login controls; layout differences live in the two viewport files. */
 .login-page { width: min(480px, calc(100% - 32px)); margin: 0 auto; padding-block: 32px; box-sizing: border-box; }
+.form-page-container.login-page { margin-inline: auto; }
 .login-illustration { display: none; }
 .login-panel { min-width: 0; width: 100%; }
 :where(.login-page) .login-page-header { display: flex; align-items: center; gap: 16px; margin: 0 0 24px; text-align: left; }

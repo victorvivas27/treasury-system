@@ -1,5 +1,6 @@
 @import "./typography.css";
 @import "./theme.css";
+@import "./FormControls.css";
 @import "../ui/loading/LoadingState.css";
 
 /* Design System: tema, escalas compartidas y roles de componentes.
@@ -118,6 +119,20 @@
 
     body{min-height:100vh;min-height:100dvh}
     #root{min-height:100vh;min-height:100dvh}
+    .app-startup{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:var(--color-bg);transition:opacity 180ms ease}
+    .app-startup::before{content:"";position:absolute;width:min(70vw,320px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--color-accent) 12%,transparent),var(--tone-info-007) 35%,transparent 70%);animation:startup-glow 2600ms ease-in-out infinite}
+    .app-startup__motion{position:relative;display:grid;place-items:center;width:84px;height:84px}
+    .app-startup__motion::before{content:"";position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--color-accent) 10%,transparent);border-radius:50%}
+    .app-startup__orbit{position:absolute;inset:0;box-sizing:border-box;border:2px solid transparent;border-top-color:var(--color-accent);border-right-color:color-mix(in srgb,var(--color-accent) 30%,transparent);border-radius:50%;animation:startup-orbit 1800ms linear infinite}
+    .app-startup__orbit::after{content:"";position:absolute;top:9px;right:9px;width:4px;height:4px;border-radius:50%;background:var(--color-accent);box-shadow:0 0 12px color-mix(in srgb,var(--color-accent) 70%,transparent)}
+    .app-startup__orbit--inner{inset:15px;border-width:1px;border-top-color:var(--palette-sky);border-right-color:color-mix(in srgb,var(--palette-sky) 20%,transparent);animation:startup-orbit 2600ms linear infinite reverse}
+    .app-startup__orbit--inner::after{top:5px;right:5px;width:3px;height:3px;background:var(--palette-sky)}
+    .app-startup__core{width:7px;height:7px;border-radius:50%;background:var(--color-accent);box-shadow:0 0 20px color-mix(in srgb,var(--color-accent) 35%,transparent);animation:startup-pulse 1800ms ease-in-out infinite}
+    .app-startup.is-leaving{opacity:0;pointer-events:none}
+    @keyframes startup-orbit{to{transform:rotate(360deg)}}
+    @keyframes startup-pulse{0%,100%{opacity:.55;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+    @keyframes startup-glow{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:.9;transform:scale(1.1)}}
+    @media(prefers-reduced-motion:reduce){.app-startup::before,.app-startup__orbit,.app-startup__core{animation:none}.app-startup{transition:none}}
 /* critical-boot:end */
 
 /* =========================================

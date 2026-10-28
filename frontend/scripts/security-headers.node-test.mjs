@@ -8,6 +8,8 @@ test("uses exact API/WS origins without credentials, paths or broad HTTPS except
   assert.doesNotMatch(headers, /unsafe-eval|connect-src[^;]*\shttps: |report-uri|report-to/);
   assert.match(headers, /Content-Security-Policy-Report-Only/);
   assert.match(headers, /Content-Security-Policy "frame-ancestors 'none'; object-src 'none'" always/);
+  assert.match(headers, /img-src[^;]*https:\/\/storage.googleapis.com\/treasury-system-app-vivas-email-assets\/app\/v1\//);
+  assert.doesNotMatch(headers, /img-src[^;]*https:\/\/storage.googleapis.com(?:\s|;)/);
   for (const line of headers.trim().split("\n")) assert.match(line, / always;$/);
   assert.doesNotMatch(headers, /Strict-Transport-Security/);
 });

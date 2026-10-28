@@ -1,6 +1,10 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+const imageManifest = JSON.parse(readFileSync(resolve(dirname(fileURLToPath(import.meta.url)),
+  "../src/shared/assets/publicImages.manifest.json"), "utf8"));
+const publicArtworkSource = `${imageManifest.baseUrl}/`;
 
 export const securityHeaders = (apiUrl = "http://localhost:5055/tesoreria/api/v1") => {
   const api = new URL(apiUrl);
@@ -25,7 +29,7 @@ export const securityHeaders = (apiUrl = "http://localhost:5055/tesoreria/api/v1
     "default-src 'self'",
     "script-src 'self' blob:",
     "style-src 'self' 'unsafe-inline' blob:",
-    "img-src 'self' data: blob: https://cdn.jsdelivr.net",
+    `img-src 'self' data: blob: https://cdn.jsdelivr.net ${publicArtworkSource}`,
     `connect-src 'self' ${[...origins].join(" ")} blob: data:`,
     "font-src 'self' data: blob:",
     "worker-src 'self' blob:",

@@ -1,9 +1,7 @@
 ﻿import { useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { HomeInstallGuide } from "./HomeInstallGuide";
-import communityFamilies from "@/assets/community-icons/community-families.webp";
-import communityGoals from "@/assets/community-icons/community-goals.webp";
-import communityLearning from "@/assets/community-icons/community-learning.webp";
+import { publicImages } from "@/shared/assets/publicImages";
 import { FiArrowRight, FiBarChart2, FiCalendar, FiCheck, FiCheckCircle, FiCoffee, FiFileText, FiHeart, FiUsers } from "react-icons/fi";
 import "../style/HomeFeatures.css";
 import "../style/HomeTour.css";
@@ -133,9 +131,9 @@ export const HomeFeatures = () => {
 
       <section className="home-tour__section home-tour__closing" aria-labelledby="start-title" data-home-reveal>
         <div className="home-tour__closing-art" aria-hidden="true">
-          <img src={communityFamilies} alt="" loading="lazy" width="104" height="104" />
-          <img src={communityGoals} alt="" loading="lazy" width="88" height="88" />
-          <img src={communityLearning} alt="" loading="lazy" width="96" height="96" />
+          <img src={publicImages.communityFamilies} alt="" loading="lazy" width="104" height="104" />
+          <img src={publicImages.communityGoals} alt="" loading="lazy" width="88" height="88" />
+          <img src={publicImages.communityLearning} alt="" loading="lazy" width="96" height="96" />
         </div>
         <div className="home-tour__closing-copy">
         <span className="home-tour__overline">De conocerla a usarla</span>
