@@ -1,0 +1,80 @@
+name: 14-Coordinated Main Validation
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+      release:
+        description: The release evidence gate owns frontend and backend validation
+        type: boolean
+        default: false
+    outputs:
+      sha:
+        description: Immutable checked main commit
+        value: ${{ jobs.commits.outputs.sha }}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  commits:
+    name: Pin main and validate commit messages
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - id: commit
+        env:
+          BASE_SHA: ${{ github.event.before }}
+        shell: bash
+        run: |
+          sha="$(git rev-parse HEAD)"
+          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            node scripts/validate-commit-message.cjs --range "$BASE_SHA" "$sha"
+          else
+            node scripts/validate-commit-message.cjs --commit "$sha"
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  protected-files:
+    needs: commits
+    uses: ./.github/workflows/13-protected-files.yml
+    with:
+      ref: ${{ needs.commits.outputs.sha }}
+
+  frontend:
+    needs: [commits, protected-files]
+    if: inputs.release != true
+    uses: ./.github/workflows/02-frontend-ci.yml
+    with:
+      ref: ${{ needs.commits.outputs.sha }}
+
+  backend:
+    needs: [commits, protected-files]
+    if: inputs.release != true
+    uses: ./.github/workflows/03-backend-ci.yml
+    with:
+      ref: ${{ needs.commits.outputs.sha }}
+
+  versioning:
+    needs: [commits, protected-files]
+    uses: ./.github/workflows/05-versioning-ci.yml
+    with:
+      ref: ${{ needs.commits.outputs.sha }}
+
+  bruno:
+    needs: [commits, protected-files]
+    uses: ./.github/workflows/04-bruno-tests.yml
+    with:
+      ref: ${{ needs.commits.outputs.sha }}

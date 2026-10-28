@@ -2,10 +2,16 @@ name: Protected files
 
 on:
   push:
+    branches: [dev]
   pull_request:
     branches: [dev, main]
   workflow_dispatch:
   workflow_call:
+    inputs:
+      ref:
+        description: Immutable commit selected by the main coordinator
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -17,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v7
@@ -25,9 +32,11 @@ jobs:
       - name: Check final tree and every introduced commit
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          VALIDATION_REF: ${{ inputs.ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
+          if [ -n "$VALIDATION_REF" ]; then HEAD_SHA="$(git rev-parse HEAD)"; fi
           node scripts/security/protected-files.cjs --tree HEAD
           node scripts/security/protected-files.cjs --range "${BASE_SHA:-0000000000000000000000000000000000000000}" "$HEAD_SHA"
       - name: Test forced staging and integrity enforcement

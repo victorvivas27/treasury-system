@@ -6,31 +6,6 @@ on:
       ref:
         required: true
         type: string
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/**"
-      - "scripts/check-version.cjs"
-      - "scripts/test-versioning.cjs"
-      - "scripts/test-auto-release.cjs"
-      - "scripts/test-pr-validation.cjs"
-      - "scripts/ci-validation.cjs"
-      - "scripts/test-ci-validation.cjs"
-      - "scripts/select-release-evidence.cjs"
-      - "scripts/test-release-evidence-selection.cjs"
-      - "scripts/security/**"
-      - ".github/actions/**"
-      - ".githooks/**"
-      - "frontend/.commitlintrc*"
-      - "scripts/test-branch-sync.cjs"
-      - "scripts/validate-commit-message.cjs"
-      - "scripts/test-commit-message.cjs"
-      - "release-please-config.json"
-      - ".release-please-manifest.json"
-      - "VERSION"
-      - "CHANGELOG"
-      - "frontend/package.json"
-      - "backend/build.gradle"
   workflow_dispatch:
     inputs:
       ref:

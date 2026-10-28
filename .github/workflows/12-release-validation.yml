@@ -52,6 +52,8 @@ permissions:
 jobs:
   protected-files:
     uses: ./.github/workflows/13-protected-files.yml
+    with:
+      ref: ${{ inputs.ref }}
 
   resolve:
     needs: protected-files

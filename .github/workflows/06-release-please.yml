@@ -282,24 +282,68 @@ jobs:
             if (!tag) throw new Error('A release was published without an exact tag; refusing to dispatch production workflows.');
             core.setOutput('tag_name', tag);
 
+  main-target:
+    name: Avoid validating a superseded main commit
+    needs: [prepare, publish]
+    if: >-
+      always() && !cancelled() && needs.prepare.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    runs-on: ubuntu-24.04
+    outputs:
+      current: ${{ steps.target.outputs.current }}
+    steps:
+      - id: target
+        uses: actions/github-script@v8
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        with:
+          script: |
+            const { data: main } = await github.rest.git.getRef({
+              ...context.repo, ref: 'heads/main',
+            });
+            const current = main.object.sha === process.env.EXPECTED_SHA;
+            core.setOutput('current', String(current));
+            if (!current) core.info('A newer main commit owns the next validation; do not repeat checks on this superseded commit.');
+
+  main-checks:
+    name: Coordinated main checks
+    needs: [prepare, publish, release-result, main-target]
+    if: >-
+      always() && !cancelled() && needs.prepare.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped') &&
+      needs['main-target'].result == 'success' &&
+      (needs['release-result'].result == 'success' ||
+       (needs['release-result'].result == 'skipped' && needs['main-target'].outputs.current == 'true'))
+    uses: ./.github/workflows/14-main-validation.yml
+    permissions:
+      contents: read
+      actions: read
+    with:
+      ref: ${{ needs.release-result.outputs.tag_name || github.sha }}
+      release: ${{ needs.release-result.result == 'success' }}
+
   sync-dev:
-    name: Return released main to dev
-    needs: release-result
-    if: always() && !cancelled() && needs['release-result'].result == 'success'
+    name: Return validated main to dev
+    needs: [main-checks, release-result, validate-release]
+    if: >-
+      always() && !cancelled() && needs['main-checks'].result == 'success' &&
+      ((needs['release-result'].result == 'success' && needs['validate-release'].result == 'success') ||
+       (needs['release-result'].result == 'skipped' && needs['validate-release'].result == 'skipped'))
     uses: ./.github/workflows/10-sync-main-dev.yml
     with:
       already_validated: true
+      validated_sha: ${{ needs.validate-release.outputs.sha || needs.main-checks.outputs.sha }}
     permissions:
       contents: write
       actions: read
 
   validate-release:
     name: Validate the final release once
-    needs: [release-result]
-    if: always() && !cancelled() && needs['release-result'].result == 'success'
+    needs: [release-result, main-checks]
+    if: always() && !cancelled() && needs['release-result'].result == 'success' && needs['main-checks'].result == 'success'
     uses: ./.github/workflows/12-release-validation.yml
     with:
-      ref: ${{ needs.release-result.outputs.tag_name }}
+      ref: ${{ needs.main-checks.outputs.sha }}
     permissions:
       contents: read
       actions: read
