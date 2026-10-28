@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.36.0](https://github.com/victorvivas27/treasury-system/compare/v1.35.1...v1.36.0) (2026-10-28)
+
+
+### Features
+
+* **security:** implement managed defaults and requirements for agent security ([0f674c8](https://github.com/victorvivas27/treasury-system/commit/0f674c8fd58d6f784e589b3a1bebec4dbf683840))
+* **security:** implement managed defaults and requirements for agent security ([d591fae](https://github.com/victorvivas27/treasury-system/commit/d591fae15386f1a6530a962e1ba0a8d27256299f))
+
 ## [1.35.1](https://github.com/victorvivas27/treasury-system/compare/v1.35.0...v1.35.1) (2026-10-27)
 
 
