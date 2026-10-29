@@ -1,0 +1,26 @@
+/* Mobile navigation and controls only; desktop keeps its existing layout. */
+.mobile-layout-back, .mobile-layout-title { display: none; }
+@media (max-width: 768px) {
+  :is(a[href], button, summary, [role="button"]) { touch-action: manipulation; }
+  body.has-mobile-navigation :is(.main-layout, .administration-layout, .public-home--member) { scroll-padding-bottom: calc(var(--mobile-navigation-height) + 16px); }
+  body.has-mobile-navigation .main-layout > .sidebar,
+  body.has-mobile-navigation .main-layout > .sidebar-backdrop,
+  body.has-mobile-navigation .sidebar-control-bar > .sidebar-state-toggle,
+  body.has-mobile-navigation .sidebar-control-bar > .sidebar-control-label { display: none; }
+  body.has-mobile-navigation .main-layout { padding-left: 0; }
+  body.has-mobile-navigation .sidebar-control-bar { gap: 10px; padding-inline: 12px; }
+  body.has-mobile-navigation .mobile-layout-back { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--color-bg); color: var(--text-main); }
+  body.has-mobile-navigation .mobile-layout-back svg { width: 20px; height: 20px; }
+  body.has-mobile-navigation .mobile-layout-title { display: block; font-size: 13px; font-weight: 650; white-space: nowrap; }
+  body.has-mobile-navigation .sidebar-control-bar .managed-course-banner { max-width: 42%; padding: 0; border: 0; background: transparent; }
+  body.has-mobile-navigation .sidebar-control-bar .managed-course-banner > :is(span, svg) { display: none; }
+  body.has-mobile-navigation .main-content .base-button:not(dialog *, [role="dialog"] *) { min-height: 44px; }
+  body.has-mobile-navigation .main-content :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"]) { font-size: 16px; }
+  body.has-mobile-navigation .main-content :is(.form-actions-alumno, .form-actions-apoderado, .familia-actions, .alumno-edit-form__actions):not(dialog *, [role="dialog"] *) {
+    position: sticky; bottom: calc(var(--mobile-navigation-height) + 8px); z-index: 10;
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid var(--border-color);
+    border-radius: 14px; background: var(--color-sidebar); box-shadow: var(--shadow-card);
+  }
+  body.has-mobile-navigation .main-content :is(.form-actions-alumno, .form-actions-apoderado, .familia-actions, .alumno-edit-form__actions) > .base-button { flex: 1 1 120px; width: auto; margin: 0; }
+  body.has-mobile-navigation :focus-visible { scroll-margin-block: 72px calc(var(--mobile-navigation-height) + 24px); }
+}

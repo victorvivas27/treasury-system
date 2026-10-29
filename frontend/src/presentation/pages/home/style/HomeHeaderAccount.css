@@ -67,3 +67,13 @@
 .public-home__account-links > .install-launcher--menu > img { display: none; }
 .public-home__account-links > .install-launcher--menu > svg { order: -1; width: 18px; height: 18px; color: var(--sidebar-icon); }
 .public-home .public-home__account-links > .install-launcher--menu:hover { background: var(--color-hover); }
+
+.public-home__mobile-title { display: none; }
+@media (max-width: 768px) {
+  .public-home__mobile-title { display: block; font-size: 15px; font-weight: 650; }
+  .public-home__header:has(.public-home__account-menu) { min-height: 56px; padding-top: env(safe-area-inset-top, 0px); }
+  .public-home__header > .public-home__account-menu { order: 2; margin-left: auto; margin-right: 0; }
+  .public-home__header > .public-home__menu-toggle,
+  .public-home__header > .public-home__nav.is-authenticated { display: none; }
+  .public-home__account-links { left: auto; right: 0; }
+}
