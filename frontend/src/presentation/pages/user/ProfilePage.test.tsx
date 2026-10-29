@@ -55,7 +55,8 @@ describe("ProfilePage", () => {
     profile.mockReturnValue(new Promise(() => undefined));
     const { container } = renderProfile();
 
-    expect(container.querySelector(".app-loader")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Cargando vinculación familiar" })).toBeInTheDocument();
+    expect(container.querySelector(".app-loader")).not.toBeInTheDocument();
     expect(container.querySelector(".profile-family-skeleton")).toBeNull();
   });
 

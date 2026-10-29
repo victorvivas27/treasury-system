@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiMessageSquare, FiRefreshCw, FiSearch, FiTrash2 } from "react-icons/fi";
 import type {
@@ -275,7 +276,7 @@ export const ImprovementAdminPage = () => {
 
     <section className="improvement-admin-workspace">
       <div className="improvement-admin-list">
-        {loading ? <p className="improvement-admin-empty">Cargando sugerencias...</p>
+        {loading ? <div role="status" aria-label="Cargando sugerencias"><Skeleton /><Skeleton /><Skeleton /></div>
           : rows.length === 0 ? <p className="improvement-admin-empty">No hay sugerencias con estos filtros.</p>
           : rows.map(item => <button key={item.id} type="button"
             className={selected?.id === item.id ? "is-active" : ""}
@@ -332,7 +333,7 @@ const Detail = ({ selected, notes, history, note, relatedId, loading, saving, on
   {!selected ? <p className="improvement-admin-empty">Selecciona una sugerencia.</p> : <>
     <header><span>#{selected.id}</span><h2>{selected.title}</h2>
       <p>{selected.description}</p></header>
-    {loading && <p className="improvement-admin-empty">Actualizando detalle...</p>}
+    {loading && <div role="status" aria-label="Actualizando detalle"><Skeleton /><Skeleton /></div>}
     <div className="improvement-admin-detail__controls">
       <Select label="Estado" value={selected.status} options={statuses.filter(([value]) => value)}
         disabled={saving} onChange={value => onStatus(value as ImprovementStatus)} />

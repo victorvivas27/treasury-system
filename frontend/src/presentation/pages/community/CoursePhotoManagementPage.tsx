@@ -1,4 +1,5 @@
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useCallback, useEffect, useState } from "react";
 import { FiCamera, FiSave, FiTrash2, FiUpload } from "react-icons/fi";
 import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
@@ -9,6 +10,8 @@ import "./CoursePhotoManagementPage.css";
 
 export const CoursePhotoManagementPage = () => {
   const [photos, setPhotos] = useState<CoursePhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [imagesLoading, setImagesLoading] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -17,15 +20,18 @@ export const CoursePhotoManagementPage = () => {
   const [error, setError] = useState("");
   const load = useCallback(async () => {
     try { setPhotos(await coursePhotos.list()); } catch { setError("No fue posible cargar la galería."); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     let active = true;
+    setImagesLoading(photos.length > 0);
     const urls: string[] = [];
     void Promise.all(photos.map(async photo => {
       const url = await coursePhotos.loadImageUrl(photo); urls.push(url); return [photo.id, url] as const;
     })).then(entries => { if (active) setPhotoUrls(Object.fromEntries(entries)); })
-      .catch(() => { if (active) setPhotoUrls({}); });
+      .catch(() => { if (active) setPhotoUrls({}); })
+      .finally(() => { if (active) setImagesLoading(false); });
     return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)); };
   }, [photos]);
 
@@ -51,7 +57,7 @@ export const CoursePhotoManagementPage = () => {
     <header><span>Administración de la Home</span><h1>Fotos del curso</h1>
       <p>Publica recuerdos para la galería de “Nuestros momentos”.</p></header>
     <section className="course-photo-admin__upload">
-      <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{photos.length} fotos publicadas</p></div>
+      <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{loading ? <Skeleton /> : `${photos.length} fotos publicadas`}</p></div>
       <label className="course-photo-admin__caption-field">
         <input value={caption} maxLength={160} placeholder="Descripción breve (opcional)"
           onChange={event => setCaption(event.target.value)} disabled={uploading} />
@@ -69,8 +75,10 @@ export const CoursePhotoManagementPage = () => {
       </aside>
     </section>
     <div className="course-photo-admin__grid">
+      {loading && <div role="status" aria-label="Cargando fotos"><Skeleton height="10rem" /></div>}
       {photos.map(photo => <article key={photo.id}>
-        <img src={photoUrls[photo.id]} alt={photo.caption || "Foto del curso"} />
+        {!photoUrls[photo.id] && imagesLoading ? <Skeleton height="10rem" />
+          : <img src={photoUrls[photo.id]} alt={photo.caption || "Foto del curso"} />}
         <label>Descripción<input maxLength={160} value={photo.caption ?? ""}
           onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, caption: event.target.value } : item))} />
           <small>{(photo.caption ?? "").length}/160 caracteres</small></label>
@@ -79,7 +87,7 @@ export const CoursePhotoManagementPage = () => {
         <footer><button onClick={() => void save(photo)}><FiSave /> Guardar</button>
           <button className="is-danger" onClick={() => setDeletePhoto(photo)}><FiTrash2 /> Eliminar</button></footer>
       </article>)}
-      {photos.length === 0 && <p className="course-photo-admin__empty">Aún no hay fotos publicadas.</p>}
+      {!loading && !error && photos.length === 0 && <p className="course-photo-admin__empty">Aún no hay fotos publicadas.</p>}
     </div>
     <ModalConfirm isOpen={Boolean(deletePhoto)} title="Eliminar foto" message="¿Deseas eliminar esta foto de la galería y del almacenamiento?"
       confirmLabel="Eliminar" confirmVariant="danger" onConfirm={() => void remove()} onCancel={() => setDeletePhoto(undefined)} />

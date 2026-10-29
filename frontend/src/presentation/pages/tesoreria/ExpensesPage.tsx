@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -16,7 +17,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { MovementSummarySkeleton, MovementListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import { getExpensesResource, expensesSelection } from "./expensesCache";
 import { useDashboardResource } from "../dashboard/dashboardCache";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
@@ -234,8 +235,7 @@ export const ExpensesPage = () => {
     setFilters((current) => ({ ...current, [key]: value || undefined }));
 
   return <>
-    {initialLoading && <LoadingState message="Preparando los egresos" />}
-    <main className="expenses-page outgoings-page" inert={initialLoading} aria-busy={initialLoading}>
+    <main className="expenses-page outgoings-page" aria-busy={initialLoading}>
     {cached.error && <div role="alert">
       <p>No fue posible cargar los egresos. Intenta nuevamente.</p>
       <button type="button" onClick={() => void load()}>Reintentar</button>
@@ -249,6 +249,7 @@ export const ExpensesPage = () => {
       </button>}
     </header>
 
+    {initialLoading && <MovementSummarySkeleton />}
     {cached.data ? (
     <section className="expenses-summary" aria-label="Resumen financiero">
       <article className={`expense-summary-card expense-summary-card--balance ${
@@ -309,6 +310,7 @@ export const ExpensesPage = () => {
           <FiCheck /> Ver resultados</button></footer>
     </aside></div>}
 
+    {initialLoading && <MovementListSkeleton />}
     {!initialLoading && !cached.error && items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
       : cached.data ? <section className="expenses-grid expense-results" aria-label="Listado de egresos">
         <span className="expense-results__count">{items.length} egresos</span>
@@ -397,8 +399,7 @@ export const ExpensesPage = () => {
           {documentsUploading && <p className="expense-document-progress" role="status" aria-live="polite">
             <FiLoader className="expense-document-spinner" /> Guardando en almacenamiento seguro…
           </p>}
-          {documentsLoading ? <p className="expense-document-progress" role="status">
-            <FiLoader className="expense-document-spinner" /> Cargando documentos…</p>
+          {documentsLoading ? <div className="expense-document-progress" role="status" aria-label="Cargando documentos"><Skeleton /><Skeleton width="65%" /></div>
             : documents.length === 0
             ? <p>Este egreso no tiene documentos.</p>
             : <ul>{documents.map((document) => <li key={document.id}>

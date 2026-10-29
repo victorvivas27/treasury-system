@@ -24,13 +24,13 @@ describe("ExpensesPage", () => {
 
   it("shares the initial loader and reuses data on return", async () => {
     const first = render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Preparando los egresos" })).toBeInTheDocument();
-    expect(document.querySelector(".skeleton-block")).toBeNull();
+    expect(screen.getByRole("status", { name: "Cargando egresos" })).toBeInTheDocument();
+    expect(document.querySelector(".react-loading-skeleton")).toBeInTheDocument();
     await screen.findByText("Compra del curso 1");
     first.unmount();
     render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
     expect(screen.getByText("Compra del curso 1")).toBeInTheDocument();
-    expect(screen.queryByRole("status", { name: "Preparando los egresos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando egresos" })).not.toBeInTheDocument();
     expect(repository.listExpenses).toHaveBeenCalledTimes(1);
     expect(repository.financialSummary).toHaveBeenCalledTimes(1);
   });

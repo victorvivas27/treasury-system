@@ -3,7 +3,7 @@ import "./LoadingState.css";
 import { useEffect, useState } from "react";
 
 export const LoadingState = ({ message = "Preparando tu espacio", variant = "fullscreen", delayMs = 0 }: {
-  message?: string; variant?: "fullscreen" | "contained"; delayMs?: number;
+  message?: string; variant?: "fullscreen" | "contained" | "page"; delayMs?: number;
 }) => {
   const [visible, setVisible] = useState(delayMs === 0);
   useEffect(() => {
@@ -18,7 +18,7 @@ export const LoadingState = ({ message = "Preparando tu espacio", variant = "ful
   }, [variant]);
   if (!visible) return null;
   return (
-  <div className={`app-loader${variant === "contained" ? " app-loader--contained" : ""}`} role="status" aria-live="polite" aria-label={message}>
+  <div className={`app-loader${variant !== "fullscreen" ? ` app-loader--${variant}` : ""}`} role="status" aria-live="polite" aria-label={message}>
     <div className="app-loader__content">
       <div className="app-loader__mark" aria-hidden="true">
         <span className="app-loader__ring" />

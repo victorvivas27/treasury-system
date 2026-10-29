@@ -31,7 +31,7 @@ function fixture({ main = 'base-sha', candidate = pr(), merged = true, checkStat
     git: { getRef: async () => ({ data: { object: { sha: main } } }) },
     pulls: {
       get: async () => ({ data: typeof candidate === 'function' ? candidate(++prReads) : candidate }),
-      merge: async args => { calls.push(args); return { data: { merged, message: 'Merge blocked' } }; },
+      merge: async args => { calls.push(args); return { data: { merged, sha: 'published-sha', message: 'Merge blocked' } }; },
     },
     checks: {
       listForRef: async args => {
@@ -75,7 +75,7 @@ test('successful required check is revalidated and merge is bound to the tested 
   const { github, calls, checkQueries } = fixture();
   const outputs = {};
   await run(mergeScript, github, env, { setOutput: (key, value) => { outputs[key] = value; } });
-  assert.deepEqual(outputs, { merged: 'true' });
+  assert.deepEqual(outputs, { sha: 'published-sha', merged: 'true' });
   assert.equal(workflow.jobs.publish.steps.find(step => step.id === 'publish').if, "steps.merge.outputs.merged == 'true'");
   assert.equal(calls.length, 1);
   assert.equal(calls[0].sha, 'tested-sha');

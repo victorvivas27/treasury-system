@@ -24,7 +24,7 @@ import { apiClient } from "@/core/D-config/api";
 
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { PaymentDataSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
 import { emptyBank, getPaymentsResource, paymentsSelection, PaymentsLoadError, paymentsLoadError, resolveAnnualAmount, paymentsBase as base } from "./paymentsCache";
 import type { BankAccount, MyPayments, Payment } from "./paymentsCache";
@@ -400,11 +400,12 @@ export const PaymentsPage = () => {
     </aside>
   </div>;
 
-  return <><main className={`payments-page${admin ? "" : " payments-page--guardian"}`} inert={preparing} aria-busy={preparing}>
+  return <><main className={`payments-page${admin ? "" : " payments-page--guardian"}`} aria-busy={preparing}>
     <header className="payments-head">
       <div><span><FiCreditCard aria-hidden="true" /></span><div><h1>Pagos</h1></div></div>
       <label>Año escolar <select value={year} onChange={event => setYear(Number(event.target.value))}>{[yearNow - 1, yearNow, yearNow + 1].map(value => <option key={value}>{value}</option>)}</select></label>
     </header>
+    {preparing && !cached.data && <PaymentDataSkeleton />}
     {(admin || (!mine && !preparing)) && mercadoPagoDetails}
     {notice && <div className="payments-toast" role="status"><FiCheck aria-hidden="true" />{notice}</div>}
     {error && <div className="payments-error" role="alert"><p>{error}</p>{cached.error && <button type="button" onClick={() => void load()}>Reintentar</button>}</div>}
@@ -494,5 +495,5 @@ export const PaymentsPage = () => {
       </>}
       {renderBankDrawer()}
     </> : bank.id && <section className="bank-only-state"><aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><small>Datos del curso</small></header><div className="payment-preview__identity"><small>Datos para transferir</small><h3>{bank.accountHolderName}</h3><p>{bank.bankName} · {bank.accountType}</p></div><dl><dt>RUT</dt><dd>{bank.accountHolderRut}</dd><dt>Número de cuenta</dt><dd>{bank.accountNumber}</dd><dt>Correo</dt><dd>{bank.email}</dd></dl><button className="copy-all payment-preview__copy" onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</button></aside><div className="payment-panel bank-only-state__message"><h2>Falta configurar la cuota anual</h2><p>Cuando Tesorería defina el monto y las fechas para {year}, podrás elegir tu modalidad y ver tus cuotas aquí.</p></div></section>}
-  </main>{preparing && <LoadingState message="Preparando tus pagos" />}</>;
+  </main></>;
 };

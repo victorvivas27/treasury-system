@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -16,7 +17,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { MovementSummarySkeleton, MovementListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import { getIncomesResources, incomesSelection } from "./incomesCache";
 import { useDashboardResource } from "../dashboard/dashboardCache";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
@@ -243,8 +244,7 @@ export const IncomesPage = () => {
   };
 
   return <>
-    {initialLoading && <LoadingState message="Preparando los ingresos" />}
-    <main className="expenses-page incomes-page" inert={initialLoading} aria-busy={initialLoading}>
+    <main className="expenses-page incomes-page" aria-busy={initialLoading}>
     {(cached.error || (canManage && course.error)) && <div role="alert">
       <p>{cached.error ? "No fue posible cargar los ingresos. Intenta nuevamente." : "No fue posible cargar el curso administrado."}</p>
       <button type="button" onClick={() => { void load(); if (canManage) void resources.course.load(true); }}>Reintentar</button>
@@ -254,6 +254,7 @@ export const IncomesPage = () => {
       {canManage && <button type="button" onClick={openCreate}>
         <FiPlus /> Registrar ingreso</button>}</header>
 
+    {initialLoading && !cached.data && <MovementSummarySkeleton income />}
     {cached.data ? (
     <section className="income-summary" aria-label="Resumen financiero">
       <article className={`income-summary-card income-summary-card--balance ${
@@ -336,6 +337,7 @@ export const IncomesPage = () => {
       </footer>
     </aside></div>}
 
+    {initialLoading && !cached.data && <MovementListSkeleton income />}
     {!initialLoading && !cached.error && incomeRows.length === 0
       ? <p className="expenses-empty">No hay ingresos para los filtros seleccionados.</p>
       : cached.data ? <section className="expenses-grid income-results" aria-label="Listado de ingresos">
@@ -442,8 +444,7 @@ export const IncomesPage = () => {
         {documentsUploading && <p className="expense-document-progress" role="status" aria-live="polite">
           <FiLoader className="expense-document-spinner" /> Guardando en almacenamiento seguro…
         </p>}
-        {documentsLoading ? <p className="expense-document-progress" role="status">
-          <FiLoader className="expense-document-spinner" /> Cargando documentos…</p>
+        {documentsLoading ? <div className="expense-document-progress" role="status" aria-label="Cargando documentos"><Skeleton /><Skeleton width="65%" /></div>
           : documents.length === 0
           ? <p>Este ingreso no tiene documentos.</p>
           : <ul>{documents.map((document) => <li key={document.id}>

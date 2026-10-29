@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiCalendar, FiCheckCircle, FiDollarSign, FiEdit2, FiMinusCircle, FiPlus,
   FiRefreshCw, FiTrash2,
@@ -237,21 +238,21 @@ export const EventsPage = () => {
 const EventsSkeleton = () => <div className="events-skeleton" role="status" aria-label="Cargando eventos">
   <aside className="events-skeleton-list">
     {Array.from({ length: 3 }, (_, index) => <div className="events-skeleton-card" key={index}>
-      <div className="skeleton-block" /><div className="skeleton-block" />
+      <div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div>
     </div>)}
   </aside>
   <section className="events-skeleton-content">
     <article className="events-skeleton-summary">
-      <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
-      <div className="skeleton-block" />
+      <div><div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div></div>
+      <div className="skeleton-block"><Skeleton height="100%" /></div>
     </article>
     <div className="events-skeleton-metrics">
-      {Array.from({ length: 5 }, (_, index) => <div className="skeleton-block" key={index} />)}
+      {Array.from({ length: 5 }, (_, index) => <div className="skeleton-block" key={index}><Skeleton height="100%" /></div>)}
     </div>
-    <div className="skeleton-block events-skeleton-title" />
+    <div className="skeleton-block events-skeleton-title"><Skeleton height="100%" /></div>
     <div className="events-skeleton-courses">
       {Array.from({ length: 3 }, (_, index) => <article className="events-skeleton-course" key={index}>
-        <div className="skeleton-block" /><div className="skeleton-block" /><div className="skeleton-block" />
+        <div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div>
       </article>)}
     </div>
   </section>

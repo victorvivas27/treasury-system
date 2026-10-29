@@ -1,0 +1,94 @@
+name: Recoverable Release Please
+description: Wait for merged PR checks and reconcile exact releases after bounded retries
+inputs:
+  token:
+    required: true
+    description: Scoped token for Release Please
+  sha:
+    required: true
+    description: Exact main commit being processed
+  skip-github-pull-request:
+    default: 'false'
+    description: Publish only after the validated release PR was merged
+outputs:
+  releases_created:
+    description: A release for the exact selected commit was published or recovered
+    value: ${{ steps.result.outputs.releases_created }}
+  tag_name:
+    description: Verified exact published tag
+    value: ${{ steps.result.outputs.tag_name }}
+runs:
+  using: composite
+  steps:
+    - name: Wait for validation even when the PR was merged manually
+      id: expected
+      uses: actions/github-script@v8
+      env:
+        RELEASE_SHA: ${{ inputs.sha }}
+      with:
+        retries: 3
+        script: |
+          const { waitForMergedValidation } = require(process.env.GITHUB_WORKSPACE + '/scripts/release-recovery.cjs');
+          const expected = await waitForMergedValidation({ github, context, sha: process.env.RELEASE_SHA, info: core.info });
+          core.setOutput('tag', expected.tag);
+    - name: Release Please attempt 1
+      id: attempt1
+      continue-on-error: true
+      uses: googleapis/release-please-action@v5
+      with:
+        token: ${{ inputs.token }}
+        target-branch: main
+        config-file: release-please-config.json
+        manifest-file: .release-please-manifest.json
+        skip-github-pull-request: ${{ inputs.skip-github-pull-request }}
+    - name: Back off before attempt 2
+      if: steps.attempt1.outcome == 'failure'
+      shell: bash
+      run: sleep 5
+    - name: Release Please attempt 2
+      id: attempt2
+      if: steps.attempt1.outcome == 'failure'
+      continue-on-error: true
+      uses: googleapis/release-please-action@v5
+      with:
+        token: ${{ inputs.token }}
+        target-branch: main
+        config-file: release-please-config.json
+        manifest-file: .release-please-manifest.json
+        skip-github-pull-request: ${{ inputs.skip-github-pull-request }}
+    - name: Back off before attempt 3
+      if: steps.attempt2.outcome == 'failure'
+      shell: bash
+      run: sleep 15
+    - name: Release Please attempt 3
+      id: attempt3
+      if: steps.attempt2.outcome == 'failure'
+      continue-on-error: true
+      uses: googleapis/release-please-action@v5
+      with:
+        token: ${{ inputs.token }}
+        target-branch: main
+        config-file: release-please-config.json
+        manifest-file: .release-please-manifest.json
+        skip-github-pull-request: ${{ inputs.skip-github-pull-request }}
+    - name: Verify publication or fail without deploying
+      id: result
+      uses: actions/github-script@v8
+      env:
+        RELEASE_SHA: ${{ inputs.sha }}
+        EXPECTED_TAG: ${{ steps.expected.outputs.tag }}
+        RELEASED: ${{ steps.attempt1.outputs.releases_created == 'true' || steps.attempt2.outputs.releases_created == 'true' || steps.attempt3.outputs.releases_created == 'true' }}
+        RELEASE_TAG: ${{ steps.attempt1.outputs.tag_name || steps.attempt2.outputs.tag_name || steps.attempt3.outputs.tag_name }}
+        ATTEMPT_1: ${{ steps.attempt1.outcome }}
+        ATTEMPT_2: ${{ steps.attempt2.outcome }}
+        ATTEMPT_3: ${{ steps.attempt3.outcome }}
+      with:
+        retries: 3
+        script: |
+          const { reconcileRelease } = require(process.env.GITHUB_WORKSPACE + '/scripts/release-recovery.cjs');
+          const result = await reconcileRelease({ github, context,
+            sha: process.env.RELEASE_SHA, expectedTag: process.env.EXPECTED_TAG,
+            released: process.env.RELEASED === 'true', tag: process.env.RELEASE_TAG,
+            outcomes: [process.env.ATTEMPT_1, process.env.ATTEMPT_2, process.env.ATTEMPT_3],
+          });
+          for (const [key, value] of Object.entries(result)) core.setOutput(key, value);

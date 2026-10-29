@@ -6,7 +6,7 @@ import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
 import { clearProfileCache, getProfileResource } from "./profileCache";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { ProfileFamilySkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { profileAvatars } from "virtual:avatar-catalog";
 import { FiBookOpen, FiCheck, FiClock, FiEdit2, FiHeart, FiPhone, FiUpload,
@@ -278,7 +278,7 @@ export const ProfilePage = () => {
         </div>
       </section>
 
-      {familyLoading && <LoadingState message="Preparando tu perfil" />}
+      {familyLoading && !familyProfile && <ProfileFamilySkeleton />}
 
       {!familyLoading && familyError && <section className="profile-family-feedback" role="alert">
         <p>{familyError}</p>

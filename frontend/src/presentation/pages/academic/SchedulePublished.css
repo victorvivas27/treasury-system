@@ -212,3 +212,37 @@
   .schedule-published .schedule-filter select { min-height: 40px; height: 40px; font-size: 12px !important; }
   .schedule-published .schedule-view-selector button { min-height: 40px; padding-inline: 6px; }
 }
+
+/* Give the daily desktop agenda the full workspace and separate its data. */
+@media (min-width: 1024px) {
+  .schedule-published > .schedule-day-nav { width: 100%; }
+  .schedule-published .schedule-agenda--day {
+    width: 100%; border: 0; border-radius: 0; background: transparent; overflow: visible;
+  }
+  .schedule-agenda--day .schedule-agenda-heading {
+    padding: 12px 0 18px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color);
+  }
+  .schedule-published .schedule-agenda--day .schedule-agenda-heading h2 { font-size: 18px; margin-bottom: 6px; }
+  .schedule-agenda--day .schedule-agenda-heading p { font-size: 12px; }
+  .schedule-agenda--day .schedule-agenda-exit { gap: 10px; }
+  .schedule-agenda--day .schedule-agenda-exit span { gap: 10px; font-size: 12px; }
+  .schedule-agenda--day .schedule-agenda-exit strong { font-size: 16px; }
+  .schedule-agenda--day .schedule-agenda-list { gap: 10px; }
+  .schedule-agenda--day .schedule-agenda-card {
+    grid-template-columns: minmax(116px, .8fr) 36px minmax(140px, 2fr) minmax(90px, .8fr) 84px;
+    column-gap: clamp(16px, 2vw, 28px); min-height: 76px; padding: 14px 20px;
+    border: 1px solid color-mix(in srgb, var(--agenda-color) 25%, var(--border-color));
+    border-left: 4px solid var(--agenda-color); border-radius: 12px;
+    background: color-mix(in srgb, var(--agenda-color) 7%, var(--color-surface));
+  }
+  .schedule-agenda--day .schedule-agenda-card:last-child { border-bottom: 1px solid color-mix(in srgb, var(--agenda-color) 25%, var(--border-color)); }
+  .schedule-agenda--day .schedule-agenda-time { grid-column: 1; gap: 6px; font-size: 13px; }
+  .schedule-agenda--day .schedule-agenda-time time:last-child { font-size: 13px; }
+  .schedule-agenda--day .schedule-agenda-card > svg { grid-column: 2; width: 36px; height: 36px; padding: 8px; border-radius: 10px; }
+  .schedule-agenda--day .schedule-agenda-subject { display: contents; }
+  .schedule-published .schedule-agenda--day .schedule-agenda-subject strong { grid-column: 3; grid-row: 1; font-size: 15px; line-height: 1.5; }
+  .schedule-agenda--day .schedule-agenda-subject small { grid-column: 4; grid-row: 1; font-size: 12px; line-height: 1.5; }
+  .schedule-agenda--day .schedule-agenda-duration { grid-column: 5; grid-row: 1; justify-self: end; padding: 6px 10px; font-size: 12px; }
+  .schedule-agenda--day .schedule-agenda-card--pause,
+  .schedule-agenda--day .schedule-agenda-ingress { min-height: 62px; padding-block: 10px; }
+}

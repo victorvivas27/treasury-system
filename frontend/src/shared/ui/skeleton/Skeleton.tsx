@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
+import LoadingSkeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import "./Skeleton.css";
 
 type SkeletonProps = {
   className?: string;
@@ -8,8 +10,10 @@ type SkeletonProps = {
 };
 
 export const Skeleton = ({ className = "", width, height }: SkeletonProps) => (
-  <span className={`skeleton-block ${className}`.trim()} aria-hidden="true"
-    style={{ width, height }} />
+  <span className={`data-skeleton ${className}`.trim()} style={{ width, height }} aria-hidden="true">
+    <LoadingSkeleton height={height} baseColor="var(--skeleton-base)"
+      highlightColor="var(--skeleton-highlight)" />
+  </span>
 );
 
 export const CardValueSkeleton = ({ className = "" }: Pick<SkeletonProps, "className">) => (

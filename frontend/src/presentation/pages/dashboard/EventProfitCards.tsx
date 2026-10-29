@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { IoBalloonOutline } from "react-icons/io5";
 
 import { getDashboardResources, useDashboardResource } from "./dashboardCache";
@@ -13,7 +14,10 @@ export const EventProfitCards = ({ year }: { year: number }) => {
   const profits = data ?? [];
   const loading = !data && !error;
   return <section className="dashboard-event-profits" aria-label="Ganancias de eventos cerrados">
-    {loading ? <p role="status">Cargando ganancias de eventos…</p> : error ?
+    {loading ? <article className="dashboard-event-profit" role="status" aria-label="Cargando ganancias de eventos" aria-busy="true">
+      <div className="dashboard-event-profit__content"><span>Evento cerrado</span>
+        <h2><Skeleton /></h2><span><Skeleton width="60%" /></span><strong><Skeleton /></strong></div>
+    </article> : error ?
       <p role="alert">No fue posible cargar las ganancias. <button type="button"
         onClick={() => void resource.load(true)}>Reintentar</button></p> : profits.length === 0 ?
       <p>No hay eventos con distribución confirmada en {year}.</p> : profits.map(event =>

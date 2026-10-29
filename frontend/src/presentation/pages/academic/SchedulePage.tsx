@@ -8,7 +8,8 @@ import { usePublishedSchedule } from "@/presentation/hooks/academic/usePublished
 import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { PublishedScheduleSkeleton } from "./PublishedScheduleSkeleton";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleAgenda } from "./ScheduleAgenda";
 import { ScheduleBlockIcon } from "./ScheduleBlockIcon";
@@ -31,19 +32,22 @@ export function SchedulePage() {
   const key = `academic.schedule.view.${user?.id ?? "anonymous"}`;
   const [preference, setPreference] = useState(() => ({ key, view: preferredView(key) }));
   const view = preference.key === key ? preference.view : preferredView(key);
-  const [dayNumber, setDayNumber] = useState(1);
+  const [dayNumber, setDayNumber] = useState(() => {
+    const today = new Date().getDay();
+    return today >= 1 && today <= 5 ? today : 1;
+  });
   useEffect(() => { try { localStorage.setItem(key, view); } catch { /* Local preference is optional. */ } }, [key, view]);
   const days = DAYS.map((_, index) => data.schedule.days.find(day => day.dayOfWeek === index + 1));
   const tableDays = days.map(day => day ? mergeConsecutiveSubjects(day) : undefined);
   const boundaries = [...new Set(days.flatMap(day => day
     ? [day.entryTime, day.exitTime, ...day.blocks.flatMap(block => [block.startTime, block.endTime])] : []))].sort();
   const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
-  return <><section className="schedule-page schedule-published" inert={preparing} aria-busy={preparing}>
+  return <><section className="schedule-page schedule-published" aria-busy={preparing}>
     <header className="schedule-published-heading"><div><h1>Horario de clases</h1><p>Tu día, materia por materia.</p></div>{isAdminRole(user?.rol) && <Link className="schedule-manage-link" to="/admin/horario-clases">
       <FiSliders aria-hidden="true" /><span>Gestionar horario</span>
     </Link>}</header>
     <div className="schedule-published-toolbar"><div className="schedule-filters">
-    <ScheduleFilter label="Año escolar" loading={false}><select value={data.year ?? ""} disabled={data.loading} onChange={event => data.setYear(Number(event.target.value))}>
+    <ScheduleFilter label="Año escolar" loading={preparing}><select value={data.year ?? ""} disabled={data.loading} onChange={event => data.setYear(Number(event.target.value))}>
       {data.periods.map(period => <option key={period.schoolYear} value={period.schoolYear}>{period.schoolYear} · {period.course}</option>)}
     </select></ScheduleFilter>
     </div>
@@ -59,10 +63,11 @@ export function SchedulePage() {
       <span id="schedule-day-label">Día</span>
       <div className="schedule-day-selector" role="group" aria-labelledby="schedule-day-label">
         {["Lun", "Mar", "Mié", "Jue", "Vie"].map((label, index) => <button type="button" key={label}
-          aria-label={DAYS[index]} aria-pressed={dayNumber === index + 1} onClick={() => setDayNumber(index + 1)}><span>{label}</span><small>{days[index] ? `Salida ${timeLabel(days[index]!.exitTime)}` : "Sin jornada"}</small></button>)}
+          aria-label={DAYS[index]} aria-pressed={dayNumber === index + 1} onClick={() => setDayNumber(index + 1)}><span>{label}</span><small>{preparing ? <Skeleton /> : days[index] ? `Salida ${timeLabel(days[index]!.exitTime)}` : "Sin jornada"}</small></button>)}
       </div>
     </div>}
     {data.error && <div role="alert">{data.error}<Button label="Reintentar" onClick={data.retry} /></div>}
+    {preparing && <PublishedScheduleSkeleton view={view} dayNumber={dayNumber} />}
     {data.ready && (!data.schedule.days.length ? <p role="status">Todavía no hay un horario publicado para este año. La administración lo publicará cuando esté listo.</p>
       : view === "summary" ? <div className="schedule-agenda-week">{days.map((day, index) => <ScheduleAgenda day={day} index={index} compact key={index} />)}</div>
       : view === "day" ? <ScheduleAgenda day={days[dayNumber - 1]} index={dayNumber - 1} />
@@ -86,5 +91,5 @@ export function SchedulePage() {
               })}</tr>;
           })}</tbody>
         </table></div>)}
-  </section>{preparing && <LoadingState message="Preparando el horario de clases" />}</>;
+  </section></>;
 }

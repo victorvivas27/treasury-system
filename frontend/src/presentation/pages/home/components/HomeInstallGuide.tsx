@@ -32,7 +32,7 @@ const steps: Record<System, Partial<Record<Browser, string[]>>> = {
   },
 };
 
-export const HomeInstallGuide = () => {
+export const HomeInstallGuide = ({ placement = "floating" }: { placement?: "floating" | "menu" }) => {
   const dialogId = useId();
   const { state } = useAppInstallation();
   const [open, setOpen] = useState(false);
@@ -72,7 +72,7 @@ export const HomeInstallGuide = () => {
 
   if (state === "installed") return null;
   return <>
-    <button className="install-launcher" type="button" onClick={reopen} hidden={visible}
+    <button className={`install-launcher${placement === "menu" ? " install-launcher--menu" : ""}`} type="button" onClick={reopen} hidden={visible}
       aria-label="Abrir opciones de instalación" aria-haspopup="dialog">
       <img src="/icono-tesoreria.png" alt="" width="24" height="24" />
       <span>Instalar app</span><FiDownload aria-hidden="true" />

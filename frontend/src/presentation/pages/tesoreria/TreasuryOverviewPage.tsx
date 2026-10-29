@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useEffect, useState } from "react";
 import type { TreasuryDashboard } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
@@ -46,7 +47,7 @@ export const TreasuryOverviewPage = () => {
       {loading ? ["Total familias", "Cuota única", "Dos cuotas", "Cuotas pagadas",
         "Cuotas pendientes", "Monto recaudado", "Monto pendiente"].map(label =>
         <article className="treasury-dashboard-skeleton" key={label} aria-hidden="true">
-          <span>{label}</span><div className="skeleton-block" />
+          <span>{label}</span><div className="skeleton-block"><Skeleton height="100%" /></div>
         </article>) : <>
         <article><span>Total familias</span><strong>{dashboard?.totalFamilies ?? 0}</strong></article>
         <article><span>Cuota única</span><strong>{dashboard?.annualFamilies ?? 0}</strong></article>

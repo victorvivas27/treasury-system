@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useEditFamilia } from "@/presentation/hooks/familia/useEditFamilia";
 import { FAMILIA_ICONS } from "@/shared/constants/Icons";
 import { Button } from "@/shared/ui/button/Button";
@@ -36,17 +37,17 @@ export const EditarFamiliaForm = () => {
         aria-label="Cargando familia">
         <form className="familia-create__form familia-edit__form">
           <div className="familia-edit__summary">
-            <div><span>Familia</span><div className="skeleton-block skeleton-input" /></div>
-            <div><span>Alumno</span><div className="skeleton-block skeleton-input" /></div>
+            <div><span>Familia</span><div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div></div>
+            <div><span>Alumno</span><div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div></div>
           </div>
           <section className="familia-form__apoderado familia-edit__apoderado">
             <header className="familia-form__apoderado-header">
               <div><strong>Apoderado 1</strong><span>Principal</span></div>
             </header>
             <div className="familia-edit__guardian-name"><span>Nombre</span>
-              <div className="skeleton-block skeleton-input" /></div>
+              <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div></div>
             <label className="familia-field"><span>Parentesco</span>
-              <div className="skeleton-block skeleton-input" /></label>
+              <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div></label>
             <div className="familia-check"><label><input type="radio" disabled />
               <span>Apoderado principal</span></label></div>
           </section>

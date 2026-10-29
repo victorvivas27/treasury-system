@@ -16,7 +16,7 @@ import { StandRepositoryImpl } from "@/core/C-infra/repositories/stand/StandRepo
 import { StandUseCases } from "@/core/B-application/use-cases/stand/StandUseCases";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { standCache, readStandResource } from "./standCache";
 import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
@@ -247,8 +247,7 @@ export const StandManagementPage = () => {
   const preparing = !loadError && ((!hasLoadedEvents) || (loading && !cache.events(year).getSnapshot().data) || (eventId !== 0 && loadedStandsEvent !== eventId)
     || (selected && loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}`));
   return <>
-    {preparing && <LoadingState message="Preparando el stand" />}
-    <main inert={Boolean(preparing)} aria-busy={Boolean(preparing)} className={`stand-page${readOnly ? " stand-page--summary" : ""}`}>
+    <main aria-busy={Boolean(preparing)} className={`stand-page${readOnly ? " stand-page--summary" : ""}`}>
     <header className="stand-page__header">
       <div><h1>{readOnly ? "Resumen de stands" : "Ventas del stand"}</h1>
         <p>{readOnly ? "Consulta las ventas y la recaudación de cada stand."
@@ -267,7 +266,7 @@ export const StandManagementPage = () => {
       </div>
       <fieldset className="stand-event-picker">
         <legend>Elegí un evento</legend>
-        {loading && !hasLoadedEvents ? <p role="status">Cargando eventos…</p> : events.length === 0
+        {loading && !hasLoadedEvents ? <div role="status" aria-label="Cargando eventos"><Skeleton /><Skeleton width="60%" /></div> : events.length === 0
           ? <p>No hay eventos en {year}.</p>
           : <div className="stand-event-choices">
             {events.map(item => <label className={`stand-event-choice${eventId === item.id ? " is-selected" : ""}`}
@@ -299,6 +298,7 @@ export const StandManagementPage = () => {
     </section>
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
     {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={async () => { setLoadError(""); await loadEvents(true); await loadStands(true); await loadOperationalData(true); }}>Reintentar</button></div>}
+    {preparing && !selected && <StandDataSkeleton summary={readOnly} />}
     {!preparing && !loadError && events.length === 0 ? <section className="stand-page__empty">
         <FiAlertTriangle /><h2>{readOnly ? "No hay eventos para consultar" : "Primero crea un evento"}</h2>
         <p>{readOnly ? "Cuando exista un evento con stands, su resumen aparecerá aquí."
@@ -310,7 +310,7 @@ export const StandManagementPage = () => {
             onClick={() => setSelected(item)}>
             <span>{item.name}</span>
           </button>)}
-          {standList.length === 0 && (readOnly ? <section className="stand-page__empty">
+          {!preparing && standList.length === 0 && (readOnly ? <section className="stand-page__empty">
             <FiBox /><h2>No hay stands en este evento</h2>
             <p>Selecciona otro evento o vuelve más tarde.</p>
           </section> : <section className="stand-selector-empty">
@@ -402,6 +402,7 @@ export const StandManagementPage = () => {
             <button className={tab === "summary" ? "is-active" : ""}
               onClick={() => setTab("summary")}><FiDollarSign /> Resumen</button>
           </nav>}
+          {preparing && loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}` && <StandDataSkeleton summary={readOnly || tab === "summary"} />}
           {loadedPanelKey === `${selected.id}:${readOnly ? "summary" : tab}` && <>
             {!readOnly && tab === "products" && <ProductsPanel stand={selected} products={products}
               onSaved={async message => { await loadOperationalData(true); setFeedback(message); }} />}
@@ -463,6 +464,14 @@ export const StandManagementPage = () => {
       }} />}
   </main></>;
 };
+
+const StandDataSkeleton = ({ summary }: { summary: boolean }) => <section role="status" aria-label="Cargando datos del stand" aria-busy="true">
+  {summary ? <div className="stand-summary__cards">{["Ganancia neta", "Total vendido", "Efectivo esperado"].map(label =>
+    <article key={label}><div><span>{label}</span></div><strong><Skeleton /></strong></article>)}</div>
+    : <div className="stand-product-grid">{Array.from({ length: 3 }, (_, index) => <article className="stand-product-card" key={index}>
+      <div className="stand-product-card__main"><h3><Skeleton /></h3><p><Skeleton width="65%" /></p><strong><Skeleton /></strong></div>
+    </article>)}</div>}
+</section>;
 
 const ProductsPanel = ({ stand, products, onSaved }: {
   stand: Stand; products: StandProduct[]; onSaved: (message: string) => Promise<void>;

@@ -1,4 +1,3 @@
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
 // components/apoderado/CrearApoderadoForm.tsx
 import { Button } from "@/shared/ui/button/Button";
 import "./style/CrearApoderadoForm.css";
@@ -188,7 +187,6 @@ export const CrearApoderadoForm = () => {
         </div>
       </form>
 
-      {loading && <LoadingState message="Guardando los datos" />}
       <ModalAlert
         isOpen={modal.isOpen}
         message={modal.message}

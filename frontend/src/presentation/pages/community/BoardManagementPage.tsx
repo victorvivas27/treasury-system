@@ -1,4 +1,5 @@
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiLoader, FiSave, FiTrash2, FiUsers } from "react-icons/fi";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
@@ -23,6 +24,7 @@ export const BoardManagementPage = () => {
   const year = new Date().getFullYear();
   const [members, setMembers] = useState<BoardMember[]>([]);
   const [parents, setParents] = useState<Apoderado[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selection, setSelection] = useState<Record<string, string>>({});
   const [pending, setPending] = useState<{ key: string; action: "save" | "remove" } | null>(null);
   const [message, setMessage] = useState(""); const [error, setError] = useState("");
@@ -32,6 +34,7 @@ export const BoardManagementPage = () => {
       setMembers(board); setParents(parentPage.content);
       setSelection(Object.fromEntries(board.map(item => [`${item.role}-${item.positionNumber}`, item.apoderadoCodigo])));
     } catch { setError("No fue posible cargar la directiva o la lista de apoderados."); }
+    finally { setLoading(false); }
   }, [year]);
   useEffect(() => { void load(); }, [load]);
   const assignedCodes = useMemo(() => new Set(members.map(item => item.apoderadoCodigo)), [members]);
@@ -54,20 +57,20 @@ export const BoardManagementPage = () => {
   return <section className="board-admin">
     <header><span>Administración de la Home</span><h1>Directiva del curso</h1>
       <p>Selecciona los representantes del año {year} desde la lista de apoderados.</p></header>
-    <div className="board-admin__grid">{slots.map(slot => {
+    <div className="board-admin__grid" aria-busy={loading}>{slots.map(slot => {
       const key = `${slot.role}-${slot.position}`;
       const saving = pending?.key === key && pending.action === "save";
       const removing = pending?.key === key && pending.action === "remove";
       const member = members.find(item => item.role === slot.role && item.positionNumber === slot.position);
       return <article key={key}><FiUsers aria-hidden="true" /><div><h2>{slot.label}</h2>
-        <p>{member ? `${member.nombre} · ${member.email}` : "Cargo sin asignar"}</p></div>
-        <select aria-label={`Apoderado para ${slot.label}`} value={selection[key] ?? ""} disabled={Boolean(pending)}
+        <p>{loading ? <Skeleton /> : member ? `${member.nombre} · ${member.email}` : "Cargo sin asignar"}</p></div>
+        <select aria-label={`Apoderado para ${slot.label}`} value={selection[key] ?? ""} disabled={loading || Boolean(pending)}
           onChange={event => setSelection(current => ({ ...current, [key]: event.target.value }))}>
           <option value="">Seleccionar apoderado</option>
           {parents.map(parent => <option key={parent.codigo} value={parent.codigo}
             disabled={assignedCodes.has(parent.codigo) && parent.codigo !== member?.apoderadoCodigo}>
             {parent.nombre} — {parent.email}</option>)}</select>
-        <footer><button type="button" disabled={Boolean(pending)} aria-busy={saving}
+        <footer><button type="button" disabled={loading || Boolean(pending)} aria-busy={saving}
           onClick={() => void save(slot.role, slot.position)}>
           {saving ? <FiLoader className="board-admin__spinner" aria-hidden="true" /> : <FiSave aria-hidden="true" />}
           {saving ? "Guardando…" : "Guardar"}</button>

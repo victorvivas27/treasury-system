@@ -4,7 +4,7 @@ import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useNotificationRecipients } from "./useNotificationRecipients";
 import { notificationCache } from "./notificationCache";
 import { useDashboardResource } from "../dashboard/dashboardCache";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { NotificationListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import type { NotificationType, SentNotification } from
   "@/core/A-domain/entities/notification/Notification";
 import { NotificationRepositoryImpl } from
@@ -119,8 +119,7 @@ const AdminNotificationCenter = () => {
   };
 
   return <>
-    {sentLoading && <LoadingState message="Preparando las notificaciones" />}
-    <main inert={sentLoading} aria-busy={sentLoading} className="page-container notifications-page notifications-admin">
+    <main aria-busy={sentLoading} className="page-container notifications-page notifications-admin">
       <div className="notification-admin-actions">
         <Button label="Crear notificación"
           icon={<IoNotificationsOutline />} iconPosition="left"
@@ -142,7 +141,7 @@ const AdminNotificationCenter = () => {
           onChange={event => setSearch(event.target.value)} />
       </header>
       {error && <div role="alert" className="notification-recipient-error">{error}<button type="button" onClick={() => void retry()}>Reintentar destinatarios</button></div>}
-      {loading && recipientsOpen && <LoadingState message="Preparando los destinatarios" />}
+      {loading && apoderados.length === 0 && recipientsOpen && <NotificationListSkeleton />}
       <div className="notification-recipient-list">
         {apoderados.map(apoderado => <article key={apoderado.apoderadoId}
           className={`notification-recipient ${selectAll || selectedIds.has(apoderado.apoderadoId)
@@ -164,6 +163,7 @@ const AdminNotificationCenter = () => {
       </div>
     </details>
     <section className="sent-notifications">
+      {sentLoading && <NotificationListSkeleton />}
       {sentError && <div role="alert" className="notification-conversation__error">
         No fue posible cargar los mensajes.
         <button type="button" onClick={() => void loadSent()}>Reintentar carga de mensajes</button>
@@ -297,12 +297,12 @@ const GuardianInbox = () => {
     finally { setStartingConversation(false); }
   };
   return <>
-    {inboxLoading && <LoadingState message="Preparando las notificaciones" />}
-    <main inert={inboxLoading} aria-busy={inboxLoading} className="page-container notifications-page notifications-inbox">
+    <main aria-busy={inboxLoading} className="page-container notifications-page notifications-inbox">
     {startError && notifications.length > 0 && <p role="alert" className="notification-conversation__error">{startError}</p>}
     {inboxError && <div role="alert" className="notification-conversation__error">{inboxError}<button type="button" onClick={() => void refresh()}>Reintentar notificaciones</button></div>}
     <section className="notifications-list" aria-live="polite"
       aria-busy={inboxLoading}>
+      {inboxLoading && notifications.length === 0 && <NotificationListSkeleton />}
       {!inboxLoading && !inboxError && notifications.length === 0 && <div className="notifications-empty-conversation">
         <section className="notifications-empty-conversation__contact-section">
           <h2>Contactos</h2>

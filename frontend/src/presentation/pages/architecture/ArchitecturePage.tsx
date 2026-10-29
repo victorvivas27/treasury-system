@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useEffect, useState } from "react";
 import type { ArchitectureCatalog } from "@/core/A-domain/entities/architecture/Architecture";
 import { architectureUseCases } from "@/presentation/hooks/architecture/useArchitectureAccess";
@@ -70,7 +71,7 @@ export const ArchitecturePage = () => {
         ))}
       </div>
       {error ? <FeedbackState message={error} actionText="Reintentar"
-        onRefresh={() => setAttempt(value => value + 1)} /> : loading ? <p role="status">Cargando gráfico…</p> : (
+        onRefresh={() => setAttempt(value => value + 1)} /> : loading ? <div role="status" aria-label="Cargando gráfico"><Skeleton height="16rem" /></div> : (
         <div className="architecture-viewer">
           <div className="architecture-viewer-heading">
             <h2>{active?.title}</h2>

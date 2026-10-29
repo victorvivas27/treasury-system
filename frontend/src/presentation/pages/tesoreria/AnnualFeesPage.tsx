@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
@@ -225,7 +226,7 @@ export const AnnualFeesPage = () => {
       {pageLoading ? ["Familias", "Cuota única", "Dos cuotas", "Personalizadas",
         "Pendientes", "Recaudado", "Por recaudar"].map(label =>
         <article className="treasury-summary-card" key={label}>
-          <div><span>{label}</span></div><div className="skeleton-block" />
+          <div><span>{label}</span></div><div className="skeleton-block"><Skeleton height="100%" /></div>
         </article>) : <>
         <article className="treasury-summary-card treasury-summary-card--families">
           <div><span>Familias</span><i><FiUsers aria-hidden="true" /></i></div>
@@ -264,9 +265,12 @@ export const AnnualFeesPage = () => {
         <div className="treasury-family-mode-layout">
           <div className="treasury-family-mode-controls">
             {pageLoading ? <>
-              <label>Familia<div className="skeleton-block treasury-field-skeleton" /></label>
-              <label>Modalidad<div className="skeleton-block treasury-field-skeleton" /></label>
-              <div className="skeleton-block treasury-button-skeleton" aria-hidden="true" />
+              <label>Familia<div className="skeleton-block treasury-field-skeleton"><Skeleton height="100%" /></div></label>
+              <label>Modalidad<select disabled value={mode}>
+                <option value="ANUAL">Cuota única</option><option value="DOS_CUOTAS">Dos cuotas</option>
+                <option value="PERSONALIZADA">Cuota personalizada</option>
+              </select></label>
+              <Button label="Guardar y generar cuotas" disabled onClick={() => undefined} />
             </> : <>
               <label>Familia<select value={familyId}
                 onChange={event => setFamilyId(Number(event.target.value))}>
@@ -298,7 +302,7 @@ export const AnnualFeesPage = () => {
           </div>
           <div className="treasury-family-mode-summary">
             {pageLoading
-              ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true" />
+              ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true"><Skeleton height="100%" /></div>
               : <p>{fees.plans.length} familias configuradas para {fees.year}.</p>}
             <p className="treasury-mode-help">
               Para cambiar la modalidad de una familia con pagos, anula primero todos sus pagos
@@ -311,8 +315,8 @@ export const AnnualFeesPage = () => {
           {pageLoading
             ? Array.from({ length: 2 }, (_, index) =>
               <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
-                <div className="treasury-plan-main"><div className="skeleton-block" />
-                  <div className="skeleton-block" /></div>
+                <div className="treasury-plan-main"><div className="skeleton-block"><Skeleton height="100%" /></div>
+                  <div className="skeleton-block"><Skeleton height="100%" /></div></div>
                 <div className="treasury-plan-actions loading-action-placeholder">
                   <span className="payment-mode">&nbsp;</span>
                   <button type="button" disabled>Cambiar modalidad</button>
@@ -401,7 +405,7 @@ export const AnnualFeesPage = () => {
         <tbody>{pageLoading ? Array.from({ length: 8 }, (_, row) =>
           <tr key={`loading-${row}`} aria-hidden="true">
             {Array.from({ length: 8 }, (_, column) => <td key={column}>
-              <div className="skeleton-block treasury-cell-skeleton" />
+              <div className="skeleton-block treasury-cell-skeleton"><Skeleton height="100%" /></div>
             </td>)}<td><Button label="Registrar pago" size="small" disabled
               onClick={() => undefined} className="loading-action-placeholder" /></td>
           </tr>) : visibleObligations.map(item => <tr key={item.id}>
@@ -441,8 +445,8 @@ export const AnnualFeesPage = () => {
       <div className="obligation-family-cards" aria-label="Obligaciones por familia">
         {pageLoading
           ? Array.from({ length: 3 }, (_, index) => <article key={index} aria-hidden="true">
-              <div className="skeleton-block dashboard-row-skeleton" />
-              <div className="skeleton-block dashboard-row-skeleton" />
+              <div className="skeleton-block dashboard-row-skeleton"><Skeleton height="100%" /></div>
+              <div className="skeleton-block dashboard-row-skeleton"><Skeleton height="100%" /></div>
             </article>)
           : visibleObligationGroups.map(items => {
             const family = items[0];

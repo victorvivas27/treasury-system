@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { FiEdit2, FiEye, FiEyeOff, FiPlus, FiSave, FiTrash2, FiX } from "react-icons/fi";
@@ -110,7 +111,7 @@ export const AboutManagementPage = () => {
     </form>
     <section className="about-admin__list" aria-label="Contenido existente">
       <div><h2>Contenido creado</h2><span>{items.length} elementos</span></div>
-      {loading ? <p>Cargando contenido…</p> : items.length === 0
+      {loading && items.length === 0 ? <div role="status" aria-label="Cargando contenido"><Skeleton /><Skeleton /><Skeleton width="70%" /></div> : items.length === 0
         ? <p className="about-admin__empty">Aún no hay contenido. Crea el primer bloque.</p>
         : items.map(item => <article key={item.id}>
           <span className={`about-admin__order is-${item.accentColor.toLowerCase()}`}>#{item.displayOrder}</span><div><h3>{item.title}</h3>

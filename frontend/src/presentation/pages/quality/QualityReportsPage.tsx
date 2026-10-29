@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useEffect, useState } from "react";
 import type { CoverageMetric, QualityReport, QualityReportCatalog } from "@/core/A-domain/entities/quality/QualityReport";
 import { QualityReportUseCases } from "@/core/B-application/use-cases/quality/QualityReportUseCases";
@@ -88,7 +89,7 @@ export const QualityReportsPage = () => {
     <header><p>Administración</p><h1>Reportes de calidad</h1>
       <p>La cobertura de código se muestra abajo; el reporte Allure detalla los resultados de las pruebas.</p></header>
     {error && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => setAttempt(value => value + 1)} />}
-    {loading && <p role="status">Cargando reporte…</p>}
+    {loading && !html && <div className="quality-report-list" role="status" aria-label="Cargando reporte"><article><h2><Skeleton /></h2><p><Skeleton /></p><Skeleton height="10rem" /></article></div>}
     {catalog && !catalog.reports.length && !error && <p role="status">{catalog.configured
       ? "Todavía no hay reportes publicados." : "Los reportes estarán disponibles cuando se configure su almacenamiento privado."}</p>}
     {!!catalog?.reports.length && <div className="quality-report-list" aria-label="Reportes disponibles">

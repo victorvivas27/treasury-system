@@ -1,0 +1,69 @@
+.public-home__account-menu { position: relative; flex: 0 0 44px; min-width: 0; }
+.public-home__account-menu > .public-home__account {
+  display: flex; align-items: center; justify-content: center; width: 44px; min-height: 44px;
+  max-width: 100%; padding: 0; border-radius: 50%; list-style: none; cursor: pointer;
+}
+.public-home__account-menu > summary::-webkit-details-marker { display: none; }
+.public-home__account-menu > summary:hover,
+.public-home__account-menu[open] > summary { background: var(--color-accent-soft); }
+.public-home__account-links {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 2;
+  display: grid; width: min(260px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 6px; border: 1px solid var(--border-color); border-radius: 12px;
+  background: var(--color-sidebar); box-shadow: var(--shadow-card);
+}
+.public-home__account-identity {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px; padding: 14px 10px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--color-accent-soft), transparent); border-radius: 8px 8px 0 0;
+}
+.public-home__account-portrait { width: 44px; height: 44px; flex: 0 0 44px; }
+.public-home__account-identity > div { min-width: 0; }
+.public-home__account-identity span { display: block; margin-bottom: 4px; color: var(--text-muted); font-size: 11px; }
+.public-home__account-identity strong { display: block; color: var(--text-main); font-size: 14px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.public-home__account-links > a {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px;
+  border-radius: 8px; color: var(--sidebar-text); font-size: 14px;
+}
+.public-home__account-links > a > svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--sidebar-icon); }
+.public-home__account-links > a:hover { background: var(--color-hover); }
+.public-home__account-logout {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
+  margin-top: 6px; padding: 0 12px; border: 0; border-top: 1px solid var(--border-color);
+  border-radius: 0 0 8px 8px; background: transparent; color: var(--text-muted);
+  font: inherit; font-size: 14px; text-align: left; cursor: pointer;
+}
+.public-home__account-logout > svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--palette-orange); }
+.public-home__account-logout:hover { background: var(--color-hover); color: var(--text-main); }
+.public-home__account-logout:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.public-home__account-menu > summary:focus-visible,
+.public-home__account-links > a:focus-visible,
+.public-home__nav > a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+@media (min-width: 1024px) {
+  .public-home__header > .public-home__nav.is-authenticated { order: 1; flex: 1 1 auto; margin-left: auto; scrollbar-width: none; }
+}
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .public-home__header > .public-home__nav.is-authenticated { flex: 1 1 auto; gap: 3px; }
+  .public-home__nav.is-authenticated > a {
+    flex: 0 1 auto; gap: 5px; padding: 4px 5px; font-size: 12px; white-space: normal;
+  }
+  .public-home__nav.is-authenticated > a > .public-home__nav-icon { width: 26px; height: 26px; flex-basis: 26px; padding: 5px; }
+}
+@media (max-width: 1023px) {
+  .public-home__account-menu { margin-right: auto; }
+  .public-home__header > .public-home__menu-toggle { margin-left: 0; }
+}
+@media (max-width: 400px) {
+  .public-home__header:has(.public-home__account-menu) { gap: 6px; }
+  .public-home__account-menu > .public-home__account { gap: 5px; }
+}
+
+.public-home .public-home__account-links > .install-launcher--menu {
+  position: static; inset: auto; z-index: auto; width: 100%; height: auto; min-height: 44px;
+  margin: 0; padding: 0 12px; gap: 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--sidebar-text); box-shadow: none;
+  font-size: 14px; font-weight: 400; animation: none;
+}
+.public-home__account-links > .install-launcher--menu > img { display: none; }
+.public-home__account-links > .install-launcher--menu > svg { order: -1; width: 18px; height: 18px; color: var(--sidebar-icon); }
+.public-home .public-home__account-links > .install-launcher--menu:hover { background: var(--color-hover); }
