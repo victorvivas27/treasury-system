@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.hoisted(() => {
   Object.defineProperty(window, "matchMedia", { writable: true, value: vi.fn(() => ({
@@ -14,6 +14,48 @@ vi.mock("@/presentation/hooks/architecture/useArchitectureAccess", () => ({
 }));
 
 describe("HomeHeader", () => {
+  it.each(["/profile", "/configuration"])("completa el toque hacia %s aunque el navegador quite el foco sin destino", (path) => {
+    render(<MemoryRouter><Routes>
+      <Route path="/" element={<HomeHeader isAuthenticated />} />
+      <Route path={path} element={<h1>Destino de cuenta</h1>} />
+    </Routes></MemoryRouter>);
+    const summary = screen.getByLabelText("Opciones de cuenta de Usuario");
+    const panel = summary.closest("details")!.querySelector<HTMLElement>(".public-home__account-links")!;
+    panel.animate = vi.fn().mockReturnValue({ cancel: vi.fn() });
+    fireEvent.click(summary);
+    const link = panel.querySelector<HTMLAnchorElement>(`a[href="${path}"]`)!;
+    fireEvent.pointerDown(link, { pointerType: "touch" });
+    fireEvent.blur(summary, { relatedTarget: null });
+    expect(panel.inert).not.toBe(true);
+    expect(panel.animate).not.toHaveBeenCalled();
+    fireEvent.click(link);
+    expect(screen.getByRole("heading", { name: "Destino de cuenta" })).toBeVisible();
+  });
+
+  it("permite cerrar la sesion despues de perder el foco durante un toque", () => {
+    const onLogout = vi.fn();
+    render(<MemoryRouter><HomeHeader isAuthenticated onLogout={onLogout} /></MemoryRouter>);
+    const summary = screen.getByLabelText("Opciones de cuenta de Usuario");
+    const panel = summary.closest("details")!.querySelector<HTMLElement>(".public-home__account-links")!;
+    panel.animate = vi.fn().mockReturnValue({ cancel: vi.fn() });
+    fireEvent.click(summary);
+    const button = panel.querySelector<HTMLButtonElement>(".public-home__account-logout")!;
+    fireEvent.pointerDown(button, { pointerType: "touch" });
+    fireEvent.blur(summary, { relatedTarget: null });
+    expect(panel.inert).not.toBe(true);
+    fireEvent.click(button);
+    expect(onLogout).toHaveBeenCalledOnce();
+  });
+
+  it("cierra la cuenta al mover el foco con teclado fuera del menu", () => {
+    render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
+    const summary = screen.getByLabelText("Opciones de cuenta de Usuario");
+    fireEvent.click(summary);
+    fireEvent.blur(summary, { relatedTarget: screen.getByRole("link", { name: /Calendario/ }) });
+    expect(summary.closest("details")).not.toHaveAttribute("open");
+  });
+
+
   it("anima el cierre de la cuenta al pulsar el avatar y evita acciones durante la salida", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
     const summary = screen.getByLabelText("Opciones de cuenta de Usuario");

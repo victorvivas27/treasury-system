@@ -181,7 +181,8 @@ export const HomeHeader = ({
       {isAuthenticated ? (
         <details ref={accountRef} className="public-home__account-menu"
           onBlur={event => {
-            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) closeAccount();
+            // Touch browsers may blur the trigger with no next focus target before dispatching click.
+            if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) closeAccount();
           }}>
           <summary className="public-home__account" aria-label={`Opciones de cuenta de ${user?.nombre ?? "Usuario"}`}
             onClick={event => {
@@ -256,7 +257,7 @@ export const HomeHeader = ({
             ) : (
               <details ref={administrationRef} className="public-home__administration"
                 onBlur={event => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) {
                     closeAdministration();
                   }
                 }}>
