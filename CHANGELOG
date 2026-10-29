@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.40.3](https://github.com/victorvivas27/treasury-system/compare/v1.40.2...v1.40.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* **ui:** unificar flechas y colores de navegacion movil ([7fca550](https://github.com/victorvivas27/treasury-system/commit/7fca550db97fda6587f162e3cfd63d8daae16ff9))
+* **ui:** unificar flechas y colores de navegacion movil ([14b3e70](https://github.com/victorvivas27/treasury-system/commit/14b3e7004a2aa63ffd7a5ab20a1500b66bb51256))
+
 ## [1.40.2](https://github.com/victorvivas27/treasury-system/compare/v1.40.1...v1.40.2) (2026-10-29)
 
 
