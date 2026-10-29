@@ -1,4 +1,3 @@
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
 import { Button } from "@/shared/ui/button/Button";
 import { useCreateAlumno } from "@/presentation/hooks/alumno/useCreateAlumno";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
@@ -142,7 +141,6 @@ export const CrearAlumnoForm = () => {
         </div>
       </form>
 
-      {loading && <LoadingState message="Guardando los datos" />}
       <ModalAlert
         isOpen={modal.isOpen}
         message={modal.message}

@@ -49,7 +49,7 @@ jobs:
           RELEASE_TOOLS_DIR: ${{ runner.temp }}/release-tools
         run: |
           node scripts/test-versioning.cjs
-          node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs scripts/test-commit-message.cjs scripts/test-ci-validation.cjs scripts/test-release-evidence-selection.cjs
+          node --test scripts/test-auto-release.cjs scripts/test-pr-validation.cjs scripts/test-branch-sync.cjs scripts/test-commit-message.cjs scripts/test-ci-validation.cjs scripts/test-release-evidence-selection.cjs scripts/test-release-recovery.cjs
           node --test scripts/validate-release-evidence.test.mjs
           node --test scripts/security/security.test.cjs
 

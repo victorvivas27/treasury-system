@@ -5,7 +5,7 @@ import { NotificationRepositoryImpl } from "@/core/C-infra/repositories/notifica
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { useRealtime } from "@/presentation/context/RealtimeContext";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { NotificationListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import { useDashboardResource } from "../dashboard/dashboardCache";
 import { notificationCache } from "./notificationCache";
 import { MessageReadStatus } from "./MessageReadStatus";
@@ -171,7 +171,7 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
   const initialLoading = !loaded && !error;
   const panel = <div className="notification-conversation">
     {!isAdmin && <header className="notification-conversation__heading"><div><strong>Conversación con {recipientName}</strong><small>Tesorería del curso</small></div></header>}
-    <div inert={initialLoading && active} className="notification-conversation__content">
+    <div className="notification-conversation__content">
       <div ref={timelineRef} aria-busy={initialLoading} tabIndex={0}
         role="log" aria-label="Historial de mensajes" aria-live="polite"
         onScroll={event => {
@@ -179,6 +179,7 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
           nearBottom.current = current.scrollHeight - current.clientHeight - current.scrollTop < 64;
         }}
         className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}>
+      {initialLoading && active && <NotificationListSkeleton conversation />}
       {!initialLoading && timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         aria-label={auth?.user?.id === item.message.authorId ? "Mensaje enviado" : `Mensaje de ${item.message.authorName}`}
@@ -223,7 +224,6 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
           <span className="notification-composer__send-label">{sending ? "Enviando…" : "Responder"}</span></button>
       </form>
     </div>
-    {initialLoading && active && <LoadingState message="Preparando la conversación" variant="contained" delayMs={180} />}
   </div>;
   const editedMessage = messages.find(message => message.id === editingId);
   return <>

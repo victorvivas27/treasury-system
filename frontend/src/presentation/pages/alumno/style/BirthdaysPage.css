@@ -41,3 +41,40 @@
   .birthdays-page .birthday-card__icon { width: 24px; height: 24px; font-size: var(--font-size-xs); }
   .birthdays-page__error { align-items: stretch; flex-direction: column; }
 }
+
+/* A small collection of celebration notes, with room for every name and date. */
+.birthdays-page .birthday-section__grid { padding: 5px; }
+.birthdays-page .birthday-card {
+  --birthday-tilt: -.6deg;
+  border: 1px solid color-mix(in srgb, var(--birthday-color) 32%, var(--border-color));
+  border-left: 3px solid var(--birthday-color);
+  background: color-mix(in srgb, var(--birthday-color) 6%, var(--color-surface));
+  transform: rotate(var(--birthday-tilt));
+  transition: transform 450ms ease, box-shadow 450ms ease;
+}
+.birthdays-page .birthday-card:nth-child(4n + 1) { border-radius: 28px 8px 28px 8px; }
+.birthdays-page .birthday-card:nth-child(4n + 2) { --birthday-tilt: .7deg; border-radius: 30px 30px 10px 10px; }
+.birthdays-page .birthday-card:nth-child(4n + 3) { --birthday-tilt: .4deg; border-radius: 10px; }
+.birthdays-page .birthday-card:nth-child(4n + 4) { --birthday-tilt: -.8deg; border-radius: 8px 28px 8px 28px; }
+.birthdays-page .birthday-card:nth-child(4n + 3)::before,
+.birthdays-page .birthday-card:nth-child(4n + 3)::after {
+  display: block; position: absolute; top: 50%; bottom: auto; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--color-bg); opacity: 1; transform: translateY(-50%);
+  pointer-events: none;
+}
+.birthdays-page .birthday-card:nth-child(4n + 3)::before { left: -6px; right: auto; }
+.birthdays-page .birthday-card:nth-child(4n + 3)::after { right: -6px; left: auto; }
+.birthdays-page .birthday-card:focus-within { transform: rotate(0deg); }
+@media (hover: hover) {
+  .birthdays-page .birthday-card:hover { transform: translateY(-2px) rotate(0deg); box-shadow: 0 8px 20px var(--tone-neutral-dark-006); }
+}
+@media (max-width: 640px) {
+  .birthdays-page .birthday-card { padding: 10px 12px; }
+  .birthdays-page .birthday-card:nth-child(4n + 1) { border-radius: 22px 6px 22px 6px; }
+  .birthdays-page .birthday-card:nth-child(4n + 2) { border-radius: 24px 24px 8px 8px; }
+  .birthdays-page .birthday-card:nth-child(4n + 4) { border-radius: 6px 22px 6px 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .birthdays-page .birthday-card { transform: none; transition: none; }
+  .birthdays-page .birthday-card:hover { transform: none; }
+}

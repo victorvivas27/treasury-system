@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   FiAlertTriangle, FiBookOpen, FiCalendar, FiCheckCircle, FiEdit3, FiEye, FiEyeOff,
@@ -332,6 +333,7 @@ export const AdministrationsPage = () => {
         <span><FiBookOpen /></span><div><h2 id="administrations-list-title">Cursos registrados</h2>
           <p>Consulta sus responsables y controla su acceso al sistema.</p></div>
       </div>
+      {loading && courseOrganizations.length === 0 && <div className="administration-grid" role="status" aria-label="Cargando cursos">{Array.from({ length: 3 }, (_, index) => <article className="administration-card" key={index}><header><div><h3><Skeleton /></h3><Skeleton width="65%" /></div></header><p><Skeleton /></p></article>)}</div>}
       {!loading && courseOrganizations.length === 0
         ? <EmptyState title="Sin administraciones" message="Crea el primer curso usando el formulario superior." />
         : <div className="administration-grid">{courseOrganizations.map(organization =>

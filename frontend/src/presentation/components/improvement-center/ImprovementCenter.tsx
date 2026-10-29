@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { FiCheckCircle, FiImage, FiList, FiX } from "react-icons/fi";
@@ -257,7 +258,7 @@ export const ImprovementCenter = () => {
               disabled={submitting} onClick={() => undefined} icon={<FiCheckCircle />} />
           </footer>
         </form> : <section className="improvement-center__mine">
-          {loadingMine && <p>Cargando tus sugerencias...</p>}
+          {loadingMine && suggestions.length === 0 && <div role="status" aria-label="Cargando tus sugerencias"><Skeleton /><Skeleton /></div>}
           {!loadingMine && suggestions.length === 0 && <p>Aún no has enviado sugerencias.</p>}
           {suggestions.map(item => <article key={item.id}>
             <button type="button" onClick={() => setDetail(detail?.id === item.id ? null : item)}>

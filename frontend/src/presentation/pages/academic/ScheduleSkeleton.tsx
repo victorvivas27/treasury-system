@@ -6,7 +6,7 @@ export function ScheduleSkeleton({ dayNumber = 1 }: { dayNumber?: number }) {
   return <div className="schedule-skeleton" role="status" aria-label="Cargando horario" aria-busy="true">
     <div aria-hidden="true">
       <div className="schedule-day-selector schedule-skeleton-selector">
-        {DAYS.map(day => <span key={day}><Skeleton width="2rem" height=".85rem" /></span>)}
+        {DAYS.map(day => <span key={day}>{day}</span>)}
       </div>
       <div className="schedule-week">
         <article className="schedule-day schedule-daily-editor schedule-skeleton-editor">
@@ -17,16 +17,14 @@ export function ScheduleSkeleton({ dayNumber = 1 }: { dayNumber?: number }) {
             <div className="schedule-block-summary">
               <span className="schedule-block-summary-time"><Skeleton width="3rem" height=".75rem" /><Skeleton width="3rem" height=".75rem" /></span>
               <span className="schedule-block-summary-name"><Skeleton width="60%" height=".95rem" /></span>
-              <span className="schedule-block-summary-action"><Skeleton width="2rem" height=".75rem" /></span>
             </div>
           </div>)}
           <div className="schedule-day-times">
-            {[0, 1].map(index => <div className="schedule-skeleton-time-field" key={index}>
-              <Skeleton width="3rem" height=".75rem" /><Skeleton height="2.4rem" />
+            {["Entrada", "Salida"].map(label => <div className="schedule-skeleton-time-field" key={label}>
+              <span>{label}</span><Skeleton height="2.4rem" />
             </div>)}
           </div>
           <div className="schedule-day-progress"><Skeleton height=".7rem" /></div>
-          <Skeleton width="8rem" height="2.75rem" />
         </article>
       </div>
     </div>

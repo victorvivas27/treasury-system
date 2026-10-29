@@ -14,6 +14,24 @@ vi.mock("@/presentation/hooks/architecture/useArchitectureAccess", () => ({
 }));
 
 describe("HomeHeader", () => {
+  it("anima el cierre de la cuenta al pulsar el avatar y evita acciones durante la salida", () => {
+    render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);
+    const summary = screen.getByLabelText("Opciones de cuenta de Usuario");
+    const details = summary.closest("details")!;
+    const panel = details.querySelector<HTMLElement>(".public-home__account-links")!;
+    const animation = { onfinish: null as (() => void) | null, cancel: vi.fn() };
+    panel.animate = vi.fn().mockReturnValue(animation);
+    fireEvent.click(summary);
+    fireEvent.click(summary);
+    fireEvent.click(summary);
+    expect(details).toHaveAttribute("open");
+    expect(panel.inert).toBe(true);
+    expect(panel.animate).toHaveBeenCalledOnce();
+    act(() => animation.onfinish?.());
+    expect(details).not.toHaveAttribute("open");
+    expect(panel.inert).toBe(false);
+    expect(animation.cancel).toHaveBeenCalledOnce();
+  });
   it("muestra los accesos administrativos directamente en móvil sin un segundo desplegable", () => {
     const media = window.matchMedia("(max-width: 1023px)");
     vi.mocked(window.matchMedia).mockReturnValueOnce({ ...media, matches: true });
@@ -36,7 +54,7 @@ describe("HomeHeader", () => {
     fireEvent.click(summary);
     expect(details).toHaveAttribute("open");
     expect(panel.inert).toBe(true);
-    expect(panel.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ duration: 160 }));
+    expect(panel.animate).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ duration: 240 }));
     act(() => animation.onfinish?.());
     expect(details).not.toHaveAttribute("open");
     expect(panel.inert).toBe(false);
@@ -62,7 +80,7 @@ describe("HomeHeader", () => {
     fireEvent.click(summary);
     fireEvent.click(screen.getByRole("link", { name: "Reportes de calidad" }));
     expect(details).not.toHaveAttribute("open");
-    expect(screen.getByRole("link", { name: /gestion del curso/i })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: /gestión del curso/i })).toHaveAttribute("href", "/dashboard");
   });
   it("mantiene instalar app e iniciar sesión dentro de la navegación pública", () => {
     render(<MemoryRouter><HomeHeader /></MemoryRouter>);
@@ -102,9 +120,13 @@ describe("HomeHeader", () => {
       .toHaveAttribute("href", "#fotos-del-curso");
     expect(screen.queryByRole("link", { name: "Contacto" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Directiva" })).toHaveAttribute("href", "#directiva");
-    expect(screen.getByRole("link", { name: /ver perfil de usuario/i }))
-      .toHaveAttribute("href", "/profile");
-    expect(screen.getByRole("link", { name: /^gestion del curso$/i }))
+    fireEvent.click(screen.getByLabelText("Opciones de cuenta de Usuario"));
+    expect(screen.getByRole("link", { name: "Mi perfil" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("link", { name: "Configuración" })).toHaveAttribute("href", "/configuration");
+    expect(screen.getByRole("link", { name: "Calendario académico" })).toHaveAttribute("href", "/calendario/horario-clases");
+    expect(screen.getByRole("link", { name: "Cumpleaños" })).toHaveAttribute("href", "/birthdays");
+    expect(screen.getByRole("link", { name: "Notificaciones" })).toHaveAttribute("href", "/notifications");
+    expect(screen.getByRole("link", { name: /^gestión del curso$/i }))
       .toHaveAttribute("href", "/dashboard");
     expect(screen.queryByRole("link", { name: /iniciar sesión/i })).not.toBeInTheDocument();
   });
@@ -133,8 +155,12 @@ describe("HomeHeader", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated user={user} onLogout={onLogout} /></MemoryRouter>);
 
     expect(screen.getByText("María")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
+    fireEvent.click(screen.getByLabelText("Opciones de cuenta de María"));
+    const logout = screen.getByRole("button", { name: /cerrar sesión/i });
+    expect(logout.closest(".public-home__account-links")).not.toBeNull();
+    fireEvent.click(logout);
     expect(onLogout).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText("Opciones de cuenta de María").closest("details")).not.toHaveAttribute("open");
   });
   it("abre y cierra el menú móvil accesible", () => {
     render(<MemoryRouter><HomeHeader isAuthenticated /></MemoryRouter>);

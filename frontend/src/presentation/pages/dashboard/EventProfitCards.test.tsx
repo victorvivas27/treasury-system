@@ -18,7 +18,8 @@ describe("EventProfitCards", () => {
       { id: 2, name: "Fiesta de la Familia — Juegos", eventDate: "2026-09-05", netProfit: 86000 },
     ]);
     render(<MemoryRouter><EventProfitCards year={2026} /></MemoryRouter>);
-    expect(screen.getByRole("status")).toHaveTextContent("Cargando ganancias");
+    expect(screen.getByRole("status", { name: "Cargando ganancias de eventos" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("status").querySelector(".react-loading-skeleton")).toBeInTheDocument();
     const first = await screen.findByRole("article", { name: "Fiesta de la Familia — Completos" });
     const second = screen.getByRole("article", { name: "Fiesta de la Familia — Juegos" });
     expect(within(first).getByText("$125.000")).toBeInTheDocument();

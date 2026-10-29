@@ -47,6 +47,13 @@ describe("AlumnosList Component", () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
+  it("conserva los datos disponibles durante una actualización", () => {
+    const { container } = render(<AlumnosList {...baseProps} alumnos={mockAlumnos} loading />);
+    expect(screen.getByText("Juan Pérez")).toBeVisible();
+    expect(container.querySelector(".react-loading-skeleton")).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Nombre" })).toBeVisible();
+  });
+
   it("[AlumnosList #02] Debe mostrar el FeedbackState cuando existe un error.", () => {
     const errorMessage = "Error al conectar con el servidor";
     render(

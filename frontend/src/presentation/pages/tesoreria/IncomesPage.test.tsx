@@ -35,17 +35,17 @@ describe("IncomesPage", () => {
     expect(screen.queryByText("Cuota de Sofía")).not.toBeInTheDocument();
   });
 
-  it("uses the shared loader and reuses data and selected view after remount", async () => {
+  it("uses scoped skeletons and reuses data and selected view after remount", async () => {
     const first = render(<MemoryRouter><IncomesPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Preparando los ingresos" })).toBeInTheDocument();
-    expect(document.querySelector(".skeleton-block")).toBeNull();
+    expect(screen.getByRole("status", { name: "Cargando ingresos" })).toBeInTheDocument();
+    expect(document.querySelector(".react-loading-skeleton")).toBeInTheDocument();
     await screen.findByText("Rifa del curso");
     fireEvent.change(screen.getByRole("combobox", { name: "Tipo de ingreso" }), { target: { value: "OTHER" } });
     first.unmount();
     render(<MemoryRouter><IncomesPage /></MemoryRouter>);
     expect(screen.getByText("Rifa del curso")).toBeInTheDocument();
     expect(screen.queryByText("Cuota de Sofía")).not.toBeInTheDocument();
-    expect(screen.queryByRole("status", { name: "Preparando los ingresos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando ingresos" })).not.toBeInTheDocument();
     expect(repository.listIncomes).toHaveBeenCalledTimes(1);
     expect(repository.dashboardOverview).toHaveBeenCalledTimes(1);
     expect(repository.getManagedCourse).toHaveBeenCalledTimes(1);

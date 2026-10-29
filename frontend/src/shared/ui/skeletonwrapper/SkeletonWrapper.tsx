@@ -1,3 +1,5 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 interface SkeletonWrapperProps {
   isLoading: boolean;
   children: React.ReactNode;
@@ -16,13 +18,6 @@ export const SkeletonWrapper = ({
   if (!isLoading) return <>{children}</>;
 
   return (
-    <div
-      className={`skeleton-block ${className}`}
-      style={{
-        height: height || '1rem',
-        width: width || '100%',
-        display: 'block'
-      }}
-    />
+    <Skeleton className={className} height={height} width={width} />
   );
 };

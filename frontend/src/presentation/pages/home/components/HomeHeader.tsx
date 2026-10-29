@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { Link } from "react-router-dom";
 import {
   FiBarChart2, FiTool, FiCamera, FiHeart, FiGitBranch,
   FiLogIn, FiLogOut, FiMenu, FiShield, FiUsers, FiX, FiChevronDown,
+  FiCalendar, FiGift, FiBell, FiUser, FiSettings,
 } from "react-icons/fi";
 import type { User } from "@/core/A-domain/entities/user/User";
 import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
@@ -10,6 +11,31 @@ import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { HomeInstallGuide } from "./HomeInstallGuide";
 import "../style/HomeHeader.css";
+import "../style/HomeHeaderAccount.css";
+import "../style/HomeHeaderMotion.css";
+
+function closePanel(details: HTMLDetailsElement | null, exit: RefObject<Animation | null>) {
+  if (!details?.open || exit.current) return;
+  const panel = details.querySelector<HTMLElement>(".public-home__account-links, .public-home__administration-links");
+  if (!panel?.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    details.open = false;
+    return;
+  }
+  const current = getComputedStyle(panel);
+  panel.inert = true;
+  const animation = panel.animate([
+    { opacity: current.opacity, transform: current.transform },
+    { opacity: .8, transform: "perspective(700px) translateY(3px) scale(.98) rotateX(-3deg)", offset: .28 },
+    { opacity: 0, transform: "perspective(700px) translateY(-14px) scale(.9) rotateX(12deg)" },
+  ], { duration: 240, easing: "cubic-bezier(.55, 0, .8, .35)", fill: "forwards" });
+  exit.current = animation;
+  animation.onfinish = () => {
+    details.open = false;
+    panel.inert = false;
+    exit.current = null;
+    animation.cancel();
+  };
+}
 
 const SECTION_IDS = ["sobre-nosotros", "fotos-del-curso", "contacto", "directiva"] as const;
 type SectionId = (typeof SECTION_IDS)[number];
@@ -41,39 +67,28 @@ export const HomeHeader = ({
   const [isCompactNavigation, setIsCompactNavigation] = useState(() => window.matchMedia("(max-width: 1023px)").matches);
   const headerRef = useRef<HTMLElement | null>(null);
   const administrationRef = useRef<HTMLDetailsElement | null>(null);
+  const accountRef = useRef<HTMLDetailsElement | null>(null);
+  const accountExit = useRef<Animation | null>(null);
+  const closeAccount = () => closePanel(accountRef.current, accountExit);
   const administrationExit = useRef<Animation | null>(null);
-  const closeAdministration = () => {
-    const details = administrationRef.current;
-    if (!details?.open || administrationExit.current) return;
-    const panel = details.querySelector<HTMLElement>(".public-home__administration-links");
-    if (!panel?.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      details.open = false;
-      return;
-    }
-    panel.inert = true;
-    const animation = panel.animate([
-      { opacity: 1, transform: "translateY(0) scale(1)" },
-      { opacity: 0, transform: "translateY(-6px) scale(.98)" },
-    ], { duration: 160, easing: "cubic-bezier(.4, 0, 1, 1)", fill: "forwards" });
-    administrationExit.current = animation;
-    animation.onfinish = () => {
-      details.open = false;
-      panel.inert = false;
-      administrationExit.current = null;
-      animation.cancel();
-    };
-  };
+  const closeAdministration = () => closePanel(administrationRef.current, administrationExit);
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
     closeAdministration();
+    closeAccount();
   };
 
   useEffect(() => {
     const closeOnOutside = (event: PointerEvent) => {
+      if (accountRef.current && !accountRef.current.contains(event.target as Node)) closeAccount();
       const details = administrationRef.current;
       if (details && !details.contains(event.target as Node)) closeAdministration();
     };
     const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && accountRef.current?.open) {
+        closeAccount();
+        accountRef.current.querySelector("summary")?.focus();
+      }
       const details = administrationRef.current;
       if (event.key === "Escape" && details?.open) {
         closeAdministration();
@@ -86,6 +101,7 @@ export const HomeHeader = ({
       document.removeEventListener("pointerdown", closeOnOutside);
       window.removeEventListener("keydown", closeOnEscape);
       administrationExit.current?.cancel();
+      accountExit.current?.cancel();
     };
   }, []);
 
@@ -163,11 +179,31 @@ export const HomeHeader = ({
   return (
     <header ref={headerRef} className="public-home__header">
       {isAuthenticated ? (
-        <Link className="public-home__account" to="/profile" onClick={closeMobileMenu}
-          aria-label={`Ver perfil de ${user?.nombre ?? "Usuario"}`}>
-          <UserAvatar user={user ?? null} className="public-home__account-avatar" />
-          <span className="public-home__account-name">{user?.nombre ?? "Usuario"}</span>
-        </Link>
+        <details ref={accountRef} className="public-home__account-menu"
+          onBlur={event => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) closeAccount();
+          }}>
+          <summary className="public-home__account" aria-label={`Opciones de cuenta de ${user?.nombre ?? "Usuario"}`}
+            onClick={event => {
+              setIsMobileMenuOpen(false);
+              closeAdministration();
+              if (accountRef.current?.open) { event.preventDefault(); closeAccount(); }
+            }}>
+            <UserAvatar user={user ?? null} className="public-home__account-avatar" />
+          </summary>
+          <div className="public-home__account-links">
+            <div className="public-home__account-identity">
+              <UserAvatar user={user ?? null} className="public-home__account-portrait" />
+              <div><span>Mi cuenta</span><strong>{user?.nombre ?? "Usuario"}</strong></div>
+            </div>
+            <Link to="/profile" onClick={closeAccount}><FiUser aria-hidden="true" />Mi perfil</Link>
+            <Link to="/configuration" onClick={closeAccount}><FiSettings aria-hidden="true" />Configuración</Link>
+            <HomeInstallGuide placement="menu" />
+            <button className="public-home__account-logout" type="button" onClick={handleLogout}>
+              <FiLogOut aria-hidden="true" /><span>Cerrar sesión</span>
+            </button>
+          </div>
+        </details>
       ) : (
         <Link className="public-home__brand" to="/" aria-label="Tesorería Escolar, inicio">
           <BrandLogo alt="" />
@@ -179,7 +215,7 @@ export const HomeHeader = ({
         <button className="public-home__menu-toggle" type="button"
           aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={isMobileMenuOpen} aria-controls="public-home-menu"
-          onClick={() => setIsMobileMenuOpen(open => !open)}>
+          onClick={() => { closeAccount(); setIsMobileMenuOpen(open => !open); }}>
           <span className="public-home__menu-icon-shell">
             {isMobileMenuOpen
               ? <FiX className="public-home__menu-icon" aria-hidden="true" />
@@ -197,9 +233,20 @@ export const HomeHeader = ({
             <div className="public-home__menu-heading">
               <strong>Tu comunidad</strong>
             </div>
-            <Link className="public-home__system-access" to="/dashboard" onClick={closeMobileMenu}>
+            <Link className="public-home__system-access" to="/dashboard" onClick={closeMobileMenu}
+              aria-label="Gestión del curso" title="Gestión del curso">
               <BrandLogo className="public-home__system-access-logo" alt="" src="/icono-gestion-curso.png" />
-              <span>Gestion del curso</span>
+              <span>Gestión</span>
+            </Link>
+            <Link to="/calendario/horario-clases" onClick={closeMobileMenu}
+              aria-label="Calendario académico" title="Calendario académico">
+              <span className="public-home__nav-icon public-home__nav-icon--schedule"><FiCalendar aria-hidden="true" /></span><span>Calendario</span>
+            </Link>
+            <Link to="/birthdays" onClick={closeMobileMenu}>
+              <span className="public-home__nav-icon"><FiGift aria-hidden="true" /></span><span>Cumpleaños</span>
+            </Link>
+            <Link to="/notifications" onClick={closeMobileMenu}>
+              <span className="public-home__nav-icon"><FiBell aria-hidden="true" /></span><span>Notificaciones</span>
             </Link>
             {(isAdmin || isSuperAdmin) && (isCompactNavigation ? (
               <div className="public-home__administration-mobile">
@@ -227,9 +274,6 @@ export const HomeHeader = ({
                   <span className={`public-home__nav-icon public-home__nav-icon--${id}`}><Icon aria-hidden="true" /></span><span>{label}</span>
                 </a>
             ))}
-            <button className="public-home__logout" type="button" onClick={handleLogout}>
-              <span className="public-home__nav-icon public-home__nav-icon--logout"><FiLogOut aria-hidden="true" /></span><span>Cerrar sesión</span>
-            </button>
           </>
         ) : (
           <>

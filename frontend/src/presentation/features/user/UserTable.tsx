@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import type { User } from "@/core/A-domain/entities/user/User";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { ICONS } from "@/shared/constants/Icons";
@@ -27,9 +28,10 @@ interface UserTableProps {
   onSearchChange?: (value: string) => void;
 }
 
-export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, onToggleStatus,
+export const UserTable = ({ users, loading: fetching = false, isAdmin, onEdit, onDelete, onToggleStatus,
   currentPage, totalPages, pageSize, onPrevious, onNext,
   search = "", onSearchChange }: UserTableProps) => {
+  const loading = fetching && users.length === 0;
 
   return <article className="usuarios-container responsive-data-list">
     <header className="usuarios-header">
@@ -64,7 +66,7 @@ export const UserTable = ({ users, loading = false, isAdmin, onEdit, onDelete, o
               aria-hidden="true">
               {Array.from({ length: 4 }, (_, column) => (
                 <td className="usuarios-table__td" key={column}>
-                  <div className="skeleton-block usuarios-table__skeleton" />
+                  <div className="skeleton-block usuarios-table__skeleton"><Skeleton height="100%" /></div>
                 </td>
               ))}
               {isAdmin && <td className="usuarios-table__td">

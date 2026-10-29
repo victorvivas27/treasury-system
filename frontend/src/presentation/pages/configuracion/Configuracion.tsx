@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useEffect, useMemo, useState } from "react";
 import { FiBell, FiBookOpen, FiCheck, FiMonitor, FiMoon, FiSave,
   FiSun } from "react-icons/fi";
@@ -174,17 +175,17 @@ export const Configuracion = () => {
           <FiBookOpen aria-hidden="true" />
           <div><h2>Curso administrado</h2>
             <p>Define el curso que gestiona esta instalación completa de Tesorería.</p></div>
-          <strong>{savedCourse} · {schoolYear}</strong>
+          <strong>{loadingCourse ? <Skeleton /> : `${savedCourse} · ${schoolYear}`}</strong>
         </div>
         <label htmlFor="managed-course">Curso actual</label>
         <div className="managed-course-form">
-          <input id="managed-course" maxLength={80} value={course}
+          <input id="managed-course" maxLength={80} value={course} disabled={loadingCourse}
             onChange={event => setCourse(event.target.value.toUpperCase())}
             placeholder="Ejemplo: 1A" />
           <label className="managed-course-year" htmlFor="managed-school-year">
             <span>Año lectivo</span>
             <input id="managed-school-year" type="number" min={2000} max={2100}
-              value={schoolYear} onChange={event => setSchoolYear(Number(event.target.value))} />
+              value={schoolYear} disabled={loadingCourse} onChange={event => setSchoolYear(Number(event.target.value))} />
           </label>
           <button type="button"
             disabled={loadingCourse || !course.trim() || schoolYear < 2000 || schoolYear > 2100

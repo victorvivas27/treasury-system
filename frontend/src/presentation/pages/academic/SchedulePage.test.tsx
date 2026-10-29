@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SchedulePage } from "./SchedulePage";
 const state = vi.hoisted(() => ({
   periods: [{ schoolYear: 2026, course: "1 Básico A", editable: true }], year: 2026,
@@ -14,19 +14,72 @@ const account = vi.hoisted(() => ({ user: { id: 7, rol: "USER" } }));
 vi.mock("@/presentation/hooks/academic/usePublishedSchedule", () => ({ usePublishedSchedule: () => state }));
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: () => account }));
 describe("Consulta del horario", () => {
-  beforeEach(() => { localStorage.clear(); state.loading = false; state.ready = true; state.error = ""; account.user.id = 7; });
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 26, 12));
+    localStorage.clear(); state.loading = false; state.ready = true; state.error = ""; account.user.id = 7;
+  });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
   const open = () => render(<MemoryRouter><SchedulePage /></MemoryRouter>);
-  it.each(["summary", "day", "table"])("muestra el loader compartido en la vista %s y lo retira al terminar la carga", view => {
+  it("pliega todos los días al entrar o volver a la semana resumida en móvil", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    localStorage.setItem("academic.schedule.view.7", "summary");
+    const page = open();
+    const weekdays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    const expectCollapsed = () => weekdays.forEach(name => {
+      const toggle = screen.getByRole("button", { name, exact: true });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      expect(document.getElementById(toggle.getAttribute("aria-controls")!)).toHaveAttribute("inert");
+    });
+    expectCollapsed();
+    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
+    expect(screen.getByRole("button", { name: "Lunes", exact: true })).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Por día", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Semanal resumida", exact: true }));
+    expectCollapsed();
+    page.unmount();
+    open();
+    expectCollapsed();
+  });
+  it("conserva los días abiertos al entrar en la semana resumida en escritorio", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false })));
+    localStorage.setItem("academic.schedule.view.7", "summary");
+    open();
+    for (const name of ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]) {
+      expect(screen.getByRole("button", { name, exact: true })).toHaveAttribute("aria-expanded", "true");
+    }
+  });
+  it.each([
+    [26, "Lunes"], [27, "Martes"], [28, "Miércoles"], [29, "Jueves"], [30, "Viernes"],
+    [31, "Lunes"], [32, "Lunes"],
+  ])("selecciona %s de octubre según el día local y usa %s como jornada inicial", (date, expected) => {
+    vi.setSystemTime(new Date(2026, 9, date, 12));
+    open();
+    expect(screen.getByRole("button", { name: expected, exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("heading", { name: expected, exact: true })).toBeInTheDocument();
+  });
+  it("permite cambiar el día y vuelve a hoy cuando se entra nuevamente", () => {
+    vi.setSystemTime(new Date(2026, 9, 28, 12));
+    const page = open();
+    fireEvent.click(screen.getByRole("button", { name: "Viernes", exact: true }));
+    page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
+    expect(screen.getByRole("button", { name: "Viernes", exact: true })).toHaveAttribute("aria-pressed", "true");
+    page.unmount();
+    open();
+    expect(screen.getByRole("button", { name: "Miércoles", exact: true })).toHaveAttribute("aria-pressed", "true");
+  });
+  it.each(["summary", "day", "table"])("muestra skeletons de datos en la vista %s y conserva los controles", view => {
     state.loading = true; state.ready = false;
     localStorage.setItem("academic.schedule.view.7", view);
     const page = open();
-    const loading = screen.getByRole("status", { name: "Preparando el horario de clases" });
-    expect(document.querySelector(".schedule-published")).toHaveAttribute("inert");
-    expect(page.container.querySelectorAll(".skeleton-block")).toHaveLength(0);
-    expect(loading).toHaveClass("app-loader");
+    const loading = screen.getByRole("status", { name: "Cargando horario" });
+    expect(document.querySelector(".schedule-published")).not.toHaveAttribute("inert");
+    expect(page.container.querySelector(".react-loading-skeleton")).toBeInTheDocument();
+    expect(loading).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Tabla semanal", exact: true })).toBeEnabled();
     state.loading = false; state.ready = true;
     page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);
-    expect(screen.queryByRole("status", { name: "Preparando el horario de clases" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
   });
   it("muestra la jornada por defecto, salida explícita, bloques y no edición para USER", () => {
     open();

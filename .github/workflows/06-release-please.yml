@@ -22,6 +22,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: read
 
     outputs:
       number: ${{ steps.candidate.outputs.number }}
@@ -31,6 +32,10 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
 
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - name: Create scoped Release Please token
         id: release-please-token
         uses: actions/create-github-app-token@v3
@@ -45,12 +50,10 @@ jobs:
 
       - name: Run Release Please
         id: release
-        uses: googleapis/release-please-action@v5
+        uses: ./.github/actions/release-please
         with:
           token: ${{ steps.release-please-token.outputs.token }}
-          target-branch: main
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          sha: ${{ github.sha }}
 
       - name: Select pending release
         id: candidate
@@ -110,6 +113,7 @@ jobs:
       contents: write
       pull-requests: write
       checks: read
+      actions: read
 
     outputs:
       released: ${{ steps.publish.outputs.releases_created }}
@@ -208,6 +212,8 @@ jobs:
                       commit_title: currentPr.data.title.trim(),
                     });
                     if (!result.merged) throw new Error(result.message);
+                    if (!result.sha) throw new Error('Merge response did not identify the release commit');
+                    core.setOutput('sha', result.sha);
                     core.setOutput('merged', 'true');
                     core.info(`Release PR #${pullNumber} merged successfully after ${checkName} passed on ${candidateMergeSha}.`);
                     return;
@@ -224,15 +230,20 @@ jobs:
 
       # Merges realizados con GITHUB_TOKEN no disparan nuevos
       # workflows de push. Por eso publicamos explícitamente.
+      - name: Checkout release recovery tooling
+        if: steps.merge.outputs.merged == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
       - name: Publish merged release
         id: publish
         if: steps.merge.outputs.merged == 'true'
-        uses: googleapis/release-please-action@v5
+        uses: ./.github/actions/release-please
         with:
           token: ${{ github.token }}
-          target-branch: main
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          sha: ${{ steps.merge.outputs.sha }}
           skip-github-pull-request: true
 
       - name: Resolve published release tag
@@ -243,16 +254,8 @@ jobs:
           RELEASE_TAG: ${{ steps.publish.outputs.tag_name }}
         with:
           script: |
-            if (process.env.RELEASE_TAG) {
-              core.setOutput('tag_name', process.env.RELEASE_TAG);
-              return;
-            }
-
-            const { data: release } = await github.rest.repos.getLatestRelease({
-              ...context.repo,
-            });
-
-            core.setOutput('tag_name', release.tag_name);
+            if (!process.env.RELEASE_TAG) throw new Error('Verified publication did not identify its exact tag');
+            core.setOutput('tag_name', process.env.RELEASE_TAG);
 
   release-result:
     name: Resolve release published in either stage

@@ -16,7 +16,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
-import { LoadingState } from "@/shared/ui/loading/LoadingState";
+import { DashboardDataSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
 import { birthdayResource, boardMessageResource, dashboardYear, getDashboardResources, useDashboardResource } from "./dashboardCache";
 import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
@@ -145,7 +145,7 @@ export const DashboardPage = () => {
     }
   }, [capturing]);
 
-  return <><main ref={dashboardRef} className="business-dashboard" inert={preparing} aria-busy={preparing}>
+  return <><main ref={dashboardRef} className="business-dashboard" aria-busy={preparing}>
     <header className="business-dashboard__header">
       <div><h1 className="dashboard-greeting">{user?.nombre
         ? <><span className="dashboard-greeting__intro">Hola,</span>{" "}<span className="dashboard-greeting__name">{user.nombre.trim().split(/\s+/)[0]}</span></>
@@ -183,6 +183,7 @@ export const DashboardPage = () => {
     </header>
 
     {error && !loading && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => void load()} />}
+    {!data && preparing && <DashboardDataSkeleton />}
     {data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <section className="dashboard-summary-group dashboard-summary-group--money" aria-labelledby="dashboard-money-title">
@@ -457,7 +458,7 @@ export const DashboardPage = () => {
       message={cleanupError} onClose={() => setCleanupError("")} />
     <ModalAlert isOpen={Boolean(captureError)} type="error"
       message={captureError} onClose={() => setCaptureError("")} />
-  </main>{preparing && <LoadingState message="Preparando tu dashboard" />}</>;
+  </main></>;
 };
 
 const Kpi = ({ label, value, positive = false, negative = false, direction, featured,

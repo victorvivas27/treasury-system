@@ -1,9 +1,11 @@
 import { AboutCylinder } from "./AboutCylinder";
-import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
-import { FiCamera, FiChevronLeft, FiChevronRight, FiUsers } from "react-icons/fi";
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { FiCamera, FiCheck, FiChevronLeft, FiChevronRight, FiUsers } from "react-icons/fi";
 import { useTheme } from "@/presentation/context/ThemeContext";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import "../style/HomeCommunity.css";
+import "../style/HomeBoardExpansion.css";
 import { homeCommunityCache } from "../hooks/homeCommunityCache";
 
 const boardLabels = { PRESIDENTE: "Presidente/a", VICEPRESIDENTE: "Vicepresidente/a",
@@ -107,7 +109,7 @@ const CommunityIcon = ({ file, name, speed = .85, fallback = null }: {
 };
 
 export const HomeCommunity = () => {
-  const { sections, photos, board } = useSyncExternalStore(
+  const { sections, photos, board, ready, error } = useSyncExternalStore(
     homeCommunityCache.subscribe, homeCommunityCache.getSnapshot);
   const [activePhoto, setActivePhoto] = useState(0);
   const dragStart = useRef<number | undefined>(undefined);
@@ -115,6 +117,10 @@ export const HomeCommunity = () => {
   const [carouselPaused, setCarouselPaused] = useState(false);
   const [carouselCycle, setCarouselCycle] = useState(0);
   const boardTrackRef = useRef<HTMLDivElement>(null);
+  const [expandedRepresentative, setExpandedRepresentative] = useState<string | null>(null);
+  const selectedSlot = boardSlots.find(slot => `${slot.role}-${slot.position}` === expandedRepresentative);
+  const selectedMember = selectedSlot && board.find(member => member.role === selectedSlot.role && member.positionNumber === selectedSlot.position);
+  const selectedRole = selectedSlot && `${boardLabels[selectedSlot.role]}${selectedSlot.role === "PASTORAL" ? ` ${selectedSlot.position}` : ""}`;
   const moveBoard = (direction: number) => boardTrackRef.current?.scrollBy({
     left: direction * boardTrackRef.current.clientWidth * .78, behavior: "smooth",
   });
@@ -209,7 +215,9 @@ export const HomeCommunity = () => {
               aria-label={`Ver foto ${index + 1}`} aria-current={index === activePhoto ? "true" : undefined}
               onClick={() => showPhoto(index)} />)}
           </div>
-      </div> : <div className="home-community__photo-placeholder" role="img"
+      </div> : !ready && !error ? <div className="home-community__photo-placeholder" role="status" aria-label="Cargando fotos del curso">
+          <Skeleton height="100%" />
+        </div> : <div className="home-community__photo-placeholder" role="img"
           aria-label="Galería de fotos del curso pendiente de publicación">
           <FiCamera aria-hidden="true" /><span>Galería del curso</span>
         </div>}
@@ -222,34 +230,65 @@ export const HomeCommunity = () => {
           <h2>Representantes del curso</h2></div>
       </div>
       <div className="home-community__board-carousel" role="region" aria-label="Integrantes de la directiva">
-        <button className="home-community__board-arrow is-previous" type="button"
-          aria-label="Ver representantes anteriores" onClick={() => moveBoard(-1)}>
-          <FiChevronLeft /></button>
         <div className="home-community__board" ref={boardTrackRef} tabIndex={0}
           onKeyDown={event => {
             if (event.key === "ArrowLeft") { event.preventDefault(); moveBoard(-1); }
             if (event.key === "ArrowRight") { event.preventDefault(); moveBoard(1); }
           }}>
-          {boardSlots.map((slot, index) => {
+          {boardSlots.map(slot => {
           const member = board.find(item => item.role === slot.role && item.positionNumber === slot.position);
           const roleLabel = `${boardLabels[slot.role]}${slot.role === "PASTORAL" ? ` ${slot.position}` : ""}`;
-          return <article key={`${slot.role}-${slot.position}`}
-            className={`is-${slot.role.toLowerCase()}`}
-            style={{ "--board-delay": `calc(${index} * 120ms)` } as CSSProperties}>
-            {member ? <UserAvatar className="home-community__board-avatar"
+          const key = `${slot.role}-${slot.position}`;
+          const expanded = expandedRepresentative === key;
+          return <article key={key}
+            className={`is-${slot.role.toLowerCase()}${expanded ? " is-expanded" : ""}`}
+            onKeyDown={event => {
+              if (event.key === "Escape") {
+                setExpandedRepresentative(null);
+                event.currentTarget.querySelector("button")?.focus();
+              }
+            }}
+            onTransitionEnd={event => {
+              if (event.target !== event.currentTarget || event.propertyName !== "flex-basis" || !expanded) return;
+              const track = boardTrackRef.current;
+              if (!track) return;
+              const card = event.currentTarget.getBoundingClientRect();
+              const bounds = track.getBoundingClientRect();
+              if (card.right > bounds.right) track.scrollBy({ left: card.right - bounds.right + 4, behavior: "smooth" });
+              else if (card.left < bounds.left) track.scrollBy({ left: card.left - bounds.left - 4, behavior: "smooth" });
+            }}>
+            <button type="button" className="home-community__board-toggle"
+              aria-expanded={expanded} aria-controls={`representative-${key} representative-mobile-details`}
+              aria-label={`${expanded ? "Ocultar" : "Ver"} datos de ${member?.nombre ?? roleLabel}`}
+              onClick={() => setExpandedRepresentative(expanded ? null : key)}>
+              {member ? <UserAvatar className="home-community__board-avatar"
               customImageUserId={member.userId ?? undefined} user={{ nombre: member.nombre,
                 profileImageType: member.profileImageType, profileImageUrl: member.profileImageUrl }} />
               : <span className="home-community__board-avatar is-empty" aria-hidden="true">
                 {roleLabel.charAt(0)}</span>}
-            <small>{roleLabel}</small>
-            <h3>{member?.nombre ?? "Información por publicar"}</h3>
-            {member && <a href={`mailto:${member.email}`}>{member.email}</a>}
+              {expanded && <span className="home-community__board-selected" aria-hidden="true"><FiCheck /></span>}
+            </button>
+            <div id={`representative-${key}`} className="home-community__board-details"
+              inert={!expanded} aria-hidden={!expanded}>
+              <div>
+                <small>{roleLabel}</small>
+                <h3>{member?.nombre ?? "Información por publicar"}</h3>
+                {member && <a href={`mailto:${member.email}`}>{member.email}</a>}
+              </div>
+            </div>
           </article>;
           })}
         </div>
-        <button className="home-community__board-arrow is-next" type="button"
-          aria-label="Ver representantes siguientes" onClick={() => moveBoard(1)}>
-          <FiChevronRight /></button>
+        <div id="representative-mobile-details"
+          className={`home-community__board-profile${selectedSlot ? ` is-${selectedSlot.role.toLowerCase()} is-selected` : ""}`} aria-live="polite">
+          <div key={expandedRepresentative ?? "empty"} className="home-community__board-profile-content">
+            {selectedSlot ? <>
+              <small>{selectedRole}</small>
+              <h3>{selectedMember?.nombre ?? "Información por publicar"}</h3>
+              {selectedMember && <a href={`mailto:${selectedMember.email}`}>{selectedMember.email}</a>}
+            </> : <p>Toca un avatar para conocer a tu representante.</p>}
+          </div>
+        </div>
       </div>
     </section>
 

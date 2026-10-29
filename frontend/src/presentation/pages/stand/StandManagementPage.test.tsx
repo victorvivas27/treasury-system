@@ -28,12 +28,12 @@ describe("StandManagementPage navigation", () => {
       salesByPaymentMethod: {}, salesByProduct: [], salesByVariant: {}, unitsByPresentation: {}, stockAlerts: [] } });
     const first = render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
     await screen.findByText("Totales del stand");
-    await waitFor(() => expect(screen.queryByRole("status", { name: "Preparando el stand" })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument());
     expect(loadStandPanelData).toHaveBeenCalledWith(expect.anything(), 10, "summary", true);
     expect(screen.queryByRole("button", { name: "Crear stand" })).not.toBeInTheDocument();
     first.unmount();
     render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
-    expect(screen.queryByRole("status", { name: "Preparando el stand" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument();
     await waitFor(() => expect(loadStandPanelData).toHaveBeenCalledTimes(1));
   });
   it("reuses the selected event, stand and panel after returning", async () => {
@@ -41,11 +41,11 @@ describe("StandManagementPage navigation", () => {
     list.mockResolvedValue([{ id: 10, eventId: 1, name: "Pizza", status: "OPEN", responsible: "Curso", date: "2026-10-21", startTime: "10:00", endTime: "18:00" }]);
     loadStandPanelData.mockResolvedValue({ products: [] });
     const first = render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Preparando el stand" })).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole("status", { name: "Preparando el stand" })).not.toBeInTheDocument());
+    expect(screen.getByRole("status", { name: "Cargando datos del stand" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument());
     first.unmount();
     render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
-    expect(screen.queryByRole("status", { name: "Preparando el stand" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Evento/ })).toBeChecked();
     await waitFor(() => expect(listEvents).toHaveBeenCalledTimes(1));
     expect(list).toHaveBeenCalledTimes(1);
@@ -56,7 +56,7 @@ describe("StandManagementPage navigation", () => {
     listEvents.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce([]);
     render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
     await screen.findByRole("alert");
-    expect(screen.queryByRole("status", { name: "Preparando el stand" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     await screen.findByText("Primero crea un evento");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();

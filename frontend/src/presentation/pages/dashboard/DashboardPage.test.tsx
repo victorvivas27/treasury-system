@@ -66,17 +66,17 @@ describe("DashboardPage", () => {
     dashboardOverview.mockResolvedValue(overview);
     contributionSummary.mockResolvedValue({ totalFamilies: 0 });
     const first = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
-    await waitFor(() => expect(screen.queryByLabelText("Preparando tu dashboard")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByLabelText("Cargando indicadores del curso")).not.toBeInTheDocument());
     first.unmount();
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
-    expect(screen.queryByLabelText("Preparando tu dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Cargando indicadores del curso")).not.toBeInTheDocument();
     expect(screen.getByText("$240.000")).toBeInTheDocument();
     expect(dashboardOverview).toHaveBeenCalledTimes(1);
     expect(contributionSummary).toHaveBeenCalledTimes(1);
     expect(eventProfits).toHaveBeenCalledTimes(1);
   });
 
-  it("[DashboardPage #01] muestra el loader compartido y luego métricas y actividad reales", async () => {
+  it("[DashboardPage #01] muestra skeletons de datos y luego métricas y actividad reales", async () => {
     dashboardOverview.mockResolvedValue(overview);
     contributionSummary.mockResolvedValue({
       totalFamilies: 4, cepaPaid: 3, cepaPending: 1,
@@ -84,8 +84,9 @@ describe("DashboardPage", () => {
     });
     const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
-    expect(screen.getByLabelText("Preparando tu dashboard")).toBeInTheDocument();
-    expect(container.querySelectorAll(".skeleton-block")).toHaveLength(0);
+    expect(screen.getByLabelText("Cargando indicadores del curso")).toBeInTheDocument();
+    expect(container.querySelector(".react-loading-skeleton")).toBeInTheDocument();
+    expect(container.querySelector("main")).not.toHaveAttribute("inert");
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
     const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });

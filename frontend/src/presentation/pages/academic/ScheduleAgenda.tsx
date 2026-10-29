@@ -5,7 +5,8 @@ import { DAYS, TYPES, blockDurationLabel, orderedBlocks, timeLabel, type Schedul
 import { scheduleCardColor, scheduleIngress } from "./scheduleCards";
 
 export function ScheduleAgenda({ day, index, compact = false }: { day?: ScheduleDay; index: number; compact?: boolean }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(() =>
+    !compact || typeof window === "undefined" || !window.matchMedia?.("(max-width: 768px)").matches);
   const [stuck, setStuck] = useState(false);
   const stickyMarker = useRef<HTMLSpanElement>(null);
   const contentId = useId();

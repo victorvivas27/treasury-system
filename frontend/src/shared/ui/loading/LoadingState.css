@@ -1,5 +1,6 @@
 .app-loader{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:color-mix(in srgb,var(--color-bg) 65%,transparent);backdrop-filter:blur(2px);color:var(--text-boot);font-family:var(--font-family-loader);transition:opacity 180ms ease}
 .app-loader--contained{position:absolute;z-index:2;background:color-mix(in srgb,var(--color-bg) 92%,transparent);backdrop-filter:none}
+.app-loader--page{background:var(--color-bg);backdrop-filter:none}
 .app-loader--contained::before{display:none}
 .app-loader--contained .app-loader__content{gap:10px;padding:16px}
 .app-loader--contained .app-loader__mark{width:64px;height:64px}

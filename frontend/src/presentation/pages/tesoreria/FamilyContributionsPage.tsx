@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -379,11 +380,11 @@ const ContributionsSkeleton = () => (
       <article className="contribution-card contribution-card--skeleton" key={index}
         aria-hidden="true">
         <div className="contribution-card__heading">
-          <div><div className="skeleton-block" /><div className="skeleton-block" /></div>
-          <div className="skeleton-block" />
+          <div><div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div></div>
+          <div className="skeleton-block"><Skeleton height="100%" /></div>
         </div>
-        <div className="skeleton-block contribution-badge-skeleton" />
-        <div className="skeleton-block contribution-badge-skeleton" />
+        <div className="skeleton-block contribution-badge-skeleton"><Skeleton height="100%" /></div>
+        <div className="skeleton-block contribution-badge-skeleton"><Skeleton height="100%" /></div>
         <button type="button" className="loading-action-placeholder" disabled>
           Gestionar aportes
         </button>

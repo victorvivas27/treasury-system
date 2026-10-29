@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import "./style/AlumnosList.css";
 import "@/shared/style/AdminDataTable.css";
@@ -69,7 +70,7 @@ const formatBirthDate = (value?: string | null) => {
 
 export const AlumnosList: FC<AlumnosListProps> = ({
   alumnos,
-  loading,
+  loading: fetching,
   error,
   onRefresh,
   handleDelete,
@@ -84,6 +85,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   search = "",
   onSearchChange,
 }) => {
+  const loading = fetching && alumnos.length === 0 && !error;
   const [selectedObservation, setSelectedObservation] = useState("");
   const [observationAnchor, setObservationAnchor] = useState<{ top: number; left: number }>();
   const emptyRows = Math.max(pageSize - alumnos.length, 0);
@@ -164,7 +166,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 className={`alumnos-table__row--data ${empty && !loading ? "empty-row" : ""}`}
               >
                 <td className="alumnos-table__td" data-label="Estado">
-                  {loading ? <div className="skeleton-block skeleton-input" />
+                  {loading ? <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                     : empty ? <span>&nbsp;</span>
                     : <span className="status-toggle-cell">
                       <span className="admin-status-label">
@@ -177,7 +179,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 </td>
                 <td className="alumnos-table__td alumnos-table__text" data-label="Nombre">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (
@@ -190,7 +192,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
 
                 <td className="alumnos-table__td" data-label="Curso">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (
@@ -215,7 +217,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
 
                 <td className="alumnos-table__td" data-label="Nacimiento">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : empty ? (
                     <span>&nbsp;</span>
                   ) : (

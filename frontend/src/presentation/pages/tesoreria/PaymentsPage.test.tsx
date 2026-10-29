@@ -48,7 +48,7 @@ describe("PaymentsPage para apoderado", () => {
     const calls = vi.mocked(apiClient.get).mock.calls.length;
     render(<MemoryRouter><PaymentsPage /></MemoryRouter>);
     expect(screen.getByRole("heading", { name: "Alumno" })).toBeInTheDocument();
-    expect(screen.queryByLabelText("Preparando tus pagos")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Cargando datos de pagos")).not.toBeInTheDocument();
     expect(apiClient.get).toHaveBeenCalledTimes(calls);
     expect(mercadoPagoRepository.available).toHaveBeenCalledTimes(1);
   });
@@ -64,7 +64,7 @@ describe("PaymentsPage para apoderado", () => {
     fireEvent.click(screen.getByRole("button", { name: "Volver atrás" }));
     await act(async () => payments.resolve({ data: { schoolYear: 2026, annualAmount: 70000, totalAmount: 70000,
       allowedMode: "AMBAS", studentName: "Alumno", selectedMode: "ANUAL", paidAmount: 0, installments: [], bankAccount: null } }));
-    await waitFor(() => expect(screen.queryByLabelText("Preparando tus pagos")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByLabelText("Cargando datos de pagos")).not.toBeInTheDocument());
     expect(screen.getByRole("heading", { name: "Alumno" })).toBeInTheDocument();
   });
 
@@ -188,14 +188,14 @@ describe("PaymentsPage para apoderado", () => {
       String(url).endsWith("/cuenta-bancaria") ? bank.promise : payments.promise);
 
     render(<MemoryRouter><PaymentsPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Preparando tus pagos" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Cargando datos de pagos" })).toBeInTheDocument();
 
     await act(async () => bank.resolve({ data: {
       id: 3, schoolYear: 2026, accountHolderName: "Curso", accountHolderRut: "1-9",
       bankName: "Banco", accountType: "Vista", accountNumber: "123", email: "curso@mail.cl",
     } }));
 
-    expect(screen.getByRole("status", { name: "Preparando tus pagos" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Cargando datos de pagos" })).toBeInTheDocument();
     expect(screen.queryByText("Falta configurar la cuota anual")).not.toBeInTheDocument();
 
     await act(async () => payments.resolve({ data: {
@@ -210,7 +210,7 @@ describe("PaymentsPage para apoderado", () => {
     } }));
 
     expect(await screen.findByRole("heading", { name: "Sofía Díaz" })).toBeInTheDocument();
-    expect(screen.queryByRole("status", { name: "Preparando tus pagos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando datos de pagos" })).not.toBeInTheDocument();
     expect(screen.getAllByText("$35.000")).toHaveLength(2);
     expect(screen.getByRole("region", { name: "Métodos de pago" })).toBeInTheDocument();
     const checkoutButtons = screen.getAllByRole("button", { name: "Pagar con Mercado Pago" });

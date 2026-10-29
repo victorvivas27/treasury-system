@@ -1,3 +1,4 @@
+import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "./style/FamiliaList.css";
@@ -41,7 +42,7 @@ type RowItem = FamiliaDetalle | EmptyRow;
 
 export const FamiliaList: FC<FamiliaListProps> = ({
   familias,
-  loading,
+  loading: fetching,
   error,
   onRefresh,
   handleDelete,
@@ -56,6 +57,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
   search = "",
   onSearchChange,
 }) => {
+  const loading = fetching && familias.length === 0 && !error;
   const emptyRows = Math.max(pageSize - familias.length, 0);
 
   const rows: RowItem[] = loading
@@ -143,7 +145,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 }`}
               >
                 <td className="familia-table__td" data-label="Estado">
-                  {loading ? <div className="skeleton-block skeleton-input" />
+                  {loading ? <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                     : isEmptyRow ? <span>&nbsp;</span>
                     : <span className="status-toggle-cell">
                       <span className="admin-status-label">
@@ -156,7 +158,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 </td>
                 <td className="familia-table__td familia-table__person" data-label="Alumno">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
@@ -175,7 +177,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
 
                 <td className="familia-table__td" data-label="Apoderados">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
@@ -185,7 +187,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
 
                 <td className="familia-table__td familia-table__person" data-label="Principal">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
@@ -197,7 +199,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
 
                 <td className="familia-table__td familia-table__person" data-label="Secundarios">
                   {loading ? (
-                    <div className="skeleton-block skeleton-input" />
+                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
                   ) : isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (

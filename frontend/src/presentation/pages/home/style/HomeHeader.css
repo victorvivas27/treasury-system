@@ -20,12 +20,6 @@
 }
 
 /* Marca y cuenta */
-@media (max-width: 680px) {
-  .public-home--member:has(.install-launcher) .public-home__account {
-    max-width: calc(100% - 182px);
-  }
-}
-
 .public-home__brand {
   display: inline-flex; align-items: center;
   gap: 0.7rem;
