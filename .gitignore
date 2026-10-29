@@ -63,6 +63,7 @@ application_default_credentials.json
 
 ### Private agent material and Markdown (all authors, all directory depths) ###
 *.[mM][dD]
+!/README.md
 .agents/
 .codex/
 .claude/

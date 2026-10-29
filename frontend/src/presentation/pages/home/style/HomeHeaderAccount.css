@@ -17,9 +17,9 @@
   border-bottom: 1px solid var(--border-color);
   background: linear-gradient(135deg, var(--color-accent-soft), transparent); border-radius: 8px 8px 0 0;
 }
-.public-home__account-portrait { width: 44px; height: 44px; flex: 0 0 44px; }
+.public-home__account-portrait { width: 44px; height: 44px; flex: 0 0 44px; font-size: 16px; line-height: 1; }
 .public-home__account-identity > div { min-width: 0; }
-.public-home__account-identity span { display: block; margin-bottom: 4px; color: var(--text-muted); font-size: 11px; }
+.public-home__account-identity > div > span { display: block; margin-bottom: 4px; color: var(--text-muted); font-size: 11px; }
 .public-home__account-identity strong { display: block; color: var(--text-main); font-size: 14px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
 .public-home__account-links > a {
   display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px;

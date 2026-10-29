@@ -30,11 +30,11 @@ function fixture() {
 }
 
 test('policy protects case variants and private agent paths without blocking application code', () => {
-  for (const file of ['README.md', 'nested/AGENTS.MD', 'x/SKILL.Md', '.agents/a.py',
+  for (const file of ['README.MD', 'nested/README.md', '.agents/README.md', 'nested/AGENTS.MD', 'x/SKILL.Md', '.agents/a.py',
     'x/.codex/config.toml', '.claude/settings.json', '.cursor/rules/a.txt', '.mcp.json',
     '.agent-security/manifest.json', 'skills/custom/run.js', 'prompts/a.txt', '.env', 'backend/.env.production',
     '.aws/credentials', '.ssh/id_ed25519', 'application_default_credentials.json']) assert.ok(isProtected(file), file);
-  for (const file of ['CHANGELOG', '.env.example', 'frontend/.env.test.example',
+  for (const file of ['README.md', 'CHANGELOG', '.env.example', 'frontend/.env.test.example',
     'frontend/src/hooks/useAccount.ts', 'frontend/src/prompts/helper.ts',
     'scripts/security/protected-files.cjs', '.github/workflows/13-protected-files.yml',
     'backend/src/main/resources/db/migration/V58__expand_shared_security_and_preserve_legacy.sql']) {
@@ -49,14 +49,33 @@ test('real pre-commit hook rejects git add -f while preserving the Markdown file
   }
   fs.chmodSync(path.join(f.repo, '.githooks/pre-commit'), 0o755);
   f.git(['config', 'core.hooksPath', '.githooks']);
-  f.write(path.join(f.repo, 'README.MD'), 'Private instructions');
-  assert.equal(f.git(['check-ignore', 'README.MD']), 'README.MD');
-  f.git(['add', '-f', 'README.MD']);
+  f.write(path.join(f.repo, 'AGENTS.MD'), 'Private instructions');
+  assert.equal(f.git(['check-ignore', 'AGENTS.MD']), 'AGENTS.MD');
+  f.git(['add', '-f', 'AGENTS.MD']);
   assert.throws(() => checkIndex(f.repo), /Protected files/);
   assert.throws(() => f.git(['commit', '-q', '-m', 'test: forbidden forced staging']));
-  assert.equal(fs.readFileSync(path.join(f.repo, 'README.MD'), 'utf8'), 'Private instructions');
-  f.git(['rm', '--cached', '--', 'README.MD']);
+  assert.equal(fs.readFileSync(path.join(f.repo, 'AGENTS.MD'), 'utf8'), 'Private instructions');
+  f.git(['rm', '--cached', '--', 'AGENTS.MD']);
   assert.doesNotThrow(() => checkIndex(f.repo));
+});
+
+test('root product README can be committed and pushed while nested Markdown stays protected', () => {
+  const f = fixture();
+  const base = f.git(['rev-parse', 'HEAD']);
+  for (const name of ['.gitignore', '.githooks/pre-commit', 'scripts/security/protected-files.cjs']) {
+    f.write(path.join(f.repo, name), fs.readFileSync(path.join(project, name)));
+  }
+  fs.chmodSync(path.join(f.repo, '.githooks/pre-commit'), 0o755);
+  f.git(['config', 'core.hooksPath', '.githooks']);
+  f.write(path.join(f.repo, 'README.md'), 'Public product presentation');
+  f.git(['add', 'README.md']);
+  assert.doesNotThrow(() => checkIndex(f.repo));
+  f.git(['commit', '-q', '-m', 'docs: publish product README']);
+  assert.doesNotThrow(() => checkRange(base, 'HEAD', f.repo));
+  f.write(path.join(f.repo, 'nested/README.md'), 'Private notes');
+  assert.equal(f.git(['check-ignore', 'nested/README.md']), 'nested/README.md');
+  f.git(['add', '-f', 'nested/README.md']);
+  assert.throws(() => checkIndex(f.repo), /Protected files/);
 });
 
 test('history check detects transient protected content even after hook bypass and index removal', () => {
