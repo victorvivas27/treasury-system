@@ -1,3 +1,5 @@
+@import "../../style/NavigationColors.css";
+
 .mobile-navigation, .mobile-navigation-sheet { display: none; }
 @media (max-width: 768px) {
   body.has-mobile-navigation { --mobile-navigation-height: calc(68px + env(safe-area-inset-bottom, 0px)); padding-bottom: var(--mobile-navigation-height); }
@@ -6,6 +8,14 @@
     box-sizing: border-box; min-height: var(--mobile-navigation-height); padding: 5px 10px calc(5px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border-color); background: var(--color-sidebar); box-shadow: 0 -8px 24px var(--tone-neutral-dark-002);
   }
+  .mobile-navigation > button { --sidebar-item-color: var(--nav-violet); }
+  .mobile-navigation [href="/"] { --sidebar-item-color: var(--nav-teal); }
+  .mobile-navigation-sheet [href="/profile"] { --sidebar-item-color: var(--nav-violet); }
+  .mobile-navigation-sheet :is([href="/#sobre-nosotros"], [href="/admin/sobre-nosotros"]) { --sidebar-item-color: var(--nav-pink); }
+  .mobile-navigation-sheet :is([href="/#fotos-del-curso"], [href="/admin/fotos-del-curso"]) { --sidebar-item-color: var(--nav-sky); }
+  .mobile-navigation-sheet :is([href="/#directiva"], [href="/admin/directiva"], [href="/administrations"]) { --sidebar-item-color: var(--nav-violet); }
+  .mobile-navigation-sheet__links > button:not(.mobile-navigation-sheet__logout) { --sidebar-item-color: var(--nav-amber); }
+  .mobile-navigation-sheet__logout { --sidebar-item-color: var(--nav-orange); }
   .mobile-navigation[hidden] { display: none; }
   .mobile-navigation > :is(a, button) {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
@@ -13,7 +23,7 @@
     background: transparent; color: var(--text-muted); font: inherit; font-size: 11px; font-weight: 650; text-decoration: none;
   }
   .mobile-navigation > :is(.active, [aria-expanded="true"]) { color: var(--color-accent); background: var(--color-accent-soft); }
-  .mobile-navigation svg { width: 22px; height: 22px; }
+  .mobile-navigation svg { width: 22px; height: 22px; color: var(--sidebar-item-color, var(--nav-teal)); }
   .mobile-navigation__icon { position: relative; display: grid; }
   .mobile-navigation__badge { position: absolute; top: -5px; left: 14px; min-width: 15px; padding: 1px 3px; border-radius: var(--radius-pill); background: var(--color-accent); color: var(--text-on-accent); font-size: 9px; text-align: center; }
   .mobile-navigation-sheet[open] {
@@ -41,8 +51,8 @@
   .mobile-navigation-sheet__links > :is(a, button) { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 10px 12px; border: 0; border-radius: 10px; background: var(--color-bg); color: var(--text-main); text-align: left; text-decoration: none; font: inherit; font-size: 14px; }
   .mobile-navigation-sheet__links > :is(a, button) > span { flex: 1; min-width: 0; }
   .mobile-navigation-sheet svg { flex-shrink: 0; width: 20px; height: 20px; }
-  .mobile-navigation-sheet__links > :is(a, button) > svg:first-child { color: var(--color-accent); }
-  .mobile-navigation-sheet__links > :is(a, button) > svg:last-child:not(:first-child) { width: 14px; height: 14px; color: var(--text-muted); }
+  .mobile-navigation-sheet__links > :is(a, button) > svg:first-child { color: var(--sidebar-item-color, var(--nav-teal)); }
+  .mobile-navigation-sheet__links > :is(a, button) > svg:last-child:not(:first-child) { width: 18px; height: 18px; color: var(--text-muted); }
   .mobile-navigation-sheet__links > .mobile-navigation-sheet__logout { margin-top: 8px; color: var(--text-muted); }
   .mobile-navigation-sheet > footer { padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border-color); }
   .mobile-navigation-sheet > footer button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 46px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--color-accent-soft); color: var(--text-main); font: inherit; font-size: 13px; }

@@ -1,3 +1,5 @@
+import type { IconBaseProps } from "react-icons";
+import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { RxPerson } from "react-icons/rx";
 import { PiStudent } from "react-icons/pi";
 import { BsPerson } from "react-icons/bs";
@@ -27,6 +29,8 @@ import {
 } from "react-icons/bs";
 
 
+
+const NavigationBackIcon = (props: IconBaseProps) => <BackIcon {...props} desktopIcon={<TiArrowBackOutline {...props} />} />;
 
 export const ICONS = {
   dashboard: GrPieChart,
@@ -88,7 +92,7 @@ export const APODERADOS_ICONS = {
   add: RiUserAddLine,
   delete: MdOutlineDeleteOutline,
   edit: GrEdit,
-  back: TiArrowBackOutline,
+  back: NavigationBackIcon,
   cancel: MdOutlineCancel,
   addCircle: IoMdAddCircleOutline
 };
@@ -100,7 +104,7 @@ export const ALUMNOS_ICONS = {
   delete: MdOutlineDeleteOutline,
   edit: GrEdit,
   save: GrEdit,
-  back: TiArrowBackOutline,
+  back: NavigationBackIcon,
   cancel: MdOutlineCancel,
   addCircle: IoMdAddCircleOutline
 };
@@ -113,7 +117,7 @@ export const FAMILIA_ICONS = {
   edit: GrEdit,
   save: GrEdit,
   crearFamilia: AiOutlineUsergroupAdd,
-  back: TiArrowBackOutline,
+  back: NavigationBackIcon,
   cancel: MdOutlineCancel,
   addCircle: IoMdAddCircleOutline
 };

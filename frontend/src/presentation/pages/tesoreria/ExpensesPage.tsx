@@ -1,3 +1,4 @@
+import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
@@ -438,7 +439,7 @@ export const ExpensesPage = () => {
       message="El registro seguirá visible, pero dejará de descontarse del saldo disponible."
       confirmLabel="Anular egreso" cancelLabel="Volver" isLoading={saving}
       compact
-      cancelIcon={<FiArrowLeft />} confirmIcon={<FiSlash />}
+      cancelIcon={<BackIcon desktopIcon={<FiArrowLeft />} />} confirmIcon={<FiSlash />}
       onCancel={() => { setConfirmCancel(false); setCancelReason(""); }}
       onConfirm={() => void cancelExpense()}>
       <label>Motivo de la anulación<textarea autoFocus maxLength={500}

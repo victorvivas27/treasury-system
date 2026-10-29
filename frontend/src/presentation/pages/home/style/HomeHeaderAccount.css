@@ -70,7 +70,8 @@
 
 .public-home__mobile-title { display: none; }
 @media (max-width: 768px) {
-  .public-home__mobile-title { display: block; font-size: 15px; font-weight: 650; }
+  .public-home__mobile-title { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; min-width: 0; font-size: 15px; font-weight: 650; }
+  .public-home__mobile-title > small { color: var(--color-accent); font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
   .public-home__header:has(.public-home__account-menu) { min-height: 56px; padding-top: env(safe-area-inset-top, 0px); }
   .public-home__header > .public-home__account-menu { order: 2; margin-left: auto; margin-right: 0; }
   .public-home__header > .public-home__menu-toggle,

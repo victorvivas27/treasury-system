@@ -1,3 +1,4 @@
+import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -115,7 +116,7 @@ export const HomeInstallGuide = ({ placement = "floating" }: { placement?: "floa
           </div>}
         </div>
         <div className="install-modal__actions">
-          {system && <button className="install-modal__later" type="button" onClick={() => browser ? setBrowser(null) : setSystem(null)}><FiArrowLeft aria-hidden="true" /> Volver</button>}
+          {system && <button className="install-modal__later" type="button" onClick={() => browser ? setBrowser(null) : setSystem(null)}><BackIcon desktopIcon={<FiArrowLeft aria-hidden="true" />} /> Volver</button>}
           <button className="install-modal__install" type="button" onClick={() => setOpen(false)}>Entendido</button>
         </div>
       </dialog>, document.body,
