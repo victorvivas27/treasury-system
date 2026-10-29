@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { Button } from "../button/Button";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
 import "./ButtonBack.css";
@@ -21,7 +22,7 @@ const BackFirstFrame = () => <svg className="button-back__preview" viewBox="0 0 
   <path d={ARROW_PATH} transform="translate(39.949 31.999)" />
 </svg>;
 
-const BackAnimation = () => {
+const BackAnimation = ({ className = "" }: { className?: string }) => {
   const [animationData, setAnimationData] = useState<object>();
   const [ready, setReady] = useState(false);
   const reduceMotion = typeof window !== "undefined" && typeof window.matchMedia === "function"
@@ -41,7 +42,7 @@ const BackAnimation = () => {
     return () => { active = false; };
   }, []);
 
-  return <span className="button-back__animation" aria-hidden="true">
+  return <span className={`button-back__animation ${className}`.trim()} aria-hidden="true">
     {!ready && <BackFirstFrame />}
     {animationData && <Suspense fallback={null}>
       <Lottie src={animationData} autoplay={!reduceMotion} loop={!reduceMotion}
@@ -64,7 +65,7 @@ export const ButtonBack = ({
       onClick={() => navigate(-1)}
       variant="secondary"
       size="medium"
-      icon={animatedIcon ? <BackAnimation /> : <ALUMNOS_ICONS.back/>}
+      icon={animatedIcon ? <BackIcon desktopIcon={<BackAnimation />} /> : <ALUMNOS_ICONS.back/>}
       iconPosition="left"
       className={`button-back ${animatedIcon ? "button-back--animated" : ""} ${className}`}
 

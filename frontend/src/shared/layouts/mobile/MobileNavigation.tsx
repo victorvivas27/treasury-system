@@ -1,9 +1,11 @@
+import { IoChevronForward } from "react-icons/io5";
+import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { FiHome, FiGrid, FiBell, FiMoreHorizontal, FiX, FiCalendar, FiGift,
   FiUser, FiSettings, FiLogOut, FiTool, FiBarChart2, FiShield, FiGitBranch,
-  FiHeart, FiCamera, FiUsers, FiArrowRight, FiArrowLeft } from "react-icons/fi";
+  FiHeart, FiCamera, FiUsers } from "react-icons/fi";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { useOptionalNotifications } from "@/presentation/context/NotificationContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
@@ -102,7 +104,7 @@ export const MobileNavigation = () => {
   if (!mobile || !user) return null;
   const menuLink = (path: string, label: string, Icon: typeof FiHome) => (
     <Link key={path} to={path} onClick={event => { event.preventDefault(); go(path); }}>
-      <Icon aria-hidden="true" /><span>{label}</span><FiArrowRight aria-hidden="true" />
+      <Icon aria-hidden="true" /><span>{label}</span><IoChevronForward aria-hidden="true" />
     </Link>
   );
 
@@ -134,7 +136,7 @@ export const MobileNavigation = () => {
       <div className="mobile-navigation-sheet__scroll">
         <button type="button" className="mobile-navigation-sheet__account" onClick={() => go("/profile")}>
           <UserAvatar user={user} className="mobile-navigation-sheet__avatar" />
-          <span><strong>{user.nombre}</strong><small>Ver mi perfil</small></span><FiArrowRight aria-hidden="true" />
+          <span><strong>{user.nombre}</strong><small>Ver mi perfil</small></span><IoChevronForward aria-hidden="true" />
         </button>
         <section><h3>Tu comunidad</h3><div className="mobile-navigation-sheet__links">
           {menuLink("/calendario/horario-clases", "Horario de clases", FiCalendar)}
@@ -165,12 +167,12 @@ export const MobileNavigation = () => {
           {menuLink("/profile", "Mi perfil", FiUser)}
           {menuLink("/configuration", "Configuración", FiSettings)}
           <button type="button" onClick={() => perform(() => window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT)))}>
-            <FiTool aria-hidden="true" /><span>Enviar una mejora</span><FiArrowRight aria-hidden="true" /></button>
+            <FiTool aria-hidden="true" /><span>Enviar una mejora</span><IoChevronForward aria-hidden="true" /></button>
           <button type="button" className="mobile-navigation-sheet__logout" onClick={() => perform(() => { void auth?.logout(); })}>
             <FiLogOut aria-hidden="true" /><span>Cerrar sesión</span></button>
         </div></section>
       </div>
-      <footer><button type="button" onClick={close}><FiArrowLeft aria-hidden="true" />Volver a la pantalla</button></footer>
+      <footer><button type="button" onClick={close}><BackIcon />Volver a la pantalla</button></footer>
     </dialog>
   </>, document.body)}
   </>;

@@ -1,3 +1,4 @@
+import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -63,6 +64,7 @@ export const HomeHeader = ({
     isAuthenticated ? user?.id : undefined,
     isSuperAdmin ? "SUPER_ADMIN" : undefined,
   );
+  const [course, setCourse] = useState("");
   const [activeSection, setActiveSection] = useState<SectionId>("sobre-nosotros");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCompactNavigation, setIsCompactNavigation] = useState(() => window.matchMedia("(max-width: 1023px)").matches);
@@ -78,6 +80,23 @@ export const HomeHeader = ({
     closeAdministration();
     closeAccount();
   };
+
+  useEffect(() => {
+    if (!isAuthenticated || !isCompactNavigation) return;
+    let active = true;
+    let changed = false;
+    const update = (event: Event) => {
+      const value = (event as CustomEvent<string | { course: string }>).detail;
+      if (!value) return;
+      changed = true;
+      setCourse(typeof value === "string" ? value : value.course);
+    };
+    window.addEventListener("managed-course-changed", update);
+    void new TreasuryRepositoryImpl().getManagedCourseSettings().then(settings => {
+      if (active && !changed) setCourse(settings.course);
+    }).catch(() => undefined);
+    return () => { active = false; window.removeEventListener("managed-course-changed", update); };
+  }, [isAuthenticated, isCompactNavigation]);
 
   useEffect(() => {
     const closeOnOutside = (event: PointerEvent) => {
@@ -181,7 +200,7 @@ export const HomeHeader = ({
     <>
     {isAuthenticated && <MobileNavigation />}
     <header ref={headerRef} className="public-home__header">
-      {isAuthenticated && <span className="public-home__mobile-title">Tu comunidad</span>}
+      {isAuthenticated && <span className="public-home__mobile-title">{course && <small>{course.replace(/^Curso\s+/i, "").trim().replace(/^(\d+)\s*\u00b0?\s*([a-z])$/i, "$1\u00b0 $2")}</small>}</span>}
       {isAuthenticated ? (
         <details ref={accountRef} className="public-home__account-menu"
           onBlur={event => {

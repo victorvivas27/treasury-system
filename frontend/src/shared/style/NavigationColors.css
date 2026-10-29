@@ -1,0 +1,49 @@
+/* Functional icon colors stay consistent in expanded and compact navigation. */
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) {
+  --nav-blue: var(--tone-info-028);
+  --nav-sky: var(--tone-info-033);
+  --nav-violet: var(--tone-info-026);
+  --nav-pink: var(--tone-error-023);
+  --nav-green: var(--tone-success-021);
+  --nav-teal: var(--tone-accent-007);
+  --nav-orange: var(--tone-warning-009);
+  --nav-amber: var(--tone-warning-017);
+  --nav-red: var(--tone-error-020);
+  --nav-slate: var(--tone-neutral-light-005);
+}
+:root[data-theme="light"] :is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) {
+  --nav-blue: var(--tone-info-009);
+  --nav-sky: var(--tone-info-012);
+  --nav-violet: var(--tone-info-005);
+  --nav-pink: var(--tone-error-008);
+  --nav-green: var(--tone-success-004);
+  --nav-teal: var(--tone-accent-003);
+  --nav-orange: var(--tone-error-005);
+  --nav-amber: var(--tone-warning-004);
+  --nav-red: var(--tone-error-007);
+  --nav-slate: var(--tone-neutral-dark-076);
+}
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/dashboard"] { --sidebar-item-color: var(--nav-blue); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/birthdays"] { --sidebar-item-color: var(--nav-pink); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [aria-controls="management-submenu"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/users"] { --sidebar-item-color: var(--nav-violet); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [aria-controls="academic-submenu"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/calendario/horario-clases"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/admin/horario-clases"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/students"] { --sidebar-item-color: var(--nav-sky); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [aria-controls="treasury-submenu"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/pagos"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/ingresos"] { --sidebar-item-color: var(--nav-green); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/parents"] { --sidebar-item-color: var(--nav-blue); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/family"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/eventos"] { --sidebar-item-color: var(--nav-orange); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/admin/mejoras"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) .sidebar-improvement-button,
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/cuotas"] { --sidebar-item-color: var(--nav-amber); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/admin/arquitectura"],
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/reportes"] { --sidebar-item-color: var(--nav-blue); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/aportes"] { --sidebar-item-color: var(--nav-pink); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/gastos"] { --sidebar-item-color: var(--nav-red); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/tesoreria/stands"] { --sidebar-item-color: var(--nav-teal); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/notifications"] { --sidebar-item-color: var(--nav-orange); }
+:is(.sidebar, .mobile-navigation, .mobile-navigation-sheet) [href="/configuration"] { --sidebar-item-color: var(--nav-slate); }

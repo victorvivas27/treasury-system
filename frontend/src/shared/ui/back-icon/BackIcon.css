@@ -1,0 +1,7 @@
+.back-icon__chevron { width: 24px; height: 24px; flex-shrink: 0; }
+.back-icon__mobile { display: none; }
+@media (max-width: 768px) {
+  .back-icon__desktop { display: none !important; }
+  .back-icon__mobile { display: inline-block; }
+  .base-button.button-back .button-icon > svg.back-icon__chevron { width: 24px !important; height: 24px !important; }
+}
