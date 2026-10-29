@@ -1,6 +1,7 @@
 'use strict';
 const { execFileSync } = require('node:child_process');
 
+// The root product README is public; all other Markdown remains protected.
 // History before this migration remains untouched. New-branch pushes must still
 // inspect every new commit since this published baseline, not only their tip.
 const migrationBase = '10f5e571f0c646f3a61938cd6239e74156b01f55';
@@ -14,7 +15,7 @@ function isProtected(file) {
   const normalized = file.replaceAll('\\', '/').toLowerCase();
   const parts = normalized.split('/');
   const name = parts.at(-1);
-  return /\.md$/.test(normalized) || parts.some(part => privateDirectories.has(part)) ||
+  return (/\.md$/.test(normalized) && file !== 'README.md') || parts.some(part => privateDirectories.has(part)) ||
     ((name === '.env' || name.startsWith('.env.')) && !name.endsWith('.example')) ||
     /^(?:.*service-account.*|google-credentials.*)\.json$/.test(name) ||
     privateFiles.has(name) || ['mcp.json', '.vscode/mcp.json'].includes(normalized) ||
