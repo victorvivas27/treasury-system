@@ -1,4 +1,6 @@
 import "./style/Sidebar.css";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FiArrowLeft } from "react-icons/fi";
 
 import { SidebarHeader } from "./SidebarHeader";
 import { SidebarNav } from "./SidebarNav";
@@ -18,9 +20,14 @@ interface SidebarProps {
   onNavLinkClick: () => void;
 }
 export const Sidebar: FC<SidebarProps> = ({ headerContent, onCloseSidebar, isSidebarOpen, isHidden = false, isLocked, onToggleSidebar, onNavLinkClick }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const nextAction = isHidden ? "Abrir menú" : isSidebarOpen ? "Contraer menú" : "Ampliar menú";
   return (<>
     <div className="sidebar-control-bar">
+    <button type="button" className="mobile-layout-back" aria-label="Volver a la pantalla anterior"
+      onClick={() => location.key === "default" ? navigate("/") : navigate(-1)}><FiArrowLeft aria-hidden="true" /></button>
+    <span className="mobile-layout-title">Gestión del curso</span>
     <button type="button" onClick={onToggleSidebar}
       className={`sidebar-btn-arrow sidebar-state-toggle ${isLocked ? "is-pinned" : ""} ${isHidden ? "is-hidden" : isSidebarOpen ? "is-expanded" : "is-icons"}`}
       aria-label={nextAction} aria-controls="app-sidebar"

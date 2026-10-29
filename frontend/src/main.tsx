@@ -6,6 +6,7 @@ import { LoadingState } from '@/shared/ui/loading/LoadingState'
 import App from '@/presentation/App'
 import '@/shared/style/ResponsiveDataList.css'
 import '@/shared/ui/skeleton/Skeleton.css'
+import '@/shared/style/MobileControls.css'
 import { captureInitialAccountLinkToken, isAccountLinkPath } from '@/shared/security/accountLinkToken'
 
 captureInitialAccountLinkToken()

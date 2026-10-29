@@ -1,3 +1,4 @@
+import { MobileNavigation } from "./mobile/MobileNavigation";
 import { RouteSuccessToast } from "@/shared/ui/modalalert/RouteSuccessToast";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/shared/layouts/sidebar/Sidebar";
@@ -31,7 +32,8 @@ const auth = useOptionalAuth();
         <AppFooter />
       </section>
       <RouteSuccessToast />
-      {auth?.user && <ImprovementCenter />}
+      {auth?.user && !isMobile && <ImprovementCenter />}
+      <MobileNavigation />
     </main>
   );
 };

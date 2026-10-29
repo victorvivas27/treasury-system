@@ -9,6 +9,7 @@ import type { User } from "@/core/A-domain/entities/user/User";
 import { useArchitectureAccess } from "@/presentation/hooks/architecture/useArchitectureAccess";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
+import { MobileNavigation } from "@/shared/layouts/mobile/MobileNavigation";
 import { HomeInstallGuide } from "./HomeInstallGuide";
 import "../style/HomeHeader.css";
 import "../style/HomeHeaderAccount.css";
@@ -177,7 +178,10 @@ export const HomeHeader = ({
   );
 
   return (
+    <>
+    {isAuthenticated && <MobileNavigation />}
     <header ref={headerRef} className="public-home__header">
+      {isAuthenticated && <span className="public-home__mobile-title">Tu comunidad</span>}
       {isAuthenticated ? (
         <details ref={accountRef} className="public-home__account-menu"
           onBlur={event => {
@@ -286,5 +290,6 @@ export const HomeHeader = ({
         )}
       </nav>
     </header>
+    </>
   );
 };
