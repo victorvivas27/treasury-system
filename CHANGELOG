@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.2](https://github.com/victorvivas27/treasury-system/compare/v1.40.1...v1.40.2) (2026-10-29)
+
+
+### Bug Fixes
+
+* **mobile-navigation:** implementar navegación móvil y estilos asociados ([bdccc75](https://github.com/victorvivas27/treasury-system/commit/bdccc757261a16412ac9354ac5f2e0382c3f1312))
+
 ## [1.40.1](https://github.com/victorvivas27/treasury-system/compare/v1.40.0...v1.40.1) (2026-10-29)
 
 
