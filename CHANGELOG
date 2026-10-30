@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.41.0](https://github.com/victorvivas27/treasury-system/compare/v1.40.3...v1.41.0) (2026-10-30)
+
+
+### Features
+
+* **loading:** agregar animación de humo en la pantalla de carga ([86aa707](https://github.com/victorvivas27/treasury-system/commit/86aa7070ee91253359705390c01e5ce1bcc2c34b))
+* **loading:** agregar animación de humo en la pantalla de carga ([08df1b3](https://github.com/victorvivas27/treasury-system/commit/08df1b394c49daec0e4de61fa83dd5934c059f36))
+
+
+### Bug Fixes
+
+* **auth:** mejorar la gestión de carga y sesión en AppRouter y AuthProvider ([57e08ad](https://github.com/victorvivas27/treasury-system/commit/57e08adc22414b93387da7d335b505f664420a82))
+* **auth:** mejorar la renovación de sesión y manejo de tokens en AuthContext ([67705a5](https://github.com/victorvivas27/treasury-system/commit/67705a56e236706cc2973977bfc1e41b200ef2f9))
+
 ## [1.40.3](https://github.com/victorvivas27/treasury-system/compare/v1.40.2...v1.40.3) (2026-10-29)
 
 
