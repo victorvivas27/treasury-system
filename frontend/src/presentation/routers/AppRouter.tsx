@@ -1,12 +1,25 @@
 ﻿import { Navigate, Route, Routes } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
+import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { CheckEmailPage, ForgotPasswordPage, PasswordUpdatedPage, ResetPasswordPage,
   VerifyEmailPage } from "../pages/auth/AccountFlowPages";
 
 import { PrivateRoutes } from "./PrivateRoutes";
 
-export const AppRouter = () => (
+export const AppRouter = () => {
+  const { loading } = useAuth();
+  const [sessionResolved, setSessionResolved] = useState(() => !loading);
+
+  useEffect(() => {
+    if (!loading) setSessionResolved(true);
+  }, [loading]);
+
+  // Esperar solo al arranque: el envío del login no debe desmontar su formulario.
+  if (loading && !sessionResolved) return null;
+
+  return (
   <Routes>
     <Route path="/" element={<HomePage />} />
     <Route path="/login" element={<LoginPage />} />
@@ -19,4 +32,5 @@ export const AppRouter = () => (
     <Route path="/password-actualizada" element={<PasswordUpdatedPage />} />
     <Route path="/*" element={<PrivateRoutes />} />
   </Routes>
-);
+  );
+};
