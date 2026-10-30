@@ -117,7 +117,10 @@ export const HomeCommunity = () => {
   const [carouselPaused, setCarouselPaused] = useState(false);
   const [carouselCycle, setCarouselCycle] = useState(0);
   const boardTrackRef = useRef<HTMLDivElement>(null);
-  const [expandedRepresentative, setExpandedRepresentative] = useState<string | null>(null);
+  const [expandedRepresentative, setExpandedRepresentative] = useState<string | null>(() =>
+    window.matchMedia("(max-width: 680px)").matches
+      ? `${boardSlots[0].role}-${boardSlots[0].position}`
+      : null);
   const selectedSlot = boardSlots.find(slot => `${slot.role}-${slot.position}` === expandedRepresentative);
   const selectedMember = selectedSlot && board.find(member => member.role === selectedSlot.role && member.positionNumber === selectedSlot.position);
   const selectedRole = selectedSlot && `${boardLabels[selectedSlot.role]}${selectedSlot.role === "PASTORAL" ? ` ${selectedSlot.position}` : ""}`;
