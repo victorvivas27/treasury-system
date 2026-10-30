@@ -83,6 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const validatedToken = useRef<string | null>(null);
 
   useEffect(() => {
+    if (loading) return;
     const loader = document.getElementById("app-boot-loader");
     const root = document.getElementById("root");
     if (!loader || !root) return;
@@ -109,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (paintFrame !== undefined) window.cancelAnimationFrame(paintFrame);
       if (removeTimer !== undefined) window.clearTimeout(removeTimer);
     };
-  }, []);
+  }, [loading]);
 
   const useCases = useMemo(() => {
     const repository = new AuthRepositoryImpl();
