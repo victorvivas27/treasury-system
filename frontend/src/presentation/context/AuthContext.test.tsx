@@ -1,5 +1,5 @@
 import { act, renderHook, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { getAccessToken, SESSION_EXPIRED_EVENT, setAccessToken } from "@/core/D-config/axiosInterceptor";
@@ -36,6 +36,54 @@ describe("AuthContext", () => {
     setAccessToken(null);
     vi.clearAllMocks();
     refreshMock.mockRejectedValue({ response: { status: 401 } });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  it("renueva la sesión inactiva, actualiza CSRF y programa la siguiente renovación", async () => {
+    vi.useFakeTimers();
+    localStorage.setItem("treasury.auth.manual-logout", "true");
+    const makeToken = (seconds: number) =>
+      `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + seconds }))}.signature`;
+    const firstToken = makeToken(60);
+    const secondToken = makeToken(120);
+    const thirdToken = makeToken(180);
+    loginMock.mockResolvedValue({ token: firstToken, user, csrfToken: "csrf-first" });
+    refreshMock.mockResolvedValueOnce({ token: secondToken, csrfToken: "csrf-second", user })
+      .mockResolvedValueOnce({ token: thirdToken, csrfToken: "csrf-third", user });
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.login(user.correo, "Password1!"));
+
+    await act(() => vi.advanceTimersByTimeAsync(60_000));
+
+    expect(getAccessToken()).toBe(secondToken);
+    expect(result.current.token).toBe(secondToken);
+    expect(sessionStorage.getItem("treasury.auth.csrf")).toBe("csrf-second");
+
+    await act(() => vi.advanceTimersByTimeAsync(60_000));
+
+    expect(refreshMock).toHaveBeenCalledTimes(2);
+    expect(getAccessToken()).toBe(thirdToken);
+    expect(sessionStorage.getItem("treasury.auth.csrf")).toBe("csrf-third");
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it("no restaura la sesión si la renovación termina después del logout", async () => {
+    vi.useFakeTimers();
+    localStorage.setItem("treasury.auth.manual-logout", "true");
+    const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 60 }))}.signature`;
+    loginMock.mockResolvedValue({ token, user });
+    let finishRefresh!: (response: unknown) => void;
+    refreshMock.mockReturnValue(new Promise(resolve => { finishRefresh = resolve; }));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(() => result.current.login(user.correo, "Password1!"));
+    await act(() => vi.advanceTimersByTimeAsync(60_000));
+    await act(() => result.current.logout());
+    await act(async () => { finishRefresh({ token: "renewed", csrfToken: "renewed-csrf", user }); });
+
+    expect(getAccessToken()).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(sessionStorage.getItem("treasury.auth.csrf")).toBeNull();
   });
 
   it("[AuthContext #01] debe iniciar sesión y guardar el token en memoria", async () => {

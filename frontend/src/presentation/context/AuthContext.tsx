@@ -156,12 +156,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!token || !user) return;
+    let refreshing = false;
     const checkExpiration = () => {
       const currentToken = getAccessToken();
       if (!currentToken) return;
       const expiration = tokenExpiration(currentToken);
       if (expiration !== null && expiration <= Date.now()) {
-        useCases.refresh().catch(() => undefined);
+        if (refreshing) return;
+        refreshing = true;
+        useCases.refresh().then((response) => {
+          // Una respuesta anterior no debe reemplazar un login o una renovación más reciente.
+          if (getAccessToken() !== currentToken || !response.token) return;
+          setAccessToken(response.token);
+          setCsrfToken(response.csrfToken);
+          validatedToken.current = response.token;
+          setToken(response.token);
+        }).catch(() => undefined).finally(() => {
+          refreshing = false;
+        });
       } else if (currentToken !== token) {
         setToken(currentToken);
       }
