@@ -3,6 +3,7 @@ import axios from "axios";
 import type { AxiosInstance } from "axios";
 import {
   configureAxiosInterceptors,
+  clearCsrfToken,
   getAccessToken,
   SESSION_EXPIRED_EVENT,
   setCsrfToken,
@@ -30,6 +31,7 @@ describe("configureAxiosInterceptors", () => {
 
   beforeEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
     document.cookie = "treasury_csrf=; Max-Age=0; path=/";
     setAccessToken(null);
     vi.clearAllMocks();
@@ -215,6 +217,28 @@ describe("configureAxiosInterceptors", () => {
     const refreshConfig = await prepareRequest({ url: "/auth/refresh", headers: {} });
 
     expect(refreshConfig).toMatchObject({ headers: { "X-CSRF-Token": "csrf-persistido" } });
+  });
+
+  it("recupera CSRF al reabrir la app sin memoria ni sessionStorage", async () => {
+    setCsrfToken("csrf-persistido");
+    sessionStorage.clear();
+    setAccessToken(null);
+
+    const config = await prepareRequest({ url: "/auth/refresh", headers: {} });
+
+    expect(config).toMatchObject({ headers: { "X-CSRF-Token": "csrf-persistido" } });
+    expect(localStorage.getItem("treasury.auth.token")).toBeNull();
+  });
+
+  it("elimina el respaldo persistente al limpiar la sesión", async () => {
+    setCsrfToken("csrf-persistido");
+    clearCsrfToken();
+
+    const config = await prepareRequest({ url: "/auth/refresh", headers: {} });
+
+    expect(localStorage.getItem("treasury.auth.csrf")).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.csrf")).toBeNull();
+    expect(config).not.toHaveProperty("headers.X-CSRF-Token");
   });
 
   it("comparte un solo refreshPromise para solicitudes concurrentes", async () => {
