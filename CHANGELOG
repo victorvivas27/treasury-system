@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.41.1](https://github.com/victorvivas27/treasury-system/compare/v1.41.0...v1.41.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **csrf:** mejorar manejo de tokens CSRF en almacenamiento persistente y sesión ([605410f](https://github.com/victorvivas27/treasury-system/commit/605410fe98a287af973d9cb93135b66e234b95bb))
+* **login:** sesión ([6bfd140](https://github.com/victorvivas27/treasury-system/commit/6bfd140213a8fc61996abb97710734f2af7090c3))
+
 ## [1.41.0](https://github.com/victorvivas27/treasury-system/compare/v1.40.3...v1.41.0) (2026-10-30)
 
 
