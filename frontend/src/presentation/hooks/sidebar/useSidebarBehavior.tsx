@@ -28,6 +28,7 @@ export const useSidebarBehavior = () => {
     if (mobile || sidebarState !== "expanded") return;
     const closeAfterLeaving = (event: PointerEvent) => {
       if (event.pointerType !== "mouse") return;
+      if (event.target instanceof Element && event.target.closest(".sidebar-management-panel, .sidebar-desktop-panel")) return;
       const bounds = document.getElementById("app-sidebar")?.getBoundingClientRect();
       if (bounds && (event.clientX < bounds.left || event.clientX >= bounds.right ||
           event.clientY < bounds.top || event.clientY >= bounds.bottom)) closeSidebar();

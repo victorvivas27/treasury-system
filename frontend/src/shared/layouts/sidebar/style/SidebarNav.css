@@ -25,6 +25,48 @@
 .sidebar-submenu-link.active { background: color-mix(in srgb, var(--color-accent) 10%, transparent); color: var(--icon-accent); font-weight: 650; }
 .sidebar-submenu-link.active .sidebar-submenu-icon { color: var(--sidebar-item-color, var(--icon-accent)); }
 .sidebar-submenu-link[aria-disabled="true"] { color: var(--text-muted); cursor: default; }
+.sidebar-management-panel__heading,
+.sidebar-management-panel__category { display: none; }
+.sidebar-panel-backdrop { display: none; }
+@media (min-width: 769px) {
+  .sidebar-panel-backdrop {
+    display: block;
+    position: fixed;
+    inset: 40px 0 0 var(--sidebar-expanded-width);
+    z-index: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--overlay);
+    cursor: default;
+  }
+  .sidebar-nav :is(.sidebar-management-panel, .sidebar-desktop-panel) {
+    position: fixed;
+    z-index: 1;
+    inset: 52px auto auto calc(var(--sidebar-expanded-width) - 1px);
+    width: 284px;
+    max-height: calc(100dvh - 64px);
+    box-sizing: border-box;
+    overflow-y: auto;
+    scrollbar-width: none;
+    margin: 0;
+    padding: 16px;
+    gap: 4px;
+    background: var(--color-sidebar);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 28%, var(--border-color));
+    border-radius: 0 12px 12px 0;
+    box-shadow: var(--shadow-sidebar-submenu), var(--shadow-elevated);
+  }
+  :is(.sidebar-management-panel, .sidebar-desktop-panel)::-webkit-scrollbar { display: none; }
+  .sidebar-management-panel__heading { display: grid; gap: 4px; padding: 0 8px 8px; }
+  .sidebar-management-panel__heading strong { font-size: 15px; color: var(--text-main); }
+  .sidebar-management-panel__heading span { font-size: 12px; color: var(--text-muted); }
+  .sidebar-management-panel__category { display: block; margin: 8px 8px 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+  :is(.sidebar-management-panel, .sidebar-desktop-panel) .sidebar-submenu-link { min-height: 36px; padding: 8px; gap: 10px; font-size: 12px; }
+  :is(.sidebar-management-panel, .sidebar-desktop-panel) .sidebar-submenu-icon { width: 16px; height: 16px; flex-basis: 16px; }
+  .sidebar-nav-section--management .sidebar-nav-chevron { transform: rotate(-90deg); }
+  .sidebar-nav-section--management .sidebar-nav-chevron.is-open { transform: rotate(90deg); }
+}
 .sidebar--collapsed .sidebar-nav-link-item { justify-content: center; padding-inline: 0; }
 .sidebar--collapsed .sidebar-nav-label,
 .sidebar--collapsed .sidebar-nav-chevron,

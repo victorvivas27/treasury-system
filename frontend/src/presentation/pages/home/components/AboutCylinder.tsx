@@ -2,7 +2,6 @@
 import { communityImage } from '@/shared/ui/community-icons/communityImages';
 import type { AboutSection } from '@/core/A-domain/entities/community/AboutSection';
 import { createPortal } from 'react-dom';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useDialogAnchor, useDialogFocus } from '@/shared/ui/dialog/useDialogFocus';
 import '../style/AboutCylinder.css';
 import '../style/AboutCylinderDesktop.css';
@@ -176,10 +175,6 @@ export function AboutCylinder({ sections }: { sections: Card[] }) {
         })}
       </div>
     </div>
-    {count > 1 && <div className="about-cylinder__desktop-controls">
-      <button type="button" className="about-cylinder__arrow is-previous" aria-label="Mensaje anterior" onClick={() => move(-1)}><FiChevronLeft aria-hidden="true" /></button>
-      <button type="button" className="about-cylinder__arrow is-next" aria-label="Mensaje siguiente" onClick={() => move(1)}><FiChevronRight aria-hidden="true" /></button>
-    </div>}
     <p className="about-cylinder__announcement" role="status" aria-live={dragging ? 'off' : 'polite'} aria-atomic="true">{activeIndex + 1} / {count} · {activeCard.title}</p>
     {expandedCard && createPortal(<aside ref={dialog} className="home-community about-message-overlay" role="dialog" aria-modal="true"
       aria-labelledby={`${id}-dialog-title`} tabIndex={-1} onClick={() => setExpanded(null)}>

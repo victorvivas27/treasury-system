@@ -37,6 +37,7 @@ export const SidebarFooter: FC<SidebarFooterProps> = ({
     <footer className="sidebar-footer">
       <button type="button" className="sidebar-improvement-button"
         aria-label="Centro de Mejoras"
+        title="Centro de Mejoras"
         onClick={() => { onNavLinkClick?.(); window.dispatchEvent(new Event(OPEN_IMPROVEMENT_CENTER_EVENT)); }}>
         <IoBulbOutline aria-hidden="true" />
         <span>Mejoras</span>
@@ -60,6 +61,7 @@ export const SidebarFooter: FC<SidebarFooterProps> = ({
               >
                 <NavLink
                   to={link.path}
+                  title={link.label}
                   data-tour-path={link.path}
                   onClick={onNavLinkClick}
                   className={({ isActive }) =>
@@ -107,6 +109,7 @@ export const SidebarFooter: FC<SidebarFooterProps> = ({
 
       <NavLink
         to="/profile"
+        title={`Mi perfil · ${name}`}
         data-tour-path="/profile"
         onClick={onNavLinkClick}
         className={({ isActive }) =>

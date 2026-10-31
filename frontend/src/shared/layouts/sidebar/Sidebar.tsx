@@ -42,6 +42,7 @@ export const Sidebar: FC<SidebarProps> = ({ headerContent, onCloseSidebar, isSid
     <aside
       onPointerLeave={event => {
         if (event.pointerType !== "mouse") return;
+        if (event.relatedTarget instanceof Element && event.currentTarget.contains(event.relatedTarget)) return;
         const bounds = event.currentTarget.getBoundingClientRect();
         // Loading overlays can change the hit target without moving the mouse.
         if (event.clientX >= bounds.left && event.clientX < bounds.right &&

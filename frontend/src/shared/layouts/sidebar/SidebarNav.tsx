@@ -185,13 +185,16 @@ export const SidebarNav = ({
         .filter(Boolean)
         .join(" ")}
     >
+      {openGroup && <button type="button" className="sidebar-panel-backdrop"
+        aria-label="Cerrar panel de navegación" tabIndex={-1}
+        onClick={() => setOpenGroup(null)} />}
       <ul className="sidebar-nav-ul">
 
         {/* ===================================================
             LINKS PRINCIPALES
             =================================================== */}
 
-        <li className="sidebar-nav-section">
+        <li className="sidebar-nav-section sidebar-nav-section--direct">
           <ul>
             {visibleMainLinks.map((link) => {
               const Icon = link.icon;
@@ -289,13 +292,19 @@ export const SidebarNav = ({
             {isManagementOpen && (
               <ul
                 id="management-submenu"
-                className="sidebar-submenu"
+                className="sidebar-submenu sidebar-management-panel"
               >
+                <li className="sidebar-management-panel__heading">
+                  <strong>Gestión</strong>
+                  <span>Administra las personas y el curso</span>
+                </li>
                 {visibleManagementLinks.map((link) => {
                   const ManagementIcon = link.icon;
 
                   return (
                     <li key={link.path}>
+                      {link.path === visibleManagementLinks[0]?.path && <h3 className="sidebar-management-panel__category">Personas</h3>}
+                      {link.path === "/admin/horario-clases" && <h3 className="sidebar-management-panel__category">Curso</h3>}
                       <NavLink
                         to={link.path}
                         data-tour-path={link.path}
@@ -307,7 +316,10 @@ export const SidebarNav = ({
                             .filter(Boolean)
                             .join(" ")
                         }
-                        onClick={handleClick}
+                        onClick={() => {
+                          if (window.matchMedia("(min-width: 769px)").matches) setOpenGroup(null);
+                          handleClick();
+                        }}
                       >
                         <ManagementIcon
                           className="sidebar-submenu-icon"
@@ -339,7 +351,7 @@ export const SidebarNav = ({
             <ICONS.expand className={["sidebar-nav-chevron", isAcademicOpen && "is-open"].filter(Boolean).join(" ")} aria-hidden="true" />
             <Tooltip disabled={!isCollapsed} content="Calendario Académico" position="right" className="sidebar-icon-tooltip" />
           </button>
-          {isAcademicOpen && <ul id="academic-submenu" className="sidebar-submenu">
+          {isAcademicOpen && <ul id="academic-submenu" className="sidebar-submenu sidebar-desktop-panel">
             <li><NavLink to="/calendario/horario-clases"
               className={({ isActive }) => ["sidebar-submenu-link", isActive && "active"].filter(Boolean).join(" ")}
               onClick={handleClick}>
@@ -448,8 +460,12 @@ export const SidebarNav = ({
             {isTreasuryOpen && (
               <ul
                 id="treasury-submenu"
-                className="sidebar-submenu"
+                className="sidebar-submenu sidebar-desktop-panel"
               >
+                <li className="sidebar-management-panel__heading">
+                  <strong>Tesorería</strong>
+                  <span>Pagos, movimientos y reportes</span>
+                </li>
                 {visibleTreasuryLinks.map(
                   (link) => {
                     const TreasuryIcon =
