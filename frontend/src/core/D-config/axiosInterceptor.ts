@@ -23,6 +23,12 @@ export const clearAccessToken = (token?: string | null) => {
 };
 
 export const setCsrfToken = (token?: string | null) => {
+  // El CSRF debe sobrevivir al cierre de la PWA cuando la cookie está en el
+  // dominio de la API. Los tokens de acceso y renovación no se guardan aquí.
+  try {
+    if (token) localStorage.setItem(CSRF_STORAGE_KEY, token);
+    else localStorage.removeItem(CSRF_STORAGE_KEY);
+  } catch { /* El navegador puede restringir el almacenamiento persistente. */ }
   if (typeof sessionStorage === "undefined") return;
   if (token) sessionStorage.setItem(CSRF_STORAGE_KEY, token);
   else sessionStorage.removeItem(CSRF_STORAGE_KEY);
@@ -37,6 +43,10 @@ const csrfToken = () => {
     .find((value) => value.startsWith(`${CSRF_COOKIE}=`));
   if (cookie) return decodeURIComponent(cookie.slice(CSRF_COOKIE.length + 1));
   if (typeof sessionStorage === "undefined") return null;
+  try {
+    const persisted = localStorage.getItem(CSRF_STORAGE_KEY);
+    if (persisted) return persisted;
+  } catch { /* Usar el respaldo de la pestaña si no hay almacenamiento persistente. */ }
   return sessionStorage.getItem(CSRF_STORAGE_KEY);
 };
 
