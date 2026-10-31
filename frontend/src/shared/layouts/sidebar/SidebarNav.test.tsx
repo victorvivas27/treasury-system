@@ -18,10 +18,22 @@ const setup = () => {
   return { ...view, navigate, button, section };
 };
 
-beforeEach(() => vi.useFakeTimers());
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false })));
+});
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("Shared sidebar group interaction", () => {
+  it("closes the desktop management panel after choosing a destination", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    const { button, section, navigate } = setup();
+    fireEvent.click(button("management"));
+    expect(section("management").querySelector(".sidebar-management-panel")).not.toBeNull();
+    fireEvent.click(section("management").querySelector("a")!);
+    expect(navigate).toHaveBeenCalledOnce();
+    expect(button("management")).toHaveAttribute("aria-expanded", "false");
+  });
   it("keeps course tools in management and excludes global administration", () => {
     const { button, container } = setup();
     fireEvent.click(button("management"));

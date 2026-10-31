@@ -1,13 +1,13 @@
 /* Desktop has room for larger cards and explicit navigation. Mobile keeps the compact shared layout. */
 @media (min-width: 1024px) {
-  .home-community__about .about-cylinder { --cylinder-radius: 380px; }
-  .home-community__about .about-cylinder__card { width: 360px; height: auto; padding: 24px; gap: 18px; }
+  .home-community__about .about-cylinder { --cylinder-radius: 440px; }
+  .home-community__about .about-cylinder__card { width: min(420px, 70%); min-height: 260px; box-sizing: border-box; height: auto; padding: 28px; gap: 20px; }
   .about-cylinder__card-header { gap: 12px; }
   .home-community__about .about-cylinder__card .home-community__card-icon { width: 64px; height: 64px; font-size: 64px; }
-  .home-community__about .about-cylinder__card h3 { font-size: 20px; line-height: 1.3; }
+  .home-community__about .about-cylinder__card h3 { font-size: 22px; line-height: 1.3; }
+  .home-community__about .about-cylinder__body p { font-size: 15px; }
   .home-community__about .about-cylinder__body blockquote { font-size: 16px; line-height: 1.6; }
   .about-cylinder__read-more { font-size: 14px; }
-  .about-cylinder__desktop-controls { display: block; }
   .about-cylinder__arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--border-color); border-radius: 50%; background: var(--color-surface); color: var(--text-main); font-size: 24px; cursor: default; transition: border-color 160ms ease, color 160ms ease; }
   .about-cylinder__arrow.is-previous { left: 12px; }
   .about-cylinder__arrow.is-next { right: 12px; }
