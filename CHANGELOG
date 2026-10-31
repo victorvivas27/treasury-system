@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.0](https://github.com/victorvivas27/treasury-system/compare/v1.41.1...v1.42.0) (2026-10-31)
+
+
+### Features
+
+* **sidebar:** mejorar comportamiento y estilo del panel lateral en dispositivos móviles y de escritorio ([3d68eea](https://github.com/victorvivas27/treasury-system/commit/3d68eeac95538a404850231179ba38e440daf0d7))
+
 ## [1.41.1](https://github.com/victorvivas27/treasury-system/compare/v1.41.0...v1.41.1) (2026-10-31)
 
 
