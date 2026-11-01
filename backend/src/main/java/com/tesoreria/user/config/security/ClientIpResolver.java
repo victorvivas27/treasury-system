@@ -10,13 +10,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class ClientIpResolver {
     private static final int MAX_PROXY_HOPS = 20;
     private final List<IpAddressMatcher> trusted;
     public ClientIpResolver(@Value("${app.security.trusted-proxies:}") String proxies) {
-        trusted = Arrays.stream(proxies.split(",")).map(String::trim).filter(value -> !value.isEmpty())
+        trusted = Arrays.stream(proxies.split(",")).map(value -> Objects.requireNonNull(value.trim())).filter(value -> !value.isEmpty())
                 .map(IpAddressMatcher::new).toList();
     }
     public String current() {

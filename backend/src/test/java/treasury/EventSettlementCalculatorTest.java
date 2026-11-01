@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,8 +40,8 @@ class EventSettlementCalculatorTest {
                 () -> assertEquals(new BigDecimal("45"), result.courses().get(0).netProfit()),
                 () -> assertEquals(new BigDecimal("45"), result.courses().get(1).netProfit()),
                 () -> assertEquals(result.distributable(), result.courses().stream()
-                        .map(EventSettlementCalculator.CourseResult::netProfit)
-                        .reduce(result.remainder(), BigDecimal::add)));
+                        .map(course -> Objects.requireNonNull(course.netProfit()))
+                        .reduce(result.remainder(), (left, right) -> Objects.requireNonNull(left.add(right)))));
     }
 
     @Test

@@ -88,7 +88,7 @@ public class CoursePhotoService {
     }
     private ValidatedImage validate(MultipartFile file) {
         if (file == null || file.isEmpty()) throw error(HttpStatus.BAD_REQUEST, "La imagen está vacía");
-        if (file.getSize() > maxBytes) throw error(HttpStatus.PAYLOAD_TOO_LARGE, "La imagen supera el tamaño máximo");
+        if (file.getSize() > maxBytes) throw error(HttpStatus.CONTENT_TOO_LARGE, "La imagen supera el tamaño máximo");
         String name = Optional.ofNullable(file.getOriginalFilename()).orElse("").replace('\\', '/');
         name = name.substring(name.lastIndexOf('/') + 1).trim();
         int dot = name.lastIndexOf('.');

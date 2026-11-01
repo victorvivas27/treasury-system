@@ -38,8 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PostgresPerformanceQueryIntegrationTest {
     @Container
     @ServiceConnection
-    static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer("postgres:16-alpine");
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -221,7 +220,7 @@ class PostgresPerformanceQueryIntegrationTest {
     }
 
     private void assertAggregate(List<StandSaleJpaRepository.SaleAggregate> values,
-                                 StandPaymentMethod method, BigDecimal total, long count) {
+            StandPaymentMethod method, BigDecimal total, long count) {
         var value = values.stream().filter(item -> item.getPaymentMethod() == method).findFirst().orElseThrow();
         assertAll(() -> assertEquals(total, value.getTotal()),
                 () -> assertEquals(2, value.getTotal().scale()),
@@ -234,9 +233,9 @@ class PostgresPerformanceQueryIntegrationTest {
     }
 
     private long genderCount(List<AlumnoJpaRepository.ActiveGenderCount> values,
-                             GeneroAlumno gender) {
+            GeneroAlumno gender) {
         return values.stream().filter(value -> value.getGender() == gender)
-                .mapToLong(AlumnoJpaRepository.ActiveGenderCount::getTotal).findFirst().orElse(0);
+                .mapToLong(value -> value.getTotal()).findFirst().orElse(0);
     }
 
     private long insertEvent(String name) {
@@ -249,15 +248,15 @@ class PostgresPerformanceQueryIntegrationTest {
     }
 
     private long insertStand(long eventId, String name, String status,
-                             String debit, String credit, String transfer) {
+            String debit, String credit, String transfer) {
         return jdbc.queryForObject("""
-                        INSERT INTO event_stands(event_id, name, stand_date, start_time, end_time,
-                            responsible, initial_fund, status, debit_commission, credit_commission,
-                            transfer_commission, created_at, updated_at, version, organization_id)
-                        VALUES (?, ?, DATE '2026-08-01', TIME '09:00', TIME '18:00', 'Responsable',
-                            0, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, ?)
-                        RETURNING id
-                        """, Long.class, eventId, name, status, new BigDecimal(debit),
+                INSERT INTO event_stands(event_id, name, stand_date, start_time, end_time,
+                    responsible, initial_fund, status, debit_commission, credit_commission,
+                    transfer_commission, created_at, updated_at, version, organization_id)
+                VALUES (?, ?, DATE '2026-08-01', TIME '09:00', TIME '18:00', 'Responsable',
+                    0, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, ?)
+                RETURNING id
+                """, Long.class, eventId, name, status, new BigDecimal(debit),
                 new BigDecimal(credit), new BigDecimal(transfer), organizationId());
     }
 
@@ -270,13 +269,13 @@ class PostgresPerformanceQueryIntegrationTest {
     }
 
     private void insertItem(long saleId, long productId, String name, String category,
-                            String variant, String presentation, String equivalence, int quantity,
-                            String price, String cost, String subtotal, String costSubtotal) {
+            String variant, String presentation, String equivalence, int quantity,
+            String price, String cost, String subtotal, String costSubtotal) {
         jdbc.update("""
-                        INSERT INTO event_stand_sale_items(sale_id, product_id, product_name, category,
-                            variant, presentation, unit_equivalence, quantity, unit_price, unit_cost,
-                            subtotal, cost_subtotal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, saleId, productId, name, category, variant, presentation,
+                INSERT INTO event_stand_sale_items(sale_id, product_id, product_name, category,
+                    variant, presentation, unit_equivalence, quantity, unit_price, unit_cost,
+                    subtotal, cost_subtotal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, saleId, productId, name, category, variant, presentation,
                 equivalence == null ? null : new BigDecimal(equivalence), quantity,
                 new BigDecimal(price), new BigDecimal(cost), new BigDecimal(subtotal),
                 new BigDecimal(costSubtotal));
@@ -284,13 +283,13 @@ class PostgresPerformanceQueryIntegrationTest {
 
     private long insertStudent(String code, String name, String course) {
         return jdbc.queryForObject("INSERT INTO alumnos(codigo, nombre, curso, organization_id) "
-                        + "VALUES (?, ?, ?, ?) RETURNING alumno_id",
+                + "VALUES (?, ?, ?, ?) RETURNING alumno_id",
                 Long.class, code, name, course, organizationId());
     }
 
     private long insertFamily(long studentId, String code) {
         return jdbc.queryForObject("INSERT INTO familias(alumno_id, codigo, organization_id) "
-                        + "VALUES (?, ?, ?) RETURNING familia_id",
+                + "VALUES (?, ?, ?) RETURNING familia_id",
                 Long.class, studentId, code, organizationId());
     }
 

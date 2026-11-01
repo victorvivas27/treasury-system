@@ -32,7 +32,7 @@ public class OrganizationController {
     @GetMapping("/login-options")
     public List<OrganizationLoginOptionResponse> loginOptions() {
         return organizations.findAll().stream()
-                .filter(OrganizationEntity::isActive)
+                .filter(organization -> organization.isActive())
                 .map(value -> new OrganizationLoginOptionResponse(
                         value.getId(), displayName(value), value.getSlug(), value.getType().name()))
                 .toList();

@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @NullMarked
 public class TreasuryService implements TreasuryUseCase {
@@ -36,7 +37,7 @@ public class TreasuryService implements TreasuryUseCase {
     private final DashboardPerformanceProbe performanceProbe;
 
     public TreasuryService(TreasuryRepositoryOutPort repository,
-                           DashboardPerformanceProbe performanceProbe) {
+            DashboardPerformanceProbe performanceProbe) {
         this.repository = repository;
         this.performanceProbe = performanceProbe;
     }
@@ -49,7 +50,7 @@ public class TreasuryService implements TreasuryUseCase {
             @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     })
     public AnnualFeeConfig saveConfig(int year, BigDecimal amount, AllowedPaymentMode allowedMode,
-                                      LocalDate annualDueDate, LocalDate firstDueDate, LocalDate secondDueDate, String user) {
+            LocalDate annualDueDate, LocalDate firstDueDate, LocalDate secondDueDate, String user) {
         validateConfig(year, amount, allowedMode, annualDueDate, firstDueDate, secondDueDate);
         AnnualFeeConfig current = repository.findConfigByYear(year).orElse(null);
         LocalDateTime now = LocalDateTime.now();
@@ -69,8 +70,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     @Override
-    @Cacheable(value = CacheNames.ANNUAL_FEE_CONFIGURATION_BY_YEAR,
-            key = CACHE_YEAR_KEY, sync = true)
+    @Cacheable(value = CacheNames.ANNUAL_FEE_CONFIGURATION_BY_YEAR, key = CACHE_YEAR_KEY, sync = true)
     public AnnualFeeConfig getConfig(int year) {
         return repository.findConfigByYear(year)
                 .orElseThrow(() -> error(TreasuryErrorCode.NOT_FOUND,
@@ -81,9 +81,9 @@ public class TreasuryService implements TreasuryUseCase {
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     public FamilyFeePlan assignMode(int year, Long familyId, PaymentMode mode,
-                                    @Nullable BigDecimal customAmount,
-                                    @Nullable LocalDate customDueDate,
-                                    @Nullable String customConcept, String user) {
+            @Nullable BigDecimal customAmount,
+            @Nullable LocalDate customDueDate,
+            @Nullable String customConcept, String user) {
         if (familyId == null || familyId <= 0 || mode == null) {
             throw error(TreasuryErrorCode.INVALID, "Familia y modalidad son obligatorias");
         }
@@ -174,7 +174,7 @@ public class TreasuryService implements TreasuryUseCase {
     private PaymentMode inferPaidMode(List<FeeObligation> obligations) {
         boolean split = obligations.stream()
                 .filter(item -> item.status() == ObligationStatus.PAGADA)
-                .map(FeeObligation::installment)
+                .map(value -> Objects.requireNonNull(value.installment()))
                 .anyMatch(item -> item == InstallmentType.PRIMERA || item == InstallmentType.SEGUNDA);
         return split ? PaymentMode.DOS_CUOTAS : PaymentMode.ANUAL;
     }
@@ -186,7 +186,8 @@ public class TreasuryService implements TreasuryUseCase {
         AnnualFeeConfig config = getConfig(year);
         int generated = 0;
         for (FamilyFeePlan plan : repository.findPlansByConfig(config.id())) {
-            if (!repository.findObligationsByPlan(plan.id()).isEmpty()) continue;
+            if (!repository.findObligationsByPlan(plan.id()).isEmpty())
+                continue;
             if (plan.mode() == PaymentMode.ANUAL) {
                 saveObligation(plan.id(), InstallmentType.ANUAL, "Cuota anual",
                         config.annualAmount(), config.annualDueDate());
@@ -213,16 +214,18 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     public List<FeePayment> listActivePayments(int year) {
-        List<Long> obligationIds = listObligations(year).stream().map(FeeObligation::id).toList();
+        List<Long> obligationIds = listObligations(year).stream().map(value -> Objects.requireNonNull(value.id()))
+                .toList();
         return obligationIds.isEmpty()
-                ? List.of() : repository.findActivePaymentsByObligationIds(obligationIds);
+                ? List.of()
+                : repository.findActivePaymentsByObligationIds(obligationIds);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public FeePayment registerPayment(Long obligationId, LocalDate date, BigDecimal amount,
-                                      String user, String observations) {
+            String user, String observations) {
         repository.lockObligation(obligationId);
         FeeObligation obligation = obligation(obligationId);
         if (obligation.status() == ObligationStatus.PAGADA
@@ -282,10 +285,12 @@ public class TreasuryService implements TreasuryUseCase {
         List<FeeObligation> obligations = repository.findObligationsByConfig(config.id());
         BigDecimal collected = obligations.stream()
                 .filter(item -> item.status() == ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal pending = obligations.stream()
                 .filter(item -> item.status() != ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         return new TreasuryDashboard(plans.size(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
@@ -295,8 +300,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     @Override
-    @Cacheable(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW,
-            key = CACHE_YEAR_KEY, sync = true)
+    @Cacheable(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY, sync = true)
     public TreasuryDashboardOverview dashboardOverview(int year) {
         long serviceStartedAt = DashboardPerformanceProbe.now();
         if (year < MIN_YEAR) {
@@ -304,17 +308,19 @@ public class TreasuryService implements TreasuryUseCase {
         }
         AnnualFeeConfig config = repository.findConfigByYear(year).orElse(null);
         List<FeeObligation> obligations = config == null
-                ? List.of() : repository.findObligationsByConfig(config.id());
+                ? List.of()
+                : repository.findObligationsByConfig(config.id());
         List<FamilyFeePlan> plans = config == null
-                ? List.of() : repository.findPlansByConfig(config.id());
+                ? List.of()
+                : repository.findPlansByConfig(config.id());
         List<FeePayment> feePayments = obligations.isEmpty()
                 ? List.of()
                 : repository.findActivePaymentsByObligationIds(
-                        obligations.stream().map(FeeObligation::id).toList());
+                        obligations.stream().map(value -> Objects.requireNonNull(value.id())).toList());
         Map<Long, FeeObligation> obligationsById = obligations.stream()
-                .collect(java.util.stream.Collectors.toMap(FeeObligation::id, item -> item));
+                .collect(java.util.stream.Collectors.toMap(value -> Objects.requireNonNull(value.id()), item -> item));
         Map<Long, FamilyFeePlan> plansById = plans.stream()
-                .collect(java.util.stream.Collectors.toMap(FamilyFeePlan::id, item -> item));
+                .collect(java.util.stream.Collectors.toMap(value -> Objects.requireNonNull(value.id()), item -> item));
         TreasuryDashboard quotas = config == null
                 ? new TreasuryDashboard(0, 0, 0, 0, 0, BigDecimal.ZERO, BigDecimal.ZERO)
                 : dashboard(plans, obligations);
@@ -328,14 +334,17 @@ public class TreasuryService implements TreasuryUseCase {
             BigDecimal income = incomes.stream()
                     .filter(item -> item.status() == IncomeStatus.ACTIVE
                             && item.incomeDate().getMonthValue() == currentMonth)
-                    .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(value -> Objects.requireNonNull(value.amount()))
+                    .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
             income = income.add(feePayments.stream()
                     .filter(item -> item.paymentDate().getMonthValue() == currentMonth)
-                    .map(FeePayment::amount).reduce(BigDecimal.ZERO, BigDecimal::add));
+                    .map(value -> Objects.requireNonNull(value.amount()))
+                    .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right))));
             BigDecimal expense = expenses.stream()
                     .filter(item -> item.status() == ExpenseStatus.ACTIVE
                             && item.expenseDate().getMonthValue() == currentMonth)
-                    .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(value -> Objects.requireNonNull(value.amount()))
+                    .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
             monthly.add(new TreasuryDashboardOverview.MonthlyCashFlow(month, income, expense));
         }
         performanceProbe.phaseCurrent("service.mapping.monthlyCashFlow", mappingStartedAt);
@@ -351,14 +360,14 @@ public class TreasuryService implements TreasuryUseCase {
         mappingStartedAt = DashboardPerformanceProbe.now();
         List<TreasuryDashboardOverview.CategoryMetric> categories = expenses.stream()
                 .filter(item -> item.status() == ExpenseStatus.ACTIVE)
-                .collect(java.util.stream.Collectors.groupingBy(TreasuryExpense::category,
-                        java.util.stream.Collectors.reducing(BigDecimal.ZERO, TreasuryExpense::amount,
-                                BigDecimal::add)))
+                .collect(java.util.stream.Collectors.groupingBy(value -> Objects.requireNonNull(value.category()),
+                        java.util.stream.Collectors.reducing(BigDecimal.ZERO, value -> Objects.requireNonNull(value.amount()),
+                                (left, right) -> Objects.requireNonNull(left.add(right)))))
                 .entrySet().stream()
                 .map(entry -> new TreasuryDashboardOverview.CategoryMetric(
                         entry.getKey().name(), entry.getValue()))
                 .sorted(java.util.Comparator.comparing(
-                        TreasuryDashboardOverview.CategoryMetric::amount).reversed())
+                        (TreasuryDashboardOverview.CategoryMetric value) -> Objects.requireNonNull(value.amount())).reversed())
                 .toList();
 
         List<TreasuryDashboardOverview.ExpenseMetric> expenseDetails = expenses.stream()
@@ -366,7 +375,7 @@ public class TreasuryService implements TreasuryUseCase {
                 .map(item -> new TreasuryDashboardOverview.ExpenseMetric(item.id(),
                         item.description(), item.category().name(), item.amount()))
                 .sorted(java.util.Comparator.comparing(
-                        TreasuryDashboardOverview.ExpenseMetric::amount).reversed())
+                        (TreasuryDashboardOverview.ExpenseMetric value) -> Objects.requireNonNull(value.amount())).reversed())
                 .toList();
         performanceProbe.phaseCurrent("service.mapping.expenses", mappingStartedAt);
 
@@ -389,15 +398,15 @@ public class TreasuryService implements TreasuryUseCase {
                     concept + family, payment.amount(), payment.paymentDate(), "ACTIVE");
         });
         List<TreasuryDashboardOverview.RecentMovement> recent = java.util.stream.Stream.concat(
-                        ordinaryMovements, feeMovements)
+                ordinaryMovements, feeMovements)
                 .sorted(java.util.Comparator.comparing(
-                        TreasuryDashboardOverview.RecentMovement::date).reversed())
+                        (TreasuryDashboardOverview.RecentMovement value) -> Objects.requireNonNull(value.date())).reversed())
                 .toList();
         performanceProbe.phaseCurrent("service.mapping.recentMovements", mappingStartedAt);
 
         mappingStartedAt = DashboardPerformanceProbe.now();
         List<TreasuryDashboardOverview.AuditEntry> auditTrail = repository.findRecentAudits(
-                        LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay())
+                LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay())
                 .stream()
                 .map(item -> new TreasuryDashboardOverview.AuditEntry(item.id(), item.action(),
                         item.entityType(), item.entityId(), item.performedBy(), item.details(),
@@ -417,10 +426,12 @@ public class TreasuryService implements TreasuryUseCase {
     private TreasuryDashboard dashboard(List<FamilyFeePlan> plans, List<FeeObligation> obligations) {
         BigDecimal collected = obligations.stream()
                 .filter(item -> item.status() == ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal pending = obligations.stream()
                 .filter(item -> item.status() != ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         return new TreasuryDashboard(plans.size(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
@@ -440,11 +451,12 @@ public class TreasuryService implements TreasuryUseCase {
                 LocalDate.of(year, 1, 1).atStartOfDay(), LocalDate.of(year + 1, 1, 1).atStartOfDay());
         List<Long> allowedIds = yearAudits.stream()
                 .filter(item -> all || ids != null && ids.contains(item.id()))
-                .map(TreasuryAudit::id).toList();
+                .map(value -> Objects.requireNonNull(value.id())).toList();
         if (!all && allowedIds.isEmpty()) {
             throw error(TreasuryErrorCode.INVALID, "Selecciona al menos una traza para limpiar");
         }
-        if (!allowedIds.isEmpty()) repository.deleteAuditsByIds(allowedIds);
+        if (!allowedIds.isEmpty())
+            repository.deleteAuditsByIds(allowedIds);
     }
 
     @Override
@@ -468,7 +480,7 @@ public class TreasuryService implements TreasuryUseCase {
             @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     })
     public ContributionConfig saveContributionConfig(int year, ContributionType type, String name,
-                                                     boolean active, BigDecimal amount, String observations, String user) {
+            boolean active, BigDecimal amount, String observations, String user) {
         if (year < MIN_YEAR || type == null || name == null || name.isBlank()
                 || amount != null && (amount.signum() < 0 || amount.scale() > 0)) {
             throw error(TreasuryErrorCode.INVALID, "La configuración del aporte es inválida");
@@ -483,8 +495,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     @Override
-    @Cacheable(value = CacheNames.CONTRIBUTION_CONFIGURATIONS,
-            key = CACHE_YEAR_KEY, sync = true)
+    @Cacheable(value = CacheNames.CONTRIBUTION_CONFIGURATIONS, key = CACHE_YEAR_KEY, sync = true)
     public List<ContributionConfig> listContributionConfigs(int year) {
         return repository.findContributionConfigs(year);
     }
@@ -501,7 +512,7 @@ public class TreasuryService implements TreasuryUseCase {
             @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     })
     public FamilyContribution registerContribution(Long familyId, int year, ContributionType type,
-                                                   LocalDate paymentDate, String notes, String user) {
+            LocalDate paymentDate, String notes, String user) {
         if (familyId == null || familyId <= 0 || year < MIN_YEAR || type == null
                 || paymentDate == null || user == null || user.isBlank()) {
             throw error(TreasuryErrorCode.INVALID, "Familia, año, aporte, fecha y usuario son obligatorios");
@@ -548,7 +559,8 @@ public class TreasuryService implements TreasuryUseCase {
 
     @Override
     public List<TreasuryExpense> listExpenses(int year) {
-        if (year < MIN_YEAR) throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
+        if (year < MIN_YEAR)
+            throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
         return repository.findExpenses(year);
     }
 
@@ -562,8 +574,8 @@ public class TreasuryService implements TreasuryUseCase {
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     public TreasuryExpense createExpense(int year, String description, BigDecimal amount,
-                                         LocalDate expenseDate, ExpenseCategory category, ExpensePaymentMethod paymentMethod,
-                                         String recipient, String receiptNumber, String notes, String user) {
+            LocalDate expenseDate, ExpenseCategory category, ExpensePaymentMethod paymentMethod,
+            String recipient, String receiptNumber, String notes, String user) {
         validateExpense(year, description, amount, expenseDate, category, user);
         LocalDateTime now = LocalDateTime.now();
         TreasuryExpense saved = repository.saveExpense(new TreasuryExpense(null, year,
@@ -579,8 +591,8 @@ public class TreasuryService implements TreasuryUseCase {
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public TreasuryExpense updateExpense(Long id, String description, BigDecimal amount,
-                                         LocalDate expenseDate, ExpenseCategory category, ExpensePaymentMethod paymentMethod,
-                                         String recipient, String receiptNumber, String notes, String correctionReason, String user) {
+            LocalDate expenseDate, ExpenseCategory category, ExpensePaymentMethod paymentMethod,
+            String recipient, String receiptNumber, String notes, String correctionReason, String user) {
         TreasuryExpense current = getExpense(id);
         if (current.status() != ExpenseStatus.ACTIVE) {
             throw error(TreasuryErrorCode.CONFLICT, "No se puede corregir un egreso anulado");
@@ -628,40 +640,47 @@ public class TreasuryService implements TreasuryUseCase {
         BigDecimal annualIncome = repository.findConfigByYear(year)
                 .map(config -> repository.findObligationsByConfig(config.id()).stream()
                         .filter(item -> item.status() == ObligationStatus.PAGADA)
-                        .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .map(value -> Objects.requireNonNull(value.amount()))
+                        .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right))))
                 .orElse(BigDecimal.ZERO);
         BigDecimal feeIncome = annualIncome;
         BigDecimal otherIncome = repository.findIncomes(year).stream()
                 .filter(item -> item.status() == IncomeStatus.ACTIVE)
-                .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal totalIncome = feeIncome.add(otherIncome);
         BigDecimal totalExpenses = repository.findExpenses(year).stream()
                 .filter(item -> item.status() == ExpenseStatus.ACTIVE)
-                .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         return new FinancialSummary(year, feeIncome, otherIncome, totalIncome, totalExpenses,
                 totalIncome.subtract(totalExpenses));
     }
 
     private FinancialSummary financialSummary(int year, List<FeeObligation> obligations,
-                                              List<TreasuryIncome> incomes,
-                                              List<TreasuryExpense> expenses) {
+            List<TreasuryIncome> incomes,
+            List<TreasuryExpense> expenses) {
         BigDecimal feeIncome = obligations.stream()
                 .filter(item -> item.status() == ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal otherIncome = incomes.stream()
                 .filter(item -> item.status() == IncomeStatus.ACTIVE)
-                .map(TreasuryIncome::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal totalIncome = feeIncome.add(otherIncome);
         BigDecimal totalExpenses = expenses.stream()
                 .filter(item -> item.status() == ExpenseStatus.ACTIVE)
-                .map(TreasuryExpense::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         return new FinancialSummary(year, feeIncome, otherIncome, totalIncome, totalExpenses,
                 totalIncome.subtract(totalExpenses));
     }
 
     @Override
     public List<TreasuryIncome> listIncomes(int year) {
-        if (year < MIN_YEAR) throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
+        if (year < MIN_YEAR)
+            throw error(TreasuryErrorCode.INVALID, INVALID_SCHOOL_YEAR_MESSAGE);
         return repository.findIncomes(year);
     }
 
@@ -675,14 +694,13 @@ public class TreasuryService implements TreasuryUseCase {
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = CACHE_YEAR_KEY)
     public TreasuryIncome createIncome(int year, String description, BigDecimal amount,
-                                       LocalDate incomeDate, IncomeCategory category, String source,
-                                       IncomePaymentMethod paymentMethod, String receiptNumber, String course,
-                                       Long familyId, String notes, String user) {
+            LocalDate incomeDate, IncomeCategory category, String source,
+            IncomePaymentMethod paymentMethod, String receiptNumber, String course,
+            Long familyId, String notes, String user) {
         validateIncome(year, description, amount, incomeDate, category, user);
-        boolean duplicate = repository.findIncomes(year).stream().anyMatch(item ->
-                item.status() == IncomeStatus.ACTIVE
-                        && item.description().equalsIgnoreCase(description.trim())
-                        && item.amount().compareTo(amount) == 0 && item.incomeDate().equals(incomeDate));
+        boolean duplicate = repository.findIncomes(year).stream().anyMatch(item -> item.status() == IncomeStatus.ACTIVE
+                && item.description().equalsIgnoreCase(description.trim())
+                && item.amount().compareTo(amount) == 0 && item.incomeDate().equals(incomeDate));
         if (duplicate) {
             throw error(TreasuryErrorCode.CONFLICT,
                     "Ya existe un ingreso activo con la misma descripción, monto y fecha");
@@ -701,9 +719,9 @@ public class TreasuryService implements TreasuryUseCase {
     @Transactional
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public TreasuryIncome updateIncome(Long id, String description, BigDecimal amount,
-                                       LocalDate incomeDate, IncomeCategory category, String source,
-                                       IncomePaymentMethod paymentMethod, String receiptNumber, String course,
-                                       Long familyId, String notes, String correctionReason, String user) {
+            LocalDate incomeDate, IncomeCategory category, String source,
+            IncomePaymentMethod paymentMethod, String receiptNumber, String course,
+            Long familyId, String notes, String correctionReason, String user) {
         TreasuryIncome current = getIncome(id);
         if (current.status() != IncomeStatus.ACTIVE) {
             throw error(TreasuryErrorCode.CONFLICT, "No se puede corregir un ingreso anulado");
@@ -755,14 +773,14 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     private void saveObligation(Long planId, InstallmentType installment, String concept,
-                                BigDecimal amount, LocalDate dueDate) {
+            BigDecimal amount, LocalDate dueDate) {
         LocalDateTime now = LocalDateTime.now();
         repository.saveObligation(new FeeObligation(null, planId, installment, concept, amount,
                 dueDate, ObligationStatus.PENDIENTE, now, now));
     }
 
     private void saveCustomObligation(Long planId, BigDecimal amount, LocalDate dueDate,
-                                      @Nullable String concept) {
+            @Nullable String concept) {
         BigDecimal normalizedAmount = amount.setScale(0, RoundingMode.UNNECESSARY);
         String normalizedConcept = normalizeCustomConcept(concept);
         List<FeeObligation> current = repository.findObligationsByPlan(planId);
@@ -792,7 +810,8 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     private String normalizeCustomConcept(@Nullable String concept) {
-        if (concept == null || concept.isBlank()) return "Cuota personalizada";
+        if (concept == null || concept.isBlank())
+            return "Cuota personalizada";
         String normalized = concept.trim();
         if (normalized.length() > MAX_CUSTOM_CONCEPT_LENGTH) {
             throw error(TreasuryErrorCode.INVALID,
@@ -807,7 +826,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     private void validateConfig(int year, BigDecimal amount, AllowedPaymentMode allowedMode,
-                                LocalDate annual, LocalDate first, LocalDate second) {
+            LocalDate annual, LocalDate first, LocalDate second) {
         if (year < MIN_YEAR || amount == null || amount.signum() <= 0 || amount.scale() > 0
                 || allowedMode == null || annual == null || first == null || second == null) {
             throw error(TreasuryErrorCode.INVALID, "La configuración anual es inválida");
@@ -820,7 +839,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     private void validateExpense(int year, String description, BigDecimal amount,
-                                 LocalDate expenseDate, ExpenseCategory category, String user) {
+            LocalDate expenseDate, ExpenseCategory category, String user) {
         if (year < MIN_YEAR || description == null || description.isBlank()
                 || description.trim().length() > 250 || amount == null || amount.signum() <= 0
                 || amount.scale() > 0 || expenseDate == null || expenseDate.getYear() != year
@@ -830,7 +849,7 @@ public class TreasuryService implements TreasuryUseCase {
     }
 
     private void validateIncome(int year, String description, BigDecimal amount,
-                                LocalDate incomeDate, IncomeCategory category, String user) {
+            LocalDate incomeDate, IncomeCategory category, String user) {
         if (year < MIN_YEAR || description == null || description.isBlank()
                 || description.trim().length() > 250 || amount == null || amount.signum() <= 0
                 || amount.scale() > 0 || incomeDate == null || incomeDate.getYear() != year

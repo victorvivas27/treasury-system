@@ -44,9 +44,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class SuperAdminPostgresProtectionTest extends SuperAdminProtectionIntegrationTest {
     @Container
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")
-            .withDatabaseName("phase1_superadmin_isolated")
-            .withCommand("postgres", "-c", "deadlock_timeout=200ms", "-c", "log_lock_waits=on");
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
+    static {
+        POSTGRES.withDatabaseName("phase1_superadmin_isolated");
+        POSTGRES.withCommand("postgres", "-c", "deadlock_timeout=200ms", "-c", "log_lock_waits=on");
+    }
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry properties) {

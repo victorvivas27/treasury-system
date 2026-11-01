@@ -44,8 +44,8 @@ public class TreasuryController {
     private final DashboardPerformanceProbe performanceProbe;
 
     public TreasuryController(TreasuryUseCase treasury, GetFamiliaUseCase families,
-                              AlumnoService students, GetApoderadoUseCase guardians,
-                              DashboardPerformanceProbe performanceProbe) {
+            AlumnoService students, GetApoderadoUseCase guardians,
+            DashboardPerformanceProbe performanceProbe) {
         this.treasury = treasury;
         this.families = families;
         this.students = students;
@@ -65,7 +65,7 @@ public class TreasuryController {
 
     @PutMapping("/configuraciones/{year}")
     public AnnualFeeConfig saveConfig(@PathVariable int year,
-                                      @Valid @RequestBody ConfigRequest request, Principal principal) {
+            @Valid @RequestBody ConfigRequest request, Principal principal) {
         return treasury.saveConfig(year, request.annualAmount(), request.allowedMode(),
                 request.annualDueDate(), request.firstDueDate(), request.secondDueDate(),
                 principal.getName());
@@ -73,7 +73,7 @@ public class TreasuryController {
 
     @PutMapping("/modalidades/{familyId}")
     public PlanResponse assignMode(@PathVariable Long familyId,
-                                   @Valid @RequestBody ModeRequest request, Principal principal) {
+            @Valid @RequestBody ModeRequest request, Principal principal) {
         families.obtenerFamiliaPorId(familyId);
         FamilyFeePlan saved = treasury.assignMode(request.year(), familyId, request.mode(),
                 request.customAmount(), request.customDueDate(), request.customConcept(),
@@ -90,8 +90,8 @@ public class TreasuryController {
     @PostMapping("/modalidades/{familyId}/anulacion")
     @PreAuthorize(ADMIN_ROLE)
     public ResponseEntity<Void> removeFamilyPlan(@PathVariable Long familyId,
-                                                 @RequestParam int year, @Valid @RequestBody AnnulmentRequest request,
-                                                 Principal principal) {
+            @RequestParam int year, @Valid @RequestBody AnnulmentRequest request,
+            Principal principal) {
         treasury.removeFamilyPlan(year, familyId, request.reason(), principal.getName());
         return ResponseEntity.noContent().build();
     }
@@ -105,10 +105,10 @@ public class TreasuryController {
 
     @GetMapping("/obligaciones")
     public List<ObligationResponse> obligations(@RequestParam int year,
-                                                @RequestParam(required = false) String course,
-                                                @RequestParam(required = false) Long familyId,
-                                                @RequestParam(required = false) PaymentMode mode,
-                                                @RequestParam(required = false) ObligationStatus status) {
+            @RequestParam(required = false) String course,
+            @RequestParam(required = false) Long familyId,
+            @RequestParam(required = false) PaymentMode mode,
+            @RequestParam(required = false) ObligationStatus status) {
         return enriched(year).stream()
                 .filter(item -> course == null || item.course().equalsIgnoreCase(course))
                 .filter(item -> familyId == null || item.familyId().equals(familyId))
@@ -119,17 +119,17 @@ public class TreasuryController {
 
     @GetMapping("/cuotas/page")
     public AnnualFeesPageResponse annualFeesPage(@RequestParam int year,
-                                                 @RequestParam(required = false) String course,
-                                                 @RequestParam(required = false) Long familyId,
-                                                 @RequestParam(required = false) PaymentMode mode,
-                                                 @RequestParam(required = false) ObligationStatus status) {
+            @RequestParam(required = false) String course,
+            @RequestParam(required = false) Long familyId,
+            @RequestParam(required = false) PaymentMode mode,
+            @RequestParam(required = false) ObligationStatus status) {
         Map<Long, FamilyTreasuryData> familyData = treasuryFamilies();
         List<FamilyFeePlan> plans = treasury.listPlans(year);
         Map<Long, FamilyFeePlan> plansById = new HashMap<>();
         plans.forEach(plan -> plansById.put(plan.id(), plan));
         Map<Long, LocalDate> paymentDatesByObligation = treasury.listActivePayments(year).stream()
-                .collect(java.util.stream.Collectors.toMap(FeePayment::obligationId,
-                        FeePayment::paymentDate));
+                .collect(java.util.stream.Collectors.toMap(value -> Objects.requireNonNull(value.obligationId()),
+                        value -> Objects.requireNonNull(value.paymentDate())));
         List<FeeObligation> allObligations = treasury.listObligations(year);
         List<ObligationResponse> obligations = allObligations.stream()
                 .map(item -> obligation(item, plansById.get(item.planId()),
@@ -148,7 +148,7 @@ public class TreasuryController {
 
     @PostMapping("/obligaciones/{obligationId}/pagos")
     public ResponseEntity<FeePayment> pay(@PathVariable Long obligationId,
-                                          @Valid @RequestBody PaymentRequest request, Principal principal) {
+            @Valid @RequestBody PaymentRequest request, Principal principal) {
         FeePayment payment = treasury.registerPayment(obligationId, request.paymentDate(),
                 request.amount(), principal.getName(), request.observations());
         return new ResponseEntity<>(payment, HttpStatus.CREATED);
@@ -156,7 +156,7 @@ public class TreasuryController {
 
     @PostMapping("/obligaciones/{obligationId}/anulacion")
     public FeePayment annul(@PathVariable Long obligationId,
-                            @Valid @RequestBody AnnulmentRequest request, Principal principal) {
+            @Valid @RequestBody AnnulmentRequest request, Principal principal) {
         return treasury.annulPayment(obligationId, principal.getName(), request.reason());
     }
 
@@ -168,10 +168,12 @@ public class TreasuryController {
     private TreasuryDashboard dashboard(List<FamilyFeePlan> plans, List<FeeObligation> obligations) {
         BigDecimal collected = obligations.stream()
                 .filter(item -> item.status() == ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal pending = obligations.stream()
                 .filter(item -> item.status() != ObligationStatus.PAGADA)
-                .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         return new TreasuryDashboard(plans.size(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
                 plans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
@@ -190,7 +192,8 @@ public class TreasuryController {
             startedAt = DashboardPerformanceProbe.now();
             overview = withCourseComposition(overview);
             performanceProbe.phase(measurement, "controller.courseComposition", startedAt);
-            if (overview.quotas().totalFamilies() == 0) return overview;
+            if (overview.quotas().totalFamilies() == 0)
+                return overview;
 
             startedAt = DashboardPerformanceProbe.now();
             Set<Long> existingFamilyIds = treasuryFamilies().keySet();
@@ -199,7 +202,7 @@ public class TreasuryController {
             List<FamilyFeePlan> validPlans = treasury.listPlans(year).stream()
                     .filter(plan -> existingFamilyIds.contains(plan.familyId())).toList();
             performanceProbe.phase(measurement, "listPlans", startedAt);
-            Set<Long> validPlanIds = validPlans.stream().map(FamilyFeePlan::id)
+            Set<Long> validPlanIds = validPlans.stream().map(value -> Objects.requireNonNull(value.id()))
                     .collect(java.util.stream.Collectors.toSet());
             startedAt = DashboardPerformanceProbe.now();
             List<FeeObligation> validObligations = treasury.listObligations(year).stream()
@@ -213,10 +216,12 @@ public class TreasuryController {
                     .filter(item -> item.status() != ObligationStatus.PAGADA).count();
             BigDecimal collected = validObligations.stream()
                     .filter(item -> item.status() == ObligationStatus.PAGADA)
-                    .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(value -> Objects.requireNonNull(value.amount()))
+                    .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
             BigDecimal pendingAmount = validObligations.stream()
                     .filter(item -> item.status() != ObligationStatus.PAGADA)
-                    .map(FeeObligation::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(value -> Objects.requireNonNull(value.amount()))
+                    .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
             TreasuryDashboard quotas = new TreasuryDashboard(validPlans.size(),
                     validPlans.stream().filter(item -> item.mode() == PaymentMode.ANUAL).count(),
                     validPlans.stream().filter(item -> item.mode() == PaymentMode.DOS_CUOTAS).count(),
@@ -252,7 +257,7 @@ public class TreasuryController {
     @DeleteMapping("/auditoria")
     @PreAuthorize(ADMIN_ROLE)
     public ResponseEntity<Void> clearAudits(@RequestParam int year,
-                                            @RequestBody AuditCleanupRequest request) {
+            @RequestBody AuditCleanupRequest request) {
         treasury.clearAudits(year, request.ids(), request.all());
         return ResponseEntity.noContent().build();
     }
@@ -265,19 +270,19 @@ public class TreasuryController {
     @PutMapping("/aportes/configuraciones/{year}/{type}")
     @PreAuthorize(ADMIN_ROLE)
     public ContributionConfig saveContributionConfig(@PathVariable int year,
-                                                     @PathVariable ContributionType type,
-                                                     @Valid @RequestBody ContributionConfigRequest request, Principal principal) {
+            @PathVariable ContributionType type,
+            @Valid @RequestBody ContributionConfigRequest request, Principal principal) {
         return treasury.saveContributionConfig(year, type, request.name(), request.active(),
                 request.referenceAmount(), request.observations(), principal.getName());
     }
 
     @GetMapping("/aportes")
     public List<FamilyContributionResponse> contributions(@RequestParam int year,
-                                                          @RequestParam(required = false) String course,
-                                                          @RequestParam(required = false) Long familyId,
-                                                          @RequestParam(required = false) ContributionStatus cepaStatus,
-                                                          @RequestParam(required = false) ContributionStatus solidarityStatus,
-                                                          @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String course,
+            @RequestParam(required = false) Long familyId,
+            @RequestParam(required = false) ContributionStatus cepaStatus,
+            @RequestParam(required = false) ContributionStatus solidarityStatus,
+            @RequestParam(required = false) String search) {
         Map<String, FamilyContribution> payments = contributionMap(year);
         String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         return treasuryFamilies().values().stream()
@@ -290,9 +295,9 @@ public class TreasuryController {
                 .filter(item -> matchesContribution(item.cepa(), cepaStatus))
                 .filter(item -> matchesContribution(item.solidarity(), solidarityStatus))
                 .sorted(Comparator
-                        .comparing((FamilyContributionResponse item) ->
-                                isPaid(item.cepa()) && isPaid(item.solidarity()))
-                        .thenComparing(FamilyContributionResponse::familyCode))
+                        .comparing(
+                                (FamilyContributionResponse item) -> isPaid(item.cepa()) && isPaid(item.solidarity()))
+                        .thenComparing(value -> Objects.requireNonNull(value.familyCode())))
                 .toList();
     }
 
@@ -321,7 +326,7 @@ public class TreasuryController {
     @PostMapping("/aportes/{familyId}/pagos")
     @PreAuthorize(ADMIN_ROLE)
     public ResponseEntity<FamilyContribution> registerContribution(@PathVariable Long familyId,
-                                                                   @Valid @RequestBody ContributionPaymentRequest request, Principal principal) {
+            @Valid @RequestBody ContributionPaymentRequest request, Principal principal) {
         families.obtenerFamiliaPorId(familyId);
         FamilyContribution saved = treasury.registerContribution(familyId, request.schoolYear(),
                 request.contributionType(), request.paymentDate(), request.notes(), principal.getName());
@@ -331,21 +336,21 @@ public class TreasuryController {
     @PatchMapping("/aportes/{id}/anulacion")
     @PreAuthorize(ADMIN_ROLE)
     public FamilyContribution cancelContribution(@PathVariable Long id,
-                                                 @Valid @RequestBody AnnulmentRequest request, Principal principal) {
+            @Valid @RequestBody AnnulmentRequest request, Principal principal) {
         return treasury.cancelContribution(id, request.reason(), principal.getName());
     }
 
     @GetMapping("/egresos")
     public List<TreasuryExpense> expenses(@RequestParam int year,
-                                          @RequestParam(required = false) Integer month,
-                                          @RequestParam(required = false) java.time.LocalDate dateFrom,
-                                          @RequestParam(required = false) java.time.LocalDate dateTo,
-                                          @RequestParam(required = false) ExpenseCategory category,
-                                          @RequestParam(required = false) ExpensePaymentMethod paymentMethod,
-                                          @RequestParam(required = false) ExpenseStatus status,
-                                          @RequestParam(required = false) String registeredBy,
-                                          @RequestParam(required = false) String search,
-                                          @RequestParam(defaultValue = "DATE_DESC") String sort) {
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) java.time.LocalDate dateFrom,
+            @RequestParam(required = false) java.time.LocalDate dateTo,
+            @RequestParam(required = false) ExpenseCategory category,
+            @RequestParam(required = false) ExpensePaymentMethod paymentMethod,
+            @RequestParam(required = false) ExpenseStatus status,
+            @RequestParam(required = false) String registeredBy,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "DATE_DESC") String sort) {
         String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         Comparator<TreasuryExpense> comparator = expenseComparator(sort);
         return treasury.listExpenses(year).stream()
@@ -379,7 +384,7 @@ public class TreasuryController {
     @PatchMapping("/egresos/{id}")
     @PreAuthorize(ADMIN_ROLE)
     public TreasuryExpense updateExpense(@PathVariable Long id,
-                                         @Valid @RequestBody ExpenseRequest request, Principal principal) {
+            @Valid @RequestBody ExpenseRequest request, Principal principal) {
         return treasury.updateExpense(id, request.description(), request.amount(),
                 request.expenseDate(), request.category(), request.paymentMethod(), request.recipient(),
                 request.receiptNumber(), request.notes(), request.correctionReason(), principal.getName());
@@ -388,7 +393,7 @@ public class TreasuryController {
     @PatchMapping("/egresos/{id}/anulacion")
     @PreAuthorize(ADMIN_ROLE)
     public TreasuryExpense cancelExpense(@PathVariable Long id,
-                                         @Valid @RequestBody AnnulmentRequest request, Principal principal) {
+            @Valid @RequestBody AnnulmentRequest request, Principal principal) {
         return treasury.cancelExpense(id, request.reason(), principal.getName());
     }
 
@@ -399,17 +404,17 @@ public class TreasuryController {
 
     @GetMapping("/ingresos")
     public List<TreasuryIncome> incomes(@RequestParam int year,
-                                        @RequestParam(required = false) Integer month,
-                                        @RequestParam(required = false) java.time.LocalDate dateFrom,
-                                        @RequestParam(required = false) java.time.LocalDate dateTo,
-                                        @RequestParam(required = false) IncomeCategory category,
-                                        @RequestParam(required = false) String course,
-                                        @RequestParam(required = false) Long familyId,
-                                        @RequestParam(required = false) IncomePaymentMethod paymentMethod,
-                                        @RequestParam(required = false) IncomeStatus status,
-                                        @RequestParam(required = false) String registeredBy,
-                                        @RequestParam(required = false) String search,
-                                        @RequestParam(defaultValue = "DATE_DESC") String sort) {
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) java.time.LocalDate dateFrom,
+            @RequestParam(required = false) java.time.LocalDate dateTo,
+            @RequestParam(required = false) IncomeCategory category,
+            @RequestParam(required = false) String course,
+            @RequestParam(required = false) Long familyId,
+            @RequestParam(required = false) IncomePaymentMethod paymentMethod,
+            @RequestParam(required = false) IncomeStatus status,
+            @RequestParam(required = false) String registeredBy,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "DATE_DESC") String sort) {
         String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
         return treasury.listIncomes(year).stream()
                 .filter(item -> month == null || item.incomeDate().getMonthValue() == month)
@@ -436,7 +441,8 @@ public class TreasuryController {
     @PreAuthorize(ADMIN_ROLE)
     public ResponseEntity<TreasuryIncome> createIncome(
             @Valid @RequestBody IncomeRequest request, Principal principal) {
-        if (request.familyId() != null) families.obtenerFamiliaPorId(request.familyId());
+        if (request.familyId() != null)
+            families.obtenerFamiliaPorId(request.familyId());
         TreasuryIncome saved = treasury.createIncome(request.schoolYear(), request.description(),
                 request.amount(), request.incomeDate(), request.category(), request.source(),
                 request.paymentMethod(), request.receiptNumber(), request.course(), request.familyId(),
@@ -447,8 +453,9 @@ public class TreasuryController {
     @PatchMapping("/ingresos/{id}")
     @PreAuthorize(ADMIN_ROLE)
     public TreasuryIncome updateIncome(@PathVariable Long id,
-                                       @Valid @RequestBody IncomeRequest request, Principal principal) {
-        if (request.familyId() != null) families.obtenerFamiliaPorId(request.familyId());
+            @Valid @RequestBody IncomeRequest request, Principal principal) {
+        if (request.familyId() != null)
+            families.obtenerFamiliaPorId(request.familyId());
         return treasury.updateIncome(id, request.description(), request.amount(),
                 request.incomeDate(), request.category(), request.source(), request.paymentMethod(),
                 request.receiptNumber(), request.course(), request.familyId(), request.notes(),
@@ -458,7 +465,7 @@ public class TreasuryController {
     @PatchMapping("/ingresos/{id}/anulacion")
     @PreAuthorize(ADMIN_ROLE)
     public TreasuryIncome cancelIncome(@PathVariable Long id,
-                                       @Valid @RequestBody AnnulmentRequest request, Principal principal) {
+            @Valid @RequestBody AnnulmentRequest request, Principal principal) {
         return treasury.cancelIncome(id, request.reason(), principal.getName());
     }
 
@@ -466,8 +473,8 @@ public class TreasuryController {
     public List<ReportResponse> reports(@RequestParam int year, @RequestParam String type) {
         Map<Long, List<ObligationResponse>> grouped = new LinkedHashMap<>();
         Map<Long, FamilyTreasuryData> reportFamilies = treasuryFamilies();
-        enriched(year).forEach(item ->
-                grouped.computeIfAbsent(item.familyId(), ignored -> new ArrayList<>()).add(item));
+        enriched(year)
+                .forEach(item -> grouped.computeIfAbsent(item.familyId(), ignored -> new ArrayList<>()).add(item));
         return grouped.values().stream()
                 .filter(reportFilter(type))
                 .map(items -> {
@@ -520,13 +527,13 @@ public class TreasuryController {
                     item -> item.status() == ObligationStatus.PAGADA);
             case "DEUDA" -> items -> items.stream().anyMatch(
                     item -> item.status() == ObligationStatus.PENDIENTE);
-            case "ANUAL_PAGADA" -> items -> items.stream().anyMatch(item ->
-                    item.installment() == InstallmentType.ANUAL && item.status() == ObligationStatus.PAGADA);
-            case "PRIMERA_PAGADA" -> items -> items.stream().anyMatch(item ->
-                    item.installment() == InstallmentType.PRIMERA && item.status() == ObligationStatus.PAGADA);
-            case "SEGUNDA_PENDIENTE" -> items -> items.stream().anyMatch(item ->
-                    item.installment() == InstallmentType.SEGUNDA
-                            && item.status() == ObligationStatus.PENDIENTE);
+            case "ANUAL_PAGADA" -> items -> items.stream().anyMatch(
+                    item -> item.installment() == InstallmentType.ANUAL && item.status() == ObligationStatus.PAGADA);
+            case "PRIMERA_PAGADA" -> items -> items.stream().anyMatch(
+                    item -> item.installment() == InstallmentType.PRIMERA && item.status() == ObligationStatus.PAGADA);
+            case "SEGUNDA_PENDIENTE" ->
+                items -> items.stream().anyMatch(item -> item.installment() == InstallmentType.SEGUNDA
+                        && item.status() == ObligationStatus.PENDIENTE);
             default -> throw new DomainException(TreasuryErrorCode.INVALID.getField(),
                     TreasuryErrorCode.INVALID.getStatus(), "Tipo de reporte inválido");
         };
@@ -537,8 +544,8 @@ public class TreasuryController {
         Map<Long, FamilyFeePlan> plansById = new HashMap<>();
         treasury.listPlans(year).forEach(plan -> plansById.put(plan.id(), plan));
         Map<Long, LocalDate> paymentDatesByObligation = treasury.listActivePayments(year).stream()
-                .collect(java.util.stream.Collectors.toMap(FeePayment::obligationId,
-                        FeePayment::paymentDate));
+                .collect(java.util.stream.Collectors.toMap(value -> Objects.requireNonNull(value.obligationId()),
+                        value -> Objects.requireNonNull(value.paymentDate())));
         return treasury.listObligations(year).stream()
                 .map(item -> obligation(item, plansById.get(item.planId()),
                         paymentDatesByObligation.get(item.id()), familyData))
@@ -552,8 +559,8 @@ public class TreasuryController {
     }
 
     private ObligationResponse obligation(FeeObligation value, FamilyFeePlan plan,
-                                          LocalDate paymentDate,
-                                          Map<Long, FamilyTreasuryData> familiesById) {
+            LocalDate paymentDate,
+            Map<Long, FamilyTreasuryData> familiesById) {
         FamilyData data = familyData(familiesById.get(plan.familyId()));
         return new ObligationResponse(value.id(), plan.familyId(), data.code(),
                 data.primaryGuardian(), data.studentName(), data.course(), plan.mode(),
@@ -578,18 +585,18 @@ public class TreasuryController {
 
     private Map<String, FamilyContribution> contributionMap(int year) {
         Map<String, FamilyContribution> result = new HashMap<>();
-        treasury.listContributions(year).forEach(item ->
-                result.put(item.familyId() + ":" + item.type(), item));
+        treasury.listContributions(year).forEach(item -> result.put(item.familyId() + ":" + item.type(), item));
         return result;
     }
 
     private Map<Long, FamilyTreasuryData> treasuryFamilies() {
         return families.obtenerDatosTesoreria().stream().collect(java.util.stream.Collectors.toMap(
-                FamilyTreasuryData::familyId, item -> item, (first, ignored) -> first, LinkedHashMap::new));
+                value -> Objects.requireNonNull(value.familyId()), item -> item, (first, ignored) -> first,
+                LinkedHashMap::new));
     }
 
     private FamilyContributionResponse contributionFamily(FamilyTreasuryData family,
-                                                          Map<String, FamilyContribution> payments) {
+            Map<String, FamilyContribution> payments) {
         Long id = family.familyId();
         return new FamilyContributionResponse(id, family.familyCode(), family.studentName(),
                 family.course(), family.primaryGuardian(),
@@ -598,14 +605,17 @@ public class TreasuryController {
     }
 
     private ContributionResponse contribution(FamilyContribution value) {
-        if (value == null) return null;
+        if (value == null)
+            return null;
         return new ContributionResponse(value.id(), value.status(), value.paymentDate(),
                 value.amount(), value.registeredBy(), value.notes(), value.cancelledAt());
     }
 
     private boolean matchesContribution(ContributionResponse value, ContributionStatus status) {
-        if (status == null) return true;
-        if (status == ContributionStatus.PENDING) return !isPaid(value);
+        if (status == null)
+            return true;
+        if (status == ContributionStatus.PENDING)
+            return !isPaid(value);
         return value != null && value.status() == status;
     }
 
@@ -625,14 +635,20 @@ public class TreasuryController {
 
     private Comparator<TreasuryExpense> expenseComparator(String sort) {
         return switch (sort.toUpperCase(Locale.ROOT)) {
-            case "DATE_ASC" -> Comparator.comparing(TreasuryExpense::expenseDate);
-            case "AMOUNT_DESC" -> Comparator.comparing(TreasuryExpense::amount).reversed();
-            case "AMOUNT_ASC" -> Comparator.comparing(TreasuryExpense::amount);
-            case "DESCRIPTION" -> Comparator.comparing(TreasuryExpense::description,
-                    String.CASE_INSENSITIVE_ORDER);
+            case "DATE_ASC" ->
+                Comparator.comparing((TreasuryExpense value) -> Objects.requireNonNull(value.expenseDate()));
+            case "AMOUNT_DESC" ->
+                Comparator.comparing((TreasuryExpense value) -> Objects.requireNonNull(value.amount())).reversed();
+            case "AMOUNT_ASC" ->
+                Comparator.comparing((TreasuryExpense value) -> Objects.requireNonNull(value.amount()));
+            case "DESCRIPTION" ->
+                Comparator.comparing((TreasuryExpense value) -> Objects.requireNonNull(value.description()),
+                        String.CASE_INSENSITIVE_ORDER);
             case "CATEGORY" -> Comparator.comparing(item -> item.category().name());
-            default -> Comparator.comparing(TreasuryExpense::expenseDate).reversed()
-                    .thenComparing(TreasuryExpense::id, Comparator.reverseOrder());
+            default ->
+                Comparator.comparing((TreasuryExpense value) -> Objects.requireNonNull(value.expenseDate())).reversed()
+                        .thenComparing((TreasuryExpense value) -> Objects.requireNonNull(value.id()),
+                                Comparator.reverseOrder());
         };
     }
 
@@ -645,19 +661,24 @@ public class TreasuryController {
 
     private Comparator<TreasuryIncome> incomeComparator(String sort) {
         return switch (sort.toUpperCase(Locale.ROOT)) {
-            case "DATE_ASC" -> Comparator.comparing(TreasuryIncome::incomeDate);
-            case "AMOUNT_DESC" -> Comparator.comparing(TreasuryIncome::amount).reversed();
-            case "AMOUNT_ASC" -> Comparator.comparing(TreasuryIncome::amount);
-            case "DESCRIPTION" -> Comparator.comparing(TreasuryIncome::description,
-                    String.CASE_INSENSITIVE_ORDER);
+            case "DATE_ASC" ->
+                Comparator.comparing((TreasuryIncome value) -> Objects.requireNonNull(value.incomeDate()));
+            case "AMOUNT_DESC" ->
+                Comparator.comparing((TreasuryIncome value) -> Objects.requireNonNull(value.amount())).reversed();
+            case "AMOUNT_ASC" -> Comparator.comparing((TreasuryIncome value) -> Objects.requireNonNull(value.amount()));
+            case "DESCRIPTION" ->
+                Comparator.comparing((TreasuryIncome value) -> Objects.requireNonNull(value.description()),
+                        String.CASE_INSENSITIVE_ORDER);
             case "CATEGORY" -> Comparator.comparing(item -> item.category().name());
-            default -> Comparator.comparing(TreasuryIncome::incomeDate).reversed()
-                    .thenComparing(TreasuryIncome::id, Comparator.reverseOrder());
+            default ->
+                Comparator.comparing((TreasuryIncome value) -> Objects.requireNonNull(value.incomeDate())).reversed()
+                        .thenComparing((TreasuryIncome value) -> Objects.requireNonNull(value.id()),
+                                Comparator.reverseOrder());
         };
     }
 
     private record FamilyData(String code, String primaryGuardian, String studentName,
-                              String course) {
+            String course) {
     }
 
     public record AuditCleanupRequest(List<Long> ids, boolean all) {

@@ -59,7 +59,7 @@ class CoursePhotoServiceTest {
                 new byte[10 * 1024 * 1024 + 1]);
         ResponseStatusException oversized = assertThrows(ResponseStatusException.class,
                 () -> service.upload(large, null));
-        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, oversized.getStatusCode());
+        assertEquals(HttpStatus.CONTENT_TOO_LARGE, oversized.getStatusCode());
     }
 
     @Test

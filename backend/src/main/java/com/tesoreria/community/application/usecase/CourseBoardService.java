@@ -30,7 +30,7 @@ public class CourseBoardService {
         int selectedYear = normalizeYear(year);
         return members.findAllByElectionYearOrderByRoleAscPositionNumberAsc(selectedYear).stream()
                 .sorted(Comparator.comparingInt((BoardMemberEntity member) -> ROLE_ORDER.indexOf(member.getRole()))
-                        .thenComparing(BoardMemberEntity::getPositionNumber))
+                        .thenComparingInt(member -> Objects.requireNonNull(member.getPositionNumber())))
                 .map(member -> {
             var parent = apoderados.findById(member.getApoderadoId()).orElseThrow(
                     () -> error(HttpStatus.NOT_FOUND, "Apoderado de la directiva no encontrado"));

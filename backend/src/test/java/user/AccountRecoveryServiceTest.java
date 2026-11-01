@@ -1,10 +1,7 @@
 package user;
 
-import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository;
 import com.tesoreria.shared.domain.exception.DomainException;
-import com.tesoreria.organization.application.OrganizationEmailBranding;
-import com.tesoreria.organization.application.OrganizationEmailBrandingService;
 import com.tesoreria.user.application.usecase.AccountRecoveryService;
 import com.tesoreria.user.application.usecase.AuthFlowRateLimiter;
 import com.tesoreria.user.config.security.TokenRevocationService;
@@ -52,7 +49,8 @@ class AccountRecoveryServiceTest {
     @Mock
     private com.tesoreria.user.application.usecase.RefreshTokenService sessions;
     private AccountRecoveryService service;
-    @Mock private com.tesoreria.user.application.usecase.SecurityMailQueue mailQueue;
+    @Mock
+    private com.tesoreria.user.application.usecase.SecurityMailQueue mailQueue;
     @Mock
     private ApoderadoJpaRepository guardians;
     @Mock
@@ -192,7 +190,7 @@ class AccountRecoveryServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
+    @ValueSource(booleans = { false, true })
     void forgotPassword_deberiaConservarCodigosAnteriores(boolean fragments) {
         org.springframework.test.util.ReflectionTestUtils.setField(service, "accountLinkFragmentsEnabled", fragments);
         User user = org.mockito.Mockito.mock(User.class);
@@ -210,13 +208,13 @@ class AccountRecoveryServiceTest {
 
         verify(tokens, never()).deleteByUserIdAndType(7L, UserTokenType.PASSWORD_RESET);
         verify(tokens).save(any(UserTokenEntity.class));
-        verify(email).sendRecoverySummary(eq("user@example.com"), eq("User"), argThat(links ->
-                links.size() == 1 && links.get(0).url().startsWith(
+        verify(email).sendRecoverySummary(eq("user@example.com"), eq("User"),
+                argThat(links -> links.size() == 1 && links.get(0).url().startsWith(
                         "https://app.example/restablecer-password" + (fragments ? "#" : "?") + "token=")));
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
+    @ValueSource(booleans = { false, true })
     void verificationDeliveryUsesSelectedTransportAndStoresOnlyTheHash(boolean fragments) {
         org.springframework.test.util.ReflectionTestUtils.setField(service, "accountLinkFragmentsEnabled", fragments);
         User user = new User();
@@ -234,7 +232,10 @@ class AccountRecoveryServiceTest {
         verify(email).sendVerificationEmail(eq(user.getCorreo()), eq(user.getNombre()), link.capture());
         verify(tokens).save(saved.capture());
         var uri = java.net.URI.create(link.getValue());
-        if (fragments) assertNull(uri.getRawQuery()); else assertNull(uri.getRawFragment());
+        if (fragments)
+            assertNull(uri.getRawQuery());
+        else
+            assertNull(uri.getRawFragment());
         assertEquals("/verificar-correo", uri.getPath());
         String credential = fragments ? uri.getFragment() : uri.getQuery();
         assertTrue(credential.startsWith("token="));

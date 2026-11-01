@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -112,7 +113,7 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     public List<FeeObligation> findObligationsByConfig(Long configId) {
         List<Long> ids = performanceProbe.repository("treasury.findObligationPlanIds", () ->
                 plans.findByConfigIdOrderByFamilyId(configId).stream()
-                        .map(FamilyFeePlanEntity::getId).toList());
+                        .map(value -> Objects.requireNonNull(value.getId())).toList());
         if (ids.isEmpty()) return List.of();
         return performanceProbe.repository("treasury.findObligationsByPlanIds", () ->
                 obligations.findByPlanIdInOrderByDueDate(ids).stream()
@@ -153,14 +154,14 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     @Override
     public boolean hasActivePaymentForPlan(Long planId) {
         List<Long> ids = obligations.findByPlanIdOrderByDueDate(planId).stream()
-                .map(FeeObligationEntity::getId).toList();
+                .map(value -> Objects.requireNonNull(value.getId())).toList();
         return !ids.isEmpty() && payments.existsByObligationIdInAndAnnulledFalse(ids);
     }
 
     @Override
     public void deletePaymentsByPlan(Long planId) {
         List<Long> obligationIds = obligations.findByPlanIdOrderByDueDate(planId).stream()
-                .map(FeeObligationEntity::getId).toList();
+                .map(value -> Objects.requireNonNull(value.getId())).toList();
         if (!obligationIds.isEmpty()) payments.deleteByObligationIdIn(obligationIds);
     }
 
@@ -299,7 +300,7 @@ public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
     public void deleteFamilyTreasuryData(Long familyId) {
         for (FamilyFeePlanEntity plan : plans.findByFamilyId(familyId)) {
             List<Long> obligationIds = obligations.findByPlanIdOrderByDueDate(plan.getId()).stream()
-                    .map(FeeObligationEntity::getId).toList();
+                    .map(value -> Objects.requireNonNull(value.getId())).toList();
             if (!obligationIds.isEmpty()) payments.deleteByObligationIdIn(obligationIds);
             obligations.deleteByPlanId(plan.getId());
             plans.deleteById(plan.getId());

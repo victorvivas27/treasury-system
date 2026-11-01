@@ -8,7 +8,6 @@ import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
-import com.tesoreria.shared.infrastructure.cache.CacheNames;
 import com.tesoreria.shared.infrastructure.cache.TenantCacheKeys;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
@@ -17,8 +16,6 @@ import com.tesoreria.treasury.infrastructure.adapter.in.web.controller.TreasuryC
 import com.tesoreria.treasury.infrastructure.adapter.in.web.dto.TreasuryDtos.ContributionSummaryResponse;
 import com.tesoreria.user.core.constant.RoleEnum;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
@@ -33,7 +30,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Real Hibernate tenant filtering, H2, transaction manager, cache proxies and controller. */
+/**
+ * Real Hibernate tenant filtering, H2, transaction manager, cache proxies and
+ * controller.
+ */
 @org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(classes = com.tesoreria.TesoreriaAppApplication.class, properties = {
         "spring.config.import=", "spring.flyway.enabled=false",
@@ -43,19 +43,30 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 class SA01RollbackAdversarialTest {
     private static final int YEAR = 2026;
-    @Autowired OrganizationJpaRepository organizations;
-    @Autowired AlumnoJpaRepository students;
-    @Autowired FamiliaJpaRepository families;
-    @Autowired TreasuryUseCase service;
-    @Autowired TreasuryRepositoryOutPort repository;
-    @Autowired TreasuryController controller;
-    @Autowired CacheManager caches;
-    @Autowired TenantCacheKeys keys;
+    @Autowired
+    OrganizationJpaRepository organizations;
+    @Autowired
+    AlumnoJpaRepository students;
+    @Autowired
+    FamiliaJpaRepository families;
+    @Autowired
+    TreasuryUseCase service;
+    @Autowired
+    TreasuryRepositoryOutPort repository;
+    @Autowired
+    TreasuryController controller;
+    @Autowired
+    CacheManager caches;
+    @Autowired
+    TenantCacheKeys keys;
 
     @AfterEach
-    void cleanup() { SecurityContextHolder.clearContext(); }
+    void cleanup() {
+        SecurityContextHolder.clearContext();
+    }
 
-    @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @Autowired
+    org.springframework.transaction.PlatformTransactionManager transactionManager;
 
     @org.junit.jupiter.api.Test
     void rollbackMustNotPublishUncommittedFinancialConfiguration() {
@@ -66,12 +77,13 @@ class SA01RollbackAdversarialTest {
         caches.getCacheNames().forEach(name -> caches.getCache(name).clear());
         Snapshot bBefore = read(b);
         authenticate(a);
-        new org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-            service.saveConfig(YEAR, BigDecimal.valueOf(99000), AllowedPaymentMode.AMBAS,
-                    date(4), date(4), date(7), "rollback-test");
-            assertEquals(99000, service.getConfig(YEAR).annualAmount().longValue());
-            status.setRollbackOnly();
-        });
+        new org.springframework.transaction.support.TransactionTemplate(transactionManager)
+                .executeWithoutResult(status -> {
+                    service.saveConfig(YEAR, BigDecimal.valueOf(99000), AllowedPaymentMode.AMBAS,
+                            date(4), date(4), date(7), "rollback-test");
+                    assertEquals(99000, service.getConfig(YEAR).annualAmount().longValue());
+                    status.setRollbackOnly();
+                });
         assertEquals(70000, repository.findConfigByYear(YEAR).orElseThrow().annualAmount().longValue(),
                 "Database must retain committed A value");
         Snapshot bAfter = read(b);
@@ -80,6 +92,7 @@ class SA01RollbackAdversarialTest {
         assertEquals(70000, service.getConfig(YEAR).annualAmount().longValue(),
                 "Cache must not retain A value from rolled-back transaction");
     }
+
     private void setup(Long tenant, long fee, long income, int familyCount) {
         authenticate(tenant);
         for (int i = 0; i < familyCount; i++) {
@@ -101,7 +114,9 @@ class SA01RollbackAdversarialTest {
                 service.dashboardOverview(YEAR), controller.contributionSummary(YEAR));
     }
 
-    private LocalDate date(int month) { return LocalDate.of(YEAR, month, 1); }
+    private LocalDate date(int month) {
+        return LocalDate.of(YEAR, month, 1);
+    }
 
     private Long organization() {
         OrganizationEntity value = new OrganizationEntity();
@@ -122,7 +137,7 @@ class SA01RollbackAdversarialTest {
     }
 
     private record Snapshot(AnnualFeeConfig config, List<AnnualFeeConfig> list,
-                            List<ContributionConfig> contributions, TreasuryDashboardOverview dashboard,
-                            ContributionSummaryResponse summary) { }
+            List<ContributionConfig> contributions, TreasuryDashboardOverview dashboard,
+            ContributionSummaryResponse summary) {
+    }
 }
-

@@ -34,16 +34,17 @@ public class DashboardPerformanceProbe {
     private final boolean enabled;
 
     public DashboardPerformanceProbe(EntityManagerFactory entityManagerFactory,
-                                     CacheManager cacheManager,
-                                     TenantCacheKeys cacheKeys,
-                                     DataSource dataSource,
-                                     @Value("${app.instrumentation.dashboard:false}") boolean enabled) {
+            CacheManager cacheManager,
+            TenantCacheKeys cacheKeys,
+            DataSource dataSource,
+            @Value("${app.instrumentation.dashboard:false}") boolean enabled) {
         this.statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         this.cacheManager = cacheManager;
         this.cacheKeys = cacheKeys;
         this.dataSource = dataSource;
         this.enabled = enabled;
-        if (enabled) statistics.setStatisticsEnabled(true);
+        if (enabled)
+            statistics.setStatisticsEnabled(true);
     }
 
     public static long now() {
@@ -60,14 +61,17 @@ public class DashboardPerformanceProbe {
 
     public Measurement start(String endpoint, int year) {
         Measurement current = CURRENT.get();
-        if (current != null) return current;
-        if (!enabled) return Measurement.disabled();
+        if (current != null)
+            return current;
+        if (!enabled)
+            return Measurement.disabled();
         return new Measurement(year, System.nanoTime(), statistics.getPrepareStatementCount(),
                 statistics.getQueryExecutionCount(), cacheContains(endpoint, year), endpoint, false);
     }
 
     public Measurement startRequest(String endpoint, int year) {
-        if (!enabled) return Measurement.disabled();
+        if (!enabled)
+            return Measurement.disabled();
         Measurement measurement = new Measurement(year, System.nanoTime(),
                 statistics.getPrepareStatementCount(), statistics.getQueryExecutionCount(),
                 cacheContains(endpoint, year), endpoint, true);
@@ -76,7 +80,8 @@ public class DashboardPerformanceProbe {
     }
 
     public void measureConnectionAcquisition(Measurement measurement) {
-        if (!measurement.enabled) return;
+        if (!measurement.enabled)
+            return;
         long startedAt = now();
         try (Connection ignored = dataSource.getConnection()) {
             phase(measurement, "connectionAcquire.probe", startedAt);
@@ -100,14 +105,16 @@ public class DashboardPerformanceProbe {
     }
 
     private static String sanitizeSql(String sql) {
-        if (sql == null || sql.isBlank()) return "<unknown>";
+        if (sql == null || sql.isBlank())
+            return "<unknown>";
         String normalized = sql.replaceAll("\\s+", " ").trim();
         return normalized.length() <= 240 ? normalized : normalized.substring(0, 237) + "...";
     }
 
     public <T> T repository(String name, Supplier<T> supplier) {
         Measurement measurement = CURRENT.get();
-        if (measurement == null || !measurement.enabled) return supplier.get();
+        if (measurement == null || !measurement.enabled)
+            return supplier.get();
         long statementsBefore = statistics.getPrepareStatementCount();
         long queriesBefore = statistics.getQueryExecutionCount();
         long startedAt = now();
@@ -119,22 +126,27 @@ public class DashboardPerformanceProbe {
     }
 
     private long rowCount(@Nullable Object result) {
-        if (result instanceof Collection<?> collection) return collection.size();
-        if (result instanceof java.util.Optional<?> optional) return optional.isPresent() ? 1 : 0;
+        if (result instanceof Collection<?> collection)
+            return collection.size();
+        if (result instanceof java.util.Optional<?> optional)
+            return optional.isPresent() ? 1 : 0;
         return result == null ? 0 : 1;
     }
 
     public void phase(Measurement measurement, String name, long startedAt) {
-        if (measurement.enabled) measurement.phases.put(name, elapsedMillis(startedAt));
+        if (measurement.enabled)
+            measurement.phases.put(name, elapsedMillis(startedAt));
     }
 
     public void phaseCurrent(String name, long startedAt) {
         Measurement measurement = CURRENT.get();
-        if (measurement != null) phase(measurement, name, startedAt);
+        if (measurement != null)
+            phase(measurement, name, startedAt);
     }
 
     public void finish(Measurement measurement) {
-        if (measurement.requestOwned) return;
+        if (measurement.requestOwned)
+            return;
         logAndClear(measurement);
     }
 
@@ -144,7 +156,8 @@ public class DashboardPerformanceProbe {
 
     private void logAndClear(Measurement measurement) {
         if (measurement.enabled && LOG.isInfoEnabled()) {
-            LOG.info("PERF endpoint={} year={} totalMs={} phasesMs={} repositoryCalls={} sqlStatements={} hqlQueries={} cache={} cacheEntryAfter={}",
+            LOG.info(
+                    "PERF endpoint={} year={} totalMs={} phasesMs={} repositoryCalls={} sqlStatements={} hqlQueries={} cache={} cacheEntryAfter={}",
                     measurement.endpoint, measurement.year, elapsedMillis(measurement.startedAt),
                     measurement.phases, measurement.repositoryCalls,
                     statistics.getPrepareStatementCount() - measurement.statementsBefore,
@@ -153,25 +166,28 @@ public class DashboardPerformanceProbe {
                     cacheContains(measurement.endpoint, measurement.year));
             if (LOG.isInfoEnabled()
                     && (!measurement.connectionAcquisitions.isEmpty() || !measurement.sqlExecutions.isEmpty())) {
-                LOG.info("PERF_DETAIL endpoint={} year={} connectionAcquisitionsMs={} repeatedRepositoryCalls={} repeatedSqlFingerprints={} sqlExecutions={}",
+                LOG.info(
+                        "PERF_DETAIL endpoint={} year={} connectionAcquisitionsMs={} repeatedRepositoryCalls={} repeatedSqlFingerprints={} sqlExecutions={}",
                         measurement.endpoint, measurement.year, measurement.connectionAcquisitions,
                         repeatedRepositoryCalls(measurement.repositoryCalls),
                         repeatedSqlFingerprints(measurement.sqlExecutions), measurement.sqlExecutions);
             }
         }
-        if (measurement.equals(CURRENT.get())) CURRENT.remove();
+        if (measurement.equals(CURRENT.get()))
+            CURRENT.remove();
     }
 
     private Map<String, Long> repeatedRepositoryCalls(List<RepositoryCall> calls) {
         Map<String, Long> counts = new LinkedHashMap<>();
-        calls.forEach(call -> counts.merge(call.name(), 1L, Long::sum));
+        calls.forEach(call -> counts.merge(call.name(), 1L, (count, increment) -> count + increment));
         counts.entrySet().removeIf(entry -> entry.getValue() < 2);
         return counts;
     }
 
     private Map<String, Long> repeatedSqlFingerprints(List<SqlExecution> executions) {
         Map<String, Long> counts = new LinkedHashMap<>();
-        executions.forEach(execution -> counts.merge(sqlFingerprint(execution.sql()), 1L, Long::sum));
+        executions.forEach(execution -> counts.merge(sqlFingerprint(execution.sql()), 1L,
+                (count, increment) -> count + increment));
         counts.entrySet().removeIf(entry -> entry.getValue() < 2);
         return counts;
     }
@@ -184,7 +200,8 @@ public class DashboardPerformanceProbe {
 
     private boolean cacheContains(String endpoint, int year) {
         org.springframework.cache.Cache springCache = cacheManager.getCache(cacheName(endpoint));
-        if (springCache == null) return false;
+        if (springCache == null)
+            return false;
         Object nativeCache = springCache.getNativeCache();
         return nativeCache instanceof Cache<?, ?> caffeine && caffeine.asMap().containsKey(cacheKeys.year(year));
     }
@@ -210,8 +227,8 @@ public class DashboardPerformanceProbe {
         private final List<SqlExecution> sqlExecutions = new ArrayList<>();
 
         private Measurement(int year, long startedAt, long statementsBefore,
-                            long queriesBefore, boolean cacheEntryBefore, String endpoint,
-                            boolean requestOwned) {
+                long queriesBefore, boolean cacheEntryBefore, String endpoint,
+                boolean requestOwned) {
             this.enabled = true;
             this.year = year;
             this.startedAt = startedAt;
@@ -239,7 +256,7 @@ public class DashboardPerformanceProbe {
     }
 
     private record RepositoryCall(String name, long ms, long sqlStatements,
-                                  long hqlQueries, long rows) {
+            long hqlQueries, long rows) {
     }
 
     private record SqlExecution(String operation, long ms, String sql) {

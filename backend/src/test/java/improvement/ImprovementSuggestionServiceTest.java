@@ -61,11 +61,10 @@ class ImprovementSuggestionServiceTest {
         assertEquals(List.of("Mas filtros"), response.selectedItems());
         verify(storage).upload(matches("mejoras/captura/usuario-test-us-10/[0-9a-f-]{36}\\.png"),
                 any(byte[].class), eq("image/png"));
-        verify(suggestions).saveAndFlush(argThat(saved ->
-                saved.getUser().getId().equals(10L)
-                        && saved.getOrganizationId().equals(3L)
-                        && saved.getStatus() == ImprovementStatus.RECEIVED
-                        && saved.getInternalPriority() == ImprovementPriority.MEDIUM));
+        verify(suggestions).saveAndFlush(argThat(saved -> saved.getUser().getId().equals(10L)
+                && saved.getOrganizationId().equals(3L)
+                && saved.getStatus() == ImprovementStatus.RECEIVED
+                && saved.getInternalPriority() == ImprovementPriority.MEDIUM));
     }
 
     @Test
@@ -73,14 +72,16 @@ class ImprovementSuggestionServiceTest {
         assertAll(
                 () -> assertThrows(DomainException.class, () -> service.create(
                         new ImprovementSuggestionRequest(ImprovementCategory.UX, List.of(), "", "detalle",
-                                UserImpact.USEFUL, "/dashboard"), null, "user@test.cl")),
+                                UserImpact.USEFUL, "/dashboard"),
+                        null, "user@test.cl")),
                 () -> assertThrows(DomainException.class, () -> service.create(
                         new ImprovementSuggestionRequest(ImprovementCategory.UX, List.of(), "titulo", "detalle",
-                                UserImpact.USEFUL, "dashboard"), null, "user@test.cl")),
+                                UserImpact.USEFUL, "dashboard"),
+                        null, "user@test.cl")),
                 () -> assertThrows(DomainException.class, () -> service.create(
                         new ImprovementSuggestionRequest(ImprovementCategory.UX, List.of("x".repeat(61)),
-                                "titulo", "detalle", UserImpact.USEFUL, "/dashboard"), null, "user@test.cl"))
-        );
+                                "titulo", "detalle", UserImpact.USEFUL, "/dashboard"),
+                        null, "user@test.cl")));
     }
 
     @Test
@@ -118,7 +119,7 @@ class ImprovementSuggestionServiceTest {
     @Test
     void administradorListaSugerenciasConPaginacionYScope() {
         ImprovementSuggestionEntity row = entity(user(10L, 3L, RoleEnum.USER), 3L);
-        when(suggestions.findAll(any(Specification.class), any(org.springframework.data.domain.PageRequest.class)))
+        when(suggestions.findAll(org.mockito.ArgumentMatchers.<Specification<ImprovementSuggestionEntity>>any(), any(org.springframework.data.domain.PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(row)));
 
         var page = service.adminList(new ImprovementSuggestionService.AdminQuery(
@@ -127,7 +128,7 @@ class ImprovementSuggestionServiceTest {
 
         assertEquals(1, page.content().size());
         assertEquals("Usuario Test", page.content().get(0).userName());
-        verify(suggestions).findAll(any(Specification.class), any(org.springframework.data.domain.PageRequest.class));
+        verify(suggestions).findAll(org.mockito.ArgumentMatchers.<Specification<ImprovementSuggestionEntity>>any(), any(org.springframework.data.domain.PageRequest.class));
     }
 
     @Test
@@ -203,6 +204,6 @@ class ImprovementSuggestionServiceTest {
 
     private MockMultipartFile png() {
         return new MockMultipartFile("screenshot", "captura.png", "image/png",
-                new byte[]{(byte) 0x89, 'P', 'N', 'G', 1});
+                new byte[] { (byte) 0x89, 'P', 'N', 'G', 1 });
     }
 }

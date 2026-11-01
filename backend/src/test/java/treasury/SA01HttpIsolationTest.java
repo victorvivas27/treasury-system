@@ -8,17 +8,13 @@ import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
-import com.tesoreria.shared.infrastructure.cache.CacheNames;
 import com.tesoreria.shared.infrastructure.cache.TenantCacheKeys;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
 import com.tesoreria.treasury.core.port.out.TreasuryRepositoryOutPort;
 import com.tesoreria.treasury.infrastructure.adapter.in.web.controller.TreasuryController;
-import com.tesoreria.treasury.infrastructure.adapter.in.web.dto.TreasuryDtos.ContributionSummaryResponse;
 import com.tesoreria.user.core.constant.RoleEnum;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
@@ -33,7 +29,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Real Hibernate tenant filtering, H2, transaction manager, cache proxies and controller. */
+/**
+ * Real Hibernate tenant filtering, H2, transaction manager, cache proxies and
+ * controller.
+ */
 @org.junit.jupiter.api.Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = com.tesoreria.TesoreriaAppApplication.class, properties = {
         "server.servlet.context-path=", "spring.config.import=", "spring.flyway.enabled=false",
@@ -43,45 +42,64 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 class SA01HttpIsolationTest {
     private static final int YEAR = 2026;
-    @Autowired OrganizationJpaRepository organizations;
-    @Autowired AlumnoJpaRepository students;
-    @Autowired FamiliaJpaRepository families;
-    @Autowired TreasuryUseCase service;
-    @Autowired TreasuryRepositoryOutPort repository;
-    @Autowired TreasuryController controller;
-    @Autowired CacheManager caches;
-    @Autowired TenantCacheKeys keys;
+    @Autowired
+    OrganizationJpaRepository organizations;
+    @Autowired
+    AlumnoJpaRepository students;
+    @Autowired
+    FamiliaJpaRepository families;
+    @Autowired
+    TreasuryUseCase service;
+    @Autowired
+    TreasuryRepositoryOutPort repository;
+    @Autowired
+    TreasuryController controller;
+    @Autowired
+    CacheManager caches;
+    @Autowired
+    TenantCacheKeys keys;
 
     @AfterEach
-    void cleanup() { SecurityContextHolder.clearContext(); }
+    void cleanup() {
+        SecurityContextHolder.clearContext();
+    }
 
-    @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @Autowired
+    org.springframework.transaction.PlatformTransactionManager transactionManager;
 
-    @org.springframework.boot.test.web.server.LocalServerPort int port;
-    @Autowired com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository users;
-    @Autowired org.springframework.security.crypto.password.PasswordEncoder encoder;
+    @org.springframework.boot.test.web.server.LocalServerPort
+    int port;
+    @Autowired
+    com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository users;
+    @Autowired
+    org.springframework.security.crypto.password.PasswordEncoder encoder;
     private final java.net.http.HttpClient http = java.net.http.HttpClient.newHttpClient();
-    private final tools.jackson.databind.json.JsonMapper json = tools.jackson.databind.json.JsonMapper.builder().build();
+    private final tools.jackson.databind.json.JsonMapper json = tools.jackson.databind.json.JsonMapper.builder()
+            .build();
 
     @org.junit.jupiter.api.Test
     void realLoginAndAlternatingHttpReadsKeepAllFinancialCachesIsolated() throws Exception {
-        Long a = organization(); Long b = organization();
-        setup(a, 70000, 1000, 1); setup(b, 80000, 2000, 2);
+        Long a = organization();
+        Long b = organization();
+        setup(a, 70000, 1000, 1);
+        setup(b, 80000, 2000, 2);
         String email = "cache-" + UUID.randomUUID() + "@example.invalid";
-        createUser(a, email); createUser(b, email);
+        createUser(a, email);
+        createUser(b, email);
         SecurityContextHolder.clearContext();
-        String tokenA = login(a, email); String tokenB = login(b, email);
-        String[] routes = {"/configuraciones", "/configuraciones/2026", "/aportes/configuraciones?year=2026",
-                "/dashboard/overview?year=2026", "/aportes/resumen?year=2026"};
-        for (boolean reverse : new boolean[]{false, true}) {
+        String tokenA = login(a, email);
+        String tokenB = login(b, email);
+        String[] routes = { "/configuraciones", "/configuraciones/2026", "/aportes/configuraciones?year=2026",
+                "/dashboard/overview?year=2026", "/aportes/resumen?year=2026" };
+        for (boolean reverse : new boolean[] { false, true }) {
             caches.getCacheNames().forEach(name -> caches.getCache(name).clear());
             for (int round = 0; round < 3; round++) {
-                for (Long tenant : reverse ? List.of(b,a,b,a) : List.of(a,b,a,b)) {
+                for (Long tenant : reverse ? List.of(b, a, b, a) : List.of(a, b, a, b)) {
                     boolean isA = tenant.equals(a);
                     String token = isA ? tokenA : tokenB;
                     for (int i = 0; i < routes.length; i++) {
                         var value = get(routes[i], token);
-                        switch(i) {
+                        switch (i) {
                             case 0 -> {
                                 assertEquals(1, value.size());
                                 assertEquals(isA ? 70000 : 80000, value.get(0).path("annualAmount").asLong());
@@ -94,12 +112,12 @@ class SA01HttpIsolationTest {
                             case 2 -> {
                                 assertEquals(1, value.size());
                                 assertEquals(isA ? 7000 : 8000, value.get(0).path("referenceAmount").asLong());
-                                assertEquals("tenant-" + tenant, value.get(0).path("name").asText());
+                                assertEquals("tenant-" + tenant, value.get(0).path("name").asString());
                             }
                             case 3 -> {
                                 assertEquals(isA ? 1000 : 2000, value.path("finances").path("otherIncome").asLong());
                                 for (var movement : value.path("recentMovements"))
-                                    assertEquals("tenant-" + tenant, movement.path("description").asText());
+                                    assertEquals("tenant-" + tenant, movement.path("description").asString());
                             }
                             case 4 -> assertEquals(isA ? 1 : 2, value.path("totalFamilies").asLong());
                         }
@@ -108,36 +126,53 @@ class SA01HttpIsolationTest {
             }
         }
     }
+
     private long configId(Long tenant) {
         authenticate(tenant);
-        try { return repository.findConfigByYear(YEAR).orElseThrow().id(); }
-        finally { SecurityContextHolder.clearContext(); }
+        try {
+            return repository.findConfigByYear(YEAR).orElseThrow().id();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
+
     private void createUser(Long tenant, String email) {
         var user = new com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity();
         user.setCode("T-" + UUID.randomUUID().toString().substring(0, 16));
-        user.setNombre("Cache tester"); user.setCorreo(email); user.setOrganizationId(tenant);
-        user.setPassword(encoder.encode("CacheTest123!")); user.setRol(RoleEnum.ADMIN);
-        user.setEnabled(true); user.setAccountNonLocked(true); user.setEmailVerifiedAt(java.time.LocalDateTime.now());
+        user.setNombre("Cache tester");
+        user.setCorreo(email);
+        user.setOrganizationId(tenant);
+        user.setPassword(encoder.encode("CacheTest123!"));
+        user.setRol(RoleEnum.ADMIN);
+        user.setEnabled(true);
+        user.setAccountNonLocked(true);
+        user.setEmailVerifiedAt(java.time.LocalDateTime.now());
         users.save(user);
     }
+
     private String login(Long tenant, String email) throws Exception {
         String body = "{\"correo\":\"" + email + "\",\"password\":\"CacheTest123!\",\"organizationId\":" + tenant + "}";
-        var request = java.net.http.HttpRequest.newBuilder(java.net.URI.create("http://localhost:" + port + "/api/v1/auth/login"))
-            .header("Content-Type", "application/json").POST(java.net.http.HttpRequest.BodyPublishers.ofString(body)).build();
+        var request = java.net.http.HttpRequest
+                .newBuilder(java.net.URI.create("http://localhost:" + port + "/api/v1/auth/login"))
+                .header("Content-Type", "application/json")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body)).build();
         var response = http.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
         assertEquals(200, response.statusCode(), "Real login must succeed");
         var value = json.readTree(response.body());
-        String token = value.path("token").asText(); assertFalse(token.isBlank());
+        String token = value.path("token").asString();
+        assertFalse(token.isBlank());
         return token;
     }
+
     private tools.jackson.databind.JsonNode get(String route, String token) throws Exception {
-        var request = java.net.http.HttpRequest.newBuilder(java.net.URI.create("http://localhost:" + port + "/api/v1/tesoreria" + route))
-            .header("Authorization", "Bearer " + token).GET().build();
+        var request = java.net.http.HttpRequest
+                .newBuilder(java.net.URI.create("http://localhost:" + port + "/api/v1/tesoreria" + route))
+                .header("Authorization", "Bearer " + token).GET().build();
         var response = http.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
         assertEquals(200, response.statusCode(), route);
         return json.readTree(response.body());
     }
+
     private void setup(Long tenant, long fee, long income, int familyCount) {
         authenticate(tenant);
         for (int i = 0; i < familyCount; i++) {
@@ -153,13 +188,9 @@ class SA01HttpIsolationTest {
                 IncomeCategory.OTHER, null, IncomePaymentMethod.CASH, null, null, null, null, "admin");
     }
 
-    private Snapshot read(Long tenant) {
-        authenticate(tenant);
-        return new Snapshot(service.getConfig(YEAR), service.listConfigs(), service.listContributionConfigs(YEAR),
-                service.dashboardOverview(YEAR), controller.contributionSummary(YEAR));
+    private LocalDate date(int month) {
+        return LocalDate.of(YEAR, month, 1);
     }
-
-    private LocalDate date(int month) { return LocalDate.of(YEAR, month, 1); }
 
     private Long organization() {
         OrganizationEntity value = new OrganizationEntity();
@@ -179,8 +210,4 @@ class SA01HttpIsolationTest {
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
     }
 
-    private record Snapshot(AnnualFeeConfig config, List<AnnualFeeConfig> list,
-                            List<ContributionConfig> contributions, TreasuryDashboardOverview dashboard,
-                            ContributionSummaryResponse summary) { }
 }
-

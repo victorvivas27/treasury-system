@@ -125,7 +125,7 @@ public class AccountRecoveryService {
         }
         requireActiveCourse(organizationId);
         ApoderadoEntity guardian = guardians.lockInOrganization(guardianId, organizationId)
-                .filter(ApoderadoEntity::isActivo).orElseThrow(() -> invitationDenied(
+                .filter(guardianValue -> guardianValue.isActivo()).orElseThrow(() -> invitationDenied(
                         "El apoderado debe estar activo y registrado en el curso de la sesión."));
         String normalized = normalize(guardian.getEmail());
         rateLimiter.checkInvitation(normalized, organizationId);

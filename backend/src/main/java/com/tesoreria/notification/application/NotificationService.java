@@ -67,8 +67,10 @@ public class NotificationService {
             return row;
         }).toList();
         deliveries.saveAll(rows);
-        List<String> recipientEmails = recipients.stream().map(UserEntity::getCorreo).toList();
-        List<Long> recipientUserIds = recipients.stream().map(UserEntity::getId).toList();
+        List<String> recipientEmails = recipients.stream()
+                .map(user -> Objects.requireNonNull(user.getCorreo())).toList();
+        List<Long> recipientUserIds = recipients.stream()
+                .map(user -> Objects.requireNonNull(user.getId())).toList();
         events.publishEvent(new NotificationCreatedEvent(saved.getId(), recipientUserIds));
         events.publishEvent(new PushRequestedEvent("notification-" + saved.getId(),
                 saved.getTitle(), saved.getMessage(), NOTIFICATIONS_PATH,
@@ -400,7 +402,7 @@ public class NotificationService {
         if (resolved.stream().anyMatch(user -> !Objects.equals(organizationId, user.getOrganizationId())))
             throw error(RECIPIENTS_FIELD, HttpStatus.BAD_REQUEST,
                     "Uno o más destinatarios no pertenecen a la organización");
-        return resolved.stream().collect(java.util.stream.Collectors.toMap(UserEntity::getId,
+        return resolved.stream().collect(java.util.stream.Collectors.toMap(user -> Objects.requireNonNull(user.getId()),
                 user -> user, (first, second) -> first, LinkedHashMap::new)).values().stream().toList();
     }
 

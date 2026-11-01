@@ -4,6 +4,7 @@ import com.tesoreria.organization.application.CurrentOrganizationService;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.TreasurySettingEntity;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.TreasurySettingJpaRepository;
 import org.junit.jupiter.api.Test;
+import java.util.Objects;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -36,9 +37,9 @@ class BoardMessageServiceTest {
         verify(settings, times(4)).save(captor.capture());
         assertEquals(java.util.List.of("BOARD_MESSAGE_12_HEADING", "BOARD_MESSAGE_12_TITLE",
                 "BOARD_MESSAGE_12", "BOARD_MESSAGE_12_SIGNATURE"),
-                captor.getAllValues().stream().map(TreasurySettingEntity::getKey).toList());
+                captor.getAllValues().stream().map(setting -> Objects.requireNonNull(setting.getKey())).toList());
         assertEquals(java.util.List.of("Encabezado", "Título", "Frase", "Saludo,\nFirma"),
-                captor.getAllValues().stream().map(TreasurySettingEntity::getValue).toList());
+                captor.getAllValues().stream().map(setting -> Objects.requireNonNull(setting.getValue())).toList());
     }
 
     @Test
