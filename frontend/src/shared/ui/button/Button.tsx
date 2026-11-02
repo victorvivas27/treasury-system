@@ -16,6 +16,8 @@ interface ButtonProps {
   ariaLabel?: string;
 }
 
+export const ButtonSpinner = () => <span className="button-loader" aria-hidden="true" />;
+
 export const Button = ({
   label,
   onClick,
@@ -48,7 +50,7 @@ export const Button = ({
   const visibleLoading = loading || (isSaveAction && holdingLoading);
   const displayedLabel = visibleLoading && isSaveAction ? 'Guardando…' : label;
   const displayedIcon = visibleLoading
-    ? <span className="button-loader" aria-hidden="true" />
+    ? <ButtonSpinner />
     : icon;
 
   return (

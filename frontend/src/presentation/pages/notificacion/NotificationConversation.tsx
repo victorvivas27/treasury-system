@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FiEdit2, FiSend, FiTrash2 } from "react-icons/fi";
 import type { NotificationReply } from "@/core/A-domain/entities/notification/Notification";
@@ -220,7 +221,7 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
           maxLength={2000} rows={1} value={draft}
           onChange={event => setDraft(event.target.value)} />
         <button type="submit" aria-label={`Enviar a ${recipientName}`} title={`Enviar a ${recipientName}`} aria-busy={sending}
-          disabled={initialLoading || !draft.trim() || sending}><FiSend aria-hidden="true" />
+          disabled={initialLoading || !draft.trim() || sending}>{sending ? <ButtonSpinner /> : <FiSend aria-hidden="true" />}
           <span className="notification-composer__send-label">{sending ? "Enviando…" : "Responder"}</span></button>
       </form>
     </div>

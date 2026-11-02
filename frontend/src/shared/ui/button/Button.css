@@ -301,7 +301,9 @@
    ========================================================= */
 
 .button-loader {
-  display: block;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
 
   width: 1.1em;
   height: 1.1em;

@@ -377,7 +377,7 @@ const Detail = ({ selected, notes, history, note, relatedId, loading, saving, on
       <input id="improvement-related" value={relatedId} placeholder="#124"
         onChange={event => onRelatedId(event.target.value)} />
       <Button label="Relacionar" type="submit" variant="secondary"
-        disabled={saving || !relatedId.trim()} onClick={() => undefined} />
+        disabled={saving || !relatedId.trim()} loading={saving} onClick={() => undefined} />
     </form>
     <section><h3>Notas internas</h3>
       {notes.length === 0 ? <p className="improvement-admin-empty">Sin notas internas.</p>

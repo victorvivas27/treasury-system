@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { useEffect, useRef, useState } from "react";
 import { IoHeartOutline } from "react-icons/io5";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
@@ -143,7 +144,7 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         {error && <p role="alert">{error}</p>}
         <footer>
           <button type="button" disabled={saving} onClick={() => dialog.current?.close()}>Cancelar</button>
-          <button type="submit" disabled={saving || fields.some(field => !draft[field.key].trim())}>{saving ? "Guardando..." : "Guardar cambios"}</button>
+          <button type="submit" aria-busy={saving} disabled={saving || fields.some(field => !draft[field.key].trim())}>{saving && <ButtonSpinner />}{saving ? "Guardando..." : "Guardar cambios"}</button>
         </footer>
       </form>
     </dialog>}
