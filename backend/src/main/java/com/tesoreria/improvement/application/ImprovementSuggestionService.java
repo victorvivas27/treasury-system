@@ -332,7 +332,7 @@ public class ImprovementSuggestionService {
                 organization == null ? null : organization.getSchoolYear(),
                 value.getCreatedAt(), value.getUpdatedAt(),
                 relations.findBySuggestionIdOrderByCreatedAtDesc(value.getId()).stream()
-                        .map(ImprovementSuggestionRelationEntity::getRelatedSuggestionId).toList());
+                        .map(relation -> Objects.requireNonNull(relation.getRelatedSuggestionId())).toList());
     }
 
     private ImprovementSuggestionNoteResponse noteResponse(ImprovementSuggestionNoteEntity value) {
@@ -411,7 +411,7 @@ public class ImprovementSuggestionService {
         if (items == null || items.isEmpty()) return null;
         List<String> normalized = items.stream()
                 .filter(Objects::nonNull)
-                .map(String::trim)
+                .map(item -> Objects.requireNonNull(item.trim()))
                 .filter(item -> !item.isEmpty())
                 .distinct()
                 .toList();
@@ -429,7 +429,7 @@ public class ImprovementSuggestionService {
 
     private ValidatedImage validate(MultipartFile file) {
         if (file.getSize() > MAX_SCREENSHOT_BYTES)
-            throw error(FIELD_SCREENSHOT, HttpStatus.PAYLOAD_TOO_LARGE, "La captura supera 3 MB");
+            throw error(FIELD_SCREENSHOT, HttpStatus.CONTENT_TOO_LARGE, "La captura supera 3 MB");
         String name = Optional.ofNullable(file.getOriginalFilename()).orElse("").replace('\\', '/');
         name = name.substring(name.lastIndexOf('/') + 1).trim();
         int dot = name.lastIndexOf('.');
@@ -468,7 +468,7 @@ public class ImprovementSuggestionService {
                 .replaceAll("(^-+|-+$)", "");
         if (normalizedName.isBlank()) normalizedName = "usuario";
         String code = Optional.ofNullable(user.getCode())
-                .map(String::trim)
+                .map(value -> Objects.requireNonNull(value.trim()))
                 .filter(value -> !value.isEmpty())
                 .orElse(String.valueOf(user.getId()))
                 .toLowerCase(Locale.ROOT)

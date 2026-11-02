@@ -289,7 +289,7 @@ class SA05SessionSecurityIntegrationTest {
         Cookie refresh = response.getCookie("treasury_refresh");
         Cookie csrf = response.getCookie("treasury_csrf");
         assertNotNull(refresh); assertNotNull(csrf);
-        return new Session(body.path("token").asText(), refresh, csrf);
+        return new Session(body.path("token").asString(), refresh, csrf);
     }
 
     private String loginPayload(UserEntity user) {

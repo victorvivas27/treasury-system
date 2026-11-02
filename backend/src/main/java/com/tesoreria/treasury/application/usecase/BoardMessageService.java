@@ -23,7 +23,7 @@ public class BoardMessageService {
 
     @Transactional(readOnly = true)
     public String get() {
-        return settings.findById(key()).map(TreasurySettingEntity::getValue).orElse(DEFAULT_MESSAGE);
+        return settings.findById(key()).map(setting -> setting.getValue()).orElse(DEFAULT_MESSAGE);
     }
 
     @Transactional
@@ -49,7 +49,7 @@ public class BoardMessageService {
 
     private String read(String field, String fallback) {
         return settings.findById(key() + "_" + field)
-                .map(TreasurySettingEntity::getValue).orElse(fallback);
+                .map(setting -> setting.getValue()).orElse(fallback);
     }
 
     private String saveSetting(String settingKey, String value) {

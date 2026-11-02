@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Transactional
 @NullMarked
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.AvoidInstantiatingObjectsInLoops"})
+@SuppressWarnings({ "PMD.AvoidDuplicateLiterals", "PMD.AvoidInstantiatingObjectsInLoops" })
 public class StandService {
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
     private static final BigDecimal HALF_UNIT = new BigDecimal("0.5");
@@ -39,8 +39,8 @@ public class StandService {
     private final SchoolEventService schoolEvents;
 
     public StandService(StandJpaRepository stands, StandProductJpaRepository products,
-                        StandSaleJpaRepository sales, SchoolEventJpaRepository events,
-                        SchoolEventService schoolEvents) {
+            StandSaleJpaRepository sales, SchoolEventJpaRepository events,
+            SchoolEventService schoolEvents) {
         this.stands = stands;
         this.products = products;
         this.sales = sales;
@@ -50,7 +50,8 @@ public class StandService {
 
     @Transactional(readOnly = true)
     public List<StandEntity> list(Long eventId) {
-        if (!events.existsById(eventId)) throw notFound("evento", "Evento no encontrado");
+        if (!events.existsById(eventId))
+            throw notFound("evento", "Evento no encontrado");
         return stands.findByEventIdOrderByDateDesc(eventId);
     }
 
@@ -195,7 +196,8 @@ public class StandService {
                 throw invalid("productos", "Los productos deben ser únicos y tener cantidad positiva");
             }
             StandProductEntity product = product(standId, item.productId());
-            if (!product.isAvailable()) throw conflict("producto", "El producto no está disponible");
+            if (!product.isAvailable())
+                throw conflict("producto", "El producto no está disponible");
             consumeStock(standId, product, item.quantity());
             StandSaleItemEmbeddable saleItem = new StandSaleItemEmbeddable();
             saleItem.setProductId(product.getId());
@@ -238,7 +240,7 @@ public class StandService {
     }
 
     public StandSaleEntity cancelSale(Long standId, Long saleId, String reason,
-                                      String cancelledBy) {
+            String cancelledBy) {
         StandEntity stand = get(standId);
         if (reason == null || reason.isBlank()) {
             throw invalid("motivo", "El motivo de anulación es obligatorio");
@@ -280,7 +282,7 @@ public class StandService {
     }
 
     public StandSaleEntity updateSale(Long standId, Long saleId, SaleInput input,
-                                      String reason, String modifiedBy) {
+            String reason, String modifiedBy) {
         StandEntity stand = get(standId);
         if (reason == null || reason.isBlank()) {
             throw invalid("motivo", "El motivo de modificación es obligatorio");
@@ -331,10 +333,11 @@ public class StandService {
                         (left, right) -> left, LinkedHashMap::new));
         List<StandSaleJpaRepository.SaleAggregate> saleTotals = sales.aggregateSales(standId);
         saleTotals.forEach(value -> byMethod.put(value.getPaymentMethod(), value.getTotal()));
-        BigDecimal total = byMethod.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = byMethod.values().stream().reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal debitCommission = commission(byMethod.get(StandPaymentMethod.DEBIT), stand.getDebitCommission());
         BigDecimal creditCommission = commission(byMethod.get(StandPaymentMethod.CREDIT), stand.getCreditCommission());
-        BigDecimal transferCommission = commission(byMethod.get(StandPaymentMethod.TRANSFER), stand.getTransferCommission());
+        BigDecimal transferCommission = commission(byMethod.get(StandPaymentMethod.TRANSFER),
+                stand.getTransferCommission());
         BigDecimal commissions = debitCommission.add(creditCommission).add(transferCommission);
         BigDecimal totalCost = BigDecimal.ZERO;
         int units = 0;
@@ -349,16 +352,19 @@ public class StandService {
                     + "|" + Objects.toString(item.getVariant(), "");
             productTotals.compute(key, (ignored, current) -> current == null
                     ? new ProductSummary(item.getProductName(), item.getCategory(), item.getVariant(),
-                    Math.toIntExact(item.getUnits()), item.getTotal(), item.getCost(), item.getTotal().subtract(item.getCost()))
+                            Math.toIntExact(item.getUnits()), item.getTotal(), item.getCost(),
+                            item.getTotal().subtract(item.getCost()))
                     : new ProductSummary(current.product(), current.category(), current.variant(),
-                    current.units() + Math.toIntExact(item.getUnits()), current.total().add(item.getTotal()),
-                    current.cost().add(item.getCost()), current.profit().add(item.getTotal().subtract(item.getCost()))));
-            categoryTotals.merge(Objects.toString(item.getCategory(), "Sin categoría"), item.getTotal(), BigDecimal::add);
+                            current.units() + Math.toIntExact(item.getUnits()), current.total().add(item.getTotal()),
+                            current.cost().add(item.getCost()),
+                            current.profit().add(item.getTotal().subtract(item.getCost()))));
+            categoryTotals.merge(Objects.toString(item.getCategory(), "Sin categoría"), item.getTotal(),
+                    (left, right) -> Objects.requireNonNull(left.add(right)));
             String variant = Objects.toString(item.getVariant(), "Sin variante");
-            variantTotals.merge(variant, item.getTotal(), BigDecimal::add);
-            equivalentUnitsByVariant.merge(variant, item.getEquivalentUnits(), BigDecimal::add);
+            variantTotals.merge(variant, item.getTotal(), (left, right) -> Objects.requireNonNull(left.add(right)));
+            equivalentUnitsByVariant.merge(variant, item.getEquivalentUnits(), (left, right) -> Objects.requireNonNull(left.add(right)));
             if (item.getPresentation() != null) {
-                unitsByPresentation.merge(item.getPresentation(), Math.toIntExact(item.getUnits()), Integer::sum);
+                unitsByPresentation.merge(item.getPresentation(), Math.toIntExact(item.getUnits()), (count, increment) -> count + increment);
             }
             equivalentUnits = equivalentUnits.add(item.getEquivalentUnits());
             totalCost = totalCost.add(item.getCost());
@@ -368,10 +374,11 @@ public class StandService {
                 .filter(product -> product.getCurrentStock() != null)
                 .map(product -> new StockAlert(product.getId(), product.getName(), product.getVariant(),
                         product.getInitialStock(), product.getCurrentStock(),
-                        product.getCurrentStock().signum() == 0)).toList();
+                        product.getCurrentStock().signum() == 0))
+                .toList();
         BigDecimal cashExpected = stand.getInitialFund().add(byMethod.get(StandPaymentMethod.CASH));
         int saleCount = Math.toIntExact(saleTotals.stream()
-                .mapToLong(StandSaleJpaRepository.SaleAggregate::getSaleCount).sum());
+                .mapToLong(value -> value.getSaleCount()).sum());
         return new StandSummary(total, byMethod, cashExpected, stand.getInitialFund(), totalCost,
                 commissions, debitCommission, creditCommission, transferCommission,
                 total.subtract(totalCost).subtract(commissions), saleCount, units,
@@ -414,7 +421,8 @@ public class StandService {
     }
 
     private void validateInput(StandInput input) {
-        if (input.name() == null || input.name().isBlank()) throw invalid("nombre", "Nombre requerido");
+        if (input.name() == null || input.name().isBlank())
+            throw invalid("nombre", "Nombre requerido");
         if (input.responsible() == null || input.responsible().isBlank()) {
             throw invalid("responsable", "Responsable requerido");
         }
@@ -463,7 +471,7 @@ public class StandService {
     }
 
     private void restoreStock(Long standId, List<StandSaleItemEmbeddable> items,
-                              LocalDateTime saleDate) {
+            LocalDateTime saleDate) {
         for (StandSaleItemEmbeddable item : items) {
             restoreStock(standId, product(standId, item.getProductId()),
                     item.getUnitEquivalence(), item.getQuantity(), saleDate);
@@ -511,7 +519,8 @@ public class StandService {
 
     private void consumeStock(Long standId, StandProductEntity product, int quantity) {
         StandProductEntity inventory = inventoryProduct(standId, product);
-        if (inventory == null || inventory.getCurrentStock() == null) return;
+        if (inventory == null || inventory.getCurrentStock() == null)
+            return;
         BigDecimal required = equivalence(product).multiply(BigDecimal.valueOf(quantity));
         if (inventory.getCurrentStock().compareTo(required) < 0) {
             throw conflict("stock", "Stock insuficiente para " + product.getName()
@@ -524,10 +533,12 @@ public class StandService {
     }
 
     private void restoreStock(Long standId, StandProductEntity product,
-                              BigDecimal saleEquivalence, int quantity, LocalDateTime saleDate) {
+            BigDecimal saleEquivalence, int quantity, LocalDateTime saleDate) {
         StandProductEntity inventory = inventoryProduct(standId, product);
-        if (inventory == null || inventory.getCurrentStock() == null) return;
-        if (inventory.getStockSetAt() != null && saleDate.isBefore(inventory.getStockSetAt())) return;
+        if (inventory == null || inventory.getCurrentStock() == null)
+            return;
+        if (inventory.getStockSetAt() != null && saleDate.isBefore(inventory.getStockSetAt()))
+            return;
         BigDecimal restored = (saleEquivalence == null ? equivalence(product) : saleEquivalence)
                 .multiply(BigDecimal.valueOf(quantity));
         inventory.setCurrentStock(inventory.getCurrentStock().add(restored));
@@ -540,7 +551,8 @@ public class StandService {
                 || product.getUnitEquivalence().compareTo(BigDecimal.ONE) == 0) {
             return product.getCurrentStock() == null ? null : product;
         }
-        if (product.getVariant() == null || product.getVariant().isBlank()) return null;
+        if (product.getVariant() == null || product.getVariant().isBlank())
+            return null;
         return products.findByStandIdOrderByNameAscVariantAsc(standId).stream()
                 .filter(candidate -> candidate.getCurrentStock() != null)
                 .filter(candidate -> candidate.getVariant() != null
@@ -557,7 +569,8 @@ public class StandService {
                 case "porción", "porcion" -> PORTION_UNIT;
                 default -> null;
             };
-            if (normalized != null) return normalized;
+            if (normalized != null)
+                return normalized;
         }
         return product.getUnitEquivalence() == null ? BigDecimal.ONE : product.getUnitEquivalence();
     }
@@ -606,43 +619,43 @@ public class StandService {
     }
 
     public record StandInput(Long eventId, String name, LocalDate date, LocalTime startTime,
-                             LocalTime endTime, String responsible, BigDecimal initialFund,
-                             Set<StandPaymentMethod> paymentMethods, BigDecimal debitCommission,
-                             BigDecimal creditCommission, BigDecimal transferCommission) {
+            LocalTime endTime, String responsible, BigDecimal initialFund,
+            Set<StandPaymentMethod> paymentMethods, BigDecimal debitCommission,
+            BigDecimal creditCommission, BigDecimal transferCommission) {
     }
 
     public record ProductInput(String name, String category, String variant, String presentation,
-                               BigDecimal unitEquivalence, BigDecimal price, BigDecimal unitCost, Integer stock,
-                               boolean available) {
+            BigDecimal unitEquivalence, BigDecimal price, BigDecimal unitCost, Integer stock,
+            boolean available) {
     }
 
     public record SaleItemInput(Long productId, int quantity) {
     }
 
     public record SaleInput(List<SaleItemInput> items, StandPaymentMethod paymentMethod,
-                            BigDecimal amountReceived, String observation) {
+            BigDecimal amountReceived, String observation) {
     }
 
     private record SaleCalculation(List<StandSaleItemEmbeddable> items, BigDecimal total,
-                                   BigDecimal amountReceived, BigDecimal change) {
+            BigDecimal amountReceived, BigDecimal change) {
     }
 
     public record ProductSummary(String product, String category, String variant, int units,
-                                 BigDecimal total, BigDecimal cost, BigDecimal profit) {
+            BigDecimal total, BigDecimal cost, BigDecimal profit) {
     }
 
     public record StockAlert(Long productId, String product, String variant, Integer initialStock,
-                             BigDecimal stock, boolean soldOut) {
+            BigDecimal stock, boolean soldOut) {
     }
 
     public record StandSummary(BigDecimal totalSold,
-                               Map<StandPaymentMethod, BigDecimal> salesByPaymentMethod, BigDecimal expectedCash,
-                               BigDecimal initialFund, BigDecimal totalCost, BigDecimal commissions,
-                               BigDecimal debitCommission, BigDecimal creditCommission, BigDecimal transferCommission,
-                               BigDecimal netProfit,
-                               int saleCount, int unitsSold, List<ProductSummary> salesByProduct,
-                               Map<String, BigDecimal> salesByCategory, Map<String, BigDecimal> salesByVariant,
-                               List<StockAlert> stockAlerts, Map<String, Integer> unitsByPresentation,
-                               BigDecimal equivalentUnits, Map<String, BigDecimal> equivalentUnitsByVariant) {
+            Map<StandPaymentMethod, BigDecimal> salesByPaymentMethod, BigDecimal expectedCash,
+            BigDecimal initialFund, BigDecimal totalCost, BigDecimal commissions,
+            BigDecimal debitCommission, BigDecimal creditCommission, BigDecimal transferCommission,
+            BigDecimal netProfit,
+            int saleCount, int unitsSold, List<ProductSummary> salesByProduct,
+            Map<String, BigDecimal> salesByCategory, Map<String, BigDecimal> salesByVariant,
+            List<StockAlert> stockAlerts, Map<String, Integer> unitsByPresentation,
+            BigDecimal equivalentUnits, Map<String, BigDecimal> equivalentUnitsByVariant) {
     }
 }

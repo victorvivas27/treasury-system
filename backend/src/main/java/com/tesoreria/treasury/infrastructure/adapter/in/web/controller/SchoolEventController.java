@@ -4,7 +4,6 @@ import com.tesoreria.shared.infrastructure.constant.ApiConstants;
 import com.tesoreria.treasury.application.usecase.SchoolEventService;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.SchoolEventEntity;
-import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.SchoolEventExpenseEmbeddable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.jspecify.annotations.NullMarked;
@@ -17,6 +16,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(ApiConstants.TREASURY + "/eventos")
@@ -67,7 +67,7 @@ public class SchoolEventController {
 
     @PutMapping("/{id}")
     public EventResponse update(@PathVariable Long id,
-                                @Valid @RequestBody EventRequest request) {
+            @Valid @RequestBody EventRequest request) {
         return response(service.update(id, request.name(), request.schoolYear(),
                 request.eventDate(), request.description(), request.status(), request.observations(),
                 request.participants().stream().map(item -> new SchoolEventService.ParticipantInput(
@@ -83,7 +83,7 @@ public class SchoolEventController {
 
     @PostMapping("/{id}/gastos")
     public ResponseEntity<EventResponse> addExpense(@PathVariable Long id,
-                                                    @Valid @RequestBody ExpenseRequest request, Principal principal) {
+            @Valid @RequestBody ExpenseRequest request, Principal principal) {
         SchoolEventService.ExpenseInput input = new SchoolEventService.ExpenseInput(
                 request.description(), request.amount(), request.date(), request.type(), request.course(),
                 request.category(), request.responsible(), request.paymentMethod(),
@@ -94,7 +94,7 @@ public class SchoolEventController {
 
     @PutMapping("/{id}/gastos/{expenseKey}")
     public EventResponse updateExpense(@PathVariable Long id, @PathVariable String expenseKey,
-                                       @Valid @RequestBody ExpenseRequest request) {
+            @Valid @RequestBody ExpenseRequest request) {
         SchoolEventService.ExpenseInput input = new SchoolEventService.ExpenseInput(
                 request.description(), request.amount(), request.date(), request.type(), request.course(),
                 request.category(), request.responsible(), request.paymentMethod(),
@@ -104,7 +104,7 @@ public class SchoolEventController {
 
     @PatchMapping("/{id}/gastos/{expenseKey}/anulacion")
     public EventResponse cancelExpense(@PathVariable Long id, @PathVariable String expenseKey,
-                                       @Valid @RequestBody CancelRequest request, Principal principal) {
+            @Valid @RequestBody CancelRequest request, Principal principal) {
         return response(service.cancelExpense(id, expenseKey, request.reason(), user(principal)));
     }
 
@@ -115,7 +115,7 @@ public class SchoolEventController {
 
     @PutMapping("/{id}/recaudacion")
     public EventResponse revenue(@PathVariable Long id,
-                                 @Valid @RequestBody RevenueRequest request) {
+            @Valid @RequestBody RevenueRequest request) {
         return response(service.registerRevenue(id, request.amount(), request.date(),
                 request.description(), request.paymentMethod(), request.receiptNumber(),
                 request.observations()));
@@ -167,7 +167,8 @@ public class SchoolEventController {
         return event.getExpenses().stream()
                 .filter(item -> item.getStatus() == EventExpenseStatus.ACTIVE && item.getType() == type)
                 .filter(item -> !Boolean.FALSE.equals(item.getDeductFromSettlement()))
-                .map(SchoolEventExpenseEmbeddable::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(item -> Objects.requireNonNull(item.getAmount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
     }
 
     private String user(Principal principal) {
@@ -175,57 +176,57 @@ public class SchoolEventController {
     }
 
     public record ParticipantRequest(@NotBlank @Size(max = 80) String course,
-                                     @NotBlank @Size(max = 120) String standName, @Size(max = 100) String standType,
-                                     @Size(max = 500) String description, @Size(max = 150) String responsible,
-                                     @Size(max = 500) String observations) {
+            @NotBlank @Size(max = 120) String standName, @Size(max = 100) String standType,
+            @Size(max = 500) String description, @Size(max = 150) String responsible,
+            @Size(max = 500) String observations) {
     }
 
     public record EventRequest(@NotBlank @Size(max = 150) String name,
-                               @Min(2000) int schoolYear, @NotNull LocalDate eventDate,
-                               @Size(max = 1000) String description, EventStatus status,
-                               @Size(max = 1000) String observations,
-                               @NotEmpty List<@Valid ParticipantRequest> participants) {
+            @Min(2000) int schoolYear, @NotNull LocalDate eventDate,
+            @Size(max = 1000) String description, EventStatus status,
+            @Size(max = 1000) String observations,
+            @NotEmpty List<@Valid ParticipantRequest> participants) {
     }
 
     public record ExpenseRequest(@NotBlank @Size(max = 250) String description,
-                                 @NotNull @Positive BigDecimal amount, @NotNull LocalDate date,
-                                 @NotNull EventExpenseType type, @Size(max = 80) String course,
-                                 @Size(max = 80) String category, @Size(max = 150) String responsible,
-                                 @Size(max = 40) String paymentMethod, @Size(max = 100) String receiptNumber,
-                                 @Size(max = 500) String observations, Boolean deductFromSettlement) {
+            @NotNull @Positive BigDecimal amount, @NotNull LocalDate date,
+            @NotNull EventExpenseType type, @Size(max = 80) String course,
+            @Size(max = 80) String category, @Size(max = 150) String responsible,
+            @Size(max = 40) String paymentMethod, @Size(max = 100) String receiptNumber,
+            @Size(max = 500) String observations, Boolean deductFromSettlement) {
     }
 
     public record RevenueRequest(@NotNull @Positive BigDecimal amount, @NotNull LocalDate date,
-                                 @Size(max = 250) String description, @Size(max = 40) String paymentMethod,
-                                 @Size(max = 100) String receiptNumber, @Size(max = 500) String observations) {
+            @Size(max = 250) String description, @Size(max = 40) String paymentMethod,
+            @Size(max = 100) String receiptNumber, @Size(max = 500) String observations) {
     }
 
     public record CancelRequest(@NotBlank @Size(max = 500) String reason) {
     }
 
     public record ParticipantResponse(String course, String standName, String standType,
-                                      String description, String responsible, String observations,
-                                      BigDecimal grossShare,
-                                      BigDecimal ownExpenses, BigDecimal netProfit,
-                                      EventTransferStatus transferStatus) {
+            String description, String responsible, String observations,
+            BigDecimal grossShare,
+            BigDecimal ownExpenses, BigDecimal netProfit,
+            EventTransferStatus transferStatus) {
     }
 
     public record ExpenseResponse(String key, String description, BigDecimal amount, LocalDate date,
-                                  EventExpenseType type, String course, String category, String responsible,
-                                  String paymentMethod, String receiptNumber, String observations,
-                                  EventExpenseStatus status,
-                                  String registeredBy, LocalDateTime cancelledAt, String cancellationReason,
-                                  boolean deductFromSettlement) {
+            EventExpenseType type, String course, String category, String responsible,
+            String paymentMethod, String receiptNumber, String observations,
+            EventExpenseStatus status,
+            String registeredBy, LocalDateTime cancelledAt, String cancellationReason,
+            boolean deductFromSettlement) {
     }
 
     public record EventResponse(Long id, String name, int schoolYear, LocalDate eventDate,
-                                String description, EventStatus status, String observations,
-                                List<ParticipantResponse> participants, List<ExpenseResponse> expenses,
-                                BigDecimal grossRevenue, BigDecimal commonExpenses, BigDecimal courseExpenses,
-                                BigDecimal netProfit, LocalDate revenueDate, String revenueDescription,
-                                String revenuePaymentMethod, String revenueReceipt, String revenueObservations,
-                                BigDecimal remainder, boolean settlementConfirmed, LocalDateTime createdAt,
-                                LocalDateTime updatedAt) {
+            String description, EventStatus status, String observations,
+            List<ParticipantResponse> participants, List<ExpenseResponse> expenses,
+            BigDecimal grossRevenue, BigDecimal commonExpenses, BigDecimal courseExpenses,
+            BigDecimal netProfit, LocalDate revenueDate, String revenueDescription,
+            String revenuePaymentMethod, String revenueReceipt, String revenueObservations,
+            BigDecimal remainder, boolean settlementConfirmed, LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
     }
 
     public record ManagedCourseResponse(String course) {

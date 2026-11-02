@@ -51,19 +51,19 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
                 "auto_return", "approved", "notification_url", settings.webhookUrl(),
                 "binary_mode", false);
         JsonNode response = request("/checkout/preferences", mapper.writeValueAsString(body), reference);
-        String url = response.path("init_point").asText();
+        String url = response.path("init_point").asString();
         URI uri = URI.create(url);
         if (!"https".equals(uri.getScheme())
                 || !java.util.Set.of("www.mercadopago.cl", "www.mercadopago.com").contains(uri.getHost())
-                || uri.getUserInfo() != null || uri.getPort() != -1 || response.path("id").asText().isBlank()
-                || !settings.collectorId().equals(response.path("collector_id").asText())) {
+                || uri.getUserInfo() != null || uri.getPort() != -1 || response.path("id").asString().isBlank()
+                || !settings.collectorId().equals(response.path("collector_id").asString())) {
             if (LOGGER.isWarnEnabled()) {
                 LOGGER.warn("Mercado Pago preference rejected after provider response: host={}, collectorIdMatches={}",
-                        uri.getHost(), settings.collectorId().equals(response.path("collector_id").asText()));
+                        uri.getHost(), settings.collectorId().equals(response.path("collector_id").asString()));
             }
             throw unavailable();
         }
-        return new Checkout(response.path("id").asText(), url);
+        return new Checkout(response.path("id").asString(), url);
     }
 
     @Override
@@ -71,10 +71,10 @@ public class MercadoPagoHttpGateway implements MercadoPagoGateway {
         if (paymentId == null || !paymentId.matches("[0-9]{1,30}"))
             throw new DomainException("pago", HttpStatus.BAD_REQUEST, "Identificador de pago inválido");
         JsonNode value = request("/v1/payments/" + paymentId, null, null);
-        String paidAt = value.path("date_approved").asText("");
-        return new ProviderPayment(value.path("id").asText(), value.path("external_reference").asText(),
-                value.path("status").asText(), new BigDecimal(value.path("transaction_amount").asText()),
-                value.path("currency_id").asText(), value.path("collector_id").asText(),
+        String paidAt = value.path("date_approved").asString("");
+        return new ProviderPayment(value.path("id").asString(), value.path("external_reference").asString(),
+                value.path("status").asString(), new BigDecimal(value.path("transaction_amount").asString()),
+                value.path("currency_id").asString(), value.path("collector_id").asString(),
                 value.path("live_mode").asBoolean(), parseDate(paidAt));
     }
 

@@ -3,13 +3,14 @@ package com.tesoreria.treasury.core.model;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 
 public final class EventSettlementCalculator {
     private EventSettlementCalculator() {
     }
 
     public static Result calculate(BigDecimal grossRevenue, BigDecimal commonExpenses,
-                                   List<CourseExpense> courses) {
+            List<CourseExpense> courses) {
         if (grossRevenue == null || grossRevenue.signum() < 0) {
             throw new IllegalArgumentException("La recaudación bruta debe ser válida");
         }
@@ -21,7 +22,7 @@ public final class EventSettlementCalculator {
         }
         BigDecimal courseExpenses = courses.stream()
                 .map(course -> course.expenses() == null ? BigDecimal.ZERO : course.expenses())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         BigDecimal distributable = grossRevenue.subtract(commonExpenses).subtract(courseExpenses);
         if (distributable.signum() < 0) {
             throw new IllegalArgumentException("Los gastos superan la recaudación");
@@ -43,11 +44,11 @@ public final class EventSettlementCalculator {
     }
 
     public record CourseResult(String course, BigDecimal grossShare, BigDecimal expenses,
-                               BigDecimal netProfit, EventTransferStatus transferStatus) {
+            BigDecimal netProfit, EventTransferStatus transferStatus) {
     }
 
     public record Result(BigDecimal grossRevenue, BigDecimal commonExpenses,
-                         BigDecimal distributable, BigDecimal grossShare, BigDecimal remainder,
-                         List<CourseResult> courses) {
+            BigDecimal distributable, BigDecimal grossShare, BigDecimal remainder,
+            List<CourseResult> courses) {
     }
 }

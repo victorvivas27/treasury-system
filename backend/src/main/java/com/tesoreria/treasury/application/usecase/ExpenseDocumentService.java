@@ -40,8 +40,8 @@ public class ExpenseDocumentService {
     private final long maxBytes;
 
     public ExpenseDocumentService(ExpenseDocumentJpaRepository documents, FileStorageService storage,
-                                  TreasuryUseCase treasury,
-                                  org.springframework.core.env.Environment environment) {
+            TreasuryUseCase treasury,
+            org.springframework.core.env.Environment environment) {
         this.documents = documents;
         this.storage = storage;
         this.treasury = treasury;
@@ -77,7 +77,9 @@ public class ExpenseDocumentService {
             }
             return saved;
         } catch (RuntimeException exception) {
-            try { storage.delete(objectName); } catch (RuntimeException cleanupFailure) {
+            try {
+                storage.delete(objectName);
+            } catch (RuntimeException cleanupFailure) {
                 exception.addSuppressed(cleanupFailure);
             }
             throw exception;
@@ -121,8 +123,10 @@ public class ExpenseDocumentService {
     }
 
     private ValidatedFile validate(MultipartFile file) {
-        if (file == null || file.isEmpty()) throw error(HttpStatus.BAD_REQUEST, "El archivo está vacío");
-        if (file.getSize() > maxBytes) throw error(HttpStatus.PAYLOAD_TOO_LARGE, "El archivo supera el tamaño máximo");
+        if (file == null || file.isEmpty())
+            throw error(HttpStatus.BAD_REQUEST, "El archivo está vacío");
+        if (file.getSize() > maxBytes)
+            throw error(HttpStatus.CONTENT_TOO_LARGE, "El archivo supera el tamaño máximo");
         String original = Optional.ofNullable(file.getOriginalFilename()).orElse("");
         String safeName = original.replace('\\', '/');
         safeName = safeName.substring(safeName.lastIndexOf('/') + 1).trim();
@@ -133,9 +137,11 @@ public class ExpenseDocumentService {
             throw error(HttpStatus.BAD_REQUEST, "Extensión de archivo inválida");
         String extension = safeName.substring(dot + 1).toLowerCase(Locale.ROOT);
         Set<String> allowedTypes = TYPES.get(extension);
-        if (allowedTypes == null) throw error(HttpStatus.BAD_REQUEST, "Extensión no permitida");
+        if (allowedTypes == null)
+            throw error(HttpStatus.BAD_REQUEST, "Extensión no permitida");
         String contentType = Optional.ofNullable(file.getContentType()).orElse("").toLowerCase(Locale.ROOT);
-        if (!allowedTypes.contains(contentType)) throw error(HttpStatus.BAD_REQUEST, "Tipo MIME no permitido");
+        if (!allowedTypes.contains(contentType))
+            throw error(HttpStatus.BAD_REQUEST, "Tipo MIME no permitido");
         try {
             byte[] bytes = file.getBytes();
             if (!signatureMatches(extension, bytes))
@@ -147,7 +153,8 @@ public class ExpenseDocumentService {
     }
 
     private boolean signatureMatches(String extension, byte[] bytes) {
-        if (bytes.length < MIN_SIGNATURE_SIZE) return false;
+        if (bytes.length < MIN_SIGNATURE_SIZE)
+            return false;
         return switch (extension) {
             case "pdf" -> bytes[0] == '%' && bytes[1] == 'P' && bytes[2] == 'D' && bytes[3] == 'F';
             case "jpg", "jpeg" -> (bytes[0] & 255) == 0xff && (bytes[1] & 255) == 0xd8;
@@ -181,8 +188,13 @@ public class ExpenseDocumentService {
         return new DomainException("documento", status, message);
     }
 
-    private record ValidatedFile(String originalName, String extension, String contentType, byte[] bytes) { }
+    private record ValidatedFile(String originalName, String extension, String contentType, byte[] bytes) {
+    }
+
     public record DocumentView(Long id, String originalName, String contentType, String extension,
-                               Long sizeBytes, String uploadedBy, LocalDateTime createdAt) { }
-    public record Download(String filename, String contentType, byte[] bytes) { }
+            Long sizeBytes, String uploadedBy, LocalDateTime createdAt) {
+    }
+
+    public record Download(String filename, String contentType, byte[] bytes) {
+    }
 }

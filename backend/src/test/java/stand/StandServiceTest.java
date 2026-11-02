@@ -196,7 +196,8 @@ class StandServiceTest {
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
         assertThrows(DomainException.class, () -> service.registerSale(3L,
                 new StandService.SaleInput(List.of(new StandService.SaleItemInput(10L, 1)),
-                        StandPaymentMethod.CASH, BigDecimal.TEN, null), "admin"));
+                        StandPaymentMethod.CASH, BigDecimal.TEN, null),
+                "admin"));
         verify(sales, never()).save(any());
     }
 
@@ -232,8 +233,6 @@ class StandServiceTest {
 
     @Test
     void close_deberiaConsolidarElNetoEnLaRecaudacionDelEvento() {
-        StandSaleEntity cashSale = sale(StandPaymentMethod.CASH, "3000",
-                item(10L, "Café", 2, "1500"));
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
         when(stands.save(stand)).thenReturn(stand);
         when(sales.calculateEventNetRevenue(7L)).thenReturn(new BigDecimal("2600"));
@@ -370,13 +369,10 @@ class StandServiceTest {
         debitItem.setPresentation("Media");
         debitItem.setVariant("Familiar");
         debitItem.setUnitEquivalence(new BigDecimal("0.5"));
-        StandSaleEntity cashSale = sale(StandPaymentMethod.CASH, "3000", cashItem);
-        StandSaleEntity debitSale = sale(StandPaymentMethod.DEBIT, "5000", debitItem);
         StandSaleItemEmbeddable transferItem = item(12L, "Jugo", 1, "2000");
         transferItem.setPresentation("Porción");
         transferItem.setUnitEquivalence(new BigDecimal("0.125"));
         transferItem.setVariant("Individual");
-        StandSaleEntity transferSale = sale(StandPaymentMethod.TRANSFER, "2000", transferItem);
         when(stands.findById(3L)).thenReturn(Optional.of(stand));
         var saleTotals = List.of(
                 saleAggregate(StandPaymentMethod.CASH, "3000", 1),
@@ -437,7 +433,7 @@ class StandServiceTest {
     }
 
     private StandSaleEntity sale(StandPaymentMethod method, String total,
-                                 StandSaleItemEmbeddable item) {
+            StandSaleItemEmbeddable item) {
         StandSaleEntity sale = new StandSaleEntity();
         sale.setStand(stand);
         sale.setPaymentMethod(method);

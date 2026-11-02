@@ -328,7 +328,9 @@ class TransferPaymentServiceTest {
         when(treasury.getConfig(2026)).thenReturn(config());
         var current = plan(21L, 19L, 3L);
         current.setMode(mode);
-        when(plans.findByConfigIdAndFamilyId(3L, 19L)).thenReturn(Optional.empty(), Optional.of(current));
+        when(plans.findByConfigIdAndFamilyId(3L, 19L))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(current));
         var result = service.choosePlan(2026, mode, "tutor@test.cl");
         assertEquals(mode, result.selectedMode());
         verify(treasury).assignMode(2026, 19L, mode, null, null, null, "tutor@test.cl");

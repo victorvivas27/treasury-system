@@ -61,9 +61,9 @@ public class SchoolEventService {
                 .map(event -> new EventProfit(event.getId(), event.getName(), event.getEventDate(),
                         event.getParticipants().stream()
                                 .filter(participant -> participant.getTransferIncomeId() != null)
-                                .map(SchoolEventParticipantEmbeddable::getNetProfit)
+                                .map(participant -> participant.getNetProfit())
                                 .filter(Objects::nonNull)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add)))
+                                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)))))
                 .toList();
     }
 
@@ -131,7 +131,7 @@ public class SchoolEventService {
         Set<String> currentCourses = event.getParticipants().stream()
                 .map(item -> item.getCourse().toUpperCase(Locale.ROOT)).collect(Collectors.toSet());
         Set<String> requestedCourses = requested.stream()
-                .map(SchoolEventParticipantEmbeddable::getCourse).collect(Collectors.toSet());
+                .map(participant -> Objects.requireNonNull(participant.getCourse())).collect(Collectors.toSet());
         if (currentCourses.equals(requestedCourses)) return false;
         if (event.getGrossRevenue() != null || !event.getExpenses().isEmpty()) {
             List<String> removed = currentCourses.stream()
@@ -420,7 +420,8 @@ public class SchoolEventService {
                 .filter(item -> item.getStatus() == EventExpenseStatus.ACTIVE && item.getType() == type)
                 .filter(this::deductsFromSettlement)
                 .filter(item -> course == null || course.equalsIgnoreCase(item.getCourse()))
-                .map(SchoolEventExpenseEmbeddable::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(expense -> Objects.requireNonNull(expense.getAmount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
     }
 
     private boolean deductsFromSettlement(SchoolEventExpenseEmbeddable expense) {
@@ -433,12 +434,12 @@ public class SchoolEventService {
                 || participants == null || participants.isEmpty()) {
             throw invalid("Nombre, año, fecha y al menos un curso son obligatorios");
         }
-        long uniqueCourses = participants.stream().map(ParticipantInput::course)
+        long uniqueCourses = participants.stream().map(participant -> participant.course())
                 .filter(Objects::nonNull).map(value -> value.trim().toUpperCase(Locale.ROOT))
                 .distinct().count();
         if (uniqueCourses != participants.size()) throw invalid("Los cursos no pueden repetirse");
-        long uniqueStands = participants.stream().map(ParticipantInput::standName)
-                .filter(Objects::nonNull).map(String::trim).filter(value -> !value.isEmpty())
+        long uniqueStands = participants.stream().map(participant -> participant.standName())
+                .filter(Objects::nonNull).map(value -> Objects.requireNonNull(value.trim())).filter(value -> !value.isEmpty())
                 .map(value -> value.toUpperCase(Locale.ROOT)).distinct().count();
         if (uniqueStands != EXPECTED_UNIQUE_STANDS) {
             throw invalid("Todos los cursos deben compartir el mismo nombre de stand");

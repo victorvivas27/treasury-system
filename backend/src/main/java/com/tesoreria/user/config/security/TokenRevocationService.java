@@ -3,7 +3,6 @@ package com.tesoreria.user.config.security;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.tesoreria.user.infrastructure.adapter.out.persistence.repository.UserJpaRepository;
-import com.tesoreria.user.infrastructure.adapter.out.persistence.entity.UserEntity;
 
 import java.time.Instant;
 import java.util.Date;
@@ -61,7 +60,7 @@ public class TokenRevocationService {
         Instant revokedAt = revokedUsers.get(userId);
         if (checkPersisted && users != null) {
             Instant persisted = users.findById(userId)
-                    .map(UserEntity::getSessionsRevokedAt)
+                    .map(user -> user.getSessionsRevokedAt())
                     .orElse(null);
             if (persisted != null && (revokedAt == null || persisted.isAfter(revokedAt))) revokedAt = persisted;
         }

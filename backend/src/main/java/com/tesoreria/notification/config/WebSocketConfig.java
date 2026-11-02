@@ -8,6 +8,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Configuration
@@ -23,7 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         this.authInterceptor = authInterceptor;
         this.allowedOrigins = Stream.of(allowedOrigins, officialOrigins, frontendUrl)
                 .flatMap(origins -> Arrays.stream(origins.split(",")))
-                .map(String::trim)
+                .map(value -> Objects.requireNonNull(value.trim()))
                 .filter(value -> !value.isBlank())
                 .map(WebSocketConfig::removeTrailingSlash)
                 .distinct()

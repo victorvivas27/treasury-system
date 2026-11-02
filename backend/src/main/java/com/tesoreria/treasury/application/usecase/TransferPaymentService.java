@@ -46,34 +46,47 @@ public class TransferPaymentService {
     private final long maxBytes;
 
     public TransferPaymentService(BankAccountSettingJpaRepository settings,
-                                  AnnualFeeConfigJpaRepository feeConfigs,
-                                  GenericPaymentJpaRepository payments,
-                                  BankTransferPaymentJpaRepository transfers,
-                                  FamilyFeePlanJpaRepository plans,
-                                  FeeObligationJpaRepository obligations,
-                                  FamiliaJpaRepository families,
-                                  ApoderadoJpaRepository guardians,
-                                  AlumnoJpaRepository students,
-                                  TreasuryUseCase treasury,
-                                  ObjectProvider<FileStorageService> storageProvider,
-                                  Environment environment) {
-        this.settings = settings; this.feeConfigs = feeConfigs; this.payments = payments; this.transfers = transfers;
-        this.plans = plans; this.obligations = obligations; this.families = families;
-        this.guardians = guardians; this.students = students; this.treasury = treasury;
+            AnnualFeeConfigJpaRepository feeConfigs,
+            GenericPaymentJpaRepository payments,
+            BankTransferPaymentJpaRepository transfers,
+            FamilyFeePlanJpaRepository plans,
+            FeeObligationJpaRepository obligations,
+            FamiliaJpaRepository families,
+            ApoderadoJpaRepository guardians,
+            AlumnoJpaRepository students,
+            TreasuryUseCase treasury,
+            ObjectProvider<FileStorageService> storageProvider,
+            Environment environment) {
+        this.settings = settings;
+        this.feeConfigs = feeConfigs;
+        this.payments = payments;
+        this.transfers = transfers;
+        this.plans = plans;
+        this.obligations = obligations;
+        this.families = families;
+        this.guardians = guardians;
+        this.students = students;
+        this.treasury = treasury;
         this.storage = storageProvider.getIfAvailable();
         this.maxBytes = environment.getProperty("app.storage.gcs.max-file-size-mb", Long.class, 10L) * 1024L * 1024L;
     }
 
     @Transactional
     public BankAccountView saveSetting(int year, BankAccountRequest request) {
-        if (year < MIN_SCHOOL_YEAR) throw error(HttpStatus.BAD_REQUEST, "El año escolar es inválido");
+        if (year < MIN_SCHOOL_YEAR)
+            throw error(HttpStatus.BAD_REQUEST, "El año escolar es inválido");
         BankAccountSettingEntity value = settings.findBySchoolYear(year).orElseGet(BankAccountSettingEntity::new);
         LocalDateTime now = LocalDateTime.now();
-        value.setSchoolYear(year); value.setAccountHolderName(required(request.accountHolderName(), "Titular"));
+        value.setSchoolYear(year);
+        value.setAccountHolderName(required(request.accountHolderName(), "Titular"));
         value.setAccountHolderRut(required(request.accountHolderRut(), "RUT"));
-        value.setBankName(required(request.bankName(), "Banco")); value.setAccountType(required(request.accountType(), "Tipo de cuenta"));
-        value.setAccountNumber(required(request.accountNumber(), "Número de cuenta")); value.setEmail(required(request.email(), "Correo"));
-        if (value.getCreatedAt() == null) value.setCreatedAt(now); value.setUpdatedAt(now);
+        value.setBankName(required(request.bankName(), "Banco"));
+        value.setAccountType(required(request.accountType(), "Tipo de cuenta"));
+        value.setAccountNumber(required(request.accountNumber(), "Número de cuenta"));
+        value.setEmail(required(request.email(), "Correo"));
+        if (value.getCreatedAt() == null)
+            value.setCreatedAt(now);
+        value.setUpdatedAt(now);
         return setting(settings.save(value));
     }
 
@@ -87,19 +100,22 @@ public class TransferPaymentService {
     public MyPaymentsView choosePlan(int year, PaymentMode mode, String email) {
         FamiliaEntity family = ownFamily(email);
         if (mode != PaymentMode.ANUAL && mode != PaymentMode.DOS_CUOTAS) {
-            throw error(HttpStatus.BAD_REQUEST, "Elige pago único o dos cuotas. La cuota personalizada la administra Tesorería.");
+            throw error(HttpStatus.BAD_REQUEST,
+                    "Elige pago único o dos cuotas. La cuota personalizada la administra Tesorería.");
         }
         AnnualFeeConfig config = treasury.getConfig(year);
         FamilyFeePlanEntity current = plans.findByConfigIdAndFamilyId(config.id(), family.getFamiliaId()).orElse(null);
         if (current != null && current.getMode() == PaymentMode.PERSONALIZADA) {
-            throw error(HttpStatus.CONFLICT, "Tu cuota personalizada la administra Tesorería. Contacta al tesorero para modificarla.");
+            throw error(HttpStatus.CONFLICT,
+                    "Tu cuota personalizada la administra Tesorería. Contacta al tesorero para modificarla.");
         }
         if (current != null) {
             List<Long> ids = obligations.findByPlanIdOrderByDueDate(current.getId()).stream()
-                    .map(FeeObligationEntity::getId).toList();
+                    .map(value -> Objects.requireNonNull(value.getId())).toList();
             boolean hasPaymentHistory = !ids.isEmpty() && !payments.findByInstallmentIdIn(ids).isEmpty();
             if (hasPaymentHistory) {
-                throw error(HttpStatus.CONFLICT, "Ya tienes un pago iniciado o confirmado. Continúa con tu modalidad actual.");
+                throw error(HttpStatus.CONFLICT,
+                        "Ya tienes un pago iniciado o confirmado. Continúa con tu modalidad actual.");
             }
         }
         treasury.assignMode(year, family.getFamiliaId(), mode, null, null, null, email);
@@ -112,13 +128,16 @@ public class TransferPaymentService {
         AnnualFeeConfig config = treasury.getConfig(year);
         FamiliaEntity family = ownFamily(email);
         FamilyFeePlanEntity plan = plans.findByConfigIdAndFamilyId(config.id(), family.getFamiliaId()).orElse(null);
-        List<InstallmentView> installments = plan == null ? List.of() : installmentViews(
-                obligations.findByPlanIdOrderByDueDate(plan.getId()), true);
+        List<InstallmentView> installments = plan == null ? List.of()
+                : installmentViews(
+                        obligations.findByPlanIdOrderByDueDate(plan.getId()), true);
         BigDecimal paid = installments.stream().filter(i -> i.status() == ObligationStatus.PAGADA)
-                .map(InstallmentView::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(value -> Objects.requireNonNull(value.amount()))
+                .reduce(BigDecimal.ZERO, (left, right) -> Objects.requireNonNull(left.add(right)));
         String studentName = students.findById(family.getAlumnoId()).map(value -> value.getNombre()).orElse("");
         BigDecimal total = plan != null && plan.getMode() == PaymentMode.PERSONALIZADA
-                ? installments.stream().map(InstallmentView::amount).reduce(BigDecimal.ZERO, BigDecimal::add)
+                ? installments.stream().map(value -> Objects.requireNonNull(value.amount())).reduce(BigDecimal.ZERO,
+                        (left, right) -> Objects.requireNonNull(left.add(right)))
                 : config.annualAmount();
         return new MyPaymentsView(year, config.annualAmount(), total, config.allowedMode(), config.annualDueDate(),
                 config.firstDueDate(), config.secondDueDate(), family.getFamiliaId(), studentName,
@@ -151,9 +170,11 @@ public class TransferPaymentService {
             return attachProofToPaidPayment(obligation, family, file);
         }
         if (payments.existsByInstallmentIdAndStatusIn(installmentId,
-                List.of(PaymentStatus.PENDING, PaymentStatus.PROOF_SUBMITTED, PaymentStatus.UNDER_REVIEW, PaymentStatus.PAID)))
+                List.of(PaymentStatus.PENDING, PaymentStatus.PROOF_SUBMITTED, PaymentStatus.UNDER_REVIEW,
+                        PaymentStatus.PAID)))
             throw error(HttpStatus.CONFLICT, "Esta cuota ya tiene un comprobante en revisión");
-        ValidFile valid = validate(file); FileStorageService fileStorage = requireStorage();
+        ValidFile valid = validate(file);
+        FileStorageService fileStorage = requireStorage();
         String studentName = students.findById(family.getAlumnoId()).map(value -> value.getNombre()).orElse("alumno");
         String familyFolder = firstName(studentName) + "-" + family.getFamiliaId();
         int schoolYear = schoolYear(obligation);
@@ -162,27 +183,40 @@ public class TransferPaymentService {
         fileStorage.upload(objectName, valid.bytes(), valid.contentType());
         try {
             LocalDateTime now = LocalDateTime.now();
-            GenericPaymentEntity payment = new GenericPaymentEntity(); payment.setInstallmentId(installmentId);
-            payment.setAmount(obligation.getAmount()); payment.setCurrency("CLP"); payment.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
-            payment.setStatus(PaymentStatus.PROOF_SUBMITTED); payment.setCreatedAt(now); payment.setUpdatedAt(now);
+            GenericPaymentEntity payment = new GenericPaymentEntity();
+            payment.setInstallmentId(installmentId);
+            payment.setAmount(obligation.getAmount());
+            payment.setCurrency("CLP");
+            payment.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
+            payment.setStatus(PaymentStatus.PROOF_SUBMITTED);
+            payment.setCreatedAt(now);
+            payment.setUpdatedAt(now);
             payment = payments.saveAndFlush(payment);
             BankTransferPaymentEntity transfer = saveProofMetadata(payment.getId(), objectName, valid, now);
-            obligation.setStatus(ObligationStatus.EN_REVISION); obligation.setUpdatedAt(now); obligations.save(obligation);
+            obligation.setStatus(ObligationStatus.EN_REVISION);
+            obligation.setUpdatedAt(now);
+            obligations.save(obligation);
             return view(payment, transfer, null);
         } catch (RuntimeException exception) {
-            try { fileStorage.delete(objectName); } catch (RuntimeException cleanup) { exception.addSuppressed(cleanup); }
+            try {
+                fileStorage.delete(objectName);
+            } catch (RuntimeException cleanup) {
+                exception.addSuppressed(cleanup);
+            }
             throw exception;
         }
     }
 
-    private PaymentView attachProofToPaidPayment(FeeObligationEntity obligation, FamiliaEntity family, MultipartFile file) {
+    private PaymentView attachProofToPaidPayment(FeeObligationEntity obligation, FamiliaEntity family,
+            MultipartFile file) {
         GenericPaymentEntity payment = payments.findFirstByInstallmentIdAndStatusOrderByCreatedAtDesc(
-                        obligation.getId(), PaymentStatus.PAID)
+                obligation.getId(), PaymentStatus.PAID)
                 .orElseThrow(() -> error(HttpStatus.CONFLICT, "Esta cuota ya está pagada"));
         if (transfers.findByPaymentId(payment.getId()).isPresent()) {
             throw error(HttpStatus.CONFLICT, "Esta cuota ya tiene un comprobante registrado");
         }
-        ValidFile valid = validate(file); FileStorageService fileStorage = requireStorage();
+        ValidFile valid = validate(file);
+        FileStorageService fileStorage = requireStorage();
         String studentName = students.findById(family.getAlumnoId()).map(value -> value.getNombre()).orElse("alumno");
         String familyFolder = firstName(studentName) + "-" + family.getFamiliaId();
         int schoolYear = schoolYear(obligation);
@@ -190,25 +224,34 @@ public class TransferPaymentService {
                 schoolYear, familyFolder, obligation.getId(), UUID.randomUUID(), extension(valid.contentType()));
         fileStorage.upload(objectName, valid.bytes(), valid.contentType());
         try {
-            BankTransferPaymentEntity transfer = saveProofMetadata(payment.getId(), objectName, valid, LocalDateTime.now());
+            BankTransferPaymentEntity transfer = saveProofMetadata(payment.getId(), objectName, valid,
+                    LocalDateTime.now());
             return view(payment, transfer, null);
         } catch (RuntimeException exception) {
-            try { fileStorage.delete(objectName); } catch (RuntimeException cleanup) { exception.addSuppressed(cleanup); }
+            try {
+                fileStorage.delete(objectName);
+            } catch (RuntimeException cleanup) {
+                exception.addSuppressed(cleanup);
+            }
             throw exception;
         }
     }
 
     @Transactional
     public void deleteFamilyPayments(Long familyId) {
-        List<Long> planIds = plans.findByFamilyId(familyId).stream().map(FamilyFeePlanEntity::getId).toList();
-        if (planIds.isEmpty()) return;
+        List<Long> planIds = plans.findByFamilyId(familyId).stream().map(value -> Objects.requireNonNull(value.getId()))
+                .toList();
+        if (planIds.isEmpty())
+            return;
         List<Long> obligationIds = obligations.findByPlanIdInOrderByDueDate(planIds).stream()
-                .map(FeeObligationEntity::getId).toList();
-        if (obligationIds.isEmpty()) return;
+                .map(value -> Objects.requireNonNull(value.getId())).toList();
+        if (obligationIds.isEmpty())
+            return;
         List<GenericPaymentEntity> familyPayments = payments.findByInstallmentIdIn(obligationIds);
-        if (familyPayments.isEmpty()) return;
+        if (familyPayments.isEmpty())
+            return;
         List<BankTransferPaymentEntity> familyTransfers = transfers.findByPaymentIdIn(
-                familyPayments.stream().map(GenericPaymentEntity::getId).toList());
+                familyPayments.stream().map(value -> Objects.requireNonNull(value.getId())).toList());
         if (!familyTransfers.isEmpty()) {
             FileStorageService fileStorage = requireStorage();
             for (BankTransferPaymentEntity transfer : familyTransfers) {
@@ -223,14 +266,20 @@ public class TransferPaymentService {
     public List<ReviewPaymentView> reviewList(int year, PaymentStatus status) {
         AnnualFeeConfig config = treasury.getConfig(year);
         List<FamilyFeePlanEntity> yearPlans = plans.findByConfigIdOrderByFamilyId(config.id());
-        Map<Long, FamilyFeePlanEntity> plansById = yearPlans.stream().collect(Collectors.toMap(FamilyFeePlanEntity::getId, Function.identity()));
+        Map<Long, FamilyFeePlanEntity> plansById = yearPlans.stream()
+                .collect(Collectors.toMap(value -> Objects.requireNonNull(value.getId()), Function.identity()));
         List<FeeObligationEntity> yearObligations = obligations.findByPlanIdInOrderByDueDate(plansById.keySet());
-        Map<Long, FeeObligationEntity> byId = yearObligations.stream().collect(Collectors.toMap(FeeObligationEntity::getId, Function.identity()));
+        Map<Long, FeeObligationEntity> byId = yearObligations.stream()
+                .collect(Collectors.toMap(value -> Objects.requireNonNull(value.getId()), Function.identity()));
         List<GenericPaymentEntity> values = payments.findByInstallmentIdInOrderByCreatedAtDesc(byId.keySet());
-        if (status != null) values = values.stream().filter(value -> value.getStatus() == status).toList();
-        Map<Long, BankTransferPaymentEntity> detail = transfers.findByPaymentIdIn(values.stream().map(GenericPaymentEntity::getId).toList())
-                .stream().collect(Collectors.toMap(BankTransferPaymentEntity::getPaymentId, Function.identity()));
-        return values.stream().map(payment -> reviewView(payment, detail.get(payment.getId()), byId.get(payment.getInstallmentId()), plansById)).toList();
+        if (status != null)
+            values = values.stream().filter(value -> value.getStatus() == status).toList();
+        Map<Long, BankTransferPaymentEntity> detail = transfers
+                .findByPaymentIdIn(values.stream().map(value -> Objects.requireNonNull(value.getId())).toList())
+                .stream()
+                .collect(Collectors.toMap(value -> Objects.requireNonNull(value.getPaymentId()), Function.identity()));
+        return values.stream().map(payment -> reviewView(payment, detail.get(payment.getId()),
+                byId.get(payment.getInstallmentId()), plansById)).toList();
     }
 
     @Transactional
@@ -240,83 +289,120 @@ public class TransferPaymentService {
 
     @Transactional
     public PaymentView approve(Long paymentId, String reviewer, LocalDate paymentDate) {
-        GenericPaymentEntity payment = payment(paymentId); BankTransferPaymentEntity transfer = transfer(paymentId);
-        if (payment.getStatus() == PaymentStatus.PAID) return view(payment, transfer, null);
+        GenericPaymentEntity payment = payment(paymentId);
+        BankTransferPaymentEntity transfer = transfer(paymentId);
+        if (payment.getStatus() == PaymentStatus.PAID)
+            return view(payment, transfer, null);
         if (payment.getStatus() != PaymentStatus.PROOF_SUBMITTED && payment.getStatus() != PaymentStatus.UNDER_REVIEW)
             throw error(HttpStatus.CONFLICT, "El pago no está pendiente de revisión");
         treasury.registerPayment(payment.getInstallmentId(), paymentDate == null ? LocalDate.now() : paymentDate,
                 payment.getAmount(), reviewer,
                 "Transferencia aprobada · intento #" + payment.getId());
-        LocalDateTime now = LocalDateTime.now(); payment.setStatus(PaymentStatus.PAID); payment.setPaidAt(now); payment.setUpdatedAt(now);
-        transfer.setReviewedBy(reviewer); transfer.setReviewedAt(now); transfer.setUpdatedAt(now);
+        LocalDateTime now = LocalDateTime.now();
+        payment.setStatus(PaymentStatus.PAID);
+        payment.setPaidAt(now);
+        payment.setUpdatedAt(now);
+        transfer.setReviewedBy(reviewer);
+        transfer.setReviewedAt(now);
+        transfer.setUpdatedAt(now);
         return view(payments.save(payment), transfers.save(transfer), null);
     }
 
     @Transactional
     public PaymentView reject(Long paymentId, String reason, String reviewer) {
-        GenericPaymentEntity payment = payment(paymentId); BankTransferPaymentEntity transfer = transfer(paymentId);
-        if (payment.getStatus() == PaymentStatus.REJECTED) return view(payment, transfer, null);
+        GenericPaymentEntity payment = payment(paymentId);
+        BankTransferPaymentEntity transfer = transfer(paymentId);
+        if (payment.getStatus() == PaymentStatus.REJECTED)
+            return view(payment, transfer, null);
         if (payment.getStatus() != PaymentStatus.PROOF_SUBMITTED && payment.getStatus() != PaymentStatus.UNDER_REVIEW)
             throw error(HttpStatus.CONFLICT, "El pago no está pendiente de revisión");
-        String validReason = required(reason, "Motivo"); LocalDateTime now = LocalDateTime.now();
-        payment.setStatus(PaymentStatus.REJECTED); payment.setUpdatedAt(now); transfer.setReviewedBy(reviewer);
-        transfer.setReviewedAt(now); transfer.setRejectionReason(validReason); transfer.setUpdatedAt(now);
+        String validReason = required(reason, "Motivo");
+        LocalDateTime now = LocalDateTime.now();
+        payment.setStatus(PaymentStatus.REJECTED);
+        payment.setUpdatedAt(now);
+        transfer.setReviewedBy(reviewer);
+        transfer.setReviewedAt(now);
+        transfer.setRejectionReason(validReason);
+        transfer.setUpdatedAt(now);
         FeeObligationEntity obligation = obligations.findById(payment.getInstallmentId()).orElseThrow();
-        obligation.setStatus(ObligationStatus.PENDIENTE); obligation.setUpdatedAt(now); obligations.save(obligation);
+        obligation.setStatus(ObligationStatus.PENDIENTE);
+        obligation.setUpdatedAt(now);
+        obligations.save(obligation);
         return view(payments.save(payment), transfers.save(transfer), null);
     }
 
     @Transactional(readOnly = true)
     public Download download(Long paymentId, String email, boolean admin) {
         GenericPaymentEntity payment = payment(paymentId);
-        if (!admin) ownObligation(payment.getInstallmentId(), email);
+        if (!admin)
+            ownObligation(payment.getInstallmentId(), email);
         BankTransferPaymentEntity transfer = transfer(paymentId);
         FileStorageService.StoredContent content = requireStorage().read(transfer.getProofObjectName());
         return new Download(transfer.getOriginalFileName(), transfer.getContentType(), content.bytes());
     }
 
     private List<InstallmentView> installmentViews(List<FeeObligationEntity> values, boolean history) {
-        List<GenericPaymentEntity> paymentValues = values.isEmpty() ? List.of() : payments.findByInstallmentIdInOrderByCreatedAtDesc(values.stream().map(FeeObligationEntity::getId).toList());
-        Map<Long, BankTransferPaymentEntity> transferMap = transfers.findByPaymentIdIn(paymentValues.stream().map(GenericPaymentEntity::getId).toList()).stream()
-                .collect(Collectors.toMap(BankTransferPaymentEntity::getPaymentId, Function.identity()));
-        Map<Long, List<PaymentView>> byInstallment = paymentValues.stream().collect(Collectors.groupingBy(GenericPaymentEntity::getInstallmentId,
-                Collectors.mapping(p -> view(p, transferMap.get(p.getId()), null), Collectors.toList())));
-        return values.stream().map(value -> new InstallmentView(value.getId(), value.getInstallment(), value.getConcept(), value.getAmount(),
-                value.getDueDate(), value.getStatus(), history ? byInstallment.getOrDefault(value.getId(), List.of()) : List.of())).toList();
+        List<GenericPaymentEntity> paymentValues = values.isEmpty() ? List.of()
+                : payments.findByInstallmentIdInOrderByCreatedAtDesc(
+                        values.stream().map(value -> Objects.requireNonNull(value.getId())).toList());
+        Map<Long, BankTransferPaymentEntity> transferMap = transfers
+                .findByPaymentIdIn(paymentValues.stream().map(value -> Objects.requireNonNull(value.getId())).toList())
+                .stream()
+                .collect(Collectors.toMap(value -> Objects.requireNonNull(value.getPaymentId()), Function.identity()));
+        Map<Long, List<PaymentView>> byInstallment = paymentValues.stream()
+                .collect(Collectors.groupingBy(value -> Objects.requireNonNull(value.getInstallmentId()),
+                        Collectors.mapping(p -> view(p, transferMap.get(p.getId()), null), Collectors.toList())));
+        return values.stream()
+                .map(value -> new InstallmentView(value.getId(), value.getInstallment(), value.getConcept(),
+                        value.getAmount(),
+                        value.getDueDate(), value.getStatus(),
+                        history ? byInstallment.getOrDefault(value.getId(), List.of()) : List.of()))
+                .toList();
     }
 
     private ReviewPaymentView reviewView(GenericPaymentEntity payment, BankTransferPaymentEntity transfer,
-                                          FeeObligationEntity obligation, Map<Long, FamilyFeePlanEntity> plansById) {
-        FamilyFeePlanEntity plan = plansById.get(obligation.getPlanId()); FamiliaEntity family = families.findById(plan.getFamilyId()).orElseThrow();
+            FeeObligationEntity obligation, Map<Long, FamilyFeePlanEntity> plansById) {
+        FamilyFeePlanEntity plan = plansById.get(obligation.getPlanId());
+        FamiliaEntity family = families.findById(plan.getFamilyId()).orElseThrow();
         String student = students.findById(family.getAlumnoId()).map(value -> value.getNombre()).orElse("");
-        String guardian = family.getApoderados().stream().filter(value -> Boolean.TRUE.equals(value.getEsPrincipal())).findFirst()
-                .flatMap(value -> guardians.findById(value.getApoderadoId())).map(ApoderadoEntity::getNombre).orElse("");
+        String guardian = family.getApoderados().stream().filter(value -> Boolean.TRUE.equals(value.getEsPrincipal()))
+                .findFirst()
+                .flatMap(value -> guardians.findById(value.getApoderadoId())).map(value -> value.getNombre())
+                .orElse("");
         return new ReviewPaymentView(payment.getId(), payment.getInstallmentId(), student, guardian,
                 obligation.getConcept(), payment.getAmount(), payment.getStatus(),
                 transfer == null ? null : transfer.getOriginalFileName(),
-                transfer == null ? null : transfer.getSubmittedAt(), transfer == null ? null : transfer.getRejectionReason(), payment.getPaymentMethod());
+                transfer == null ? null : transfer.getSubmittedAt(),
+                transfer == null ? null : transfer.getRejectionReason(), payment.getPaymentMethod());
     }
 
     private FamiliaEntity ownFamily(String email) {
-        ApoderadoEntity guardian = guardians.findByEmail(email).orElseThrow(() -> error(HttpStatus.FORBIDDEN, "Tu usuario no está asociado a un apoderado"));
-        return families.findByGuardianId(guardian.getApoderadoId()).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "No existe una familia asociada"));
+        ApoderadoEntity guardian = guardians.findByEmail(email)
+                .orElseThrow(() -> error(HttpStatus.FORBIDDEN, "Tu usuario no está asociado a un apoderado"));
+        return families.findByGuardianId(guardian.getApoderadoId())
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "No existe una familia asociada"));
     }
+
     FeeObligationEntity ownObligation(Long id, String email) {
         return ownObligation(id, ownFamily(email));
     }
+
     private FeeObligationEntity ownObligation(Long id, FamiliaEntity family) {
         FeeObligationEntity obligation = obligations.findById(id)
                 .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Cuota no encontrada"));
         FamilyFeePlanEntity plan = plans.findById(obligation.getPlanId()).orElseThrow();
-        if (!plan.getFamilyId().equals(family.getFamiliaId())) throw error(HttpStatus.FORBIDDEN, "La cuota no pertenece a tu familia");
+        if (!plan.getFamilyId().equals(family.getFamiliaId()))
+            throw error(HttpStatus.FORBIDDEN, "La cuota no pertenece a tu familia");
         return obligation;
     }
+
     private String firstName(String fullName) {
         String first = Optional.ofNullable(fullName).orElse("").trim().split("\\s+")[0];
         String normalized = Normalizer.normalize(first, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         String safe = normalized.replaceAll("[^A-Za-z0-9_-]", "");
         return safe.isBlank() ? "alumno" : safe;
     }
+
     private String extension(String contentType) {
         return switch (contentType) {
             case "image/jpeg" -> "jpg";
@@ -325,6 +411,7 @@ public class TransferPaymentService {
             default -> "bin";
         };
     }
+
     private int schoolYear(FeeObligationEntity obligation) {
         FamilyFeePlanEntity plan = plans.findById(obligation.getPlanId())
                 .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Plan de pago no encontrado"));
@@ -332,45 +419,133 @@ public class TransferPaymentService {
                 .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Configuración anual no encontrada"))
                 .getYear();
     }
-    private GenericPaymentEntity payment(Long id) { return payments.findById(id).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Pago no encontrado")); }
-    private BankTransferPaymentEntity transfer(Long id) { return transfers.findByPaymentId(id).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Comprobante no encontrado")); }
-    private FileStorageService requireStorage() { if (storage == null) throw error(HttpStatus.SERVICE_UNAVAILABLE, "El almacenamiento de comprobantes no está configurado"); return storage; }
-    private BankTransferPaymentEntity saveProofMetadata(Long paymentId, String objectName, ValidFile valid, LocalDateTime now) {
-        BankTransferPaymentEntity transfer = new BankTransferPaymentEntity(); transfer.setPaymentId(paymentId);
-        transfer.setProofObjectName(objectName); transfer.setOriginalFileName(valid.name()); transfer.setContentType(valid.contentType());
-        transfer.setSizeBytes((long) valid.bytes().length); transfer.setSubmittedAt(now); transfer.setCreatedAt(now); transfer.setUpdatedAt(now);
+
+    private GenericPaymentEntity payment(Long id) {
+        return payments.findById(id).orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Pago no encontrado"));
+    }
+
+    private BankTransferPaymentEntity transfer(Long id) {
+        return transfers.findByPaymentId(id)
+                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Comprobante no encontrado"));
+    }
+
+    private FileStorageService requireStorage() {
+        if (storage == null)
+            throw error(HttpStatus.SERVICE_UNAVAILABLE, "El almacenamiento de comprobantes no está configurado");
+        return storage;
+    }
+
+    private BankTransferPaymentEntity saveProofMetadata(Long paymentId, String objectName, ValidFile valid,
+            LocalDateTime now) {
+        BankTransferPaymentEntity transfer = new BankTransferPaymentEntity();
+        transfer.setPaymentId(paymentId);
+        transfer.setProofObjectName(objectName);
+        transfer.setOriginalFileName(valid.name());
+        transfer.setContentType(valid.contentType());
+        transfer.setSizeBytes((long) valid.bytes().length);
+        transfer.setSubmittedAt(now);
+        transfer.setCreatedAt(now);
+        transfer.setUpdatedAt(now);
         return transfers.saveAndFlush(transfer);
     }
-    private String required(String value, String field) { if (value == null || value.isBlank()) throw error(HttpStatus.BAD_REQUEST, field + " es obligatorio"); return value.trim(); }
-    private ValidFile validate(MultipartFile file) {
-        if (file == null || file.isEmpty()) throw error(HttpStatus.BAD_REQUEST, "El comprobante está vacío");
-        if (file.getSize() > maxBytes) throw error(HttpStatus.PAYLOAD_TOO_LARGE, "El comprobante supera el tamaño máximo");
-        String type = Optional.ofNullable(file.getContentType()).orElse("").toLowerCase(Locale.ROOT);
-        if (!ALLOWED_TYPES.contains(type)) throw error(HttpStatus.BAD_REQUEST, "Solo se permiten archivos JPG, PNG o PDF");
-        String name = Optional.ofNullable(file.getOriginalFilename()).orElse("comprobante").replace('\\', '/'); name = name.substring(name.lastIndexOf('/') + 1);
-        if (name.isBlank() || name.length() > MAX_FILE_NAME_LENGTH || name.contains("..")) throw error(HttpStatus.BAD_REQUEST, "Nombre de archivo inválido");
-        try { byte[] bytes = file.getBytes(); if (!signature(type, bytes)) throw error(HttpStatus.BAD_REQUEST, "El contenido no coincide con el tipo de archivo"); return new ValidFile(name, type, bytes); }
-        catch (IOException ex) { throw new DomainException("comprobante", HttpStatus.BAD_REQUEST, "No se pudo leer el comprobante", ex); }
-    }
-    private boolean signature(String type, byte[] b) { if (b.length < MIN_SIGNATURE_BYTES) return false; return switch (type) {
-        case "application/pdf" -> b[0] == '%' && b[1] == 'P' && b[2] == 'D' && b[3] == 'F';
-        case "image/jpeg" -> (b[0] & 255) == 255 && (b[1] & 255) == 216;
-        case "image/png" -> (b[0] & 255) == 137 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G'; default -> false; }; }
-    private BankAccountView setting(BankAccountSettingEntity v) { return new BankAccountView(v.getId(), v.getSchoolYear(), v.getAccountHolderName(), v.getAccountHolderRut(), v.getBankName(), v.getAccountType(), v.getAccountNumber(), v.getEmail()); }
-    private PaymentView view(GenericPaymentEntity p, BankTransferPaymentEntity t, String ignored) { return new PaymentView(p.getId(), p.getInstallmentId(), p.getAmount(), p.getCurrency(), p.getPaymentMethod(), p.getStatus(), p.getPaidAt(), t == null ? null : t.getOriginalFileName(), t == null ? null : t.getSubmittedAt(), t == null ? null : t.getReviewedAt(), t == null ? null : t.getRejectionReason(), p.getProviderPaymentId(), p.getProviderStatus(), p.getCreatedAt()); }
-    private DomainException error(HttpStatus status, String message) { return new DomainException("pago", status, message); }
 
-    private record ValidFile(String name, String contentType, byte[] bytes) {}
-    public record BankAccountRequest(String accountHolderName, String accountHolderRut, String bankName, String accountType, String accountNumber, String email) {}
-    public record BankAccountView(Long id, Integer schoolYear, String accountHolderName, String accountHolderRut, String bankName, String accountType, String accountNumber, String email) {}
-    public record PlanRequest(int year, PaymentMode mode) {}
-    public record RejectRequest(String reason) {}
-    public record ApprovalRequest(LocalDate paymentDate) {}
-    public record PaymentView(Long id, Long installmentId, BigDecimal amount, String currency, PaymentMethod paymentMethod, PaymentStatus status, LocalDateTime paidAt, String originalFileName, LocalDateTime submittedAt, LocalDateTime reviewedAt, String rejectionReason, String providerPaymentId, String providerStatus, LocalDateTime createdAt) {}
-    public record InstallmentView(Long id, InstallmentType installment, String concept, BigDecimal amount, LocalDate dueDate, ObligationStatus status, List<PaymentView> history) {}
-    public record MyPaymentsView(int schoolYear, BigDecimal annualAmount, BigDecimal totalAmount, AllowedPaymentMode allowedMode, LocalDate annualDueDate, LocalDate firstDueDate, LocalDate secondDueDate, Long familyId, String studentName, PaymentMode selectedMode, BigDecimal paidAmount, List<InstallmentView> installments, BankAccountView bankAccount) {}
+    private String required(String value, String field) {
+        if (value == null || value.isBlank())
+            throw error(HttpStatus.BAD_REQUEST, field + " es obligatorio");
+        return value.trim();
+    }
+
+    private ValidFile validate(MultipartFile file) {
+        if (file == null || file.isEmpty())
+            throw error(HttpStatus.BAD_REQUEST, "El comprobante está vacío");
+        if (file.getSize() > maxBytes)
+            throw error(HttpStatus.CONTENT_TOO_LARGE, "El comprobante supera el tamaño máximo");
+        String type = Optional.ofNullable(file.getContentType()).orElse("").toLowerCase(Locale.ROOT);
+        if (!ALLOWED_TYPES.contains(type))
+            throw error(HttpStatus.BAD_REQUEST, "Solo se permiten archivos JPG, PNG o PDF");
+        String name = Optional.ofNullable(file.getOriginalFilename()).orElse("comprobante").replace('\\', '/');
+        name = name.substring(name.lastIndexOf('/') + 1);
+        if (name.isBlank() || name.length() > MAX_FILE_NAME_LENGTH || name.contains(".."))
+            throw error(HttpStatus.BAD_REQUEST, "Nombre de archivo inválido");
+        try {
+            byte[] bytes = file.getBytes();
+            if (!signature(type, bytes))
+                throw error(HttpStatus.BAD_REQUEST, "El contenido no coincide con el tipo de archivo");
+            return new ValidFile(name, type, bytes);
+        } catch (IOException ex) {
+            throw new DomainException("comprobante", HttpStatus.BAD_REQUEST, "No se pudo leer el comprobante", ex);
+        }
+    }
+
+    private boolean signature(String type, byte[] b) {
+        if (b.length < MIN_SIGNATURE_BYTES)
+            return false;
+        return switch (type) {
+            case "application/pdf" -> b[0] == '%' && b[1] == 'P' && b[2] == 'D' && b[3] == 'F';
+            case "image/jpeg" -> (b[0] & 255) == 255 && (b[1] & 255) == 216;
+            case "image/png" -> (b[0] & 255) == 137 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G';
+            default -> false;
+        };
+    }
+
+    private BankAccountView setting(BankAccountSettingEntity v) {
+        return new BankAccountView(v.getId(), v.getSchoolYear(), v.getAccountHolderName(), v.getAccountHolderRut(),
+                v.getBankName(), v.getAccountType(), v.getAccountNumber(), v.getEmail());
+    }
+
+    private PaymentView view(GenericPaymentEntity p, BankTransferPaymentEntity t, String ignored) {
+        return new PaymentView(p.getId(), p.getInstallmentId(), p.getAmount(), p.getCurrency(), p.getPaymentMethod(),
+                p.getStatus(), p.getPaidAt(), t == null ? null : t.getOriginalFileName(),
+                t == null ? null : t.getSubmittedAt(), t == null ? null : t.getReviewedAt(),
+                t == null ? null : t.getRejectionReason(), p.getProviderPaymentId(), p.getProviderStatus(),
+                p.getCreatedAt());
+    }
+
+    private DomainException error(HttpStatus status, String message) {
+        return new DomainException("pago", status, message);
+    }
+
+    private record ValidFile(String name, String contentType, byte[] bytes) {
+    }
+
+    public record BankAccountRequest(String accountHolderName, String accountHolderRut, String bankName,
+            String accountType, String accountNumber, String email) {
+    }
+
+    public record BankAccountView(Long id, Integer schoolYear, String accountHolderName, String accountHolderRut,
+            String bankName, String accountType, String accountNumber, String email) {
+    }
+
+    public record PlanRequest(int year, PaymentMode mode) {
+    }
+
+    public record RejectRequest(String reason) {
+    }
+
+    public record ApprovalRequest(LocalDate paymentDate) {
+    }
+
+    public record PaymentView(Long id, Long installmentId, BigDecimal amount, String currency,
+            PaymentMethod paymentMethod, PaymentStatus status, LocalDateTime paidAt, String originalFileName,
+            LocalDateTime submittedAt, LocalDateTime reviewedAt, String rejectionReason, String providerPaymentId,
+            String providerStatus, LocalDateTime createdAt) {
+    }
+
+    public record InstallmentView(Long id, InstallmentType installment, String concept, BigDecimal amount,
+            LocalDate dueDate, ObligationStatus status, List<PaymentView> history) {
+    }
+
+    public record MyPaymentsView(int schoolYear, BigDecimal annualAmount, BigDecimal totalAmount,
+            AllowedPaymentMode allowedMode, LocalDate annualDueDate, LocalDate firstDueDate, LocalDate secondDueDate,
+            Long familyId, String studentName, PaymentMode selectedMode, BigDecimal paidAmount,
+            List<InstallmentView> installments, BankAccountView bankAccount) {
+    }
+
     public record ReviewPaymentView(Long id, Long installmentId, String studentName, String guardianName,
-                                    String installment, BigDecimal amount, PaymentStatus status,
-                                    String originalFileName, LocalDateTime submittedAt, String rejectionReason, PaymentMethod paymentMethod) {}
-    public record Download(String filename, String contentType, byte[] bytes) {}
+            String installment, BigDecimal amount, PaymentStatus status,
+            String originalFileName, LocalDateTime submittedAt, String rejectionReason, PaymentMethod paymentMethod) {
+    }
+
+    public record Download(String filename, String contentType, byte[] bytes) {
+    }
 }

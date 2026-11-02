@@ -114,7 +114,7 @@ public class IncomeDocumentService {
 
     private ValidatedFile validate(MultipartFile file) {
         if (file == null || file.isEmpty()) throw error(HttpStatus.BAD_REQUEST, "El archivo está vacío");
-        if (file.getSize() > maxBytes) throw error(HttpStatus.PAYLOAD_TOO_LARGE, "El archivo supera el tamaño máximo");
+        if (file.getSize() > maxBytes) throw error(HttpStatus.CONTENT_TOO_LARGE, "El archivo supera el tamaño máximo");
         String original = Optional.ofNullable(file.getOriginalFilename()).orElse("");
         String safeName = original.replace('\\', '/');
         safeName = safeName.substring(safeName.lastIndexOf('/') + 1).trim();

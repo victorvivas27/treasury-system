@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -63,10 +64,10 @@ public class ApoderadoController {
 
         PageResponse<Apoderado> result = apoderadoService.findAll(pageRequest);
         Map<String, User> usersByEmail = users.findByCorreosAndOrganizationId(result.content().stream()
-                        .map(Apoderado::getEmail)
+                        .map(guardian -> Objects.requireNonNull(guardian.getEmail()))
                         .toList(), currentOrganization.getId())
                 .stream()
-                .collect(Collectors.toMap(User::getCorreo, Function.identity(),
+                .collect(Collectors.toMap(user -> Objects.requireNonNull(user.getCorreo()), Function.identity(),
                         (first, second) -> first));
 
         PageResponse<ApoderadoResponse> response = new PageResponse<>(

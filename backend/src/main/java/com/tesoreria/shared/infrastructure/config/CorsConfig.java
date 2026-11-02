@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Configuration
@@ -69,7 +70,7 @@ public class CorsConfig implements WebMvcConfigurer {
 
     private static String[] splitValues(String values) {
         return Arrays.stream(values.split(","))
-                .map(String::trim)
+                .map(value -> Objects.requireNonNull(value.trim()))
                 .filter(value -> !value.isBlank())
                 .map(CorsConfig::removeTrailingSlash)
                 .distinct()
