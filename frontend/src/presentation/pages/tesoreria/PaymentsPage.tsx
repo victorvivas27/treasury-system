@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -421,7 +422,7 @@ export const PaymentsPage = () => {
         <form ref={bankConfigRef} tabIndex={-1} className="payment-panel bank-form bank-config-modal" role="dialog" aria-modal="true" aria-labelledby="bank-config-title" onSubmit={saveBank} onClick={event => event.stopPropagation()}><header><div><h2 id="bank-config-title">Cuenta para transferencias</h2><p>Estos datos los verán los apoderados.</p></div><div className="bank-form__header-actions"><Link to="/tesoreria/cuotas">Configurar cuota anual <FiExternalLink aria-hidden="true" /></Link><button type="button" aria-label="Cerrar configuración" onClick={() => setBankConfigOpen(false)}><FiX aria-hidden="true" /> Cerrar</button></div></header>
           {bankFormFields.map(({ label, key, Icon, inputType = "text" }) =>
             <label className="bank-form__field" key={key}><span><Icon aria-hidden="true" />{label}</span><input required type={inputType} value={String(bank[key] ?? "")} onChange={event => setBank(current => ({ ...current, [key]: event.target.value }))} /></label>)}
-          <button disabled={busy}>Guardar datos</button>
+          <button type="submit" disabled={busy} aria-busy={actionBusy}>{actionBusy && <ButtonSpinner />}{actionBusy ? "Guardando…" : "Guardar datos"}</button>
         </form>
       </div>}
     </> : mine ? <>

@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -105,8 +106,8 @@ export const AboutManagementPage = () => {
         <label className="about-admin__visible"><input type="checkbox" checked={form.featured}
           onChange={event => setForm({ ...form, featured: event.target.checked })} />
           Mostrar como tarjeta principal</label></div>
-      <button className="about-admin__save" type="submit" disabled={saving}>
-        {editingId ? <FiSave /> : <FiPlus />}{saving ? "Guardando…" : editingId ? "Guardar cambios" : "Crear contenido"}
+      <button className="about-admin__save" type="submit" disabled={saving} aria-busy={saving}>
+        {saving ? <ButtonSpinner /> : editingId ? <FiSave /> : <FiPlus />}{saving ? "Guardando…" : editingId ? "Guardar cambios" : "Crear contenido"}
       </button>
     </form>
     <section className="about-admin__list" aria-label="Contenido existente">

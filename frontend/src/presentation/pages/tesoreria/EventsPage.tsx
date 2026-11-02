@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiCalendar, FiCheckCircle, FiDollarSign, FiEdit2, FiMinusCircle, FiPlus,
@@ -464,6 +465,7 @@ const EventForm = ({ year, event, managedCourse, anchor, onClose, onSaved }: {
   onClose: () => void; onSaved: (event: SchoolEvent) => void;
 }) => {
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: event?.name ?? "Fiesta de la Familia",
     schoolYear: event?.schoolYear ?? year, eventDate: event?.eventDate ?? today,
     description: event?.description ?? "", standName: event?.participants[0]?.standName ?? "",
@@ -483,6 +485,8 @@ const EventForm = ({ year, event, managedCourse, anchor, onClose, onSaved }: {
   }, [event, managedCourse]);
   const submit = async (submitEvent: React.FormEvent) => {
     submitEvent.preventDefault();
+    if (saving) return;
+    setSaving(true);
     const { courses, standName, ...eventFields } = form;
     const payload = { ...eventFields, participants: courses.filter(item => item.course)
       .map(item => ({ ...item, course: item.course.toUpperCase(), standName })) };
@@ -492,9 +496,9 @@ const EventForm = ({ year, event, managedCourse, anchor, onClose, onSaved }: {
         : repository.createEvent(payload)));
     } catch (requestError) {
       setError(apiErrorMessage(requestError, "No fue posible guardar el evento."));
-    }
+    } finally { setSaving(false); }
   };
-  return <Modal title={event ? "Editar evento" : "Crear evento"} onClose={onClose} compact
+  return <Modal title={event ? "Editar evento" : "Crear evento"} onClose={() => { if (!saving) onClose(); }} compact
     anchor={anchor}>
     <form className="event-create-form" onSubmit={submit}>
     <div className="form-row"><label>Nombre<input required value={form.name}
@@ -521,8 +525,8 @@ const EventForm = ({ year, event, managedCourse, anchor, onClose, onSaved }: {
             courses[index] = { ...course, course: e.target.value.toUpperCase() };
             setForm({ ...form, courses }); }} />}</div>)}</fieldset>
     {error && <p className="events-form-error" role="alert">{error}</p>}
-    <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
-      <button type="submit"><FiPlus /> {event ? "Guardar cambios" : "Crear evento"}</button>
+    <footer><button type="button" disabled={saving} onClick={onClose}><FiX /> Cancelar</button>
+      <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiPlus />} {saving ? "Guardando…" : event ? "Guardar cambios" : "Crear evento"}</button>
     </footer></form></Modal>;
 };
 
@@ -530,23 +534,26 @@ const ExpenseForm = ({ event, expense, anchor, onClose, onSaved }: { event: Scho
   expense?: SchoolEventExpense; anchor?: { top: number; left: number };
   onClose: () => void; onSaved: (event: SchoolEvent) => void }) => {
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ description: expense?.description ?? "",
     amount: expense?.amount ?? 0, date: expense?.date ?? today,
     type: expense?.type ?? "COMMON" as "COMMON" | "COURSE", course: expense?.course ?? "",
     category: expense?.category ?? "", responsible: expense?.responsible ?? "",
     paymentMethod: expense?.paymentMethod ?? "CASH",
     deductFromSettlement: expense?.deductFromSettlement ?? true });
-  return <Modal title={expense ? "Editar gasto" : "Registrar gasto"} onClose={onClose} compact
+  return <Modal title={expense ? "Editar gasto" : "Registrar gasto"} onClose={() => { if (!saving) onClose(); }} compact
     centered={!anchor} anchor={anchor}>
     <form onSubmit={async e => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     try {
       setError("");
       onSaved(await (expense ? repository.updateEventExpense(event.id, expense.key, form)
         : repository.addEventExpense(event.id, form)));
     } catch (requestError) {
       setError(apiErrorMessage(requestError, "No fue posible guardar el gasto."));
-    }
+    } finally { setSaving(false); }
   }}>
     <label>Descripción<input required value={form.description}
       onChange={e => setForm({ ...form, description: e.target.value })} /></label>
@@ -571,8 +578,8 @@ const ExpenseForm = ({ event, expense, anchor, onClose, onSaved }: { event: Scho
           el monto que se reparte entre los cursos.</small></span>
     </label>
     {error && <p className="events-form-error" role="alert">{error}</p>}
-    <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
-      <button type="submit"><FiMinusCircle /> {expense ? "Guardar cambios" : "Registrar gasto"}</button>
+    <footer><button type="button" disabled={saving} onClick={onClose}><FiX /> Cancelar</button>
+      <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiMinusCircle />} {saving ? "Guardando…" : expense ? "Guardar cambios" : "Registrar gasto"}</button>
     </footer></form></Modal>;
 };
 
@@ -580,6 +587,7 @@ const RevenueForm = ({ event, anchor, onClose, onSaved }: { event: SchoolEvent;
   anchor?: { top: number; left: number }; onClose: () => void;
   onSaved: (event: SchoolEvent) => void }) => {
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [amount, setAmount] = useState(event.grossRevenue?.toString() ?? "");
   const [date, setDate] = useState(event.revenueDate ?? today);
   const [description, setDescription] = useState(event.revenueDescription ??
@@ -592,12 +600,14 @@ const RevenueForm = ({ event, anchor, onClose, onSaved }: { event: SchoolEvent;
     [amount, date, description, paymentMethod, receiptNumber, observations]);
   const editing = event.grossRevenue != null;
   return <Modal title={editing ? "Editar recaudación" : "Registrar recaudación"}
-    onClose={onClose} compact anchor={anchor}><form onSubmit={async e => {
+    onClose={() => { if (!saving) onClose(); }} compact anchor={anchor}><form onSubmit={async e => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     try { setError(""); onSaved(await repository.registerEventRevenue(event.id, payload)); }
     catch (requestError) {
       setError(apiErrorMessage(requestError, "No fue posible guardar la recaudación."));
-    }
+    } finally { setSaving(false); }
   }}>
     <label>Monto total recaudado<input autoFocus required min="1" type="number"
       inputMode="numeric" placeholder="0" value={amount}
@@ -620,8 +630,8 @@ const RevenueForm = ({ event, anchor, onClose, onSaved }: { event: SchoolEvent;
       onChange={e => setObservations(e.target.value)} /></label>
     <p>La recaudación se dividirá por la cantidad real de cursos participantes.</p>
     {error && <p className="events-form-error" role="alert">{error}</p>}
-    <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
-      <button type="submit"><FiDollarSign /> {editing
+    <footer><button type="button" disabled={saving} onClick={onClose}><FiX /> Cancelar</button>
+      <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiDollarSign />} {saving ? "Guardando…" : editing
         ? "Guardar cambios" : "Guardar recaudación"}</button></footer></form></Modal>;
 };
 

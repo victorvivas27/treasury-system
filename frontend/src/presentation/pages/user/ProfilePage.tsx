@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -444,7 +445,8 @@ export const ProfilePage = () => {
           <footer>
             <button type="button" className="profile-edit-cancel" disabled={savingName || savingPhoto}
               onClick={cancelNameEdit}>Cancelar</button>
-            <button type="submit" className="profile-edit-save" disabled={savingName}>
+            <button type="submit" className="profile-edit-save" disabled={savingName} aria-busy={savingName}>
+              {savingName && <ButtonSpinner />}
               {savingName ? "Guardando..." : "Guardar cambios"}
             </button>
           </footer>

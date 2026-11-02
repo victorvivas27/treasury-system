@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
@@ -409,7 +410,7 @@ export const IncomesPage = () => {
           <textarea required maxLength={500} value={form.correctionReason ?? ""}
             onChange={(e) => setForm({ ...form, correctionReason: e.target.value })} /></label>}
         <footer><button type="button" onClick={() => setFormOpen(false)}><FiX /> Cancelar</button>
-          <button type="submit" disabled={saving}><FiSave />
+          <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiSave />}
             {saving ? "Guardando…" : "Guardar ingreso"}</button></footer>
       </form></section></div>}
 

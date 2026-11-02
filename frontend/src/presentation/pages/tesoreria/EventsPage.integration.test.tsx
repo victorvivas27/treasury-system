@@ -46,6 +46,29 @@ async function openPage() {
 const click = (name: string) => fireEvent.click(screen.getByRole('button', { name }));
 
 describe('school events connected to HTTP', () => {
+  it.each(['Editar evento', 'Editar', 'Editar recaudaci\u00f3n'])('shows loading and prevents repeated submissions in %s', async action => {
+    await openPage(); click(action);
+    const modal = screen.getByRole('dialog');
+    const dialog = within(modal);
+    let finish!: () => void;
+    const pending = new Promise<void>(resolve => { finish = resolve; });
+    respond = async request => {
+      await pending;
+      return reject(request);
+    };
+    fireEvent.click(dialog.getByRole('button', { name: 'Guardar cambios' }));
+    const button = dialog.getByRole('button', { name: 'Guardando\u2026' });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button.querySelector('.button-loader')).toBeInTheDocument();
+    fireEvent.submit(modal.querySelector('form')!);
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    finish();
+    await dialog.findByRole('alert');
+    expect(dialog.getByRole('button', { name: 'Guardar cambios' })).toBeEnabled();
+    expect(writes()).toHaveLength(1);
+  });
+
   it('loads event totals, course distribution and expenses for the selected year', async () => {
     await openPage();
     expect(screen.getByText('Insumos')).toBeInTheDocument();

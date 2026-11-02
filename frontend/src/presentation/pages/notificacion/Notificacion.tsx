@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { useNotifications } from "@/presentation/context/NotificationContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
@@ -337,8 +338,8 @@ const GuardianInbox = () => {
           <textarea ref={firstMessageRef} maxLength={2000} value={firstMessage}
             onChange={event => setFirstMessage(event.target.value)}
             placeholder="Escribe un mensaje a Tesorería" aria-label="Mensaje para Tesorería" />
-          <button type="submit" aria-label={`Enviar a ${recipientName}`} disabled={!firstMessage.trim() || startingConversation}>
-            <FiSend /> {startingConversation ? "Enviando…" : "Enviar"}
+          <button type="submit" aria-busy={startingConversation} aria-label={`Enviar a ${recipientName}`} disabled={!firstMessage.trim() || startingConversation}>
+            {startingConversation ? <ButtonSpinner /> : <FiSend />} {startingConversation ? "Enviando…" : "Enviar"}
           </button>
         </form>
         </section>

@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/shared/ui/button/Button";
 import { PiEyeLight, PiEyeClosedLight } from "react-icons/pi";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
   type PointerEvent as ReactPointerEvent } from "react";
@@ -483,6 +484,8 @@ const ProductsPanel = ({ stand, products, onSaved }: {
         === product.variant?.trim().toLocaleLowerCase("es"))?.currentStock
     : product.currentStock;
   const [showForm, setShowForm] = useState(false);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [productError, setProductError] = useState("");
   const [formAnchor, setFormAnchor] = useState<{ top: number; left: number }>();
   const dragOffset = useRef<{ x: number; y: number } | null>(null);
   const [editingProduct, setEditingProduct] = useState<StandProduct>();
@@ -495,6 +498,7 @@ const ProductsPanel = ({ stand, products, onSaved }: {
     unitCost: "", price: "", stock: "", available: true,
   });
   const closeForm = () => {
+    setProductError("");
     setForm({ name: "", category: "", variant: "", presentation: "", unitEquivalence: "",
       unitCost: "", price: "", stock: "", available: true });
     setEditingProduct(undefined);
@@ -529,20 +533,27 @@ const ProductsPanel = ({ stand, products, onSaved }: {
   };
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    const payload = {
-      name: form.name, category: form.category || undefined, variant: form.variant || undefined,
-      presentation: form.presentation || undefined,
-      unitEquivalence: form.unitEquivalence === "" ? undefined : Number(form.unitEquivalence),
-      unitCost: Number(form.unitCost), price: Number(form.price),
-      stock: (form.unitEquivalence === "" || form.unitEquivalence === "1") && form.stock !== ""
-        ? Number(form.stock) : undefined,
-      available: form.available,
-    };
-    if (editingProduct) await stands.updateProduct(stand.id, editingProduct.id, payload);
-    else await stands.addProduct(stand.id, payload);
-    const message = editingProduct ? "Producto actualizado." : "Producto agregado.";
-    closeForm();
-    await onSaved(message);
+    if (savingProduct) return;
+    setSavingProduct(true);
+    setProductError("");
+    try {
+      const payload = {
+        name: form.name, category: form.category || undefined, variant: form.variant || undefined,
+        presentation: form.presentation || undefined,
+        unitEquivalence: form.unitEquivalence === "" ? undefined : Number(form.unitEquivalence),
+        unitCost: Number(form.unitCost), price: Number(form.price),
+        stock: (form.unitEquivalence === "" || form.unitEquivalence === "1") && form.stock !== ""
+          ? Number(form.stock) : undefined,
+        available: form.available,
+      };
+      if (editingProduct) await stands.updateProduct(stand.id, editingProduct.id, payload);
+      else await stands.addProduct(stand.id, payload);
+      const message = editingProduct ? "Producto actualizado." : "Producto agregado.";
+      closeForm();
+      await onSaved(message);
+    } catch (error) {
+      setProductError(errorMessage(error, "No fue posible guardar el producto."));
+    } finally { setSavingProduct(false); }
   };
   const confirmDelete = async () => {
     if (!productToDelete) return;
@@ -627,8 +638,9 @@ const ProductsPanel = ({ stand, products, onSaved }: {
             <input min="0" type="number" value={form.stock}
               onChange={e => setForm({ ...form, stock: e.target.value })} /></label>}
         </div>
-        <footer><button type="button" onClick={closeForm}><FiX /> Cancelar</button>
-          <button type="submit"><FiCheckCircle /> {editingProduct
+        {productError && <p role="alert">{productError}</p>}
+        <footer><button type="button" disabled={savingProduct} onClick={closeForm}><FiX /> Cancelar</button>
+          <button type="submit" disabled={savingProduct} aria-busy={savingProduct}>{savingProduct ? <ButtonSpinner /> : <FiCheckCircle />} {savingProduct ? "Guardando…" : editingProduct
             ? "Guardar cambios" : "Crear producto"}</button></footer>
       </form>
     </div>}
@@ -1032,7 +1044,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       {saleQueue.map((queued, index) => <article key={queued.clientId}
         className={`is-${queued.status}`}>
         <div><strong>Venta {index + 1}</strong><span>{money.format(queued.total)}</span></div>
-        <small>{queued.units} {queued.units === 1 ? "unidad" : "unidades"} · {
+        <small>{queued.status === "registering" && <ButtonSpinner />}{queued.units} {queued.units === 1 ? "unidad" : "unidades"} · {
           queued.status === "pending" ? "En espera"
             : queued.status === "registering" ? "Registrando…"
               : queued.status === "confirmed" ? "Confirmada" : queued.error}</small>
@@ -1212,7 +1224,9 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
       : [...current.paymentMethods, method],
   }));
   const submit = async (submitEvent: FormEvent) => {
-    submitEvent.preventDefault(); setSaving(true);
+    submitEvent.preventDefault();
+    if (saving) return;
+    setSaving(true);
     try {
       const payload = {
         eventId, name: form.name, date: form.date, startTime: form.startTime,
@@ -1276,7 +1290,8 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
             onChange={() => toggleMethod(method)} />{paymentLabels[method]}</label>)}</div>
       </fieldset>
       <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
-        <button type="submit" disabled={saving || form.paymentMethods.length === 0}>
+        <button type="submit" aria-busy={saving} disabled={saving || form.paymentMethods.length === 0}>
+          {saving && <ButtonSpinner />}
           {saving ? "Guardando…" : stand ? <><FiCheckCircle /> Guardar cambios</>
             : <><FiPlus /> Crear stand</>}</button></footer>
     </form>
