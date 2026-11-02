@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.42.1](https://github.com/victorvivas27/treasury-system/compare/v1.42.0...v1.42.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **frontend:** agregar loaders faltantes en formularios y evitar envíos duplicados ([d72fdb4](https://github.com/victorvivas27/treasury-system/commit/d72fdb4159093e7728ce44bc1513884def58fbf8))
+* **frontend:** agregar loaders faltantes en formularios y evitar envíos duplicados ([44cb112](https://github.com/victorvivas27/treasury-system/commit/44cb1129a8ed942bc35bd5a92a9ade284d0fec34))
+
 ## [1.42.0](https://github.com/victorvivas27/treasury-system/compare/v1.41.1...v1.42.0) (2026-10-31)
 
 
