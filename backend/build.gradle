@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.8'
+    id 'org.springframework.boot' version '4.1.2'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
     id 'pmd'
@@ -42,7 +42,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
-    implementation platform('com.google.cloud:libraries-bom:26.72.0')
+    implementation platform('com.google.cloud:libraries-bom:26.91.0')
     implementation 'com.google.cloud:google-cloud-storage'
 
     // WEB PUSH
@@ -51,19 +51,19 @@ dependencies {
         exclude group: 'org.bitbucket.b_c', module: 'jose4j'
     }
     implementation 'org.apache.httpcomponents:httpasyncclient:4.1.5'
-    implementation 'org.bitbucket.b_c:jose4j:0.9.6'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.85.2'
+    implementation 'org.bitbucket.b_c:jose4j:0.9.7'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.86'
 
     // JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
     // TOTP (2FA)
     implementation 'dev.samstevens.totp:totp:1.7.1'
 
     // OpenAPI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0'
 
     // MAPSTRUCT
     implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -90,7 +90,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
-    allureTestRuntime platform('io.qameta.allure:allure-bom:3.0.0')
+    allureTestRuntime platform('io.qameta.allure:allure-bom:3.0.1')
     allureTestRuntime 'io.qameta.allure:allure-jupiter'
 }
 
