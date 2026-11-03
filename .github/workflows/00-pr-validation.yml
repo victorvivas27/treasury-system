@@ -15,6 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  secrets:
+    uses: ./.github/workflows/15-secret-scanning.yml
+
   protected-files:
     uses: ./.github/workflows/13-protected-files.yml
 
@@ -102,7 +105,7 @@ jobs:
 
   result:
     name: PR validation result
-    needs: [protected-files, changes, commits, frontend, backend, bruno, versioning]
+    needs: [secrets, protected-files, changes, commits, frontend, backend, bruno, versioning]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -114,7 +117,7 @@ jobs:
           script: |
             const results = JSON.parse(process.env.VALIDATION_RESULTS);
             for (const [name, job] of Object.entries(results)) {
-              const required = ['protected-files', 'changes', 'commits'].includes(name);
+              const required = ['secrets', 'protected-files', 'changes', 'commits'].includes(name);
               if (job.result !== 'success' && (required || job.result !== 'skipped')) {
                 core.setFailed(`${name}: ${job.result}`);
               }

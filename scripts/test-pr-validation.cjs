@@ -74,7 +74,8 @@ test('workflow changes and truncated file lists validate all areas', async () =>
 
 test('final result rejects failures, cancellations and skipped required jobs', async () => {
   assert.equal(workflow.jobs.result.if, 'always()');
-  assert.deepEqual(workflow.jobs.result.needs, ['protected-files', 'changes', 'commits', 'frontend', 'backend', 'bruno', 'versioning']);
+  assert.deepEqual(workflow.jobs.result.needs, ['secrets', 'protected-files', 'changes', 'commits', 'frontend', 'backend', 'bruno', 'versioning']);
+  assert.equal(workflow.jobs.secrets.uses, './.github/workflows/15-secret-scanning.yml');
   const run = async results => {
     const failures = [];
     await new AsyncFunction('process', 'core', workflow.jobs.result.steps[0].with.script)(
@@ -90,6 +91,9 @@ test('final result rejects failures, cancellations and skipped required jobs', a
   assert.deepEqual(await run({ ...base, commits: { result: 'skipped' } }), ['commits: skipped']);
   assert.deepEqual(await run({ ...base, 'protected-files': { result: 'skipped' } }), ['protected-files: skipped']);
   assert.deepEqual(await run({ ...base, 'protected-files': { result: 'failure' } }), ['protected-files: failure']);
+  for (const result of ['failure', 'cancelled', 'skipped']) {
+    assert.deepEqual(await run({ ...base, secrets: { result } }), [`secrets: ${result}`]);
+  }
 });
 
 test('promotion title comes from the exact latest dev commit and drops the commit body', async () => {
