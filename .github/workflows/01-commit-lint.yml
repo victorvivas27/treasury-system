@@ -28,7 +28,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Synchronize promotion title
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: pr } = await github.rest.pulls.get({

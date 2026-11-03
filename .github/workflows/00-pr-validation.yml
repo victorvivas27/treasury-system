@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Inspect changed files
         id: paths
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const files = await github.paginate(github.rest.pulls.listFiles, {
@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Require successful applicable validations
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           VALIDATION_RESULTS: ${{ toJSON(needs) }}
         with:
