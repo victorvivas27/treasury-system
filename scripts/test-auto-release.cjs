@@ -251,7 +251,7 @@ test('production workflows support manual and reusable calls and serialize by se
 });
 
 
-test('one main coordinator replaces independent push workflows and tag checks', () => {
+test('one main coordinator and independent secret scanning handle main pushes', () => {
   const root = path.join(__dirname, '../.github/workflows');
   const definitions = fs.readdirSync(root).map(file => [file, yaml.parse(fs.readFileSync(path.join(root, file), 'utf8'))]);
   const matchesPush = branch => definitions.filter(([, candidate]) => {
@@ -259,7 +259,7 @@ test('one main coordinator replaces independent push workflows and tag checks', 
     const trigger = candidate.on.push;
     return !trigger?.branches || trigger.branches.includes(branch);
   }).map(([file]) => file);
-  assert.deepEqual(matchesPush('main'), ['06-release-please.yml']);
+  assert.deepEqual(matchesPush('main'), ['06-release-please.yml', '15-secret-scanning.yml']);
   assert.deepEqual(matchesPush('release-please--branches--main'), []);
   for (const [, candidate] of definitions) {
     if (Object.hasOwn(candidate.on, 'push')) assert.ok(candidate.on.push.branches?.length);
