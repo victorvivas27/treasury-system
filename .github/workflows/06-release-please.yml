@@ -57,7 +57,7 @@ jobs:
 
       - name: Select pending release
         id: candidate
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: prs } = await github.rest.pulls.list({
@@ -122,7 +122,7 @@ jobs:
     steps:
       - name: Wait for required PR check and merge the validated release
         id: merge
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RELEASE_PR: ${{ needs.prepare.outputs.number }}
           RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
@@ -249,7 +249,7 @@ jobs:
       - name: Resolve published release tag
         id: release-ref
         if: steps.publish.outputs.releases_created == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RELEASE_TAG: ${{ steps.publish.outputs.tag_name }}
         with:
@@ -271,7 +271,7 @@ jobs:
     steps:
       - name: Resolve exact published tag
         id: release-ref
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PREPARE_RELEASED: ${{ needs.prepare.outputs.released }}
           PREPARE_TAG: ${{ needs.prepare.outputs.tag_name }}
@@ -296,7 +296,7 @@ jobs:
       current: ${{ steps.target.outputs.current }}
     steps:
       - id: target
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           EXPECTED_SHA: ${{ github.sha }}
         with:
