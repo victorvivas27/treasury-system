@@ -119,7 +119,7 @@ class SA04ProfileSecurityIntegrationTest {
 
     private String insertGuardian(Long organizationId, String email) {
         String code = "AP-" + UUID.randomUUID().toString().substring(0, 8);
-        jdbc.update("insert into apoderados(codigo,nombre,email,telefono,organization_id,activo) values(?,?,?,?,?,?)",
+        jdbc.update("insert into apoderados(codigo,nombre,email,telefono,organization_id,activo,created_at,updated_at) values(?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
                 code, "PERSONA PRUEBA", email, "+56912345678", organizationId, true);
         return code;
     }

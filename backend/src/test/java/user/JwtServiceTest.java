@@ -3,6 +3,9 @@ package user;
 import com.tesoreria.organization.config.TenantUserDetails;
 import com.tesoreria.user.config.security.JwtService;
 import com.tesoreria.user.core.constant.RoleEnum;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
@@ -58,6 +61,41 @@ class JwtServiceTest {
     @Test
     void constructor_deberiaRechazarSecretCorto() {
         assertThrows(IllegalArgumentException.class, () -> new JwtService("short", 60_000L));
+    }
+
+    @Test
+    void parseToken_deberiaRechazarFirmaDeOtraClave() {
+        JwtService otherSigner = new JwtService("another-test-secret-with-at-least-32-characters", 60_000L);
+        String token = otherSigner.generateToken(userDetails);
+
+        assertThrows(JwtException.class, () -> jwtService.parseToken(token));
+    }
+
+    @Test
+    void parseToken_deberiaRechazarTokenExpirado() {
+        JwtService expiredSigner = new JwtService("test-secret-key-with-at-least-32-characters", -60_000L);
+        String token = expiredSigner.generateToken(userDetails);
+
+        assertThrows(ExpiredJwtException.class, () -> jwtService.parseToken(token));
+    }
+
+    @Test
+    void parseToken_deberiaRechazarTokenSinFirma() {
+        String token = Jwts.builder().subject(userDetails.getUsername()).compact();
+
+        assertThrows(JwtException.class, () -> jwtService.parseToken(token));
+    }
+
+    @Test
+    void generateToken_deberiaConservarHS256YFamiliaDeSesion() {
+        java.util.UUID familyId = java.util.UUID.randomUUID();
+        String token = jwtService.generateToken(userDetails, familyId);
+        String header = new String(java.util.Base64.getUrlDecoder().decode(token.split("\\.")[0]),
+                java.nio.charset.StandardCharsets.UTF_8);
+
+        assertTrue(header.contains("\"alg\":\"HS256\""));
+        assertEquals(familyId, jwtService.parseToken(token).tokenFamilyId());
+        assertTrue(jwtService.isTokenValid(token, userDetails));
     }
 
     @Test

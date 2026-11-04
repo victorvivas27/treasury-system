@@ -3,7 +3,6 @@ package com.tesoreria.user.config.security;
 import com.tesoreria.organization.config.TenantUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,8 +46,8 @@ public class JwtService {
         Date now = new Date();
 
         var builder = Jwts.builder()
-                .setId(UUID.randomUUID().toString())
-                .setSubject(userDetails.getUsername())
+                .id(UUID.randomUUID().toString())
+                .subject(userDetails.getUsername())
                 .claim(
                         "authorities",
                         userDetails.getAuthorities()
@@ -57,8 +56,8 @@ public class JwtService {
                                 .map(authority -> authority.getAuthority())
                                 .filter(authority -> authority != null)
                                 .toList())
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + expirationMs));
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expirationMs));
         if (userDetails instanceof TenantUserDetails tenantUser) {
             builder.claim("userId", tenantUser.getUserId())
                     .claim("organizationId", tenantUser.getOrganizationId());
@@ -67,7 +66,7 @@ public class JwtService {
             builder.claim("tokenFamilyId", tokenFamilyId.toString());
         }
         return builder
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -137,11 +136,11 @@ public class JwtService {
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public record ParsedToken(

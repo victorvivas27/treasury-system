@@ -128,7 +128,7 @@ class SA03StompIntegrationTest {
 
     private void account(Long id, Long organization, String role) {
         jdbc.update(
-                "insert into users (id,code,nombre,correo,password,rol,organization_id,enabled,account_non_locked,email_verified_at,profile_image_type,totp_enabled) values (?,?,?,'mismo@email.com','$2a$hash',?,?,true,true,CURRENT_TIMESTAMP,'INITIALS',false)",
+                "insert into users (id,code,nombre,correo,password,rol,organization_id,enabled,account_non_locked,email_verified_at,profile_image_type,totp_enabled,created_at,updated_at) values (?,?,?,'mismo@email.com','$2a$hash',?,?,true,true,CURRENT_TIMESTAMP,'INITIALS',false,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
                 id, "USR-SA03-" + id, "Cuenta Prueba", role, organization);
     }
 
@@ -161,7 +161,7 @@ class SA03StompIntegrationTest {
     private void replyUsesConnectedAccountAndTenant(StompSession b, Long organization,
             BlockingQueue<String> eventsA, BlockingQueue<String> eventsA2) throws Exception {
         jdbc.update(
-                "insert into users (id,code,nombre,correo,password,rol,organization_id,enabled,account_non_locked,profile_image_type,totp_enabled) values (21,'USR-SA03-21','Administrador Prueba','admin-b@email.com','$2a$hash','ADMIN',?,true,true,'INITIALS',false)",
+                "insert into users (id,code,nombre,correo,password,rol,organization_id,enabled,account_non_locked,profile_image_type,totp_enabled,created_at,updated_at) values (21,'USR-SA03-21','Administrador Prueba','admin-b@email.com','$2a$hash','ADMIN',?,true,true,'INITIALS',false,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",
                 organization);
         jdbc.update(
                 "insert into notifications (id,title,message,type,created_by,created_at,organization_id) values (101,'Test','Mensaje','INFO',21,CURRENT_TIMESTAMP,?)",
