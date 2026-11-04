@@ -187,8 +187,9 @@
   .schedule-agenda--day .schedule-agenda-time { grid-column: 1; grid-row: 1 / 3; display: grid; gap: 0.15rem; }
   .schedule-agenda--day .schedule-agenda-time time + time::before { content: none; }
   .schedule-agenda--day .schedule-agenda-card > svg { grid-column: 2; grid-row: 1 / 3; width: 24px; height: 24px; }
-  .schedule-agenda--day .schedule-agenda-subject { grid-column: 3; grid-row: 1; }
-  .schedule-agenda--day .schedule-agenda-subject small { display: none; }
+  .schedule-agenda--day .schedule-agenda-subject { grid-column: 3; grid-row: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
+  .schedule-agenda--day .schedule-agenda-subject small { display: block; order: -1; font-size: 11px; }
+  .schedule-agenda--day .schedule-agenda-ingress .schedule-agenda-subject small { display: none; }
   .schedule-agenda--day .schedule-agenda-duration { grid-column: 3; grid-row: 2; justify-self: start; padding: 0; border: 0; font-size: 0.6rem; opacity: .7; }
   .schedule-agenda--day .schedule-agenda-heading p { font-size: 0.65rem; }
 }
@@ -211,6 +212,37 @@
 @media (max-width: 768px) {
   .schedule-published .schedule-filter select { min-height: 40px; height: 40px; font-size: 12px !important; }
   .schedule-published .schedule-view-selector button { min-height: 40px; padding-inline: 6px; }
+}
+
+@media (max-width: 768px) {
+  .schedule-published-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .schedule-published .schedule-filter select { min-height: 44px; height: 44px; }
+  .schedule-published > .schedule-day-nav .schedule-day-selector { gap: 4px; }
+  .schedule-published > .schedule-day-nav button { min-height: 44px; }
+  .schedule-published > .schedule-day-nav button small { display: none; }
+  .schedule-published .schedule-agenda--day { border: 0; background: transparent; overflow: visible; }
+  .schedule-published .schedule-agenda--day .schedule-agenda-heading { flex-wrap: wrap; gap: 8px; padding: 4px 0 14px; }
+  .schedule-published .schedule-agenda--day .schedule-agenda-list { gap: 0; padding-top: 0; }
+  .schedule-published .schedule-agenda--day .schedule-agenda-card {
+    grid-template-columns: 82px 24px minmax(0, 1fr) auto;
+    gap: 4px 6px; min-height: 52px; padding: 10px 8px;
+    border: 0; border-bottom: 1px solid var(--border-color); border-radius: 0;
+    border-left: 3px solid var(--agenda-color);
+    background: color-mix(in srgb, var(--agenda-color) 6%, var(--color-surface));
+  }
+  .schedule-agenda--day .schedule-agenda-time { grid-column: 1; grid-row: 1; display: flex; align-items: baseline; gap: 2px; font-size: 11px; }
+  .schedule-agenda--day .schedule-agenda-time time:last-child { font-size: 11px; }
+  .schedule-agenda--day .schedule-agenda-time time + time::before { content: "–"; margin-right: 2px; }
+  .schedule-agenda--day .schedule-agenda-card > svg { display: block; grid-column: 2; grid-row: 1; width: 24px; height: 24px; padding: 4px; color: var(--agenda-color); background: color-mix(in srgb, var(--agenda-color) 14%, var(--color-surface)); }
+  .schedule-agenda--day .schedule-agenda-subject { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-left: 0; border-left: 0; }
+  .schedule-published .schedule-agenda--day .schedule-agenda-subject strong { font-size: 13px; line-height: 1.4; font-weight: 500; }
+  .schedule-agenda--day .schedule-agenda-subject small { display: none; }
+  .schedule-agenda--day .schedule-agenda-ingress .schedule-agenda-subject small { display: none; }
+  .schedule-agenda--day .schedule-agenda-duration { grid-column: 4; grid-row: 1; justify-self: end; padding: 0; border: 0; border-radius: 0; background: transparent; font-size: 11px; text-align: right; opacity: .7; }
+  .schedule-published .schedule-agenda--day .schedule-agenda-card--pause,
+  .schedule-published .schedule-agenda--day .schedule-agenda-ingress { min-height: 48px; background: color-mix(in srgb, var(--agenda-color) 4%, var(--color-surface)); }
+  .schedule-published .schedule-agenda--day .schedule-agenda-card:last-child { border-bottom: 0; }
+  .schedule-published .schedule-day-selector button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 }
 
 /* Give the daily desktop agenda the full workspace and separate its data. */
