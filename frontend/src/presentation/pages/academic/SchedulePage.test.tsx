@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SchedulePage } from "./SchedulePage";
@@ -21,25 +21,21 @@ describe("Consulta del horario", () => {
   });
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
   const open = () => render(<MemoryRouter><SchedulePage /></MemoryRouter>);
-  it("pliega todos los días al entrar o volver a la semana resumida en móvil", () => {
-    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
-    localStorage.setItem("academic.schedule.view.7", "summary");
-    const page = open();
-    const weekdays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-    const expectCollapsed = () => weekdays.forEach(name => {
-      const toggle = screen.getByRole("button", { name, exact: true });
-      expect(toggle).toHaveAttribute("aria-expanded", "false");
-      expect(document.getElementById(toggle.getAttribute("aria-controls")!)).toHaveAttribute("inert");
-    });
-    expectCollapsed();
-    fireEvent.click(screen.getByRole("button", { name: "Lunes", exact: true }));
-    expect(screen.getByRole("button", { name: "Lunes", exact: true })).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Por día", exact: true }));
-    fireEvent.click(screen.getByRole("button", { name: "Semanal resumida", exact: true }));
-    expectCollapsed();
-    page.unmount();
+  it.each(["summary", "table"])("usa solo la agenda diaria en m?vil y conserva la preferencia %s de escritorio", view => {
+    let listener: (() => void) | undefined;
+    const media = { matches: true, addEventListener: vi.fn((_event, callback) => { listener = callback; }), removeEventListener: vi.fn() };
+    vi.stubGlobal("matchMedia", vi.fn(() => media));
+    localStorage.setItem("academic.schedule.view.7", view);
     open();
-    expectCollapsed();
+    expect(screen.queryByRole("group", { name: "Vista" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("article")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Martes", exact: true }));
+    expect(screen.getByRole("heading", { name: "Martes", exact: true })).toBeInTheDocument();
+    expect(localStorage.getItem("academic.schedule.view.7")).toBe(view);
+    act(() => { media.matches = false; listener?.(); });
+    expect(screen.getByRole("group", { name: "Vista" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: view === "table" ? "Tabla semanal" : "Semanal resumida", exact: true })).toHaveAttribute("aria-pressed", "true");
   });
   it("conserva los días abiertos al entrar en la semana resumida en escritorio", () => {
     vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false })));

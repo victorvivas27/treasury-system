@@ -31,12 +31,22 @@ export function SchedulePage() {
   const { user } = useAuth();
   const key = `academic.schedule.view.${user?.id ?? "anonymous"}`;
   const [preference, setPreference] = useState(() => ({ key, view: preferredView(key) }));
-  const view = preference.key === key ? preference.view : preferredView(key);
+  const [mobile, setMobile] = useState(() => window.matchMedia?.("(max-width: 768px)").matches ?? false);
+  useEffect(() => {
+    const media = window.matchMedia?.("(max-width: 768px)");
+    if (!media) return;
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+  const desktopView = preference.key === key ? preference.view : preferredView(key);
+  const view = mobile ? "day" : desktopView;
   const [dayNumber, setDayNumber] = useState(() => {
     const today = new Date().getDay();
     return today >= 1 && today <= 5 ? today : 1;
   });
-  useEffect(() => { try { localStorage.setItem(key, view); } catch { /* Local preference is optional. */ } }, [key, view]);
+  useEffect(() => { try { localStorage.setItem(key, desktopView); } catch { /* Local preference is optional. */ } }, [key, desktopView]);
   const days = DAYS.map((_, index) => data.schedule.days.find(day => day.dayOfWeek === index + 1));
   const tableDays = days.map(day => day ? mergeConsecutiveSubjects(day) : undefined);
   const boundaries = [...new Set(days.flatMap(day => day
@@ -51,13 +61,13 @@ export function SchedulePage() {
       {data.periods.map(period => <option key={period.schoolYear} value={period.schoolYear}>{period.schoolYear} · {period.course}</option>)}
     </select></ScheduleFilter>
     </div>
-    <div className="schedule-visible-filter">
+    {!mobile && <div className="schedule-visible-filter">
       <span id="schedule-view-label">Vista</span>
       <div className="schedule-day-selector schedule-view-selector" role="group" aria-labelledby="schedule-view-label">
         {([ ["summary", "Semanal resumida"], ["day", "Por día"], ["table", "Tabla semanal"] ] as const).map(([value, label]) =>
           <button type="button" key={value} aria-pressed={view === value} onClick={() => setPreference({ key, view: value })}>{label}</button>)}
       </div>
-    </div>
+    </div>}
     </div>
     {view === "day" && <div className="schedule-visible-filter schedule-day-nav">
       <span id="schedule-day-label">Día</span>
