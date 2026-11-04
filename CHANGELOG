@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.42.2](https://github.com/victorvivas27/treasury-system/compare/v1.42.1...v1.42.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* **auth:** migrate JWT verification to JJWT 0.13 ([7ecabd4](https://github.com/victorvivas27/treasury-system/commit/7ecabd4955b7146635a2a2563d9664e678637e5a))
+* **ci:** normalize Gradle Windows wrapper line endings ([3086412](https://github.com/victorvivas27/treasury-system/commit/3086412b0394f0774694686187ab84fde8f354fa))
+
 ## [1.42.1](https://github.com/victorvivas27/treasury-system/compare/v1.42.0...v1.42.1) (2026-11-02)
 
 
