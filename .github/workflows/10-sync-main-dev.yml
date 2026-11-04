@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Synchronize main into dev without rewriting history
         id: merge
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ALREADY_VALIDATED: ${{ inputs.already_validated }}
           VALIDATED_SHA: ${{ inputs.validated_sha }}
