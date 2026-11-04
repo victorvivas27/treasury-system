@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.42.3](https://github.com/victorvivas27/treasury-system/compare/v1.42.2...v1.42.3) (2026-11-04)
+
+
+### Bug Fixes
+
+* **schedule:** update icons and improve mobile view handling ([7af0b1e](https://github.com/victorvivas27/treasury-system/commit/7af0b1eb4c22eb7cba481ebaea2d6de312aa779d))
+* **schedule:** update icons and improve mobile view handling ([f88d192](https://github.com/victorvivas27/treasury-system/commit/f88d192e34522b180594f9a59c25ea13a8f5202b))
+
 ## [1.42.2](https://github.com/victorvivas27/treasury-system/compare/v1.42.1...v1.42.2) (2026-11-04)
 
 
