@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
-import { FiChevronDown, FiClock, FiLogIn } from "react-icons/fi";
+import { FiChevronDown, FiClock, FiSunrise } from "react-icons/fi";
 import { ScheduleBlockIcon } from "./ScheduleBlockIcon";
 import { DAYS, TYPES, blockDurationLabel, orderedBlocks, timeLabel, type ScheduleDay } from "@/core/A-domain/entities/academic/Schedule";
 import { scheduleCardColor, scheduleIngress } from "./scheduleCards";
@@ -50,7 +50,7 @@ export function ScheduleAgenda({ day, index, compact = false }: { day?: Schedule
     {day && <ol className="schedule-agenda-list" aria-label={`Bloques · ${DAYS[index]}`}>
       {ingress && <li className="schedule-agenda-card schedule-agenda-ingress">
         <span className="schedule-agenda-time"><time>{ingress.start}</time><time>{ingress.end}</time></span>
-        <FiLogIn aria-hidden="true" /><div className="schedule-agenda-subject"><strong>Ingreso</strong>{!compact && <small>Inicio de la jornada</small>}</div>
+        <FiSunrise aria-hidden="true" /><div className="schedule-agenda-subject"><strong>Ingreso</strong>{!compact && <small>Inicio de la jornada</small>}</div>
       </li>}
       {blocks.map((block, position) => {
         const named = block.type === "SUBJECT" || block.type === "ACTIVITY" || block.type === "EVENT";
