@@ -64,6 +64,7 @@ class CollectionPersistenceTest {
         assertEquals(BigDecimal.valueOf(10000), treasury.getIncome(closed.incomeId()).amount());
         var request = UUID.randomUUID();
         service.disburse(campaign.id(), BigDecimal.valueOf(6000), date, "Transporte", "BUS", ExpenseCategory.TRANSPORT, request, "admin");
+        assertTrue(service.list(2026).get(0).movements().stream().allMatch(m -> date.equals(m.date())));
         service.disburse(campaign.id(), BigDecimal.valueOf(6000), date, "Transporte", "BUS", ExpenseCategory.TRANSPORT, request, "admin");
         assertEquals(1, treasury.listExpenses(2026).size());
         assertEquals(BigDecimal.valueOf(4000), service.list(2026).get(0).available());
@@ -106,6 +107,7 @@ class CollectionPersistenceTest {
         org.mockito.Mockito.reset(storage);
         org.mockito.Mockito.when(storage.read(org.mockito.ArgumentMatchers.anyString())).thenReturn(new com.tesoreria.treasury.core.port.out.FileStorageService.StoredContent(bytes, "application/pdf"));
         receiptService.collect(campaign.id(), family.getFamiliaId(), BigDecimal.TEN, date, "", request, file, "admin");
+        assertEquals(date, service.list(2026).get(0).movements().get(0).date());
         receiptService.collect(campaign.id(), family.getFamiliaId(), BigDecimal.TEN, date, "", request, file, "admin");
         assertEquals(1, service.list(2026).get(0).movements().size());
         assertEquals(1, receiptService.list(campaign.id()).size());
