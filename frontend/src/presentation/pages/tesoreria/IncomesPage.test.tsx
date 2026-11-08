@@ -37,8 +37,8 @@ describe("IncomesPage", () => {
 
   it("uses scoped skeletons and reuses data and selected view after remount", async () => {
     const first = render(<MemoryRouter><IncomesPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Cargando ingresos" })).toBeInTheDocument();
-    expect(document.querySelector(".react-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando ingresos" })).not.toBeInTheDocument();
+    expect(document.querySelector(".react-loading-skeleton")).not.toBeInTheDocument();
     await screen.findByText("Rifa del curso");
     fireEvent.change(screen.getByRole("combobox", { name: "Tipo de ingreso" }), { target: { value: "OTHER" } });
     first.unmount();

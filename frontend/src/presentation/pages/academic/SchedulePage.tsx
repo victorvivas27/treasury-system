@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
@@ -8,8 +9,8 @@ import { usePublishedSchedule } from "@/presentation/hooks/academic/usePublished
 import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { Button } from "@/shared/ui/button/Button";
-import { PublishedScheduleSkeleton } from "./PublishedScheduleSkeleton";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
+
 import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleAgenda } from "./ScheduleAgenda";
 import { ScheduleBlockIcon } from "./ScheduleBlockIcon";
@@ -28,6 +29,7 @@ const preferredView = (key: string): View => {
 export function SchedulePage() {
   const data = usePublishedSchedule();
   const preparing = !data.ready && !data.error;
+  usePageEntry(preparing);
   const { user } = useAuth();
   const key = `academic.schedule.view.${user?.id ?? "anonymous"}`;
   const [preference, setPreference] = useState(() => ({ key, view: preferredView(key) }));
@@ -73,11 +75,11 @@ export function SchedulePage() {
       <span id="schedule-day-label">Día</span>
       <div className="schedule-day-selector" role="group" aria-labelledby="schedule-day-label">
         {["Lun", "Mar", "Mié", "Jue", "Vie"].map((label, index) => <button type="button" key={label}
-          aria-label={DAYS[index]} aria-pressed={dayNumber === index + 1} onClick={() => setDayNumber(index + 1)}><span>{label}</span><small>{preparing ? <Skeleton /> : days[index] ? `Salida ${timeLabel(days[index]!.exitTime)}` : "Sin jornada"}</small></button>)}
+          aria-label={DAYS[index]} aria-pressed={dayNumber === index + 1} onClick={() => setDayNumber(index + 1)}><span>{label}</span><small>{preparing ? null : days[index] ? `Salida ${timeLabel(days[index]!.exitTime)}` : "Sin jornada"}</small></button>)}
       </div>
     </div>}
     {data.error && <div role="alert">{data.error}<Button label="Reintentar" onClick={data.retry} /></div>}
-    {preparing && <PublishedScheduleSkeleton view={view} dayNumber={dayNumber} />}
+
     {data.ready && (!data.schedule.days.length ? <p role="status">Todavía no hay un horario publicado para este año. La administración lo publicará cuando esté listo.</p>
       : view === "summary" ? <div className="schedule-agenda-week">{days.map((day, index) => <ScheduleAgenda day={day} index={index} compact key={index} />)}</div>
       : view === "day" ? <ScheduleAgenda day={days[dayNumber - 1]} index={dayNumber - 1} />

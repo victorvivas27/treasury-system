@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { apiClient } from '../../../core/D-config/api';
 import { clearAccessToken, clearCsrfToken } from '../../../core/D-config/axiosInterceptor';
 import { AnnualFeesPage } from './AnnualFeesPage';
+import { clearPageData } from '@/presentation/hooks/useCachedPageState';
 
 // UI, hook, use cases, repository and interceptors remain real; replace transport only.
 const originalAdapter = apiClient.defaults.adapter;
@@ -26,6 +27,7 @@ function failure(request: InternalAxiosRequestConfig, message = 'Operación rech
 }
 
 beforeEach(() => {
+  clearPageData();
   requests = [];
   proofs = [];
   clearAccessToken();

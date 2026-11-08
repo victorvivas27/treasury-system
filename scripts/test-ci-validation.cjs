@@ -7,6 +7,25 @@ const { fingerprint, currentFingerprint, findArtifact, validateEvidence } = requ
 const yaml = createRequire(path.join(process.env.RELEASE_TOOLS_DIR, 'package.json'))('yaml');
 const workflow = file => yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows', file), 'utf8'));
 const listing = files => Object.entries(files).map(([file, blob]) => `100644 blob ${blob}\t${file}`).join('\0');
+
+test('CI uses the project pnpm version without conflicting workflow overrides', () => {
+  const root = path.join(__dirname, '..');
+  const manager = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).packageManager;
+  assert.match(manager, /^pnpm@\d+\.\d+\.\d+$/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'frontend/package.json'), 'utf8')).packageManager, manager);
+  let setups = 0;
+  for (const file of fs.readdirSync(path.join(root, '.github/workflows'))) {
+    for (const job of Object.values(workflow(file).jobs)) {
+      for (const step of job.steps ?? []) {
+        if (!step.uses?.startsWith('pnpm/action-setup@')) continue;
+        setups++;
+        assert.equal(step.with?.version, undefined, `${file}: pnpm must read packageManager`);
+        assert.equal(step.with?.package_json_file ?? 'package.json', 'package.json');
+      }
+    }
+  }
+  assert.ok(setups >= 3, 'frontend, backend and Bruno must set up pnpm');
+});
 const inputs = { 'frontend/src/App.tsx': 'front', 'backend/src/App.java': 'back',
   'api-tests/test.yml': 'api', '.github/workflows/00-pr-validation.yml': 'workflow',
   'scripts/ci-validation.cjs': 'helper', 'VERSION': 'version', 'frontend/package.json': 'package',

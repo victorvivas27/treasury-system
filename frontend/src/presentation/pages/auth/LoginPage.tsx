@@ -1,5 +1,5 @@
 import { PasswordStrength, PASSWORD_PATTERN } from "@/shared/ui/passwordstrength/PasswordStrength";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/presentation/context/AuthContext";
 import type { LoginOrganizationOption } from "@/core/A-domain/entities/auth/Auth";
@@ -12,6 +12,7 @@ import axios from "axios";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { AuthIllustration, authIllustrationStyle } from "./AuthIllustration";
+import { LoginActionFeedback } from "./LoginActionFeedback";
 import "./LoginPage.css";
 
 const FIELDS = [
@@ -55,6 +56,27 @@ export const LoginPage = () => {
   const { login, loading: sessionLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const previewRequested = import.meta.env.DEV
+    && new URLSearchParams(location.search).get('actionPreview') === 'login';
+  const [actionPreview, setActionPreview] = useState(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV || new URLSearchParams(location.search).get('actionPreview') !== 'login') return;
+    let startTimer: number | undefined;
+    const startWhenVisible = () => {
+      if (document.getElementById('app-boot-loader') || startTimer !== undefined) return;
+      startTimer = window.setTimeout(() => setActionPreview(true), 2000);
+      observer.disconnect();
+    };
+    const observer = new MutationObserver(startWhenVisible);
+    observer.observe(document.body, { childList: true });
+    startWhenVisible();
+    return () => { observer.disconnect(); window.clearTimeout(startTimer); };
+  }, [location.search]);
+  useEffect(() => {
+    if (!actionPreview) return;
+    const timer = window.setTimeout(() => setActionPreview(false), 20000);
+    return () => window.clearTimeout(timer);
+  }, [actionPreview]);
   const hasOrganizationOptions = organizationOptions.length > 0;
   const requestedDestination = (location.state as { from?: string } | null)?.from;
   const destination = requestedDestination && requestedDestination !== "/login" ? requestedDestination : "/";
@@ -66,7 +88,7 @@ export const LoginPage = () => {
   };
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting || sessionLoading) return;
+    if (submitting || sessionLoading || previewRequested) return;
     // Password managers may fill the inputs without notifying React.
     const formData = new FormData(event.currentTarget);
     const correo = String(formData.get("correo") ?? "");
@@ -117,7 +139,7 @@ export const LoginPage = () => {
     }
   };
 
-  if (!sessionLoading && isAuthenticated) return <Navigate to={destination} replace />;
+  if (!sessionLoading && isAuthenticated && !previewRequested) return <Navigate to={destination} replace />;
 
   return (
     <main className="form-page-container login-page" style={authIllustrationStyle}>
@@ -197,9 +219,10 @@ export const LoginPage = () => {
           <Button
             type="submit"
             onClick={() => {}}
-            loading={submitting}
-            disabled={sessionLoading}
-            label={submitting ? "Ingresando..." : "Ingresar"}
+            loading={submitting || actionPreview}
+            disabled={sessionLoading || previewRequested}
+            label="Ingresar"
+            loadingContent={<LoginActionFeedback />}
             icon={<FiLogIn aria-hidden="true" />}
             size="medium"
           />

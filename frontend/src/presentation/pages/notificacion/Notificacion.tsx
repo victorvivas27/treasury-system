@@ -1,11 +1,13 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { useNotifications } from "@/presentation/context/NotificationContext";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useNotificationRecipients } from "./useNotificationRecipients";
 import { notificationCache } from "./notificationCache";
 import { useDashboardResource } from "../dashboard/dashboardCache";
-import { NotificationListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
+
 import type { NotificationType, SentNotification } from
   "@/core/A-domain/entities/notification/Notification";
 import { NotificationRepositoryImpl } from
@@ -52,6 +54,7 @@ const AdminNotificationCenter = () => {
   const sent = sentState.data ?? [];
   const sentLoading = !sentState.data && !sentState.error;
   const sentError = sentState.error;
+  usePageEntry(sentLoading, sentError);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<number | undefined>(cache.selection.contactId);
   const [contactSearch, setContactSearch] = useState("");
@@ -141,8 +144,8 @@ const AdminNotificationCenter = () => {
         <input type="search" value={search} placeholder="Buscar apoderado" aria-label="Buscar apoderado"
           onChange={event => setSearch(event.target.value)} />
       </header>
-      {error && <div role="alert" className="notification-recipient-error">{error}<button type="button" onClick={() => void retry()}>Reintentar destinatarios</button></div>}
-      {loading && apoderados.length === 0 && recipientsOpen && <NotificationListSkeleton />}
+      {error && <div role="alert" className="notification-recipient-error">{error}<ActionButton type="button" onClick={() => retry()}>Reintentar destinatarios</ActionButton></div>}
+
       <div className="notification-recipient-list">
         {apoderados.map(apoderado => <article key={apoderado.apoderadoId}
           className={`notification-recipient ${selectAll || selectedIds.has(apoderado.apoderadoId)
@@ -164,10 +167,10 @@ const AdminNotificationCenter = () => {
       </div>
     </details>
     <section className="sent-notifications">
-      {sentLoading && <NotificationListSkeleton />}
+
       {sentError && <div role="alert" className="notification-conversation__error">
         No fue posible cargar los mensajes.
-        <button type="button" onClick={() => void loadSent()}>Reintentar carga de mensajes</button>
+        <ActionButton type="button" onClick={() => loadSent()}>Reintentar carga de mensajes</ActionButton>
       </div>}
       <div className={`notification-messenger ${activeGroup ? "has-active-chat" : ""}`}>
         <aside className="notification-contacts" aria-label="Conversaciones con apoderados">
@@ -217,12 +220,12 @@ const AdminNotificationCenter = () => {
                   day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit",
                   minute: "2-digit", hour12: false,
                 })}</time>
-                <button type="button" className="notification-delete-action"
+                <ActionButton type="button" className="notification-delete-action"
                   disabled={deletingId !== null}
                   aria-label={`Eliminar notificación ${item.title}`} title="Eliminar para todos"
-                  onClick={() => void deleteSent(item.id)}>
+                  onClick={() => deleteSent(item.id)}>
                   <FiTrash2 aria-hidden="true" />
-                </button>
+                </ActionButton>
               </header>
               <div className="sent-notification__body">
                 <p>{item.message}</p>
@@ -241,7 +244,7 @@ const AdminNotificationCenter = () => {
       confirmLabel="Enviar" isLoading={sending} compact
       confirmIcon={<FiSend />}
       confirmDisabled={!form.message.trim()}
-      onCancel={() => setComposerOpen(false)} onConfirm={() => void send()}>
+      onCancel={() => setComposerOpen(false)} onConfirm={() => send()}>
       {!selectAll && selectedIds.size > 1 && <details className="notification-compose-recipients">
         <summary>Ver destinatarios ({selectedIds.size})</summary>
         <ul>{[...selectedNames].map(([id, name]) => <li key={id}>{name}</li>)}</ul>
@@ -286,6 +289,7 @@ const GuardianInbox = () => {
     }
   }, [loading, markAllRead, unreadCount]);
   const inboxLoading = (loading && notifications.length === 0) || (notifications.length === 0 && contactLoading);
+  usePageEntry(inboxLoading, inboxError || contact.error);
   const startConversation = async () => {
     const message = firstMessage.trim();
     if (!message || startingConversation) return;
@@ -300,10 +304,10 @@ const GuardianInbox = () => {
   return <>
     <main aria-busy={inboxLoading} className="page-container notifications-page notifications-inbox">
     {startError && notifications.length > 0 && <p role="alert" className="notification-conversation__error">{startError}</p>}
-    {inboxError && <div role="alert" className="notification-conversation__error">{inboxError}<button type="button" onClick={() => void refresh()}>Reintentar notificaciones</button></div>}
+    {inboxError && <div role="alert" className="notification-conversation__error">{inboxError}<ActionButton type="button" onClick={() => refresh()}>Reintentar notificaciones</ActionButton></div>}
     <section className="notifications-list" aria-live="polite"
       aria-busy={inboxLoading}>
-      {inboxLoading && notifications.length === 0 && <NotificationListSkeleton />}
+
       {!inboxLoading && !inboxError && notifications.length === 0 && <div className="notifications-empty-conversation">
         <section className="notifications-empty-conversation__contact-section">
           <h2>Contactos</h2>
@@ -329,7 +333,7 @@ const GuardianInbox = () => {
         <section className="notifications-empty-conversation__chat-section">
         <h2>Conversación con {recipientName}</h2>
         <p className="notifications-empty-conversation__state">Aún no hay mensajes con Tesorería.</p>
-        {contact.error && <div role="alert" className="notification-conversation__error">No fue posible cargar el contacto de Tesorería.<button type="button" onClick={() => void contactResource.load(true)}>Reintentar contacto</button></div>}
+        {contact.error && <div role="alert" className="notification-conversation__error">No fue posible cargar el contacto de Tesorería.<ActionButton type="button" onClick={() => contactResource.load(true)}>Reintentar contacto</ActionButton></div>}
         {startError && <p className="notification-conversation__error">{startError}</p>}
         <form className="notification-reply-form" onSubmit={event => {
           event.preventDefault(); void startConversation();
@@ -338,9 +342,9 @@ const GuardianInbox = () => {
           <textarea ref={firstMessageRef} maxLength={2000} value={firstMessage}
             onChange={event => setFirstMessage(event.target.value)}
             placeholder="Escribe un mensaje a Tesorería" aria-label="Mensaje para Tesorería" />
-          <button type="submit" aria-busy={startingConversation} aria-label={`Enviar a ${recipientName}`} disabled={!firstMessage.trim() || startingConversation}>
-            {startingConversation ? <ButtonSpinner /> : <FiSend />} {startingConversation ? "Enviando…" : "Enviar"}
-          </button>
+          <ActionButton type="submit" aria-busy={startingConversation} aria-label={`Enviar a ${recipientName}`} disabled={!firstMessage.trim() || startingConversation}>
+            {startingConversation ? null : <FiSend />} {startingConversation ? "Enviando…" : "Enviar"}
+          </ActionButton>
         </form>
         </section>
       </div>}
@@ -375,12 +379,12 @@ const GuardianInbox = () => {
             })}</time></header>
           <p>{item.message}</p>
         </div>
-        <button type="button" className="notification-delete-action"
+        <ActionButton type="button" className="notification-delete-action"
           aria-label={`Eliminar notificación ${item.title}`} title="Eliminar de mi vista"
-          onClick={event => { event.stopPropagation(); void deleteNotification(item.id)
+          onClick={event => { event.stopPropagation(); return deleteNotification(item.id)
             .catch(() => setDeleteError(true)); }}>
           <FiTrash2 aria-hidden="true" />
-        </button>
+        </ActionButton>
       </article> }))} />}
     </section>
     <ModalAlert isOpen={deleteError} message="No fue posible eliminar la notificación."

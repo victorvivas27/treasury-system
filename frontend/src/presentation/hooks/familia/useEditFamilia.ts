@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import type { CreateFamiliaDTO, FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { GetFamiliaUseCase } from "@/core/B-application/use-cases/familia/get/GetFamiliaUseCase";
 import { EditAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/familia/update/EditAlumnoApoderadoUseCase";
@@ -26,6 +27,7 @@ export const useEditFamilia = () => {
   const [error, setError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<{ message: string } | null>(null);
+  usePageEntry(initialLoading || loadingApoderados, loadError || apoderadosError);
   const [familiaData, setFamiliaData] = useState<FamiliaDetalle | null>(null);
   const [formData, setFormData] = useState<CreateFamiliaDTO>({
     alumnoId: 0,

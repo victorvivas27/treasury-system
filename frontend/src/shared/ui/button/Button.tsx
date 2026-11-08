@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './Button.css';
+import { ActionButton } from './ActionButton';
 
 interface ButtonProps {
   label?: string;
@@ -10,13 +11,14 @@ interface ButtonProps {
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
   loading?: boolean;
+  loadingContent?: React.ReactNode;
   disabled?: boolean;
   testId?: string;
   className?: string;
   ariaLabel?: string;
 }
 
-export const ButtonSpinner = () => <span className="button-loader" aria-hidden="true" />;
+
 
 export const Button = ({
   label,
@@ -27,6 +29,7 @@ export const Button = ({
   icon,
   iconPosition = 'left',
   loading = false,
+  loadingContent,
   disabled = false,
   testId,
   className = '',
@@ -48,13 +51,13 @@ export const Button = ({
     return () => window.clearTimeout(timer);
   }, [loading, isSaveAction]);
   const visibleLoading = loading || (isSaveAction && holdingLoading);
-  const displayedLabel = visibleLoading && isSaveAction ? 'Guardando…' : label;
+  const displayedLabel = label;
   const displayedIcon = visibleLoading
-    ? <ButtonSpinner />
+    ? null
     : icon;
 
   return (
-    <button
+    <ActionButton
       type={type}
       onClick={onClick}
 
@@ -65,6 +68,7 @@ export const Button = ({
       aria-busy={visibleLoading}
     >
       <span className="button-content">
+        {visibleLoading && loadingContent ? loadingContent : <>
         {displayedIcon && iconPosition === 'left' && (
           <span className="button-icon button-icon--left">{displayedIcon}</span>
         )}
@@ -74,7 +78,8 @@ export const Button = ({
         {displayedIcon && iconPosition === 'right' && (
           <span className="button-icon button-icon--right">{displayedIcon}</span>
         )}
+        </>}
       </span>
-    </button>
+    </ActionButton>
   );
 };

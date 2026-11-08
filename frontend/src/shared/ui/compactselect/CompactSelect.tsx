@@ -1,3 +1,4 @@
+import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { FcExpand } from "react-icons/fc";
@@ -65,11 +66,11 @@ export const CompactSelect = ({ value, options, placeholder, onChange, ariaLabel
 
   const menu = open && <div ref={menuRef} id={menuId} className={`compact-select__menu ${menuClassName}`}
     style={portal ? position : undefined} role="listbox" aria-label={ariaLabel ?? placeholder}>
-    {choices.map((option, index) => <button type="button" role="option" key={option.value}
+    {choices.map((option, index) => <ActionButton type="button" role="option" key={option.value}
       id={`${menuId}-${index}`} tabIndex={-1} aria-selected={option.value === value} title={option.label}
       className={active === index ? "is-keyboard-active" : undefined}
       onPointerMove={() => setActive(index)}
-      onClick={() => choose(option.value)}>{option.label}</button>)}
+      onClick={() => choose(option.value)}>{option.label}</ActionButton>)}
   </div>;
 
   return <div className="compact-select" ref={root}>

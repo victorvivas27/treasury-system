@@ -1,4 +1,5 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { FiCheckCircle, FiImage, FiList, FiX } from "react-icons/fi";
@@ -237,8 +238,7 @@ export const ImprovementCenter = () => {
               accept="image/png,image/jpeg,image/webp" onChange={pickFile} />
             {screenshot && <article className="improvement-center__upload-preview" aria-live="polite">
               <div className="improvement-center__upload-thumb">
-                {screenshotPreviewLoading && <span className="improvement-center__upload-loader"
-                  aria-label="Preparando captura" />}
+
                 {screenshotPreviewUrl && <img src={screenshotPreviewUrl} alt=""
                   onLoad={() => setScreenshotPreviewLoading(false)}
                   onError={() => setScreenshotPreviewLoading(false)} />}
@@ -247,9 +247,9 @@ export const ImprovementCenter = () => {
                 <strong>{screenshotPreviewLoading ? "Preparando captura..." : "Captura lista"}</strong>
                 <small>{screenshot.name} · {formatFileSize(screenshot.size)}</small>
               </div>
-              <button type="button" onClick={removeScreenshot} disabled={submitting}>
+              <ActionButton type="button" onClick={removeScreenshot} disabled={submitting}>
                 Quitar
-              </button>
+              </ActionButton>
             </article>}
           </section>
           <footer>
@@ -258,7 +258,7 @@ export const ImprovementCenter = () => {
               disabled={submitting} onClick={() => undefined} icon={<FiCheckCircle />} />
           </footer>
         </form> : <section className="improvement-center__mine">
-          {loadingMine && suggestions.length === 0 && <div role="status" aria-label="Cargando tus sugerencias"><Skeleton /><Skeleton /></div>}
+
           {!loadingMine && suggestions.length === 0 && <p>Aún no has enviado sugerencias.</p>}
           {suggestions.map(item => <article key={item.id}>
             <button type="button" onClick={() => setDetail(detail?.id === item.id ? null : item)}>

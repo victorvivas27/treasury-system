@@ -1,7 +1,8 @@
 import { GetAlumnosUseCase } from "@/core/B-application/use-cases/alumno/list/GetAlumnosUseCase";
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { hasPageData, useCachedPageState, readPageData, storePageData, pageDataSession } from '../useCachedPageState';
 
 const repository = new AlumnoRepositoryImpl();
 const getAlumnosUseCase = new GetAlumnosUseCase(repository);
@@ -14,33 +15,43 @@ interface UseAlumnosOptions {
 export const useAlumnos = (options: UseAlumnosOptions = {}) => {
   const { initialPage = 0, pageSize = 3 } = options;
 
-  const [alumnos, setAlumnos] = useState<Alumno[]>([]);
+  const scope = `alumnos:${pageSize}:${initialPage}`;
+  const [alumnos, setAlumnos] = useCachedPageState<Alumno[]>(`${scope}:items`, []);
   const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(() => hasPageData(`${scope}:items`, `${scope}:totalPages`, `${scope}:totalElements`));
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
-  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useCachedPageState(`${scope}:page`, initialPage);
+  const [totalPages, setTotalPages] = useCachedPageState(`${scope}:totalPages`, 0);
+  const [totalElements, setTotalElements] = useCachedPageState(`${scope}:totalElements`, 0);
+  const [search, setSearch] = useState(() => readPageData<string>(`${scope}:search`) ?? '');
+  const entryPage = useRef(currentPage);
+  const requestSequence = useRef(0);
 
   const fetchAlumnos = useCallback(async (page: number) => {
+    const request = ++requestSequence.current;
+    const requestSession = pageDataSession();
     try {
       setLoading(true);
       setError(null);
 
       const data = await getAlumnosUseCase.execute(page, pageSize, search);
+  if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
+      storePageData(`${scope}:search`, search, requestSession);
 
       setAlumnos(data.content);
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
       setCurrentPage(data.page);
     } catch (err) {
+      if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
       setError(
         err instanceof Error ? err.message : "Error al cargar alumnos",
       );
     } finally {
-      setHasLoaded(true);
-      setLoading(false);
+      if (request === requestSequence.current && requestSession === pageDataSession()) {
+        setHasLoaded(true);
+        setLoading(false);
+      }
     }
   }, [pageSize, search]);
 
@@ -69,7 +80,8 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
   }, []);
 
   useEffect(() => {
-    fetchAlumnos(initialPage);
+    fetchAlumnos(entryPage.current);
+    entryPage.current = initialPage;
   }, [fetchAlumnos, initialPage]);
 
   const hasNextPage = currentPage + 1 < totalPages;

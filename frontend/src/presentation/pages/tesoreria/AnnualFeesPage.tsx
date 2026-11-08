@@ -1,4 +1,7 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiCalendar, FiCheckCircle, FiClock, FiCreditCard, FiDollarSign, FiFilter,
@@ -13,7 +16,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { apiClient } from "@/core/D-config/api";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
+
 import "./AnnualFeesPage.css";
 
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP",
@@ -47,11 +50,12 @@ export const AnnualFeesPage = () => {
   const [customAmount, setCustomAmount] = useState(0);
   const [customDueDate, setCustomDueDate] = useState(`${fees.year}-12-31`);
   const [customConcept, setCustomConcept] = useState("Cuota personalizada");
-  const [filters, setFilters] = useState<TreasuryFilters>({});
+  const [filters, setFilters] = useState<TreasuryFilters>(() => fees.appliedFilters ?? {});
   const [payment, setPayment] = useState<{ id: number; amount: number; concept: string } | null>(null);
   const [paymentDate, setPaymentDate] = useState(today);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
-  const [transferProofs, setTransferProofs] = useState<TransferProof[]>([]);
+  const [transferProofs, setTransferProofs] = useCachedPageState<TransferProof[]>(`annual:${fees.year}:proofs`, []);
+  const [proofsSettled, setProofsSettled] = useState(() => hasPageData(`annual:${fees.year}:proofs`));
   const [proofSaving, setProofSaving] = useState(false);
   const [proofError, setProofError] = useState("");
   const [annulmentId, setAnnulmentId] = useState<number | null>(null);
@@ -96,12 +100,14 @@ export const AnnualFeesPage = () => {
     && (!customAmount || customAmount <= 0 || !customDueDate
       || customDueDate.slice(0, 4) !== String(fees.year));
   const pageLoading = fees.dataLoading;
+  usePageEntry(pageLoading || fees.configsReady === false || !proofsSettled, fees.error);
 
   const loadTransferProofs = useCallback(async () => {
     try {
       setTransferProofs((await apiClient.get<TransferProof[]>(`${transferBase}/revision`,
         { params: { year: fees.year } })).data);
     } catch { setTransferProofs([]); }
+    finally { setProofsSettled(true); }
   }, [fees.year]);
 
   useEffect(() => {
@@ -226,7 +232,7 @@ export const AnnualFeesPage = () => {
       {pageLoading ? ["Familias", "Cuota única", "Dos cuotas", "Personalizadas",
         "Pendientes", "Recaudado", "Por recaudar"].map(label =>
         <article className="treasury-summary-card" key={label}>
-          <div><span>{label}</span></div><div className="skeleton-block"><Skeleton height="100%" /></div>
+          <div><span>{label}</span></div>
         </article>) : <>
         <article className="treasury-summary-card treasury-summary-card--families">
           <div><span>Familias</span><i><FiUsers aria-hidden="true" /></i></div>
@@ -265,7 +271,7 @@ export const AnnualFeesPage = () => {
         <div className="treasury-family-mode-layout">
           <div className="treasury-family-mode-controls">
             {pageLoading ? <>
-              <label>Familia<div className="skeleton-block treasury-field-skeleton"><Skeleton height="100%" /></div></label>
+              <label>Familia</label>
               <label>Modalidad<select disabled value={mode}>
                 <option value="ANUAL">Cuota única</option><option value="DOS_CUOTAS">Dos cuotas</option>
                 <option value="PERSONALIZADA">Cuota personalizada</option>
@@ -296,13 +302,13 @@ export const AnnualFeesPage = () => {
               </>}
               <Button label={mode === "PERSONALIZADA" ? "Crear cuota personalizada" : "Guardar y generar cuotas"}
                 loading={fees.loading}
-                disabled={!familyId || customModeInvalid} onClick={() => void assignMode()}
+                disabled={!familyId || customModeInvalid} onClick={() => assignMode()}
                 size="medium" />
             </>}
           </div>
           <div className="treasury-family-mode-summary">
             {pageLoading
-              ? <div className="skeleton-block treasury-plan-count-skeleton" aria-hidden="true"><Skeleton height="100%" /></div>
+              ? null
               : <p>{fees.plans.length} familias configuradas para {fees.year}.</p>}
             <p className="treasury-mode-help">
               Para cambiar la modalidad de una familia con pagos, anula primero todos sus pagos
@@ -313,16 +319,7 @@ export const AnnualFeesPage = () => {
         </div>
         <div className="treasury-plan-list" aria-label="Familias con modalidad configurada">
           {pageLoading
-            ? Array.from({ length: 2 }, (_, index) =>
-              <article className="treasury-plan-skeleton" key={index} aria-hidden="true">
-                <div className="treasury-plan-main"><div className="skeleton-block"><Skeleton height="100%" /></div>
-                  <div className="skeleton-block"><Skeleton height="100%" /></div></div>
-                <div className="treasury-plan-actions loading-action-placeholder">
-                  <span className="payment-mode">&nbsp;</span>
-                  <button type="button" disabled>Cambiar modalidad</button>
-                  <button type="button" disabled>Quitar familia</button>
-                </div>
-              </article>)
+            ? null
             : fees.plans.length === 0
             ? <p>Aún no hay familias con modalidad configurada.</p>
             : visiblePlans.map(plan => <article key={plan.id}>
@@ -402,13 +399,7 @@ export const AnnualFeesPage = () => {
       <div className="treasury-table-wrap"><table><thead><tr><th>Responsable</th><th>Curso</th>
         <th>Concepto</th><th>Vence</th><th>Fecha de pago</th><th>Monto</th><th>Estado</th>
         <th>Comprobante</th><th>Acción</th></tr></thead>
-        <tbody>{pageLoading ? Array.from({ length: 8 }, (_, row) =>
-          <tr key={`loading-${row}`} aria-hidden="true">
-            {Array.from({ length: 8 }, (_, column) => <td key={column}>
-              <div className="skeleton-block treasury-cell-skeleton"><Skeleton height="100%" /></div>
-            </td>)}<td><Button label="Registrar pago" size="small" disabled
-              onClick={() => undefined} className="loading-action-placeholder" /></td>
-          </tr>) : visibleObligations.map(item => <tr key={item.id}>
+        <tbody>{pageLoading ? null : visibleObligations.map(item => <tr key={item.id}>
           <td className="obligation-card__responsible" data-label="Responsable">
             <strong>{item.primaryGuardian || "Sin apoderado principal"}</strong>
             <small>{item.familyCode}</small></td>
@@ -424,9 +415,9 @@ export const AnnualFeesPage = () => {
             {isOverdue(item.status, item.dueDate) ? "VENCIDA" : item.status}</span></td>
           <td className="obligation-card__proof" data-label="Comprobante">
             {proofsByInstallment.get(item.id)
-              ? <button type="button" className="proof-link"
-                  onClick={() => void openProof(proofsByInstallment.get(item.id)!.id)}>
-                  <FiEye /> Ver archivo</button>
+              ? <ActionButton type="button" className="proof-link"
+                  onClick={() => openProof(proofsByInstallment.get(item.id)!.id)}>
+                  <FiEye /> Ver archivo</ActionButton>
               : item.status !== "PAGADA"
                 ? <button type="button" className="proof-link proof-link--upload"
                     onClick={() => selectPayment({ id: item.id, amount: item.amount,
@@ -444,10 +435,7 @@ export const AnnualFeesPage = () => {
         </tr>)}</tbody></table></div>
       <div className="obligation-family-cards" aria-label="Obligaciones por familia">
         {pageLoading
-          ? Array.from({ length: 3 }, (_, index) => <article key={index} aria-hidden="true">
-              <div className="skeleton-block dashboard-row-skeleton"><Skeleton height="100%" /></div>
-              <div className="skeleton-block dashboard-row-skeleton"><Skeleton height="100%" /></div>
-            </article>)
+          ? null
           : visibleObligationGroups.map(items => {
             const family = items[0];
             return <article className="obligation-family-card" key={family.familyId}>
@@ -472,9 +460,9 @@ export const AnnualFeesPage = () => {
                     <div><dt>Fecha de pago</dt><dd>{item.paymentDate ?? "—"}</dd></div>
                     <div><dt>Monto</dt><dd>{money.format(item.amount)}</dd></div>
                     <div><dt>Comprobante</dt><dd>{proofsByInstallment.get(item.id)
-                      ? <button type="button" className="proof-link"
-                          onClick={() => void openProof(proofsByInstallment.get(item.id)!.id)}>
-                          <FiEye /> Ver archivo</button>
+                      ? <ActionButton type="button" className="proof-link"
+                          onClick={() => openProof(proofsByInstallment.get(item.id)!.id)}>
+                          <FiEye /> Ver archivo</ActionButton>
                       : item.status !== "PAGADA"
                         ? <button type="button" className="proof-link proof-link--upload"
                             onClick={() => selectPayment({ id: item.id, amount: item.amount,
@@ -544,7 +532,7 @@ export const AnnualFeesPage = () => {
       confirmDisabled={!paymentDate}
       compact
       onCancel={closePayment}
-      onConfirm={() => void registerPayment()}
+      onConfirm={() => registerPayment()}
     >
       <label>
         Fecha de pago
@@ -556,7 +544,7 @@ export const AnnualFeesPage = () => {
         {selectedProof && selectedProof.status !== "REJECTED" ? <div className="payment-proof-existing">
           <div><strong>{selectedProof.originalFileName || "Comprobante enviado"}</strong>
             <small>Comprobante disponible para verificar</small></div>
-          <button type="button" onClick={() => void openProof(selectedProof.id)}><FiEye /> Ver</button>
+          <ActionButton type="button" onClick={() => openProof(selectedProof.id)}><FiEye /> Ver</ActionButton>
         </div> : <label className="payment-proof-upload"><FiUpload />
           <span>{paymentFile ? paymentFile.name : "Adjuntar comprobante (opcional)"}</span>
           <input type="file" accept="image/jpeg,image/png,application/pdf"

@@ -1,4 +1,5 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { useEffect, useRef, useState } from "react";
 import { IoHeartOutline } from "react-icons/io5";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
@@ -91,8 +92,8 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
           }}>
           Editar</button>}
       </footer>
-      {isAdmin && !loaded && cached.error && <p role="alert">No se pudo cargar el mensaje guardado. <button type="button"
-        onClick={() => void boardMessageResource.load(true)}>Reintentar</button></p>}
+      {isAdmin && !loaded && cached.error && <p role="alert">No se pudo cargar el mensaje guardado. <ActionButton type="button"
+        onClick={() => boardMessageResource.load(true)}>Reintentar</ActionButton></p>}
     </div>
   </section>
     {isAdmin && <dialog ref={dialog} className="board-message-modal" data-dashboard-capture-exclude
@@ -144,7 +145,7 @@ export const BoardMessage = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         {error && <p role="alert">{error}</p>}
         <footer>
           <button type="button" disabled={saving} onClick={() => dialog.current?.close()}>Cancelar</button>
-          <button type="submit" aria-busy={saving} disabled={saving || fields.some(field => !draft[field.key].trim())}>{saving && <ButtonSpinner />}{saving ? "Guardando..." : "Guardar cambios"}</button>
+          <ActionButton type="submit" aria-busy={saving} disabled={saving || fields.some(field => !draft[field.key].trim())}>{saving ? "Guardando..." : "Guardar cambios"}</ActionButton>
         </footer>
       </form>
     </dialog>}

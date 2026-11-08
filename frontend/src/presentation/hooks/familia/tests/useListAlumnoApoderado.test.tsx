@@ -1,3 +1,4 @@
+import { clearPageData } from '@/presentation/hooks/useCachedPageState';
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useListAlumnoApoderado } from "../useListFamilia";
@@ -18,6 +19,7 @@ vi.mock("@/core/C-infra/repositories/familia/FamiliaRepositoryImpl", () => ({
 
 describe("useListAlumnoApoderado", () => {
   beforeEach(() => {
+    clearPageData();
     vi.clearAllMocks();
     mockListUseCase.execute.mockResolvedValue({
       content: [],

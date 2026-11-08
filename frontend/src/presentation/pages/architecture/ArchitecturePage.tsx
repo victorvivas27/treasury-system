@@ -1,4 +1,6 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+
 import { useEffect, useState } from "react";
 import type { ArchitectureCatalog } from "@/core/A-domain/entities/architecture/Architecture";
 import { architectureUseCases } from "@/presentation/hooks/architecture/useArchitectureAccess";
@@ -12,12 +14,14 @@ const isolateDiagram = (html: string) => html.replace(/<head(?:\s[^>]*)?>/i, hea
   <meta name="referrer" content="no-referrer">`);
 
 export const ArchitecturePage = () => {
-  const [catalog, setCatalog] = useState<ArchitectureCatalog>();
-  const [selected, setSelected] = useState("");
-  const [document, setDocument] = useState("");
+  const [catalog, setCatalog] = useCachedPageState<ArchitectureCatalog | undefined>('architecture:catalog', undefined);
+  const [selected, setSelected] = useCachedPageState('architecture:selected', "");
+  const [document, setDocument] = useCachedPageState(`architecture:document:${selected}`, "");
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setLoading] = useState(true);
+  const loading = fetching && !document;
+  usePageEntry(loading, error);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,6 +31,7 @@ export const ArchitecturePage = () => {
         if (!controller.signal.aborted) {
           setCatalog(value);
           setSelected(current => current || value.diagrams[0]?.id || "");
+          if (!value.diagrams.length) setLoading(false);
         }
       },
       () => {
@@ -39,7 +44,6 @@ export const ArchitecturePage = () => {
   useEffect(() => {
     if (!selected) return;
     const controller = new AbortController();
-    setDocument("");
     setLoading(true);
     setError("");
     architectureUseCases.diagram(selected, controller.signal).then(
@@ -71,7 +75,7 @@ export const ArchitecturePage = () => {
         ))}
       </div>
       {error ? <FeedbackState message={error} actionText="Reintentar"
-        onRefresh={() => setAttempt(value => value + 1)} /> : loading ? <div role="status" aria-label="Cargando gráfico"><Skeleton height="16rem" /></div> : (
+        onRefresh={() => setAttempt(value => value + 1)} /> : loading ? null : (
         <div className="architecture-viewer">
           <div className="architecture-viewer-heading">
             <h2>{active?.title}</h2>

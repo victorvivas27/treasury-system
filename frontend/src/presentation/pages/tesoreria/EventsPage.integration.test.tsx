@@ -60,7 +60,7 @@ describe('school events connected to HTTP', () => {
     const button = dialog.getByRole('button', { name: 'Guardando\u2026' });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-busy', 'true');
-    expect(button.querySelector('.button-loader')).toBeInTheDocument();
+    expect(button.querySelector('.button-loader')).not.toBeInTheDocument();
     fireEvent.submit(modal.querySelector('form')!);
     await waitFor(() => expect(writes()).toHaveLength(1));
     finish();

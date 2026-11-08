@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { AlumnosList } from "@/presentation/features/alumno/AlumnosList";
 import { useAlumnos } from "@/presentation/hooks/alumno/useAlumnos";
 import type { FC } from "react";
@@ -42,6 +43,7 @@ export const AlumnoPage: FC = () => {
     search,
     setSearch,
   } = useAlumnos({ initialPage });
+  usePageEntry(loading, error);
 
   const navigate = useNavigate();
 

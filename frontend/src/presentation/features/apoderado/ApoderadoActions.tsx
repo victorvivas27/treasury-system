@@ -15,7 +15,8 @@ export function ApoderadoActions({ apoderado, identifier = "", loading = false,
   onEdit, onDelete, onEnableAccess }: ApoderadoActionsProps) {
   const canInvite = loading || (apoderado && apoderado.accessStatus !== "ACTIVO"
     && apoderado.accessStatus !== "BLOQUEADO");
-  return <div className={`apoderados-table__td--actions admin-table-actions${loading ? " loading-action-placeholder" : ""}`}>
+  if (loading) return null;
+  return <div className="apoderados-table__td--actions admin-table-actions">
     <span className="apoderados-table__access-slot">
       {canInvite && <Button variant="primary" size="small" disabled={loading}
         className="apoderados-table__action-button apoderados-table__access-button"

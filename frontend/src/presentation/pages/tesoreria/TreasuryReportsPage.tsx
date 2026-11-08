@@ -4,7 +4,7 @@ import type { TreasuryReport, TreasuryReportType }
 import { TreasuryUseCases } from "@/core/B-application/use-cases/treasury/TreasuryUseCases";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { Button } from "@/shared/ui/button/Button";
-import { TableSkeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import "./AnnualFeesPage.css";
 
 export const TreasuryReportsPage = () => {
@@ -46,7 +46,7 @@ export const TreasuryReportsPage = () => {
         </select>
         <div className="treasury-report-filter-actions">
           <Button label={loading ? "Generando..." : "Generar reporte"} size="small"
-            loading={loading} onClick={() => void load()} />
+            loading={loading} onClick={() => load()} />
           <Button label="Limpiar" size="small" variant="secondary"
             disabled={!hasGenerated && !error} onClick={() => {
               setReports([]);
@@ -64,7 +64,7 @@ export const TreasuryReportsPage = () => {
           <p className="treasury-report-empty">No se encontraron resultados para los filtros seleccionados.</p>}
       {(loading || reports.length > 0) && <div className="treasury-table-wrap"><table className="treasury-reports-table"><thead><tr><th>Apoderado principal</th>
         <th>Alumno</th><th>Curso</th><th>Modalidad</th><th>Cuotas</th></tr></thead>
-        {loading && reports.length === 0 ? <TableSkeleton rows={5} columns={5} />
+        {loading && reports.length === 0 ? null
           : <tbody>{reports.map(report => <tr key={report.familyId}>
           <td data-label="Apoderado principal">{report.primaryGuardian || "Sin apoderado principal"}</td>
           <td data-label="Alumno">{report.studentName}</td>

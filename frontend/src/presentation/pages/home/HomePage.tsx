@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { AppFooter } from "@/shared/ui/footer/AppFooter";
 import { HomeHeader } from "./components/HomeHeader";
 import { HomeHero } from "./components/HomeHero";
@@ -11,12 +11,21 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { homeCommunityCache } from "./hooks/homeCommunityCache";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
-import { HomeCommunitySkeleton } from "./components/HomeCommunitySkeleton";
+import { HomeEntryTransition } from "./components/HomeEntryTransition";
+import { homeCourseCache } from "./hooks/homeCourseCache";
+
 
 export const HomePage = () => {
   const { loading, isAuthenticated, user, logout } = useAuth();
   const { ready, detailsReady, error } = useSyncExternalStore(homeCommunityCache.subscribe, homeCommunityCache.getSnapshot);
   const preparing = isAuthenticated && !ready && !error;
+  const [courseReady, setCourseReady] = useState(() => homeCourseCache.peek() !== undefined);
+  const [revealed, setRevealed] = useState(() => ready && homeCourseCache.peek() !== undefined);
+  const markCourseReady = useCallback(() => setCourseReady(true), []);
+  const revealHome = useCallback(() => setRevealed(true), []);
+  useEffect(() => {
+    if (!isAuthenticated) { setRevealed(false); setCourseReady(false); }
+  }, [isAuthenticated]);
   useEffect(() => {
     if (!loading && isAuthenticated) void homeCommunityCache.load();
   }, [loading, isAuthenticated]);
@@ -28,14 +37,17 @@ export const HomePage = () => {
 
   return (
     <>
+    {isAuthenticated && !revealed && <HomeEntryTransition ready={ready && courseReady} onExited={revealHome} />}
     <div className={`public-home public-home--${isAuthenticated ? "member" : "guest"}`}
+      inert={isAuthenticated && !revealed}
+      aria-hidden={isAuthenticated && !revealed ? true : undefined}
       aria-busy={preparing}>
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
         {!isAuthenticated && <HomeHero />}
-        {isAuthenticated && <HomeWelcome />}
-        {isAuthenticated ? detailsReady ? <HomeCommunity /> : <HomeCommunitySkeleton /> : <HomeFeatures />}
+        {isAuthenticated && <HomeWelcome onReady={markCourseReady} />}
+        {isAuthenticated ? detailsReady ? <HomeCommunity /> : null : <HomeFeatures />}
       </main>
       <AppFooter showLogin={!isAuthenticated} />
     </div>

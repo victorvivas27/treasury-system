@@ -19,10 +19,10 @@ beforeEach(() => {
 
 it("muestra skeletons de datos en la primera carga y conserva el título", async () => {
   const { container } = render(<BirthdaysPage />);
-  expect(screen.getByLabelText("Cargando cumpleaños")).toBeInTheDocument();
+  expect(screen.queryByLabelText("Cargando cumpleaños")).not.toBeInTheDocument();
   expect(container.querySelector("main")).not.toHaveAttribute("inert");
   expect(screen.getByRole("heading", { name: "Cumpleaños", exact: true })).toBeVisible();
-  expect(container.querySelector(".react-loading-skeleton")).toBeInTheDocument();
+  expect(container.querySelector(".react-loading-skeleton")).not.toBeInTheDocument();
   expect(container.querySelector(".birthday-section__empty")).not.toBeInTheDocument();
   await screen.findByText("Martina Rojas", { exact: true });
   expect(screen.queryByLabelText("Cargando cumpleaños")).not.toBeInTheDocument();

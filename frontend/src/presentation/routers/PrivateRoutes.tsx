@@ -38,6 +38,7 @@ import { ArchitecturePage } from "../pages/architecture/ArchitecturePage";
 import { SchedulePage } from "../pages/academic/SchedulePage";
 import { ScheduleManagementPage } from "../pages/academic/ScheduleManagementPage";
 import { QualityReportsPage } from "../pages/quality/QualityReportsPage";
+import { CollectionsPage } from '../pages/tesoreria/CollectionsPage';
 
 export const PrivateRoutes = () => {
   return (
@@ -64,6 +65,7 @@ export const PrivateRoutes = () => {
           <Route path="admin/fotos-del-curso" element={<CoursePhotoManagementPage />} />
           <Route path="admin/directiva" element={<BoardManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
+          <Route path="tesoreria/recaudaciones" element={<CollectionsPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
           <Route path="tesoreria/eventos" element={<EventsPage />} />
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />

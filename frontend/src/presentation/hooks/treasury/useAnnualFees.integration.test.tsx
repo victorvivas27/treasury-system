@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { apiClient } from '../../../core/D-config/api';
 import { clearAccessToken, clearCsrfToken } from '../../../core/D-config/axiosInterceptor';
 import { useAnnualFees } from './useAnnualFees';
+import { clearPageData } from '@/presentation/hooks/useCachedPageState';
 
 // Keep hook, use cases, repository and Axios interceptors connected.
 const originalAdapter = apiClient.defaults.adapter;
@@ -25,6 +26,7 @@ function reject(request: InternalAxiosRequestConfig, data: unknown) {
 }
 
 beforeEach(() => {
+  clearPageData();
   requests = [];
   clearAccessToken();
   clearCsrfToken();

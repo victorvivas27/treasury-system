@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import "./style/AlumnosList.css";
 import "@/shared/style/AdminDataTable.css";
@@ -91,10 +91,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
   const emptyRows = Math.max(pageSize - alumnos.length, 0);
 
   const rows: RowItem[] = loading
-    ? Array.from({ length: pageSize }).map((_, index) => ({
-      rowKey: `loading-${index}`,
-      empty: true,
-    }))
+    ? []
     : [
       ...alumnos,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
@@ -166,8 +163,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 className={`alumnos-table__row--data ${empty && !loading ? "empty-row" : ""}`}
               >
                 <td className="alumnos-table__td" data-label="Estado">
-                  {loading ? <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                    : empty ? <span>&nbsp;</span>
+                  {empty ? <span>&nbsp;</span>
                     : <span className="status-toggle-cell">
                       <span className="admin-status-label">
                         {alumno.activo ? "Activo" : "Inactivo"}
@@ -178,9 +174,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                     </span>}
                 </td>
                 <td className="alumnos-table__td alumnos-table__text" data-label="Nombre">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : empty ? (
+                  {empty ? (
                     <span>&nbsp;</span>
                   ) : (
                     <span className="alumnos-table__person">
@@ -191,9 +185,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 </td>
 
                 <td className="alumnos-table__td" data-label="Curso">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : empty ? (
+                  {empty ? (
                     <span>&nbsp;</span>
                   ) : (
                     <span className="alumnos-table__course-gender">
@@ -216,9 +208,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 </td>
 
                 <td className="alumnos-table__td" data-label="Nacimiento">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : empty ? (
+                  {empty ? (
                     <span>&nbsp;</span>
                   ) : (
                     <span>{formatBirthDate(alumno.fechaNacimiento)}</span>
@@ -260,18 +250,7 @@ export const AlumnosList: FC<AlumnosListProps> = ({
                 </td>
 
                 <td className="alumnos-table__td" data-label="Acciones">
-                  {loading ? (
-                    <div className="alumnos-table__td--actions loading-action-placeholder">
-                      <Button variant="danger" size="small"
-                        className="alumnos-table__icon-button" disabled
-                        onClick={() => undefined}
-                        icon={<ALUMNOS_ICONS.delete />} label="Eliminar" />
-                      <Button variant="secondary" size="small"
-                        className="alumnos-table__icon-button" disabled
-                        onClick={() => undefined}
-                        icon={<ALUMNOS_ICONS.edit />} label="Editar" />
-                    </div>
-                  ) : !empty && alumno ? (
+                  {!empty && alumno ? (
                     <div className="alumnos-table__td--actions admin-table-actions">
                       <Button
                         variant="danger"

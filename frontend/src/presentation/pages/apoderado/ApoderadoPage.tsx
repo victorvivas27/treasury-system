@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import axios from "axios";
 import { ApoderadosList } from "@/presentation/features/apoderado/ApoderadosList";
 import { useApoderados } from "@/presentation/hooks/apoderado/useApoderados";
@@ -72,6 +73,7 @@ export const ApoderadoPage: FC = () => {
     search,
     setSearch,
   } = useApoderados({ initialPage });
+  usePageEntry(loading, error);
   const handleEdit = (codigo: string) => {
     try {
       window.sessionStorage.setItem(GUARDIANS_RETURN_PAGE_KEY, String(currentPage));
@@ -204,7 +206,7 @@ export const ApoderadoPage: FC = () => {
         confirmLabel="Enviar invitación" isLoading={enablingAccess}
         compact
         onCancel={() => setAccessGuardian(null)}
-        onConfirm={() => void confirmEnableAccess()}>
+        onConfirm={() => confirmEnableAccess()}>
       </ModalConfirm>
       <ModalAlert isOpen={accessAlert.isOpen} message={accessAlert.message}
         type={accessAlert.type}

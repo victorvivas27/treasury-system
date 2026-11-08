@@ -1,4 +1,6 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +9,7 @@ import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
 import { clearProfileCache, getProfileResource } from "./profileCache";
-import { ProfileFamilySkeleton } from "@/shared/ui/skeleton/DataSkeletons";
+
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { profileAvatars } from "virtual:avatar-catalog";
 import { FiBookOpen, FiCheck, FiClock, FiEdit2, FiHeart, FiPhone, FiUpload,
@@ -37,7 +39,7 @@ const ProfileAvatarOption = ({ avatar, index, disabled, onSelect }: {
   const [loaded, setLoaded] = useState(false);
   return <button type="button" disabled={disabled} aria-label={`Seleccionar avatar ${index + 1}`}
     className={loaded ? "is-loaded" : "is-loading"} onClick={onSelect}>
-    {!loaded && <span className="profile-avatar-option-skeleton" aria-hidden="true" />}
+
     <img className={loaded ? "is-loaded" : ""} src={avatar} alt=""
       width="56" height="56" loading="lazy" decoding="async" fetchPriority="low"
       onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} />
@@ -66,6 +68,7 @@ export const ProfilePage = () => {
   const familyLoading = Boolean(user?.correo && !profileState.data && !profileState.error);
   const familyError = profileState.error
     ? "No fue posible cargar los datos familiares. Intenta nuevamente." : "";
+  usePageEntry(familyLoading, familyError);
   const [reloadProfile, setReloadProfile] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
@@ -279,7 +282,7 @@ export const ProfilePage = () => {
         </div>
       </section>
 
-      {familyLoading && !familyProfile && <ProfileFamilySkeleton />}
+
 
       {!familyLoading && familyError && <section className="profile-family-feedback" role="alert">
         <p>{familyError}</p>
@@ -400,8 +403,8 @@ export const ProfilePage = () => {
                 uploadPhoto(file);
               }} /></label>
           <small>JPG, PNG o WEBP · máximo 5 MB</small>
-          <button type="button" className="profile-initials-button" disabled={savingPhoto}
-            onClick={() => void applyPhoto(() => users.resetProfileImage())}>Usar mis iniciales</button>
+          <ActionButton type="button" className="profile-initials-button" disabled={savingPhoto}
+            onClick={() => applyPhoto(() => users.resetProfileImage())}>Usar mis iniciales</ActionButton>
           {(savingPhoto || photoSuccess) && <div className="profile-photo-progress"
             role="progressbar" aria-label="Progreso de actualización de foto" aria-valuemin={0}
             aria-valuemax={100} aria-valuenow={photoProgress}>
@@ -411,7 +414,7 @@ export const ProfilePage = () => {
             <strong>{photoProgress}%</strong>
           </div>}
           {savingPhoto && <p className="profile-photo-feedback is-loading" role="status">
-            <span className="profile-photo-spinner" aria-hidden="true" />
+
             Actualizando foto...
           </p>}
           {!savingPhoto && photoSuccess && <p className="profile-photo-feedback is-success"
@@ -445,10 +448,10 @@ export const ProfilePage = () => {
           <footer>
             <button type="button" className="profile-edit-cancel" disabled={savingName || savingPhoto}
               onClick={cancelNameEdit}>Cancelar</button>
-            <button type="submit" className="profile-edit-save" disabled={savingName} aria-busy={savingName}>
-              {savingName && <ButtonSpinner />}
+            <ActionButton type="submit" className="profile-edit-save" disabled={savingName} aria-busy={savingName}>
+
               {savingName ? "Guardando..." : "Guardar cambios"}
-            </button>
+            </ActionButton>
           </footer>
         </form>
       </section>

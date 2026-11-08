@@ -1,5 +1,5 @@
 import { AboutCylinder } from "./AboutCylinder";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { FiCamera, FiCheck, FiChevronLeft, FiChevronRight, FiUsers } from "react-icons/fi";
 import { useTheme } from "@/presentation/context/ThemeContext";
@@ -218,9 +218,7 @@ export const HomeCommunity = () => {
               aria-label={`Ver foto ${index + 1}`} aria-current={index === activePhoto ? "true" : undefined}
               onClick={() => showPhoto(index)} />)}
           </div>
-      </div> : !ready && !error ? <div className="home-community__photo-placeholder" role="status" aria-label="Cargando fotos del curso">
-          <Skeleton height="100%" />
-        </div> : <div className="home-community__photo-placeholder" role="img"
+      </div> : !ready && !error ? null : <div className="home-community__photo-placeholder" role="img"
           aria-label="Galería de fotos del curso pendiente de publicación">
           <FiCamera aria-hidden="true" /><span>Galería del curso</span>
         </div>}

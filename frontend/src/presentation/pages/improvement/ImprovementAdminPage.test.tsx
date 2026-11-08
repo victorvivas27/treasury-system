@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ImprovementAdminPage } from "./ImprovementAdminPage";
+import { clearPageData } from '@/presentation/hooks/useCachedPageState';
 
 const { adminList, adminSummary, adminDetail, updateStatus, updatePriority, notes,
   addNote, history, relate, deleteAdmin, apiGet } = vi.hoisted(() => ({
@@ -40,6 +41,7 @@ vi.mock("@/shared/ui/modalalert/ModalAler", () => ({
 vi.mock("@/core/D-config/api", () => ({
   apiClient: {
     defaults: { baseURL: "http://localhost:5055/tesoreria/api/v1" },
+    interceptors: { response: { use: vi.fn() } },
     get: apiGet,
   },
 }));
@@ -70,6 +72,7 @@ const suggestion = {
 
 describe("ImprovementAdminPage", () => {
   beforeEach(() => {
+    clearPageData();
     vi.clearAllMocks();
     adminList.mockResolvedValue({ content: [suggestion], page: 0, size: 10,
       totalElements: 1, totalPages: 1 });

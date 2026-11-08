@@ -43,7 +43,7 @@ export const UserAvatar = ({ user, className = "", fallbackName = "Usuario", cus
 
   return <span className={`user-avatar ${className}`} aria-label={`Avatar de ${name}`}
     aria-busy={isLoading || undefined}>
-    {isLoading && <span className="user-avatar__skeleton" aria-hidden="true" />}
+
     {source && !failed
       ? <>
         <img ref={imageRef} className={imageLoaded ? "is-loaded" : ""} src={source} alt=""

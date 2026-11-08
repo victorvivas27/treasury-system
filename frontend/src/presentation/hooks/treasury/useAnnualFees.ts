@@ -1,3 +1,4 @@
+import { hasPageData, useCachedPageState, readPageData, storePageData, forgetPageData, pageDataSession } from '@/presentation/hooks/useCachedPageState';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AnnualFeeConfig, AnnualFeeConfigPayload, AnnualFeeFamilyOption, AssignModePayload, FeeObligation,
   FamilyPlan,
@@ -19,14 +20,18 @@ const operationErrorMessage = (error: unknown) => {
 };
 
 export const useAnnualFees = () => {
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [families, setFamilies] = useState<AnnualFeeFamilyOption[]>([]);
-  const [plans, setPlans] = useState<FamilyPlan[]>([]);
-  const [obligations, setObligations] = useState<FeeObligation[]>([]);
-  const [dashboard, setDashboard] = useState<TreasuryDashboard | null>(null);
-  const [configs, setConfigs] = useState<AnnualFeeConfig[]>([]);
+  const [year, setYear] = useCachedPageState('annual:year', new Date().getFullYear());
+  const [appliedFilters, setAppliedFilters] = useCachedPageState<TreasuryFilters>(`annual:${year}:filters`, {});
+  const cached = readPageData<{ families: AnnualFeeFamilyOption[]; plans: FamilyPlan[];
+    obligations: FeeObligation[]; dashboard: TreasuryDashboard }>(`annual:${year}:data`);
+  const [families, setFamilies] = useState<AnnualFeeFamilyOption[]>(() => cached?.families ?? []);
+  const [plans, setPlans] = useState<FamilyPlan[]>(() => cached?.plans ?? []);
+  const [obligations, setObligations] = useState<FeeObligation[]>(() => cached?.obligations ?? []);
+  const [dashboard, setDashboard] = useState<TreasuryDashboard | null>(() => cached?.dashboard ?? null);
+  const [configs, setConfigs] = useCachedPageState<AnnualFeeConfig[]>(`annual:${year}:configs`, []);
+  const [configsReady, setConfigsReady] = useState(() => hasPageData(`annual:${year}:configs`));
   const [loading, setLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(() => !hasPageData(`annual:${year}:data`));
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -37,20 +42,26 @@ export const useAnnualFees = () => {
       setConfigs(await useCases.listConfigs());
     } catch {
       setConfigs([]);
+    } finally {
+      setConfigsReady(true);
     }
   }, [useCases]);
 
-  const refresh = useCallback(async (filters: TreasuryFilters = {}, showSkeleton = false) => {
+  const refresh = useCallback(async (filters: TreasuryFilters = {}, showLoading = false) => {
+    const requestSession = pageDataSession();
     setLoading(true);
-    if (showSkeleton) setDataLoading(true);
+    if (showLoading && !hasPageData(`annual:${year}:data`)) setDataLoading(true);
     setError("");
     try {
       const page = await useCases.annualFeesPage(year, filters);
+      storePageData(`annual:${year}:data`, page, requestSession);
       setPlans(page.plans);
       setObligations(page.obligations);
       setDashboard(page.dashboard);
       setFamilies(page.families);
+      setAppliedFilters(filters);
     } catch {
+      forgetPageData(`annual:${year}:data`, requestSession);
       setFamilies([]);
       setPlans([]);
       setObligations([]);
@@ -62,7 +73,7 @@ export const useAnnualFees = () => {
     }
   }, [useCases, year]);
 
-  useEffect(() => { void refresh({}, true); }, [refresh]);
+  useEffect(() => { void refresh(appliedFilters, true); }, [refresh]);
   useEffect(() => {
     if (dataLoading) return;
     void loadConfigs();
@@ -86,7 +97,7 @@ export const useAnnualFees = () => {
   };
 
   return {
-    year, setYear, families, plans, obligations, dashboard, configs, loading, dataLoading,
+    year, setYear, families, plans, obligations, dashboard, configs, configsReady, loading, dataLoading, appliedFilters,
     message, error, actionError,
     clearMessage: () => setMessage(""),
     clearActionError: () => setActionError(""),

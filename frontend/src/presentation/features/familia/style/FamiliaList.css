@@ -133,30 +133,6 @@
   background-color: var(--color-hover);
 }
 
-.skeleton-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.8rem;
-}
-
-.skeleton-block {
-  height: 1rem;
-  border-radius: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--color-surface) 0%,
-    var(--divider) 50%,
-    var(--color-surface) 100%
-  );
-  background-size: 200% 100%;
-  animation: skeletonShine 1500ms infinite linear;
-}
-
-.skeleton-input {
-  width: min(50%, 100%);
-  height: 20px;
-}
-
 .pagination {
   display: flex;
   align-items: center;
@@ -209,9 +185,4 @@
     min-width: 72px;
     min-height: 28px;
   }
-}
-
-@keyframes skeletonShine {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }

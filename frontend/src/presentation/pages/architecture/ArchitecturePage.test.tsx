@@ -1,12 +1,14 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ArchitecturePage } from "./ArchitecturePage";
+import { clearPageData } from '@/presentation/hooks/useCachedPageState';
 
 const api = vi.hoisted(() => ({ catalog: vi.fn(), diagram: vi.fn() }));
 vi.mock("@/presentation/hooks/architecture/useArchitectureAccess", () => ({ architectureUseCases: api }));
 
 describe("Arquitectura integrada", () => {
   beforeEach(() => {
+    clearPageData();
     vi.clearAllMocks();
     api.catalog.mockResolvedValue({ moduleId:"01-auth-security", title:"Seguridad", revision:"88eb6f11", generatedAt:"2026-10-09",
       diagrams:[{id:"architecture",title:"Componentes",description:"Resumen"},{id:"login",title:"Login",description:"Sesión"}] });

@@ -1,4 +1,6 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   FiAlertTriangle, FiBookOpen, FiCalendar, FiCheckCircle, FiEdit3, FiEye, FiEyeOff,
@@ -34,9 +36,11 @@ const adminIsAvailable = (admin: OrganizationAdmin) => admin.enabled && admin.ac
 
 export const AdministrationsPage = () => {
   const repository = useMemo(() => new OrganizationRepositoryImpl(), []);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [admins, setAdmins] = useState<Record<number, OrganizationAdmin[]>>({});
-  const [loading, setLoading] = useState(true);
+  const [organizations, setOrganizations] = useCachedPageState<Organization[]>('organizations:items', []);
+  const [admins, setAdmins] = useCachedPageState<Record<number, OrganizationAdmin[]>>('organizations:admins', {});
+  const [cachedAtEntry] = useState(() => hasPageData('organizations:items', 'organizations:admins'));
+  const [fetching, setLoading] = useState(!cachedAtEntry);
+  const loading = fetching && !cachedAtEntry;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [alert, setAlert] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -58,6 +62,7 @@ export const AdministrationsPage = () => {
   const [showInitialPassword, setShowInitialPassword] = useState(false);
   const [showAdditionalPassword, setShowAdditionalPassword] = useState(false);
 
+  usePageEntry(loading, error);
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -268,7 +273,7 @@ export const AdministrationsPage = () => {
         <p>Crea espacios independientes y entrega el acceso a sus administradores.</p>
       </div>
       <Button label={loading ? "Cargando" : "Recargar"} icon={<FiRefreshCw />}
-        variant="secondary" loading={loading} onClick={() => void load()} />
+        variant="secondary" loading={loading} onClick={() => load()} />
     </header>
 
     <section className="administrations-summary" aria-label="Resumen">
@@ -333,7 +338,7 @@ export const AdministrationsPage = () => {
         <span><FiBookOpen /></span><div><h2 id="administrations-list-title">Cursos registrados</h2>
           <p>Consulta sus responsables y controla su acceso al sistema.</p></div>
       </div>
-      {loading && courseOrganizations.length === 0 && <div className="administration-grid" role="status" aria-label="Cargando cursos">{Array.from({ length: 3 }, (_, index) => <article className="administration-card" key={index}><header><div><h3><Skeleton /></h3><Skeleton width="65%" /></div></header><p><Skeleton /></p></article>)}</div>}
+
       {!loading && courseOrganizations.length === 0
         ? <EmptyState title="Sin administraciones" message="Crea el primer curso usando el formulario superior." />
         : <div className="administration-grid">{courseOrganizations.map(organization =>
@@ -509,7 +514,7 @@ export const AdministrationsPage = () => {
         : `Los usuarios de ${statusTarget?.name ?? "este curso"} recuperarán el acceso.`}
       confirmLabel={statusTarget?.active ? "Sí, desactivar" : "Sí, reactivar"}
       confirmVariant={statusTarget?.active ? "danger" : "primary"} isLoading={saving}
-      onConfirm={() => void changeStatus()} onCancel={() => setStatusTarget(null)} />
+      onConfirm={() => changeStatus()} onCancel={() => setStatusTarget(null)} />
     <ModalAlert isOpen={Boolean(alert)} message={alert?.message ?? ""} type={alert?.type ?? "success"}
       variant={alert?.type === "success" ? "toast" : "modal"} onClose={() => setAlert(null)} />
   </main>;

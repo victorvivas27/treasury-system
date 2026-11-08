@@ -1,3 +1,4 @@
+import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FiCode, FiCopy, FiX } from "react-icons/fi";
@@ -63,9 +64,9 @@ export const CodeReveal = ({ codes, label = "Ver código" }: CodeRevealProps) =>
             {codeLabel && <small>{codeLabel}</small>}<strong>{value}</strong>
           </span>)}
         </div>
-        <button type="button" className="code-reveal__copy" onClick={() => void copyCodes()}>
+        <ActionButton type="button" className="code-reveal__copy" onClick={() => copyCodes()}>
           <FiCopy aria-hidden="true" />{copied ? "Copiado" : "Copiar"}
-        </button>
+        </ActionButton>
       </div>, document.body)}
   </>;
 };

@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiRefreshCw, FiTrendingUp } from "react-icons/fi";
@@ -26,8 +27,8 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
   return <article className="dashboard-panel dashboard-panel--cashflow" aria-busy={loading}>
     <header><i className="dashboard-panel-icon"><FiTrendingUp aria-hidden="true" /></i>
       <div><h2>Ingresos y egresos en el tiempo</h2></div>
-      <button className="cashflow-refresh" type="button" onClick={onRefresh} disabled={loading}
-        aria-label="Actualizar flujo"><FiRefreshCw aria-hidden="true" /></button>
+      <ActionButton className="cashflow-refresh" type="button" onClick={onRefresh} disabled={loading}
+        aria-busy={loading} aria-label="Actualizar flujo"><FiRefreshCw aria-hidden="true" /></ActionButton>
     </header>
     <div className="cashflow-summary" aria-label={`Resumen de flujo: ${year}`}>
       <span><Link className="cashflow-summary-action" to={`/tesoreria/ingresos?year=${year}`}><small>Ingresos</small><strong>{money.format(income)}</strong></Link></span>

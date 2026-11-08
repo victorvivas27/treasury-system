@@ -16,6 +16,9 @@ import java.util.Optional;
 @Component
 @NullMarked
 public class JpaTreasuryRepositoryAdapter implements TreasuryRepositoryOutPort {
+    @Override public boolean isCollectionIncome(Long id) { return incomes.isCollectionIncome(id); }
+    @Override public boolean isCollectionExpense(Long id) { return expenses.isCollectionExpense(id); }
+    @Override public boolean hasCollectionFamily(Long id) { return incomes.hasCollectionFamily(id); }
     private final AnnualFeeConfigJpaRepository configs;
     private final FamilyFeePlanJpaRepository plans;
     private final FeeObligationJpaRepository obligations;

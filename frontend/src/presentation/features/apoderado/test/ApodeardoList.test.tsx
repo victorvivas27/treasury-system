@@ -29,7 +29,7 @@ describe("ApoderadosList Component", () => {
 
   it("[ApoderadosList #01] Debe mostrar el Skeleton cuando loading es true.", () => {
     const { container } = render(<ApoderadosList {...baseProps} loading={true} />);
-    expect(container.querySelectorAll(".skeleton-block").length).toBeGreaterThan(0);
+    expect(container.querySelectorAll(".skeleton-block").length).toBe(0);
   });
 
   it("[ApoderadosList #02] Debe mostrar el FeedbackState cuando existe un error.", () => {

@@ -188,14 +188,14 @@ describe("PaymentsPage para apoderado", () => {
       String(url).endsWith("/cuenta-bancaria") ? bank.promise : payments.promise);
 
     render(<MemoryRouter><PaymentsPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Cargando datos de pagos" })).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando datos de pagos" })).not.toBeInTheDocument();
 
     await act(async () => bank.resolve({ data: {
       id: 3, schoolYear: 2026, accountHolderName: "Curso", accountHolderRut: "1-9",
       bankName: "Banco", accountType: "Vista", accountNumber: "123", email: "curso@mail.cl",
     } }));
 
-    expect(screen.getByRole("status", { name: "Cargando datos de pagos" })).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando datos de pagos" })).not.toBeInTheDocument();
     expect(screen.queryByText("Falta configurar la cuota anual")).not.toBeInTheDocument();
 
     await act(async () => payments.resolve({ data: {

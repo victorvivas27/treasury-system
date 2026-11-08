@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { Button } from "@/shared/ui/button/Button";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import "./style/FamiliaList.css";
@@ -61,10 +61,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
   const emptyRows = Math.max(pageSize - familias.length, 0);
 
   const rows: RowItem[] = loading
-    ? Array.from({ length: pageSize }).map((_, index) => ({
-        familiaId: `loading-${index}`,
-        empty: true,
-      }))
+    ? []
     : [
         ...familias,
         ...Array.from({ length: emptyRows }).map((_, index) => ({
@@ -145,8 +142,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 }`}
               >
                 <td className="familia-table__td" data-label="Estado">
-                  {loading ? <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                    : isEmptyRow ? <span>&nbsp;</span>
+                  {isEmptyRow ? <span>&nbsp;</span>
                     : <span className="status-toggle-cell">
                       <span className="admin-status-label">
                         {familia.activo ? "Activa" : "Inactiva"}
@@ -157,9 +153,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                     </span>}
                 </td>
                 <td className="familia-table__td familia-table__person" data-label="Alumno">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     <span className="familia-table__student">
@@ -176,9 +170,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 </td>
 
                 <td className="familia-table__td" data-label="Apoderados">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     `${familia.apoderados.length} apoderados`
@@ -186,9 +178,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 </td>
 
                 <td className="familia-table__td familia-table__person" data-label="Principal">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     <SingleLineFitText className={principal ? "badge-success" : "badge-secondary"}>
@@ -198,9 +188,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 </td>
 
                 <td className="familia-table__td familia-table__person" data-label="Secundarios">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     <SingleLineFitText className="badge-secondary">
@@ -212,18 +200,7 @@ export const FamiliaList: FC<FamiliaListProps> = ({
                 </td>
 
                 <td className="familia-table__td" data-label="Acciones">
-                  {loading ? (
-                    <div className="familia-table__td--actions loading-action-placeholder">
-                      <Button variant="danger" size="small"
-                        className="familia-table__action-button" disabled
-                        onClick={() => undefined}
-                        icon={<FAMILIA_ICONS.delete />} label="Eliminar" />
-                      <Button variant="secondary" size="small"
-                        className="familia-table__action-button" disabled
-                        onClick={() => undefined}
-                        icon={<FAMILIA_ICONS.edit />} label="Editar" />
-                    </div>
-                  ) : !isEmptyRow && familia ? (
+                  {!isEmptyRow && familia ? (
                     <div className="familia-table__td--actions admin-table-actions">
                       <Button
                         variant="danger"

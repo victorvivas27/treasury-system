@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { PageTransitionOutlet } from '@/shared/ui/loading/PageTransition';
 import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { HomeHeader } from "@/presentation/pages/home/components/HomeHeader";
@@ -13,7 +13,7 @@ export const AdministrationLayout = () => {
     <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
       isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} showCommunityLinks={false}
       onLogout={() => void logout()} />
-    <main className="administration-layout__content"><Outlet /></main>
+    <main className="administration-layout__content"><PageTransitionOutlet /></main>
     <AppFooter />
   </div>;
 };

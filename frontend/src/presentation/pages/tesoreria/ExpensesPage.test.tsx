@@ -24,8 +24,8 @@ describe("ExpensesPage", () => {
 
   it("shares the initial loader and reuses data on return", async () => {
     const first = render(<MemoryRouter><ExpensesPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Cargando egresos" })).toBeInTheDocument();
-    expect(document.querySelector(".react-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando egresos" })).not.toBeInTheDocument();
+    expect(document.querySelector(".react-loading-skeleton")).not.toBeInTheDocument();
     await screen.findByText("Compra del curso 1");
     first.unmount();
     render(<MemoryRouter><ExpensesPage /></MemoryRouter>);

@@ -29,7 +29,7 @@ const readCriticalStyles = () => {
   const css = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/theme.css'), 'utf8') + '\n' + typographyCss + '\n' + globalCss
   const criticalBoot = css.match(/\/\* critical-boot:start[^]*?\*\/([^]*?)\/\* critical-boot:end \*\//)?.[1]
   if (!criticalBoot) throw new Error('Missing critical boot styles in global.css')
-  const boot = criticalBoot + fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/LoadingState.css'), 'utf8') + '\nbody{font-family:var(--font-main);line-height:var(--leading-body);letter-spacing:var(--font-letter-spacing)}'
+  const boot = criticalBoot + '\nbody{font-family:var(--font-main);line-height:var(--leading-body);letter-spacing:var(--font-letter-spacing)}'
 
   const roots = [...css.matchAll(/^(:root[^{]*) \{([^]*?)^\}/gm)]
     .map(([, selector, body]) => ({
@@ -39,6 +39,8 @@ const readCriticalStyles = () => {
     }))
   const required = new Set([...boot.matchAll(/var\((--[\w-]+)/g)].map(match => match[1]))
   required.add('--font-family-serif')
+  required.add('--color-accent')
+  required.add('--text-boot-muted')
   for (const name of required) {
     const definitions = roots.flatMap(root => root.declarations.filter(declaration => declaration.name === name))
     if (!definitions.length) throw new Error(`Missing boot style variable: ${name}`)
@@ -101,10 +103,41 @@ export default defineConfig({
       enforce: 'post',
       transformIndexHtml: {
         order: 'post',
-        handler(html) {
+        handler(html, context) {
           const themeCss = fs.readFileSync(path.resolve(__dirname, 'src/shared/style/theme.css'), 'utf8')
           const paletteIds = [...new Set([...themeCss.matchAll(/data-palette="([\w-]+)"/g)].map(match => match[1]))]
-          return html.replace('/* app-palette-ids */ []', JSON.stringify(paletteIds))
+          const development = Boolean(context.server)
+          const cinematicController = development
+            ? fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialCinematic.js'), 'utf8').replace('export function', 'function') : ''
+          const videoController = development
+            ? fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialVideo.js'), 'utf8').replace('export function', 'function') : ''
+          const imageManifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'src/shared/assets/publicImages.manifest.json'), 'utf8'))
+          const cinematicAssets = development
+            ? Object.entries(imageManifest.images).map(([name, image]) => ({
+              src: `${imageManifest.baseUrl}/${(image as { file: string }).file}`,
+              artwork: name.startsWith('login') ? 'full' : 'community',
+              story: name.startsWith('login') ? 0 : ['communityGoals', 'communityJoy', 'communityTree'].includes(name) ? 2 : 1,
+            })) : []
+          const bootScript = development ? fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialLoader.js'), 'utf8')
+            .replace('/* development-only */ false', JSON.stringify(development))
+            .replace('/* cinematic-controller */', cinematicController)
+            .replace('/* video-controller */', videoController)
+            .replace('/* cinematic-assets */ []', JSON.stringify(cinematicAssets))
+            .replace('/* video-asset */ ""', JSON.stringify('/src/assets/video/tesoreria_animado.mp4'))
+            .replace('/* video-light-asset */ ""', JSON.stringify('/src/assets/video/tesoreria_animado_02.mp4'))
+            .replace('/* mobile-image-asset */ ""', JSON.stringify('/src/assets/community-icons/imagen_login_movil.webp'))
+            .replace('/* loader-icons */ []', JSON.stringify(['communityCare', 'communityFamilies', 'communityGoals'].map(name =>
+              `/app-images/v1/${imageManifest.images[name].file}`))) : ''
+          const cinematicStyles = development
+            ? `<style data-cinematic-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialCinematic.css'), 'utf8')}</style>` : ''
+          const videoStyles = development
+            ? `<style data-video-loader-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialVideo.css'), 'utf8')}</style>` : ''
+          const mobileArtworkPreload = development
+            ? '<link rel="preload" as="image" href="/src/assets/community-icons/imagen_login_movil.webp" media="(max-width: 600px), (max-width: 900px) and (max-height: 500px)" fetchpriority="high" />' : ''
+          return html.replace('<!-- app-boot-experiment -->', `${cinematicStyles}${videoStyles}<script>${bootScript}</script>`)
+            .replace('</head>', `${mobileArtworkPreload}</head>`)
+            .replace(/<template id="app-boot-template">[^]*?<\/template>/, markup => development ? markup : '')
+            .replace('/* app-palette-ids */ []', JSON.stringify(paletteIds))
             .replace('<meta name="app-critical-styles" />', readCriticalStyles()).replace(
             /<link rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g,
             (_, href: string) => `<link rel="preload" as="style" href="${href}" data-app-styles onload="this.onload=null;this.rel='stylesheet';document.documentElement.dataset.appStyles='ready';window.dispatchEvent(new Event('app:styles-ready'))"><noscript><link rel="stylesheet" href="${href}"></noscript>`,

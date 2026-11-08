@@ -18,6 +18,8 @@ describe("Configuración de apariencia", () => {
     const user = userEvent.setup();
     render(<ThemeProvider><Configuracion /></ThemeProvider>);
 
+    expect(screen.queryByRole('heading', { name: 'Inicio de la app' })).not.toBeInTheDocument();
+
     const dark = screen.getByRole("radio", { name: /Oscuro/ });
     const light = screen.getByRole("radio", { name: /Claro/ });
     const system = screen.getByRole("radio", { name: /Sistema/ });

@@ -1,3 +1,4 @@
+import { clearPageData } from '@/presentation/hooks/useCachedPageState';
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
@@ -29,6 +30,7 @@ describe("useAlumnos Hook", () => {
   };
 
   beforeEach(() => {
+    clearPageData();
     vi.clearAllMocks();
   });
 

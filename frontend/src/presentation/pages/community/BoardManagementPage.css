@@ -3,7 +3,4 @@
 .board-admin__grid button:disabled,.board-admin__grid select:disabled{opacity:.6;cursor:wait}
 .board-admin__grid button[aria-busy="true"]{opacity:1}
 .board-admin__grid .board-admin__status{grid-column:1/-1;color:var(--color-accent)}
-.board-admin__spinner{animation:board-admin-spin 1s linear infinite}
-@keyframes board-admin-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.board-admin__spinner{animation:none}}
 @media(max-width:680px){.board-admin{padding: var(--page-padding)}.board-admin__grid{grid-template-columns:1fr}}

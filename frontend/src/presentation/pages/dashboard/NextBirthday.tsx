@@ -1,5 +1,5 @@
 import { FiGift } from "react-icons/fi";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { Link } from "react-router-dom";
 import { birthdayResource, useDashboardResource } from "./dashboardCache";
 export const NextBirthday = ({ today = new Date() }: { today?: Date }) => {
@@ -30,9 +30,9 @@ export const NextBirthday = ({ today = new Date() }: { today?: Date }) => {
 
   const detail = status === "loading"
     ? {
-      name: "Cargando",
-      meta: "Buscando fechas del curso",
-      statusText: "Buscando cumpleaños del curso.",
+      name: "",
+      meta: "",
+      statusText: "",
     }
     : status === "error"
       ? {
@@ -60,12 +60,11 @@ export const NextBirthday = ({ today = new Date() }: { today?: Date }) => {
     <div className="dashboard-birthday-card__content">
       <h2><Link className="dashboard-card-link" to="/birthdays"
         aria-label="Ver cumpleaños del curso">{title}</Link></h2>
-      <strong>{status === "loading" ? <Skeleton /> : detail.name}</strong>
-      <small>{status === "loading" ? <Skeleton width="65%" /> : detail.meta}</small>
+      <strong>{status === "loading" ? null : detail.name}</strong>
+      <small>{status === "loading" ? null : detail.meta}</small>
       <span className="dashboard-birthday-card__status" role="status">
         {detail.statusText}
       </span>
     </div>
   </article>;
 };
-

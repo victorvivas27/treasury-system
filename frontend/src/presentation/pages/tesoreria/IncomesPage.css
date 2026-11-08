@@ -32,8 +32,6 @@
 .fee-payment-card span svg{width:0.78rem;height:0.78rem;color:var(--color-success)}
 .fee-payment-card strong{color:var(--color-success);font-size:0.8rem;white-space:nowrap}
 .fee-payment-card p{margin:0;overflow-wrap:anywhere;color:var(--text-main);font-size: .75rem;line-height:1.2}
-.fee-payment-grid article[aria-hidden="true"] .skeleton-block:first-child{width:60%;height:0.7rem}
-.fee-payment-grid article[aria-hidden="true"] .skeleton-block:last-child{width:82%;height:0.8rem}
 .incomes-page .income-card{padding:0.65rem 0.7rem;border-radius:0.75rem;box-shadow:none}
 .incomes-page .income-card header span{gap:var(--space-1);font-size: .75rem}
 .incomes-page .income-card header span svg{width:0.82rem;height:0.82rem}

@@ -1,7 +1,10 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiLoader, FiSave, FiTrash2, FiUsers } from "react-icons/fi";
+import { FiSave, FiTrash2, FiUsers } from "react-icons/fi";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import type { BoardMember, BoardRole } from "@/core/A-domain/entities/community/BoardMember";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
@@ -22,12 +25,16 @@ const parentsRepository = new ApoderadoRepositoryImpl();
 
 export const BoardManagementPage = () => {
   const year = new Date().getFullYear();
-  const [members, setMembers] = useState<BoardMember[]>([]);
-  const [parents, setParents] = useState<Apoderado[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selection, setSelection] = useState<Record<string, string>>({});
+  const [members, setMembers] = useCachedPageState<BoardMember[]>(`board:${year}:members`, []);
+  const [parents, setParents] = useCachedPageState<Apoderado[]>(`board:${year}:parents`, []);
+  const [cachedAtEntry] = useState(() => hasPageData(`board:${year}:members`, `board:${year}:parents`));
+  const [fetching, setLoading] = useState(!cachedAtEntry);
+  const loading = fetching && !cachedAtEntry;
+  const [selection, setSelection] = useState<Record<string, string>>(() => Object.fromEntries(
+    members.map(item => [`${item.role}-${item.positionNumber}`, item.apoderadoCodigo])));
   const [pending, setPending] = useState<{ key: string; action: "save" | "remove" } | null>(null);
   const [message, setMessage] = useState(""); const [error, setError] = useState("");
+  usePageEntry(loading, error);
   const load = useCallback(async () => {
     try {
       const [board, parentPage] = await Promise.all([courseBoard.list(year), parentsRepository.getAll(0, 500)]);
@@ -63,21 +70,21 @@ export const BoardManagementPage = () => {
       const removing = pending?.key === key && pending.action === "remove";
       const member = members.find(item => item.role === slot.role && item.positionNumber === slot.position);
       return <article key={key}><FiUsers aria-hidden="true" /><div><h2>{slot.label}</h2>
-        <p>{loading ? <Skeleton /> : member ? `${member.nombre} · ${member.email}` : "Cargo sin asignar"}</p></div>
+        <p>{loading ? null : member ? `${member.nombre} · ${member.email}` : "Cargo sin asignar"}</p></div>
         <select aria-label={`Apoderado para ${slot.label}`} value={selection[key] ?? ""} disabled={loading || Boolean(pending)}
           onChange={event => setSelection(current => ({ ...current, [key]: event.target.value }))}>
           <option value="">Seleccionar apoderado</option>
           {parents.map(parent => <option key={parent.codigo} value={parent.codigo}
             disabled={assignedCodes.has(parent.codigo) && parent.codigo !== member?.apoderadoCodigo}>
             {parent.nombre} — {parent.email}</option>)}</select>
-        <footer><button type="button" disabled={loading || Boolean(pending)} aria-busy={saving}
-          onClick={() => void save(slot.role, slot.position)}>
-          {saving ? <FiLoader className="board-admin__spinner" aria-hidden="true" /> : <FiSave aria-hidden="true" />}
-          {saving ? "Guardando…" : "Guardar"}</button>
-          {member && <button type="button" className="is-danger" disabled={Boolean(pending)} aria-busy={removing}
-            onClick={() => void remove(member)}>
-            {removing ? <FiLoader className="board-admin__spinner" aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}
-            {removing ? "Quitando…" : "Quitar"}</button>}</footer>
+        <footer><ActionButton type="button" disabled={loading || Boolean(pending)} aria-busy={saving}
+          onClick={() => save(slot.role, slot.position)}>
+          {saving ? null : <FiSave aria-hidden="true" />}
+          {saving ? "Guardando…" : "Guardar"}</ActionButton>
+          {member && <ActionButton type="button" className="is-danger" disabled={Boolean(pending)} aria-busy={removing}
+            onClick={() => remove(member)}>
+            {removing ? null : <FiTrash2 aria-hidden="true" />}
+            {removing ? "Quitando…" : "Quitar"}</ActionButton>}</footer>
         {pending?.key === key && <p className="board-admin__status" role="status">
           {saving ? "Guardando asignación, espera un momento…" : "Quitando integrante, espera un momento…"}
         </p>}</article>;

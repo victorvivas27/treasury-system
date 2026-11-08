@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { TreasuryRepositoryImpl } from '@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl';
+import { homeCourseCache } from '../hooks/homeCourseCache';
 import { publicImages } from '@/shared/assets/publicImages';
 import '../style/HomeWelcome.css';
 import '../style/HomeWelcomeDesktop.css';
 
-const repository = new TreasuryRepositoryImpl();
-
-export function HomeWelcome() {
+export function HomeWelcome({ onReady }: { onReady?: () => void }) {
   const section = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
-  const [course, setCourse] = useState('');
+  const [course, setCourse] = useState(() => homeCourseCache.peek() ?? '');
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return;
     const observer = new IntersectionObserver(([entry]) => {
@@ -28,11 +26,11 @@ export function HomeWelcome() {
       setCourse(typeof value === 'string' ? value : value.course);
     };
     window.addEventListener('managed-course-changed', update);
-    void repository.getManagedCourseSettings().then(settings => {
-      if (active && !changed) setCourse(settings.course);
-    }).catch(() => undefined);
+    void homeCourseCache.load().then(course => {
+      if (active && !changed) setCourse(course);
+    }).catch(() => undefined).finally(() => { if (active) onReady?.(); });
     return () => { active = false; window.removeEventListener('managed-course-changed', update); };
-  }, []);
+  }, [onReady]);
 
   return <section ref={section} className={`home-welcome${visible ? ' is-in-view' : ''}`} aria-labelledby="home-welcome-title">
     <img className="home-welcome__watermark" src={publicImages.communityTree} alt="" aria-hidden="true" />

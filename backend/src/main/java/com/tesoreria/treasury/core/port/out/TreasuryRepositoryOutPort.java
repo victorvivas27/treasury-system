@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TreasuryRepositoryOutPort {
+    default boolean isCollectionIncome(Long id) { return false; }
+    default boolean isCollectionExpense(Long id) { return false; }
+    default boolean hasCollectionFamily(Long id) { return false; }
     void lockObligation(Long obligationId);
     AnnualFeeConfig saveConfig(AnnualFeeConfig config);
 

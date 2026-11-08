@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { FamiliaList } from "@/presentation/features/familia/FamiliaList";
 import { useDeleteFamilia } from "@/presentation/hooks/familia/useDeleteFamilia";
 import { useListFamilia } from "@/presentation/hooks/familia/useListFamilia";
@@ -41,6 +42,7 @@ export const FamiliaPage: FC = () => {
     search,
     setSearch,
   } = useListFamilia({ initialPage });
+  usePageEntry(loading, error);
 
   const handleEdit = (id: number) => {
     try {

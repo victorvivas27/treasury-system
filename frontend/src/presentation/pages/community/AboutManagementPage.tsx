@@ -1,5 +1,8 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
+
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { FiEdit2, FiEye, FiEyeOff, FiPlus, FiSave, FiTrash2, FiX } from "react-icons/fi";
@@ -30,15 +33,18 @@ const colorOptions: Array<{ value: AboutAccent; label: string }> = [
 ];
 
 export const AboutManagementPage = () => {
-  const [items, setItems] = useState<AboutSection[]>([]);
+  const [items, setItems] = useCachedPageState<AboutSection[]>('about:items', []);
   const [form, setForm] = useState<AboutSectionPayload>(emptyForm);
   const [editingId, setEditingId] = useState<number>();
   const [deleteItem, setDeleteItem] = useState<AboutSection>();
-  const [loading, setLoading] = useState(true);
+  const [cachedAtEntry] = useState(() => hasPageData('about:items'));
+  const [fetching, setLoading] = useState(!cachedAtEntry);
+  const loading = fetching && !cachedAtEntry;
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  usePageEntry(loading, error);
   const load = useCallback(async () => {
     try { setItems(await about.adminList()); }
     catch { setError("No fue posible cargar el contenido de Lo que nos mueve."); }
@@ -106,13 +112,13 @@ export const AboutManagementPage = () => {
         <label className="about-admin__visible"><input type="checkbox" checked={form.featured}
           onChange={event => setForm({ ...form, featured: event.target.checked })} />
           Mostrar como tarjeta principal</label></div>
-      <button className="about-admin__save" type="submit" disabled={saving} aria-busy={saving}>
-        {saving ? <ButtonSpinner /> : editingId ? <FiSave /> : <FiPlus />}{saving ? "Guardando…" : editingId ? "Guardar cambios" : "Crear contenido"}
-      </button>
+      <ActionButton className="about-admin__save" type="submit" disabled={saving} aria-busy={saving}>
+        {saving ? null : editingId ? <FiSave /> : <FiPlus />}{saving ? "Guardando…" : editingId ? "Guardar cambios" : "Crear contenido"}
+      </ActionButton>
     </form>
     <section className="about-admin__list" aria-label="Contenido existente">
       <div><h2>Contenido creado</h2><span>{items.length} elementos</span></div>
-      {loading && items.length === 0 ? <div role="status" aria-label="Cargando contenido"><Skeleton /><Skeleton /><Skeleton width="70%" /></div> : items.length === 0
+      {loading && items.length === 0 ? null : items.length === 0
         ? <p className="about-admin__empty">Aún no hay contenido. Crea el primer bloque.</p>
         : items.map(item => <article key={item.id}>
           <span className={`about-admin__order is-${item.accentColor.toLowerCase()}`}>#{item.displayOrder}</span><div><h3>{item.title}</h3>
@@ -125,7 +131,7 @@ export const AboutManagementPage = () => {
     </section>
     <ModalConfirm isOpen={Boolean(deleteItem)} title="Eliminar contenido"
       message={`¿Deseas eliminar “${deleteItem?.title ?? ""}”? Esta acción no se puede deshacer.`}
-      confirmLabel="Eliminar" confirmVariant="danger" onConfirm={() => void remove()}
+      confirmLabel="Eliminar" confirmVariant="danger" onConfirm={() => remove()}
       onCancel={() => setDeleteItem(undefined)} />
     <ModalAlert isOpen={Boolean(message)} type="success" message={message} onClose={() => setMessage("")} />
     <ModalAlert isOpen={Boolean(error)} type="error" message={error} onClose={() => setError("")} />
