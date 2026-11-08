@@ -75,7 +75,6 @@ jobs:
         if: steps.validation.outputs.reused != 'true'
         uses: pnpm/action-setup@v6
         with:
-          version: 11.5.0
           run_install: false
 
       - name: Setup Node for Allure
