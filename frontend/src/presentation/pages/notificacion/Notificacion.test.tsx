@@ -231,7 +231,7 @@ describe("Notificacion para administración", () => {
     let resolve!: (items: never[]) => void;
     mocks.listSent.mockReturnValue(new Promise(done => { resolve = done; }));
     render(<Notificacion />);
-    expect(screen.getByRole("status", { name: "Cargando notificaciones" })).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando notificaciones" })).not.toBeInTheDocument();
     expect(screen.queryByText("Todavía no has enviado notificaciones")).not.toBeInTheDocument();
     await act(async () => resolve([]));
     expect(screen.queryByRole("status", { name: "Cargando notificaciones" })).not.toBeInTheDocument();
@@ -258,9 +258,7 @@ describe("Notificacion para administración", () => {
       const recipient = await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" });
       fireEvent.click(recipient.closest("button")!);
     }
-    const conversationLoader = await screen.findByRole("status", { name: "Cargando conversación" });
-    expect(conversationLoader).toBeVisible();
-    expect(conversationLoader).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByRole("status", { name: "Cargando conversación" })).not.toBeInTheDocument();
     expect(document.querySelector(".app-loader--contained")).not.toBeInTheDocument();
     expect(document.body.style.overflow).not.toBe("hidden");
     expect(screen.queryByText("Mensaje de prueba", { selector: "p" })).not.toBeInTheDocument();
@@ -285,7 +283,7 @@ describe("Notificacion para administración", () => {
     let resolve!: (contact: unknown) => void;
     mocks.treasuryContact.mockReturnValue(new Promise(done => { resolve = done; }));
     render(<Notificacion />);
-    expect(screen.getByRole("status", { name: "Cargando notificaciones" })).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Cargando notificaciones" })).not.toBeInTheDocument();
     expect(screen.queryByText("Aún no hay mensajes con Tesorería.")).not.toBeInTheDocument();
     await act(async () => resolve({ id: 1, name: "Tesorería", profileImageType: "INITIALS", profileImageUrl: null }));
     expect(screen.getByText("Aún no hay mensajes con Tesorería.")).toBeInTheDocument();

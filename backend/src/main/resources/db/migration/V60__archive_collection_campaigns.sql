@@ -1,0 +1,1 @@
+ALTER TABLE collection_campaigns ADD COLUMN archived BOOLEAN NOT NULL DEFAULT FALSE;

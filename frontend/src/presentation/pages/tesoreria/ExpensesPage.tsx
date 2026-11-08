@@ -1,14 +1,12 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { FiAlertTriangle, FiArrowLeft, FiBriefcase, FiCalendar, FiCheck, FiClock,
-  FiCreditCard, FiDollarSign, FiDownload, FiEdit3, FiEye, FiFilePlus, FiFileText, FiFilter, FiLogIn,
-  FiLoader, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw, FiSave,
-  FiSlash, FiTag, FiTrash2, FiUser, FiX }
-  from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiBriefcase, FiCalendar, FiCheck, FiClock, FiCreditCard, FiDollarSign, FiDownload, FiEdit3, FiEye, FiFilePlus, FiFileText, FiFilter, FiLogIn, FiLogOut, FiMessageSquare, FiPlus, FiRefreshCw, FiSave, FiSlash, FiTag, FiTrash2, FiUser, FiX } from "react-icons/fi";
 import type {
   ExpenseCategory, ExpenseFilters, ExpensePayload,
   ExpenseDocument, FinancialSummary, TreasuryExpense,
@@ -19,7 +17,7 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { CompactSelect } from "@/shared/ui/compactselect/CompactSelect";
-import { MovementSummarySkeleton, MovementListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
+
 import { getExpensesResource, expensesSelection } from "./expensesCache";
 import { useDashboardResource } from "../dashboard/dashboardCache";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
@@ -87,6 +85,7 @@ export const ExpensesPage = () => {
   const activeFilters = Object.entries(filters).filter(([key, value]) =>
     !["status", "sort"].includes(key) && value !== undefined && value !== "").length;
   const initialLoading = !cached.data && !cached.error;
+  usePageEntry(initialLoading);
   const load = useCallback(() => resource.load(true), [resource]);
   useEffect(() => { Object.assign(selection, { year, filters }); }, [selection, year, filters]);
   useEffect(() => { setPage(1); }, [resource]);
@@ -240,7 +239,7 @@ export const ExpensesPage = () => {
     <main className="expenses-page outgoings-page" aria-busy={initialLoading}>
     {cached.error && <div role="alert">
       <p>No fue posible cargar los egresos. Intenta nuevamente.</p>
-      <button type="button" onClick={() => void load()}>Reintentar</button>
+      <ActionButton type="button" onClick={() => load()}>Reintentar</ActionButton>
     </div>}
     <header className="expenses-header">
       <div>
@@ -251,7 +250,7 @@ export const ExpensesPage = () => {
       </button>}
     </header>
 
-    {initialLoading && <MovementSummarySkeleton />}
+
     {cached.data ? (
     <section className="expenses-summary" aria-label="Resumen financiero">
       <article className={`expense-summary-card expense-summary-card--balance ${
@@ -312,7 +311,7 @@ export const ExpensesPage = () => {
           <FiCheck /> Ver resultados</button></footer>
     </aside></div>}
 
-    {initialLoading && <MovementListSkeleton />}
+
     {!initialLoading && !cached.error && items.length === 0 ? <p className="expenses-empty">No hay egresos para los filtros seleccionados.</p>
       : cached.data ? <section className="expenses-grid expense-results" aria-label="Listado de egresos">
         <span className="expense-results__count">{items.length} egresos</span>
@@ -365,8 +364,8 @@ export const ExpensesPage = () => {
             <textarea required maxLength={500} value={form.correctionReason ?? ""}
               onChange={(e) => setForm({ ...form, correctionReason: e.target.value })} /></label>}
           <footer><button type="button" onClick={() => setFormOpen(false)}><FiX /> Cancelar</button>
-            <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiSave />}
-              {saving ? "Guardando…" : "Guardar egreso"}</button></footer>
+            <ActionButton type="submit" disabled={saving} aria-busy={saving}>{saving ? null : <FiSave />}
+              {saving ? "Guardando…" : "Guardar egreso"}</ActionButton></footer>
         </form>
       </section>
     </div>}
@@ -378,8 +377,8 @@ export const ExpensesPage = () => {
         {detail.status === "CANCELLED" && <span className="expense-detail-status is-cancelled">Anulado</span>}
         <h2 id="expense-detail-title">{detail.description}</h2><strong>-{money.format(detail.amount)}</strong>
           {canManage && <label className={`expense-document-upload ${
-            documentsUploading ? "is-loading" : ""}`}>
-            {documentsUploading ? <FiLoader className="expense-document-spinner" /> : <FiFilePlus />}
+            documentsUploading ? "is-loading" : ""}`} aria-busy={documentsUploading}>
+            {documentsUploading ? null : <FiFilePlus />}
             {documentsUploading ? "Subiendo archivos…" : "Adjuntar comprobante"}
             <input type="file" multiple disabled={documentsUploading}
               accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
@@ -399,29 +398,29 @@ export const ExpensesPage = () => {
 
           {canManage && <small>PDF, Word, Excel o imágenes · Hasta 10 MB</small>}
           {documentsUploading && <p className="expense-document-progress" role="status" aria-live="polite">
-            <FiLoader className="expense-document-spinner" /> Guardando en almacenamiento seguro…
+             Guardando en almacenamiento seguro…
           </p>}
-          {documentsLoading ? <div className="expense-document-progress" role="status" aria-label="Cargando documentos"><Skeleton /><Skeleton width="65%" /></div>
+          {documentsLoading ? null
             : documents.length === 0
             ? <p>Este egreso no tiene documentos.</p>
             : <ul>{documents.map((document) => <li key={document.id}>
               <span><b>{document.originalName}</b><small>{(document.sizeBytes / 1024).toFixed(0)} KB</small></span>
               <div>{["pdf", "jpg", "jpeg", "png", "webp"].includes(document.extension) &&
-                <button type="button" title="Ver" aria-label={`Ver ${document.originalName}`}
+                <ActionButton type="button" title="Ver" aria-label={`Ver ${document.originalName}`}
                   disabled={documentAction !== null}
-                  onClick={() => void openDocument(document, false)}>
+                  onClick={() => openDocument(document, false)}>
                   {documentAction?.id === document.id && documentAction.type === "view"
-                    ? <FiLoader className="expense-document-spinner" /> : <FiEye />}</button>}
-                <button type="button" title="Descargar" aria-label={`Descargar ${document.originalName}`}
+                    ? null : <FiEye />}</ActionButton>}
+                <ActionButton type="button" title="Descargar" aria-label={`Descargar ${document.originalName}`}
                   disabled={documentAction !== null}
-                  onClick={() => void openDocument(document, true)}>
+                  onClick={() => openDocument(document, true)}>
                   {documentAction?.id === document.id && documentAction.type === "download"
-                    ? <FiLoader className="expense-document-spinner" /> : <FiDownload />}</button>
-                {canManage && <button type="button" title="Eliminar" aria-label={`Eliminar ${document.originalName}`}
+                    ? null : <FiDownload />}</ActionButton>
+                {canManage && <ActionButton type="button" title="Eliminar" aria-label={`Eliminar ${document.originalName}`}
                   disabled={documentAction !== null}
-                  onClick={() => void deleteDocument(document.id)}>
+                  onClick={() => deleteDocument(document.id)}>
                   {documentAction?.id === document.id && documentAction.type === "delete"
-                    ? <FiLoader className="expense-document-spinner" /> : <FiTrash2 />}</button>}</div>
+                    ? null : <FiTrash2 />}</ActionButton>}</div>
             </li>)}</ul>}
         </section>}
         {canManage && detail.status === "ACTIVE" && <footer>
@@ -435,14 +434,14 @@ export const ExpensesPage = () => {
     <ModalConfirm isOpen={confirmSave} title="El egreso supera el saldo disponible"
       message={`Saldo disponible: ${money.format(summary.availableBalance)}. Nuevo egreso: ${money.format(form.amount)}. Saldo resultante: ${money.format(summary.availableBalance - form.amount)}.`}
       confirmLabel="Registrar de todas formas" cancelLabel="Revisar monto" isLoading={saving}
-      onCancel={() => setConfirmSave(false)} onConfirm={() => void saveExpense()} />
+      onCancel={() => setConfirmSave(false)} onConfirm={() => saveExpense()} />
     <ModalConfirm isOpen={confirmCancel} title="Anular egreso"
       message="El registro seguirá visible, pero dejará de descontarse del saldo disponible."
       confirmLabel="Anular egreso" cancelLabel="Volver" isLoading={saving}
       compact
       cancelIcon={<BackIcon desktopIcon={<FiArrowLeft />} />} confirmIcon={<FiSlash />}
       onCancel={() => { setConfirmCancel(false); setCancelReason(""); }}
-      onConfirm={() => void cancelExpense()}>
+      onConfirm={() => cancelExpense()}>
       <label>Motivo de la anulación<textarea autoFocus maxLength={500}
         value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}
         placeholder="Ej.: el gasto fue registrado dos veces" /></label>

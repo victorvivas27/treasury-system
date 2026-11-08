@@ -1,4 +1,6 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FiMessageSquare, FiRefreshCw, FiSearch, FiTrash2 } from "react-icons/fi";
 import type {
@@ -47,12 +49,12 @@ const impactLabel = Object.fromEntries(impacts.filter(([value]) => value)) as Re
 const priorityLabel = Object.fromEntries(priorities.filter(([value]) => value)) as Record<ImprovementPriority, string>;
 
 export const ImprovementAdminPage = () => {
-  const [filters, setFilters] = useState<ImprovementAdminFilters>({
+  const [filters, setFilters] = useCachedPageState<ImprovementAdminFilters>('improvements:filters', {
     page: 0, size: pageSize, sortBy: "createdAt", direction: "desc",
   });
-  const [summary, setSummary] = useState<ImprovementAdminSummary>();
-  const [rows, setRows] = useState<AdminImprovementSuggestion[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const [summary, setSummary] = useCachedPageState<ImprovementAdminSummary | undefined>('improvements:summary', undefined);
+  const [rows, setRows] = useCachedPageState<AdminImprovementSuggestion[]>(`improvements:${JSON.stringify(filters)}:rows`, []);
+  const [totalPages, setTotalPages] = useCachedPageState(`improvements:${JSON.stringify(filters)}:totalPages`, 1);
   const [selected, setSelected] = useState<AdminImprovementSuggestion | null>(null);
   const [notes, setNotes] = useState<ImprovementSuggestionNote[]>([]);
   const [history, setHistory] = useState<ImprovementSuggestionHistory[]>([]);
@@ -64,6 +66,8 @@ export const ImprovementAdminPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [cachedAtEntry] = useState(() => hasPageData('improvements:summary', `improvements:${JSON.stringify(filters)}:rows`));
+  usePageEntry(loading && !cachedAtEntry, error);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -237,7 +241,7 @@ export const ImprovementAdminPage = () => {
         <p>Revisa sugerencias, ajusta prioridad interna y registra notas privadas.</p>
       </div>
       <Button label="Actualizar" variant="secondary" icon={<FiRefreshCw />}
-        onClick={() => void load()} disabled={loading} />
+        onClick={() => load()} disabled={loading} />
     </header>
 
     <section className="improvement-admin-summary" aria-label="Resumen de sugerencias">
@@ -276,7 +280,7 @@ export const ImprovementAdminPage = () => {
 
     <section className="improvement-admin-workspace">
       <div className="improvement-admin-list">
-        {loading ? <div role="status" aria-label="Cargando sugerencias"><Skeleton /><Skeleton /><Skeleton /></div>
+        {loading && !summary ? null
           : rows.length === 0 ? <p className="improvement-admin-empty">No hay sugerencias con estos filtros.</p>
           : rows.map(item => <button key={item.id} type="button"
             className={selected?.id === item.id ? "is-active" : ""}
@@ -307,7 +311,7 @@ export const ImprovementAdminPage = () => {
     <ModalConfirm isOpen={Boolean(deleteTarget)} title="Eliminar mejora definitivamente"
       message={`Esta acción eliminará la mejora #${deleteTarget?.id ?? ""}, sus notas, historial, relaciones y captura adjunta. No se puede deshacer.`}
       confirmLabel="Eliminar definitivamente" cancelLabel="Volver" confirmVariant="danger"
-      isLoading={saving} confirmIcon={<FiTrash2 />} onConfirm={() => void deleteSelected()}
+      isLoading={saving} confirmIcon={<FiTrash2 />} onConfirm={() => deleteSelected()}
       onCancel={() => setDeleteTarget(null)} />
   </main>;
 };
@@ -333,7 +337,7 @@ const Detail = ({ selected, notes, history, note, relatedId, loading, saving, on
   {!selected ? <p className="improvement-admin-empty">Selecciona una sugerencia.</p> : <>
     <header><span>#{selected.id}</span><h2>{selected.title}</h2>
       <p>{selected.description}</p></header>
-    {loading && <div role="status" aria-label="Actualizando detalle"><Skeleton /><Skeleton /></div>}
+    {loading && <div role="status" aria-label="Actualizando detalle"></div>}
     <div className="improvement-admin-detail__controls">
       <Select label="Estado" value={selected.status} options={statuses.filter(([value]) => value)}
         disabled={saving} onChange={value => onStatus(value as ImprovementStatus)} />

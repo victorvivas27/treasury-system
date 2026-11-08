@@ -84,8 +84,8 @@ describe("DashboardPage", () => {
     });
     const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
-    expect(screen.getByLabelText("Cargando indicadores del curso")).toBeInTheDocument();
-    expect(container.querySelector(".react-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Cargando indicadores del curso")).not.toBeInTheDocument();
+    expect(container.querySelector(".react-loading-skeleton")).not.toBeInTheDocument();
     expect(container.querySelector("main")).not.toHaveAttribute("inert");
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());

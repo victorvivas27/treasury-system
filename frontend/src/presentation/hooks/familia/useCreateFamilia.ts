@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import type { CreateFamiliaDTO } from "@/core/A-domain/entities/familia/Familia";
 
 import { CreateAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/familia/create/CreateAlumnoApoderadoUseCase";
@@ -27,6 +28,7 @@ export const useCreateFamilia = () => {
 
   const alumnos = alumnosRegistrados.filter((alumno) => alumno.activo !== false);
   const apoderados = apoderadosRegistrados.filter((apoderado) => apoderado.activo !== false);
+  usePageEntry(loadingAlumnos || loadingApoderados, alumnosError || apoderadosError);
 
   const navigate = useNavigate();
   const initialFormState: CreateFamiliaDTO = {

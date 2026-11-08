@@ -68,10 +68,9 @@ describe("Consulta del horario", () => {
     state.loading = true; state.ready = false;
     localStorage.setItem("academic.schedule.view.7", view);
     const page = open();
-    const loading = screen.getByRole("status", { name: "Cargando horario" });
+    expect(screen.queryByRole("status", { name: "Cargando horario" })).not.toBeInTheDocument();
     expect(document.querySelector(".schedule-published")).not.toHaveAttribute("inert");
-    expect(page.container.querySelector(".react-loading-skeleton")).toBeInTheDocument();
-    expect(loading).toHaveAttribute("aria-busy", "true");
+    expect(page.container.querySelector(".react-loading-skeleton")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tabla semanal", exact: true })).toBeEnabled();
     state.loading = false; state.ready = true;
     page.rerender(<MemoryRouter><SchedulePage /></MemoryRouter>);

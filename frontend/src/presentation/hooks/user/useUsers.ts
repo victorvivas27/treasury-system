@@ -1,3 +1,4 @@
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
 import { useCallback, useMemo, useState } from "react";
 import type { AdminUserUpdatePayload, User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
 import {
@@ -11,12 +12,12 @@ import { UserRepositoryImpl } from "@/core/C-infra/repositories/user/UserReposit
 
 export const useUsers = () => {
   const pageSize = 5;
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [users, setUsers] = useCachedPageState<User[]>('users:users', []);
+  const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(() => hasPageData('users:users', 'users:totalPages'));
   const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(0);
-  const [search, setSearch] = useState("");
+  const [totalPages, setTotalPages] = useCachedPageState('users:totalPages', 0);
+  const [search, setSearch] = useCachedPageState('users:search', "");
 
   const useCases = useMemo(() => {
     const repository = new UserRepositoryImpl();

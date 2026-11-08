@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FiCalendar } from "react-icons/fi";
@@ -7,7 +8,7 @@ import { useSchedule } from "@/presentation/hooks/academic/useSchedule";
 import { Button } from "@/shared/ui/button/Button";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { ScheduleSkeleton } from "./ScheduleSkeleton";
+
 import { ScheduleFilter } from "./ScheduleFilter";
 import { ScheduleTimeSelect } from "./ScheduleTimeSelect";
 import { scheduleCardColor, scheduleIngress } from "./scheduleCards";
@@ -18,6 +19,7 @@ import "./Schedule.css";
 interface Confirmation { message: string; action: () => void; anchor?: { top: number; left: number }; deleteStep?: 1 | 2; deleteYear?: number }
 export function ScheduleManagementPage() {
   const data = useSchedule(true);
+  usePageEntry(data.loading, data.error);
   const stickyTitle = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const title = stickyTitle.current;
@@ -30,7 +32,7 @@ export function ScheduleManagementPage() {
     return () => observer.disconnect();
   }, []);
   const [selectedDay, setSelectedDay] = useState(1);
-  const [draft, setDraft] = useState<Schedule>({ days: [] });
+  const [draft, setDraft] = useState<Schedule>(() => data.schedule);
   const [dirty, setDirty] = useState(false);
   const [validation, setValidation] = useState("");
   const [copyTarget, setCopyTarget] = useState<Record<number, number>>({});
@@ -131,7 +133,7 @@ export function ScheduleManagementPage() {
     </div>
     {(validation || data.error) && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="alert" ref={validationNotice} tabIndex={-1}>{validation || data.error}</p>}
     {data.message && !activeSave?.startsWith("day:") && activeSave !== "publish" && <p role="status">{data.message}</p>}
-    {data.loading ? <ScheduleSkeleton dayNumber={selectedDay} /> : <>
+    {data.loading ? null : <>
       {!data.periods.length && <p>No hay períodos escolares disponibles.</p>}
       {!data.editable && data.periods.length > 0 && <p>Este año histórico es de solo lectura.</p>}
       {!draft.days.length && <p>Sin horario cargado. Configura cada jornada para comenzar.</p>}

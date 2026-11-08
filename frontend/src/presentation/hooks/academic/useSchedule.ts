@@ -1,3 +1,4 @@
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
 import { useCallback, useEffect, useState } from "react";
 import type { Schedule, SchoolPeriod } from "@/core/A-domain/entities/academic/Schedule";
 import { ScheduleUseCases } from "@/core/B-application/use-cases/academic/ScheduleUseCases";
@@ -19,10 +20,12 @@ const errorMessage = (error: unknown): string => {
 };
 export function useSchedule(draft: boolean) {
   const accountId = useOptionalAuth()?.user?.id;
-  const [periods, setPeriods] = useState<SchoolPeriod[]>([]);
-  const [year, setYear] = useState<number>();
-  const [schedule, setSchedule] = useState<Schedule>({ days: [] });
-  const [loading, setLoading] = useState(true);
+  const [periods, setPeriods] = useCachedPageState<SchoolPeriod[]>(`schedule:${accountId}:${draft}:periods`, []);
+  const [year, setYear] = useCachedPageState<number | undefined>(`schedule:${accountId}:${draft}:year`, undefined);
+  const [schedule, setSchedule] = useCachedPageState<Schedule>(`schedule:${accountId}:${draft}:${year}:data`, { days: [] });
+  const [fetching, setLoading] = useState(true);
+  const loading = fetching && (!hasPageData(`schedule:${accountId}:${draft}:periods`)
+    || (year !== undefined && !hasPageData(`schedule:${accountId}:${draft}:${year}:data`)));
   const [loadFailed, setLoadFailed] = useState(false);
   const [pendingAction, setPendingAction] = useState<"save" | "publish" | "delete" | null>(null);
   const saving = pendingAction !== null;
@@ -32,11 +35,12 @@ export function useSchedule(draft: boolean) {
   const [metadataReload, setMetadataReload] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setLoadFailed(false); setError(""); setYear(undefined); setPeriods([]); setSchedule({ days: [] });
+    setLoading(true); setLoadFailed(false); setError("");
     useCases.periods(controller.signal).then(values => {
       if (controller.signal.aborted) return;
       setPeriods(values);
-      setYear(values.find(value => value.editable)?.schoolYear ?? values[0]?.schoolYear);
+      setYear(current => values.some(value => value.schoolYear === current) ? current
+        : values.find(value => value.editable)?.schoolYear ?? values[0]?.schoolYear);
       if (!values.length) setLoading(false);
     }).catch(reason => { if (!controller.signal.aborted) { setError(errorMessage(reason)); setLoadFailed(true); setLoading(false); } });
     return () => controller.abort();
@@ -44,7 +48,7 @@ export function useSchedule(draft: boolean) {
   useEffect(() => {
     if (year === undefined) return;
     const controller = new AbortController();
-    setLoading(true); setLoadFailed(false); setError(""); setMessage(""); setSchedule({ days: [] });
+    setLoading(true); setLoadFailed(false); setError(""); setMessage("");
     useCases.read(year, draft, controller.signal).then(value => {
       if (!controller.signal.aborted) setSchedule(value);
     }).catch(reason => { if (!controller.signal.aborted) { setError(errorMessage(reason)); setLoadFailed(true); } })

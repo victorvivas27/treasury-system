@@ -1,4 +1,6 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+
 import { useEffect, useState } from "react";
 import type { CoverageMetric, QualityReport, QualityReportCatalog } from "@/core/A-domain/entities/quality/QualityReport";
 import { QualityReportUseCases } from "@/core/B-application/use-cases/quality/QualityReportUseCases";
@@ -57,15 +59,16 @@ const isolate = (html: string) => html
 <script>for(const name of ['localStorage','sessionStorage']){const values=new Map();Object.defineProperty(window,name,{value:{getItem:key=>values.get(String(key))??null,setItem:(key,value)=>values.set(String(key),String(value)),removeItem:key=>values.delete(String(key)),clear:()=>values.clear(),key:index=>[...values.keys()][index]??null,get length(){return values.size}}});}</script>`);
 
 export const QualityReportsPage = () => {
-  const [catalog, setCatalog] = useState<QualityReportCatalog>();
+  const [catalog, setCatalog] = useCachedPageState<QualityReportCatalog | undefined>('quality:catalog', undefined);
   const [selected, setSelected] = useState("");
   const [html, setHtml] = useState("");
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
+  usePageEntry(loading && !catalog, error);
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setError(""); setHtml(""); setSelected(""); setCatalog(undefined);
+    setLoading(true); setError(""); setHtml(""); setSelected("");
     qualityReportUseCases.catalog(controller.signal).then(value => {
       if (!controller.signal.aborted) { setCatalog(value); setLoading(false); }
     }, () => {
@@ -85,11 +88,11 @@ export const QualityReportsPage = () => {
     return () => controller.abort();
   }, [selected]);
   const active = catalog?.reports.find(report => report.id === selected);
-  return <section className="quality-reports-page">
+  return <section className="quality-reports-page" aria-busy={loading}>
     <header><p>Administración</p><h1>Reportes de calidad</h1>
       <p>La cobertura de código se muestra abajo; el reporte Allure detalla los resultados de las pruebas.</p></header>
     {error && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => setAttempt(value => value + 1)} />}
-    {loading && !html && <div className="quality-report-list" role="status" aria-label="Cargando reporte"><article><h2><Skeleton /></h2><p><Skeleton /></p><Skeleton height="10rem" /></article></div>}
+
     {catalog && !catalog.reports.length && !error && <p role="status">{catalog.configured
       ? "Todavía no hay reportes publicados." : "Los reportes estarán disponibles cuando se configure su almacenamiento privado."}</p>}
     {!!catalog?.reports.length && <div className="quality-report-list" aria-label="Reportes disponibles">

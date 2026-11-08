@@ -1,4 +1,7 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { useEffect, useMemo, useState } from "react";
 import { FiBell, FiBookOpen, FiCheck, FiMonitor, FiMoon, FiSave,
   FiSun } from "react-icons/fi";
@@ -13,6 +16,7 @@ import { useOptionalNotifications } from "@/presentation/context/NotificationCon
 import "./Configuracion.css";
 import { PaletteSelector } from "./PaletteSelector";
 import { FontFamilySelector } from "./FontFamilySelector";
+import { InitialLoaderSettings } from "./InitialLoaderSettings";
 
 const THEME_OPTIONS: Array<{
   value: ThemePreference;
@@ -48,18 +52,20 @@ export const Configuracion = () => {
   const pushLoading = notifications?.pushLoading ?? false;
   const repository = useMemo(() => new TreasuryRepositoryImpl(), []);
   const selectedOption = THEME_OPTIONS.find(({ value }) => value === themePreference)!;
-  const [savedCourse, setSavedCourse] = useState("1A");
-  const [course, setCourse] = useState("1A");
-  const [schoolYear, setSchoolYear] = useState(new Date().getFullYear());
-  const [savedSchoolYear, setSavedSchoolYear] = useState(new Date().getFullYear());
-  const [courseHistory, setCourseHistory] = useState<Array<{
+  const [savedCourse, setSavedCourse] = useCachedPageState('configuration:savedCourse', "1A");
+  const [course, setCourse] = useState(() => savedCourse);
+    const [savedSchoolYear, setSavedSchoolYear] = useCachedPageState('configuration:savedSchoolYear', new Date().getFullYear());
+  const [schoolYear, setSchoolYear] = useState(() => savedSchoolYear);
+  const [courseHistory, setCourseHistory] = useCachedPageState<Array<{
     course: string; schoolYear: number;
-  }>>([]);
+  }>>('configuration:courseHistory', []);
   const [loadingCourse, setLoadingCourse] = useState(true);
+  const [savingCourse, setSavingCourse] = useState(false);
   const [confirmCourse, setConfirmCourse] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const canEditCourse = isAdminRole(auth?.user?.rol);
+  usePageEntry(canEditCourse && loadingCourse && !hasPageData('configuration:savedCourse', 'configuration:savedSchoolYear', 'configuration:courseHistory'), error);
   const pushCopy = {
     checking: ["Comprobando…", "Estamos revisando la configuración de este dispositivo."],
     unsupported: ["No compatible", "Este navegador o dispositivo no permite notificaciones web."],
@@ -87,6 +93,7 @@ export const Configuracion = () => {
   }, [repository, canEditCourse]);
 
   const saveCourse = async () => {
+    setSavingCourse(true);
     setConfirmCourse(false);
     try {
       const saved = await repository.saveManagedCourse(course, schoolYear);
@@ -99,6 +106,8 @@ export const Configuracion = () => {
       setMessage(`El período vigente cambió a ${saved.course} · ${saved.schoolYear}.`);
     } catch {
       setError("No fue posible cambiar el curso administrado.");
+    } finally {
+      setSavingCourse(false);
     }
   };
 
@@ -151,6 +160,8 @@ export const Configuracion = () => {
       </article>
 
 
+      {canEditCourse && import.meta.env.DEV && <InitialLoaderSettings />}
+
       <article className={`push-settings-card push-settings-card--${pushStatus}`}>
         <span className="push-settings-icon"><FiBell aria-hidden="true" /></span>
         <div>
@@ -158,16 +169,16 @@ export const Configuracion = () => {
           <strong>{pushCopy[0]}</strong>
           <p>{pushCopy[1]}</p>
         </div>
-        {pushStatus === "enabled" ? <button type="button" disabled={pushLoading}
-          onClick={() => void notifications?.disablePush().catch(() => setError(
+        {pushStatus === "enabled" ? <ActionButton type="button" disabled={pushLoading}
+          onClick={() => notifications?.disablePush().catch(() => setError(
             "No fue posible desactivar las notificaciones en este dispositivo."))}>
           {pushLoading ? "Desactivando…" : "Desactivar"}
-        </button> : <button type="button"
+        </ActionButton> : <ActionButton type="button"
           disabled={pushLoading || ["checking", "unsupported", "unavailable", "denied"].includes(pushStatus)}
-          onClick={() => void notifications?.enablePush().catch((reason: unknown) => setError(reason instanceof Error
+          onClick={() => notifications?.enablePush().catch((reason: unknown) => setError(reason instanceof Error
             ? reason.message : "No fue posible activar las notificaciones."))}>
           {pushLoading ? "Activando…" : "Activar"}
-        </button>}
+        </ActionButton>}
       </article>
 
       {canEditCourse && <article className="managed-course-card">
@@ -175,7 +186,7 @@ export const Configuracion = () => {
           <FiBookOpen aria-hidden="true" />
           <div><h2>Curso administrado</h2>
             <p>Define el curso que gestiona esta instalación completa de Tesorería.</p></div>
-          <strong>{loadingCourse ? <Skeleton /> : `${savedCourse} · ${schoolYear}`}</strong>
+          <strong>{loadingCourse ? null : `${savedCourse} · ${schoolYear}`}</strong>
         </div>
         <label htmlFor="managed-course">Curso actual</label>
         <div className="managed-course-form">
@@ -187,10 +198,10 @@ export const Configuracion = () => {
             <input id="managed-school-year" type="number" min={2000} max={2100}
               value={schoolYear} disabled={loadingCourse} onChange={event => setSchoolYear(Number(event.target.value))} />
           </label>
-          <button type="button"
-            disabled={loadingCourse || !course.trim() || schoolYear < 2000 || schoolYear > 2100
+          <ActionButton type="button" aria-busy={savingCourse}
+            disabled={loadingCourse || savingCourse || !course.trim() || schoolYear < 2000 || schoolYear > 2100
               || (course.trim() === savedCourse && schoolYear === savedSchoolYear)}
-            onClick={() => setConfirmCourse(true)}><FiSave /> Actualizar curso</button>
+            onClick={() => setConfirmCourse(true)}><FiSave /> Actualizar curso</ActionButton>
         </div>
         <p className="managed-course-help">El nuevo período se aplicará a las operaciones futuras.
           Los movimientos ya registrados conservarán su año y curso históricos.</p>
@@ -204,7 +215,7 @@ export const Configuracion = () => {
 
       {canEditCourse && <ModalConfirm isOpen={confirmCourse} title="Actualizar período lectivo"
         message={`La administración pasará de ${savedCourse} · ${savedSchoolYear} a ${course.trim().toUpperCase()} · ${schoolYear}. Los datos históricos no cambiarán.`}
-        confirmLabel="Sí, actualizar" onConfirm={() => void saveCourse()}
+        confirmLabel="Sí, actualizar" onConfirm={() => saveCourse()}
         onCancel={() => setConfirmCourse(false)} />}
       <ModalAlert isOpen={Boolean(message)} type="success" message={message}
         onClose={() => setMessage("")} />

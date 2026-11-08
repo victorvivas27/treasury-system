@@ -74,6 +74,7 @@ export const TREASURY_LINKS = [
   { label: "Cuotas", path: "/tesoreria/cuotas", icon: BsReceipt },
   { label: "Pagos", path: "/tesoreria/pagos", icon: BsCreditCard2Front },
   { label: "Aportes CEPA", path: "/tesoreria/aportes", icon: BsHeart },
+  { label: "Fondos por actividad", path: "/tesoreria/recaudaciones", icon: BsArrowDownCircle },
   { label: "Ingresos", path: "/tesoreria/ingresos", icon: BsArrowDownCircle },
   { label: "Egresos", path: "/tesoreria/gastos", icon: BsArrowUpCircle },
   { label: "Eventos", path: "/tesoreria/eventos", icon: BsCalendarEvent },

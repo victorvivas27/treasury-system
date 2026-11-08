@@ -1,4 +1,5 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FiEdit2, FiSend, FiTrash2 } from "react-icons/fi";
 import type { NotificationReply } from "@/core/A-domain/entities/notification/Notification";
@@ -6,7 +7,7 @@ import { NotificationRepositoryImpl } from "@/core/C-infra/repositories/notifica
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { useRealtime } from "@/presentation/context/RealtimeContext";
-import { NotificationListSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
+
 import { useDashboardResource } from "../dashboard/dashboardCache";
 import { notificationCache } from "./notificationCache";
 import { MessageReadStatus } from "./MessageReadStatus";
@@ -180,7 +181,7 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
           nearBottom.current = current.scrollHeight - current.clientHeight - current.scrollTop < 64;
         }}
         className={`notification-conversation__messages ${isAdmin ? "sent-user-group__messages" : ""}`}>
-      {initialLoading && active && <NotificationListSkeleton conversation />}
+
       {!initialLoading && timeline.map(item => item.kind === "notification" ? <div key={item.id}
         className="notification-timeline-item">{item.content}</div> : <article key={item.id}
         aria-label={auth?.user?.id === item.message.authorId ? "Mensaje enviado" : `Mensaje de ${item.message.authorName}`}
@@ -201,8 +202,8 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
             {Date.now() - new Date(item.message.createdAt).getTime() <= 15 * 60 * 1000
               && <button type="button" onClick={event => { setEditingId(item.message.id);
                 setEditAnchor(event.currentTarget.closest("article")); }}><FiEdit2 /> Editar</button>}
-            <button type="button" onClick={() => void deleteMessage(item.message.id)}>
-              <FiTrash2 /> Eliminar</button>
+            <ActionButton type="button" onClick={() => deleteMessage(item.message.id)}>
+              <FiTrash2 /> Eliminar</ActionButton>
           </span>}
           </span></header>
         <p>{item.message.message}</p>
@@ -210,8 +211,8 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
       </article>)}
       </div>
       {error && <p className="notification-conversation__error">{error}</p>}
-      {error && !loaded && <button type="button" disabled={loading} onClick={() => void load()}>
-        Reintentar carga de conversación</button>}
+      {error && !loaded && <ActionButton type="button" disabled={loading} onClick={() => load()}>
+        Reintentar carga de conversación</ActionButton>}
       <form className="notification-reply-form" onSubmit={event => {
         event.preventDefault(); void submit();
       }}>
@@ -220,9 +221,9 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
           placeholder={isAdmin ? "Escribe una respuesta al apoderado…" : "Escribe una respuesta a administración…"}
           maxLength={2000} rows={1} value={draft}
           onChange={event => setDraft(event.target.value)} />
-        <button type="submit" aria-label={`Enviar a ${recipientName}`} title={`Enviar a ${recipientName}`} aria-busy={sending}
-          disabled={initialLoading || !draft.trim() || sending}>{sending ? <ButtonSpinner /> : <FiSend aria-hidden="true" />}
-          <span className="notification-composer__send-label">{sending ? "Enviando…" : "Responder"}</span></button>
+        <ActionButton type="submit" aria-label={`Enviar a ${recipientName}`} title={`Enviar a ${recipientName}`} aria-busy={sending}
+          disabled={initialLoading || !draft.trim() || sending}>{sending ? null : <FiSend aria-hidden="true" />}
+          <span className="notification-composer__send-label">{sending ? "Enviando…" : "Responder"}</span></ActionButton>
       </form>
     </div>
   </div>;
@@ -233,4 +234,3 @@ export const NotificationConversation = ({ deliveryId, deliveryIds, repository, 
       anchor={editAnchor} onSave={editMessage} onClose={() => setEditingId(null)} />}
   </>;
 };
-

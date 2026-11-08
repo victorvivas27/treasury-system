@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { GetAlumnoByIdUseCase } from "@/core/B-application/use-cases/alumno/get/GetAlumnoByIdUseCase";
 import { UpdateAlumnoUseCase } from "@/core/B-application/use-cases/alumno/update/UpdateAlumnoUseCase";
 import type { CreateAlumnoDTO } from "@/core/A-domain/entities/alumno/Alumno";
@@ -24,6 +25,7 @@ export const useEditAlumno = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<{ message: string } | null>(null);
+  usePageEntry(initialLoading, loadError);
 
   const { getUseCase, updateUseCase } = useMemo(() => {
     const repository = new AlumnoRepositoryImpl();

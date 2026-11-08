@@ -54,6 +54,12 @@
   gap: 0.55rem;
 }
 
+.button-back .button-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .button-back--animated .button-label {
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.01em;

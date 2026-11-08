@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { GetApoderadoByIdUseCase } from "@/core/B-application/use-cases/apoderado/byid/GetApoderadoByIdUseCase";
 import { UpdateApoderadoUseCase } from "@/core/B-application/use-cases/apoderado/update/UpdateApoderadoUseCase";
 import type { CreateApoderadoDTO } from "@/core/A-domain/entities/apoderado/Apoderado";
@@ -24,6 +25,7 @@ export const useEditApoderado = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadError, setLoadError] = useState<{ message: string } | null>(null);
+  usePageEntry(initialLoading, loadError);
 
   const { getUseCase, updateUseCase } = useMemo(() => {
     const repository = new ApoderadoRepositoryImpl();

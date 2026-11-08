@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import "./style/ApoderadosList.css";
 import "@/shared/style/AdminDataTable.css";
@@ -74,10 +74,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
   const emptyRows = Math.max(pageSize - apoderados.length, 0);
 
   const rows: RowItem[] = loading
-    ? Array.from({ length: pageSize }).map((_, index) => ({
-      apoderadoId: `loading-${index}`,
-      empty: true,
-    }))
+    ? []
     : [
       ...apoderados,
       ...Array.from({ length: emptyRows }).map((_, index) => ({
@@ -163,8 +160,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                   }`}
               >
                 <td className="apoderados-table__td" data-label="Estado">
-                  {loading ? <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                    : isEmptyRow ? <span>&nbsp;</span>
+                  {isEmptyRow ? <span>&nbsp;</span>
                     : <span className="status-toggle-cell">
                       <span className="admin-status-label">
                         {apoderado.activo ? "Activo" : "Inactivo"}
@@ -175,9 +171,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                     </span>}
                 </td>
                 <td className="apoderados-table__td apoderados-table__text" data-label="Nombre">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     <span className="apoderados-table__person">
@@ -190,9 +184,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 </td>
 
                 <td className="apoderados-table__td apoderados-table__text" data-label="Email">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     <SingleLineFitText>{apoderado.email}</SingleLineFitText>
@@ -200,9 +192,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 </td>
 
                 <td className="apoderados-table__td" data-label="Teléfono">
-                  {loading ? (
-                    <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                  ) : isEmptyRow ? (
+                  {isEmptyRow ? (
                     <span>&nbsp;</span>
                   ) : (
                     apoderado.telefono
@@ -210,8 +200,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
                 </td>
 
                 <td className="apoderados-table__td" data-label="Acceso">
-                  {loading ? <div className="skeleton-block skeleton-input"><Skeleton height="100%" /></div>
-                    : isEmptyRow ? <span>&nbsp;</span>
+                  {isEmptyRow ? <span>&nbsp;</span>
                     : <span className={`guardian-access guardian-access--${
                       (apoderado.accessStatus ?? "SIN_ACCESO").toLowerCase()}`}>
                       {apoderado.accessStatus === "ACTIVO" ? "Usuario activo"
@@ -224,7 +213,7 @@ export const ApoderadosList: FC<ApoderadosListProps> = ({
 
                 <td className="apoderados-table__td" data-label="Acciones">
                   {loading || !isEmptyRow ? <ApoderadoActions
-                    apoderado={loading ? undefined : apoderado}
+                    apoderado={apoderado}
                     identifier={apoderadoIdentifier} loading={loading}
                     onEdit={handleEdit} onDelete={handleDelete}
                     onEnableAccess={handleEnableAccess} /> : <span>&nbsp;</span>}

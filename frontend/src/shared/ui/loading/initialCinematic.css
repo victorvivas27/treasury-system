@@ -1,0 +1,44 @@
+.app-startup{position:fixed;inset:0;z-index:99999;background:var(--color-bg)}
+.app-startup.is-leaving{opacity:0;pointer-events:none}
+    .boot-recovery{max-width:320px;padding:24px;text-align:center;color:var(--text-boot)}
+    .boot-recovery p{margin:12px 0 20px;font-size:14px}
+    .boot-recovery button{font:inherit;color:var(--text-boot);background:var(--color-bg);border:1px solid var(--text-boot-muted);border-radius:6px;padding:8px;cursor:pointer}
+/* Development experiment: inline before boot, scoped to the cinematic variant. */
+.app-startup[data-variant="cinematic"]{display:block;overflow:clip;isolation:isolate;clip-path:inset(0);font-family:var(--font-main)}
+.cinematic-visual,.cinematic-parallax,.cinematic-scene,.cinematic-shade{position:absolute;inset:0}
+.cinematic-visual{transition:transform 800ms cubic-bezier(.25,.46,.45,.94)}
+.cinematic-parallax{inset:-12px}
+.cinematic-scene{opacity:0;transition:opacity 1600ms ease-in-out;background:radial-gradient(ellipse at 75% 45%,color-mix(in srgb,var(--color-accent) 14%,var(--color-bg)),var(--color-bg) 75%)}
+.cinematic-scene.is-active{opacity:1}
+.cinematic-scene img{position:absolute;inset:0 0 0 auto;width:70%;height:100%;object-fit:cover;object-position:center;opacity:.7;mask-image:linear-gradient(90deg,transparent, var(--color-bg) 26%);transform:scale(1.02)}
+.cinematic-scene[data-artwork="community"] img{object-fit:contain;object-position:80% center;width:64%;opacity:.6}
+/* Keep the zoom continuous during crossfades: removing is-active must not reset it. */
+.cinematic-scene img{animation:cinematic-drift 20s ease-in-out infinite alternate;will-change:transform;backface-visibility:hidden}
+.cinematic-shade{background:linear-gradient(90deg,var(--color-bg) 3%,color-mix(in srgb,var(--color-bg) 87%,transparent) 30%,color-mix(in srgb,var(--color-bg) 20%,transparent) 75%),linear-gradient(0deg,var(--color-bg),transparent 38%,transparent 75%,color-mix(in srgb,var(--color-bg) 70%,transparent));pointer-events:none}
+.cinematic-frame{position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;display:grid;grid-template-rows:auto 1fr auto;padding:clamp(24px,4vw,48px);color:var(--text-boot)}
+.cinematic-masthead{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:11px;letter-spacing:.12em}
+.cinematic-masthead span:first-child{font-weight:600}
+.cinematic-masthead span:last-child{color:var(--text-boot-muted);font-size:10px;letter-spacing:.04em}
+.cinematic-copy{align-self:center;position:relative;padding:24px 0;max-width:820px;transition:opacity 550ms ease-in-out,transform 550ms ease-in-out}
+.cinematic-copy.is-changing{opacity:0;transform:translateY(-4px)}
+.cinematic-eyebrow{margin:0 0 18px;color:var(--color-accent);text-transform:uppercase;font-size:10px;letter-spacing:.2em;animation:cinematic-copy-in 900ms ease-in-out both}
+.cinematic-title{font-family:var(--font-family-serif);font-size:clamp(48px,7.5vw,100px);font-weight:400;line-height:.98;letter-spacing:-.055em}
+.cinematic-line{display:block;overflow:clip;padding:0 .06em .15em 0}
+.cinematic-line:last-child{color:var(--color-accent)}
+.cinematic-word{display:inline-block;animation:cinematic-word-in 1100ms cubic-bezier(.22,.61,.36,1) var(--word-delay,0ms) both;will-change:transform}
+.cinematic-detail{margin:12px 0 0;max-width:310px;font-size:12px;line-height:1.6;color:var(--text-boot-muted);animation:cinematic-copy-in 1100ms 200ms ease-in-out both}
+.cinematic-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.cinematic-status{display:grid;gap:14px;width:min(220px,45vw);padding-bottom:4px}
+.cinematic-status-label{font-size:10px;letter-spacing:.04em}
+.app-startup[data-variant="cinematic"].is-leaving{clip-path:inset(0 0 100% 0);opacity:0;transition:clip-path 650ms cubic-bezier(.45,0,.25,1) 150ms,opacity 500ms ease-in-out 300ms}
+.is-leaving .cinematic-visual{transform:scale(1.035) translateY(-4px)}
+.is-leaving .cinematic-copy,.is-leaving .cinematic-status,.is-leaving .cinematic-masthead{animation:cinematic-copy-out 420ms ease-in-out both}
+.is-leaving .cinematic-word{animation:cinematic-word-finish 240ms ease-out both}
+@keyframes cinematic-drift{from{transform:scale(1.02) translate3d(0,0,0)}to{transform:scale(1.055) translate3d(-.6%,-.3%,0)}}
+@keyframes cinematic-word-in{from{opacity:0;transform:translateY(28%)}to{opacity:1;transform:translateY(0)}}
+@keyframes cinematic-word-finish{to{transform:translateY(0)}}
+@keyframes cinematic-copy-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cinematic-copy-out{to{opacity:0;transform:translateY(-4px)}}
+@media(max-width:600px){.cinematic-frame{padding:24px;gap:16px}.cinematic-masthead span:last-child{max-width:100px;text-align:right;line-height:1.5}.cinematic-copy{align-self:start;padding-top:clamp(48px,12vh,100px)}.cinematic-title{font-size:clamp(43px,12vw,68px)}.cinematic-detail{max-width:230px}.cinematic-scene img{width:130%;height:76%;inset:auto -20% 6% auto;object-fit:contain;opacity:.5;mask-image:linear-gradient(0deg,transparent,var(--color-bg) 20%,var(--color-bg) 70%,transparent)}.cinematic-scene[data-artwork="community"] img{width:100%;height:60%;right:-8%;bottom:8%;object-position:center;opacity:.45}.cinematic-shade{background:linear-gradient(180deg,var(--color-bg) 12%,color-mix(in srgb,var(--color-bg) 45%,transparent) 55%,var(--color-bg) 100%)}.cinematic-status{max-width:160px}}
+@media(max-height:420px) and (min-width:601px){.cinematic-frame{padding:20px 32px}.cinematic-copy{padding:12px 0}.cinematic-title{font-size:clamp(40px,11vh,64px)}.cinematic-eyebrow{margin-bottom:10px}.cinematic-detail{margin-top:4px}}
+@media(prefers-reduced-motion:reduce){.app-startup[data-variant="cinematic"],.app-startup[data-variant="cinematic"] *{animation:none!important;transition:none!important}.cinematic-parallax,.cinematic-scene img{transform:none}.app-startup[data-variant="cinematic"].is-leaving{clip-path:none;opacity:0}.cinematic-word{will-change:auto}}

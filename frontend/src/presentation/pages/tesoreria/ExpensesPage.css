@@ -62,8 +62,6 @@
 .expense-document-upload.is-loading { cursor: wait; opacity: 0.78; }
 .expense-document-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .expense-document-progress { display: flex; align-items: center; gap: 0.4rem; color: var(--text-muted); font-size: var(--font-size-xs); }
-.expense-document-spinner { animation: expense-document-spin 800ms linear infinite; }
-@keyframes expense-document-spin { to { transform: rotate(360deg); } }
 .expense-documents > small { display: block; margin: 0.35rem 0 0.6rem; color: var(--tone-neutral-dark-076); }
 .expense-documents ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
 .expense-documents li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2); border: 1px solid var(--tone-neutral-light-021); border-radius: var(--radius-md); }

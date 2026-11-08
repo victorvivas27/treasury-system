@@ -38,7 +38,6 @@
 :root[data-font-family="jetbrains-mono"] {
   --font-family-primary: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
   --font-family-serif: var(--font-family-primary);
-  --font-family-loader: var(--font-family-primary);
   --font-family-mono: var(--font-family-primary);
   --font-letter-spacing: -0.025em;
   --leading-body: 1.55;
@@ -47,7 +46,6 @@
 :root[data-font-family="space-mono"] {
   --font-family-primary: "Space Mono", ui-monospace, "Cascadia Mono", monospace;
   --font-family-serif: var(--font-family-primary);
-  --font-family-loader: var(--font-family-primary);
   --font-family-mono: var(--font-family-primary);
   --font-weight-medium: 400;
   --font-weight-semibold: 700;
@@ -59,7 +57,6 @@
 :root[data-font-family="ibm-plex-mono"] {
   --font-family-primary: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
   --font-family-serif: var(--font-family-primary);
-  --font-family-loader: var(--font-family-primary);
   --font-family-mono: var(--font-family-primary);
   --font-letter-spacing: -0.02em;
   --leading-body: 1.55;

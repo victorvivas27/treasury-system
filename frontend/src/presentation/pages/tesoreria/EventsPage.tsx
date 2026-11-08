@@ -1,5 +1,8 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiCalendar, FiCheckCircle, FiDollarSign, FiEdit2, FiMinusCircle, FiPlus,
   FiRefreshCw, FiTrash2,
@@ -11,7 +14,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { chileDate } from "@/shared/date/chileDateTime";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
+
 import "./EventsPage.css";
 
 const repository = new TreasuryRepositoryImpl();
@@ -39,11 +42,11 @@ const anchorForCard = (card: DOMRect, width: number, height: number) => ({
 });
 
 export const EventsPage = () => {
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useCachedPageState('events:year', new Date().getFullYear());
   const [yearOpen, setYearOpen] = useState(false);
   const [eventPage, setEventPage] = useState(1);
-  const [events, setEvents] = useState<SchoolEvent[]>([]);
-  const [selected, setSelected] = useState<SchoolEvent>();
+  const [events, setEvents] = useCachedPageState<SchoolEvent[]>(`events:${year}:items`, []);
+  const [selected, setSelected] = useState<SchoolEvent | undefined>(() => events[0]);
   const [settlement, setSettlement] = useState<EventSettlement>();
   const [dialog, setDialog] = useState<"event" | "edit" | "expense" | "revenue" | null>(null);
   const [expenseToEdit, setExpenseToEdit] = useState<SchoolEventExpense>();
@@ -51,10 +54,12 @@ export const EventsPage = () => {
   const [dialogAnchor, setDialogAnchor] = useState<{ top: number; left: number }>();
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [managedCourse, setManagedCourse] = useState("");
+  const [hasLoaded, setHasLoaded] = useState(() => hasPageData(`events:${year}:items`));
+  const [managedCourse, setManagedCourse] = useCachedPageState('events:managedCourse', "");
   const [managedCourseLoading, setManagedCourseLoading] = useState(true);
-  const initialLoading = (loading && !hasLoaded) || managedCourseLoading;
+  const [courseCached] = useState(() => hasPageData('events:managedCourse'));
+  const initialLoading = (loading && !hasLoaded) || (managedCourseLoading && !courseCached);
+  usePageEntry(initialLoading, feedback);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -150,8 +155,8 @@ export const EventsPage = () => {
             setDialogAnchor(anchorForCard(event.currentTarget.getBoundingClientRect(), 320, 430));
             setDialog("event");
           }}><FiPlus /> Crear evento</button>
-          <button aria-label="Actualizar eventos" title="Actualizar eventos"
-            onClick={() => void load()}><FiRefreshCw /> Recargar</button>
+          <ActionButton aria-label="Actualizar eventos" title="Actualizar eventos"
+            onClick={() => load()}><FiRefreshCw /> Recargar</ActionButton>
         </div>
       </header>
 
@@ -174,7 +179,7 @@ export const EventsPage = () => {
       </div>
       {feedback && <p className="events-feedback" role="status">{feedback}</p>}
 
-      {initialLoading ? <EventsSkeleton /> : events.length === 0
+      {initialLoading ? null : events.length === 0
         ? <section className="events-empty"><FiCalendar /><h2>No hay eventos en {year}</h2>
             <p>Crea la edición anual y configura sus cursos y stands.</p></section>
         : <div className="events-layout">
@@ -211,7 +216,7 @@ export const EventsPage = () => {
               setEvents(current => current.filter(item => item.id !== selected.id));
               setSelected(undefined);
             }}
-            onCalculate={() => void calculate()} onConfirm={() => void confirm()}
+            onCalculate={() => void calculate()} onConfirm={() => confirm()}
             onDismissSettlement={() => setSettlement(undefined)}
             onCancelSettlement={() => void cancelSettlement()} />}
         </div>}
@@ -236,28 +241,7 @@ export const EventsPage = () => {
   );
 };
 
-const EventsSkeleton = () => <div className="events-skeleton" role="status" aria-label="Cargando eventos">
-  <aside className="events-skeleton-list">
-    {Array.from({ length: 3 }, (_, index) => <div className="events-skeleton-card" key={index}>
-      <div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div>
-    </div>)}
-  </aside>
-  <section className="events-skeleton-content">
-    <article className="events-skeleton-summary">
-      <div><div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div></div>
-      <div className="skeleton-block"><Skeleton height="100%" /></div>
-    </article>
-    <div className="events-skeleton-metrics">
-      {Array.from({ length: 5 }, (_, index) => <div className="skeleton-block" key={index}><Skeleton height="100%" /></div>)}
-    </div>
-    <div className="skeleton-block events-skeleton-title"><Skeleton height="100%" /></div>
-    <div className="events-skeleton-courses">
-      {Array.from({ length: 3 }, (_, index) => <article className="events-skeleton-course" key={index}>
-        <div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div>
-      </article>)}
-    </div>
-  </section>
-</div>;
+
 
 const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDeleted,
   onCalculate, onConfirm, onDismissSettlement, onCancelSettlement, onEditExpense, onDeleteExpense,
@@ -368,7 +352,7 @@ const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDelete
       message={`Se eliminará definitivamente el evento “${event.name}”.`}
       confirmLabel="Eliminar evento" cancelLabel="Volver" isLoading={deletingEvent}
       confirmIcon={<FiTrash2 />} cancelIcon={<FiX />}
-      onCancel={() => setConfirmEventDelete(false)} onConfirm={() => void (async () => {
+      onCancel={() => setConfirmEventDelete(false)} onConfirm={() => (async () => {
         setDeletingEvent(true);
         try {
           await repository.deleteEvent(event.id);
@@ -383,7 +367,7 @@ const EventDetail = ({ event, settlement, onExpense, onRevenue, onEdit, onDelete
       message="La recaudación registrada será eliminada del evento."
       confirmLabel="Eliminar" cancelLabel="Volver" isLoading={deletingRevenue}
       confirmIcon={<FiTrash2 />} cancelIcon={<FiX />}
-      onCancel={() => setConfirmRevenueDelete(false)} onConfirm={() => void (async () => {
+      onCancel={() => setConfirmRevenueDelete(false)} onConfirm={() => (async () => {
         setDeletingRevenue(true);
         try {
           await onDeleteRevenue();
@@ -429,7 +413,7 @@ const EventExpenseCard = ({ expense, editable, onEdit, onDelete }: {
     title="Eliminar gasto" message={`Se eliminará el gasto “${expense.description}”.`}
     confirmLabel="Eliminar" cancelLabel="Volver" isLoading={deleting}
     confirmIcon={<FiTrash2 />} cancelIcon={<FiX />} onCancel={() => setConfirmDelete(false)}
-    onConfirm={() => void (async () => {
+    onConfirm={() => (async () => {
       setDeleting(true);
       try {
         await onDelete();
@@ -526,7 +510,7 @@ const EventForm = ({ year, event, managedCourse, anchor, onClose, onSaved }: {
             setForm({ ...form, courses }); }} />}</div>)}</fieldset>
     {error && <p className="events-form-error" role="alert">{error}</p>}
     <footer><button type="button" disabled={saving} onClick={onClose}><FiX /> Cancelar</button>
-      <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiPlus />} {saving ? "Guardando…" : event ? "Guardar cambios" : "Crear evento"}</button>
+      <ActionButton type="submit" disabled={saving} aria-busy={saving}>{saving ? null : <FiPlus />} {saving ? "Guardando…" : event ? "Guardar cambios" : "Crear evento"}</ActionButton>
     </footer></form></Modal>;
 };
 
@@ -579,7 +563,7 @@ const ExpenseForm = ({ event, expense, anchor, onClose, onSaved }: { event: Scho
     </label>
     {error && <p className="events-form-error" role="alert">{error}</p>}
     <footer><button type="button" disabled={saving} onClick={onClose}><FiX /> Cancelar</button>
-      <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiMinusCircle />} {saving ? "Guardando…" : expense ? "Guardar cambios" : "Registrar gasto"}</button>
+      <ActionButton type="submit" disabled={saving} aria-busy={saving}>{saving ? null : <FiMinusCircle />} {saving ? "Guardando…" : expense ? "Guardar cambios" : "Registrar gasto"}</ActionButton>
     </footer></form></Modal>;
 };
 
@@ -631,8 +615,8 @@ const RevenueForm = ({ event, anchor, onClose, onSaved }: { event: SchoolEvent;
     <p>La recaudación se dividirá por la cantidad real de cursos participantes.</p>
     {error && <p className="events-form-error" role="alert">{error}</p>}
     <footer><button type="button" disabled={saving} onClick={onClose}><FiX /> Cancelar</button>
-      <button type="submit" disabled={saving} aria-busy={saving}>{saving ? <ButtonSpinner /> : <FiDollarSign />} {saving ? "Guardando…" : editing
-        ? "Guardar cambios" : "Guardar recaudación"}</button></footer></form></Modal>;
+      <ActionButton type="submit" disabled={saving} aria-busy={saving}>{saving ? null : <FiDollarSign />} {saving ? "Guardando…" : editing
+        ? "Guardar cambios" : "Guardar recaudación"}</ActionButton></footer></form></Modal>;
 };
 
 const Modal = ({ title, onClose, children, compact = false, centered = false, anchor }: { title: string;

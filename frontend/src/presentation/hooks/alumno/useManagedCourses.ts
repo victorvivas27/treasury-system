@@ -1,3 +1,5 @@
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -14,9 +16,10 @@ const uniqueCourses = (courses: string[]) => {
 
 export const useManagedCourses = (currentCourse = "") => {
   const repository = useMemo(() => new TreasuryRepositoryImpl(), []);
-  const [configuredCourses, setConfiguredCourses] = useState<string[]>([]);
-  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [configuredCourses, setConfiguredCourses] = useCachedPageState<string[]>('managed-courses:items', []);
+  const [loadingCourses, setLoadingCourses] = useState(() => !hasPageData('managed-courses:items'));
   const [coursesError, setCoursesError] = useState("");
+  usePageEntry(loadingCourses, coursesError);
 
   const courses = useMemo(
     () => uniqueCourses([...configuredCourses, currentCourse]),

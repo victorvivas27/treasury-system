@@ -1,4 +1,6 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -25,7 +27,7 @@ import { apiClient } from "@/core/D-config/api";
 
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
-import { PaymentDataSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
+
 import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
 import { emptyBank, getPaymentsResource, paymentsSelection, PaymentsLoadError, paymentsLoadError, resolveAnnualAmount, paymentsBase as base } from "./paymentsCache";
 import type { BankAccount, MyPayments, Payment } from "./paymentsCache";
@@ -191,6 +193,7 @@ export const PaymentsPage = () => {
 
   const mp = useMercadoPago(load, admin);
   const preparing = (!cached.data && !cached.error) || refreshingReturn || mp.checkingAvailability;
+  usePageEntry(preparing);
 
   const flash = (message: string) => {
     setNotice(message);
@@ -381,20 +384,20 @@ export const PaymentsPage = () => {
               <Icon className="bank-drawer__row-icon" aria-hidden="true" />
               <dt>{label}</dt>
               <dd className={numeric ? "is-tabular" : undefined}>{value}</dd>
-              <button className={copied ? "is-copied" : ""} aria-label={copied ? "Copiado" : `Copiar ${copyLabel}`}
-                onClick={() => void copy(value, label, key)}>
+              <ActionButton className={copied ? "is-copied" : ""} aria-label={copied ? "Copiado" : `Copiar ${copyLabel}`}
+                onClick={() => copy(value, label, key)}>
                 {copied ? <FiCheck aria-hidden="true" /> : <FiClipboard aria-hidden="true" />}
                 <Tooltip content={copied ? "Copiado" : `Copiar ${copyLabel}`} />
-              </button>
+              </ActionButton>
             </div>;
           })}
         </dl>
         <div className="bank-drawer__actions">
-          <button className="bank-drawer__download" onClick={downloadBankData}><FiDownload aria-hidden="true" /> Descargar datos</button>
-          <button className="copy-all bank-drawer__copy" onClick={copyAll}>
+          <ActionButton className="bank-drawer__download" onClick={downloadBankData}><FiDownload aria-hidden="true" /> Descargar datos</ActionButton>
+          <ActionButton className="copy-all bank-drawer__copy" onClick={copyAll}>
             {copiedBankKey === "all" ? <FiCheck aria-hidden="true" /> : <FiClipboard aria-hidden="true" />}
             {copiedBankKey === "all" ? "Datos copiados" : "Copiar todo"}
-          </button>
+          </ActionButton>
         </div>
         <p className="bank-drawer__hint"><FiInfo aria-hidden="true" /> Verifica los datos antes de transferir.</p>
       </> : <p className="bank-drawer__empty">El tesorero aún no configura la cuenta bancaria para {year}.</p>}
@@ -406,23 +409,23 @@ export const PaymentsPage = () => {
       <div><span><FiCreditCard aria-hidden="true" /></span><div><h1>Pagos</h1></div></div>
       <label>Año escolar <select value={year} onChange={event => setYear(Number(event.target.value))}>{[yearNow - 1, yearNow, yearNow + 1].map(value => <option key={value}>{value}</option>)}</select></label>
     </header>
-    {preparing && !cached.data && <PaymentDataSkeleton />}
+
     {(admin || (!mine && !preparing)) && mercadoPagoDetails}
     {notice && <div className="payments-toast" role="status"><FiCheck aria-hidden="true" />{notice}</div>}
-    {error && <div className="payments-error" role="alert"><p>{error}</p>{cached.error && <button type="button" onClick={() => void load()}>Reintentar</button>}</div>}
-    {mp.message && <section className="payment-panel mp-return" role="status"><p>{mp.message}</p>{mp.returned && mp.paymentId && mp.canRetryReturn && <button disabled={mp.busy} onClick={() => void mp.retry()}>Actualizar estado del pago</button>}</section>}
+    {error && <div className="payments-error" role="alert"><p>{error}</p>{cached.error && <ActionButton type="button" onClick={() => load()}>Reintentar</ActionButton>}</div>}
+    {mp.message && <section className="payment-panel mp-return" role="status"><p>{mp.message}</p>{mp.returned && mp.paymentId && mp.canRetryReturn && <ActionButton disabled={mp.busy} onClick={() => mp.retry()}>Actualizar estado del pago</ActionButton>}</section>}
     {admin && (cached.data || cached.error) ? <>
       <section className="payments-admin-grid">
-        <aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><div><small>Vista del apoderado</small><h3>Transferencia bancaria</h3></div><button className="payment-preview__edit" type="button" aria-expanded={bankConfigOpen} onClick={() => { setBankDraft(null); setBankConfigOpen(current => !current); }}><FiEdit3 aria-hidden="true" />{bankConfigOpen ? "Editando" : "Modificar datos"}</button></header><dl className="payment-preview__details">{adminBankRows.map(({ key, label, value, Icon, numeric }) => <div className="payment-preview__row" key={key}><Icon aria-hidden="true" /><dt>{label}</dt><dd className={numeric ? "is-numeric" : undefined}>{value}</dd></div>)}</dl><button className="copy-all payment-preview__copy" disabled={!bank.id} onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</button></aside>
+        <aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><div><small>Vista del apoderado</small><h3>Transferencia bancaria</h3></div><button className="payment-preview__edit" type="button" aria-expanded={bankConfigOpen} onClick={() => { setBankDraft(null); setBankConfigOpen(current => !current); }}><FiEdit3 aria-hidden="true" />{bankConfigOpen ? "Editando" : "Modificar datos"}</button></header><dl className="payment-preview__details">{adminBankRows.map(({ key, label, value, Icon, numeric }) => <div className="payment-preview__row" key={key}><Icon aria-hidden="true" /><dt>{label}</dt><dd className={numeric ? "is-numeric" : undefined}>{value}</dd></div>)}</dl><ActionButton className="copy-all payment-preview__copy" disabled={!bank.id} onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</ActionButton></aside>
         <section className={`payment-panel review-panel${adminHistoryOpen ? " is-open" : ""}`}><header><button className="review-panel__toggle" type="button" aria-expanded={adminHistoryOpen} aria-controls="admin-payment-history" onClick={() => setAdminHistoryOpen(current => !current)}><div><h2>Historial de cuotas</h2><p>{reviews.length} movimientos encontrados.</p></div><FiChevronRight aria-hidden="true" /></button></header>
-          <div id="admin-payment-history" className="review-panel__content" aria-hidden={!adminHistoryOpen}><div className="review-panel__toolbar"><select aria-label="Filtrar pagos" value={filter} onChange={event => setFilter(event.target.value)}><option value="">Todos</option><option value="PROOF_SUBMITTED">Pendientes de revisión</option><option value="PAID">Pagados</option><option value="REJECTED">Rechazados</option></select></div><div className="review-list">{reviews.length === 0 ? <p className="empty-payments">No hay pagos en este filtro.</p> : reviews.map(item => <article key={item.id}><div><strong>{item.studentName}</strong><span>{item.guardianName} · {item.installment}</span></div><b>{money.format(item.amount)}</b><span className={statusClass(item.status)}>{friendly[item.status] ?? item.status}</span><div className="review-actions">{item.paymentMethod === "MERCADO_PAGO" ? <span>Mercado Pago</span> : <button onClick={() => void openProof(item.id)}><FiExternalLink aria-hidden="true" /> Ver</button>}{item.status === "PROOF_SUBMITTED" && <><button className="approve" disabled={busy} onClick={() => void review(item.id, true)}><FiCheck aria-hidden="true" /> Aprobar</button><button className="reject" disabled={busy} onClick={() => void review(item.id, false)}><FiX aria-hidden="true" /> Rechazar</button></>}</div></article>)}</div></div>
+          <div id="admin-payment-history" className="review-panel__content" aria-hidden={!adminHistoryOpen}><div className="review-panel__toolbar"><select aria-label="Filtrar pagos" value={filter} onChange={event => setFilter(event.target.value)}><option value="">Todos</option><option value="PROOF_SUBMITTED">Pendientes de revisión</option><option value="PAID">Pagados</option><option value="REJECTED">Rechazados</option></select></div><div className="review-list">{reviews.length === 0 ? <p className="empty-payments">No hay pagos en este filtro.</p> : reviews.map(item => <article key={item.id}><div><strong>{item.studentName}</strong><span>{item.guardianName} · {item.installment}</span></div><b>{money.format(item.amount)}</b><span className={statusClass(item.status)}>{friendly[item.status] ?? item.status}</span><div className="review-actions">{item.paymentMethod === "MERCADO_PAGO" ? <span>Mercado Pago</span> : <ActionButton onClick={() => openProof(item.id)}><FiExternalLink aria-hidden="true" /> Ver</ActionButton>}{item.status === "PROOF_SUBMITTED" && <><ActionButton className="approve" disabled={busy} onClick={() => review(item.id, true)}><FiCheck aria-hidden="true" /> Aprobar</ActionButton><ActionButton className="reject" disabled={busy} onClick={() => review(item.id, false)}><FiX aria-hidden="true" /> Rechazar</ActionButton></>}</div></article>)}</div></div>
         </section>
       </section>
       {bankConfigOpen && <div className="bank-config-modal-backdrop is-open" onClick={() => setBankConfigOpen(false)}>
         <form ref={bankConfigRef} tabIndex={-1} className="payment-panel bank-form bank-config-modal" role="dialog" aria-modal="true" aria-labelledby="bank-config-title" onSubmit={saveBank} onClick={event => event.stopPropagation()}><header><div><h2 id="bank-config-title">Cuenta para transferencias</h2><p>Estos datos los verán los apoderados.</p></div><div className="bank-form__header-actions"><Link to="/tesoreria/cuotas">Configurar cuota anual <FiExternalLink aria-hidden="true" /></Link><button type="button" aria-label="Cerrar configuración" onClick={() => setBankConfigOpen(false)}><FiX aria-hidden="true" /> Cerrar</button></div></header>
           {bankFormFields.map(({ label, key, Icon, inputType = "text" }) =>
             <label className="bank-form__field" key={key}><span><Icon aria-hidden="true" />{label}</span><input required type={inputType} value={String(bank[key] ?? "")} onChange={event => setBank(current => ({ ...current, [key]: event.target.value }))} /></label>)}
-          <button type="submit" disabled={busy} aria-busy={actionBusy}>{actionBusy && <ButtonSpinner />}{actionBusy ? "Guardando…" : "Guardar datos"}</button>
+          <ActionButton type="submit" disabled={busy} aria-busy={actionBusy}>{actionBusy ? "Guardando…" : "Guardar datos"}</ActionButton>
         </form>
       </div>}
     </> : mine ? <>
@@ -437,7 +440,7 @@ export const PaymentsPage = () => {
         </div>
       </section>
 
-      {showPlanPicker ? <section className="payment-panel plan-picker"><h2>¿Cómo quieres pagar?</h2><p>Elige cómo pagar. Solo se generarán las cuotas de la modalidad seleccionada.</p><div>{mine.allowedMode !== "DOS_CUOTAS" && <button disabled={busy} onClick={() => void choose("ANUAL")}><strong>Pago único</strong><span>{money.format(mine.totalAmount)}</span><small>Todo el año en un pago</small></button>}{mine.allowedMode !== "ANUAL" && <button disabled={busy} onClick={() => void choose("DOS_CUOTAS")}><strong>Dos cuotas</strong><span>{money.format(Math.round(mine.totalAmount / 2))} + {money.format(mine.totalAmount - Math.round(mine.totalAmount / 2))}</span><small>Paga una cuota y deja la otra pendiente</small></button>}</div>{mine.selectedMode && <button className="plan-picker__cancel" disabled={busy} onClick={() => setChangingPlan(false)}>Volver a mi plan</button>}</section> : <>
+      {showPlanPicker ? <section className="payment-panel plan-picker"><h2>¿Cómo quieres pagar?</h2><p>Elige cómo pagar. Solo se generarán las cuotas de la modalidad seleccionada.</p><div>{mine.allowedMode !== "DOS_CUOTAS" && <ActionButton disabled={busy} onClick={() => choose("ANUAL")}><strong>Pago único</strong><span>{money.format(mine.totalAmount)}</span><small>Todo el año en un pago</small></ActionButton>}{mine.allowedMode !== "ANUAL" && <ActionButton disabled={busy} onClick={() => choose("DOS_CUOTAS")}><strong>Dos cuotas</strong><span>{money.format(Math.round(mine.totalAmount / 2))} + {money.format(mine.totalAmount - Math.round(mine.totalAmount / 2))}</span><small>Paga una cuota y deja la otra pendiente</small></ActionButton>}</div>{mine.selectedMode && <button className="plan-picker__cancel" disabled={busy} onClick={() => setChangingPlan(false)}>Volver a mi plan</button>}</section> : <>
         <section className="installments-shell" aria-label="Mis cuotas">
           <header className="installments-shell__header">
             <div><h2>Mis cuotas</h2><p>{counts.pending === 0 ? "No tienes cuotas pendientes." : `${counts.pending} cuota${counts.pending === 1 ? "" : "s"} pendiente${counts.pending === 1 ? "" : "s"}.`}</p></div>
@@ -470,8 +473,8 @@ export const PaymentsPage = () => {
                     <b>{money.format(item.amount)}</b>
                     <span className={statusClass(item.status)}><i aria-hidden="true" />{friendly[item.status]}</span>
                     <div className="installment-actions">
-                      {item.status === "PENDIENTE" && <button className="mp-checkout" aria-label="Pagar con Mercado Pago" disabled={busy || !mp.enabled || mp.checkingAvailability || mp.busy || uploadingInstallmentId !== null} onClick={() => void mp.checkout(item.id)}><FiCreditCard aria-hidden="true" />{mp.busy ? "Abriendo..." : `Pagar ${money.format(item.amount)}`}</button>}
-                      {canUploadProof && <label className="proof-upload"><FiUpload aria-hidden="true" />{uploadingInstallmentId === item.id ? "Enviando..." : "Subir comprobante"}<input type="file" accept="image/jpeg,image/png,application/pdf" disabled={busy || mp.busy || uploadingInstallmentId !== null} onChange={event => void upload(item.id, event.target.files?.[0])} /></label>}
+                      {item.status === "PENDIENTE" && <ActionButton className="mp-checkout" aria-label="Pagar con Mercado Pago" disabled={busy || !mp.enabled || mp.checkingAvailability || mp.busy || uploadingInstallmentId !== null} onClick={() => mp.checkout(item.id)}><FiCreditCard aria-hidden="true" />{mp.busy ? "Abriendo..." : `Pagar ${money.format(item.amount)}`}</ActionButton>}
+                      {canUploadProof && <label className="proof-upload" aria-busy={uploadingInstallmentId === item.id}><FiUpload aria-hidden="true" />{uploadingInstallmentId === item.id ? "Enviando..." : "Subir comprobante"}<input type="file" accept="image/jpeg,image/png,application/pdf" disabled={busy || mp.busy || uploadingInstallmentId !== null} onChange={event => void upload(item.id, event.target.files?.[0])} /></label>}
                       {item.history.length > 0 && <button className="detail-toggle" aria-expanded={expanded} onClick={() => setExpandedInstallmentId(expanded ? null : item.id)}>{expanded ? "Ocultar detalle" : "Detalle"} <FiChevronRight aria-hidden="true" /></button>}
                     </div>
                   </div>
@@ -479,7 +482,7 @@ export const PaymentsPage = () => {
                     <small>Historial del pago</small>
                     {item.history.map((attempt, index) => <div className="attempt-row" key={attempt.id}>
                       <div><strong>{attempt.paymentMethod === "MERCADO_PAGO" ? "Pagado con Mercado Pago" : `Intento ${item.history.length - index}`}</strong><span>{friendly[attempt.status] ?? attempt.status} · {formatAttemptDate(attempt)}{attempt.providerPaymentId ? ` · Pago #${attempt.providerPaymentId}` : ""}</span>{attempt.providerStatus === "rejected" && <span>Último intento rechazado</span>}{attempt.rejectionReason && <span>{attempt.rejectionReason}</span>}</div>
-                      <div>{attempt.originalFileName && <button onClick={() => void openProof(attempt.id)}><FiEye aria-hidden="true" /> Ver comprobante</button>}{attempt.status !== "PAID" && attempt.providerPaymentId && <button disabled={mp.busy} onClick={() => void mp.retry(attempt.providerPaymentId)}>Actualizar estado</button>}</div>
+                      <div>{attempt.originalFileName && <ActionButton onClick={() => openProof(attempt.id)}><FiEye aria-hidden="true" /> Ver comprobante</ActionButton>}{attempt.status !== "PAID" && attempt.providerPaymentId && <ActionButton disabled={mp.busy} onClick={() => mp.retry(attempt.providerPaymentId)}>Actualizar estado</ActionButton>}</div>
                     </div>)}
                   </div>}
                 </article>;
@@ -495,6 +498,6 @@ export const PaymentsPage = () => {
         </section>
       </>}
       {renderBankDrawer()}
-    </> : bank.id && <section className="bank-only-state"><aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><small>Datos del curso</small></header><div className="payment-preview__identity"><small>Datos para transferir</small><h3>{bank.accountHolderName}</h3><p>{bank.bankName} · {bank.accountType}</p></div><dl><dt>RUT</dt><dd>{bank.accountHolderRut}</dd><dt>Número de cuenta</dt><dd>{bank.accountNumber}</dd><dt>Correo</dt><dd>{bank.email}</dd></dl><button className="copy-all payment-preview__copy" onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</button></aside><div className="payment-panel bank-only-state__message"><h2>Falta configurar la cuota anual</h2><p>Cuando Tesorería defina el monto y las fechas para {year}, podrás elegir tu modalidad y ver tus cuotas aquí.</p></div></section>}
+    </> : bank.id && <section className="bank-only-state"><aside className="payment-panel payment-preview"><header className="payment-preview__header"><span><FiCreditCard aria-hidden="true" /></span><small>Datos del curso</small></header><div className="payment-preview__identity"><small>Datos para transferir</small><h3>{bank.accountHolderName}</h3><p>{bank.bankName} · {bank.accountType}</p></div><dl><dt>RUT</dt><dd>{bank.accountHolderRut}</dd><dt>Número de cuenta</dt><dd>{bank.accountNumber}</dd><dt>Correo</dt><dd>{bank.email}</dd></dl><ActionButton className="copy-all payment-preview__copy" onClick={() => copyBank(bank)}><FiClipboard aria-hidden="true" /> Copiar todos los datos</ActionButton></aside><div className="payment-panel bank-only-state__message"><h2>Falta configurar la cuota anual</h2><p>Cuando Tesorería defina el monto y las fechas para {year}, podrás elegir tu modalidad y ver tus cuotas aquí.</p></div></section>}
   </main></>;
 };

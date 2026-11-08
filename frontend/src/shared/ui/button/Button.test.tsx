@@ -69,14 +69,14 @@ describe('Button Component', () => {
     });
 
     expect(screen.queryByTestId('action-icon')).not.toBeInTheDocument();
-    expect(container.querySelector('.button-loader')).toBeInTheDocument();
+    expect(container.querySelector('.button-loader')).not.toBeInTheDocument();
   });
 
-  it('mantiene Guardando visible por 700 ms en una operación rápida y evita dobles clics', () => {
+  it('mantiene el efecto por 700 ms sin cambiar el texto y evita dobles clics', () => {
     vi.useFakeTimers();
     const page = render(<Button label="Guardar cambios" onClick={mockClick} loading />);
     const button = screen.getByRole('button');
-    expect(button).toHaveTextContent('Guardando…');
+    expect(button).toHaveTextContent('Guardar cambios');
     expect(button).toHaveAttribute('aria-busy', 'true');
     act(() => vi.advanceTimersByTime(100));
     page.rerender(<Button label="Guardar cambios" onClick={mockClick} loading={false} />);
@@ -94,7 +94,7 @@ describe('Button Component', () => {
     vi.useFakeTimers();
     const page = render(<Button label="Guardar" onClick={mockClick} loading />);
     act(() => vi.advanceTimersByTime(1500));
-    expect(screen.getByRole('button')).toHaveTextContent('Guardando…');
+    expect(screen.getByRole('button')).toHaveTextContent('Guardar');
     page.rerender(<Button label="Guardar" onClick={mockClick} loading={false} />);
     act(() => vi.runOnlyPendingTimers());
     expect(screen.getByRole('button')).toBeEnabled();

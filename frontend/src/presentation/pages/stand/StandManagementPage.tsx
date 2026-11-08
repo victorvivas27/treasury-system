@@ -1,4 +1,6 @@
-import { ButtonSpinner } from "@/shared/ui/button/Button";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
+
 import { PiEyeLight, PiEyeClosedLight } from "react-icons/pi";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent,
   type PointerEvent as ReactPointerEvent } from "react";
@@ -17,7 +19,7 @@ import { StandRepositoryImpl } from "@/core/C-infra/repositories/stand/StandRepo
 import { StandUseCases } from "@/core/B-application/use-cases/stand/StandUseCases";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { standCache, readStandResource } from "./standCache";
 import { Tooltip as HintTooltip } from "@/shared/ui/tooltip/Tooltip";
 import { chileDate, chileTime } from "@/shared/date/chileDateTime";
@@ -247,6 +249,7 @@ export const StandManagementPage = () => {
 
   const preparing = !loadError && ((!hasLoadedEvents) || (loading && !cache.events(year).getSnapshot().data) || (eventId !== 0 && loadedStandsEvent !== eventId)
     || (selected && loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}`));
+  usePageEntry(preparing);
   return <>
     <main aria-busy={Boolean(preparing)} className={`stand-page${readOnly ? " stand-page--summary" : ""}`}>
     <header className="stand-page__header">
@@ -267,7 +270,7 @@ export const StandManagementPage = () => {
       </div>
       <fieldset className="stand-event-picker">
         <legend>Elegí un evento</legend>
-        {loading && !hasLoadedEvents ? <div role="status" aria-label="Cargando eventos"><Skeleton /><Skeleton width="60%" /></div> : events.length === 0
+        {loading && !hasLoadedEvents ? null : events.length === 0
           ? <p>No hay eventos en {year}.</p>
           : <div className="stand-event-choices">
             {events.map(item => <label className={`stand-event-choice${eventId === item.id ? " is-selected" : ""}`}
@@ -298,8 +301,8 @@ export const StandManagementPage = () => {
 
     </section>
     {feedback && <p className="stand-page__feedback" role="status">{feedback}</p>}
-    {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={async () => { setLoadError(""); await loadEvents(true); await loadStands(true); await loadOperationalData(true); }}>Reintentar</button></div>}
-    {preparing && !selected && <StandDataSkeleton summary={readOnly} />}
+    {loadError && <div role="alert"><p>{loadError}</p><ActionButton type="button" onClick={async () => { setLoadError(""); await loadEvents(true); await loadStands(true); await loadOperationalData(true); }}>Reintentar</ActionButton></div>}
+
     {!preparing && !loadError && events.length === 0 ? <section className="stand-page__empty">
         <FiAlertTriangle /><h2>{readOnly ? "No hay eventos para consultar" : "Primero crea un evento"}</h2>
         <p>{readOnly ? "Cuando exista un evento con stands, su resumen aparecerá aquí."
@@ -364,10 +367,10 @@ export const StandManagementPage = () => {
                   Math.min(320, window.innerWidth - 24), 430));
                 setCreating(true);
               }}><FiPlus /> Crear stand</button>
-              <button type="button" className="secondary" onClick={async () => {
+              <ActionButton type="button" className="secondary" onClick={async () => {
                 await loadStands(true);
                 await loadOperationalData(true);
-              }} disabled={operationalLoading}><FiRefreshCw /> Recargar</button>
+              }} disabled={operationalLoading}><FiRefreshCw /> Recargar</ActionButton>
               {selected.status !== "CLOSED" &&
                 <button className="secondary" onClick={click => {
                   setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
@@ -382,16 +385,16 @@ export const StandManagementPage = () => {
               }}>
                 <FiTrash2 /> Eliminar stand</button>
               {selected.status === "PREPARATION" &&
-                <button onClick={() => void changeStatus("open")}><FiCheckCircle /> Abrir jornada</button>}
+                <ActionButton onClick={() => changeStatus("open")}><FiCheckCircle /> Abrir jornada</ActionButton>}
               {selected.status === "OPEN" &&
-                <button className="danger" onClick={click => {
+                <ActionButton className="danger" onClick={click => {
                   setModalAnchor(standModalAnchor(click.currentTarget.getBoundingClientRect(),
                     Math.min(280, window.innerWidth - 24), 260));
-                  void requestClose();
+                  return requestClose();
                 }}>
-                  <FiX /> Cerrar jornada</button>}
+                  <FiX /> Cerrar jornada</ActionButton>}
               {selected.status === "CLOSED" &&
-                <button onClick={() => void changeStatus("reopen")}><FiRefreshCw /> Reabrir</button>}
+                <ActionButton onClick={() => changeStatus("reopen")}><FiRefreshCw /> Reabrir</ActionButton>}
             </div>}
             </header>
           </details>
@@ -403,7 +406,7 @@ export const StandManagementPage = () => {
             <button className={tab === "summary" ? "is-active" : ""}
               onClick={() => setTab("summary")}><FiDollarSign /> Resumen</button>
           </nav>}
-          {preparing && loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}` && <StandDataSkeleton summary={readOnly || tab === "summary"} />}
+          {preparing && loadedPanelKey !== `${selected.id}:${readOnly ? "summary" : tab}` && null}
           {loadedPanelKey === `${selected.id}:${readOnly ? "summary" : tab}` && <>
             {!readOnly && tab === "products" && <ProductsPanel stand={selected} products={products}
               onSaved={async message => { await loadOperationalData(true); setFeedback(message); }} />}
@@ -425,7 +428,7 @@ export const StandManagementPage = () => {
       isLoading={deleting}
       confirmIcon={<FiTrash2 />}
       cancelIcon={<FiX />}
-      onConfirm={() => void confirmDelete()}
+      onConfirm={() => confirmDelete()}
       onCancel={() => setStandToDelete(undefined)}
     />
     <ModalConfirm
@@ -439,7 +442,7 @@ export const StandManagementPage = () => {
       isLoading={closing}
       confirmIcon={<FiCheckCircle />}
       cancelIcon={<FiX />}
-      onConfirm={() => void confirmClose()}
+      onConfirm={() => confirmClose()}
       onCancel={() => setCloseSummary(undefined)}
     >
       {closeSummary && <div className="stand-close-summary">
@@ -466,13 +469,7 @@ export const StandManagementPage = () => {
   </main></>;
 };
 
-const StandDataSkeleton = ({ summary }: { summary: boolean }) => <section role="status" aria-label="Cargando datos del stand" aria-busy="true">
-  {summary ? <div className="stand-summary__cards">{["Ganancia neta", "Total vendido", "Efectivo esperado"].map(label =>
-    <article key={label}><div><span>{label}</span></div><strong><Skeleton /></strong></article>)}</div>
-    : <div className="stand-product-grid">{Array.from({ length: 3 }, (_, index) => <article className="stand-product-card" key={index}>
-      <div className="stand-product-card__main"><h3><Skeleton /></h3><p><Skeleton width="65%" /></p><strong><Skeleton /></strong></div>
-    </article>)}</div>}
-</section>;
+
 
 const ProductsPanel = ({ stand, products, onSaved }: {
   stand: Stand; products: StandProduct[]; onSaved: (message: string) => Promise<void>;
@@ -640,8 +637,8 @@ const ProductsPanel = ({ stand, products, onSaved }: {
         </div>
         {productError && <p role="alert">{productError}</p>}
         <footer><button type="button" disabled={savingProduct} onClick={closeForm}><FiX /> Cancelar</button>
-          <button type="submit" disabled={savingProduct} aria-busy={savingProduct}>{savingProduct ? <ButtonSpinner /> : <FiCheckCircle />} {savingProduct ? "Guardando…" : editingProduct
-            ? "Guardar cambios" : "Crear producto"}</button></footer>
+          <ActionButton type="submit" disabled={savingProduct} aria-busy={savingProduct}>{savingProduct ? null : <FiCheckCircle />} {savingProduct ? "Guardando…" : editingProduct
+            ? "Guardar cambios" : "Crear producto"}</ActionButton></footer>
       </form>
     </div>}
     <div className="stand-product-grid">
@@ -699,7 +696,7 @@ const ProductsPanel = ({ stand, products, onSaved }: {
       anchor={deleteAnchor} title="Eliminar producto"
       message={`Se eliminará definitivamente “${productToDelete?.name ?? ""}”.`}
       confirmLabel="Eliminar" cancelLabel="Cancelar" isLoading={deletingProduct}
-      onConfirm={() => void confirmDelete()} onCancel={() => {
+      onConfirm={() => confirmDelete()} onCancel={() => {
         setProductToDelete(undefined); setDeleteAnchor(undefined); setDeleteError("");
       }} />
   </div>;
@@ -1044,7 +1041,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       {saleQueue.map((queued, index) => <article key={queued.clientId}
         className={`is-${queued.status}`}>
         <div><strong>Venta {index + 1}</strong><span>{money.format(queued.total)}</span></div>
-        <small>{queued.status === "registering" && <ButtonSpinner />}{queued.units} {queued.units === 1 ? "unidad" : "unidades"} · {
+        <small>{queued.units} {queued.units === 1 ? "unidad" : "unidades"} · {
           queued.status === "pending" ? "En espera"
             : queued.status === "registering" ? "Registrando…"
               : queued.status === "confirmed" ? "Confirmada" : queued.error}</small>
@@ -1094,7 +1091,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       confirmDisabled={!cancellationReason.trim()}
       confirmIcon={<FiTrash2 />}
       cancelIcon={<FiX />}
-      onConfirm={() => void cancelSale()}
+      onConfirm={() => cancelSale()}
       onCancel={() => {
         setSaleToCancel(undefined);
         setCancellationReason("");
@@ -1119,7 +1116,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       isLoading={deletingSale}
       confirmIcon={<FiTrash2 />}
       cancelIcon={<FiX />}
-      onConfirm={() => void deleteCancelledSale()}
+      onConfirm={() => deleteCancelledSale()}
       onCancel={() => setSaleToDelete(undefined)}
     />
     <ModalConfirm
@@ -1133,7 +1130,7 @@ const SalesPanel = ({ stand, products, sales, onSaved }: {
       confirmDisabled={editItems.length === 0 || editItems.some(item => Number(item.quantity) < 1)}
       confirmIcon={<FiCheckCircle />}
       cancelIcon={<FiX />}
-      onConfirm={() => void updateSale()}
+      onConfirm={() => updateSale()}
       onCancel={() => setSaleToEdit(undefined)}
     >
       <div className="stand-edit-sale">
@@ -1290,10 +1287,10 @@ const StandForm = ({ eventId, event, stand, anchor, onClose, onSaved }: {
             onChange={() => toggleMethod(method)} />{paymentLabels[method]}</label>)}</div>
       </fieldset>
       <footer><button type="button" onClick={onClose}><FiX /> Cancelar</button>
-        <button type="submit" aria-busy={saving} disabled={saving || form.paymentMethods.length === 0}>
-          {saving && <ButtonSpinner />}
+        <ActionButton type="submit" aria-busy={saving} disabled={saving || form.paymentMethods.length === 0}>
+
           {saving ? "Guardando…" : stand ? <><FiCheckCircle /> Guardar cambios</>
-            : <><FiPlus /> Crear stand</>}</button></footer>
+            : <><FiPlus /> Crear stand</>}</ActionButton></footer>
     </form>
   </div>;
 };

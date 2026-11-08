@@ -3,7 +3,7 @@ import { Button } from "@/shared/ui/button/Button";
 import "./style/CrearApoderadoForm.css";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
-import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
+
 import { useEditApoderado } from "@/presentation/hooks/apoderado/useEditApoderado";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { FcHighPriority } from "react-icons/fc";
@@ -48,11 +48,7 @@ export const EditarApoderadoForm = () => {
       <form className="form-card-apoderado">
         {/* Campo Nombre */}
         <div className="form-group-apoderado">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <input
               id="nombre_input"
               name="nombre"
@@ -64,7 +60,7 @@ export const EditarApoderadoForm = () => {
               className={`form-input-apoderado ${fieldErrors.nombre ?
                 'input-error-apoderado input-error' : ''}`}
             />
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="nombre_input" className="floating-label-apoderado form-label-apoderado">
             Nombre completo
           </label>
@@ -76,11 +72,7 @@ export const EditarApoderadoForm = () => {
 
         {/* Campo Email */}
         <div className="form-group-apoderado">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <input
               id="email_input"
               name="email"
@@ -92,7 +84,7 @@ export const EditarApoderadoForm = () => {
               className={`form-input-apoderado ${fieldErrors.email ?
                  'input-error-apoderado input-error' : ''}`}
             />
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="email_input" className="floating-label-apoderado form-label-apoderado">
             Email
           </label>
@@ -103,11 +95,7 @@ export const EditarApoderadoForm = () => {
 
         {/* Campo Teléfono */}
         <div className="form-group-apoderado">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <input
               id="telefono_input"
               name="telefono"
@@ -121,7 +109,7 @@ export const EditarApoderadoForm = () => {
               className={`form-input-apoderado ${fieldErrors.telefono ?
                  'input-error-apoderado input-error' : ''}`}
             />
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="telefono_input" className="floating-label-apoderado form-label-apoderado">
             Teléfono
           </label>
@@ -142,11 +130,7 @@ export const EditarApoderadoForm = () => {
           <label htmlFor="observaciones_input" className="form-label-apoderado">
             Observaciones
             </label>
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <textarea
               id="observaciones_input"
               name="observaciones"
@@ -155,7 +139,7 @@ export const EditarApoderadoForm = () => {
               className="form-input-apoderado"
               placeholder="Escribe aquí..."
             />
-          </SkeletonWrapper>
+          </>}</>
           </div>
         </details>
         <div className="form-actions">

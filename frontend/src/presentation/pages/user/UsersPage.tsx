@@ -1,3 +1,5 @@
+import { useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useEffect, useState } from "react";
 import type { User, UserPayload } from "@/core/A-domain/entities/user/User";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
@@ -20,7 +22,8 @@ export const UsersPage = () => {
   const { user } = useAuth();
   const { users, loading, error, totalPages, pageSize, load, create, update, remove,
     search, setSearch } = useUsers();
-  const [currentPage, setCurrentPage] = useState(0);
+  usePageEntry(loading, error);
+  const [currentPage, setCurrentPage] = useCachedPageState('users:page', 0);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -32,7 +35,7 @@ export const UsersPage = () => {
   }>({ isOpen: false, message: "", type: "success" });
 
   useEffect(() => {
-    load();
+    load(currentPage);
   }, [load]);
 
   const handleCreate = async (payload: UserPayload) => {
@@ -123,7 +126,7 @@ export const UsersPage = () => {
             icon={<FiRefreshCw aria-hidden="true" />}
             variant="secondary"
             loading={loading}
-            onClick={() => void load(currentPage)}
+            onClick={() => load(currentPage)}
             size="medium"
             className="mobile-compact-header-action"
           />

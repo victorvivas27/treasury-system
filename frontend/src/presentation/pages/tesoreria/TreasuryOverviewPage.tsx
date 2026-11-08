@@ -1,8 +1,10 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+
 import { useEffect, useState } from "react";
 import type { TreasuryDashboard } from "@/core/A-domain/entities/treasury/Treasury";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
+
 import "./AnnualFeesPage.css";
 
 const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP",
@@ -10,10 +12,11 @@ const money = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP
 const SCHOOL_YEARS = Array.from({ length: 10 }, (_, index) => 2026 + index);
 
 export const TreasuryOverviewPage = () => {
-  const [year, setYear] = useState(2026);
-  const [dashboard, setDashboard] = useState<TreasuryDashboard | null>(null);
+  const [year, setYear] = useCachedPageState('treasury-overview:year', 2026);
+  const [dashboard, setDashboard] = useCachedPageState<TreasuryDashboard | null>(`treasury-overview:${year}:data`, null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  usePageEntry(loading && !dashboard, error);
 
   useEffect(() => {
     const repository = new TreasuryRepositoryImpl();
@@ -44,11 +47,7 @@ export const TreasuryOverviewPage = () => {
       </label>
     </header>
     <section className="treasury-dashboard" aria-label="Dashboard de tesorería">
-      {loading ? ["Total familias", "Cuota única", "Dos cuotas", "Cuotas pagadas",
-        "Cuotas pendientes", "Monto recaudado", "Monto pendiente"].map(label =>
-        <article className="treasury-dashboard-skeleton" key={label} aria-hidden="true">
-          <span>{label}</span><div className="skeleton-block"><Skeleton height="100%" /></div>
-        </article>) : <>
+      {loading && !dashboard ? null : <>
         <article><span>Total familias</span><strong>{dashboard?.totalFamilies ?? 0}</strong></article>
         <article><span>Cuota única</span><strong>{dashboard?.annualFamilies ?? 0}</strong></article>
         <article><span>Dos cuotas</span><strong>{dashboard?.twoInstallmentFamilies ?? 0}</strong></article>

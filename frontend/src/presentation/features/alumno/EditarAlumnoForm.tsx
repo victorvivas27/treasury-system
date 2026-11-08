@@ -3,7 +3,7 @@ import { useEditAlumno } from "@/presentation/hooks/alumno/useEditAlumno";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { ALUMNOS_ICONS } from "@/shared/constants/Icons";
-import { SkeletonWrapper } from "@/shared/ui/skeletonwrapper/SkeletonWrapper";
+
 import "./style/EditarAlumnoForm.css";
 
 export const EditarAlumnoForm = () => {
@@ -39,11 +39,7 @@ export const EditarAlumnoForm = () => {
       <form className="form-card alumno-edit-form">
         {/* Campo Nombre */}
         <div className="form-group floating-group alumno-edit-form__group">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <input
               id="nombre_input"
               name="nombre"
@@ -54,18 +50,14 @@ export const EditarAlumnoForm = () => {
               placeholder="Juan Carlos Perez"
               className={`form-input ${fieldErrors.nombre ? 'input-error' : ''}`}
             />
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="nombre_input" className="floating-label form-label">Nombre completo</label>
           {fieldErrors.nombre && <span id="alumno-edit-nombre-error" className="error-message" role="alert">{fieldErrors.nombre}</span>}
         </div>
 
         {/* Campo Curso */}
         <div className="form-group floating-group alumno-edit-form__group">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <select
               id="curso_input"
               name="curso"
@@ -83,7 +75,7 @@ export const EditarAlumnoForm = () => {
                 <option key={course} value={course}>{course}</option>
               ))}
             </select>
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="curso_input" className="floating-label form-label">Curso</label>
           {(fieldErrors.curso || coursesError) && (
             <span id="alumno-edit-curso-error" className="error-message" role="alert">{fieldErrors.curso || coursesError}</span>
@@ -91,11 +83,7 @@ export const EditarAlumnoForm = () => {
         </div>
 
         <div className="form-group floating-group alumno-edit-form__group">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="48px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <input
               id="fecha_nacimiento_input"
               name="fechaNacimiento"
@@ -106,7 +94,7 @@ export const EditarAlumnoForm = () => {
               onChange={handleChange}
               className={`form-input ${fieldErrors.fechaNacimiento ? 'input-error' : ''}`}
             />
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="fecha_nacimiento_input" className="floating-label form-label">
             Fecha de nacimiento
           </label>
@@ -114,24 +102,19 @@ export const EditarAlumnoForm = () => {
         </div>
 
         <div className="form-group floating-group alumno-edit-form__group">
-          <SkeletonWrapper isLoading={initialLoading} className="skeleton-name"
-            height="48px" width="100%">
+          <>{!(initialLoading) && <>
             <select id="genero_input" name="genero" value={formData.genero}
               onChange={handleChange} className="form-input">
               <option value="MASCULINO">Masculino</option>
               <option value="FEMENINO">Femenino</option>
               <option value="OTROS">Otros</option>
             </select>
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="genero_input" className="floating-label form-label">Género</label>
         </div>
 
         <div className="form-group floating-group alumno-edit-form__group alumno-edit-form__group--wide">
-          <SkeletonWrapper
-            isLoading={initialLoading}
-            className="skeleton-name"
-            height="72px"
-            width="100%">
+          <>{!(initialLoading) && <>
             <textarea
               id="observacion_input"
               name="observacion"
@@ -143,7 +126,7 @@ export const EditarAlumnoForm = () => {
               maxLength={300}
               className={`form-input alumno-edit-form__textarea ${fieldErrors.observacion ? 'input-error' : ''}`}
             />
-          </SkeletonWrapper>
+          </>}</>
           <label htmlFor="observacion_input" className="floating-label form-label">
             Mensaje / descripción (opcional)
           </label>

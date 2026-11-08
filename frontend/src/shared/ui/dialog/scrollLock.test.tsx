@@ -2,15 +2,19 @@ import { StrictMode, useLayoutEffect } from "react";
 import { render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { ModalConfirm } from "../modalconfirm/ModalConfirm";
-import { LoadingState } from "../loading/LoadingState";
+import { lockBodyScroll } from "./scrollLock";
 import { ModalAlert } from "../modalalert/ModalAler";
 
 afterEach(() => { document.body.style.overflow = ""; });
 const noop = () => {};
+function ScrollOverlay() {
+ useLayoutEffect(() => lockBodyScroll(), []);
+ return null;
+}
 function Overlays({ modal, loading }: { modal: boolean; loading: boolean }) {
  return <StrictMode>
   <ModalConfirm isOpen={modal} message="Confirmar" onConfirm={noop} onCancel={noop} />
-  {loading && <LoadingState />}
+  {loading && <ScrollOverlay />}
  </StrictMode>;
 }
 it.each([true, false])("restaura el scroll al cerrar overlays en distinto orden: %s", (closeModalFirst) => {

@@ -1,6 +1,6 @@
 import { MobileNavigation } from "./mobile/MobileNavigation";
 import { RouteSuccessToast } from "@/shared/ui/modalalert/RouteSuccessToast";
-import { Outlet } from "react-router-dom";
+import { PageTransitionOutlet } from '@/shared/ui/loading/PageTransition';
 import { Sidebar } from "@/shared/layouts/sidebar/Sidebar";
 import "./MainLayout.css";
 import { useSidebarBehavior } from "@/presentation/hooks/sidebar/useSidebarBehavior";
@@ -28,7 +28,7 @@ const auth = useOptionalAuth();
         onNavLinkClick={onNavLinkClick}
       />
       <section inert={isMobile && isSidebarOpen} className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
-        <Outlet />
+        <PageTransitionOutlet />
         <AppFooter />
       </section>
       <RouteSuccessToast />

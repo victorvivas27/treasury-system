@@ -133,8 +133,3 @@
     flex-wrap: wrap;
   }
 }
-
-.loading-action-placeholder {
-  visibility: hidden;
-  pointer-events: none;
-}

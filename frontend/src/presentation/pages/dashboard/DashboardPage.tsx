@@ -1,3 +1,4 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiActivity, FiCamera, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
@@ -16,7 +17,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
-import { DashboardDataSkeleton } from "@/shared/ui/skeleton/DataSkeletons";
+
 import { birthdayResource, boardMessageResource, dashboardYear, getDashboardResources, useDashboardResource } from "./dashboardCache";
 import "./DashboardPage.css";
 import { loginPerformance } from "@/shared/performance/loginPerformance";
@@ -52,6 +53,7 @@ export const DashboardPage = () => {
   const error = summary.error ? "No fue posible actualizar el dashboard." : "";
   const preparing = !summary.error && (!data || (!profits.data && !profits.error)
     || (!birthdays.data && !birthdays.error) || (!boardMessage.data && !boardMessage.error));
+  usePageEntry(preparing);
   const [selectedAudits, setSelectedAudits] = useState<Set<number>>(new Set());
   const [cleanup, setCleanup] = useState<"selected" | "all" | null>(null);
   const [cleanupMessage, setCleanupMessage] = useState("");
@@ -157,7 +159,7 @@ export const DashboardPage = () => {
         className="dashboard-capture-button" icon={<FiCamera aria-hidden="true" />}
         loading={capturing} disabled={loading || !data}
         variant="secondary" size="small" ariaLabel="Capturar dashboard completo"
-        onClick={() => void captureDashboard()} />
+        onClick={() => captureDashboard()} />
       </span>
       <button type="button" className="dashboard-suggestion-button"
         data-dashboard-capture-exclude="true"
@@ -183,7 +185,7 @@ export const DashboardPage = () => {
     </header>
 
     {error && !loading && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => void load()} />}
-    {!data && preparing && <DashboardDataSkeleton />}
+
     {data && <>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <section className="dashboard-summary-group dashboard-summary-group--money" aria-labelledby="dashboard-money-title">
@@ -450,7 +452,7 @@ export const DashboardPage = () => {
       message={cleanup === "all"
         ? `Se eliminará definitivamente todo el historial de Tesorería de ${year}.`
         : `Se eliminarán definitivamente ${selectedAudits.size} trazas seleccionadas.`}
-      confirmLabel="Sí, limpiar" onConfirm={() => void clearAudits()}
+      confirmLabel="Sí, limpiar" onConfirm={() => clearAudits()}
       onCancel={() => setCleanup(null)} />}
     <ModalAlert isOpen={Boolean(cleanupMessage)} type="success"
       message={cleanupMessage} onClose={() => setCleanupMessage("")} />

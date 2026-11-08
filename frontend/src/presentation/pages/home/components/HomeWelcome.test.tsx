@@ -1,12 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { HomeWelcome } from './HomeWelcome';
+import { homeCourseCache } from '../hooks/homeCourseCache';
 
 const { settings } = vi.hoisted(() => ({ settings: vi.fn() }));
 vi.mock('@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl', () => ({
   TreasuryRepositoryImpl: class { getManagedCourseSettings = settings; },
 }));
-beforeEach(() => { settings.mockResolvedValue({ course: '2° A', schoolYear: 2027 }); });
+beforeEach(() => { homeCourseCache.clear(); settings.mockResolvedValue({ course: '2° A', schoolYear: 2027 }); });
 
 it('welcomes the configured course without displaying the year and follows configuration changes', async () => {
   render(<HomeWelcome />);

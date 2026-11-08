@@ -1,5 +1,8 @@
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { notifyHomeCommunityChanged } from "@/shared/community/homeCommunityEvents";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { useCallback, useEffect, useState } from "react";
 import { FiCamera, FiSave, FiTrash2, FiUpload } from "react-icons/fi";
 import type { CoursePhoto } from "@/core/A-domain/entities/community/CoursePhoto";
@@ -7,32 +10,39 @@ import { coursePhotos } from "@/core/C-infra/repositories/community/CoursePhotoR
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import "./CoursePhotoManagementPage.css";
+import { coursePhotoImageCache } from './coursePhotoImageCache';
 
 export const CoursePhotoManagementPage = () => {
-  const [photos, setPhotos] = useState<CoursePhoto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [publishedPhotos, setPublishedPhotos] = useCachedPageState<CoursePhoto[]>('gallery:photos', []);
+  const [photos, setPhotos] = useState(() => publishedPhotos);
+  const [cachedAtEntry] = useState(() => hasPageData('gallery:photos'));
+  const [fetching, setLoading] = useState(!cachedAtEntry);
+  const loading = fetching && !cachedAtEntry;
   const [imagesLoading, setImagesLoading] = useState(false);
-  const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
+  const [photoUrls, setPhotoUrls] = useState<Record<number, string>>(() => Object.fromEntries(
+    photos.flatMap(photo => { const url = coursePhotoImageCache.peek(photo); return url ? [[photo.id, url]] : []; })));
+  const [imageError, setImageError] = useState(false);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [deletePhoto, setDeletePhoto] = useState<CoursePhoto>();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  usePageEntry(loading || imagesLoading || (!imageError && photos.some(photo => !photoUrls[photo.id])), error);
   const load = useCallback(async () => {
-    try { setPhotos(await coursePhotos.list()); } catch { setError("No fue posible cargar la galería."); }
+    try { const listed = await coursePhotos.list(); setPublishedPhotos(listed); setPhotos(listed); } catch { setError("No fue posible cargar la galería."); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     let active = true;
-    setImagesLoading(photos.length > 0);
-    const urls: string[] = [];
+    setImagesLoading(photos.some(photo => !coursePhotoImageCache.peek(photo)));
+    setImageError(false);
     void Promise.all(photos.map(async photo => {
-      const url = await coursePhotos.loadImageUrl(photo); urls.push(url); return [photo.id, url] as const;
+      const url = await coursePhotoImageCache.load(photo); return [photo.id, url] as const;
     })).then(entries => { if (active) setPhotoUrls(Object.fromEntries(entries)); })
-      .catch(() => { if (active) setPhotoUrls({}); })
+      .catch(() => { if (active) { setImageError(true); setError('No fue posible cargar las imágenes de la galería.'); } })
       .finally(() => { if (active) setImagesLoading(false); });
-    return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)); };
+    return () => { active = false; };
   }, [photos]);
 
   const upload = async (file?: File) => {
@@ -57,13 +67,13 @@ export const CoursePhotoManagementPage = () => {
     <header><span>Administración de la Home</span><h1>Fotos del curso</h1>
       <p>Publica recuerdos para la galería de “Nuestros momentos”.</p></header>
     <section className="course-photo-admin__upload">
-      <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{loading ? <Skeleton /> : `${photos.length} fotos publicadas`}</p></div>
+      <FiCamera aria-hidden="true" /><div><h2>Nueva foto</h2><p>{loading ? null : `${photos.length} fotos publicadas`}</p></div>
       <label className="course-photo-admin__caption-field">
         <input value={caption} maxLength={160} placeholder="Descripción breve (opcional)"
           onChange={event => setCaption(event.target.value)} disabled={uploading} />
         <small>{caption.length}/160 caracteres</small>
       </label>
-      <label className={uploading ? "is-disabled" : ""}><FiUpload />
+      <label className={uploading ? "is-disabled" : ""} aria-busy={uploading}><FiUpload />
         {uploading ? "Subiendo…" : "Seleccionar imagen"}<input type="file" accept="image/jpeg,image/png,image/webp"
           aria-describedby="course-photo-upload-guide"
           disabled={uploading} onChange={event => { void upload(event.target.files?.[0]); event.target.value = ""; }} /></label>
@@ -75,22 +85,22 @@ export const CoursePhotoManagementPage = () => {
       </aside>
     </section>
     <div className="course-photo-admin__grid">
-      {loading && <div role="status" aria-label="Cargando fotos"><Skeleton height="10rem" /></div>}
+
       {photos.map(photo => <article key={photo.id}>
-        {!photoUrls[photo.id] && imagesLoading ? <Skeleton height="10rem" />
+        {!photoUrls[photo.id] && imagesLoading ? null
           : <img src={photoUrls[photo.id]} alt={photo.caption || "Foto del curso"} />}
         <label>Descripción<input maxLength={160} value={photo.caption ?? ""}
           onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, caption: event.target.value } : item))} />
           <small>{(photo.caption ?? "").length}/160 caracteres</small></label>
         <label>Posición<input type="number" min={0} value={photo.displayOrder}
           onChange={event => setPhotos(current => current.map(item => item.id === photo.id ? { ...item, displayOrder: Number(event.target.value) } : item))} /></label>
-        <footer><button onClick={() => void save(photo)}><FiSave /> Guardar</button>
+        <footer><ActionButton onClick={() => save(photo)}><FiSave /> Guardar</ActionButton>
           <button className="is-danger" onClick={() => setDeletePhoto(photo)}><FiTrash2 /> Eliminar</button></footer>
       </article>)}
       {!loading && !error && photos.length === 0 && <p className="course-photo-admin__empty">Aún no hay fotos publicadas.</p>}
     </div>
     <ModalConfirm isOpen={Boolean(deletePhoto)} title="Eliminar foto" message="¿Deseas eliminar esta foto de la galería y del almacenamiento?"
-      confirmLabel="Eliminar" confirmVariant="danger" onConfirm={() => void remove()} onCancel={() => setDeletePhoto(undefined)} />
+      confirmLabel="Eliminar" confirmVariant="danger" onConfirm={() => remove()} onCancel={() => setDeletePhoto(undefined)} />
     <ModalAlert isOpen={Boolean(message)} type="success" message={message} onClose={() => setMessage("")} />
     <ModalAlert isOpen={Boolean(error)} type="error" message={error} onClose={() => setError("")} />
   </section>;

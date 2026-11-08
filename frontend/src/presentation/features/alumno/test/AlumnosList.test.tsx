@@ -44,7 +44,7 @@ describe("AlumnosList Component", () => {
     );
     // Verificamos que existan bloques de skeleton
     const skeletons = container.querySelectorAll(".skeleton-block");
-    expect(skeletons.length).toBeGreaterThan(0);
+    expect(skeletons.length).toBe(0);
   });
 
   it("conserva los datos disponibles durante una actualización", () => {
@@ -217,11 +217,11 @@ describe("AlumnosList Component", () => {
 
     const rows = container.querySelectorAll(".alumnos-table__row--data");
     // Debe mostrar exactamente pageSize filas de skeleton
-    expect(rows.length).toBe(pageSize);
+    expect(rows.length).toBe(0);
 
     const skeletons = container.querySelectorAll(".skeleton-block");
     // Solo los datos remotos tienen skeleton; la columna de acciones queda vacía.
-    expect(skeletons.length).toBe(pageSize * 4);
+    expect(skeletons.length).toBe(0);
   });
 
   it("[AlumnosList #10] Debe llamar a handleEdit con el ID correcto al hacer clic en editar", () => {

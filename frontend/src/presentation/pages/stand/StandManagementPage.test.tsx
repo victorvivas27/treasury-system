@@ -41,8 +41,9 @@ describe("StandManagementPage navigation", () => {
     list.mockResolvedValue([{ id: 10, eventId: 1, name: "Pizza", status: "OPEN", responsible: "Curso", date: "2026-10-21", startTime: "10:00", endTime: "18:00" }]);
     loadStandPanelData.mockResolvedValue({ products: [] });
     const first = render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
-    expect(screen.getByRole("status", { name: "Cargando datos del stand" })).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument());
+    expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument();
+    await screen.findByRole("radio", { name: /Evento/ });
+    await waitFor(() => expect(loadStandPanelData).toHaveBeenCalledTimes(1));
     first.unmount();
     render(<MemoryRouter><StandManagementPage /></MemoryRouter>);
     expect(screen.queryByRole("status", { name: "Cargando datos del stand" })).not.toBeInTheDocument();

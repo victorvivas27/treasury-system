@@ -2,10 +2,10 @@ import { StrictMode } from 'react'
 import '@/shared/pwa/installApp'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
-import { LoadingState } from '@/shared/ui/loading/LoadingState'
+
 import App from '@/presentation/App'
 import '@/shared/style/ResponsiveDataList.css'
-import '@/shared/ui/skeleton/Skeleton.css'
+
 import '@/shared/style/MobileControls.css'
 import { captureInitialAccountLinkToken, isAccountLinkPath } from '@/shared/security/accountLinkToken'
 
@@ -23,7 +23,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
       const cover = document.createElement('div')
       document.body.appendChild(cover)
       const coverRoot = createRoot(cover)
-      flushSync(() => coverRoot.render(<LoadingState message="Actualizando tu espacio" />))
+      flushSync(() => coverRoot.render(null))
       requestAnimationFrame(() => requestAnimationFrame(() => window.location.reload()))
     }
 

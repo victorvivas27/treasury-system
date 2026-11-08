@@ -1,5 +1,6 @@
+import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { Link } from "react-router-dom";
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+
 import { IoBalloonOutline } from "react-icons/io5";
 
 import { getDashboardResources, useDashboardResource } from "./dashboardCache";
@@ -14,12 +15,9 @@ export const EventProfitCards = ({ year }: { year: number }) => {
   const profits = data ?? [];
   const loading = !data && !error;
   return <section className="dashboard-event-profits" aria-label="Ganancias de eventos cerrados">
-    {loading ? <article className="dashboard-event-profit" role="status" aria-label="Cargando ganancias de eventos" aria-busy="true">
-      <div className="dashboard-event-profit__content"><span>Evento cerrado</span>
-        <h2><Skeleton /></h2><span><Skeleton width="60%" /></span><strong><Skeleton /></strong></div>
-    </article> : error ?
-      <p role="alert">No fue posible cargar las ganancias. <button type="button"
-        onClick={() => void resource.load(true)}>Reintentar</button></p> : profits.length === 0 ?
+    {loading ? null : error ?
+      <p role="alert">No fue posible cargar las ganancias. <ActionButton type="button"
+        onClick={() => resource.load(true)}>Reintentar</ActionButton></p> : profits.length === 0 ?
       <p>No hay eventos con distribución confirmada en {year}.</p> : profits.map(event =>
         <article key={event.id} className="dashboard-event-profit" aria-label={event.name}>
           <span className="dashboard-event-profit__icon"><IoBalloonOutline aria-hidden="true" /></span>

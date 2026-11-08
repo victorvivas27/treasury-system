@@ -83,20 +83,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const validatedToken = useRef<string | null>(null);
 
   useEffect(() => {
-    if (loading) return;
+    if (!import.meta.env.DEV || loading) return;
     const loader = document.getElementById("app-boot-loader");
     const root = document.getElementById("root");
     if (!loader || !root) return;
     let removeTimer: number | undefined;
     let paintFrame: number | undefined;
+    const leaveLoader = () => {
+      loader.setAttribute("aria-hidden", "true");
+      loader.classList.add("is-leaving");
+      const exitDuration = ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
+        ? (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0
+          : Number(loader.dataset.exitDuration) || (loader.dataset.variant === "video" ? 1400 : 800)) : 180;
+      removeTimer = window.setTimeout(() => loader.remove(), exitDuration);
+    };
     const hideLoader = () => {
       const appStyles = document.querySelector("link[data-app-styles]");
       const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
       if (!root.firstElementChild || !stylesReady || paintFrame !== undefined) return;
       paintFrame = window.requestAnimationFrame(() => {
-        loader.setAttribute("aria-hidden", "true");
-        loader.classList.add("is-leaving");
-        removeTimer = window.setTimeout(() => loader.remove(), 180);
+        window.dispatchEvent(new Event("app:boot-ready"));
+        const previewRemaining = import.meta.env.DEV && ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
+          ? Math.max(0, Math.min(20000, Number(loader.dataset.previewUntil || 0) - performance.now())) : 0;
+        if (previewRemaining > 0) removeTimer = window.setTimeout(leaveLoader, previewRemaining);
+        else leaveLoader();
         observer.disconnect();
       });
     };

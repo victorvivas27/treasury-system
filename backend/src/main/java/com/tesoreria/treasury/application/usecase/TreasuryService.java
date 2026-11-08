@@ -469,6 +469,9 @@ public class TreasuryService implements TreasuryUseCase {
         if (familyId == null || familyId <= 0) {
             throw error(TreasuryErrorCode.INVALID, "La familia es inválida");
         }
+        if (repository.hasCollectionFamily(familyId)) {
+            throw error(TreasuryErrorCode.CONFLICT, "La familia participa en una recaudación; desactívala para conservar su historial");
+        }
         repository.deleteFamilyTreasuryData(familyId);
     }
 
@@ -601,6 +604,9 @@ public class TreasuryService implements TreasuryUseCase {
         if (correctionReason == null || correctionReason.isBlank()) {
             throw error(TreasuryErrorCode.INVALID, "El motivo de la corrección es obligatorio");
         }
+        if (repository.isCollectionExpense(id)) {
+            throw error(TreasuryErrorCode.CONFLICT, "Anula el movimiento y registra la corrección desde Recaudaciones");
+        }
         TreasuryExpense saved = repository.saveExpense(new TreasuryExpense(current.id(),
                 current.schoolYear(), description.trim(), amount.setScale(0, RoundingMode.UNNECESSARY),
                 expenseDate, category, paymentMethod, normalize(recipient), normalize(receiptNumber),
@@ -730,6 +736,9 @@ public class TreasuryService implements TreasuryUseCase {
         if (correctionReason == null || correctionReason.isBlank()) {
             throw error(TreasuryErrorCode.INVALID, "El motivo de la corrección es obligatorio");
         }
+        if (repository.isCollectionIncome(id)) {
+            throw error(TreasuryErrorCode.CONFLICT, "Anula el movimiento y registra la corrección desde Recaudaciones");
+        }
         TreasuryIncome saved = repository.saveIncome(new TreasuryIncome(current.id(),
                 current.schoolYear(), description.trim(), amount.setScale(0, RoundingMode.UNNECESSARY),
                 incomeDate, category, normalize(source), paymentMethod, normalize(receiptNumber),
@@ -768,6 +777,9 @@ public class TreasuryService implements TreasuryUseCase {
     @CacheEvict(value = CacheNames.TREASURY_DASHBOARD_OVERVIEW, key = TenantCacheKeys.ORGANIZATION_SCOPE)
     public void deleteIncome(Long id) {
         getIncome(id);
+        if (repository.isCollectionIncome(id)) {
+            throw error(TreasuryErrorCode.CONFLICT, "El ingreso pertenece al historial de una recaudación; puedes anularlo");
+        }
         repository.deleteAudits(INCOME_AUDIT_TYPE, String.valueOf(id));
         repository.deleteIncome(id);
     }

@@ -40,11 +40,6 @@
   font-size: 0.85rem;
 }
 
-.events-skeleton{display:grid;grid-template-columns:220px 1fr;gap:var(--space-4)}.events-skeleton-list,.events-skeleton-content{display:grid;gap:0.8rem}.events-skeleton-card,.events-skeleton-summary,.events-skeleton-course{border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.1rem;background:var(--color-surface);box-shadow:var(--shadow-card)}.events-skeleton-card{display:grid;gap:var(--space-2)}.events-skeleton-card .skeleton-block:first-child{width:65%;height:1rem}.events-skeleton-card .skeleton-block:last-child{width:85%;height:0.75rem}.events-skeleton-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-8);min-height:108px}.events-skeleton-summary>div:first-child{display:grid;gap:0.6rem;flex:1}.events-skeleton-summary>div:first-child .skeleton-block:first-child{width:25%;height:0.75rem}.events-skeleton-summary>div:first-child .skeleton-block:last-child{width:48%;height:1.5rem}.events-skeleton-summary>div:last-child{width:30%;height:2.5rem}.events-skeleton-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:0.6rem}.events-skeleton-metrics .skeleton-block{height:4.25rem;border-radius:var(--radius-md)}.events-skeleton-title{width:13rem;height:1.5rem;margin-top:0.6rem}.events-skeleton-courses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.8rem}.events-skeleton-course{display:grid;gap:0.8rem;min-height:150px}.events-skeleton-course .skeleton-block:nth-child(1){width:45%;height:1.2rem}.events-skeleton-course .skeleton-block:nth-child(2),.events-skeleton-course .skeleton-block:nth-child(3){height:1rem}
-
-@media(max-width:1000px){.events-skeleton-metrics{grid-template-columns:repeat(3,1fr)}.events-skeleton-courses{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){.events-skeleton{grid-template-columns:1fr}.events-skeleton-list{grid-template-columns:repeat(3,minmax(180px,1fr));overflow:hidden}.events-skeleton-metrics,.events-skeleton-courses{grid-template-columns:1fr}}
-
 @media(max-width:480px){
   .events-page{width:calc(100% - 1rem)}
   .events-header>button,.event-actions button,.event-section-title button,.settlement-preview button{width:100%;justify-content:center}

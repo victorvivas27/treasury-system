@@ -16,7 +16,7 @@ describe("UserAvatar", () => {
     }} />);
     const avatar = screen.getByLabelText("Avatar de Ana Pérez");
     expect(avatar).toHaveAttribute("aria-busy", "true");
-    expect(container.querySelector(".user-avatar__skeleton")).toBeInTheDocument();
+    expect(container.querySelector(".user-avatar__skeleton")).not.toBeInTheDocument();
     expect(screen.queryByText("AP")).not.toBeInTheDocument();
     await act(async () => resolve("blob:avatar"));
     expect(avatar).toHaveAttribute("aria-busy", "true");

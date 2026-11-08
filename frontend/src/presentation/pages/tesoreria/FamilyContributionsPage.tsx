@@ -1,4 +1,6 @@
-import { Skeleton } from "@/shared/ui/skeleton/Skeleton";
+import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
+
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
 import { useDialogFocus } from "@/shared/ui/dialog/useDialogFocus";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -14,8 +16,8 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { ModalConfirm } from "@/shared/ui/modalconfirm/ModalConfirm";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
-import { CardValueSkeleton } from "@/shared/ui/skeleton/Skeleton";
-import "@/shared/ui/skeletonwrapper/SkeletonWrapper.css";
+
+
 import "./FamilyContributionsPage.css";
 
 const repository = new TreasuryRepositoryImpl();
@@ -39,16 +41,17 @@ type PendingAction = { kind: "pay" | "cancel"; type: ContributionType } | null;
 export const FamilyContributionsPage = () => {
   const { user } = useAuth();
   const canManage = isAdminRole(user?.rol);
-  const [year, setYear] = useState(currentYear);
-  const [items, setItems] = useState<FamilyContribution[]>([]);
-  const [summary, setSummary] = useState(emptySummary);
-  const [search, setSearch] = useState("");
-  const [course, setCourse] = useState("");
-  const [cepaStatus, setCepaStatus] = useState("");
-  const [solidarityStatus, setSolidarityStatus] = useState("");
+  const [year, setYear] = useCachedPageState('contributions:year', currentYear);
+  const [search, setSearch] = useCachedPageState('contributions:search', "");
+  const [course, setCourse] = useCachedPageState('contributions:course', "");
+  const [cepaStatus, setCepaStatus] = useCachedPageState('contributions:cepaStatus', "");
+  const [solidarityStatus, setSolidarityStatus] = useCachedPageState('contributions:solidarityStatus', "");
+  const scope = `contributions:${JSON.stringify([year, search, course, cepaStatus, solidarityStatus])}`;
+  const [items, setItems] = useCachedPageState<FamilyContribution[]>(`${scope}:items`, []);
+  const [summary, setSummary] = useCachedPageState(`${scope}:summary`, emptySummary);
   const [selected, setSelected] = useState<FamilyContribution | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(() => hasPageData(`${scope}:items`, `${scope}:summary`));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -63,6 +66,7 @@ export const FamilyContributionsPage = () => {
   const selectedDialog = useDialogFocus(Boolean(selected), () => setSelected(null), saving || Boolean(pendingAction));
   const filterDialog = useDialogFocus(filtersOpen, () => setFiltersOpen(false));
   const initialLoading = loading && !hasLoaded;
+  usePageEntry(initialLoading, loadError);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -168,11 +172,7 @@ export const FamilyContributionsPage = () => {
 
       {loadError && <FeedbackState message={loadError} actionText="Reintentar" onRefresh={() => void load()} />}
       <section className="contributions-summary" aria-label="Resumen de aportes">
-        {initialLoading ? ["Total familias", "CEPA pagada", "CEPA pendiente",
-          "Fondo de Apoyo por Fallecimiento pagado", "Fondo de Apoyo por Fallecimiento pendiente", "Completamente al día"].map(label =>
-          <article className="contribution-summary-skeleton" key={label}>
-            <div><span>{label}</span></div><CardValueSkeleton />
-          </article>) : loadError ? <p role="status">Resumen de aportes no disponible.</p> : <>
+        {initialLoading ? null : loadError ? <p role="status">Resumen de aportes no disponible.</p> : <>
           <SummaryCard label="Total familias" value={summary.totalFamilies} tone="families"
             icon={<FiUsers />} />
           <SummaryCard label="CEPA" statusLabel="Pagada" value={summary.cepaPaid} tone="cepa-paid"
@@ -231,7 +231,7 @@ export const FamilyContributionsPage = () => {
       </aside></div>}
 
       {initialLoading ? (
-        <ContributionsSkeleton />
+        null
       ) : loadError ? null : items.length === 0 ? (
         <p className="contributions-page__empty">No hay familias para los filtros seleccionados.</p>
       ) : (
@@ -374,24 +374,7 @@ const SummaryCard = ({ label, statusLabel, value, icon, tone }: {
   <strong>{value}</strong>
 </article>;
 
-const ContributionsSkeleton = () => (
-  <section className="contributions-grid" aria-label="Cargando familias" role="status">
-    {Array.from({ length: PAGE_SIZE }, (_, index) => (
-      <article className="contribution-card contribution-card--skeleton" key={index}
-        aria-hidden="true">
-        <div className="contribution-card__heading">
-          <div><div className="skeleton-block"><Skeleton height="100%" /></div><div className="skeleton-block"><Skeleton height="100%" /></div></div>
-          <div className="skeleton-block"><Skeleton height="100%" /></div>
-        </div>
-        <div className="skeleton-block contribution-badge-skeleton"><Skeleton height="100%" /></div>
-        <div className="skeleton-block contribution-badge-skeleton"><Skeleton height="100%" /></div>
-        <button type="button" className="loading-action-placeholder" disabled>
-          Gestionar aportes
-        </button>
-      </article>
-    ))}
-  </section>
-);
+
 
 const Filter = ({ label, value, onChange, options, labels, allLabel = "Todos" }: {
   label: string; value: string; onChange: (value: string) => void; options: string[];

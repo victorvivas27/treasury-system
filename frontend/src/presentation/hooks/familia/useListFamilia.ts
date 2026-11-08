@@ -1,7 +1,8 @@
 
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { hasPageData, useCachedPageState, readPageData, storePageData, pageDataSession } from '../useCachedPageState';
 import { ListAlumnoApoderadoUseCase } from "@/core/B-application/use-cases/familia/list/ListAlumnoApoderadoUseCase";
 
 interface UseListFamiliaOptions {
@@ -11,37 +12,47 @@ interface UseListFamiliaOptions {
 
 export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   const { initialPage = 0, pageSize = 5 } = options;
-  const [familia, setFamilia] = useState<FamiliaDetalle[]>([]);
+  const scope = `familias:${pageSize}:${initialPage}`;
+  const [familia, setFamilia] = useCachedPageState<FamiliaDetalle[]>(`${scope}:items`, []);
   const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(() => hasPageData(`${scope}:items`, `${scope}:totalPages`, `${scope}:totalElements`));
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
-  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useCachedPageState(`${scope}:page`, initialPage);
+  const [totalPages, setTotalPages] = useCachedPageState(`${scope}:totalPages`, 0);
+  const [totalElements, setTotalElements] = useCachedPageState(`${scope}:totalElements`, 0);
+  const [search, setSearch] = useState(() => readPageData<string>(`${scope}:search`) ?? '');
+  const entryPage = useRef(currentPage);
+  const requestSequence = useRef(0);
   const getFamiliaByAlumnoUseCase = useMemo(
     () => new ListAlumnoApoderadoUseCase(new FamiliaRepositoryImpl()),
     [],
   );
 
   const fetchFamilia = useCallback(async (page: number) => {
+    const request = ++requestSequence.current;
+    const requestSession = pageDataSession();
     try {
       setLoading(true);
       setError(null);
 
       const data = await getFamiliaByAlumnoUseCase.execute(page, pageSize, search);
+  if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
+      storePageData(`${scope}:search`, search, requestSession);
 
       setFamilia(data.content);
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
       setCurrentPage(data.page);
     } catch (err) {
+      if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
       setError(
         err instanceof Error ? err.message : "Error al cargar familias",
       );
     } finally {
-      setHasLoaded(true);
-      setLoading(false);
+      if (request === requestSequence.current && requestSession === pageDataSession()) {
+        setHasLoaded(true);
+        setLoading(false);
+      }
     }
   }, [getFamiliaByAlumnoUseCase, pageSize, search]);
 
@@ -68,7 +79,8 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   }, []);
 
   useEffect(() => {
-    fetchFamilia(initialPage);
+    fetchFamilia(entryPage.current);
+    entryPage.current = initialPage;
   }, [fetchFamilia, initialPage]);
 
   const hasNextPage = currentPage + 1 < totalPages;

@@ -1,9 +1,0 @@
-.schedule-skeleton-editor-block {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.schedule-skeleton-selector > span { display: grid; place-items: center; min-width: 0; min-height: 44px; }
-.schedule-skeleton-editor .schedule-skeleton-editor-block { --schedule-type-color: var(--text-muted); }
-.schedule-skeleton-time-field { display: grid; gap: 0.3rem; min-width: 0; margin-block: 0.4rem; }
