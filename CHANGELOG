@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.43.0](https://github.com/victorvivas27/treasury-system/compare/v1.42.3...v1.43.0) (2026-11-08)
+
+
+### Features
+
+* **treasury:** incorpora fondos por actividad con comprobantes de pago ([8f12ccf](https://github.com/victorvivas27/treasury-system/commit/8f12ccf5e2efeef90cfa36083bd2e9b9e100cac8))
+
+
+### Bug Fixes
+
+* **ci:** usa la version de pnpm definida en package.json ([d399ba0](https://github.com/victorvivas27/treasury-system/commit/d399ba03a05bb110a650a88598955f57b7fab8f9))
+* **treasury:** preserve collection movement dates across time zones ([1e37eed](https://github.com/victorvivas27/treasury-system/commit/1e37eed69b50cfaa897c7c3d7fdc568a6d6732fa))
+* **treasury:** preserve collection movement dates across time zones ([86c9db4](https://github.com/victorvivas27/treasury-system/commit/86c9db40209e513ef3515749c41a3432618842f5))
+
 ## [1.42.3](https://github.com/victorvivas27/treasury-system/compare/v1.42.2...v1.42.3) (2026-11-04)
 
 
