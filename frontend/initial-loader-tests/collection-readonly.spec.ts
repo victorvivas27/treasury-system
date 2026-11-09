@@ -29,7 +29,7 @@ test('users read funds and both guardian profiles show one shared family payment
       : [];
     return route.fulfill({ json });
   });
-  await page.goto('/tesoreria/recaudaciones?loaderDelay=0', { waitUntil: 'commit' });
+  await page.goto('/tesoreria/fondos-por-actividad?loaderDelay=0', { waitUntil: 'commit' });
   await expect(page.getByRole('heading', { name: 'Fondos por actividad' })).toBeVisible({ timeout: 60000 });
   await expect(page.getByText(/Solo lectura/)).toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Pagó Alumno de prueba' })).toBeDisabled();

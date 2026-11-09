@@ -36,7 +36,7 @@ describe('Comprobantes de fondos por actividad', () => {
       expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
     }
     fireEvent.click(screen.getByText(/Historial ·/));
-    expect(await screen.findByRole('button', { name: 'Descargar comprobante' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ver comprobante' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: 'Pagó Ana' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(useCases.collect).not.toHaveBeenCalled();

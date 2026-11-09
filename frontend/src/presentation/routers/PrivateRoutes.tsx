@@ -58,7 +58,8 @@ export const PrivateRoutes = () => {
           <Route path="tesoreria/ingresos" element={<IncomesPage />} />
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
           <Route path="tesoreria/pagos" element={<PaymentsPage />} />
-          <Route path="tesoreria/recaudaciones" element={<CollectionsPage />} />
+          <Route path="tesoreria/fondos-por-actividad" element={<CollectionsPage />} />
+          <Route path="tesoreria/recaudaciones" element={<Navigate to="/tesoreria/fondos-por-actividad" replace />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />

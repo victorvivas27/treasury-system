@@ -6,6 +6,7 @@
 .profile-page { min-height:100%; padding:var(--page-padding); color:var(--text-main); background:radial-gradient(circle at 15% 5%, var(--color-accent-soft), transparent 30rem), var(--color-bg); }
 .profile-card { display:grid; width:min(100%, var(--content-max)); margin-inline:auto; gap:var(--section-gap); align-items:start; }
 .profile-card > section { min-width:0; }
+.profile-personal-column { display:contents; }
 .profile-identity { position:relative; isolation:isolate; overflow:hidden; padding:var(--space-6); border:1px solid var(--tone-neutral-light-034); border-radius:var(--radius-card); color:var(--tone-neutral-light-038); background:linear-gradient(125deg, var(--tone-primary-002), var(--tone-info-001) 52%, var(--tone-info-006)); box-shadow:var(--shadow-card); }
 .profile-identity::after { position:absolute; right:-4rem; top:-7rem; z-index:-1; width:17rem; height:17rem; border:1px solid var(--tone-neutral-light-033); border-radius:var(--radius-round); box-shadow:0 0 0 2.8rem var(--tone-neutral-light-026), 0 0 0 5.6rem var(--tone-neutral-light-025); content:""; }
 .profile-identity-glow { position:absolute; bottom:-5rem; left:24%; z-index:-1; width:14rem; height:14rem; border-radius:var(--radius-round); background:var(--tone-info-021); filter:blur(38px); }
@@ -22,6 +23,12 @@
 .profile-role { background:var(--tone-neutral-light-029); color:var(--tone-neutral-light-038); }
 .profile-real-data, .profile-family-feedback { padding:var(--card-padding); border:1px solid var(--border-color); border-radius:var(--radius-card); background:var(--color-surface); box-shadow:var(--shadow-card); }
 .profile-real-data h2 { margin:var(--space-1) 0 0; font-size:var(--font-h2); }
+.profile-annual-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--space-3); }
+.profile-annual-heading p, .profile-payment-period { margin:var(--space-2) 0; color:var(--text-muted); font-size:var(--font-small); }
+.profile-year-filter { display:grid; gap:var(--space-1); max-width:100%; font-size:var(--font-small); }
+.profile-year-filter > div { display:flex; gap:var(--space-2); }
+.profile-year-filter input { width:90px; min-width:0; min-height:var(--control-height); padding:var(--space-2); border:1px solid var(--border-color); border-radius:var(--radius-control); background:var(--color-input); color:var(--text-main); font:inherit; }
+.profile-year-filter button { min-height:var(--control-height); padding:var(--space-2) var(--space-3); border:1px solid var(--border-color); border-radius:var(--radius-control); background:var(--color-accent-soft); color:var(--text-main); font:inherit; }
 .profile-account-data { display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); }
 .profile-account-data > div:first-child > span, .profile-family-data > header > div > span { color:var(--text-muted); font-size:var(--font-size-xs); }
 .profile-account-actions { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
@@ -60,6 +67,22 @@
 .profile-payment-status { display:grid; gap:var(--space-3); min-width:0; margin-top:var(--space-4); padding:var(--space-4) 0 0; border:0; border-top:1px solid color-mix(in srgb, var(--border-color) 35%, transparent); background:transparent; color:var(--text-main); }
 .profile-payment-heading { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:var(--space-2); }
 .profile-payment-heading h3 { margin:0 0 var(--space-1); color:var(--text-main); font-size:var(--font-h3); }
+.profile-payment-disclosure { min-width:0; overflow:clip; }
+.profile-payment-disclosure > summary { list-style:none; cursor:pointer; grid-template-columns:auto minmax(0,1fr) auto; border-radius:var(--radius-control); }
+.profile-payment-disclosure > summary::-webkit-details-marker { display:none; }
+.profile-payment-disclosure > summary:focus-visible { outline:2px solid var(--color-accent); outline-offset:4px; }
+.profile-payment-disclosure > summary > .profile-payment-summary { grid-column:2; grid-row:2; justify-self:start; }
+.profile-panel-toggle { grid-column:3; grid-row:1 / 3; display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-2); border:1px solid var(--border-color); border-radius:var(--radius-control); color:var(--color-accent); background:var(--color-accent-soft); font-size:var(--font-size-xs); white-space:nowrap; }
+.profile-panel-toggle b { position:relative; width:16px; height:16px; border:1px solid currentColor; border-radius:50%; transition:transform 300ms ease; }
+.profile-panel-toggle b::before,.profile-panel-toggle b::after { content:""; position:absolute; left:3px; right:3px; top:6px; height:1px; background:currentColor; }
+.profile-panel-toggle b::after { transform:rotate(90deg); transition:transform 300ms ease; }
+.profile-panel-close { display:none; }
+.profile-payment-disclosure[open] > summary .profile-panel-open { display:none; }
+.profile-payment-disclosure[open] > summary .profile-panel-close { display:inline; }
+.profile-payment-disclosure[open] > summary .profile-panel-toggle b { transform:rotate(180deg); }
+.profile-payment-disclosure[open] > summary .profile-panel-toggle b::after { transform:rotate(0); }
+.profile-panel-content { display:grid; gap:var(--space-3); padding-top:var(--space-3); }
+@media(prefers-reduced-motion:reduce){.profile-panel-toggle b,.profile-panel-toggle b::after{transition:none}.profile-payment-disclosure[open] .profile-panel-content{animation:none}}
 .profile-payment-mode { color:var(--text-muted); font-size:var(--font-size-xs); }
 .profile-payment-summary { padding:var(--space-1) var(--space-2); border-radius:var(--radius-pill); background:var(--color-warning-soft); color:var(--color-warning); font-size:var(--font-size-xs); text-align:center; }
 .profile-payment-status.is-current .profile-payment-summary { background:var(--color-success-soft); color:var(--color-success); }

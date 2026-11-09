@@ -21,12 +21,32 @@ export function createInitialVideo(loader, source, mobileSource, icons) {
   const title = loader.querySelector('.cinematic-title');
   loader.querySelector('.boot-video-title-frame').insertAdjacentHTML('beforeend', '<div class="boot-mobile-atmosphere"><span></span><span></span><span></span></div><footer class="boot-mobile-footer"><p class="boot-mobile-description">Unimos familias, organizamos aportes<br>y hacemos crecer los proyectos del curso.</p><div class="boot-mobile-topics"><span>Aportes</span><span>Comunidad</span><span>Proyectos</span></div><div class="boot-mobile-status"><span class="boot-mobile-pulse"></span><span class="boot-mobile-status-label">Abriendo tu espacio</span><span class="boot-mobile-dots"><i></i><i></i><i></i></span></div><span class="boot-mobile-signature">Juntos, cada idea llega más lejos.</span></footer>');
   const status = loader.querySelector('.boot-mobile-status-label');
+  const iconCleanups = [];
+  const gestures = ['bounce', 'spin', 'depart', 'swing', 'flip'];
   loader.querySelectorAll('.boot-mobile-topics > span').forEach((topic, index) => {
     if (!icons[index]) return;
     const icon = document.createElement('img');
     icon.alt = '';
     icon.decoding = 'async';
     icon.fetchPriority = 'low';
+    let previousGesture = '';
+    const nextGesture = () => {
+      if (motion.matches) return;
+      const choices = gestures.filter(gesture => gesture !== previousGesture);
+      previousGesture = choices[Math.floor(Math.random() * choices.length)];
+      icon.style.animation = `boot-icon-${previousGesture} ${2200 + Math.floor(Math.random() * 1300)}ms ${350 + Math.floor(Math.random() * 700)}ms ease-in-out both`;
+    };
+    icon.addEventListener('animationend', nextGesture);
+    const onMotionChange = () => {
+      icon.style.animation = '';
+      if (!motion.matches && topic.classList.contains('is-icon-ready')) nextGesture();
+    };
+    motion.addEventListener('change', onMotionChange);
+    iconCleanups.push(() => {
+      icon.removeEventListener('animationend', nextGesture);
+      motion.removeEventListener('change', onMotionChange);
+      icon.style.animationPlayState = 'paused';
+    });
     icon.addEventListener('load', () => topic.classList.add('is-icon-ready'), { once: true });
     icon.src = icons[index];
     topic.prepend(icon);
@@ -85,6 +105,7 @@ export function createInitialVideo(loader, source, mobileSource, icons) {
   updateMotion();
   const pause = () => {
     stopped = true;
+    iconCleanups.forEach(cleanup => cleanup());
     clearTimeout(storyTimer);
     clearTimeout(titleTimer);
     video.pause();

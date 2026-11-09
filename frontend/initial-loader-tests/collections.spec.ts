@@ -26,7 +26,7 @@ test('funds can be edited and deleted with confirmation', async ({ page }) => {
       : endpoint.endsWith('/auth/me') ? user
       : endpoint.endsWith('/configuracion-general/curso') ? { course: '4A', schoolYear: 2026, history: [] } : [] });
   });
-  await page.goto('/tesoreria/recaudaciones?loaderDelay=0', { waitUntil: 'commit' });
+  await page.goto('/tesoreria/fondos-por-actividad?loaderDelay=0', { waitUntil: 'commit' });
   await expect(page.getByRole('heading', { name: 'Fondos por actividad' })).toBeVisible({ timeout: 60000 });
   await expect(page.locator('.home-entry-transition')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -33,6 +33,33 @@ const LOGOUT_COUNTDOWN_MS = 3000;
 const LOGOUT_PROGRESS_INTERVAL_MS = 50;
 const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]{3,100}$/;
 
+const panelAnimations = new WeakMap<HTMLDetailsElement, Animation>();
+const togglePaymentPanel = (event: React.MouseEvent<HTMLElement>) => {
+  event.preventDefault();
+  const summary = event.currentTarget;
+  const panel = summary.parentElement as HTMLDetailsElement;
+  const previousAnimation = panelAnimations.get(panel);
+  const opening = previousAnimation ? panel.dataset.expanding !== "true" : !panel.open;
+  const startHeight = panel.getBoundingClientRect().height;
+  previousAnimation?.cancel();
+  panel.dataset.expanding = String(opening);
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    panel.open = opening;
+    panelAnimations.delete(panel);
+    return;
+  }
+  panel.open = true;
+  const endHeight = opening ? panel.getBoundingClientRect().height : summary.getBoundingClientRect().height;
+  const animation = panel.animate([
+    { height: `${startHeight}px` }, { height: `${endHeight}px` },
+  ], { duration: 420, easing: "cubic-bezier(.22,.8,.3,1)" });
+  panelAnimations.set(panel, animation);
+  animation.onfinish = () => {
+    panel.open = opening;
+    panelAnimations.delete(panel);
+  };
+};
+
 const ProfileAvatarOption = ({ avatar, index, disabled, onSelect }: {
   avatar: string; index: number; disabled: boolean; onSelect: () => void;
 }) => {
@@ -61,9 +88,15 @@ export const ProfilePage = () => {
   const [photoSuccess, setPhotoSuccess] = useState("");
   const [photoProgress, setPhotoProgress] = useState(0);
   const profileYear = new Date().getFullYear();
+  const [paymentYear, setPaymentYear] = useState(profileYear);
+  const [yearInput, setYearInput] = useState(String(profileYear));
   const profileResource = useMemo(() => getProfileResource(user?.correo ?? "anonymous", profileYear),
     [profileYear, user?.correo]);
   const profileState = useDashboardResource(profileResource, false);
+  const paymentsResource = useMemo(() => getProfileResource(user?.correo ?? "anonymous", paymentYear),
+    [paymentYear, user?.correo]);
+  const paymentsState = useDashboardResource(paymentsResource, Boolean(user?.correo));
+  const annualProfile = paymentsState.data;
   const familyProfile = profileState.data?.familyId ? profileState.data : null;
   const familyLoading = Boolean(user?.correo && !profileState.data && !profileState.error);
   const familyError = profileState.error
@@ -241,12 +274,13 @@ export const ProfilePage = () => {
   }, [profileResource, reloadProfile, user?.correo]);
 
   const name = user?.nombre ?? "Usuario";
-  const pending = familyProfile?.obligations.filter(item => item.status === "PENDIENTE") ?? [];
+  const pending = annualProfile?.obligations.filter(item => item.status === "PENDIENTE") ?? [];
   const pendingAmount = pending.reduce((total, item) => total + item.amount, 0);
-  const paymentMode = familyProfile?.mode ?? familyProfile?.obligations[0]?.mode;
+  const paymentMode = annualProfile?.mode ?? annualProfile?.obligations[0]?.mode;
 
   return <main className="profile-page">
     <article className="profile-card" aria-label="Perfil de usuario">
+      <div className="profile-personal-column">
       <section className="profile-identity" aria-label="Identidad">
         <span className="profile-identity-glow" aria-hidden="true" />
         <div className="profile-summary">
@@ -316,11 +350,35 @@ export const ProfilePage = () => {
           <p>{familyProfile.studentMessage}</p>
         </aside>}
 
+      </section>}
+
+      </div>
+      {!familyLoading && familyProfile && <section className="profile-real-data profile-annual-data"
+        aria-labelledby="profile-payments-title">
+        <header className="profile-annual-heading">
+          <div><h2 id="profile-payments-title">Pagos y aportes</h2>
+            <p>Consulta las cuotas y actividades de cada año.</p></div>
+          <form className="profile-year-filter" onSubmit={event => {
+            event.preventDefault();
+            const year = Number(yearInput);
+            if (Number.isInteger(year) && year >= 2000 && year <= 2100) setPaymentYear(year);
+          }}>
+            <label htmlFor="profile-payment-year">Año</label>
+            <div><input id="profile-payment-year" type="number" min="2000" max="2100" required
+              value={yearInput} onChange={event => setYearInput(event.target.value)} />
+              <button type="submit">Consultar</button></div>
+          </form>
+        </header>
+        <p className="profile-payment-period">Período consultado: <strong>{paymentYear}</strong></p>
+        {(!annualProfile && !paymentsState.error) && <p role="status">Cargando pagos de {paymentYear}…</p>}
+        {paymentsState.error && <div role="alert"><p>No fue posible cargar los pagos de {paymentYear}.</p>
+          <button type="button" onClick={() => void paymentsResource.load(true)}>Reintentar</button></div>}
+        {annualProfile && !paymentsState.error && <>
         <div className="profile-contribution-statuses">
           {(["CEPA", "SOLIDARIA"] as const).map(type => {
             const payment = type === "CEPA"
-              ? familyProfile.cepa
-              : familyProfile.solidarity;
+              ? annualProfile.cepa
+              : annualProfile.solidarity;
             const paid = payment?.status === "PAID";
             return <div className={`profile-contribution-status ${paid ? "is-current" : "has-debt"}`}
               key={type}>
@@ -332,19 +390,24 @@ export const ProfilePage = () => {
           })}
         </div>
 
-        {paymentMode && <section aria-labelledby="profile-course-fee-title" className={`profile-payment-status ${familyProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
-          <header className="profile-payment-heading">
+        {paymentMode && <section aria-labelledby="profile-course-fee-title" className={`profile-payment-status ${annualProfile.obligations.length > 0 && pending.length === 0 ? "is-current" : "has-debt"}`}>
+          <details className="profile-payment-disclosure" onKeyDown={event => {
+            if (event.key === "Escape") { panelAnimations.get(event.currentTarget)?.cancel(); event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); }
+          }}>
+          <summary className="profile-payment-heading" onClick={togglePaymentPanel}>
             <i className="profile-payment-icon" aria-hidden="true"><FiBookOpen /></i>
             <div><h3 id="profile-course-fee-title">Cuota del curso</h3>
               <span className="profile-payment-mode">{paymentMode === "PERSONALIZADA" ? "Personalizada" : paymentMode === "ANUAL" ? "Cuota única" : "Dos cuotas"}</span>
             </div>
-            <strong className="profile-payment-summary">{familyProfile.obligations.length === 0
+            <strong className="profile-payment-summary">{annualProfile.obligations.length === 0
               ? "Modalidad asignada"
               : pending.length === 0 ? "Al día"
               : `${pending.length} ${pending.length === 1 ? "cuota pendiente" : "cuotas pendientes"}`}</strong>
-          </header>
-          {familyProfile.obligations.length > 0 && <ul className="profile-course-installments" aria-label="Detalle de cuotas">
-            {familyProfile.obligations.map(item => <li key={item.id}>
+            <span className="profile-panel-toggle"><span className="profile-panel-open">Ver cuotas</span><span className="profile-panel-close">Ocultar</span><b aria-hidden="true" /></span>
+          </summary>
+          <div className="profile-panel-content">
+          {annualProfile.obligations.length > 0 && <ul className="profile-course-installments" aria-label="Detalle de cuotas">
+            {annualProfile.obligations.map(item => <li key={item.id}>
               <b className="profile-installment-concept">{item.concept}</b>
               <span className="profile-installment-date"><small>Vencimiento</small>
                 {item.dueDate ? <time dateTime={item.dueDate}>{shortDate.format(new Date(`${item.dueDate}T00:00:00`))}</time> : <span>Sin fecha</span>}
@@ -359,15 +422,22 @@ export const ProfilePage = () => {
           {pending.length > 0 && <div className="profile-payment-total">
             <span>Total pendiente</span><b>{money.format(pendingAmount)}</b>
           </div>}
+          </div>
+          </details>
         </section>}
         <section aria-labelledby="profile-activity-funds-title" className="profile-payment-status profile-activity-funds">
-          <header className="profile-payment-heading">
+          <details className="profile-payment-disclosure" onKeyDown={event => {
+            if (event.key === "Escape") { panelAnimations.get(event.currentTarget)?.cancel(); event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); }
+          }}>
+          <summary className="profile-payment-heading" onClick={togglePaymentPanel}>
             <i className="profile-payment-icon" aria-hidden="true"><FiUsers /></i>
             <div><h3 id="profile-activity-funds-title">Fondos por actividad</h3>
               <span className="profile-payment-mode">Pagos de la familia, compartidos con sus apoderados.</span></div>
-          </header>
-          {!familyProfile.activityFunds?.length && <p className="profile-payment-mode">Tu familia todavía no tiene fondos por actividad registrados.</p>}
-          {familyProfile.activityFunds?.map(fund => <details className="profile-activity-fund" key={fund.id}>
+            <span className="profile-panel-toggle"><span className="profile-panel-open">Ver actividades</span><span className="profile-panel-close">Ocultar</span><b aria-hidden="true" /></span>
+          </summary>
+          <div className="profile-panel-content">
+          {!annualProfile.activityFunds?.length && <p className="profile-payment-mode">Tu familia todavía no tiene fondos por actividad registrados.</p>}
+          {annualProfile.activityFunds?.map(fund => <details className="profile-activity-fund" key={fund.id}>
             <summary><strong>{fund.title}</strong><span>Recibido: {money.format(fund.paid)}</span>
               <span className={`profile-installment-status ${fund.status === 'PAID' ? 'is-paid' : 'is-pending'}`}>
                 {{ PENDING: 'Pendiente', PARTIAL: 'Abono', PAID: 'Pagado', EXEMPT: 'No participa' }[fund.status]}</span></summary>
@@ -382,7 +452,10 @@ export const ProfilePage = () => {
               </li>)}
             </ul> : <p className="profile-payment-mode">Sin pagos registrados en esta actividad.</p>}
           </details>)}
+          </div>
+          </details>
         </section>
+        </>}
       </section>}
     </article>
 

@@ -1,14 +1,42 @@
-/* Desktop: identity and account in a side column; family alongside them. */
+/* Desktop: stable personal details beside the annual payment workspace. */
 .profile-page .profile-card {
-  grid-template-columns: minmax(220px, .7fr) minmax(0, 1.6fr);
-  grid-template-rows: auto 1fr;
-  grid-template-areas: "identity family" "account family";
+  grid-template-columns: minmax(240px, .8fr) minmax(0, 1.6fr);
+  grid-template-rows: auto;
+  grid-template-areas: "personal payments";
+  align-items:start;
+  gap: var(--space-3);
+}
+.profile-page .profile-personal-column {
+  grid-area:personal;
+  display:grid;
+  grid-template-areas:"identity" "family" "account";
+  grid-template-rows:auto auto auto;
+  align-content:start;
+  gap:var(--space-3);
+  min-width:0;
 }
 .profile-page .profile-identity { grid-area: identity; padding: var(--space-4); }
-.profile-page .profile-identity .profile-avatar { flex-basis: 80px; width: 80px; height: 80px; }
-.profile-page .profile-summary { flex-direction: column; align-items: flex-start; }
-.profile-page .profile-name-row { flex-direction: column; align-items: flex-start; }
-.profile-page .profile-account-data { grid-area: account; flex-direction: column; align-items: stretch; }
+.profile-page .profile-identity .profile-avatar { flex-basis: 48px; width: 48px; height: 48px; }
+.profile-page .profile-summary { align-items: flex-start; gap: var(--space-3); }
+.profile-page .profile-name-row { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.profile-page .profile-copy h1 { font-size: var(--font-h3); }
+.profile-page .profile-edit-name { min-height: 28px; padding: var(--space-1) var(--space-2); }
+.profile-page .profile-account-data { grid-area: account; flex-direction: column; align-items: stretch; gap: var(--space-2); }
 .profile-page .profile-account-actions { justify-content: space-between; }
-.profile-page .profile-account-actions .profile-logout-button { width: 100%; }
 .profile-page .profile-family-data, .profile-page .profile-family-feedback { grid-area: family; }
+.profile-page .profile-family-data, .profile-page .profile-account-data,
+.profile-page .profile-annual-data { padding: var(--space-3); }
+.profile-page .profile-family-data > header { margin-bottom: var(--space-2); padding-bottom: var(--space-2); }
+.profile-page .profile-data-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.profile-page .profile-data-grid > div { padding: var(--space-1) 0; }
+.profile-page .profile-student-message { margin-top: var(--space-2); padding: var(--space-2); }
+.profile-page .profile-annual-data { grid-area: payments; }
+.profile-page .profile-annual-heading { gap: var(--space-2); }
+.profile-page .profile-annual-heading h2 { font-size: var(--font-h3); }
+.profile-page .profile-annual-heading p { margin: var(--space-1) 0 0; font-size: var(--font-size-xs); }
+.profile-page .profile-year-filter { font-size: var(--font-size-xs); }
+.profile-page .profile-year-filter input { width: 74px; }
+.profile-page .profile-contribution-statuses { margin-top: var(--space-2); }
+.profile-page .profile-contribution-status { padding: var(--space-2) 0; }
+.profile-page .profile-payment-status { margin-top: var(--space-3); padding-top: var(--space-3); gap: var(--space-2); }
+.profile-page .profile-course-installments > li { gap: var(--space-2); padding: var(--space-2) 0; }

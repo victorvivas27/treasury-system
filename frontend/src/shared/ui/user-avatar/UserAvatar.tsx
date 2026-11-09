@@ -41,6 +41,13 @@ export const UserAvatar = ({ user, className = "", fallbackName = "Usuario", cus
   const imageLoaded = Boolean(source && loadedSource === source);
   const isLoading = !failed && (resolving || Boolean(source && !imageLoaded));
 
+  useEffect(() => {
+    if (!isLoading) return;
+    // A stalled download must resolve to initials instead of blocking startup.
+    const timeout = window.setTimeout(() => setFailed(true), 8000);
+    return () => window.clearTimeout(timeout);
+  }, [isLoading, customImageUserId, user?.id, user?.profileImageType, user?.profileImageUrl]);
+
   return <span className={`user-avatar ${className}`} aria-label={`Avatar de ${name}`}
     aria-busy={isLoading || undefined}>
 

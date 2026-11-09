@@ -40,6 +40,35 @@ describe("AuthContext", () => {
 
   afterEach(() => vi.useRealTimers());
 
+  it("espera al avatar antes de anunciar que el inicio está listo", async () => {
+    localStorage.setItem("treasury.auth.manual-logout", "true");
+    const loader = document.createElement("div");
+    loader.id = "app-boot-loader";
+    const root = document.createElement("div");
+    root.id = "root";
+    const avatar = document.createElement("span");
+    avatar.className = "user-avatar";
+    avatar.setAttribute("aria-busy", "true");
+    root.append(avatar);
+    document.body.append(loader, root);
+    const ready = vi.fn();
+    window.addEventListener("app:boot-ready", ready);
+    const view = renderHook(() => useAuth(), { wrapper });
+    try {
+      await waitFor(() => expect(view.result.current.loading).toBe(false));
+      expect(ready).not.toHaveBeenCalled();
+      expect(loader).not.toHaveClass("is-leaving");
+      avatar.removeAttribute("aria-busy");
+      await waitFor(() => expect(ready).toHaveBeenCalledOnce());
+      expect(loader).toHaveClass("is-leaving");
+    } finally {
+      view.unmount();
+      window.removeEventListener("app:boot-ready", ready);
+      loader.remove();
+      root.remove();
+    }
+  });
+
   it("renueva la sesión inactiva, actualiza CSRF y programa la siguiente renovación", async () => {
     vi.useFakeTimers();
     localStorage.setItem("treasury.auth.manual-logout", "true");
