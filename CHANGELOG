@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.44.0](https://github.com/victorvivas27/treasury-system/compare/v1.43.0...v1.44.0) (2026-11-09)
+
+
+### Features
+
+* **app:** mejora fondos por actividad y habilita loaders en produccion ([4005e92](https://github.com/victorvivas27/treasury-system/commit/4005e921655795a7af9d60b0408be8741a4b5590))
+
+
+### Bug Fixes
+
+* **test:** actualiza la verificacion de migraciones hasta V62 ([9abedb5](https://github.com/victorvivas27/treasury-system/commit/9abedb58ae14e30ded4ebabf75efbe1885597f66))
+* **test:** actualiza la verificacion de migraciones hasta V62 ([430e471](https://github.com/victorvivas27/treasury-system/commit/430e471b3ec3497f6e7591897a0dd96661606c6b))
+
 ## [1.43.0](https://github.com/victorvivas27/treasury-system/compare/v1.42.3...v1.43.0) (2026-11-08)
 
 
