@@ -21,6 +21,7 @@ public class CollectionController {
     private final CollectionService service;
     private final GetFamiliaUseCase families;
     public CollectionController(CollectionService service, GetFamiliaUseCase families) { this.service = service; this.families = families; }
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping public List<CollectionService.View> list(@RequestParam int year) { return service.list(year); }
     @GetMapping("/familias") public List<FamilyTreasuryData> familyOptions() { return families.obtenerDatosTesoreria(); }
     @PostMapping public CollectionService.View create(@Valid @RequestBody Create request, Principal principal) {

@@ -55,6 +55,13 @@ public class CollectionService {
         return view(saved, ledger(year));
     }
 
+    @Transactional(readOnly = true)
+    public List<View> listForFamily(int year, Long familyId) {
+        validateYear(year);
+        var ledger = ledger(year);
+        return campaigns.listForFamily(year, familyId).stream().map(value -> view(value, ledger)).toList();
+    }
+
     @Transactional
     public View update(Long id, String title, LocalDate dueDate, String user) {
         var campaign = require(id, true);

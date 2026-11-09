@@ -26,9 +26,11 @@ public class CollectionReceiptController {
         return service.collect(id, familyId, payment.amount(), payment.date(), payment.reference(),
             payment.requestId(), file, principal.getName());
     }
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/comprobantes") public List<CollectionReceiptService.ReceiptView> list(@PathVariable Long id) {
         return service.list(id);
     }
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/comprobantes/{requestId}") public ResponseEntity<byte[]> download(@PathVariable Long id, @PathVariable UUID requestId) {
         var result = service.download(id, requestId);
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(result.contentType()))

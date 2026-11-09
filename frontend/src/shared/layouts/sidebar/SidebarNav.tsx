@@ -58,6 +58,7 @@ const MANAGEMENT_PATHS = new Set([
 
 
 const USER_TREASURY_PATHS = new Set([
+  "/tesoreria/recaudaciones",
   "/tesoreria/ingresos",
   "/tesoreria/gastos",
   "/tesoreria/stands",

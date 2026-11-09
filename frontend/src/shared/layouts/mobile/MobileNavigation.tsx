@@ -18,7 +18,7 @@ import { OPEN_IMPROVEMENT_CENTER_EVENT } from "@/presentation/context/improvemen
 import "./MobileNavigation.css";
 
 const MOBILE_QUERY = "(max-width: 768px)";
-const USER_TREASURY = new Set(["/tesoreria/ingresos", "/tesoreria/gastos", "/tesoreria/stands", "/tesoreria/pagos"]);
+const USER_TREASURY = new Set(["/tesoreria/ingresos", "/tesoreria/gastos", "/tesoreria/stands", "/tesoreria/pagos", "/tesoreria/recaudaciones"]);
 
 export const MobileNavigation = () => {
   const auth = useOptionalAuth();

@@ -360,6 +360,29 @@ export const ProfilePage = () => {
             <span>Total pendiente</span><b>{money.format(pendingAmount)}</b>
           </div>}
         </section>}
+        <section aria-labelledby="profile-activity-funds-title" className="profile-payment-status profile-activity-funds">
+          <header className="profile-payment-heading">
+            <i className="profile-payment-icon" aria-hidden="true"><FiUsers /></i>
+            <div><h3 id="profile-activity-funds-title">Fondos por actividad</h3>
+              <span className="profile-payment-mode">Pagos de la familia, compartidos con sus apoderados.</span></div>
+          </header>
+          {!familyProfile.activityFunds?.length && <p className="profile-payment-mode">Tu familia todavía no tiene fondos por actividad registrados.</p>}
+          {familyProfile.activityFunds?.map(fund => <details className="profile-activity-fund" key={fund.id}>
+            <summary><strong>{fund.title}</strong><span>Recibido: {money.format(fund.paid)}</span>
+              <span className={`profile-installment-status ${fund.status === 'PAID' ? 'is-paid' : 'is-pending'}`}>
+                {{ PENDING: 'Pendiente', PARTIAL: 'Abono', PAID: 'Pagado', EXEMPT: 'No participa' }[fund.status]}</span></summary>
+            <dl className="profile-activity-totals"><div><dt>Monto esperado</dt><dd>{money.format(fund.expected)}</dd></div>
+              <div><dt>Pendiente</dt><dd>{money.format(fund.remaining)}</dd></div>
+              {fund.paid > fund.expected && <div><dt>Extra recibido</dt><dd>{money.format(fund.paid - fund.expected)}</dd></div>}</dl>
+            {fund.payments.length ? <ul aria-label={`Pagos de ${fund.title}`} className="profile-activity-payments">
+              {fund.payments.map(payment => <li key={payment.requestId}>
+                <time dateTime={payment.date}>{shortDate.format(new Date(`${payment.date}T00:00:00`))}</time>
+                <strong>{money.format(payment.amount)}</strong><span>{payment.active ? 'Registrado' : 'Anulado'}</span>
+                {payment.reference && <small>{payment.reference}</small>}
+              </li>)}
+            </ul> : <p className="profile-payment-mode">Sin pagos registrados en esta actividad.</p>}
+          </details>)}
+        </section>
       </section>}
     </article>
 

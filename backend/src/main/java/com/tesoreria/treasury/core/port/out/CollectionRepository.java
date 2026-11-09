@@ -6,6 +6,7 @@ import java.util.Optional;
 
 public interface CollectionRepository {
     List<CollectionCampaign> list(int year);
+    List<CollectionCampaign> listForFamily(int year, Long familyId);
     Optional<CollectionCampaign> find(Long id, boolean lock);
     CollectionCampaign save(CollectionCampaign campaign);
     void archive(Long id);

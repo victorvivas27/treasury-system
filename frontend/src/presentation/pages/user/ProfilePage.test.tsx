@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "@/presentation/context/AuthContext";
@@ -50,6 +50,33 @@ describe("ProfilePage", () => {
   afterEach(() => vi.clearAllMocks());
 
   const renderProfile = () => render(<MemoryRouter><ProfilePage /></MemoryRouter>);
+
+  it.each([true, false])("muestra el mismo pago familiar para el apoderado principal=%s en solo lectura", async primaryGuardian => {
+    profile.mockResolvedValue({ ...baseProfile, primaryGuardian, activityFunds: [{
+      id: 1, title: 'Paseo del curso', expected: 1500, paid: 1500, remaining: 0, status: 'PAID',
+      payments: [{ requestId: 'family-payment-1', amount: 1500, date: '2026-01-01', recordedAt: null, reference: 'Pago familiar', active: true }],
+    }] });
+    renderProfile();
+    const section = await screen.findByRole('region', { name: 'Fondos por actividad' });
+    expect(within(section).getByText(/Recibido:.*1.500/)).toBeInTheDocument();
+    expect(within(section).getByText('Pagado')).toBeInTheDocument();
+    fireEvent.click(within(section).getByText('Paseo del curso'));
+    expect(within(section).getByRole('list', { name: 'Pagos de Paseo del curso' }).children).toHaveLength(1);
+    expect(within(section).getByText('Pago familiar')).toBeInTheDocument();
+    expect(within(section).queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it("distingue pagos anulados del total recibido y muestra los extras familiares", async () => {
+    profile.mockResolvedValue({ ...baseProfile, activityFunds: [{ id: 1, title: 'Bus', expected: 1500, paid: 2300, remaining: 0, status: 'PAID',
+      payments: [{ requestId: 'old', amount: 1500, date: '2026-01-01', active: false }, { requestId: 'new', amount: 2300, date: '2026-01-02', active: true }] }] });
+    renderProfile();
+    const section = await screen.findByRole('region', { name: 'Fondos por actividad' });
+    fireEvent.click(within(section).getByText('Bus'));
+    expect(within(section).getByText(/Recibido:.*2.300/)).toBeInTheDocument();
+    expect(within(section).getByText('Extra recibido')).toBeInTheDocument();
+    expect(within(section).getByText(/800/)).toBeInTheDocument();
+    expect(within(section).getByText('Anulado')).toBeInTheDocument();
+  });
 
   it("muestra el loader centralizado durante la carga inicial del perfil familiar", () => {
     profile.mockReturnValue(new Promise(() => undefined));

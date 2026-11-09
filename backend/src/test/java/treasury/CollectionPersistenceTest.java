@@ -39,6 +39,8 @@ class CollectionPersistenceTest {
     @Autowired OrganizationJpaRepository organizations;
     @Autowired AlumnoJpaRepository students;
     @Autowired FamiliaJpaRepository families;
+    @Autowired com.tesoreria.apoderado.infrastructure.adapter.out.persistence.repository.ApoderadoJpaRepository guardians;
+    @Autowired com.tesoreria.treasury.infrastructure.adapter.in.web.controller.TreasuryController profileController;
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     com.tesoreria.treasury.core.port.out.FileStorageService storage;
     @Autowired com.tesoreria.treasury.application.usecase.CollectionReceiptService receiptService;
@@ -87,7 +89,7 @@ class CollectionPersistenceTest {
         assertEquals(1, treasury.listExpenses(2026).size());
         assertThrows(DomainException.class, () -> service.update(campaign.id(), "Oculto", null, "admin"));
         authenticate(organization, RoleEnum.USER);
-        assertThrows(AccessDeniedException.class, () -> controller.list(2026));
+        assertTrue(controller.list(2026).isEmpty());
         assertThrows(AccessDeniedException.class, () -> controller.archive(campaign.id(), new CollectionController.Correction("Sin permiso"), () -> "user"));
     }
     @Test void receiptsAreAtomicIdempotentAndTenantScoped() {
@@ -121,7 +123,15 @@ class CollectionPersistenceTest {
         assertThrows(DomainException.class, () -> receiptService.download(campaign.id(), request));
         assertThrows(DomainException.class, () -> receiptService.list(campaign.id()));
         authenticate(tenant, RoleEnum.USER);
-        assertThrows(AccessDeniedException.class, () -> receiptController.download(campaign.id(), request));
+        assertEquals(1, controller.list(2026).size());
+        assertEquals(1, receiptController.list(campaign.id()).size());
+        assertArrayEquals(bytes, receiptController.download(campaign.id(), request).getBody());
+        assertThrows(AccessDeniedException.class, () -> receiptController.collect(campaign.id(), family.getFamiliaId(),
+            new CollectionController.Payment(BigDecimal.ONE, date, "", UUID.randomUUID()), file, () -> "user"));
+        authenticate(organization(), RoleEnum.USER);
+        assertTrue(controller.list(2026).isEmpty());
+        assertThrows(DomainException.class, () -> receiptController.list(campaign.id()));
+        assertThrows(DomainException.class, () -> receiptController.download(campaign.id(), request));
     }
     @Test void persistsExtraPaymentsAndRegistrationTimesThroughClosingAndCancellation() {
         authenticate(organization(), RoleEnum.ADMIN);
@@ -146,6 +156,58 @@ class CollectionPersistenceTest {
         var closed = service.postIncome(campaign.id(), date, "Total", "admin");
         assertEquals(BigDecimal.valueOf(23000), treasury.getIncome(closed.incomeId()).amount());
         assertEquals(BigDecimal.valueOf(23000), closed.available());
+    }
+    @Test void bothGuardiansSeeTheSameFamilyPaymentsWithoutDuplicatingTheFundOrExposingOtherFamilies() {
+        Long tenant = organization();
+        authenticate(tenant, RoleEnum.ADMIN);
+        String firstEmail = "first-" + UUID.randomUUID() + "@example.test";
+        String secondEmail = "second-" + UUID.randomUUID() + "@example.test";
+        var firstGuardian = guardians.save(new com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.ApoderadoEntity(
+            null, "AP-" + UUID.randomUUID().toString().substring(0, 8), "Padre", firstEmail, "+56912345678", null));
+        var secondGuardian = guardians.save(new com.tesoreria.apoderado.infrastructure.adapter.out.persistence.entity.ApoderadoEntity(
+            null, "AP-" + UUID.randomUUID().toString().substring(0, 8), "Madre", secondEmail, "+56912345679", null));
+        var student = students.save(new AlumnoEntity(null, "AL-" + UUID.randomUUID().toString().substring(0, 8), "Alumno", "4A"));
+        var family = families.save(new FamiliaEntity(null, student.getAlumnoId(), null, List.of(
+            new com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaApoderadoEntity(firstGuardian.getApoderadoId(), "Padre", true),
+            new com.tesoreria.familia.infrastructure.adapter.out.persistence.entity.FamiliaApoderadoEntity(secondGuardian.getApoderadoId(), "Madre", false)), null, null, null));
+        var otherStudent = students.save(new AlumnoEntity(null, "AL-" + UUID.randomUUID().toString().substring(0, 8), "Otro alumno", "4A"));
+        var otherFamily = families.save(new FamiliaEntity(null, otherStudent.getAlumnoId(), null, List.of(), null, null, null));
+        var fund = service.create(2026, "Paseo familiar", BigDecimal.valueOf(1500), null,
+            List.of(family.getFamiliaId(), otherFamily.getFamiliaId()), "admin");
+        var date = LocalDate.of(2026, 1, 1);
+        var request = UUID.randomUUID();
+        service.collect(fund.id(), family.getFamiliaId(), BigDecimal.valueOf(1500), date, "Pago familiar", request, "admin");
+        service.collect(fund.id(), family.getFamiliaId(), BigDecimal.valueOf(1500), date, "Pago familiar", request, "admin");
+        service.collect(fund.id(), otherFamily.getFamiliaId(), BigDecimal.valueOf(700), date, "Otra familia", UUID.randomUUID(), "admin");
+        assertEquals(BigDecimal.valueOf(2200), service.list(2026).get(0).collected());
+        authenticate(tenant, RoleEnum.USER);
+        var first = profileController.profile(2026, () -> firstEmail);
+        var second = profileController.profile(2026, () -> secondEmail);
+        assertEquals(family.getFamiliaId(), first.familyId());
+        assertEquals(first.familyId(), second.familyId());
+        assertTrue(first.primaryGuardian());
+        assertFalse(second.primaryGuardian());
+        assertEquals(first.activityFunds(), second.activityFunds());
+        assertEquals(1, first.activityFunds().size());
+        assertEquals(BigDecimal.valueOf(1500), first.activityFunds().get(0).paid());
+        assertEquals(BigDecimal.ZERO, first.activityFunds().get(0).remaining());
+        assertEquals(1, first.activityFunds().get(0).payments().size());
+        assertEquals(request.toString(), first.activityFunds().get(0).payments().get(0).requestId());
+        assertTrue(profileController.profile(2026, () -> "unlinked@example.test").activityFunds().isEmpty());
+        authenticate(tenant, RoleEnum.ADMIN);
+        service.cancelFamilyPayments(fund.id(), family.getFamiliaId(), "Corrección", "admin");
+        authenticate(tenant, RoleEnum.USER);
+        var corrected = profileController.profile(2026, () -> secondEmail).activityFunds().get(0);
+        assertEquals(BigDecimal.ZERO, corrected.paid());
+        assertFalse(corrected.payments().get(0).active());
+        authenticate(tenant, RoleEnum.ADMIN);
+        service.archive(fund.id(), "Actividad finalizada", "admin");
+        authenticate(tenant, RoleEnum.USER);
+        assertTrue(controller.list(2026).isEmpty());
+        assertEquals(first.activityFunds().get(0).payments().get(0).requestId(),
+            profileController.profile(2026, () -> firstEmail).activityFunds().get(0).payments().get(0).requestId());
+        authenticate(organization(), RoleEnum.USER);
+        assertTrue(profileController.profile(2026, () -> firstEmail).activityFunds().isEmpty());
     }
     private Long organization() {
         var value = new OrganizationEntity(); value.setName("Curso"); value.setSlug("collection-" + UUID.randomUUID());

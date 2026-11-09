@@ -19,6 +19,10 @@ public class JpaCollectionAdapter implements CollectionRepository {
     @Override public Optional<CollectionCampaign> find(Long id, boolean lock) {
         return (lock ? repository.lockById(id) : repository.findById(id)).filter(e -> !e.isArchived()).map(this::model);
     }
+    @Override public List<CollectionCampaign> listForFamily(int year, Long familyId) {
+        // Keep a family's payment history visible after a fund is archived.
+        return repository.findForFamily(year, familyId).stream().map(this::model).toList();
+    }
     @Override public void archive(Long id) {
         var entity = repository.lockById(id).orElseThrow();
         entity.setArchived(true);

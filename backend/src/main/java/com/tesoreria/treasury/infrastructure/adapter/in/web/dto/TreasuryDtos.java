@@ -6,6 +6,7 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @SuppressWarnings("PMD.MissingStaticMethodInNonInstantiatableClass")
@@ -89,8 +90,14 @@ public final class TreasuryDtos {
                                   String studentMessage, String guardianPhone, String relationship,
                                   boolean primaryGuardian, PaymentMode mode,
                                   List<ObligationResponse> obligations, ContributionResponse cepa,
-                                  ContributionResponse solidarity) {
+                                  ContributionResponse solidarity, List<FamilyActivityFundResponse> activityFunds) {
     }
+
+    public record FamilyActivityFundResponse(Long id, String title, BigDecimal expected, BigDecimal paid,
+                                            BigDecimal remaining, String status, List<FamilyActivityPaymentResponse> payments) { }
+
+    public record FamilyActivityPaymentResponse(String requestId, BigDecimal amount, LocalDate date,
+                                               Instant recordedAt, String reference, boolean active) { }
 
     public record ContributionSummaryResponse(long totalFamilies, long cepaPaid,
                                               long cepaPending, long solidarityPaid, long solidarityPending,

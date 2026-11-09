@@ -134,6 +134,13 @@ export interface TreasuryProfile {
   obligations: FeeObligation[];
   cepa?: ContributionPayment;
   solidarity?: ContributionPayment;
+  activityFunds?: FamilyActivityFund[];
+}
+
+export interface FamilyActivityFund {
+  id: number; title: string; expected: number; paid: number; remaining: number;
+  status: 'PENDING' | 'PARTIAL' | 'PAID' | 'EXEMPT';
+  payments: { requestId: string; amount: number; date: string; recordedAt: string | null; reference: string | null; active: boolean }[];
 }
 
 export type TreasuryReportType =

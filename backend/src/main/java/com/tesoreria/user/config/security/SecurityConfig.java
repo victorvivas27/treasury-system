@@ -91,6 +91,9 @@ public class SecurityConfig {
                                 "/api/v1/tesoreria/ingresos/**",
                                 "/api/v1/tesoreria/egresos",
                                 "/api/v1/tesoreria/egresos/**",
+                                "/api/v1/tesoreria/recaudaciones",
+                                "/api/v1/tesoreria/recaudaciones/{id}/comprobantes",
+                                "/api/v1/tesoreria/recaudaciones/{id}/comprobantes/{requestId}",
                                 "/api/v1/tesoreria/resumen-financiero")
                         .hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/tesoreria/pagos-transferencia/**")
