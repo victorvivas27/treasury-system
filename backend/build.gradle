@@ -42,7 +42,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
-    implementation platform('com.google.cloud:libraries-bom:26.91.0')
+    implementation platform('com.google.cloud:libraries-bom:26.92.0')
     implementation 'com.google.cloud:google-cloud-storage'
 
     // WEB PUSH
@@ -90,7 +90,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
-    allureTestRuntime platform('io.qameta.allure:allure-bom:3.0.1')
+    allureTestRuntime platform('io.qameta.allure:allure-bom:3.1.1')
     allureTestRuntime 'io.qameta.allure:allure-jupiter'
 }
 
