@@ -6,7 +6,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { APODERADOS_ICONS } from "@/shared/constants/Icons";
 import { useState, type ChangeEvent } from "react";
 
-const LATAM_COUNTRIES = [
+const PHONE_COUNTRIES = [
   { code: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56", phoneLength: 9 },
   { code: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54", phoneLength: 10 },
   { code: "BO", flag: "🇧🇴", name: "Bolivia", dialCode: "+591", phoneLength: 8 },
@@ -16,6 +16,7 @@ const LATAM_COUNTRIES = [
   { code: "CU", flag: "🇨🇺", name: "Cuba", dialCode: "+53", phoneLength: 8 },
   { code: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593", phoneLength: 9 },
   { code: "SV", flag: "🇸🇻", name: "El Salvador", dialCode: "+503", phoneLength: 8 },
+  { code: "US", flag: "🇺🇸", name: "Estados Unidos", dialCode: "+1", phoneLength: 10 },
   { code: "GT", flag: "🇬🇹", name: "Guatemala", dialCode: "+502", phoneLength: 8 },
   { code: "HT", flag: "🇭🇹", name: "Haití", dialCode: "+509", phoneLength: 8 },
   { code: "HN", flag: "🇭🇳", name: "Honduras", dialCode: "+504", phoneLength: 8 },
@@ -41,7 +42,7 @@ export const CrearApoderadoForm = () => {
     closeModal,
   } = useCreateApoderado();
   const [countryCode, setCountryCode] = useState("CL");
-  const selectedCountry = LATAM_COUNTRIES.find((country) => country.code === countryCode) ?? LATAM_COUNTRIES[0];
+  const selectedCountry = PHONE_COUNTRIES.find((country) => country.code === countryCode) ?? PHONE_COUNTRIES[0];
   const localPhone = formData.telefono.startsWith(selectedCountry.dialCode)
     ? formData.telefono.slice(selectedCountry.dialCode.length)
     : formData.telefono.replace(/^\+/, "");
@@ -109,12 +110,12 @@ export const CrearApoderadoForm = () => {
               value={countryCode}
               aria-label="País y prefijo telefónico"
               onChange={(event) => {
-                const nextCountry = LATAM_COUNTRIES.find((country) => country.code === event.target.value) ?? LATAM_COUNTRIES[0];
+                const nextCountry = PHONE_COUNTRIES.find((country) => country.code === event.target.value) ?? PHONE_COUNTRIES[0];
                 setCountryCode(nextCountry.code);
                 updatePhone(nextCountry.dialCode, localPhone);
               }}
             >
-              {LATAM_COUNTRIES.map((country) => (
+              {PHONE_COUNTRIES.map((country) => (
                 <option key={country.code} value={country.code}>
                   {country.flag} {country.name} {country.dialCode}
                 </option>

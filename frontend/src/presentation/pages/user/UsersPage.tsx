@@ -35,7 +35,7 @@ export const UsersPage = () => {
   }>({ isOpen: false, message: "", type: "success" });
 
   useEffect(() => {
-    load(currentPage);
+    load(currentPage, false);
   }, [load]);
 
   const handleCreate = async (payload: UserPayload) => {

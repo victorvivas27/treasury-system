@@ -1,3 +1,4 @@
+import { readPageRequest } from '../pageRequestCache';
 import { GetApoderadosUseCase } from "@/core/B-application/use-cases/apoderado/list/GetApoderadosUseCase";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
@@ -26,14 +27,14 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
   const entryPage = useRef(currentPage);
   const requestSequence = useRef(0);
 
-  const fetchApoderados = useCallback(async (page: number) => {
+  const fetchApoderados = useCallback(async (page: number, force = false) => {
     const request = ++requestSequence.current;
     const requestSession = pageDataSession();
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getApoderadosUseCase.execute(page, pageSize, search);
+      const data = await readPageRequest(JSON.stringify([scope, page, search]), () => getApoderadosUseCase.execute(page, pageSize, search), force);
   if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
       storePageData(`${scope}:search`, search, requestSession);
 
@@ -67,7 +68,7 @@ export const useApoderados = (options: UseApoderadosOptions = {}) => {
   }, [currentPage, fetchApoderados]);
 
   const refetch = useCallback(() => {
-    return fetchApoderados(currentPage);
+    return fetchApoderados(currentPage, true);
   }, [currentPage, fetchApoderados]);
 
   const replaceApoderado = useCallback((updatedApoderado: Apoderado) => {

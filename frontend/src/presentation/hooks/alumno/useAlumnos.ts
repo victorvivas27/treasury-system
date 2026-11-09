@@ -1,3 +1,4 @@
+import { readPageRequest } from '../pageRequestCache';
 import { GetAlumnosUseCase } from "@/core/B-application/use-cases/alumno/list/GetAlumnosUseCase";
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
@@ -27,14 +28,14 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
   const entryPage = useRef(currentPage);
   const requestSequence = useRef(0);
 
-  const fetchAlumnos = useCallback(async (page: number) => {
+  const fetchAlumnos = useCallback(async (page: number, force = false) => {
     const request = ++requestSequence.current;
     const requestSession = pageDataSession();
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getAlumnosUseCase.execute(page, pageSize, search);
+      const data = await readPageRequest(JSON.stringify([scope, page, search]), () => getAlumnosUseCase.execute(page, pageSize, search), force);
   if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
       storePageData(`${scope}:search`, search, requestSession);
 
@@ -68,7 +69,7 @@ export const useAlumnos = (options: UseAlumnosOptions = {}) => {
   }, [currentPage, fetchAlumnos]);
 
   const refetch = useCallback(() => {
-    return fetchAlumnos(currentPage);
+    return fetchAlumnos(currentPage, true);
   }, [currentPage, fetchAlumnos]);
 
   const replaceAlumno = useCallback((updatedAlumno: Alumno) => {
