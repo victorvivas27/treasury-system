@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { FiCheck, FiPlus, FiRefreshCw, FiX } from 'react-icons/fi';
-import type { CollectionCampaign, CollectionFamily, CollectionReceipt } from '@/core/A-domain/entities/treasury/Collection';
+import type { CollectionCampaign, CollectionFamily, CollectionMovement, CollectionReceipt } from '@/core/A-domain/entities/treasury/Collection';
 import type { ExpenseCategory } from '@/core/A-domain/entities/treasury/Treasury';
 import { useDashboardResource } from '../dashboard/dashboardCache';
 import { collectionFamilies, collectionResource, collectionUseCases } from './collectionsCache';
@@ -10,7 +10,7 @@ import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useDialogFocus } from '@/shared/ui/dialog/useDialogFocus';
 import { Button } from '@/shared/ui/button/Button';
 import { FeedbackState } from '@/shared/ui/feedback/FeedbackState';
-import { chileDate } from '@/shared/date/chileDateTime';
+import { chileDate, chileTime } from '@/shared/date/chileDateTime';
 import './CollectionsPage.css';
 
 const money = (value: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
@@ -124,8 +124,21 @@ export function CollectionsPage() {
     } catch (failure) { setError(message(failure)); void resource.load(true); }
     finally { submitting.current = false; setSaving(false); }
   };
+  const firstPayments = new Map<number, CollectionMovement>();
+  const registrationTime = (movement: CollectionMovement) => Date.parse(movement.recordedAt || movement.date);
+  for (const movement of campaign?.movements ?? []) {
+    if (!movement.active || movement.familyId === null) continue;
+    const previous = firstPayments.get(movement.familyId);
+    if (!previous || registrationTime(movement) < registrationTime(previous)) firstPayments.set(movement.familyId, movement);
+  }
+  const firstPaymentTime = (family: CollectionFamily) => {
+    const payment = firstPayments.get(family.familyId);
+    return payment ? registrationTime(payment) : Number.POSITIVE_INFINITY;
+  };
   const rows = (campaign?.families ?? []).filter(family => (!onlyPending || family.remaining > 0)
-    && `${family.studentName} ${family.guardian ?? ''} ${family.familyCode}`.toLocaleLowerCase('es').includes(search.toLocaleLowerCase('es')));
+    && `${family.studentName} ${family.guardian ?? ''} ${family.familyCode}`.toLocaleLowerCase('es').includes(search.toLocaleLowerCase('es')))
+    .sort((a, b) => Number(b.paid > 0) - Number(a.paid > 0)
+      || firstPaymentTime(a) - firstPaymentTime(b) || a.familyId - b.familyId);
   const incomeActive = Boolean(campaign?.incomeId && campaign.movements.some(m => m.incomeId === campaign.incomeId && m.active));
   const dialogTitle = dialog?.kind === 'edit' ? 'Editar fondo' : dialog?.kind === 'delete' ? 'Eliminar fondo' : dialog?.kind === 'create' ? 'Nuevo fondo' : dialog?.kind === 'closing' ? 'Cerrar y dar ingreso'
     : dialog?.kind === 'provider' ? 'Pagar al proveedor' : dialog?.kind === 'expected' ? 'Monto de la familia'
@@ -166,16 +179,23 @@ export function CollectionsPage() {
           : 'Los checks controlan lo recibido. Al cerrar el fondo se registra un único ingreso por el total recaudado.'}</p>
         <div className="collections-filters"><input type="search" placeholder="Buscar familia o alumno" aria-label="Buscar familia o alumno" value={search} onChange={e => setSearch(e.target.value)} />
           <label><input type="checkbox" checked={onlyPending} onChange={e => setOnlyPending(e.target.checked)} /> Solo pendientes</label>
-          <span>{rows.length} familias</span></div>
+          <span>{rows.length} familias · Primer pago registrado arriba</span></div>
         <div className="collections-table"><div className="collections-row collections-row--head" aria-hidden="true"><span>Pagó</span><span>Familia / alumno</span><span>Monto</span><span>Recibido</span><span>Falta</span><span>Estado</span></div>
           {rows.map(family => <div className="collections-row" key={family.familyId}>
             <input type="checkbox" aria-label={`Pagó ${family.studentName}`} checked={family.status === 'PAID'}
               disabled={Boolean(campaign.incomeId) || family.expected === 0} onChange={() => open(family.status === 'PAID' ? 'cancel' : 'payment', family)} />
-            <div className="collections-family"><strong>{family.studentName}</strong><small>{family.guardian || family.familyCode} · {family.course}</small></div>
+            <div className="collections-family"><strong>{family.studentName}</strong><small>{family.guardian || family.familyCode} · {family.course}</small>
+              {firstPayments.get(family.familyId) && <small>{(() => {
+                const payment = firstPayments.get(family.familyId)!;
+                return payment.recordedAt
+                  ? `Registrado: ${chileDate(new Date(payment.recordedAt)).split('-').reverse().join('/')} · ${chileTime(payment.recordedAt)}`
+                  : `Pago: ${payment.date.split('-').reverse().join('/')} · Hora no disponible`;
+              })()}</small>}</div>
             <button className="collections-amount" type="button" disabled={Boolean(campaign.incomeId)} aria-label={`Ajustar monto de ${family.studentName}`} onClick={() => open('expected', family)}><small>Monto</small>{money(family.expected)}</button>
-            <span className="collections-number"><small>Recibido</small>{money(family.paid)}</span><span className="collections-number"><small>Falta</small>{money(family.remaining)}</span>
+            <span className="collections-number"><small>Recibido</small>{money(family.paid)}
+              {family.paid > family.expected && <span className="collections-extra">Extra: {money(family.paid - family.expected)}</span>}</span><span className="collections-number"><small>Falta</small>{money(family.remaining)}</span>
             <div className="collections-status" data-status={family.status}><span className="collections-status-pill">{family.status === 'PAID' && <FiCheck aria-hidden="true" />}{statusLabel[family.status]}</span>
-              {!campaign.incomeId && family.status === 'PARTIAL' && <button type="button" onClick={() => open('payment', family)}>Abonar</button>}</div>
+              {!campaign.incomeId && ['PARTIAL', 'PAID'].includes(family.status) && <button type="button" aria-label={`Agregar pago de ${family.studentName}`} onClick={() => open('payment', family)}>{family.status === 'PAID' ? 'Agregar pago' : 'Abonar'}</button>}</div>
           </div>)}
           {!rows.length && <p>No hay familias para estos filtros.</p>}
         </div>
@@ -203,8 +223,9 @@ export function CollectionsPage() {
         </>}
         {!['closing', 'cancel', 'edit', 'delete'].includes(dialog.kind) && <label>{dialog.kind === 'create' ? 'Monto sugerido por familia' : dialog.kind === 'expected' ? 'Monto esperado (0 = no participa)' : 'Monto en pesos'}
           <input required type="number" step="1" min={dialog.kind === 'expected' ? dialog.family?.paid || 0 : 1}
-            max={dialog.kind === 'payment' ? dialog.family?.remaining : dialog.kind === 'provider' ? campaign?.available : 99999999999999}
+            max={dialog.kind === 'provider' ? campaign?.available : 99999999999999}
             value={amount} onChange={e => setAmount(e.target.value)} /></label>}
+        {dialog.kind === 'payment' && <p>Puedes registrar un importe mayor al esperado. El extra se sumará al total recibido del fondo.</p>}
         {dialog.kind === 'create' && <fieldset><legend>Familias participantes · {familyIds.size}</legend>
           {options.error ? <Button label="Reintentar familias" variant="secondary" size="small" onClick={() => void collectionFamilies.load(true)} />
             : !options.data ? <p role="status">Cargando familias…</p> : <>

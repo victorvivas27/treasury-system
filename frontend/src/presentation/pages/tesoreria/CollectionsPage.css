@@ -29,6 +29,7 @@
 .collections-amount{font:inherit;color:var(--text-main);border:0;background:none;text-align:left;padding:0;text-decoration:underline dotted;text-underline-offset:4px;cursor:pointer}
 .collections-amount:disabled{cursor:default;text-decoration:none}
 .collections-number small,.collections-amount small{display:none}
+.collections-extra{display:block;margin-top:5px;font-size:10px;color:var(--color-accent)}
 .collections-status{display:flex;align-items:center;flex-wrap:wrap;gap:5px;font-size:10px;color:var(--text-muted)}
 .collections-status[data-status=PAID]{color:var(--color-accent)}
 .collections-status[data-status=PENDING]{color:var(--color-warning)}

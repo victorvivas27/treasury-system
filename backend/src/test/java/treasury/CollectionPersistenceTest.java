@@ -108,7 +108,10 @@ class CollectionPersistenceTest {
         org.mockito.Mockito.when(storage.read(org.mockito.ArgumentMatchers.anyString())).thenReturn(new com.tesoreria.treasury.core.port.out.FileStorageService.StoredContent(bytes, "application/pdf"));
         receiptService.collect(campaign.id(), family.getFamiliaId(), BigDecimal.TEN, date, "", request, file, "admin");
         assertEquals(date, service.list(2026).get(0).movements().get(0).date());
+        var registered = service.list(2026).get(0).movements().get(0).recordedAt();
+        assertNotNull(registered);
         receiptService.collect(campaign.id(), family.getFamiliaId(), BigDecimal.TEN, date, "", request, file, "admin");
+        assertEquals(registered, service.list(2026).get(0).movements().get(0).recordedAt());
         assertEquals(1, service.list(2026).get(0).movements().size());
         assertEquals(1, receiptService.list(campaign.id()).size());
         assertArrayEquals(bytes, receiptService.download(campaign.id(), request).bytes());
@@ -119,6 +122,30 @@ class CollectionPersistenceTest {
         assertThrows(DomainException.class, () -> receiptService.list(campaign.id()));
         authenticate(tenant, RoleEnum.USER);
         assertThrows(AccessDeniedException.class, () -> receiptController.download(campaign.id(), request));
+    }
+    @Test void persistsExtraPaymentsAndRegistrationTimesThroughClosingAndCancellation() {
+        authenticate(organization(), RoleEnum.ADMIN);
+        var student = students.save(new AlumnoEntity(null, "AL-" + UUID.randomUUID().toString().substring(0, 8), "Alumno", "4A"));
+        var family = families.save(new FamiliaEntity(null, student.getAlumnoId(), null, List.of(), null, null, null));
+        var date = LocalDate.of(2026, 1, 1);
+        var campaign = service.create(2026, "Paseo con extras", BigDecimal.valueOf(15000), null, List.of(family.getFamiliaId()), "admin");
+        service.collect(campaign.id(), family.getFamiliaId(), BigDecimal.valueOf(23000), date, "Extra", UUID.randomUUID(), "admin");
+        var saved = service.list(2026).get(0);
+        assertEquals(BigDecimal.valueOf(15000), saved.expected());
+        assertEquals(BigDecimal.valueOf(23000), saved.collected());
+        assertEquals(BigDecimal.ZERO, saved.remaining());
+        assertEquals("PAID", saved.families().get(0).status());
+        var registered = saved.movements().get(0).recordedAt();
+        assertNotNull(registered);
+        service.cancelFamilyPayments(campaign.id(), family.getFamiliaId(), "Corrección", "admin");
+        var cancelled = service.list(2026).get(0);
+        assertEquals(registered, cancelled.movements().get(0).recordedAt());
+        assertFalse(cancelled.movements().get(0).active());
+        assertEquals(BigDecimal.ZERO, cancelled.collected());
+        service.collect(campaign.id(), family.getFamiliaId(), BigDecimal.valueOf(23000), date, "Nuevo", UUID.randomUUID(), "admin");
+        var closed = service.postIncome(campaign.id(), date, "Total", "admin");
+        assertEquals(BigDecimal.valueOf(23000), treasury.getIncome(closed.incomeId()).amount());
+        assertEquals(BigDecimal.valueOf(23000), closed.available());
     }
     private Long organization() {
         var value = new OrganizationEntity(); value.setName("Curso"); value.setSlug("collection-" + UUID.randomUUID());

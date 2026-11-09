@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const validatedToken = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!import.meta.env.DEV || loading) return;
+    if (loading) return;
     const loader = document.getElementById("app-boot-loader");
     const root = document.getElementById("root");
     if (!loader || !root) return;
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!root.firstElementChild || !stylesReady || paintFrame !== undefined) return;
       paintFrame = window.requestAnimationFrame(() => {
         window.dispatchEvent(new Event("app:boot-ready"));
-        const previewRemaining = import.meta.env.DEV && ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
+        const previewRemaining = ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
           ? Math.max(0, Math.min(20000, Number(loader.dataset.previewUntil || 0) - performance.now())) : 0;
         if (previewRemaining > 0) removeTimer = window.setTimeout(leaveLoader, previewRemaining);
         else leaveLoader();

@@ -11,15 +11,19 @@ test('development defaults to video without flashing the retired loading image',
   }
 });
 
-test('production HTML ignores loader parameters and excludes the panel', async ({ page }) => {
-  test.skip(!existsSync('dist/index.html'), 'Build with pnpm build before validating production HTML');
+test('production HTML includes all loader variants and emitted media', async ({ page }) => {
+  expect(existsSync('dist/index.html'), 'Run pnpm build before validating production HTML').toBe(true);
   const html = readFileSync('dist/index.html', 'utf8');
-  await page.route('**/assets/**', route => route.abort());
+  const media = [...new Set(html.match(/\/assets\/startup\/[^"<>\s]+\.(?:mp4|webp)/g))];
+  expect(media).toHaveLength(3);
+  for (const asset of media) expect(existsSync(`dist${asset}`)).toBe(true);
+  await page.route('**/assets/**', route => route.fulfill({
+    contentType: route.request().resourceType() === 'script' ? 'application/javascript' : 'text/css', body: '',
+  }));
   await page.route('**/?loader=*', route => route.fulfill({ contentType: 'text/html', body: html }));
-  for (const variant of ['cinematic', 'video']) {
+  for (const variant of ['cinematic', 'video', 'video-light']) {
     await page.goto(`/?loader=${variant}&loaderDelay=0`);
-    await expect(page.locator('#app-boot-loader')).toHaveCount(0);
-    await expect(page.locator('.boot-test-panel')).toHaveCount(0);
+    await expect(page.locator('#app-boot-loader')).toHaveAttribute('data-variant', variant);
   }
 });
 

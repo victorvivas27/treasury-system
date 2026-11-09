@@ -1,4 +1,4 @@
-// Inlined only in development. Decorative media never gates the ready signal.
+// Inlined before boot. Decorative media never gates the ready signal.
 export function createInitialVideo(loader, source, mobileSource, icons) {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = matchMedia('(max-width: 600px), (max-width: 900px) and (max-height: 500px)');

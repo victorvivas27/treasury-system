@@ -339,9 +339,9 @@ class Phase3PostgresSecurityTest {
     void migrationIsIdempotentAndBothInstancesUseCurrentSchema() {
         var flyway = first.getBean(org.flywaydb.core.Flyway.class);
         flyway.validate();
-        assertEquals("61", flyway.info().current().getVersion().getVersion());
+        assertEquals("62", flyway.info().current().getVersion().getVersion());
         assertEquals(0, flyway.migrate().migrationsExecuted);
-        assertEquals("61", second.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
+        assertEquals("62", second.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
     }
 
     HttpResponse<String> refresh(ConfigurableApplicationContext app, HttpResponse<String> previous) throws Exception {
@@ -518,14 +518,15 @@ class Phase3PostgresSecurityTest {
                 + "VALUES (?,'REFRESH_TOKEN',?,?,?,CURRENT_TIMESTAMP+interval '1 day')", id, "a".repeat(64),
                 "b".repeat(64), UUID.randomUUID());
         var upgrade = org.flywaydb.core.Flyway.configure().dataSource(legacy).load();
-        assertEquals(4, upgrade.migrate().migrationsExecuted);
+        assertEquals(5, upgrade.migrate().migrationsExecuted);
+        assertEquals("62", upgrade.info().current().getVersion().getVersion());
         upgrade.validate();
         assertEquals(hash, before.queryForObject("SELECT password FROM users WHERE id=?", String.class, id));
         assertEquals(1, before.queryForObject("SELECT count(*) FROM user_tokens WHERE user_id=? AND revoked_at IS NULL",
                 Integer.class, id));
         assertEquals(0, before.queryForObject("SELECT count(*) FROM security_rate_buckets", Integer.class));
         assertEquals(0, upgrade.migrate().migrationsExecuted);
-        System.out.println("PHASE3_UPGRADE V54_to_V61 accountAndRefresh=preserved idempotent=true");
+        System.out.println("PHASE3_UPGRADE V54_to_V62 accountAndRefresh=preserved idempotent=true");
     }
 
     @Test

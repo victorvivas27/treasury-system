@@ -8,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Instant;
 
 @Embeddable
 @Getter
@@ -24,4 +25,5 @@ public class CollectionMovementEmbeddable {
     @Column(length = 100) private String reference;
     @Column(length = 150) private String recipient;
     @Column(nullable = false) private boolean cancelled;
+    @Column(name = "recorded_at") private Instant recordedAt;
 }

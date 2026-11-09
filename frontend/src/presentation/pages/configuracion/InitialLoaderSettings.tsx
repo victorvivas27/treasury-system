@@ -44,7 +44,7 @@ export function InitialLoaderSettings() {
   return <article className="appearance-card startup-settings" aria-labelledby="startup-settings-title">
     <div className="appearance-heading">
       <div><h2 id="startup-settings-title">Inicio de la app</h2><p>Elige y prueba la experiencia de entrada.</p></div>
-      <span className="resolved-theme">Pruebas</span>
+      <span className="resolved-theme">Este navegador</span>
     </div>
     <fieldset className="startup-settings__options">
       <legend className="sr-only">Experiencia de inicio</legend>

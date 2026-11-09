@@ -160,7 +160,7 @@ export const Configuracion = () => {
       </article>
 
 
-      {canEditCourse && import.meta.env.DEV && <InitialLoaderSettings />}
+      {canEditCourse && <InitialLoaderSettings />}
 
       <article className={`push-settings-card push-settings-card--${pushStatus}`}>
         <span className="push-settings-icon"><FiBell aria-hidden="true" /></span>
