@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.0](https://github.com/victorvivas27/treasury-system/compare/v1.45.0...v1.46.0) (2026-11-09)
+
+
+### Features
+
+* mejorar loader, perfil y vista de comprobantes ([46be884](https://github.com/victorvivas27/treasury-system/commit/46be8841718c0d9dad4e85c26719c4c12be8a87b))
+
 ## [1.45.0](https://github.com/victorvivas27/treasury-system/compare/v1.44.0...v1.45.0) (2026-11-09)
 
 
