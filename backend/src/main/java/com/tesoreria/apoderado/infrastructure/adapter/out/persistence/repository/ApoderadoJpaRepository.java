@@ -11,6 +11,10 @@ import java.util.Optional;
 
 public interface ApoderadoJpaRepository extends JpaRepository<ApoderadoEntity, Long> {
 
+    // Internal existence check only: a live link in any course must never be reassigned.
+    @Query(value = "SELECT EXISTS (SELECT 1 FROM apoderados WHERE apoderado_id = :id)", nativeQuery = true)
+    boolean invitationGuardianExists(@Param("id") Long id);
+
     @Query(value = "SELECT EXISTS (SELECT 1 FROM apoderados "
             + "WHERE organization_id = :organizationId AND activo = true "
             + "AND LOWER(TRIM(email)) = :email)", nativeQuery = true)
