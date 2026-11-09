@@ -4,7 +4,7 @@ const { createHash } = require('node:crypto');
 const suites = new Set(['frontend', 'backend', 'bruno', 'versioning']);
 const workflows = new Set(['00-pr-validation.yml', '02-frontend-ci.yml', '03-backend-ci.yml',
   '04-bruno-tests.yml', '05-versioning-ci.yml', '06-release-please.yml', '10-sync-main-dev.yml',
-  '07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml',
+  '07-deploy-backend.yml', '09-reports-pages.yml',
   '11-publish-allure.yml', '12-release-validation.yml']);
 
 // Hash tracked blobs, file modes and paths, not commit IDs. A merge with identical

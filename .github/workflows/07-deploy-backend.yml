@@ -93,19 +93,32 @@ jobs:
             --format='value(metadata.name)' > /dev/null
 
       - name: Build backend image
+        id: image
         working-directory: backend
         env:
           IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ needs.validation.outputs.sha }}
         run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < ../VERSION)"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release version" >&2
+            exit 1
+          fi
+          VERSION_URI="${IMAGE_URI%:*}:v${VERSION}"
+          echo "version_uri=$VERSION_URI" >> "$GITHUB_OUTPUT"
           docker build \
             --tag "$IMAGE_URI" \
+            --tag "$VERSION_URI" \
             .
 
       - name: Publish backend image
         env:
           IMAGE_URI: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.BACKEND_IMAGE_NAME }}:${{ needs.validation.outputs.sha }}
+          VERSION_URI: ${{ steps.image.outputs.version_uri }}
         run: |
+          set -euo pipefail
           docker push "$IMAGE_URI"
+          docker push "$VERSION_URI"
 
       - name: Deploy backend to Cloud Run
         id: deploy
