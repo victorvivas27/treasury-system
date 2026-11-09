@@ -145,8 +145,14 @@ public class AccountRecoveryService {
             throw invitationDenied("El correo ya corresponde a una cuenta administrativa en este curso.");
         }
         if (user.getInvitedGuardianId() != null && !guardianId.equals(user.getInvitedGuardianId())) {
-            throw invitationDenied("La cuenta de este curso está vinculada a otro registro de apoderado. "
-                    + "Revise el vínculo antes de emitir una nueva invitación.");
+            boolean orphanedPendingInvitation = !Boolean.TRUE.equals(user.getEnabled())
+                    && user.getInvitationAcceptedAt() == null
+                    && !guardians.invitationGuardianExists(user.getInvitedGuardianId());
+            if (!orphanedPendingInvitation) {
+                throw invitationDenied("La cuenta de este curso está vinculada a otro registro de apoderado. "
+                        + "Revise el vínculo antes de emitir una nueva invitación.");
+            }
+            // Reissuing replaces the orphaned link and all old tokens; activated accounts stay protected.
         }
         if (Boolean.TRUE.equals(user.getEnabled()) && user.getInvitationAcceptedAt() != null) {
             return user;

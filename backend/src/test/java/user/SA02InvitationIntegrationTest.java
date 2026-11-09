@@ -73,6 +73,7 @@ class SA02InvitationIntegrationTest {
     @Autowired PasswordEncoder encoder;
     @Autowired JdbcTemplate jdbc;
     @Autowired com.tesoreria.user.application.usecase.InvitationDeliveryService invitationDeliveries;
+    @Autowired org.springframework.context.ApplicationEventPublisher invitationEvents;
     @Autowired com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository students;
     @MockitoBean EmailOutPort email;
 
@@ -196,6 +197,14 @@ class SA02InvitationIntegrationTest {
 
     @Test
     void sameEmailCanAcceptIndependentInvitationsInTwoCourses() throws Exception {
+        when(email.sendGuardianInvitationEmail(anyString(), anyString(), anyString(), any()))
+                .thenAnswer(call -> {
+                    String recipient = call.getArgument(0);
+                    links.put(recipient, call.getArgument(2));
+                    invitationEvents.publishEvent(new com.tesoreria.user.core.model.InvitationEmailAccepted(
+                            UUID.randomUUID().toString(), recipient));
+                    return true;
+                });
         authenticate(adminB);
         guardianB.setEmail(guardianA.getEmail());
         guardianB = guardians.saveAndFlush(guardianB);
@@ -222,6 +231,10 @@ class SA02InvitationIntegrationTest {
         assertTrue(second.getEnabled());
         assertTrue(encoder.matches("Authorized1!", first.getPassword()));
         assertTrue(encoder.matches("Authorized2!", second.getPassword()));
+        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM guardian_email_deliveries "
+                + "WHERE organization_id=? AND guardian_id=?", Integer.class, courseA, guardianA.getApoderadoId()));
+        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM guardian_email_deliveries "
+                + "WHERE organization_id=? AND guardian_id=?", Integer.class, courseB, guardianB.getApoderadoId()));
     }
 
     @Test
@@ -451,6 +464,67 @@ class SA02InvitationIntegrationTest {
         SecurityContextHolder.clearContext();
         reject(raw);
         assertUnchanged(pending);
+    }
+
+    @Test
+    void administratorCanReissueAnUnacceptedInvitationAfterGuardianWasDeleted() throws Exception {
+        String oldToken = invite(guardianA, adminA);
+        UserEntity pending = invited(guardianA);
+        jdbc.update("DELETE FROM apoderados WHERE apoderado_id = ?", guardianA.getApoderadoId());
+        authenticate(adminA);
+        ApoderadoEntity replacement = new ApoderadoEntity(null, code("AP"), "Ana Recreada",
+                guardianA.getEmail(), "12345678", null);
+        replacement.setActivo(true);
+        replacement = guardians.saveAndFlush(replacement);
+        SecurityContextHolder.clearContext();
+        jdbc.update("UPDATE security_rate_buckets SET expires_at=CURRENT_TIMESTAMP");
+        String newToken = invite(replacement, adminA);
+        UserEntity rebound = invited(replacement);
+        assertEquals(pending.getId(), rebound.getId());
+        assertEquals(replacement.getApoderadoId(), rebound.getInvitedGuardianId());
+        assertFalse(rebound.getEnabled());
+        assertNull(rebound.getInvitationAcceptedAt());
+        reject(oldToken);
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + newToken + "\",\"newPassword\":\"Authorized1!\"}"))
+                .andExpect(status().isOk());
+        assertTrue(invited(replacement).getEnabled());
+    }
+
+    @Test
+    void reissueCannotTakeOverALiveGuardianLinkEvenFromAnotherCourse() throws Exception {
+        invite(guardianA, adminA);
+        UserEntity pending = invited(guardianA);
+        pending.setInvitedGuardianId(guardianB.getApoderadoId());
+        users.saveAndFlush(pending);
+        clearInvocations(email);
+        jdbc.update("UPDATE security_rate_buckets SET expires_at=CURRENT_TIMESTAMP");
+        mvc.perform(post(invitePath(guardianA)).header("Authorization", bearer(adminA)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors.membership").value(
+                        "La cuenta de este curso está vinculada a otro registro de apoderado. Revise el vínculo antes de emitir una nueva invitación."));
+        assertEquals(guardianB.getApoderadoId(), invited(guardianA).getInvitedGuardianId());
+        verifyNoInteractions(email);
+    }
+
+    @Test
+    void activatedAccountCannotBeReassignedAfterGuardianWasDeleted() throws Exception {
+        String token = invite(guardianA, adminA);
+        mvc.perform(post("/api/v1/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + token + "\",\"newPassword\":\"Authorized1!\"}"))
+                .andExpect(status().isOk());
+        jdbc.update("DELETE FROM apoderados WHERE apoderado_id = ?", guardianA.getApoderadoId());
+        authenticate(adminA);
+        ApoderadoEntity replacement = new ApoderadoEntity(null, code("AP"), "Ana Recreada",
+                guardianA.getEmail(), "12345678", null);
+        replacement.setActivo(true);
+        replacement = guardians.saveAndFlush(replacement);
+        SecurityContextHolder.clearContext();
+        clearInvocations(email);
+        jdbc.update("UPDATE security_rate_buckets SET expires_at=CURRENT_TIMESTAMP");
+        mvc.perform(post(invitePath(replacement)).header("Authorization", bearer(adminA)))
+                .andExpect(status().isForbidden());
+        verify(email, never()).sendGuardianInvitationEmail(anyString(), anyString(), anyString(), any());
     }
 
     @Test
