@@ -229,8 +229,6 @@ importers:
         specifier: 4.1.11
         version: 4.1.11
       allure:
-        specifier: 3.22.1
-        version: 3.22.1(debug@4.4.3(supports-color@7.2.0))(preact@11.0.1)(supports-color@7.2.0)
         specifier: 3.33.0
         version: 3.33.0(debug@4.4.3(supports-color@7.2.0))(preact@11.0.1)(supports-color@7.2.0)
       allure-js-commons:
@@ -253,8 +251,7 @@ importers:
         version: 8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1)
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.5(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
-        version: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@30.1.3)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
 
 packages:
 
@@ -1638,11 +1635,11 @@ packages:
     resolution: {integrity: sha512-SKgVvDU5TNIxQ4r30U75BNLC6a+6GOEjngrk/ysM5+Zu3oJuk1SC5ApzIzY/7PjCEjoVPMWJ0zho/4QUiEB7TQ==}
     engines: {node: '>=20'}
 
-  parse5-parser-stream@8.1.0:
-    resolution: {integrity: sha512-58MPfNTA+DsIzro41rU94xghnu/h2N4yEPdPdGPlZVHM/QvA5jlVGYVo7IzlHbFLHYx3cZUnr9s9HBrA0tEYyw==}
+  parse5-parser-stream@8.1.1:
+    resolution: {integrity: sha512-hMcVbbUJcQmP8rURWUdYrT1flRiBiBVjq/RYGguJpDUgIXSqdYKlE0CxthmdMWoSlBAuL5bUBa73g0pttSy7Hw==}
 
-  parse5@8.1.0:
-    resolution: {integrity: sha512-sq3qBFpee5jeocbFbO48VHlGr8sT7mbXS0vxlKN6sottBtJzrOG3998sr0llSZcQAGgfpdmEYAIZE0P9z0dE8w==}
+  parse5@8.1.1:
+    resolution: {integrity: sha512-EcR/6WDcU7b2N3vQSxKALCk9lXGtUMQxXio008OEMBE0kavu/7JLfBEeFPzi43nMqVDSbEn3QCK+BMCc9zO//w==}
 
   path-expression-matcher@1.6.2:
     resolution: {integrity: sha512-enSlaiat05iasnzmgNxRj8reFdj3puY2QpNgP1aPIaVfT6nn9ICuPoFlKHk8EN22HcwewshO+mN2DGbkCEOtqQ==}
@@ -2086,10 +2083,6 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  '@allurereport/ci@3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
-    dependencies:
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
   '@allurereport/ci@3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
       '@allurereport/core-api': 3.33.0
@@ -2112,30 +2105,6 @@ snapshots:
       '@marcbachmann/cel-js': 8.0.0
       d3-shape: 3.2.0
 
-  '@allurereport/core@3.22.1(debug@4.4.3(supports-color@7.2.0))(preact@11.0.1)(supports-color@7.2.0)':
-    dependencies:
-      '@allurereport/ci': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/cli-commons': 3.22.1
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/plugin-agent': 3.22.1
-      '@allurereport/plugin-allure2': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
-      '@allurereport/plugin-awesome': 3.22.1(preact@11.0.1)
-      '@allurereport/plugin-classic': 3.22.1(preact@11.0.1)
-      '@allurereport/plugin-csv': 3.22.1
-      '@allurereport/plugin-dashboard': 3.22.1(preact@11.0.1)
-      '@allurereport/plugin-jira': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/plugin-log': 3.22.1
-      '@allurereport/plugin-metrics': 3.22.1
-      '@allurereport/plugin-progress': 3.22.1
-      '@allurereport/plugin-slack': 3.22.1
-      '@allurereport/plugin-testops': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/plugin-testplan': 3.22.1
-      '@allurereport/plugin-xray': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/reader': 3.22.1
-      '@allurereport/reader-api': 3.22.1
-      '@allurereport/service': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/summary': 3.22.1
   '@allurereport/core@3.33.0(debug@4.4.3(supports-color@7.2.0))(preact@11.0.1)(supports-color@7.2.0)':
     dependencies:
       '@allurereport/ci': 3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
@@ -2259,10 +2228,6 @@ snapshots:
       - preact
       - react-native-b4a
 
-  '@allurereport/plugin-jira@3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
-    dependencies:
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
   '@allurereport/plugin-jira@3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
       '@allurereport/core-api': 3.33.0
@@ -2316,15 +2281,6 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  '@allurereport/plugin-testops@3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
-    dependencies:
-      '@allurereport/ci': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/cli-commons': 3.22.1
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/git': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
-      '@allurereport/reader-api': 3.22.1
-      '@allurereport/service': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
   '@allurereport/plugin-testops@3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
       '@allurereport/ci': 3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
@@ -2353,10 +2309,6 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  '@allurereport/plugin-xray@3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
-    dependencies:
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
   '@allurereport/plugin-xray@3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
       '@allurereport/core-api': 3.33.0
@@ -2387,10 +2339,6 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  '@allurereport/service@3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
-    dependencies:
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
   '@allurereport/service@3.33.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
       '@allurereport/core-api': 3.33.0
@@ -2630,8 +2578,7 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
     optionalDependencies:
-      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.5(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
-      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@30.1.3)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
 
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
@@ -2776,8 +2723,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.5(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
-      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@30.1.3)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -2840,36 +2786,7 @@ snapshots:
     dependencies:
       '@vitest/runner': 4.1.11
       allure-js-commons: 3.14.0
-      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.5(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
-    transitivePeerDependencies:
-      - allure-playwright
-
-  allure@3.22.1(debug@4.4.3(supports-color@7.2.0))(preact@11.0.1)(supports-color@7.2.0):
-    dependencies:
-      '@allurereport/charts-api': 3.22.1
-      '@allurereport/ci': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/cli-commons': 3.22.1
-      '@allurereport/core': 3.22.1(debug@4.4.3(supports-color@7.2.0))(preact@11.0.1)(supports-color@7.2.0)
-      '@allurereport/core-api': 3.22.1
-      '@allurereport/directory-watcher': 3.22.1
-      '@allurereport/plugin-agent': 3.22.1
-      '@allurereport/plugin-allure2': 3.22.1
-      '@allurereport/plugin-api': 3.22.1
-      '@allurereport/plugin-awesome': 3.22.1(preact@11.0.1)
-      '@allurereport/plugin-classic': 3.22.1(preact@11.0.1)
-      '@allurereport/plugin-csv': 3.22.1
-      '@allurereport/plugin-dashboard': 3.22.1(preact@11.0.1)
-      '@allurereport/plugin-jira': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/plugin-log': 3.22.1
-      '@allurereport/plugin-metrics': 3.22.1
-      '@allurereport/plugin-progress': 3.22.1
-      '@allurereport/plugin-server-reload': 3.22.1
-      '@allurereport/plugin-slack': 3.22.1
-      '@allurereport/plugin-xray': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/reader-api': 3.22.1
-      '@allurereport/service': 3.22.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      '@allurereport/static-server': 3.22.1
-      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@30.1.3)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
       - allure-playwright
 
@@ -3322,8 +3239,8 @@ snapshots:
       html-encoding-sniffer: 7.0.0
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.5.3
-      parse5: 8.1.0
-      parse5-parser-stream: 8.1.0
+      parse5: 8.1.1
+      parse5-parser-stream: 8.1.1
       saxes: 6.0.0
       tough-cookie: 6.0.2
       undici: 8.12.3
@@ -3512,11 +3429,11 @@ snapshots:
     dependencies:
       yocto-queue: 1.2.2
 
-  parse5-parser-stream@8.1.0:
+  parse5-parser-stream@8.1.1:
     dependencies:
-      parse5: 8.1.0
+      parse5: 8.1.1
 
-  parse5@8.1.0:
+  parse5@8.1.1:
     dependencies:
       entities: 9.0.0
 
@@ -3833,8 +3750,7 @@ snapshots:
       jiti: 2.7.0
       yaml: 2.9.1
 
-  vitest@4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.5(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1)):
-  vitest@4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@30.1.3)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1)):
+  vitest@4.1.11(@types/node@26.6.6)(@vitest/coverage-v8@4.1.11)(jsdom@31.0.0)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(yaml@2.9.1))
