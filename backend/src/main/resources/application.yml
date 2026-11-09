@@ -60,6 +60,9 @@ app:
   email:
     provider: ${EMAIL_PROVIDER:gmail}
     from: ${EMAIL_FROM:}
+    reply-to: ${EMAIL_REPLY_TO:}
+    resend:
+      api-key: ${RESEND_API_KEY:}
     assets-base-url: ${EMAIL_ASSETS_BASE_URL:https://storage.googleapis.com/treasury-system-app-vivas-email-assets/email/v1}
   storage:
     # Allure uses its own private bucket; never serve reports from a public bucket.
