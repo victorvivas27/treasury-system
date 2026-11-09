@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.47.1](https://github.com/victorvivas27/treasury-system/compare/v1.47.0...v1.47.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **auth:** reissue orphaned pending guardian invitations ([1765861](https://github.com/victorvivas27/treasury-system/commit/176586137c2f4af0691ec75c67c32b8645bf0a93))
+* **auth:** reissue orphaned pending guardian invitations ([2426634](https://github.com/victorvivas27/treasury-system/commit/24266346042665b43de07d09750d339372bf9616))
+
 ## [1.47.0](https://github.com/victorvivas27/treasury-system/compare/v1.46.1...v1.47.0) (2026-11-09)
 
 
