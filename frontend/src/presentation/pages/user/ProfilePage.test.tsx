@@ -51,6 +51,22 @@ describe("ProfilePage", () => {
 
   const renderProfile = () => render(<MemoryRouter><ProfilePage /></MemoryRouter>);
 
+  it("filtra los pagos por año y conserva los datos familiares", async () => {
+    const previousYear = new Date().getFullYear() - 1;
+    profile.mockImplementation(async (year: number) => year === previousYear
+      ? { ...baseProfile, studentName: "Dato histórico", mode: null, obligations: [], activityFunds: [] }
+      : baseProfile);
+    renderProfile();
+    await screen.findByText("Primera cuota");
+    fireEvent.change(screen.getByLabelText("Año"), { target: { value: String(previousYear) } });
+    fireEvent.click(screen.getByRole("button", { name: "Consultar" }));
+    await waitFor(() => expect(profile).toHaveBeenCalledWith(previousYear));
+    await waitFor(() => expect(screen.queryByText("Primera cuota")).not.toBeInTheDocument());
+    expect(screen.getByText(baseProfile.studentName)).toBeInTheDocument();
+    expect(screen.queryByText("Dato histórico")).not.toBeInTheDocument();
+    expect(screen.getByText(baseProfile.guardianPhone)).toBeInTheDocument();
+  });
+
   it.each([true, false])("muestra el mismo pago familiar para el apoderado principal=%s en solo lectura", async primaryGuardian => {
     profile.mockResolvedValue({ ...baseProfile, primaryGuardian, activityFunds: [{
       id: 1, title: 'Paseo del curso', expected: 1500, paid: 1500, remaining: 0, status: 'PAID',

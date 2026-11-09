@@ -100,8 +100,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const hideLoader = () => {
       const appStyles = document.querySelector("link[data-app-styles]");
       const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
-      if (!root.firstElementChild || !stylesReady || paintFrame !== undefined) return;
+      const avatarPending = root.querySelector('.user-avatar[aria-busy="true"]');
+      if (!root.firstElementChild || !stylesReady || avatarPending || paintFrame !== undefined) return;
       paintFrame = window.requestAnimationFrame(() => {
+        // Recheck after React effects and image loading updates have committed.
+        if (root.querySelector('.user-avatar[aria-busy="true"]')) {
+          paintFrame = undefined;
+          return;
+        }
         window.dispatchEvent(new Event("app:boot-ready"));
         const previewRemaining = ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
           ? Math.max(0, Math.min(20000, Number(loader.dataset.previewUntil || 0) - performance.now())) : 0;
@@ -111,7 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     };
     const observer = new MutationObserver(hideLoader);
-    observer.observe(root, { childList: true, subtree: true });
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-busy'] });
     window.addEventListener("app:styles-ready", hideLoader);
     hideLoader();
     return () => {

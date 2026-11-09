@@ -37,6 +37,21 @@ describe("UserAvatar", () => {
     expect(screen.getByLabelText("Avatar de Ana Pérez")).not.toHaveAttribute("aria-busy");
   });
 
+  it("muestra iniciales cuando la descarga no termina", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(loadCachedProfileImage).mockReturnValue(new Promise(() => {}));
+      render(<UserAvatar user={{ nombre: "Ana Pérez", profileImageType: "CUSTOM_IMAGE",
+        profileImageUrl: "stalled" }} />);
+      expect(screen.getByLabelText("Avatar de Ana Pérez")).toHaveAttribute("aria-busy", "true");
+      await act(() => vi.advanceTimersByTimeAsync(8000));
+      expect(screen.getByText("AP")).toBeInTheDocument();
+      expect(screen.getByLabelText("Avatar de Ana Pérez")).not.toHaveAttribute("aria-busy");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("no oculta un avatar ya cargado al volver a renderizarlo", () => {
     const user = { nombre: "Ana Pérez", profileImageType: "PREDEFINED_AVATAR" as const,
       profileImageUrl: "/avatars/ana.png" };

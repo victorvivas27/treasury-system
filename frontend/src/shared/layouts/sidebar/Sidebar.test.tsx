@@ -182,9 +182,9 @@ describe('Sidebar Component', () => {
     expect(screen.getByRole('link', { name: 'Pagos' }))
       .toHaveAttribute('href', '/tesoreria/pagos');
     expect(screen.getByRole('link', { name: 'Fondos por actividad' }))
-      .toHaveAttribute('href', '/tesoreria/recaudaciones');
+      .toHaveAttribute('href', '/tesoreria/fondos-por-actividad');
     TREASURY_LINKS.filter(link => ![
-      '/tesoreria/ingresos', '/tesoreria/gastos', '/tesoreria/stands', '/tesoreria/pagos', '/tesoreria/recaudaciones',
+      '/tesoreria/ingresos', '/tesoreria/gastos', '/tesoreria/stands', '/tesoreria/pagos', '/tesoreria/fondos-por-actividad',
     ].includes(link.path)).forEach((link) => {
       expect(screen.queryByRole('link', { name: link.label })).not.toBeInTheDocument();
     });

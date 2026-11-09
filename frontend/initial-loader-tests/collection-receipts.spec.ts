@@ -25,7 +25,7 @@ test('payment check accepts a receipt and exposes it in the history', async ({ p
       : endpoint.endsWith('/auth/me') ? user
       : endpoint.endsWith('/configuracion-general/curso') ? { course: '4A', schoolYear: 2026, history: [] } : [] });
   });
-  await page.goto('/tesoreria/recaudaciones?loaderDelay=0', { waitUntil: 'commit' });
+  await page.goto('/tesoreria/fondos-por-actividad?loaderDelay=0', { waitUntil: 'commit' });
   const check = page.getByRole('checkbox', { name: 'Pagó Ana' });
   await expect(check).toBeVisible({ timeout: 60000 });
   await expect(page.locator('.home-entry-transition')).toHaveCount(0);

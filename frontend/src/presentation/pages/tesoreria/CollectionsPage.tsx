@@ -57,16 +57,26 @@ export function CollectionsPage() {
     }).catch(() => { if (active) setReceiptError('No pudimos cargar los comprobantes.'); });
     return () => { active = false; };
   }, [campaign?.id, receiptVersion]);
-  const downloadReceipt = async (receipt: CollectionReceipt) => {
+  const viewReceipt = async (receipt: CollectionReceipt) => {
     if (!campaign || downloading) return;
+    const preview = window.open('', '_blank');
+    if (!preview) {
+      setReceiptError('Permite abrir una nueva pestaña para ver el comprobante.');
+      return;
+    }
+    preview.opener = null;
+    preview.document.title = receipt.originalName;
+    preview.document.body.textContent = 'Cargando comprobante…';
     setDownloading(true); setReceiptError('');
     try {
       const blob = await collectionUseCases.downloadReceipt(campaign.id, receipt.requestId);
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url; link.download = receipt.originalName; link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch { setReceiptError('No pudimos descargar el comprobante. Intenta nuevamente.'); }
+      preview.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      preview.close();
+      setReceiptError('No pudimos abrir el comprobante. Intenta nuevamente.');
+    }
     finally { setDownloading(false); }
   };
   const [recipient, setRecipient] = useState('');
@@ -216,7 +226,7 @@ export function CollectionsPage() {
               {m.reference && <small>Referencia: {m.reference}</small>}
               {receipts.filter(receipt => receipt.requestId === m.requestId).map(receipt =>
                 <button className="collections-receipt-link" key={receipt.requestId} type="button" disabled={downloading}
-                  onClick={() => void downloadReceipt(receipt)}>Descargar comprobante</button>)}
+                  onClick={() => void viewReceipt(receipt)}>Ver comprobante</button>)}
             </span><strong>{money(m.amount)}</strong><small>{m.active ? 'Registrado' : 'Anulado'}</small></div>)}
         </details>
       </section>}
