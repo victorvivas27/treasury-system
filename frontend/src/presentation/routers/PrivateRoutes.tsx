@@ -58,6 +58,7 @@ export const PrivateRoutes = () => {
           <Route path="tesoreria/ingresos" element={<IncomesPage />} />
           <Route path="tesoreria/gastos" element={<ExpensesPage />} />
           <Route path="tesoreria/pagos" element={<PaymentsPage />} />
+          <Route path="tesoreria/recaudaciones" element={<CollectionsPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin/sobre-nosotros" element={<AboutManagementPage />} />
@@ -65,7 +66,6 @@ export const PrivateRoutes = () => {
           <Route path="admin/fotos-del-curso" element={<CoursePhotoManagementPage />} />
           <Route path="admin/directiva" element={<BoardManagementPage />} />
           <Route path="tesoreria/cuotas" element={<AnnualFeesPage />} />
-          <Route path="tesoreria/recaudaciones" element={<CollectionsPage />} />
           <Route path="tesoreria/aportes" element={<FamilyContributionsPage />} />
           <Route path="tesoreria/eventos" element={<EventsPage />} />
           <Route path="tesoreria/reportes" element={<TreasuryReportsPage />} />

@@ -81,6 +81,17 @@
 .profile-course-installments .is-pending { color:var(--color-warning); }
 .profile-payment-total { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); padding-top:var(--space-3); border-top:1px solid var(--border-color); font-size:var(--font-small); }
 .profile-payment-total b { color:var(--text-main); font-size:var(--font-size-xl); font-variant-numeric:tabular-nums; }
+.profile-activity-fund{min-width:0;border-bottom:1px solid var(--border-color);padding:var(--space-3) 0}
+.profile-activity-fund summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);cursor:pointer;font-size:var(--font-small)}
+.profile-activity-fund summary>strong{flex:1;min-width:120px;overflow-wrap:anywhere}
+.profile-activity-fund summary>span{font-size:var(--font-size-xs)}
+.profile-activity-totals{display:flex;flex-wrap:wrap;gap:var(--space-4);font-size:var(--font-size-xs);margin:var(--space-3) 0}
+.profile-activity-totals dt{color:var(--text-muted)}
+.profile-activity-totals dd{margin:var(--space-1) 0 0;font-variant-numeric:tabular-nums}
+.profile-activity-payments{list-style:none;margin:0;padding:0;font-size:var(--font-size-xs)}
+.profile-activity-payments li{display:flex;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-2) 0}
+.profile-activity-payments li strong{margin-left:auto;font-variant-numeric:tabular-nums}
+.profile-activity-payments li small{flex-basis:100%;color:var(--text-muted);overflow-wrap:anywhere}
 .profile-page button:focus-visible, .profile-upload-button:focus-within { outline:2px solid var(--color-accent); outline-offset:3px; }
 .profile-edit-modal { max-height:calc(100dvh - 32px); }
 .profile-edit-modal__identity strong { overflow-wrap:anywhere; }

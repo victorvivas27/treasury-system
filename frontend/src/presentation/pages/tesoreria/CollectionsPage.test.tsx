@@ -3,22 +3,51 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CollectionsPage } from './CollectionsPage';
 import type { CollectionCampaign, CollectionFamily, CollectionMovement } from '@/core/A-domain/entities/treasury/Collection';
-const { campaign, resource, useCases } = vi.hoisted(() => {
+const { campaign, resource, useCases, auth } = vi.hoisted(() => {
   const campaign: CollectionCampaign = { id: 1, schoolYear: 2026, title: 'Paseo', defaultAmount: 1000, dueDate: null, expected: 1000, collected: 0, remaining: 1000, spent: 0, available: 0, incomeId: null,
     families: [{ familyId: 2, studentName: 'Ana', guardian: null, familyCode: 'FA-2', course: '4A', expected: 1000, paid: 0, remaining: 1000, status: 'PENDING' }], movements: [] };
-  return { campaign, resource: { getSnapshot: vi.fn(), set: vi.fn(), load: vi.fn() }, useCases: { collect: vi.fn(), receipts: vi.fn(), downloadReceipt: vi.fn() } };
+  return { campaign, auth: { role: 'ADMIN', empty: false }, resource: { getSnapshot: vi.fn(), set: vi.fn(), load: vi.fn() }, useCases: { collect: vi.fn(), receipts: vi.fn(), downloadReceipt: vi.fn() } };
 });
+vi.mock('@/presentation/context/AuthContext', () => ({ useAuth: () => ({ user: { rol: auth.role } }) }));
 vi.mock('./collectionsCache', () => ({ collectionResource: () => resource, collectionFamilies: {}, collectionUseCases: useCases }));
-vi.mock('../dashboard/dashboardCache', () => ({ useDashboardResource: () => ({ data: [campaign], loading: false }) }));
+vi.mock('../dashboard/dashboardCache', () => ({ useDashboardResource: () => ({ data: auth.empty ? [] : [campaign], loading: false }) }));
 vi.mock('@/shared/ui/loading/PageTransition', () => ({ usePageEntry: vi.fn() }));
 describe('Comprobantes de fondos por actividad', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    auth.role = 'ADMIN'; auth.empty = false;
     campaign.families = [{ familyId: 2, studentName: 'Ana', guardian: null, familyCode: 'FA-2', course: '4A', expected: 1000, paid: 0, remaining: 1000, status: 'PENDING' }];
     campaign.movements = [];
     useCases.receipts.mockResolvedValue([]);
     useCases.collect.mockResolvedValue(campaign);
     resource.getSnapshot.mockReturnValue({ data: [campaign] });
+  });
+  it('lets users consult funds and receipts without any mutation controls', async () => {
+    auth.role = 'USER';
+    Object.assign(campaign.families[0], { paid: 1500, remaining: 0, status: 'PAID' });
+    campaign.movements = [{ requestId: 'payment-1', familyId: 2, incomeId: null, expenseId: null,
+      amount: 1500, date: '2026-01-01', reference: null, recipient: null, active: true }];
+    useCases.receipts.mockResolvedValue([{ requestId: 'payment-1', originalName: 'pago.pdf' }]);
+    render(<MemoryRouter><CollectionsPage /></MemoryRouter>);
+    expect(screen.getByText(/Solo lectura/)).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Pagó Ana' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Pagó Ana' })).toBeDisabled();
+    for (const name of ['Nuevo fondo', 'Editar fondo', 'Eliminar fondo', 'Cerrar y dar ingreso', 'Registrar pago al proveedor', 'Agregar pago de Ana', 'Ajustar monto de Ana']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+    }
+    fireEvent.click(screen.getByText(/Historial ·/));
+    expect(await screen.findByRole('button', { name: 'Descargar comprobante' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Pagó Ana' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(useCases.collect).not.toHaveBeenCalled();
+    expect(screen.getByRole('searchbox')).toBeEnabled();
+    expect(screen.getByRole('checkbox', { name: 'Solo pendientes' })).toBeEnabled();
+  });
+  it('shows users an empty state without offering to create funds', () => {
+    auth.role = 'USER'; auth.empty = true;
+    render(<MemoryRouter><CollectionsPage /></MemoryRouter>);
+    expect(screen.getByRole('heading', { name: 'Todavía no hay fondos por actividad' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Crear|Nuevo fondo/ })).not.toBeInTheDocument();
   });
   it('sends the optional receipt when confirming the payment check', async () => {
     render(<MemoryRouter><CollectionsPage /></MemoryRouter>);

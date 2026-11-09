@@ -4,6 +4,8 @@ import axios from 'axios';
 import { FiCheck, FiPlus, FiRefreshCw, FiX } from 'react-icons/fi';
 import type { CollectionCampaign, CollectionFamily, CollectionMovement, CollectionReceipt } from '@/core/A-domain/entities/treasury/Collection';
 import type { ExpenseCategory } from '@/core/A-domain/entities/treasury/Treasury';
+import { isAdminRole } from '@/core/A-domain/entities/user/User';
+import { useAuth } from '@/presentation/context/AuthContext';
 import { useDashboardResource } from '../dashboard/dashboardCache';
 import { collectionFamilies, collectionResource, collectionUseCases } from './collectionsCache';
 import { usePageEntry } from '@/shared/ui/loading/PageTransition';
@@ -26,6 +28,8 @@ const message = (error: unknown) => {
 };
 
 export function CollectionsPage() {
+  const { user } = useAuth();
+  const canManage = isAdminRole(user?.rol);
   const [year, setYear] = useState(Math.max(2026, Math.min(2035, new Date().getFullYear())));
   const resource = collectionResource(year);
   const state = useDashboardResource(resource);
@@ -34,7 +38,7 @@ export function CollectionsPage() {
   const [search, setSearch] = useState('');
   const [onlyPending, setOnlyPending] = useState(false);
   const [dialog, setDialog] = useState<Dialog | null>(null);
-  const options = useDashboardResource(collectionFamilies, dialog?.kind === 'create');
+  const options = useDashboardResource(collectionFamilies, canManage && dialog?.kind === 'create');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(chileDate());
@@ -74,7 +78,7 @@ export function CollectionsPage() {
   const submitting = useRef(false);
   const [error, setError] = useState('');
   const close = () => { if (!submitting.current) { setDialog(null); setError(''); } };
-  const dialogRef = useDialogFocus(Boolean(dialog), close, saving);
+  const dialogRef = useDialogFocus(canManage && Boolean(dialog), close, saving);
   usePageEntry(!state.data && !state.error);
   useEffect(() => {
     if (dialog?.kind === 'create' && options.data && !initializedFamilies.current) {
@@ -84,6 +88,7 @@ export function CollectionsPage() {
   }, [dialog?.kind, options.data]);
 
   const open = (kind: Dialog['kind'], family?: CollectionFamily) => {
+    if (!canManage) return;
     initializedFamilies.current = false;
     setReceiptFile(undefined);
     setError(''); setReference(''); setReason(''); setRecipient(''); setTitle(''); setDueDate('');
@@ -99,7 +104,7 @@ export function CollectionsPage() {
   };
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!dialog || submitting.current) return;
+    if (!canManage || !dialog || submitting.current) return;
     submitting.current = true; setSaving(true); setError('');
     try {
       if (dialog.kind === 'delete' && campaign) {
@@ -150,13 +155,15 @@ export function CollectionsPage() {
       <div className="collections-actions"><select aria-label="Año de los fondos" value={year} disabled={saving} onChange={e => setYear(Number(e.target.value))}>
         {Array.from({ length: 10 }, (_, index) => 2026 + index).map(value => <option key={value}>{value}</option>)}</select>
         <Button label="Actualizar" icon={<FiRefreshCw />} variant="secondary" size="small" loading={state.loading} onClick={() => { void resource.load(true); }} />
-        <Button label="Nuevo fondo" icon={<FiPlus />} size="small" onClick={() => open('create')} /></div>
+        {canManage && <Button label="Nuevo fondo" icon={<FiPlus />} size="small" onClick={() => open('create')} />}</div>
     </header>
+    {!canManage && <p className="collections-explanation">Solo lectura · Puedes consultar los fondos y sus pagos. La administración registra y modifica los datos.</p>}
     {state.error && <FeedbackState message="No pudimos cargar los fondos." onRefresh={() => void resource.load(true)} />}
-    {state.data?.length === 0 && <div className="collections-empty"><h2>El próximo proyecto comienza aquí</h2>
-      <p>Organiza el transporte de un paseo, camisetas o cualquier compra compartida.</p>
-      <p>Registra los pagos por familia y da ingreso al total cuando cierres el fondo.</p>
-      <Button label="Crear el primer fondo" onClick={() => open('create')} /></div>}
+    {state.data?.length === 0 && <div className="collections-empty"><h2>{canManage ? 'El próximo proyecto comienza aquí' : 'Todavía no hay fondos por actividad'}</h2>
+      {canManage ? <><p>Organiza el transporte de un paseo, camisetas o cualquier compra compartida.</p>
+        <p>Registra los pagos por familia y da ingreso al total cuando cierres el fondo.</p>
+        <Button label="Crear el primer fondo" onClick={() => open('create')} /></>
+        : <p>Aquí podrás consultar los fondos que registre la administración.</p>}</div>}
     {!!state.data?.length && <>
       <nav className="collections-campaigns" aria-label="Fondos por actividad">{state.data.map(item =>
         <button key={item.id} type="button" aria-pressed={item.id === campaign?.id} onClick={() => { setSelectedId(item.id); setSearch(''); }}>
@@ -165,11 +172,11 @@ export function CollectionsPage() {
       {campaign && <section className="collections-detail" aria-labelledby="collection-title">
         <div className="collections-title"><div><p className="collections-eyebrow">{campaign.incomeId ? 'Fondo cerrado' : 'Fondo en curso'}</p>
           <h2 id="collection-title">{campaign.title}</h2>{campaign.dueDate && <p>Fecha objetivo: {campaign.dueDate.split('-').reverse().join('/')}</p>}</div>
-          <div className="collections-actions"><Button label="Editar fondo" variant="secondary" size="small" onClick={() => open('edit')} />
+          {canManage && <div className="collections-actions"><Button label="Editar fondo" variant="secondary" size="small" onClick={() => open('edit')} />
             <Button label="Eliminar fondo" variant="secondary" size="small" onClick={() => open('delete')} />
             {!incomeActive && <Button label={campaign.incomeId ? 'Restablecer ingreso' : 'Cerrar y dar ingreso'} size="small"
             disabled={campaign.collected <= 0} onClick={() => open('closing')} />}
-            <Button label="Registrar pago al proveedor" variant="secondary" size="small" disabled={!incomeActive || campaign.available <= 0} onClick={() => open('provider')} /></div>
+            <Button label="Registrar pago al proveedor" variant="secondary" size="small" disabled={!incomeActive || campaign.available <= 0} onClick={() => open('provider')} /></div>}
         </div>
         <dl className="collections-totals">{[['Meta', campaign.expected], ['Recaudado', campaign.collected], ['Pendiente', campaign.remaining], ['Pagado al proveedor', campaign.spent],
           [campaign.incomeId ? 'Saldo disponible' : 'Por ingresar a Tesorería', campaign.available]].map(([label, value]) =>
@@ -183,7 +190,7 @@ export function CollectionsPage() {
         <div className="collections-table"><div className="collections-row collections-row--head" aria-hidden="true"><span>Pagó</span><span>Familia / alumno</span><span>Monto</span><span>Recibido</span><span>Falta</span><span>Estado</span></div>
           {rows.map(family => <div className="collections-row" key={family.familyId}>
             <input type="checkbox" aria-label={`Pagó ${family.studentName}`} checked={family.status === 'PAID'}
-              disabled={Boolean(campaign.incomeId) || family.expected === 0} onChange={() => open(family.status === 'PAID' ? 'cancel' : 'payment', family)} />
+              disabled={!canManage || Boolean(campaign.incomeId) || family.expected === 0} onChange={() => open(family.status === 'PAID' ? 'cancel' : 'payment', family)} />
             <div className="collections-family"><strong>{family.studentName}</strong><small>{family.guardian || family.familyCode} · {family.course}</small>
               {firstPayments.get(family.familyId) && <small>{(() => {
                 const payment = firstPayments.get(family.familyId)!;
@@ -191,11 +198,12 @@ export function CollectionsPage() {
                   ? `Registrado: ${chileDate(new Date(payment.recordedAt)).split('-').reverse().join('/')} · ${chileTime(payment.recordedAt)}`
                   : `Pago: ${payment.date.split('-').reverse().join('/')} · Hora no disponible`;
               })()}</small>}</div>
-            <button className="collections-amount" type="button" disabled={Boolean(campaign.incomeId)} aria-label={`Ajustar monto de ${family.studentName}`} onClick={() => open('expected', family)}><small>Monto</small>{money(family.expected)}</button>
+            {canManage ? <button className="collections-amount" type="button" disabled={Boolean(campaign.incomeId)} aria-label={`Ajustar monto de ${family.studentName}`} onClick={() => open('expected', family)}><small>Monto</small>{money(family.expected)}</button>
+              : <span className="collections-number"><small>Monto</small>{money(family.expected)}</span>}
             <span className="collections-number"><small>Recibido</small>{money(family.paid)}
               {family.paid > family.expected && <span className="collections-extra">Extra: {money(family.paid - family.expected)}</span>}</span><span className="collections-number"><small>Falta</small>{money(family.remaining)}</span>
             <div className="collections-status" data-status={family.status}><span className="collections-status-pill">{family.status === 'PAID' && <FiCheck aria-hidden="true" />}{statusLabel[family.status]}</span>
-              {!campaign.incomeId && ['PARTIAL', 'PAID'].includes(family.status) && <button type="button" aria-label={`Agregar pago de ${family.studentName}`} onClick={() => open('payment', family)}>{family.status === 'PAID' ? 'Agregar pago' : 'Abonar'}</button>}</div>
+              {canManage && !campaign.incomeId && ['PARTIAL', 'PAID'].includes(family.status) && <button type="button" aria-label={`Agregar pago de ${family.studentName}`} onClick={() => open('payment', family)}>{family.status === 'PAID' ? 'Agregar pago' : 'Abonar'}</button>}</div>
           </div>)}
           {!rows.length && <p>No hay familias para estos filtros.</p>}
         </div>
@@ -213,7 +221,7 @@ export function CollectionsPage() {
         </details>
       </section>}
     </>}
-    {dialog && <aside className="collections-dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="collection-dialog-title" ref={dialogRef} tabIndex={-1}>
+    {canManage && dialog && <aside className="collections-dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="collection-dialog-title" ref={dialogRef} tabIndex={-1}>
       <form className={`collections-dialog${['create', 'edit'].includes(dialog.kind) ? ' collections-dialog--create' : ''}`} onSubmit={submit}>
         <header><h2 id="collection-dialog-title">{dialogTitle}</h2><button type="button" aria-label="Cerrar" disabled={saving} onClick={close}><FiX /></button></header>
         {dialog.family && <p>{dialog.family.studentName}<small>{dialog.family.guardian || dialog.family.familyCode}</small></p>}

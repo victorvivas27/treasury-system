@@ -280,7 +280,7 @@ class TreasuryTenantCacheIntegrationTest {
         @Bean TreasuryController controller(TreasuryUseCase service, GetFamiliaUseCase families,
                                            DashboardPerformanceProbe probe) {
             return new TreasuryController(service, families, mock(AlumnoService.class),
-                    mock(GetApoderadoUseCase.class), probe);
+                    mock(GetApoderadoUseCase.class), probe, mock(com.tesoreria.treasury.application.usecase.CollectionService.class));
         }
     }
 }

@@ -16,6 +16,7 @@ import com.tesoreria.shared.infrastructure.performance.DashboardPerformanceProbe
 import com.tesoreria.treasury.core.exception.TreasuryErrorCode;
 import com.tesoreria.treasury.core.model.*;
 import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
+import com.tesoreria.treasury.application.usecase.CollectionService;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,15 +43,17 @@ public class TreasuryController {
     private final AlumnoService students;
     private final GetApoderadoUseCase guardians;
     private final DashboardPerformanceProbe performanceProbe;
+    private final CollectionService collections;
 
     public TreasuryController(TreasuryUseCase treasury, GetFamiliaUseCase families,
             AlumnoService students, GetApoderadoUseCase guardians,
-            DashboardPerformanceProbe performanceProbe) {
+            DashboardPerformanceProbe performanceProbe, CollectionService collections) {
         this.treasury = treasury;
         this.families = families;
         this.students = students;
         this.guardians = guardians;
         this.performanceProbe = performanceProbe;
+        this.collections = collections;
     }
 
     @GetMapping("/configuraciones")
@@ -500,10 +503,11 @@ public class TreasuryController {
         var relationship = family.getApoderados().stream()
                 .filter(item -> item.getApoderadoId().equals(guardian.getApoderadoId()))
                 .findFirst().orElseThrow();
-        FamilyFeePlan familyPlan = treasury.listPlans(year).stream()
+        boolean hasAnnualFee = treasury.listConfigs().stream().anyMatch(config -> config.year() == year);
+        FamilyFeePlan familyPlan = (hasAnnualFee ? treasury.listPlans(year) : List.<FamilyFeePlan>of()).stream()
                 .filter(item -> item.familyId().equals(family.getFamiliaId()))
                 .findFirst().orElse(null);
-        List<ObligationResponse> obligations = enriched(year).stream()
+        List<ObligationResponse> obligations = (hasAnnualFee ? enriched(year) : List.<ObligationResponse>of()).stream()
                 .filter(item -> item.familyId().equals(family.getFamiliaId())).toList();
         Map<String, FamilyContribution> payments = contributionMap(year);
         Alumno student = students.findById(family.getAlumnoId());
@@ -513,12 +517,23 @@ public class TreasuryController {
                 relationship.getEsPrincipal(),
                 familyPlan == null ? null : familyPlan.mode(), obligations,
                 contribution(payments.get(familyId + ":" + ContributionType.CEPA)),
-                contribution(payments.get(familyId + ":" + ContributionType.SOLIDARIA)));
+                contribution(payments.get(familyId + ":" + ContributionType.SOLIDARIA)), activityFunds(year, familyId));
+    }
+
+    private List<FamilyActivityFundResponse> activityFunds(int year, Long familyId) {
+        return collections.listForFamily(year, familyId).stream().flatMap(fund -> fund.families().stream()
+                .filter(row -> familyId.equals(row.familyId()))
+                .map(row -> new FamilyActivityFundResponse(fund.id(), fund.title(), row.expected(), row.paid(),
+                        row.remaining(), row.status(), fund.movements().stream()
+                                .filter(payment -> familyId.equals(payment.familyId()))
+                                .map(payment -> new FamilyActivityPaymentResponse(payment.requestId(), payment.amount(),
+                                        payment.date(), payment.recordedAt(), payment.reference(), payment.active())).toList())))
+                .toList();
     }
 
     private ProfileResponse emptyProfile() {
         return new ProfileResponse(null, null, null, null, null, null, false, null,
-                List.of(), null, null);
+                List.of(), null, null, List.of());
     }
 
     private Predicate<List<ObligationResponse>> reportFilter(String type) {

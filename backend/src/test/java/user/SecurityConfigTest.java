@@ -357,6 +357,37 @@ class SecurityConfigTest {
     }
 
     @Test
+    void usuariosPuedenConsultarFondosPeroTodasLasMutacionesRequierenAdministrador() throws Exception {
+        String base = "/api/v1/tesoreria/recaudaciones";
+        String token = tokenFor("user@mail.com");
+        for (String path : List.of(base, base + "/1/comprobantes", base + "/1/comprobantes/" + UUID.randomUUID())) {
+            mockMvc.perform(get(path).param("year", "2026")).andExpect(status().isUnauthorized());
+        }
+        mockMvc.perform(get(base).param("year", "2026").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mockMvc.perform(get(base + "/1/comprobantes").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(base + "/1/comprobantes/" + UUID.randomUUID()).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(base + "/familias").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+        for (String path : List.of(base, base + "/1/eliminacion", base + "/1/ingreso", base + "/1/proveedor",
+                base + "/1/familias/1/pagos", base + "/1/familias/1/anulacion")) {
+            mockMvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content("{}")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isForbidden());
+        }
+        for (String path : List.of(base + "/1", base + "/1/familias/1")) {
+            mockMvc.perform(put(path).contentType(MediaType.APPLICATION_JSON).content("{}")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isForbidden());
+        }
+        mockMvc.perform(multipart(base + "/1/familias/1/pagos").file("file", "%PDF-1.7 prueba".getBytes())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void swagger_deberiaRequerirAdministrador() throws Exception {
         mockMvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isUnauthorized());

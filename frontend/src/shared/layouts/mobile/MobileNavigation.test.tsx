@@ -37,6 +37,7 @@ it("shows user destinations without administrative links and closes on browser B
   renderMenu(); openMenu();
   expect(screen.getByRole("dialog", { name: "Explorar" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Pagos" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Fondos por actividad" })).toHaveAttribute("href", "/tesoreria/recaudaciones");
   expect(screen.queryByRole("link", { name: "Cuotas" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
   expect(document.body.style.overflow).toBe("hidden");
