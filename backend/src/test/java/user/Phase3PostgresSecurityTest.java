@@ -518,7 +518,7 @@ class Phase3PostgresSecurityTest {
                 + "VALUES (?,'REFRESH_TOKEN',?,?,?,CURRENT_TIMESTAMP+interval '1 day')", id, "a".repeat(64),
                 "b".repeat(64), UUID.randomUUID());
         var upgrade = org.flywaydb.core.Flyway.configure().dataSource(legacy).load();
-        assertEquals(5, upgrade.migrate().migrationsExecuted);
+        assertEquals(6, upgrade.migrate().migrationsExecuted);
         assertEquals("63", upgrade.info().current().getVersion().getVersion());
         upgrade.validate();
         assertEquals(hash, before.queryForObject("SELECT password FROM users WHERE id=?", String.class, id));
