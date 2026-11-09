@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.1](https://github.com/victorvivas27/treasury-system/compare/v1.46.0...v1.46.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **deps:** repair duplicate dependencies and lockfile entries ([0d7ffac](https://github.com/victorvivas27/treasury-system/commit/0d7ffac2cb49d15982a09d88394c6bdf6e3a2708))
+
 ## [1.46.0](https://github.com/victorvivas27/treasury-system/compare/v1.45.0...v1.46.0) (2026-11-09)
 
 
