@@ -1,4 +1,5 @@
 import { apiClient } from "@/core/D-config/api";
+import type { InvitationDelivery } from '@/core/A-domain/entities/apoderado/InvitationDelivery';
 import type {
   Apoderado,
   CreateApoderadoDTO,
@@ -8,6 +9,10 @@ import type { IApoderadoRepository } from "@/core/A-domain/repository/apoderado/
 
 export class ApoderadoRepositoryImpl implements IApoderadoRepository {
   private readonly baseUrl = "/apoderados";
+
+  async getInvitationDelivery(codigo: string): Promise<InvitationDelivery> {
+    return (await apiClient.get<InvitationDelivery>(`${this.baseUrl}/${codigo}/invitacion-correo`)).data;
+  }
 
   async getAll(page: number , size: number, search = ""): Promise<PageResponse<Apoderado>> {
     const response = await apiClient.get<PageResponse<Apoderado>>(this.baseUrl, {

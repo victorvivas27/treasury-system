@@ -115,6 +115,20 @@ class ResendEmailAdapterTest {
     }
 
     @Test
+    void onlyAcceptedInvitationsPublishTrackingAndAreTaggedForCallbackRetries() throws Exception {
+        var publisher = mock(org.springframework.context.ApplicationEventPublisher.class);
+        adapter.setApplicationEventPublisher(publisher);
+        assertTrue(adapter.sendGuardianInvitationEmail("guardian@example.com", "Ana", "https://app.example/invite", null));
+        verify(publisher).publishEvent(new com.tesoreria.user.core.model.InvitationEmailAccepted("email-fixture", "guardian@example.com"));
+        var body = mapper.readTree(bodyOf(sentRequest()));
+        assertEquals("guardian_invitation", body.path("tags").get(0).path("value").asString());
+        clearInvocations(publisher);
+        when(response.statusCode()).thenReturn(429);
+        assertFalse(adapter.sendGuardianInvitationEmail("guardian@example.com", "Ana", "https://app.example/invite", null));
+        verifyNoInteractions(publisher);
+    }
+
+    @Test
     void springSelectsExactlyOneProviderWithoutChangingTheDefault() {
         ApplicationContextRunner runner = new ApplicationContextRunner()
                 .withUserConfiguration(GmailEmailAdapter.class, ResendEmailAdapter.class)
