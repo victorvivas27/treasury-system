@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.45.0](https://github.com/victorvivas27/treasury-system/compare/v1.44.0...v1.45.0) (2026-11-09)
+
+
+### Features
+
+* **treasury:** habilita fondos en solo lectura para usuarios y muestra los pagos familiares en los perfiles de ambos apoderados sin duplicar totales ([d265913](https://github.com/victorvivas27/treasury-system/commit/d2659131ef4353155bc8c44dc237b7fb476b39d0))
+* **treasury:** habilita fondos en solo lectura para usuarios y muestra los pagos familiares en los perfiles de ambos apoderados sin duplicar totales ([fcafbff](https://github.com/victorvivas27/treasury-system/commit/fcafbffdb0a449484708d9f184c47a9142e2b8e6))
+
 ## [1.44.0](https://github.com/victorvivas27/treasury-system/compare/v1.43.0...v1.44.0) (2026-11-09)
 
 
