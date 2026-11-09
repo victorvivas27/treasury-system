@@ -339,9 +339,9 @@ class Phase3PostgresSecurityTest {
     void migrationIsIdempotentAndBothInstancesUseCurrentSchema() {
         var flyway = first.getBean(org.flywaydb.core.Flyway.class);
         flyway.validate();
-        assertEquals("61", flyway.info().current().getVersion().getVersion());
+        assertEquals("62", flyway.info().current().getVersion().getVersion());
         assertEquals(0, flyway.migrate().migrationsExecuted);
-        assertEquals("61", second.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
+        assertEquals("62", second.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
     }
 
     HttpResponse<String> refresh(ConfigurableApplicationContext app, HttpResponse<String> previous) throws Exception {
@@ -525,7 +525,7 @@ class Phase3PostgresSecurityTest {
                 Integer.class, id));
         assertEquals(0, before.queryForObject("SELECT count(*) FROM security_rate_buckets", Integer.class));
         assertEquals(0, upgrade.migrate().migrationsExecuted);
-        System.out.println("PHASE3_UPGRADE V54_to_V61 accountAndRefresh=preserved idempotent=true");
+        System.out.println("PHASE3_UPGRADE V54_to_V62 accountAndRefresh=preserved idempotent=true");
     }
 
     @Test

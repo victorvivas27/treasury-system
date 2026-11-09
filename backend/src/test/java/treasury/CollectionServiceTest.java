@@ -84,11 +84,27 @@ class CollectionServiceTest {
         assertEquals(1, saved.movements().size());
         assertThrows(DomainException.class, () -> service.collect(1L, 7L, BigDecimal.valueOf(3000), date, "REF", token, "admin"));
     }
-    @Test void rejectsForeignFamiliesOverpaymentsAndFractionalPesosWithoutSaving() {
+    @Test void rejectsForeignFamiliesAndFractionalPesosWithoutSaving() {
         assertThrows(DomainException.class, () -> service.collect(1L, 99L, BigDecimal.ONE, date, "REF", UUID.randomUUID(), "admin"));
-        assertThrows(DomainException.class, () -> receive(10001));
         assertThrows(DomainException.class, () -> service.collect(1L, 7L, new BigDecimal("1.1"), date, "REF", UUID.randomUUID(), "admin"));
         verify(repository, never()).save(any());
+    }
+    @Test void acceptsExtraPaymentsAndConsolidatesAllReceivedMoneyWithoutIncreasingTheTarget() {
+        service.setExpected(1L, 7L, BigDecimal.valueOf(15000), "admin");
+        receive(23000);
+        var first = service.list(2026).get(0);
+        assertEquals(BigDecimal.valueOf(15000), first.expected());
+        assertEquals(BigDecimal.valueOf(23000), first.collected());
+        assertEquals(BigDecimal.ZERO, first.remaining());
+        assertEquals("PAID", first.families().get(0).status());
+        var registered = first.movements().get(0).recordedAt();
+        assertNotNull(registered);
+        receive(2000);
+        assertEquals(registered, service.list(2026).get(0).movements().get(0).recordedAt());
+        incomeAnswer();
+        var closed = service.postIncome(1L, date, "REF", "admin");
+        assertEquals(BigDecimal.valueOf(25000), closed.available());
+        assertEquals(BigDecimal.valueOf(25000), incomes.get(0).amount());
     }
     @Test void cancellingFamilyChecksPreservesHistoryAndDoesNotTouchTreasury() {
         receive(4000);

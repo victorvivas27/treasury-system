@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -97,11 +98,10 @@ public class CollectionService {
         var ledger = ledger(campaign.schoolYear());
         if (repeated(campaign, requestId, familyId, value, date, reference, null)) return view(campaign, ledger);
         requireOpen(campaign);
-        var row = row(view(campaign, ledger), familyId);
-        if (value.compareTo(row.remaining()) > 0) invalid("El abono supera el saldo pendiente de esta familia");
+        row(view(campaign, ledger), familyId);
         var movements = new ArrayList<>(campaign.movements());
         movements.add(new CollectionCampaign.Movement(requestId.toString(), familyId, null, null,
-            value.setScale(0), date, clean(reference), null, false));
+            value.setScale(0), date, clean(reference), null, false, Instant.now()));
         var updated = campaigns.save(copy(campaign, campaign.participants(), movements));
         recordAudit(id, "REGISTRAR_COBRO_RECAUDACION", user, "Familia " + familyId + SEPARATOR + value + SEPARATOR + requestId);
         return view(updated, ledger(campaign.schoolYear()));
@@ -120,7 +120,7 @@ public class CollectionService {
             clean(reference), null, null, "Ingreso consolidado al cierre de la campaña", user);
         var movements = new ArrayList<>(campaign.movements());
         movements.add(new CollectionCampaign.Movement(UUID.randomUUID().toString(), null, income.id(), null,
-            total, date, clean(reference), null, false));
+            total, date, clean(reference), null, false, Instant.now()));
         var updated = campaigns.save(new CollectionCampaign(campaign.id(), campaign.schoolYear(), campaign.title(),
             campaign.defaultAmount(), campaign.dueDate(), campaign.createdBy(), campaign.createdAt(), income.id(),
             campaign.participants(), movements));
@@ -136,7 +136,7 @@ public class CollectionService {
         row(view(campaign, ledger(campaign.schoolYear())), familyId);
         var movements = campaign.movements().stream().map(m -> familyId.equals(m.familyId())
             ? new CollectionCampaign.Movement(m.requestId(), m.familyId(), m.incomeId(), m.expenseId(),
-                m.amount(), m.date(), m.reference(), m.recipient(), true) : m).toList();
+                m.amount(), m.date(), m.reference(), m.recipient(), true, m.recordedAt()) : m).toList();
         var saved = campaigns.save(copy(campaign, campaign.participants(), movements));
         recordAudit(id, "ANULAR_COBROS_RECAUDACION", user, "Familia " + familyId + SEPARATOR + reason.trim());
         return view(saved, ledger(campaign.schoolYear()));
@@ -160,7 +160,7 @@ public class CollectionService {
             "Pago al proveedor de la recaudación #" + id, user);
         var movements = new ArrayList<>(campaign.movements());
         movements.add(new CollectionCampaign.Movement(requestId.toString(), null, null, expense.id(),
-            value.setScale(0), date, clean(reference), clean(recipient), false));
+            value.setScale(0), date, clean(reference), clean(recipient), false, Instant.now()));
         var updated = campaigns.save(copy(campaign, campaign.participants(), movements));
         return view(updated, ledger(campaign.schoolYear()));
     }
@@ -185,7 +185,7 @@ public class CollectionService {
                 : expense != null && expense.status() == ExpenseStatus.ACTIVE;
             BigDecimal currentAmount = income != null ? income.amount() : expense != null ? expense.amount() : m.amount();
             return new MovementView(m.requestId(), m.familyId(), m.incomeId(), m.expenseId(), currentAmount,
-                m.date(), m.reference(), m.recipient(), active);
+                m.date(), m.reference(), m.recipient(), active, m.recordedAt());
         }).toList();
         var rows = campaign.participants().stream().map(p -> {
             var paid = movements.stream().filter(m -> m.active() && p.familyId().equals(m.familyId()))
@@ -250,7 +250,7 @@ public class CollectionService {
     public record Row(Long familyId, String familyCode, String studentName, String guardian, String course,
             BigDecimal expected, BigDecimal paid, BigDecimal remaining, String status) { }
     public record MovementView(String requestId, Long familyId, Long incomeId, Long expenseId, BigDecimal amount,
-            LocalDate date, String reference, String recipient, boolean active) { }
+            LocalDate date, String reference, String recipient, boolean active, Instant recordedAt) { }
     public record View(Long id, int schoolYear, String title, BigDecimal defaultAmount, LocalDate dueDate, Long incomeId,
             BigDecimal expected, BigDecimal collected, BigDecimal remaining, BigDecimal spent, BigDecimal available,
             List<Row> families, List<MovementView> movements) { }

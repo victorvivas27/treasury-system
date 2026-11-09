@@ -2,19 +2,14 @@
 (() => {
   /* cinematic-controller */
   /* video-controller */
-  const development = /* development-only */ false;
   let preferences = {};
   try { preferences = JSON.parse(localStorage.getItem('app-startup-preview') || '{}') || {}; } catch { /* Use defaults if storage is unavailable. */ }
   const choices = ['cinematic', 'video', 'video-light'];
   const parameter = new URLSearchParams(location.search).get('loader');
   const requested = parameter === 'brand' ? 'cinematic' : parameter;
-  const selected = development ? (choices.includes(requested) ? requested
-    : choices.includes(preferences.variant) ? preferences.variant : 'video') : null;
+  const selected = choices.includes(requested) ? requested
+    : choices.includes(preferences.variant) ? preferences.variant : 'video';
   const template = document.getElementById('app-boot-template');
-  if (!selected) {
-    template.remove();
-    return;
-  }
   const loader = template.content.firstElementChild.cloneNode(true);
   const root = document.getElementById('root');
   document.documentElement.dataset.initialLoader = selected;
@@ -22,7 +17,7 @@
   const delayParameter = new URLSearchParams(location.search).get('loaderDelay');
   const savedDelay = typeof preferences.durationMs === 'number' && Number.isFinite(preferences.durationMs) ? preferences.durationMs : 10000;
   const requestedDelay = delayParameter === null ? savedDelay : Number(delayParameter);
-  const previewDelay = development && choices.includes(selected) && Number.isFinite(requestedDelay)
+  const previewDelay = Number.isFinite(requestedDelay)
     ? Math.min(20000, Math.max(0, requestedDelay)) : 0;
   if (previewDelay) loader.dataset.previewUntil = String(performance.now() + previewDelay);
   const exitParameter = new URLSearchParams(location.search).get('loaderExit');

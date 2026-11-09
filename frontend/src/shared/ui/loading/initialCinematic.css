@@ -3,7 +3,7 @@
     .boot-recovery{max-width:320px;padding:24px;text-align:center;color:var(--text-boot)}
     .boot-recovery p{margin:12px 0 20px;font-size:14px}
     .boot-recovery button{font:inherit;color:var(--text-boot);background:var(--color-bg);border:1px solid var(--text-boot-muted);border-radius:6px;padding:8px;cursor:pointer}
-/* Development experiment: inline before boot, scoped to the cinematic variant. */
+/* Inline before boot, scoped to the cinematic variant. */
 .app-startup[data-variant="cinematic"]{display:block;overflow:clip;isolation:isolate;clip-path:inset(0);font-family:var(--font-main)}
 .cinematic-visual,.cinematic-parallax,.cinematic-scene,.cinematic-shade{position:absolute;inset:0}
 .cinematic-visual{transition:transform 800ms cubic-bezier(.25,.46,.45,.94)}

@@ -42,7 +42,8 @@ public class JpaCollectionAdapter implements CollectionRepository {
             var item = new CollectionMovementEmbeddable();
             item.setRequestId(m.requestId()); item.setFamilyId(m.familyId()); item.setIncomeId(m.incomeId());
             item.setExpenseId(m.expenseId()); item.setAmount(m.amount()); item.setDate(m.date());
-            item.setReference(m.reference()); item.setRecipient(m.recipient()); item.setCancelled(m.cancelled()); entity.getMovements().add(item);
+            item.setReference(m.reference()); item.setRecipient(m.recipient()); item.setCancelled(m.cancelled());
+            item.setRecordedAt(m.recordedAt()); entity.getMovements().add(item);
         });
         return model(repository.save(entity));
     }
@@ -52,6 +53,6 @@ public class JpaCollectionAdapter implements CollectionRepository {
             e.getParticipants().stream().map(p -> new CollectionCampaign.Participant(p.getFamilyId(), p.getFamilyCode(),
                 p.getStudentName(), p.getGuardian(), p.getCourse(), p.getExpectedAmount())).toList(),
             e.getMovements().stream().map(m -> new CollectionCampaign.Movement(m.getRequestId(), m.getFamilyId(),
-                m.getIncomeId(), m.getExpenseId(), m.getAmount(), m.getDate(), m.getReference(), m.getRecipient(), m.isCancelled())).toList());
+                m.getIncomeId(), m.getExpenseId(), m.getAmount(), m.getDate(), m.getReference(), m.getRecipient(), m.isCancelled(), m.getRecordedAt())).toList());
     }
 }

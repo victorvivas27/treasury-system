@@ -5,7 +5,7 @@ export interface CollectionFamily {
 }
 export interface CollectionMovement {
   requestId: string; familyId: number | null; incomeId: number | null; expenseId: number | null;
-  amount: number; date: string; reference: string | null; recipient: string | null; active: boolean;
+  amount: number; date: string; reference: string | null; recipient: string | null; active: boolean; recordedAt?: string | null;
 }
 export interface CollectionCampaign {
   id: number; schoolYear: number; title: string; defaultAmount: number; dueDate: string | null; incomeId: number | null;
