@@ -40,6 +40,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/v1/email/resend/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/validate-invitation").permitAll()
                         .dispatcherTypeMatchers(ERROR).permitAll()
                         .requestMatchers("/api/v1/auth/register").denyAll()

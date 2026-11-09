@@ -14,6 +14,7 @@ import { useState } from "react";
 import type { Apoderado } from "@/core/A-domain/entities/apoderado/Apoderado";
 import { ApoderadoRepositoryImpl } from "@/core/C-infra/repositories/apoderado/ApoderadoRepositoryImpl";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
+import { InvitationProgress, type InvitationPhase } from '@/presentation/features/apoderado/InvitationProgress';
 
 const GUARDIANS_RETURN_PAGE_KEY = "guardians:returnPage";
 
@@ -33,6 +34,7 @@ export const ApoderadoPage: FC = () => {
   const token = auth?.token;
   const [initialPage] = useState(consumeSavedPage);
   const [accessGuardian, setAccessGuardian] = useState<Apoderado | null>(null);
+  const [invitationPhase, setInvitationPhase] = useState<InvitationPhase>('idle');
   const [invitationAnchor, setInvitationAnchor] = useState<{ top: number; left: number }>();
   const openInvitation = (guardian: Apoderado) => {
     const rect = document.activeElement?.getBoundingClientRect();
@@ -41,6 +43,7 @@ export const ApoderadoPage: FC = () => {
       left: Math.max(16, Math.min(rect.left - 280, window.innerWidth - 296)),
     } : undefined);
     setAccessGuardian(guardian);
+    setInvitationPhase('idle');
   };
   const [enablingAccess, setEnablingAccess] = useState(false);
   const [accessAlert, setAccessAlert] = useState({
@@ -105,14 +108,13 @@ export const ApoderadoPage: FC = () => {
     if (!accessGuardian || enablingAccess) return;
     const guardian = accessGuardian;
     setEnablingAccess(true);
+    setInvitationPhase('sending');
     try {
       await new ApoderadoRepositoryImpl().enableAccess(guardian.codigo, token ?? undefined);
-      setAccessGuardian(null);
-      setAccessAlert({ isOpen: true,
-        message: "Invitación enviada. El apoderado figura como usuario pendiente.",
-        type: "success" });
+      setInvitationPhase('sent');
       refetch();
     } catch (error) {
+      setInvitationPhase('failed');
       const errors = axios.isAxiosError(error) ? error.response?.data?.errors : null;
       const detail = errors && typeof errors === "object" ? Object.values(errors).find(value => typeof value === "string") : null;
       setAccessAlert({ isOpen: true,
@@ -202,11 +204,15 @@ export const ApoderadoPage: FC = () => {
         variant={alert.type === "success" ? "toast" : "modal"}
       />
       <ModalConfirm isOpen={Boolean(accessGuardian)} title="Habilitar acceso" anchor={invitationAnchor} containerClassName="guardian-invitation-modal"
-        message={`Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
-        confirmLabel="Enviar invitación" isLoading={enablingAccess}
+        message={invitationPhase === 'sent' ? `Invitación para ${accessGuardian?.email ?? ''}.`
+          : `Se enviará una invitación a ${accessGuardian?.email ?? ""} para que defina su contraseña.`}
+        confirmLabel={invitationPhase === 'sent' ? 'Invitación enviada' : 'Enviar invitación'} isLoading={enablingAccess}
+        confirmDisabled={invitationPhase === 'sent'}
+        cancelLabel={invitationPhase === 'sent' ? 'Cerrar' : 'Cancelar'}
         compact
         onCancel={() => setAccessGuardian(null)}
         onConfirm={() => confirmEnableAccess()}>
+        {accessGuardian && <InvitationProgress key={accessGuardian.codigo} codigo={accessGuardian.codigo} phase={invitationPhase} />}
       </ModalConfirm>
       <ModalAlert isOpen={accessAlert.isOpen} message={accessAlert.message}
         type={accessAlert.type}

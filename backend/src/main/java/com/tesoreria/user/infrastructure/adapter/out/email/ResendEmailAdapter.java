@@ -2,6 +2,10 @@ package com.tesoreria.user.infrastructure.adapter.out.email;
 
 import com.tesoreria.organization.application.OrganizationEmailBranding;
 import com.tesoreria.user.core.model.RecoveryLink;
+import com.tesoreria.user.core.model.InvitationEmailAccepted;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import java.util.function.Consumer;
 import com.tesoreria.user.core.port.out.EmailOutPort;
 import jakarta.mail.internet.InternetAddress;
 import org.slf4j.Logger;
@@ -26,7 +30,7 @@ import java.util.Map;
 /** A successful send means API acceptance, not delivery to the recipient's inbox. */
 @Component
 @ConditionalOnProperty(name = "app.email.provider", havingValue = "resend")
-public class ResendEmailAdapter implements EmailOutPort {
+public class ResendEmailAdapter implements EmailOutPort, ApplicationEventPublisherAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResendEmailAdapter.class);
     private static final URI ENDPOINT = URI.create("https://api.resend.com/emails");
     private final ObjectMapper mapper;
@@ -35,6 +39,10 @@ public class ResendEmailAdapter implements EmailOutPort {
     private final String from;
     private final String replyTo;
     private final EmailImages images;
+    private ApplicationEventPublisher events;
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) { this.events = publisher; }
 
     @Autowired
     public ResendEmailAdapter(ObjectMapper mapper,
@@ -77,7 +85,8 @@ public class ResendEmailAdapter implements EmailOutPort {
 
     @Override
     public boolean sendGuardianInvitationEmail(String email, String name, String link, OrganizationEmailBranding branding) {
-        return send(email, "Te damos la bienvenida a Tesorer\u00eda Escolar", EmailTemplates.guardianInvitation(name, link), branding);
+        return send(email, "Te damos la bienvenida a Tesorer\u00eda Escolar", EmailTemplates.guardianInvitation(name, link), branding,
+                id -> { if (events != null) events.publishEvent(new InvitationEmailAccepted(id, email)); });
     }
 
     @Override
@@ -102,6 +111,11 @@ public class ResendEmailAdapter implements EmailOutPort {
     }
 
     private boolean send(String to, String subject, String html, OrganizationEmailBranding branding) {
+        return send(to, subject, html, branding, null);
+    }
+
+    private boolean send(String to, String subject, String html, OrganizationEmailBranding branding,
+                         Consumer<String> onAccepted) {
         try {
             Map<String, Object> body = new LinkedHashMap<>();
             InternetAddress sender = new InternetAddress(from, true);
@@ -113,6 +127,7 @@ public class ResendEmailAdapter implements EmailOutPort {
             body.put("to", List.of(to));
             body.put("subject", subject);
             body.put("html", images.resolve(html));
+            if (onAccepted != null) body.put("tags", List.of(Map.of("name", "purpose", "value", "guardian_invitation")));
             String responseAddress = branding != null && branding.replyToEmail() != null
                     && !branding.replyToEmail().isBlank() ? branding.replyToEmail().trim() : replyTo;
             if (!responseAddress.isBlank()) body.put("reply_to", responseAddress);
@@ -131,6 +146,7 @@ public class ResendEmailAdapter implements EmailOutPort {
                 return false;
             }
             if (LOGGER.isInfoEnabled()) LOGGER.info("Resend accepted email: id={}", id);
+            if (onAccepted != null) onAccepted.accept(id);
             return true;
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();

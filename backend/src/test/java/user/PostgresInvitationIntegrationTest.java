@@ -30,9 +30,12 @@ class PostgresInvitationIntegrationTest extends SA02InvitationIntegrationTest {
  }
  @Test void migrationIsIdempotentAndSecondStartupValidatesSchema() throws Exception {
   var flyway = org.flywaydb.core.Flyway.configure().dataSource(dataSource).load();
-  flyway.validate(); assertEquals("62", flyway.info().current().getVersion().getVersion());
+  flyway.validate(); assertEquals("63", flyway.info().current().getVersion().getVersion());
   assertEquals(0, flyway.migrate().migrationsExecuted);
   try (var connection = dataSource.getConnection()) {
+   try (var tables = connection.getMetaData().getTables(null, "public", "guardian_email_deliveries", null)) {
+    assertTrue(tables.next());
+   }
    try (var tables = connection.getMetaData().getTables(null, "public", "guardian_whatsapp_invitations", null)) {
     assertTrue(tables.next());
    }
@@ -51,7 +54,7 @@ class PostgresInvitationIntegrationTest extends SA02InvitationIntegrationTest {
     "--app.storage.gcs.enabled=false", "--MERCADO_PAGO_ACCESS_TOKEN=", "--MERCADO_PAGO_WEBHOOK_SECRET=",
     "--MERCADO_PAGO_ORGANIZATION_ID=0", "--MERCADO_PAGO_COLLECTOR_ID=", "--MERCADO_PAGO_RETURN_URL=", "--MERCADO_PAGO_WEBHOOK_URL=")) {
      assertTrue(restarted.isActive());
-     assertEquals("62", restarted.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
+     assertEquals("63", restarted.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
   }
  }
 }

@@ -72,6 +72,7 @@ class SA02InvitationIntegrationTest {
     @Autowired com.tesoreria.user.config.security.TokenRevocationService revocations;
     @Autowired PasswordEncoder encoder;
     @Autowired JdbcTemplate jdbc;
+    @Autowired com.tesoreria.user.application.usecase.InvitationDeliveryService invitationDeliveries;
     @Autowired com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository students;
     @MockitoBean EmailOutPort email;
 
@@ -85,6 +86,22 @@ class SA02InvitationIntegrationTest {
     private ApoderadoEntity guardianA;
     private ApoderadoEntity guardianB;
     private ApoderadoEntity inactive;
+
+    @Test
+    void invitationDeliveryStatusIsRestrictedToAdministratorsInTheGuardianCourse() throws Exception {
+        authenticate(adminA);
+        invitationDeliveries.accepted(new com.tesoreria.user.core.model.InvitationEmailAccepted(
+                UUID.randomUUID().toString(), guardianA.getEmail()));
+        String path = "/api/v1/apoderados/" + guardianA.getCodigo() + "/invitacion-correo";
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).header("Authorization", bearer(ordinary))).andExpect(status().isForbidden());
+        mvc.perform(get(path).header("Authorization", bearer(adminA)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SENT"))
+                .andExpect(jsonPath("$.messageId").doesNotExist());
+        mvc.perform(get(path).header("Authorization", bearer(adminB))).andExpect(status().isNotFound());
+        mvc.perform(post("/api/v1/email/resend/webhook").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isServiceUnavailable());
+    }
 
     @BeforeEach
     void prepare() {
