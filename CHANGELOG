@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.47.0](https://github.com/victorvivas27/treasury-system/compare/v1.46.1...v1.47.0) (2026-11-09)
+
+
+### Features
+
+* **email:** finalize invitation delivery progress ([911986e](https://github.com/victorvivas27/treasury-system/commit/911986eaba61aee18cca22174ebe828b174e9b04))
+* **email:** finalize invitation delivery progress ([da12b27](https://github.com/victorvivas27/treasury-system/commit/da12b27fcbf7d7f6a0b7d3522d50f7a575d7d5d8))
+* **email:** integrate Resend for account email ([#312](https://github.com/victorvivas27/treasury-system/issues/312)) ([6148815](https://github.com/victorvivas27/treasury-system/commit/61488158a7f124150750d4528b05ea6879a9be99))
+* **email:** support Resend for account invitations and recovery ([6148815](https://github.com/victorvivas27/treasury-system/commit/61488158a7f124150750d4528b05ea6879a9be99))
+* **email:** support Resend for account invitations and recovery ([3eb0901](https://github.com/victorvivas27/treasury-system/commit/3eb090168c8763cc4fd9bf1e8944a02887ee4196))
+* **email:** track guardian invitation delivery progress ([d88919f](https://github.com/victorvivas27/treasury-system/commit/d88919fcf99984832d831c515bce99182982cad7))
+* **email:** track guardian invitation delivery progress ([#314](https://github.com/victorvivas27/treasury-system/issues/314)) ([911986e](https://github.com/victorvivas27/treasury-system/commit/911986eaba61aee18cca22174ebe828b174e9b04))
+
 ## [1.46.1](https://github.com/victorvivas27/treasury-system/compare/v1.46.0...v1.46.1) (2026-11-09)
 
 
