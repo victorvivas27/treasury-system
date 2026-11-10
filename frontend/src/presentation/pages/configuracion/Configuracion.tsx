@@ -17,6 +17,7 @@ import "./Configuracion.css";
 import { PaletteSelector } from "./PaletteSelector";
 import { FontFamilySelector } from "./FontFamilySelector";
 import { InitialLoaderSettings } from "./InitialLoaderSettings";
+import { PageTransitionSettings } from "./PageTransitionSettings";
 
 const THEME_OPTIONS: Array<{
   value: ThemePreference;
@@ -161,6 +162,7 @@ export const Configuracion = () => {
 
 
       {canEditCourse && <InitialLoaderSettings />}
+      {canEditCourse && <PageTransitionSettings />}
 
       <article className={`push-settings-card push-settings-card--${pushStatus}`}>
         <span className="push-settings-icon"><FiBell aria-hidden="true" /></span>

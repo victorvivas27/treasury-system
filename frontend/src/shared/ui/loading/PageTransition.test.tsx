@@ -1,10 +1,23 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { PageTransitionBoundary, usePageEntry } from './PageTransition';
+import { PAGE_TRANSITION_PREFERENCES_KEY } from './pageTransitionPreferences';
 
 beforeEach(() => {
+  localStorage.clear();
   vi.useFakeTimers();
-  vi.stubGlobal('matchMedia', () => ({ matches: false }));
+  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+});
+
+it('respeta el tiempo mínimo guardado sin dejar de esperar datos más lentos', () => {
+  localStorage.setItem(PAGE_TRANSITION_PREFERENCES_KEY, JSON.stringify({ durationMs: 3000 }));
+  const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
+  act(() => vi.advanceTimersByTime(1000));
+  view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
+  act(() => vi.advanceTimersByTime(1900));
+  expect(screen.getByRole('status')).not.toHaveClass('is-leaving');
+  act(() => vi.advanceTimersByTime(1000));
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
@@ -18,7 +31,7 @@ it('mantiene la página montada e inerte hasta que sus datos están listos', () 
   expect(screen.getByRole('status')).toBeInTheDocument();
   expect(screen.getByText('Contenido de la página').closest('[inert]')).not.toBeNull();
   view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(700));
+  act(() => vi.advanceTimersByTime(850));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByRole('button')).toBeEnabled();
   view.rerender(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
