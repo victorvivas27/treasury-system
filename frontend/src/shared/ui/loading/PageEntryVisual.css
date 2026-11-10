@@ -1,0 +1,6 @@
+.app-startup.page-entry-visual[data-variant="cinematic"].is-leaving {
+  transition: clip-path var(--boot-video-exit-duration) cubic-bezier(.45,0,.25,1), opacity var(--boot-video-exit-duration) ease-in-out;
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-startup.page-entry-visual[data-variant="cinematic"].is-leaving { transition:none; }
+}

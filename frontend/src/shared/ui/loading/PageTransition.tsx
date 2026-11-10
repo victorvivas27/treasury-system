@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { HomeEntryTransition } from '@/presentation/pages/home/components/HomeEntryTransition';
+import { PageEntryVisual } from './PageEntryVisual';
 import './PageTransition.css';
+import { readPageTransitionPreferences } from './pageTransitionPreferences';
 
 const PageLoadingContext = createContext<((id: string, pending: boolean, failed?: boolean) => void) | null>(null);
 
@@ -20,6 +21,7 @@ export function PageTransitionBoundary({ children }: { children: ReactNode }) {
   const completed = useRef(false);
   const opened = useRef(false);
   const [state, setState] = useState({ visible: false, ready: false });
+  const [preferences] = useState(readPageTransitionPreferences);
   const report = useCallback((id: string, loading: boolean, failed = false) => {
     if (completed.current) return;
     if (failed) {
@@ -43,7 +45,7 @@ export function PageTransitionBoundary({ children }: { children: ReactNode }) {
     setState({ visible: false, ready: true });
   }, []);
   return <PageLoadingContext.Provider value={report}>
-    {state.visible && <HomeEntryTransition ready={state.ready} onExited={finish} pageEntry />}
+    {state.visible && <PageEntryVisual ready={state.ready} onExited={finish} preferences={preferences} />}
     <div className="page-transition-content" inert={state.visible} aria-hidden={state.visible || undefined}>
       {children}
     </div>
