@@ -135,6 +135,22 @@ describe("useApoderados Hook", () => {
     expect(mockExecute).toHaveBeenLastCalledWith(0, 3, "");
   });
 
+  it('reutiliza la lista al volver y permite actualizarla manualmente', async () => {
+    mockExecute.mockResolvedValue(mockPageResponse);
+    const first = renderHook(() => useApoderados());
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    first.unmount();
+
+    const second = renderHook(() => useApoderados());
+    expect(second.result.current.loading).toBe(false);
+    expect(second.result.current.apoderados).toEqual(mockPageResponse.content);
+    await waitFor(() => expect(second.result.current.refreshing).toBe(false));
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+
+    await act(async () => { await second.result.current.refetch(); });
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+  });
+
   it("[useApoderados #06] No debe llamar a fetchApoderados en nextPage cuando es la última página", async () => {
     mockExecute.mockResolvedValue(mockPageResponse);
     const { result } = renderHook(() => useApoderados());

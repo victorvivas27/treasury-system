@@ -6,7 +6,7 @@ const { createRequire } = require('node:module');
 const tool = createRequire(path.join(process.env.RELEASE_TOOLS_DIR, 'package.json'));
 const yaml = tool('yaml');
 const workflow = yaml.parse(fs.readFileSync(path.join(__dirname, '../.github/workflows/06-release-please.yml'), 'utf8'));
-const productionWorkflows = ['07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml']
+const productionWorkflows = ['07-deploy-backend.yml', '09-reports-pages.yml']
   .map(file => [file, yaml.parse(fs.readFileSync(path.join(__dirname, `../.github/workflows/${file}`), 'utf8'))]);
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 const context = { repo: { owner: 'owner', repo: 'repo' } };
@@ -174,9 +174,11 @@ test('a release branch behind main cannot start validation', async () => {
   assert.deepEqual(outputs, {});
 });
 test('production consumers share one final validation in the same run', () => {
+  assert.equal(workflow.jobs['deploy-frontend'], undefined, 'Frontend is hosted on Netlify');
+  assert.equal(fs.existsSync(path.join(__dirname, '../.github/workflows/08-deploy-frontend.yml')), false);
   assert.equal(workflow.jobs['validate-release'].uses, './.github/workflows/12-release-validation.yml');
   assert.equal(workflow.jobs.deploy, undefined);
-  for (const [id, file] of [['deploy-backend', '07-deploy-backend.yml'], ['deploy-frontend', '08-deploy-frontend.yml'], ['publish-reports', '09-reports-pages.yml']]) {
+  for (const [id, file] of [['deploy-backend', '07-deploy-backend.yml'], ['publish-reports', '09-reports-pages.yml']]) {
     const job = workflow.jobs[id];
     assert.deepEqual(job.needs, ['release-result', 'validate-release']);
     assert.equal(job.uses, './.github/workflows/' + file);

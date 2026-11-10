@@ -189,7 +189,7 @@ test('release validation pins one commit, forces both suites and gates every dep
     assert.equal(gate.jobs[suite].with.ref, '${{ needs.resolve.outputs.sha }}');
     assert.equal(gate.jobs[suite].with.force, true);
   }
-  for (const file of ['07-deploy-backend.yml', '08-deploy-frontend.yml', '09-reports-pages.yml', '11-publish-allure.yml']) {
+  for (const file of ['07-deploy-backend.yml', '09-reports-pages.yml', '11-publish-allure.yml']) {
     const candidate = workflow(file);
     const consumer = Object.values(candidate.jobs).find(job => job.needs === 'validation');
     assert.ok(consumer, file);

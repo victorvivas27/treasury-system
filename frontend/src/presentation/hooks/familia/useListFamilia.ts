@@ -1,3 +1,4 @@
+import { readPageRequest } from '../pageRequestCache';
 
 import type { FamiliaDetalle } from "@/core/A-domain/entities/familia/Familia";
 import { FamiliaRepositoryImpl } from "@/core/C-infra/repositories/familia/FamiliaRepositoryImpl";
@@ -28,14 +29,14 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
     [],
   );
 
-  const fetchFamilia = useCallback(async (page: number) => {
+  const fetchFamilia = useCallback(async (page: number, force = false) => {
     const request = ++requestSequence.current;
     const requestSession = pageDataSession();
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getFamiliaByAlumnoUseCase.execute(page, pageSize, search);
+      const data = await readPageRequest(JSON.stringify([scope, page, search]), () => getFamiliaByAlumnoUseCase.execute(page, pageSize, search), force);
   if (request !== requestSequence.current || requestSession !== pageDataSession()) return;
       storePageData(`${scope}:search`, search, requestSession);
 
@@ -69,7 +70,7 @@ export const useListFamilia = (options: UseListFamiliaOptions = {}) => {
   }, [currentPage, fetchFamilia]);
 
   const refetch = useCallback(() => {
-    return fetchFamilia(currentPage);
+    return fetchFamilia(currentPage, true);
   }, [currentPage, fetchFamilia]);
 
   const updateFamiliaStatus = useCallback((familiaId: number, activo: boolean) => {

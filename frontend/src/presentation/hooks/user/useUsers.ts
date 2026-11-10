@@ -1,3 +1,4 @@
+import { readPageRequest } from '../pageRequestCache';
 import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
 import { useCallback, useMemo, useState } from "react";
 import type { AdminUserUpdatePayload, User, UserPayload, UserRole } from "@/core/A-domain/entities/user/User";
@@ -30,11 +31,11 @@ export const useUsers = () => {
     };
   }, []);
 
-  const load = useCallback(async (page = 0) => {
+  const load = useCallback(async (page = 0, force = true) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await useCases.list.execute(page, pageSize, search);
+      const response = await readPageRequest(JSON.stringify(["users", page, pageSize, search]), () => useCases.list.execute(page, pageSize, search), force);
       setUsers(response.content);
       setTotalPages(response.totalPages);
     } catch {

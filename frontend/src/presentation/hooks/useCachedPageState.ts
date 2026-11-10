@@ -1,6 +1,7 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from 'react';
 import { HOME_COMMUNITY_RESET } from '@/shared/community/homeCommunityEvents';
 import { apiClient } from '@/core/D-config/api';
+import { clearPageRequests } from './pageRequestCache';
 
 // Keep server results with their list filters: never passwords, form drafts, dialogs or pending actions.
 const snapshots = new Map<string, unknown>();
@@ -14,7 +15,7 @@ export const storePageData = <T,>(key: string, value: T, expectedSession = sessi
 export const forgetPageData = (key: string, expectedSession = session) => {
   if (session === expectedSession) snapshots.delete(key);
 };
-export const clearPageData = () => { snapshots.clear(); session += 1; };
+export const clearPageData = () => { snapshots.clear(); clearPageRequests(); session += 1; };
 window.addEventListener(HOME_COMMUNITY_RESET, clearPageData);
 apiClient.interceptors.response.use(response => {
   if (['post', 'put', 'patch', 'delete'].includes(response.config.method?.toLowerCase() ?? '')

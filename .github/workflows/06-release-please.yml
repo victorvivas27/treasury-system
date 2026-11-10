@@ -368,23 +368,6 @@ jobs:
       frontend_key: ${{ needs.validate-release.outputs.frontend_key }}
       backend_key: ${{ needs.validate-release.outputs.backend_key }}
 
-  deploy-frontend:
-    needs: [release-result, validate-release]
-    if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'
-    uses: ./.github/workflows/08-deploy-frontend.yml
-    secrets: inherit
-    permissions:
-      contents: read
-      actions: read
-      id-token: write
-    with:
-      release_ref: ${{ needs.release-result.outputs.tag_name }}
-      validated_sha: ${{ needs.validate-release.outputs.sha }}
-      frontend_artifact: ${{ needs.validate-release.outputs.frontend_artifact }}
-      backend_artifact: ${{ needs.validate-release.outputs.backend_artifact }}
-      frontend_key: ${{ needs.validate-release.outputs.frontend_key }}
-      backend_key: ${{ needs.validate-release.outputs.backend_key }}
-
   publish-reports:
     needs: [release-result, validate-release]
     if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'

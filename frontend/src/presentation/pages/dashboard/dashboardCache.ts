@@ -1,3 +1,4 @@
+import { PAGE_DATA_FRESH_MS } from '@/presentation/hooks/pageRequestCache';
 import { useEffect, useSyncExternalStore } from "react";
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { AlumnoRepositoryImpl } from "@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl";
@@ -38,7 +39,7 @@ export const createDashboardResource = <T,>(fetchData: () => Promise<T>) => {
     },
     load(force = false): Promise<void> {
       if (pending) return pending;
-      if (!force && updatedAt && Date.now() - updatedAt < 60_000) return Promise.resolve();
+      if (!force && updatedAt && Date.now() - updatedAt < PAGE_DATA_FRESH_MS) return Promise.resolve();
       const requestGeneration = generation;
       publish({ ...state, loading: true, error: false, failure: undefined });
       pending = Promise.resolve().then(fetchData).then(data => {
