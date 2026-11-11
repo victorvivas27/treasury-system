@@ -64,9 +64,9 @@ function Metric({ label, value, icon, tone }: {
   </div>;
 }
 
-export function HomeDashboardPreview() {
+export function HomeDashboardPreview({ ambient = false }: { ambient?: boolean }) {
   const [activePanel, setActivePanel] = useState<number | null>(null);
-  const { viewport, eligible, step } = usePreviewDemo(setActivePanel);
+  const { viewport, eligible, step } = usePreviewDemo(setActivePanel, ambient);
   const payments = eligible ? step : 0;
   const money = (amount: number) => `$${amount.toLocaleString("es-CL")}`;
   const year = new Date().getFullYear();

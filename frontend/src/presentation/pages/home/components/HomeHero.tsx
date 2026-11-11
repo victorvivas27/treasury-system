@@ -1,14 +1,31 @@
 ﻿import { FiCheckCircle, FiShield } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { FiBattery, FiWifi } from "react-icons/fi";
+import { useEffect, useState } from "react";
 import { HomeDashboardPreview } from "./HomeDashboardPreview";
 import "../style/HomeHero.css";
 
-export const HomeHero = () => (
-  <section className="public-home__hero">
+export const HomeHero = () => {
+  const [motionReady, setMotionReady] = useState(false);
+  useEffect(() => {
+    let frame = 0;
+    const reveal = () => {
+      if (document.getElementById('app-boot-loader')) return;
+      observer.disconnect();
+      frame = requestAnimationFrame(() => setMotionReady(true));
+    };
+    const observer = new MutationObserver(reveal);
+    observer.observe(document.body, { childList: true });
+    reveal();
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+  }, []);
+  return (
+  <section className={`public-home__hero${motionReady ? ' is-hero-ready' : ''}`}>
+    <div className="public-home__hero-background" aria-hidden="true" inert>
+      <HomeDashboardPreview ambient />
+    </div>
     <div className="public-home__hero-copy public-home__hero-enter">
       <span className="public-home__eyebrow"><FiShield aria-hidden="true" />Tesorería y comunidad escolar</span>
-      <h1 className="public-home__animated-title">Cada aporte cuenta.<br />Todo tu curso conectado.</h1>
+      <h1 className="public-home__animated-title"><span>Cada aporte cuenta.</span><span>Todo tu curso conectado.</span></h1>
       <p className="public-home__animated-description">
         Desde la cuota anual hasta la actividad de fin de año: organiza familias,
         registra pagos y gastos, y sigue lo que están construyendo juntos.
@@ -22,12 +39,6 @@ export const HomeHero = () => (
         <span><FiCheckCircle aria-hidden="true" /> Desde tu celular</span>
       </div>
     </div>
-    <div className="home-dashboard-device">
-      <div className="home-dashboard-device__status" aria-hidden="true">
-        <span>9:41</span><i /><span><FiWifi /><FiBattery /></span>
-      </div>
-      <HomeDashboardPreview />
-      <div className="home-dashboard-device__home" aria-hidden="true"><span /></div>
-    </div>
   </section>
-);
+  );
+};

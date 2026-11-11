@@ -21,6 +21,18 @@ it('respeta el tiempo mínimo guardado sin dejar de esperar datos más lentos', 
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
+it('anima la entrada sin consultas y no vuelve a bloquear el formulario al actualizarse', () => {
+  const view = render(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
+  expect(screen.getByRole('status')).toBeInTheDocument();
+  expect(screen.getByText('Ingresar').closest('[inert]')).not.toBeNull();
+  act(() => vi.advanceTimersByTime(850));
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  const button = screen.getByRole('button', { name: 'Ingresar' });
+  view.rerender(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
+  expect(screen.getByRole('button', { name: 'Ingresar' })).toBe(button);
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+});
+
 function Data({ pending, error = false }: { pending: boolean; error?: boolean }) {
   usePageEntry(pending, error);
   return <button>{error ? 'Reintentar' : 'Contenido de la página'}</button>;

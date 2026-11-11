@@ -3,6 +3,7 @@ import { HomePage } from "../pages/home/HomePage";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { LoginPage } from "../pages/auth/LoginPage";
+import { PageTransitionBoundary } from "@/shared/ui/loading/PageTransition";
 import { CheckEmailPage, ForgotPasswordPage, PasswordUpdatedPage, ResetPasswordPage,
   VerifyEmailPage } from "../pages/auth/AccountFlowPages";
 
@@ -22,7 +23,7 @@ export const AppRouter = () => {
   return (
   <Routes>
     <Route path="/" element={<HomePage />} />
-    <Route path="/login" element={<LoginPage />} />
+    <Route path="/login" element={<PageTransitionBoundary animateOnEntry><LoginPage /></PageTransitionBoundary>} />
     <Route path="/register" element={<Navigate to="/login" replace />} />
     <Route path="/aceptar-invitacion" element={<ResetPasswordPage invitation />} />
     <Route path="/revisa-tu-correo" element={<CheckEmailPage />} />

@@ -7,6 +7,7 @@ import { HomeWelcome } from "./components/HomeWelcome";
 import { HomeFeatures } from "./components/HomeFeatures";
 import { useHomeReveal } from "./hooks/useHomeReveal";
 import "./style/HomePage.css";
+import "./style/HomeMember.css";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { homeCommunityCache } from "./hooks/homeCommunityCache";
@@ -46,7 +47,7 @@ export const HomePage = () => {
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
         {!isAuthenticated && <HomeHero />}
-        {isAuthenticated && <HomeWelcome onReady={markCourseReady} />}
+        {isAuthenticated && <HomeWelcome onReady={markCourseReady} animateReady={revealed} />}
         {isAuthenticated ? detailsReady ? <HomeCommunity /> : null : <HomeFeatures />}
       </main>
       <AppFooter showLogin={!isAuthenticated} />

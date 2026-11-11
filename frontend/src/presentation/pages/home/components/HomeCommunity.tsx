@@ -1,4 +1,5 @@
 import { AboutCylinder } from "./AboutCylinder";
+import { publicImages } from '@/shared/assets/publicImages';
 
 import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { FiCamera, FiCheck, FiChevronLeft, FiChevronRight, FiUsers } from "react-icons/fi";
@@ -149,9 +150,11 @@ export const HomeCommunity = () => {
   <div className="home-community">
     <section id="sobre-nosotros" className="home-community__about" data-home-reveal
       data-home-scroll-repeat data-home-community-repeat>
+      <img className="home-community__scene-art" src={publicImages.communityCare} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       <header className="home-community__title-banner">
         <CommunityIcon file="Heart" name="heart" />
         <div>
+          <span className="home-community__chapter">01 / Nuestra esencia</span>
           <h2>Lo que nos mueve</h2>
         </div>
       </header>
@@ -159,9 +162,10 @@ export const HomeCommunity = () => {
     </section>
 
     <section id="fotos-del-curso" className="home-community__content" data-home-reveal>
+      <img className="home-community__scene-art" src={publicImages.communityJoy} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       <header className="home-community__photo-heading">
         <CommunityIcon file="Camera V3" name="camera" fallback={<img src="/icons/Camera%20V3.svg" alt="" />} />
-        <div><h2>Nuestros momentos</h2>
+        <div><span className="home-community__chapter">02 / Nuestra historia</span><h2>Nuestros momentos</h2>
           <p>Historias compartidas que merecen quedarse con nosotros.</p></div>
       </header>
       {photos.length > 0 ? <div className="home-community__carousel" role="region"
@@ -225,9 +229,10 @@ export const HomeCommunity = () => {
     </section>
 
     <section id="directiva" className="home-community__content" data-home-reveal>
+      <img className="home-community__scene-art" src={publicImages.communityParticipation} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       <div className="home-community__board-heading">
         <CommunityIcon file="Staff" name="staff" speed={.8} fallback={<FiUsers />} />
-        <div><span className="home-community__eyebrow">Directiva</span>
+        <div><span className="home-community__eyebrow">03 / Directiva</span>
           <h2>Representantes del curso</h2></div>
       </div>
       <div className="home-community__board-carousel" role="region" aria-label="Integrantes de la directiva">

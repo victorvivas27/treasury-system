@@ -5,14 +5,26 @@ export function createInitialCinematic(loader, assets) {
     { lines: ['Cada aporte', 'cuenta.'], caption: 'Tesorería y comunidad escolar', detail: 'Cuotas, aportes, ingresos y gastos.' },
     { lines: ['Todo tu curso', 'conectado.'], caption: 'Familias bien organizadas', detail: 'Las personas, los recursos y los momentos compartidos.' },
     { lines: ['Actividades', 'que suman.'], caption: 'Los proyectos del curso', detail: 'Eventos y stands, de la primera venta al cierre.' },
+    { lines: ['Tus cuotas,', 'al día.'], caption: 'Cuotas del curso', detail: 'Consulta las cuotas y registra los pagos.' },
+    { lines: ['Cada ingreso,', 'registrado.'], caption: 'Movimientos de tesorería', detail: 'Organiza los ingresos y egresos del curso.' },
+    { lines: ['Tus gastos,', 'en orden.'], caption: 'Control de egresos', detail: 'Registra los gastos y revisa los movimientos.' },
+    { lines: ['Familias', 'organizadas.'], caption: 'Comunidad escolar', detail: 'Vincula alumnos con sus apoderados y familias.' },
+    { lines: ['Tus eventos,', 'en marcha.'], caption: 'Eventos escolares', detail: 'Administra gastos, recaudación y liquidación.' },
+    { lines: ['Cada venta', 'suma.'], caption: 'Stands del curso', detail: 'Gestiona productos, ventas y cierres de stands.' },
+    { lines: ['Las cuentas,', 'más claras.'], caption: 'Resumen y reportes', detail: 'Consulta el resumen de tesorería y sus reportes.' },
   ];
-  // Shuffle a copy: every existing artwork appears once before the sequence loops.
-  const playlist = [...assets];
+  for (let index = stories.length - 1; index > 0; index--) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [stories[index], stories[randomIndex]] = [stories[randomIndex], stories[index]];
+  }
+  let storyIndex = 0;
+  // Show every community icon once before looping; exclude the two login images.
+  const playlist = assets.filter(asset => asset.artwork === 'community');
   for (let index = playlist.length - 1; index > 0; index--) {
     const randomIndex = Math.floor(Math.random() * (index + 1));
     [playlist[index], playlist[randomIndex]] = [playlist[randomIndex], playlist[index]];
   }
-  const firstStory = stories[playlist[0].story];
+  const firstStory = stories[storyIndex];
   const title = story => story.lines.map((line, lineIndex) =>
     `<span class="cinematic-line">${line.split(' ').map((word, index) =>
       `<span class="cinematic-word" style="--word-delay:${(lineIndex * 2 + index) * 65}ms">${word}</span>`).join(' ')}</span>`).join('');
@@ -58,7 +70,8 @@ export function createInitialCinematic(loader, assets) {
       scenes[activeScene].classList.remove('is-active');
       scenes[next].classList.add('is-active');
       activeScene = next;
-      const story = stories[playlist[next].story];
+      storyIndex = (storyIndex + 1) % stories.length;
+      const story = stories[storyIndex];
       copy.classList.add('is-changing');
       copyTimer = window.setTimeout(() => {
         if (stopped) return;

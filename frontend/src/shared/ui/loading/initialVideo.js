@@ -11,7 +11,18 @@ export function createInitialVideo(loader, source, mobileSource, icons) {
     ['Cada aporte', 'cuenta.'],
     ['Todo tu curso', 'conectado.'],
     ['Actividades', 'que suman.'],
+    ['Tus cuotas,', 'al día.'],
+    ['Cada ingreso,', 'registrado.'],
+    ['Tus gastos,', 'en orden.'],
+    ['Familias', 'organizadas.'],
+    ['Tus eventos,', 'en marcha.'],
+    ['Cada venta', 'suma.'],
+    ['Las cuentas,', 'más claras.'],
   ];
+  for (let index = stories.length - 1; index > 0; index--) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [stories[index], stories[randomIndex]] = [stories[randomIndex], stories[index]];
+  }
   const entrances = ['sides', 'reverse-sides', 'drop', 'rise', 'pop', 'flip', 'swing', 'diagonal', 'unfold', 'tilt'];
   const renderTitle = (lines, entrance = 0) => lines.map((line, lineIndex) =>
     `<span class="cinematic-line video-title-line" data-entrance="${lightReveal ? 'light' : entrances[entrance]}" style="--line-delay:${lineIndex * 150}ms">${line.split(' ').map((word, index) =>
@@ -19,36 +30,28 @@ export function createInitialVideo(loader, source, mobileSource, icons) {
   loader.insertAdjacentHTML('beforeend', `<div class="boot-video-shade" aria-hidden="true"></div><div class="cinematic-frame boot-video-title-frame" aria-hidden="true"><header class="cinematic-masthead"><span>Tesorería Escolar</span><span>Tu comunidad. Tus proyectos.</span></header><div class="cinematic-copy"><p class="cinematic-eyebrow">Tesorería y comunidad escolar</p><div class="cinematic-title">${renderTitle(stories[0])}</div></div></div>`);
   const copy = loader.querySelector('.cinematic-copy');
   const title = loader.querySelector('.cinematic-title');
-  loader.querySelector('.boot-video-title-frame').insertAdjacentHTML('beforeend', '<div class="boot-mobile-atmosphere"><span></span><span></span><span></span></div><footer class="boot-mobile-footer"><p class="boot-mobile-description">Unimos familias, organizamos aportes<br>y hacemos crecer los proyectos del curso.</p><div class="boot-mobile-topics"><span>Aportes</span><span>Comunidad</span><span>Proyectos</span></div><div class="boot-mobile-status"><span class="boot-mobile-pulse"></span><span class="boot-mobile-status-label">Abriendo tu espacio</span><span class="boot-mobile-dots"><i></i><i></i><i></i></span></div><span class="boot-mobile-signature">Juntos, cada idea llega más lejos.</span></footer>');
+  loader.querySelector('.boot-video-title-frame').insertAdjacentHTML('beforeend', '<div class="boot-mobile-atmosphere"><span></span><span></span><span></span></div><footer class="boot-mobile-footer"><p class="boot-mobile-description">Unimos familias, organizamos aportes<br>y hacemos crecer los proyectos del curso.</p><div class="boot-mobile-status"><span class="boot-mobile-pulse"></span><span class="boot-mobile-status-label">Abriendo tu espacio</span><span class="boot-mobile-dots"><i></i><i></i><i></i></span></div><span class="boot-mobile-signature">Juntos, cada idea llega más lejos.</span></footer>');
   const status = loader.querySelector('.boot-mobile-status-label');
   const iconCleanups = [];
-  const gestures = ['bounce', 'spin', 'depart', 'swing', 'flip'];
-  loader.querySelectorAll('.boot-mobile-topics > span').forEach((topic, index) => {
-    if (!icons[index]) return;
+  const constellation = document.createElement('div');
+  constellation.className = 'boot-rain-icons';
+  constellation.setAttribute('aria-hidden', 'true');
+  loader.append(constellation);
+  icons.forEach((source, index) => {
+    const topic = document.createElement('span');
+    constellation.append(topic);
+    topic.style.setProperty('--rain-x', `${(index + .2 + Math.random() * .6) / icons.length * 100}%`);
+    topic.style.setProperty('--rain-duration', `${6 + Math.random() * 5}s`);
+    topic.style.setProperty('--rain-delay', `${-Math.random() * 11}s`);
+    topic.style.setProperty('--rain-drift', `${Math.round(Math.random() * 48 - 24)}px`);
     const icon = document.createElement('img');
     icon.alt = '';
     icon.decoding = 'async';
     icon.fetchPriority = 'low';
-    let previousGesture = '';
-    const nextGesture = () => {
-      if (motion.matches) return;
-      const choices = gestures.filter(gesture => gesture !== previousGesture);
-      previousGesture = choices[Math.floor(Math.random() * choices.length)];
-      icon.style.animation = `boot-icon-${previousGesture} ${2200 + Math.floor(Math.random() * 1300)}ms ${350 + Math.floor(Math.random() * 700)}ms ease-in-out both`;
-    };
-    icon.addEventListener('animationend', nextGesture);
-    const onMotionChange = () => {
-      icon.style.animation = '';
-      if (!motion.matches && topic.classList.contains('is-icon-ready')) nextGesture();
-    };
-    motion.addEventListener('change', onMotionChange);
     iconCleanups.push(() => {
-      icon.removeEventListener('animationend', nextGesture);
-      motion.removeEventListener('change', onMotionChange);
-      icon.style.animationPlayState = 'paused';
+      topic.style.animationPlayState = 'paused';
     });
-    icon.addEventListener('load', () => topic.classList.add('is-icon-ready'), { once: true });
-    icon.src = icons[index];
+    icon.src = source;
     topic.prepend(icon);
   });
   let storyIndex = 0;

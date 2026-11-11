@@ -62,6 +62,24 @@ describe("DashboardPage", () => {
     currentUser.rol = "ADMIN";
   });
 
+  it("permite ver todos los egresos, contraerlos y abrir los detalles del año seleccionado", async () => {
+    dashboardOverview.mockResolvedValue({ ...overview, expensesByDescription:
+      Array.from({ length: 8 }, (_, index) => ({ id: index + 1,
+        description: `Gasto de prueba ${index + 1}`, category: "FOOD", amount: 8000 - index * 100 })) });
+    contributionSummary.mockResolvedValue({ totalFamilies: 0 });
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: /Principales egresos/i }));
+    expect(screen.queryByText("Gasto de prueba 7")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ver más" }));
+    expect(screen.getByText("Gasto de prueba 8")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Ver menos" })).toHaveAttribute("aria-expanded", "true");
+    const selectedYear = screen.getByRole("button", { name: "Año escolar" }).textContent;
+    expect(screen.getByRole("link", { name: "Más detalles" })).toHaveAttribute("href",
+      `/tesoreria/gastos?year=${selectedYear}`);
+    fireEvent.click(screen.getByRole("button", { name: "Ver menos" }));
+    expect(screen.queryByText("Gasto de prueba 7")).not.toBeInTheDocument();
+  });
+
   it("reutiliza el dashboard al salir y volver sin otro loader ni consultas repetidas", async () => {
     dashboardOverview.mockResolvedValue(overview);
     contributionSummary.mockResolvedValue({ totalFamilies: 0 });

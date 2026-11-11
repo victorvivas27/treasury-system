@@ -21,7 +21,7 @@ export function PageEntryVisual({ ready, onExited, preferences }: { ready: boole
     const loader = element.current!;
     visual.current = preferences.variant === 'cinematic'
       ? createInitialCinematic(loader, Object.entries(publicImages).map(([name, src]) => ({ src, artwork: name.startsWith('login') ? 'full' : 'community', story: name.startsWith('login') ? 0 : ['communityGoals', 'communityJoy', 'communityTree'].includes(name) ? 2 : 1 })))
-      : createInitialVideo(loader, preferences.variant === 'video-light' ? videoLight : video, publicImages.loginMobile, [publicImages.communityCare, publicImages.communityFamilies, publicImages.communityGoals]);
+      : createInitialVideo(loader, preferences.variant === 'video-light' ? videoLight : video, publicImages.loginMobile, Object.entries(publicImages).filter(([name]) => name.startsWith('community')).map(([, src]) => src));
     return () => { visual.current?.stop(); visual.current = null; };
   }, [preferences.variant]);
   useEffect(() => {
