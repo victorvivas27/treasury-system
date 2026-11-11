@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.50.0](https://github.com/victorvivas27/treasury-system/compare/v1.49.0...v1.50.0) (2026-11-11)
+
+
+### Features
+
+* **home:** actualizar estilos de máscara utilizando var(--color-bg) para mejorar la consistencia visual ([a40cee0](https://github.com/victorvivas27/treasury-system/commit/a40cee0f89cf5697a1628301070cf2bf219b3e01))
+* **home:** actualizar estilos de máscara utilizando var(--color-bg) para mejorar la consistencia visual ([1ef04fa](https://github.com/victorvivas27/treasury-system/commit/1ef04fa1cd28a39b065e373495247346c0bd3638))
+* **home:** mejora fondos responsive y animaciones de ambos Home, agrega transiciones suaves del navbar y loader al iniciar sesión ([8392443](https://github.com/victorvivas27/treasury-system/commit/8392443acbfeee52886c9b9b74a35eb98829795d))
+
 ## [1.49.0](https://github.com/victorvivas27/treasury-system/compare/v1.48.0...v1.49.0) (2026-11-10)
 
 
