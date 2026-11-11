@@ -27,7 +27,7 @@
   inset: 0;
   overflow: clip;
   pointer-events: none;
-  mask-image: linear-gradient(90deg, transparent 8%, rgba(0,0,0,.12) 38%, #000 70%, #000 82%, transparent 100%), linear-gradient(0deg, transparent, #000 20%, #000 80%, transparent);
+  mask-image: linear-gradient(90deg, transparent 8%, color-mix(in srgb, var(--color-bg) 12%, transparent) 38%, var(--color-bg) 70%, var(--color-bg) 82%, transparent 100%), linear-gradient(0deg, transparent, var(--color-bg) 20%, var(--color-bg) 80%, transparent);
   mask-composite: intersect;
 }
 
@@ -42,7 +42,7 @@
   overflow: hidden;
   opacity: .4;
   filter: blur(1px);
-  mask-image: linear-gradient(180deg, transparent, #000 8%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, var(--color-bg) 8%, var(--color-bg) 78%, transparent);
   transform: translateY(-50%) rotate(-7deg) scale(1.12);
   transform-origin: center;
   box-shadow: none;
@@ -52,7 +52,7 @@
 
 @media (max-width: 1023px) {
   .public-home.public-home--guest .public-home__hero-copy { margin-inline: auto; }
-  .public-home__hero-background { mask-image: linear-gradient(90deg, transparent, #000 20%, #000 75%, transparent), linear-gradient(0deg, transparent, #000 25%, #000 75%, transparent); }
+  .public-home__hero-background { mask-image: linear-gradient(90deg, transparent, var(--color-bg) 20%, var(--color-bg) 75%, transparent), linear-gradient(0deg, transparent, var(--color-bg) 25%, var(--color-bg) 75%, transparent); }
   .public-home__hero-background .home-dashboard { right: -200px; opacity: .13; }
 }
 
