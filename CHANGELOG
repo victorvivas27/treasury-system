@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.0](https://github.com/victorvivas27/treasury-system/compare/v1.48.0...v1.49.0) (2026-11-10)
+
+
+### Features
+
+* **transitions:** implement page transition settings and visual components ([8f4f11e](https://github.com/victorvivas27/treasury-system/commit/8f4f11ef45e7478f1935cfd60287f065042d7c68))
+
 ## [1.48.0](https://github.com/victorvivas27/treasury-system/compare/v1.47.1...v1.48.0) (2026-11-10)
 
 
