@@ -46,6 +46,12 @@ const features = [
   { icon: FiHeart, title: "Un curso que se encuentra", description: "Consulta el horario de clases y conoce la directiva, las fotos y lo que mueve a tu comunidad." },
 ];
 
+function SectionBackdrop({ src }: { src: string }) {
+  return <div className="home-tour__backdrop" aria-hidden="true">
+    <img src={src} alt="" loading="lazy" decoding="async" />
+  </div>;
+}
+
 export const HomeFeatures = () => {
   const [selected, setSelected] = useState(0);
   const scenario = scenarios[selected];
@@ -53,8 +59,9 @@ export const HomeFeatures = () => {
   return (
     <div className="home-tour">
       <section className="home-tour__section" id="casos-reales" aria-labelledby="tour-title">
+        <SectionBackdrop src={publicImages.communityGoals} />
         <div className="public-home__section-heading" data-home-reveal>
-          <span>Así se vive en tu curso</span>
+          <span>01 / Así se vive en tu curso</span>
           <h2 id="tour-title">Menos cuentas sueltas.<br />Más tiempo para hacer comunidad.</h2>
           <p>Explora tres situaciones cotidianas y descubre cómo la app te acompaña en cada una.</p>
         </div>
@@ -92,8 +99,9 @@ export const HomeFeatures = () => {
       </section>
 
       <section className="home-tour__section home-tour__roles" aria-labelledby="roles-title">
+        <SectionBackdrop src={publicImages.communityFamilies} />
         <div className="public-home__section-heading" data-home-reveal>
-          <span>Una comunidad, distintas responsabilidades</span>
+          <span>02 / Una comunidad, distintas responsabilidades</span>
           <h2 id="roles-title">Tu lugar en el curso, también en la app.</h2>
         </div>
         <div className="home-tour__role-grid">
@@ -113,8 +121,9 @@ export const HomeFeatures = () => {
       </section>
 
       <section className="public-home__features" aria-labelledby="features-title">
+        <SectionBackdrop src={publicImages.loginDesktop} />
         <div className="public-home__section-heading" data-home-reveal>
-          <span>Más que una lista de pagos</span>
+          <span>03 / Más que una lista de pagos</span>
           <h2 id="features-title">Todo lo que hace avanzar a tu curso.</h2>
           <p>Las personas, los recursos y los momentos compartidos, en un mismo lugar.</p>
         </div>
@@ -130,13 +139,9 @@ export const HomeFeatures = () => {
       </section>
 
       <section className="home-tour__section home-tour__closing" aria-labelledby="start-title" data-home-reveal>
-        <div className="home-tour__closing-art" aria-hidden="true">
-          <img src={publicImages.communityFamilies} alt="" loading="lazy" width="104" height="104" />
-          <img src={publicImages.communityGoals} alt="" loading="lazy" width="88" height="88" />
-          <img src={publicImages.communityLearning} alt="" loading="lazy" width="96" height="96" />
-        </div>
+        <SectionBackdrop src={publicImages.communityJoy} />
         <div className="home-tour__closing-copy">
-        <span className="home-tour__overline">De conocerla a usarla</span>
+        <span className="home-tour__overline">04 / De conocerla a usarla</span>
         <h2 id="start-title">El próximo paso es entrar a tu curso.</h2>
         <p>Tu comunidad, sus proyectos y las cuentas del curso. Todo listo para encontrarse en un mismo lugar.</p>
         </div>

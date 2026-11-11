@@ -28,6 +28,14 @@ afterEach(() => {
 });
 
 describe("recorrido automático de la tablet", () => {
+  it.each([false, true])("anima el fondo móvil respetando movimiento reducido (%s)", reduced => {
+    environment(false, reduced);
+    render(<HomeDashboardPreview ambient />);
+    act(() => vi.advanceTimersByTime(6500));
+    expect(screen.getByRole("button", { name: "Cuota anual" })).toHaveAttribute("aria-expanded", String(!reduced));
+    if (reduced) expect(scroll).not.toHaveBeenCalled();
+    else expect(scroll).toHaveBeenCalled();
+  });
   it("abre paneles, desplaza solo la pantalla y vuelve al inicio sin controles extra", () => {
     environment();
     render(<HomeDashboardPreview />);

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 
 const sequence: (number | null)[] = [null, null, 0, 1, 2, 3, 4];
 
-export function usePreviewDemo(setActivePanel: Dispatch<SetStateAction<number | null>>) {
+export function usePreviewDemo(setActivePanel: Dispatch<SetStateAction<number | null>>, ambient = false) {
   const viewport = useRef<HTMLDivElement>(null);
   const [eligible, setEligible] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -11,7 +11,7 @@ export function usePreviewDemo(setActivePanel: Dispatch<SetStateAction<number | 
     if (!window.matchMedia || typeof IntersectionObserver === "undefined") return;
     const desktop = window.matchMedia("(min-width: 1024px)");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setEligible(desktop.matches && !reduced.matches);
+    const update = () => setEligible((desktop.matches || ambient) && !reduced.matches);
     update();
     desktop.addEventListener("change", update);
     reduced.addEventListener("change", update);
@@ -31,7 +31,7 @@ export function usePreviewDemo(setActivePanel: Dispatch<SetStateAction<number | 
       reduced.removeEventListener("change", update);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [ambient]);
   const running = eligible && visible;
   useEffect(() => {
     if (!running) return;

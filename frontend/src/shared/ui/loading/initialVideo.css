@@ -1,19 +1,9 @@
 .app-startup[data-variant^="video"]{display:block;overflow:clip;animation:none;transform:none;opacity:1;transition:opacity var(--boot-video-exit-duration,1400ms) ease-in-out}
 .app-startup[data-variant^="video"].is-leaving{opacity:0}
-.boot-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--color-bg);opacity:0;animation:none;transform:none;transition:none;pointer-events:none}
+.boot-video{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;background:var(--color-bg);opacity:0;animation:none;transform:none;transition:none;pointer-events:none}
 .boot-mobile-artwork{display:none;pointer-events:none}
 .boot-mobile-footer,.boot-mobile-atmosphere{display:none}
-.boot-mobile-topics{display:flex;gap:12px}
-.boot-mobile-topics > span{display:grid;justify-items:center;gap:8px;font-size:10px;color:var(--text-boot);--icon-delay:0ms}
-.boot-mobile-topics > span:nth-child(2){--icon-delay:180ms}
-.boot-mobile-topics > span:nth-child(3){--icon-delay:360ms}
-.boot-mobile-topics img{width:64px;height:64px;object-fit:contain;opacity:1}
-.boot-mobile-topics .is-icon-ready img{animation:boot-icon-enter 900ms var(--icon-delay) cubic-bezier(.22,.8,.3,1) both,boot-icon-float 4500ms calc(900ms + var(--icon-delay)) ease-in-out infinite}
-@media(min-width:601px) and (min-height:501px){
-  .boot-mobile-footer{display:block;position:absolute;right:clamp(24px,4vw,48px);bottom:28px}
-  .boot-mobile-footer > :not(.boot-mobile-topics){display:none}
-  .boot-mobile-topics{gap:24px}
-}
+
 .boot-video-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--color-bg) 85%,transparent),color-mix(in srgb,var(--color-bg) 35%,transparent) 60%,color-mix(in srgb,var(--color-bg) 15%,transparent)),linear-gradient(0deg,color-mix(in srgb,var(--color-bg) 60%,transparent),transparent 40%)}
 .boot-video-title-frame{z-index:2;pointer-events:none}
 .boot-video-title-frame .cinematic-masthead span:first-child{color:var(--color-accent)}
@@ -35,10 +25,10 @@
 /* Video 02: keep the footage fixed and reveal only the typography. */
 .app-startup[data-variant="video-light"] .video-title-line{animation:none;overflow:visible;width:fit-content;max-width:100%}
 .app-startup[data-variant="video-light"] .cinematic-word{position:relative;animation:video-light-focus 1200ms cubic-bezier(.22,.61,.36,1) var(--word-delay,0ms) both}
-.app-startup[data-variant="video-light"] .video-title-line:last-child .cinematic-word:last-child::after{content:"";position:absolute;left:0;right:0;bottom:-.05em;height:2px;background:linear-gradient(90deg,transparent,var(--color-accent),var(--text-boot));box-shadow:0 0 12px var(--color-accent);transform-origin:left;animation:video-light-ray 1600ms 1100ms ease-in-out both;pointer-events:none}
+
 .app-startup[data-variant="video-light"] .cinematic-copy.is-changing{transform:none}
 @keyframes video-light-focus{from{opacity:0;filter:blur(8px);transform:translateY(10px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
-@keyframes video-light-ray{0%{opacity:0;transform:scaleX(0)}35%{opacity:1}75%{opacity:.8;transform:scaleX(1)}100%{opacity:.35;transform:scaleX(1)}}
+
 @keyframes video-title-side{0%{opacity:0;transform:translateX(var(--entry-x));animation-timing-function:cubic-bezier(.16,1,.3,1)}65%{opacity:1;transform:translateX(14px);animation-timing-function:ease-in-out}82%{transform:translateX(-6px);animation-timing-function:ease-in-out}100%{opacity:1;transform:translateX(0)}}
 @keyframes video-title-drop{0%{opacity:0;transform:translateY(-65vh);animation-timing-function:cubic-bezier(.32,0,.67,0)}58%{opacity:1;transform:translateY(10px);animation-timing-function:ease-out}76%{transform:translateY(-16px);animation-timing-function:ease-in}90%{transform:translateY(4px);animation-timing-function:ease-out}100%{opacity:1;transform:translateY(0)}}
 @keyframes video-title-rise{0%{opacity:0;transform:translateY(65vh)}65%{opacity:1;transform:translateY(-18px)}82%{transform:translateY(7px)}100%{opacity:1;transform:translateY(0)}}
@@ -52,7 +42,7 @@
 /* Portrait artwork fills the background; typography floats over its shaded center. */
 @media(max-width:600px),(max-width:900px) and (max-height:500px){
   .app-startup[data-variant^="video"] .boot-video{display:none}
-  .boot-mobile-artwork{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.78;box-sizing:border-box}
+  .boot-mobile-artwork{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;object-position:center;opacity:.78;box-sizing:border-box}
   .boot-video-title-frame{padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));grid-template-rows:auto 1fr auto;gap:16px}
   .boot-video-title-frame .cinematic-copy{align-self:center;padding:6svh 0 0;max-width:100%;min-width:0;text-shadow:0 2px 24px var(--color-bg)}
   .boot-video-title-frame .cinematic-eyebrow{font-size:9px;letter-spacing:.14em;margin-bottom:14px}
@@ -62,12 +52,6 @@
   .boot-video-shade{background:linear-gradient(180deg,color-mix(in srgb,var(--color-bg) 65%,transparent),color-mix(in srgb,var(--color-bg) 15%,transparent) 22%,color-mix(in srgb,var(--color-bg) 58%,transparent) 52%,color-mix(in srgb,var(--color-bg) 80%,transparent) 80%,var(--color-bg)),linear-gradient(90deg,color-mix(in srgb,var(--color-bg) 40%,transparent),transparent)}
   .boot-mobile-footer{display:grid;gap:18px;position:relative;animation:cinematic-copy-in 1200ms 450ms both}
   .boot-mobile-description{margin:0;font-size:12px;line-height:1.7;color:var(--text-boot-muted)}
-  .boot-mobile-topics{display:flex;gap:12px}
-  .boot-mobile-topics > span{flex:1;min-width:0;display:grid;justify-items:center;gap:8px;padding:10px 4px;font-size:9px;letter-spacing:.05em;color:var(--text-boot);--icon-delay:0ms}
-  .boot-mobile-topics > span:nth-child(2){--icon-delay:180ms}
-  .boot-mobile-topics > span:nth-child(3){--icon-delay:360ms}
-  .boot-mobile-topics img{width:52px;height:52px;object-fit:contain;opacity:1;filter:drop-shadow(0 4px 10px color-mix(in srgb,var(--color-accent) 15%,transparent))}
-  .boot-mobile-topics .is-icon-ready img{animation:boot-icon-enter 900ms var(--icon-delay) cubic-bezier(.22,.8,.3,1) both,boot-icon-float 4500ms calc(900ms + var(--icon-delay)) ease-in-out infinite}
   .boot-mobile-status{display:flex;align-items:center;gap:8px;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--text-boot-muted) 20%,transparent);font-size:10px;letter-spacing:.04em}
   .boot-mobile-pulse{width:6px;height:6px;border-radius:50%;background:var(--color-accent);box-shadow:0 0 12px var(--color-accent)}
   .boot-mobile-dots{display:flex;gap:4px;margin-left:auto}
@@ -90,45 +74,11 @@
   .boot-video-title-frame .cinematic-copy{align-self:center;max-width:55%;padding:12px 0}
   .boot-video-title-frame .cinematic-title{font-size:clamp(32px,7vw,52px)}
   .boot-mobile-description,.boot-mobile-signature{display:none}
-  .boot-mobile-topics{position:absolute;right:0;bottom:36px;gap:8px}
-  .boot-mobile-topics > span{min-width:60px;padding:6px}
-  .boot-mobile-topics img{width:32px;height:32px}
   .boot-mobile-footer{gap:0}
   .boot-video-shade{background:linear-gradient(90deg,var(--color-bg),color-mix(in srgb,var(--color-bg) 85%,transparent) 35%,transparent 65%)}
 }
 @keyframes boot-mobile-breathe{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
-@keyframes boot-icon-enter{0%{opacity:0;transform:translateY(16px) scale(.7) rotate(-8deg)}70%{opacity:1;transform:translateY(-3px) scale(1.04) rotate(2deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
-@keyframes boot-icon-float{0%,100%{transform:perspective(400px) translateY(0) rotate(-4deg) rotateY(-10deg)}35%{transform:perspective(400px) translateY(-10px) rotate(3deg) rotateY(12deg)}70%{transform:perspective(400px) translateY(-3px) rotate(-1deg) rotateY(-5deg)}}
-/* Give each illustration a lit stage without changing the shared icon assets. */
-.boot-mobile-topics{gap:14px;isolation:isolate}
-.boot-mobile-topics > span{position:relative;min-width:88px;padding:14px 12px 10px;gap:10px;border:1px solid color-mix(in srgb,var(--color-accent) 20%,transparent);border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--color-accent) 12%,transparent),color-mix(in srgb,var(--color-bg) 65%,transparent));letter-spacing:.04em}
-.boot-mobile-topics > span::before{content:"";position:absolute;top:12px;left:50%;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--color-accent) 28%,transparent),transparent 70%);transform:translateX(-50%);pointer-events:none;animation:boot-icon-glow 3600ms var(--icon-delay) ease-in-out infinite}
-.boot-mobile-topics > span::after{content:"";position:absolute;top:74px;left:50%;width:40px;height:7px;border-radius:50%;background:color-mix(in srgb,var(--color-accent) 24%,transparent);filter:blur(4px);transform:translateX(-50%);pointer-events:none;animation:boot-icon-shadow 3600ms var(--icon-delay) ease-in-out infinite}
-.boot-mobile-topics img{position:relative;z-index:1;width:72px;height:72px;filter:drop-shadow(0 8px 12px color-mix(in srgb,var(--color-accent) 22%,transparent))}
-.boot-mobile-topics .is-icon-ready img{animation:boot-icon-enter 900ms var(--icon-delay) cubic-bezier(.22,.8,.3,1) both}
-.boot-mobile-topics > span:nth-child(2){--icon-delay:400ms}
-.boot-mobile-topics > span:nth-child(3){--icon-delay:800ms}
-@keyframes boot-icon-glow{0%,100%{opacity:.45;transform:translateX(-50%) scale(.85)}50%{opacity:1;transform:translateX(-50%) scale(1.15)}}
-@keyframes boot-icon-shadow{0%,100%{opacity:.65;transform:translateX(-50%) scaleX(1)}35%{opacity:.3;transform:translateX(-50%) scaleX(.65)}70%{opacity:.5;transform:translateX(-50%) scaleX(.85)}}
-@keyframes boot-icon-bounce{0%,20%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(3px) scale(1.1,.88)}45%{transform:translateY(-22px) scale(.95,1.06)}60%{transform:translateY(0) scale(1.08,.92)}72%{transform:translateY(-9px)}84%{transform:translateY(0)}}
-@keyframes boot-icon-spin{0%,15%{transform:rotate(0)}40%{transform:rotate(-18deg)}75%,100%{transform:rotate(360deg)}}
-@keyframes boot-icon-depart{0%,15%,100%{opacity:1;transform:translate(0,0) scale(1)}38%{opacity:0;transform:translate(28px,-18px) scale(.55)}39%{opacity:0;transform:translate(-28px,12px) scale(.55)}65%{opacity:1;transform:translate(3px,-5px) scale(1.08)}82%{transform:translate(0,0) scale(1)}}
-@keyframes boot-icon-swing{0%,15%,100%{transform:rotate(0) translateY(0)}35%{transform:rotate(-18deg) translateY(-5px)}55%{transform:rotate(15deg) translateY(-8px)}72%{transform:rotate(-8deg)}86%{transform:rotate(4deg)}}
-@keyframes boot-icon-flip{0%,15%{transform:perspective(400px) rotateY(0)}75%,100%{transform:perspective(400px) rotateY(360deg)}}
-@media(max-width:600px){
-  .boot-mobile-topics{gap:10px}
-  .boot-mobile-topics > span{min-width:0;padding:12px 4px 10px;border-radius:16px}
-  .boot-mobile-topics img{width:60px;height:60px}
-  .boot-mobile-topics > span::after{top:64px;width:32px}
-}
-@media(max-width:900px) and (max-height:500px) and (orientation:landscape){
-  .boot-mobile-topics > span{min-width:56px;padding:8px 4px;gap:6px;border-radius:12px}
-  .boot-mobile-topics img{width:36px;height:36px}
-  .boot-mobile-topics > span::before{top:0;width:44px;height:44px}
-  .boot-mobile-topics > span::after{top:40px;width:24px}
-}
-@media(prefers-reduced-motion:reduce){.boot-mobile-topics > span::before,.boot-mobile-topics > span::after{animation:none}}
-@media(prefers-reduced-motion:reduce){.boot-mobile-topics .is-icon-ready img{opacity:1;animation:none;transform:none}}
+
 @media(prefers-reduced-motion:reduce){.boot-mobile-artwork{transition:none;transform:none}.boot-mobile-atmosphere span,.boot-mobile-dots i{animation:none}}
 .app-startup.is-playing .boot-video{opacity:1}
 .boot-video-fallback{position:absolute;inset:0;background:var(--color-bg);transition:none}
@@ -136,3 +86,15 @@
 @media(prefers-reduced-motion:reduce){.app-startup[data-variant^="video"],.boot-video,.boot-video-fallback{transition:none}}
 @media(prefers-reduced-motion:reduce){.boot-video-title-frame *{animation:none!important;transition:none!important}}
 @media(prefers-reduced-motion:reduce){.boot-video-title-frame *::after{animation:none!important}}
+
+/* Small decorative icons fall independently behind the typography. */
+.boot-rain-icons{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:clip}
+.boot-rain-icons > span{position:absolute;left:clamp(24px,var(--rain-x),calc(100% - 48px));top:-48px;display:block;width:clamp(24px,2.6vw,34px);height:clamp(24px,2.6vw,34px);animation:boot-icon-rain var(--rain-duration,8s) var(--rain-delay,0s) linear infinite;will-change:transform}
+.boot-rain-icons img{display:block;width:100%;height:100%;object-fit:contain;opacity:.8;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--color-accent) 25%,transparent))}
+@keyframes boot-icon-rain{
+  0%{transform:translate3d(0,0,0) rotate(-12deg);opacity:0}
+  8%{opacity:.85}
+  90%{opacity:.85}
+  100%{transform:translate3d(var(--rain-drift,0px),calc(100dvh + 96px),0) rotate(32deg);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){.boot-rain-icons{display:none}.boot-rain-icons > span{animation:none}}

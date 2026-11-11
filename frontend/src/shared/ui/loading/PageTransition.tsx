@@ -16,11 +16,11 @@ export function usePageEntry(pending: boolean | undefined, error?: unknown) {
   }, [id, report, pending, error]);
 }
 
-export function PageTransitionBoundary({ children }: { children: ReactNode }) {
+export function PageTransitionBoundary({ children, animateOnEntry = false }: { children: ReactNode; animateOnEntry?: boolean }) {
   const pending = useRef(new Set<string>());
   const completed = useRef(false);
   const opened = useRef(false);
-  const [state, setState] = useState({ visible: false, ready: false });
+  const [state, setState] = useState({ visible: animateOnEntry, ready: animateOnEntry });
   const [preferences] = useState(readPageTransitionPreferences);
   const report = useCallback((id: string, loading: boolean, failed = false) => {
     if (completed.current) return;

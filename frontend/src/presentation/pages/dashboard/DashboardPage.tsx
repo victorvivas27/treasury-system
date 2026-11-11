@@ -66,6 +66,7 @@ export const DashboardPage = () => {
   const [annualQuotaOpen, setAnnualQuotaOpen] = useState(false);
   const [contributionsOpen, setContributionsOpen] = useState(false);
   const [expensesOpen, setExpensesOpen] = useState(false);
+  const [allExpensesShown, setAllExpensesShown] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
   const load = useCallback(() => resources.summary.load(true), [resources]);
@@ -81,7 +82,10 @@ export const DashboardPage = () => {
   }, [loading, data]);
 
   const genderCounts = data?.courseComposition ?? { masculino: 0, femenino: 0, otros: 0 };
-  const expenseDetails = useMemo(() => data?.expensesByDescription.slice(0, 6) ?? [], [data]);
+  useEffect(() => setAllExpensesShown(false), [year]);
+  const expenseDetails = useMemo(() => (allExpensesShown
+    ? data?.expensesByDescription : data?.expensesByDescription.slice(0, 6)) ?? [],
+  [data, allExpensesShown]);
   const expenseMax = useMemo(() => Math.max(
     1,
     ...expenseDetails.map(item => Number(item.amount)),
@@ -302,7 +306,7 @@ export const DashboardPage = () => {
           <div id="dashboard-expense-details" className={`dashboard-collapse-content ${expensesOpen ? "is-open" : ""}`}
             aria-hidden={!expensesOpen} inert={!expensesOpen}><div>
           {expenseDetails.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
-            : <ol className="dashboard-expense-ranking">
+            : <ol id="dashboard-expense-ranking" className="dashboard-expense-ranking">
               {expenseDetails.map((item, index) => <li key={item.id}>
                 <span className="dashboard-expense-ranking__position">{index + 1}</span>
                 <div className="dashboard-expense-ranking__content">
@@ -314,6 +318,14 @@ export const DashboardPage = () => {
                 </div>
               </li>)}
             </ol>}
+          <div className="dashboard-expense-actions">
+            {data.expensesByDescription.length > 6 && <button type="button"
+              aria-expanded={allExpensesShown} aria-controls="dashboard-expense-ranking"
+              onClick={() => setAllExpensesShown(shown => !shown)}>
+              {allExpensesShown ? "Ver menos" : "Ver más"}
+            </button>}
+            <Link to={`/tesoreria/gastos?year=${year}`}>Más detalles</Link>
+          </div>
           </div></div>
         </article>
 

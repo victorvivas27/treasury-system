@@ -7,6 +7,74 @@
   padding: 5rem 0 6rem;
 }
 
+/* The sample dashboard becomes scenery behind the public introduction. */
+.public-home.public-home--guest .public-home__hero {
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: clip;
+}
+
+.public-home.public-home--guest .public-home__hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+}
+
+.public-home__hero-background {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 8%, color-mix(in srgb, var(--color-bg) 12%, transparent) 38%, var(--color-bg) 70%, var(--color-bg) 82%, transparent 100%), linear-gradient(0deg, transparent, var(--color-bg) 20%, var(--color-bg) 80%, transparent);
+  mask-composite: intersect;
+}
+
+.public-home__hero-background .home-dashboard {
+  position: absolute;
+  top: 50%;
+  right: -80px;
+  box-sizing: border-box;
+  width: 760px;
+  max-height: 440px;
+  margin: 0;
+  overflow: hidden;
+  opacity: .4;
+  filter: blur(1px);
+  mask-image: linear-gradient(180deg, transparent, var(--color-bg) 8%, var(--color-bg) 78%, transparent);
+  transform: translateY(-50%) rotate(-7deg) scale(1.12);
+  transform-origin: center;
+  box-shadow: none;
+}
+
+.public-home__hero-background .home-dashboard__hint { display: none; }
+
+@media (max-width: 1023px) {
+  .public-home.public-home--guest .public-home__hero-copy { margin-inline: auto; }
+  .public-home__hero-background { mask-image: linear-gradient(90deg, transparent, var(--color-bg) 20%, var(--color-bg) 75%, transparent), linear-gradient(0deg, transparent, var(--color-bg) 25%, var(--color-bg) 75%, transparent); }
+  .public-home__hero-background .home-dashboard { right: -200px; opacity: .13; }
+}
+
+@media (max-width: 680px) {
+  .public-home.public-home--guest .public-home__hero { min-height: 480px; padding-block: 36px; }
+  .public-home__hero-background .home-dashboard {
+    width: calc(100% - 24px);
+    right: 12px;
+    max-height: 340px;
+    opacity: .16;
+    transform: translateY(-50%) rotate(-5deg);
+    border: 0;
+    border-radius: 0;
+    padding: 14px;
+  }
+  .public-home__hero-background .home-dashboard__summary { grid-template-columns: 1.65fr 1fr; }
+  .public-home__hero-background .home-dashboard__course { grid-template-columns: .8fr 1.25fr 1fr; }
+  .public-home__hero-background .home-dashboard__birthday { grid-column: auto; border-top: 0; padding-top: 0; }
+  .public-home__hero-background .home-dashboard__birthday > div { display: grid; }
+  .public-home__hero-background .home-dashboard__panels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .public-home__hero-copy h1 {
   max-width: 700px;
   margin: 1.25rem 0 1.35rem;
@@ -30,6 +98,38 @@
 
 .public-home__animated-description {
   animation: home-description-reveal 900ms 820ms cubic-bezier(.2, .8, .2, 1) backwards;
+}
+
+/* Reveal the hero after the startup overlay has left, and on scroll re-entry. */
+.public-home--guest .public-home__hero .public-home__animated-title { animation: home-title-shimmer 6500ms 1800ms ease-in-out infinite; }
+.public-home--guest .public-home__hero .public-home__animated-description { animation: none; }
+.public-home--guest .public-home__hero-copy > :not(h1),
+.public-home--guest .public-home__animated-title > span {
+  opacity: 0;
+  translate: 0 28px;
+  filter: blur(5px);
+  transition: opacity 1000ms ease, translate 1300ms cubic-bezier(.16,1,.3,1), filter 1100ms ease;
+}
+.public-home--guest .public-home__animated-title > span { display: block; }
+.public-home--guest .is-hero-ready .public-home__hero-copy.is-scroll-visible > :not(h1),
+.public-home--guest .is-hero-ready .public-home__hero-copy.is-scroll-visible .public-home__animated-title > span,
+.public-home--guest .public-home__hero-copy:focus-within > :not(h1),
+.public-home--guest .public-home__hero-copy:focus-within .public-home__animated-title > span {
+  opacity: 1;
+  translate: 0 0;
+  filter: none;
+}
+.public-home--guest .is-hero-ready .public-home__eyebrow { transition-delay: 80ms; }
+.public-home--guest .is-hero-ready .public-home__animated-title > span:first-child { transition-delay: 220ms; }
+.public-home--guest .is-hero-ready .public-home__animated-title > span:last-child { transition-delay: 400ms; }
+.public-home--guest .is-hero-ready .public-home__animated-description { transition-delay: 580ms; }
+.public-home--guest .is-hero-ready .public-home__hero-actions { transition-delay: 760ms; }
+.public-home--guest .is-hero-ready .public-home__trust { transition-delay: 900ms; }
+.public-home--guest .is-hero-ready .public-home__hero-background .home-dashboard { animation: home-hero-depth 14000ms ease-in-out infinite alternate; }
+@keyframes home-hero-depth { from { scale: 1; } to { scale: 1.045; } }
+@media (prefers-reduced-motion: reduce) {
+  .public-home--guest .public-home__hero-copy > :not(h1),
+  .public-home--guest .public-home__animated-title > span { opacity: 1; translate: none; filter: none; }
 }
 
 .public-home__eyebrow {
