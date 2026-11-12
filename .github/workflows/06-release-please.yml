@@ -330,7 +330,8 @@ jobs:
     needs: [main-checks, release-result, validate-release]
     if: >-
       always() && !cancelled() && needs['main-checks'].result == 'success' &&
-      ((needs['release-result'].result == 'success' && needs['validate-release'].result == 'success') ||
+      ((needs['release-result'].result == 'success' && needs['validate-release'].result == 'success' &&
+        needs['main-checks'].outputs.sha == needs['validate-release'].outputs.sha) ||
        (needs['release-result'].result == 'skipped' && needs['validate-release'].result == 'skipped'))
     uses: ./.github/workflows/10-sync-main-dev.yml
     with:
@@ -342,18 +343,23 @@ jobs:
 
   validate-release:
     name: Validate the final release once
-    needs: [release-result, main-checks]
-    if: always() && !cancelled() && needs['release-result'].result == 'success' && needs['main-checks'].result == 'success'
+    # Run fresh tests alongside Bruno/versioning. Consumers still require both
+    # gates to succeed for the same immutable commit before any publication.
+    needs: release-result
+    if: always() && !cancelled() && needs['release-result'].result == 'success'
     uses: ./.github/workflows/12-release-validation.yml
     with:
-      ref: ${{ needs.main-checks.outputs.sha }}
+      ref: ${{ needs.release-result.outputs.tag_name }}
     permissions:
       contents: read
       actions: read
 
   deploy-backend:
-    needs: [release-result, validate-release]
-    if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'
+    needs: [release-result, main-checks, validate-release]
+    if: >-
+      always() && !cancelled() && needs['validate-release'].result == 'success' &&
+      needs['release-result'].result == 'success' && needs['main-checks'].result == 'success' &&
+      needs['main-checks'].outputs.sha == needs['validate-release'].outputs.sha
     uses: ./.github/workflows/07-deploy-backend.yml
     secrets: inherit
     permissions:
@@ -369,8 +375,11 @@ jobs:
       backend_key: ${{ needs.validate-release.outputs.backend_key }}
 
   publish-reports:
-    needs: [release-result, validate-release]
-    if: always() && !cancelled() && needs['validate-release'].result == 'success' && needs['release-result'].result == 'success'
+    needs: [release-result, main-checks, validate-release]
+    if: >-
+      always() && !cancelled() && needs['validate-release'].result == 'success' &&
+      needs['release-result'].result == 'success' && needs['main-checks'].result == 'success' &&
+      needs['main-checks'].outputs.sha == needs['validate-release'].outputs.sha
     uses: ./.github/workflows/09-reports-pages.yml
     secrets: inherit
     permissions:

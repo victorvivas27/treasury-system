@@ -142,7 +142,10 @@ test('validation artifacts retain diagnostics while only successful workflows ca
     assert.equal(upload.with.name, `${suite}-validation-` + '${{ steps.validation.outputs.key }}');
     assert.equal(upload.with['if-no-files-found'], 'error');
     assert.equal(upload.with['retention-days'], '${{ github.retention_days > 14 && 14 || github.retention_days }}');
-    assert.ok(candidate.concurrency.group.includes('${{ github.run_id }}'));
+    assert.equal(candidate.concurrency.group,
+      `${{ frontend: 'frontend-ci', backend: 'backend-ci', bruno: 'bruno-api-tests', versioning: 'versioning-ci' }[suite]}-` +
+      "${{ github.workflow }}-${{ github.event_name == 'push' && github.ref || github.run_id }}");
+    assert.equal(candidate.concurrency['cancel-in-progress'], true);
     for (const step of steps.slice(lookup + 1).filter(step => step.run &&
         !step.name?.includes('logs') && !step.name?.includes('Stop'))) {
       assert.equal(step.if, "steps.validation.outputs.reused != 'true'", `${file}: ${step.name}`);

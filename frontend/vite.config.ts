@@ -167,7 +167,8 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    maxWorkers: 1,
+    // Keep local runs light; GitHub runners can execute two isolated files at once.
+    maxWorkers: process.env.GITHUB_ACTIONS === 'true' ? 2 : 1,
     environment: 'jsdom',
     setupFiles: allureRunDir
       ? ['./src/setupTests.ts', 'allure-vitest/setup', './scripts/allure.setup.mjs']
