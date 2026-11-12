@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.51.0](https://github.com/victorvivas27/treasury-system/compare/v1.50.0...v1.51.0) (2026-11-12)
+
+
+### Features
+
+* **home:** rediseñar inicio público y adaptar experiencia móvil ([d239ce5](https://github.com/victorvivas27/treasury-system/commit/d239ce545f4319780cbf17d77c752d14b4911413))
+* **home:** rediseñar inicio público y adaptar experiencia móvil ([e31707b](https://github.com/victorvivas27/treasury-system/commit/e31707bfe947ac1222f235c7bed6db226bee702e))
+
 ## [1.50.0](https://github.com/victorvivas27/treasury-system/compare/v1.49.0...v1.50.0) (2026-11-11)
 
 
