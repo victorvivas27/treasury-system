@@ -1,8 +1,8 @@
-/* Phone layout, loaded only up to 680px. */
+/* Phone and tablet layout, loaded below 1024px. */
 .form-page-container.login-page { width: min(440px, calc(100% - 32px)); padding-block: 24px; }
 .login-page .login-page-header { gap: 12px; margin-bottom: 20px; }
 .login-page .login-brand-logo { width: 48px; height: 48px; }
-.login-page .login-form { gap: 16px; padding: 20px 16px; }
+.login-page .login-form { gap: 16px; padding: 0; }
 .login-page .login-back-button {
   display: inline-flex;
   align-items: center;
@@ -29,7 +29,7 @@
   box-sizing: border-box;
   padding: 24px 16px;
   background-color: var(--color-bg);
-  background-image: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 85%, transparent), color-mix(in srgb, var(--color-bg) 25%, transparent) 65%, transparent), var(--auth-mobile-image);
+  background-image: linear-gradient(to bottom, var(--color-bg), color-mix(in srgb, var(--color-bg) 94%, transparent) 32%, color-mix(in srgb, var(--color-bg) 78%, transparent) 66%, color-mix(in srgb, var(--color-bg) 20%, transparent)), var(--auth-mobile-image);
   background-size: 100% 100%, contain;
   background-position: center, center bottom;
   background-repeat: no-repeat;
@@ -38,7 +38,9 @@
 .invitation-page .auth-flow__card { width: min(100%, var(--form-max)); }
 .login-page .login-form,
 .invitation-page .auth-flow__card {
-  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
