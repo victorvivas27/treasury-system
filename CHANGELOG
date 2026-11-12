@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.52.0](https://github.com/victorvivas27/treasury-system/compare/v1.51.0...v1.52.0) (2026-11-12)
+
+
+### Features
+
+* **auth:** mejorar estilos de login para consistencia visual y adaptabilidad ([c22d892](https://github.com/victorvivas27/treasury-system/commit/c22d892fe42a9251dbdf57082ed73b48d48c8f2a))
+* **ci:** mejorar grupos de concurrencia en flujos de trabajo y ajustar pruebas ([713c08a](https://github.com/victorvivas27/treasury-system/commit/713c08ab04eccf47c91c1fddf4f0a243c55fdc3a))
+* **ci:** mejorar grupos de concurrencia en flujos de trabajo y ajustar pruebas ([43b63ca](https://github.com/victorvivas27/treasury-system/commit/43b63ca92deb0436c640ff0236c15a06dc89046e))
+
 ## [1.51.0](https://github.com/victorvivas27/treasury-system/compare/v1.50.0...v1.51.0) (2026-11-12)
 
 
