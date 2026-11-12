@@ -16,6 +16,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class CollectionReceiptControllerTest {
+    @Test void acceptsProviderJsonAndMultipartAndRejectsIncompleteRequests() throws Exception {
+        var service = mock(CollectionService.class);
+        var receipts = mock(CollectionReceiptService.class);
+        var mvc = MockMvcBuilders.standaloneSetup(new CollectionController(service, mock(GetFamiliaUseCase.class)),
+            new CollectionReceiptController(receipts)).build();
+        var requestId = UUID.randomUUID();
+        String json = "{\"amount\":3000,\"date\":\"2026-01-01\",\"recipient\":\"Bus\",\"reference\":\"REF\",\"category\":\"TRANSPORT\",\"requestId\":\"" + requestId + "\"}";
+        String url = "/api/v1/tesoreria/recaudaciones/1/proveedor";
+        mvc.perform(post(url).contentType("application/json").content(json).principal(() -> "admin"))
+            .andExpect(status().isOk());
+        verify(service).disburse(1L, BigDecimal.valueOf(3000), LocalDate.of(2026, 1, 1), "Bus", "REF",
+            com.tesoreria.treasury.core.model.ExpenseCategory.TRANSPORT, requestId, "admin");
+        var payment = new MockMultipartFile("payment", "", "application/json", json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        var file = new MockMultipartFile("file", "bus.pdf", "application/pdf", "%PDF-1.7 prueba".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mvc.perform(multipart(url).file(payment).file(file).principal(() -> "admin"))
+            .andExpect(status().isOk());
+        verify(receipts).disburse(1L, BigDecimal.valueOf(3000), LocalDate.of(2026, 1, 1), "Bus", "REF",
+            com.tesoreria.treasury.core.model.ExpenseCategory.TRANSPORT, requestId, file, "admin");
+        mvc.perform(multipart(url).file(file).principal(() -> "admin")).andExpect(status().isBadRequest());
+        mvc.perform(multipart(url).file(payment).principal(() -> "admin")).andExpect(status().isBadRequest());
+    }
     @Test void acceptsBothJsonAndMultipartWithoutAmbiguousRoutes() throws Exception {
         var service = mock(CollectionService.class);
         var receipts = mock(CollectionReceiptService.class);

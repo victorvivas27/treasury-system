@@ -30,6 +30,13 @@ public class CollectionReceiptController {
     @GetMapping("/comprobantes") public List<CollectionReceiptService.ReceiptView> list(@PathVariable Long id) {
         return service.list(id);
     }
+    @PostMapping(value = "/proveedor", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public CollectionService.View disburse(@PathVariable Long id,
+            @Valid @RequestPart("payment") CollectionController.ProviderPayment payment,
+            @RequestPart("file") MultipartFile file, Principal principal) {
+        return service.disburse(id, payment.amount(), payment.date(), payment.recipient(), payment.reference(),
+            payment.category(), payment.requestId(), file, principal.getName());
+    }
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/comprobantes/{requestId}") public ResponseEntity<byte[]> download(@PathVariable Long id, @PathVariable UUID requestId) {
         var result = service.download(id, requestId);

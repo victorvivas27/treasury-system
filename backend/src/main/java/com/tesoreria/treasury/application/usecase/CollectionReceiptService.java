@@ -3,6 +3,7 @@ package com.tesoreria.treasury.application.usecase;
 import com.tesoreria.shared.domain.exception.DomainException;
 import com.tesoreria.treasury.core.port.out.CollectionRepository;
 import com.tesoreria.treasury.core.port.out.FileStorageService;
+import com.tesoreria.treasury.core.model.ExpenseCategory;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.entity.CollectionReceiptEntity;
 import com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.CollectionReceiptJpaRepository;
 import org.springframework.beans.factory.ObjectProvider;
@@ -24,11 +25,14 @@ public class CollectionReceiptService {
     private final CollectionRepository campaigns;
     private final CollectionReceiptJpaRepository receipts;
     private final ObjectProvider<FileStorageService> storageProvider;
+    private final ObjectProvider<ExpenseDocumentService> expenseDocuments;
 
     public CollectionReceiptService(CollectionService collections, CollectionRepository campaigns,
-            CollectionReceiptJpaRepository receipts, ObjectProvider<FileStorageService> storageProvider) {
+            CollectionReceiptJpaRepository receipts, ObjectProvider<FileStorageService> storageProvider,
+            ObjectProvider<ExpenseDocumentService> expenseDocuments) {
         this.collections = collections; this.campaigns = campaigns;
         this.receipts = receipts; this.storageProvider = storageProvider;
+        this.expenseDocuments = expenseDocuments;
     }
 
     @Transactional
@@ -39,12 +43,36 @@ public class CollectionReceiptService {
         // The campaign lock serializes retries and prevents duplicate payment documents.
         require(id, true);
         var updated = collections.collect(id, familyId, amount, date, reference, requestId, user);
+        saveReceipt(id, requestId, file, bytes, storage);
+        return updated;
+    }
+
+    @Transactional
+    public CollectionService.View disburse(Long id, BigDecimal amount, LocalDate date, String recipient,
+            String reference, ExpenseCategory category, UUID requestId, MultipartFile file, String user) {
+        byte[] bytes = validate(file);
+        var storage = storage();
+        var documents = expenseDocuments.getIfAvailable();
+        if (documents == null) throw error(HttpStatus.SERVICE_UNAVAILABLE, "El almacenamiento de documentos no está configurado");
+        require(id, true);
+        var updated = collections.disburse(id, amount, date, recipient, reference, category, requestId, user);
+        if (saveReceipt(id, requestId, file, bytes, storage)) {
+            Long expenseId = updated.movements().stream().filter(m -> m.requestId().equals(requestId.toString()))
+                .map(CollectionService.MovementView::expenseId).findFirst().orElseThrow();
+            // Independent copies allow Egresos attachments to be managed without
+            // removing the original proof retained by the activity fund.
+            documents.upload(expenseId, file, user);
+        }
+        return updated;
+    }
+
+    private boolean saveReceipt(Long id, UUID requestId, MultipartFile file, byte[] bytes, FileStorageService storage) {
         var previous = receipts.findByCampaignIdAndRequestId(id, requestId.toString());
         if (previous.isPresent()) {
             if (!Arrays.equals(bytes, storage.read(previous.get().getStorageObjectName()).bytes())) {
                 throw error(HttpStatus.CONFLICT, "Este pago ya tiene otro comprobante");
             }
-            return updated;
+            return false;
         }
         String object = "fondos/" + id + "/" + UUID.randomUUID();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -59,7 +87,7 @@ public class CollectionReceiptService {
         receipt.setOriginalName(name.substring(name.lastIndexOf('/') + 1).replaceAll("[\\p{Cntrl}]", "_"));
         receipt.setStorageObjectName(object); receipt.setContentType(file.getContentType());
         receipts.saveAndFlush(receipt);
-        return updated;
+        return true;
     }
 
     @Transactional(readOnly = true)

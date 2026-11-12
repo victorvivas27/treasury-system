@@ -44,7 +44,7 @@ public class CollectionController {
             @PathVariable Long familyId, @Valid @RequestBody Payment request, Principal principal) {
         return service.collect(id, familyId, request.amount(), request.date(), request.reference(), request.requestId(), principal.getName());
     }
-    @PostMapping("/{id}/proveedor") public CollectionService.View disburse(@PathVariable Long id,
+    @PostMapping(value = "/{id}/proveedor", consumes = "application/json") public CollectionService.View disburse(@PathVariable Long id,
             @Valid @RequestBody ProviderPayment request, Principal principal) {
         return service.disburse(id, request.amount(), request.date(), request.recipient(), request.reference(), request.category(), request.requestId(), principal.getName());
     }

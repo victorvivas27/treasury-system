@@ -39,7 +39,7 @@ test('funds can be edited and deleted with confirmation', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Camisetas del curso' })).toBeVisible();
   await page.screenshot({ path: test.info().outputPath('funds.png') });
   await page.getByRole('button', { name: 'Eliminar fondo', exact: true }).click();
-  await expect(dialog).toContainText('los ingresos y egresos registrados seguirán en Tesorería');
+  await expect(dialog).toContainText('se anularán sus ingresos y egresos vinculados');
   await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
   expect(deletes).toBe(0);
   await page.getByRole('button', { name: 'Eliminar fondo', exact: true }).click();

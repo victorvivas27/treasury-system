@@ -444,6 +444,17 @@ class TreasuryServiceTest {
     }
 
     @Test
+    void cancelExpense_deberiaConservarEgresoVinculadoAlFondoComoAnulado() {
+        when(repository.findExpenseById(20L)).thenReturn(Optional.of(expense(ExpenseStatus.ACTIVE)));
+        when(repository.isCollectionExpense(20L)).thenReturn(true);
+        TreasuryExpense result = service.cancelExpense(20L, "Fondo duplicado", "admin@mail.com");
+        assertEquals(ExpenseStatus.CANCELLED, result.status());
+        verify(repository).saveExpense(argThat(saved -> saved.id().equals(20L)
+            && saved.status() == ExpenseStatus.CANCELLED && "Fondo duplicado".equals(saved.cancellationReason())));
+        verify(repository, never()).deleteExpense(anyLong());
+    }
+
+    @Test
     void financialSummary_deberiaExcluirCepaYSolidariaDeLosIngresosDelCurso() {
         when(repository.findConfigByYear(2026)).thenReturn(Optional.of(config));
         when(repository.findObligationsByConfig(1L)).thenReturn(List.of(

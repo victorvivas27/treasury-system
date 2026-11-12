@@ -9,7 +9,7 @@ export interface ICollectionRepository {
   collect(id: number, familyId: number, payload: CollectionPayment, file?: File): Promise<CollectionCampaign>;
   receipts(id: number): Promise<CollectionReceipt[]>;
   downloadReceipt(id: number, requestId: string): Promise<Blob>;
-  disburse(id: number, payload: CollectionProviderPayment): Promise<CollectionCampaign>;
+  disburse(id: number, payload: CollectionProviderPayment, file?: File): Promise<CollectionCampaign>;
   postIncome(id: number, date: string, reference: string): Promise<CollectionCampaign>;
   cancelPayments(id: number, familyId: number, reason: string): Promise<CollectionCampaign>;
 }

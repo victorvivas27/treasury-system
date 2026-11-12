@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +73,13 @@ public class ExpenseDocumentService {
             entity.setCreatedAt(now);
             entity.setUpdatedAt(now);
             DocumentView saved = view(documents.saveAndFlush(entity));
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override public void afterCompletion(int status) {
+                        if (status != STATUS_COMMITTED) storage.delete(objectName);
+                    }
+                });
+            }
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("DOCUMENT_UPLOADED documentId={} treasuryYear={} expenseId={} object={} result=success",
                         saved.id(), expense.schoolYear(), expense.id(), objectName);
