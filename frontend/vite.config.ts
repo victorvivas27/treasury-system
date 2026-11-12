@@ -139,8 +139,6 @@ export default defineConfig({
             .replace('/* video-asset */ ""', JSON.stringify(mediaUrl(startupMedia[0])))
             .replace('/* video-light-asset */ ""', JSON.stringify(mediaUrl(startupMedia[1])))
             .replace('/* mobile-image-asset */ ""', JSON.stringify(mediaUrl(startupMedia[2])))
-            .replace('/* loader-icons */ []', JSON.stringify(Object.keys(imageManifest.images).filter(name => name.startsWith('community')).map(name =>
-              `/app-images/v1/${imageManifest.images[name].file}`)))
           const cinematicStyles = `<style data-cinematic-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialCinematic.css'), 'utf8')}</style>`
           const videoStyles = `<style data-video-loader-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialVideo.css'), 'utf8')}</style>`
           const mobileArtworkPreload = `<link rel="preload" as="image" href="${mediaUrl(startupMedia[2])}" media="(max-width: 600px), (max-width: 900px) and (max-height: 500px)" fetchpriority="high" />`

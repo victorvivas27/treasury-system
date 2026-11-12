@@ -1,5 +1,5 @@
 // Inlined before boot. Decorative media never gates the ready signal.
-export function createInitialVideo(loader, source, mobileSource, icons) {
+export function createInitialVideo(loader, source, mobileSource) {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = matchMedia('(max-width: 600px), (max-width: 900px) and (max-height: 500px)');
   loader.innerHTML = '<div class="boot-video-fallback" aria-hidden="true"></div><img class="boot-mobile-artwork" alt="" decoding="async" aria-hidden="true" /><video class="boot-video" muted playsinline loop preload="none" disablepictureinpicture aria-hidden="true"></video>';
@@ -32,28 +32,6 @@ export function createInitialVideo(loader, source, mobileSource, icons) {
   const title = loader.querySelector('.cinematic-title');
   loader.querySelector('.boot-video-title-frame').insertAdjacentHTML('beforeend', '<div class="boot-mobile-atmosphere"><span></span><span></span><span></span></div><footer class="boot-mobile-footer"><p class="boot-mobile-description">Unimos familias, organizamos aportes<br>y hacemos crecer los proyectos del curso.</p><div class="boot-mobile-status"><span class="boot-mobile-pulse"></span><span class="boot-mobile-status-label">Abriendo tu espacio</span><span class="boot-mobile-dots"><i></i><i></i><i></i></span></div><span class="boot-mobile-signature">Juntos, cada idea llega más lejos.</span></footer>');
   const status = loader.querySelector('.boot-mobile-status-label');
-  const iconCleanups = [];
-  const constellation = document.createElement('div');
-  constellation.className = 'boot-rain-icons';
-  constellation.setAttribute('aria-hidden', 'true');
-  loader.append(constellation);
-  icons.forEach((source, index) => {
-    const topic = document.createElement('span');
-    constellation.append(topic);
-    topic.style.setProperty('--rain-x', `${(index + .2 + Math.random() * .6) / icons.length * 100}%`);
-    topic.style.setProperty('--rain-duration', `${6 + Math.random() * 5}s`);
-    topic.style.setProperty('--rain-delay', `${-Math.random() * 11}s`);
-    topic.style.setProperty('--rain-drift', `${Math.round(Math.random() * 48 - 24)}px`);
-    const icon = document.createElement('img');
-    icon.alt = '';
-    icon.decoding = 'async';
-    icon.fetchPriority = 'low';
-    iconCleanups.push(() => {
-      topic.style.animationPlayState = 'paused';
-    });
-    icon.src = source;
-    topic.prepend(icon);
-  });
   let storyIndex = 0;
   let entranceIndex = 0;
   let storyTimer;
@@ -108,7 +86,6 @@ export function createInitialVideo(loader, source, mobileSource, icons) {
   updateMotion();
   const pause = () => {
     stopped = true;
-    iconCleanups.forEach(cleanup => cleanup());
     clearTimeout(storyTimer);
     clearTimeout(titleTimer);
     video.pause();
