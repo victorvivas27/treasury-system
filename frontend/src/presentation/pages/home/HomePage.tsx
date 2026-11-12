@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { AppFooter } from "@/shared/ui/footer/AppFooter";
 import { HomeHeader } from "./components/HomeHeader";
-import { HomeHero } from "./components/HomeHero";
+import { HomeEditorial } from "./components/HomeEditorial";
 import { HomeCommunity } from "./components/HomeCommunity";
 import { HomeWelcome } from "./components/HomeWelcome";
-import { HomeFeatures } from "./components/HomeFeatures";
 import { useHomeReveal } from "./hooks/useHomeReveal";
 import "./style/HomePage.css";
 import "./style/HomeMember.css";
@@ -39,16 +38,16 @@ export const HomePage = () => {
   return (
     <>
     {isAuthenticated && !revealed && <HomeEntryTransition ready={ready && courseReady} onExited={revealHome} />}
-    <div className={`public-home public-home--${isAuthenticated ? "member" : "guest"}`}
+    <div className={`public-home public-home--${isAuthenticated ? "member" : "guest public-home--editorial"}`}
       inert={isAuthenticated && !revealed}
       aria-hidden={isAuthenticated && !revealed ? true : undefined}
       aria-busy={preparing}>
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
-        {!isAuthenticated && <HomeHero />}
+        {!isAuthenticated && <HomeEditorial />}
         {isAuthenticated && <HomeWelcome onReady={markCourseReady} animateReady={revealed} />}
-        {isAuthenticated ? detailsReady ? <HomeCommunity /> : null : <HomeFeatures />}
+        {isAuthenticated && detailsReady && <HomeCommunity />}
       </main>
       <AppFooter showLogin={!isAuthenticated} />
     </div>

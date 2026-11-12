@@ -31,7 +31,7 @@
   template.remove();
   const visual = selected === 'cinematic'
     ? createInitialCinematic(loader, /* cinematic-assets */ [])
-    : createInitialVideo(loader, selected === 'video-light' ? /* video-light-asset */ "" : /* video-asset */ "", /* mobile-image-asset */ "", /* loader-icons */ []);
+    : createInitialVideo(loader, selected === 'video-light' ? /* video-light-asset */ "" : /* video-asset */ "", /* mobile-image-asset */ "");
 
   let ready = false;
   let failed = false;

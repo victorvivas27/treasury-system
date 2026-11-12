@@ -3,21 +3,16 @@ import { useEffect } from "react";
 export const useHomeReveal = (refreshKey?: unknown) => {
   useEffect(() => {
     const sections = [...document.querySelectorAll<HTMLElement>(
-      '.public-home--guest .public-home__hero, .public-home--guest .home-tour > section, '
-      + '.public-home--member .home-welcome, .public-home--member .home-community > section',
+      '.public-home--member .home-welcome, .public-home--member .home-community > section',
     )];
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const homeHeader = document.querySelector<HTMLElement>('.public-home > .public-home__header');
+    const firstSection = document.querySelector<HTMLElement>('.public-home--guest .he-hero') ?? sections[0];
     const scrollItems = [...document.querySelectorAll<HTMLElement>(
-      '.public-home--guest .public-home__hero-copy, '
-      + '.public-home--guest .home-tour .public-home__section-heading, '
-      + '.public-home--guest .home-tour__choices, '
-      + '.public-home--guest .home-tour__scenario, '
-      + '.public-home--guest .home-tour__role-grid > article, '
-      + '.public-home--guest .public-home__feature-grid > article, '
-      + '.public-home--guest .home-tour__closing-copy, '
-      + '.public-home--guest .home-tour__closing-access, '
-      + '.public-home--guest .home-tour__closing-footer, '
+      '.public-home--editorial .he-hero__copy, .public-home--editorial .he-hero__scroll, '
+      + '.public-home--editorial .he-intro > *, .public-home--editorial .he-chapter > div, '
+      + '.public-home--editorial .he-possibilities > .he-kicker, .public-home--editorial .he-possibilities > h2, '
+      + '.public-home--editorial .he-index > article, .public-home--editorial .he-access__copy, '
       + '.public-home--member .home-community__title-banner, '
       + '.public-home--member .home-community__photo-heading, '
       + '.public-home--member .home-community__board-heading, '
@@ -41,9 +36,9 @@ export const useHomeReveal = (refreshKey?: unknown) => {
       scrollFrame = 0;
       const height = window.innerHeight;
       const compact = window.innerWidth <= 680;
-      if (homeHeader && sections[0]) {
+      if (homeHeader && firstSection) {
         const headerHeight = homeHeader.offsetHeight;
-        const distance = headerHeight - sections[0].getBoundingClientRect().top;
+        const distance = headerHeight - firstSection.getBoundingClientRect().top;
         const progress = motion.matches ? 0 : Math.max(0, Math.min(1, distance / 160));
         const eased = progress * progress * (3 - 2 * progress);
         homeHeader.style.setProperty('--header-offset', `${-headerHeight * eased}px`);
@@ -71,8 +66,9 @@ export const useHomeReveal = (refreshKey?: unknown) => {
     motion.addEventListener('change', scheduleSections);
     const sectionResize = new ResizeObserver(scheduleSections);
     sections.forEach(section => sectionResize.observe(section));
+    if (firstSection && !sections.includes(firstSection)) sectionResize.observe(firstSection);
     const elements = document.querySelectorAll<HTMLElement>(
-      "[data-home-reveal]:not([data-home-card]):not([data-home-scroll-repeat]), "
+      "[data-home-reveal]:not([data-home-scroll-repeat]), "
         + "[data-home-footer-reveal]",
     );
     const revealObserver = new IntersectionObserver(entries => {
@@ -86,7 +82,7 @@ export const useHomeReveal = (refreshKey?: unknown) => {
     elements.forEach(element => revealObserver.observe(element));
 
     const repeatableElements = document.querySelectorAll<HTMLElement>(
-      "[data-home-card], [data-home-scroll-repeat]",
+      "[data-home-scroll-repeat]",
     );
     const repeatObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -100,12 +96,6 @@ export const useHomeReveal = (refreshKey?: unknown) => {
       });
     }, { threshold: [0, 0.02, 0.06, 0.14, 0.25] });
     repeatableElements.forEach(element => repeatObserver.observe(element));
-
-    const preview = document.querySelector<HTMLElement>("[data-home-preview-reveal]");
-    const previewObserver = new IntersectionObserver(([entry]) => {
-      entry.target.classList.toggle("is-visible", entry.intersectionRatio >= 0.25);
-    }, { threshold: [0, 0.25] });
-    if (preview) previewObserver.observe(preview);
 
     return () => {
       window.removeEventListener('scroll', scheduleSections);
@@ -125,7 +115,6 @@ export const useHomeReveal = (refreshKey?: unknown) => {
       });
       revealObserver.disconnect();
       repeatObserver.disconnect();
-      previewObserver.disconnect();
     };
   }, [refreshKey]);
 };
