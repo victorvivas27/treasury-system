@@ -78,6 +78,26 @@ public class CollectionService {
     public void archive(Long id, String reason, String user) {
         var campaign = require(id, true);
         if (reason == null || reason.isBlank() || reason.length() > 500) invalid("Indica el motivo de la eliminación (hasta 500 caracteres)");
+        var ledger = ledger(campaign.schoolYear());
+        var incomeIds = new LinkedHashSet<Long>();
+        var expenseIds = new LinkedHashSet<Long>();
+        if (campaign.incomeId() != null) incomeIds.add(campaign.incomeId());
+        for (var movement : campaign.movements()) {
+            if (movement.incomeId() != null) incomeIds.add(movement.incomeId());
+            if (movement.expenseId() != null) expenseIds.add(movement.expenseId());
+        }
+        for (var expenseId : expenseIds) {
+            var expense = ledger.expenses().get(expenseId);
+            if (expense != null && expense.status() == ExpenseStatus.ACTIVE) {
+                treasury.cancelExpense(expenseId, reason.trim(), user);
+            }
+        }
+        for (var incomeId : incomeIds) {
+            var income = ledger.incomes().get(incomeId);
+            if (income != null && income.status() == IncomeStatus.ACTIVE) {
+                treasury.cancelIncome(incomeId, reason.trim(), user);
+            }
+        }
         campaigns.archive(id);
         recordAudit(id, "ELIMINAR_FONDO", user, campaign.title() + SEPARATOR + reason.trim());
     }

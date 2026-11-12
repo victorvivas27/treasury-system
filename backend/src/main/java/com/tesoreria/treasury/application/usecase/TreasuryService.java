@@ -636,7 +636,12 @@ public class TreasuryService implements TreasuryUseCase {
                 current.category(), current.paymentMethod(), current.recipient(), current.receiptNumber(),
                 current.notes(), ExpenseStatus.CANCELLED, current.registeredBy(), now, user,
                 reason.trim(), current.createdAt(), now);
-        repository.deleteExpense(id);
+        if (repository.isCollectionExpense(id)) {
+            // Fund movements retain a foreign key to the original expense.
+            repository.saveExpense(removed);
+        } else {
+            repository.deleteExpense(id);
+        }
         audit("EXPENSE_CANCELLED", EXPENSE_AUDIT_TYPE, String.valueOf(id), user, reason.trim());
         return removed;
     }

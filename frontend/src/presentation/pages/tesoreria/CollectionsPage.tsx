@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { FiCheck, FiPlus, FiRefreshCw, FiX } from 'react-icons/fi';
+import { FiCheck, FiPlus, FiX } from 'react-icons/fi';
 import type { CollectionCampaign, CollectionFamily, CollectionMovement, CollectionReceipt } from '@/core/A-domain/entities/treasury/Collection';
 import type { ExpenseCategory } from '@/core/A-domain/entities/treasury/Treasury';
 import { isAdminRole } from '@/core/A-domain/entities/user/User';
@@ -12,11 +12,11 @@ import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useDialogFocus } from '@/shared/ui/dialog/useDialogFocus';
 import { Button } from '@/shared/ui/button/Button';
 import { FeedbackState } from '@/shared/ui/feedback/FeedbackState';
-import { chileDate, chileTime } from '@/shared/date/chileDateTime';
+import { chileDate } from '@/shared/date/chileDateTime';
 import './CollectionsPage.css';
 
 const money = (value: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
-const statusLabel = { PENDING: 'Pendiente', PARTIAL: 'Abono', PAID: 'Pagado', EXEMPT: 'No participa' };
+const statusLabel = { PENDING: 'No pagado', PARTIAL: 'No pagado', PAID: 'Pagado', EXEMPT: 'No participa' };
 type Dialog = { kind: 'create' | 'edit' | 'delete' | 'payment' | 'expected' | 'provider' | 'closing' | 'cancel'; family?: CollectionFamily; requestId: string };
 const message = (error: unknown) => {
   if (axios.isAxiosError(error)) {
@@ -103,7 +103,7 @@ export function CollectionsPage() {
     setReceiptFile(undefined);
     setError(''); setReference(''); setReason(''); setRecipient(''); setTitle(''); setDueDate('');
     if (kind === 'edit') { setTitle(campaign?.title ?? ''); setDueDate(campaign?.dueDate ?? ''); }
-    setAmount(String(kind === 'closing' ? campaign?.collected ?? '' : kind === 'provider' ? campaign?.available ?? ''
+    setAmount(String(kind === 'closing' ? campaign?.collected ?? '' : kind === 'provider' ? ''
       : kind === 'expected' ? family?.expected ?? '' : family?.remaining ?? ''));
     setDate(chileDate()); setDialog({ kind, family, requestId: crypto.randomUUID() });
   };
@@ -130,7 +130,7 @@ export function CollectionsPage() {
         if (!campaign) return;
         if (dialog.kind === 'edit') updated = await collectionUseCases.update(campaign.id, title, dueDate || null);
         else if (dialog.kind === 'closing') updated = await collectionUseCases.postIncome(campaign.id, date, reference);
-        else if (dialog.kind === 'provider') updated = await collectionUseCases.disburse(campaign.id, { ...payment, recipient, category });
+        else if (dialog.kind === 'provider') updated = await collectionUseCases.disburse(campaign.id, { ...payment, recipient, category }, receiptFile);
         else if (dialog.kind === 'expected') updated = await collectionUseCases.expected(campaign.id, dialog.family!.familyId, Number(amount));
         else if (dialog.kind === 'cancel') updated = await collectionUseCases.cancelPayments(campaign.id, dialog.family!.familyId, reason);
         else updated = await collectionUseCases.collect(campaign.id, dialog.family!.familyId, payment, receiptFile);
@@ -155,8 +155,11 @@ export function CollectionsPage() {
     .sort((a, b) => Number(b.paid > 0) - Number(a.paid > 0)
       || firstPaymentTime(a) - firstPaymentTime(b) || a.familyId - b.familyId);
   const incomeActive = Boolean(campaign?.incomeId && campaign.movements.some(m => m.incomeId === campaign.incomeId && m.active));
+  const quotaCollected = (campaign?.families ?? []).reduce((total, family) => total + Math.min(family.paid, family.expected), 0);
+  const extraCollected = (campaign?.families ?? []).reduce((total, family) => total + Math.max(0, family.paid - family.expected), 0);
+  const providerPayments = (campaign?.movements ?? []).filter(movement => movement.expenseId !== null);
   const dialogTitle = dialog?.kind === 'edit' ? 'Editar fondo' : dialog?.kind === 'delete' ? 'Eliminar fondo' : dialog?.kind === 'create' ? 'Nuevo fondo' : dialog?.kind === 'closing' ? 'Cerrar y dar ingreso'
-    : dialog?.kind === 'provider' ? 'Pagar al proveedor' : dialog?.kind === 'expected' ? 'Monto de la familia'
+    : dialog?.kind === 'provider' ? 'Registrar pago proveedor' : dialog?.kind === 'expected' ? 'Monto de la familia'
       : dialog?.kind === 'cancel' ? 'Corregir cobros' : 'Registrar pago recibido';
 
   return <main className="collections-page">
@@ -164,7 +167,6 @@ export function CollectionsPage() {
       <h1>Fondos por actividad</h1></div>
       <div className="collections-actions"><select aria-label="Año de los fondos" value={year} disabled={saving} onChange={e => setYear(Number(e.target.value))}>
         {Array.from({ length: 10 }, (_, index) => 2026 + index).map(value => <option key={value}>{value}</option>)}</select>
-        <Button label="Actualizar" icon={<FiRefreshCw />} variant="secondary" size="small" loading={state.loading} onClick={() => { void resource.load(true); }} />
         {canManage && <Button label="Nuevo fondo" icon={<FiPlus />} size="small" onClick={() => open('create')} />}</div>
     </header>
     {!canManage && <p className="collections-explanation">Solo lectura · Puedes consultar los fondos y sus pagos. La administración registra y modifica los datos.</p>}
@@ -177,41 +179,53 @@ export function CollectionsPage() {
     {!!state.data?.length && <>
       <nav className="collections-campaigns" aria-label="Fondos por actividad">{state.data.map(item =>
         <button key={item.id} type="button" aria-pressed={item.id === campaign?.id} onClick={() => { setSelectedId(item.id); setSearch(''); }}>
-          <span>{item.title}</span><small>{item.incomeId ? 'Ingreso registrado' : `${item.families.filter(f => f.status === 'PAID').length}/${item.families.filter(f => f.expected > 0).length} familias`}</small>
+          <span>{item.title}</span>
         </button>)}</nav>
       {campaign && <section className="collections-detail" aria-labelledby="collection-title">
-        <div className="collections-title"><div><p className="collections-eyebrow">{campaign.incomeId ? 'Fondo cerrado' : 'Fondo en curso'}</p>
+        <div className="collections-title"><div className="collections-title__identity"><div><p className="collections-fund-status" data-active={!campaign.incomeId}>{campaign.incomeId ? 'Fondo cerrado' : 'Fondo activo'}</p>
           <h2 id="collection-title">{campaign.title}</h2>{campaign.dueDate && <p>Fecha objetivo: {campaign.dueDate.split('-').reverse().join('/')}</p>}</div>
+          <div className="collections-family-count">
+            <strong>{campaign.families.filter(f => f.status === 'PAID').length}/{campaign.families.filter(f => f.expected > 0).length}</strong>
+            <span>familias pagadas</span>
+          </div></div>
           {canManage && <div className="collections-actions"><Button label="Editar fondo" variant="secondary" size="small" onClick={() => open('edit')} />
-            <Button label="Eliminar fondo" variant="secondary" size="small" onClick={() => open('delete')} />
-            {!incomeActive && <Button label={campaign.incomeId ? 'Restablecer ingreso' : 'Cerrar y dar ingreso'} size="small"
-            disabled={campaign.collected <= 0} onClick={() => open('closing')} />}
-            <Button label="Registrar pago al proveedor" variant="secondary" size="small" disabled={!incomeActive || campaign.available <= 0} onClick={() => open('provider')} /></div>}
+            <Button label="Eliminar fondo" variant="secondary" size="small" onClick={() => open('delete')} /></div>}
         </div>
-        <dl className="collections-totals">{[['Meta', campaign.expected], ['Recaudado', campaign.collected], ['Pendiente', campaign.remaining], ['Pagado al proveedor', campaign.spent],
-          [campaign.incomeId ? 'Saldo disponible' : 'Por ingresar a Tesorería', campaign.available]].map(([label, value]) =>
+        <p className="collections-explanation">Cuota base por alumno: {money(campaign.defaultAmount)}</p>
+        <dl className="collections-totals">{[['Meta', campaign.expected], ['Recibido para la meta', quotaCollected], ['Falta para la meta', campaign.remaining], ['Extra de apoderados', extraCollected]].map(([label, value]) =>
           <div key={String(label)}><dt>{label}</dt><dd>{money(Number(value))}</dd></div>)}</dl>
-        <progress className="collections-progress" max={campaign.expected || 1} value={Math.min(campaign.collected, campaign.expected || 1)} aria-label="Avance del fondo" />
-        <p className="collections-explanation">{campaign.incomeId ? `Ingreso consolidado #${campaign.incomeId}. Los cobros están cerrados.`
-          : 'Los checks controlan lo recibido. Al cerrar el fondo se registra un único ingreso por el total recaudado.'}</p>
+        <progress className="collections-progress" max={campaign.expected || 1} value={Math.min(quotaCollected, campaign.expected || 1)} aria-label="Avance de las cuotas" />
+        <dl className="collections-totals collections-totals--cash">{[[campaign.incomeId ? 'Saldo disponible' : 'Por ingresar a Tesorería', campaign.available], ['Pagado al proveedor', campaign.spent]].map(([label, value], index) =>
+          <div key={String(label)} className={index === 0 && canManage && !incomeActive ? 'collections-close-action' : undefined}>
+            <dt>{label}</dt><dd>{index === 0 && canManage && !incomeActive
+              ? <Button label={`${campaign.incomeId ? 'Restablecer ingreso' : 'Cerrar y dar ingreso'} · ${money(campaign.collected)}`} size="small"
+                  disabled={campaign.collected <= 0} onClick={() => open('closing')} />
+              : money(Number(value))}</dd></div>)}</dl>
+        {campaign.incomeId && <p className="collections-explanation">Ingreso registrado #{campaign.incomeId}</p>}
+        <section className="collections-providers" aria-labelledby="collection-providers-title">
+          <header><h3 id="collection-providers-title">Pagos a proveedores</h3>
+            {canManage && <Button label="Registrar pago proveedor" icon={<FiPlus aria-hidden="true" />} variant="secondary" size="small"
+              disabled={!incomeActive || campaign.available <= 0} onClick={() => open('provider')} />}</header>
+          {providerPayments.length === 0 ? <p>Sin pagos registrados</p> : <ul>{providerPayments.map(payment => <li key={payment.requestId}>
+            <div><strong>{payment.recipient}</strong><small>{payment.date.split('-').reverse().join('/')} · <Link to={`/tesoreria/gastos?year=${campaign.schoolYear}`}>Egreso #{payment.expenseId}</Link>{!payment.active && ' · Anulado'}</small>
+              {payment.reference && <small>{payment.reference}</small>}
+              {receipts.filter(receipt => receipt.requestId === payment.requestId).map(receipt => <button className="collections-receipt-link" key={receipt.requestId}
+                type="button" disabled={downloading} onClick={() => void viewReceipt(receipt)}>Ver comprobante</button>)}</div>
+            <strong className="collections-value">{money(payment.amount)}</strong>
+          </li>)}</ul>}
+        </section>
         <div className="collections-filters"><input type="search" placeholder="Buscar familia o alumno" aria-label="Buscar familia o alumno" value={search} onChange={e => setSearch(e.target.value)} />
           <label><input type="checkbox" checked={onlyPending} onChange={e => setOnlyPending(e.target.checked)} /> Solo pendientes</label>
           <span>{rows.length} familias · Primer pago registrado arriba</span></div>
-        <div className="collections-table"><div className="collections-row collections-row--head" aria-hidden="true"><span>Pagó</span><span>Familia / alumno</span><span>Monto</span><span>Recibido</span><span>Falta</span><span>Estado</span></div>
+        <div className="collections-table"><div className="collections-row collections-row--head" aria-hidden="true"><span>Pagó</span><span>Alumno</span><span>Cuota</span><span>Total recibido</span><span>Estado</span></div>
           {rows.map(family => <div className="collections-row" key={family.familyId}>
             <input type="checkbox" aria-label={`Pagó ${family.studentName}`} checked={family.status === 'PAID'}
               disabled={!canManage || Boolean(campaign.incomeId) || family.expected === 0} onChange={() => open(family.status === 'PAID' ? 'cancel' : 'payment', family)} />
-            <div className="collections-family"><strong>{family.studentName}</strong><small>{family.guardian || family.familyCode} · {family.course}</small>
-              {firstPayments.get(family.familyId) && <small>{(() => {
-                const payment = firstPayments.get(family.familyId)!;
-                return payment.recordedAt
-                  ? `Registrado: ${chileDate(new Date(payment.recordedAt)).split('-').reverse().join('/')} · ${chileTime(payment.recordedAt)}`
-                  : `Pago: ${payment.date.split('-').reverse().join('/')} · Hora no disponible`;
-              })()}</small>}</div>
-            {canManage ? <button className="collections-amount" type="button" disabled={Boolean(campaign.incomeId)} aria-label={`Ajustar monto de ${family.studentName}`} onClick={() => open('expected', family)}><small>Monto</small>{money(family.expected)}</button>
-              : <span className="collections-number"><small>Monto</small>{money(family.expected)}</span>}
-            <span className="collections-number"><small>Recibido</small>{money(family.paid)}
-              {family.paid > family.expected && <span className="collections-extra">Extra: {money(family.paid - family.expected)}</span>}</span><span className="collections-number"><small>Falta</small>{money(family.remaining)}</span>
+            <div className="collections-family"><strong>{family.studentName}</strong></div>
+            {canManage ? <button className="collections-amount" type="button" disabled={Boolean(campaign.incomeId)} aria-label={`Ajustar monto de ${family.studentName}`} onClick={() => open('expected', family)}><small>Cuota</small><span className="collections-value">{money(family.expected)}</span></button>
+              : <span className="collections-number"><small>Cuota</small><span className="collections-value">{money(family.expected)}</span></span>}
+            <span className="collections-number"><small>Total recibido</small><span className="collections-value">{money(family.paid)}</span>
+              {family.paid > family.expected && <span className="collections-extra">Extra: {money(family.paid - family.expected)}</span>}</span>
             <div className="collections-status" data-status={family.status}><span className="collections-status-pill">{family.status === 'PAID' && <FiCheck aria-hidden="true" />}{statusLabel[family.status]}</span>
               {canManage && !campaign.incomeId && ['PARTIAL', 'PAID'].includes(family.status) && <button type="button" aria-label={`Agregar pago de ${family.studentName}`} onClick={() => open('payment', family)}>{family.status === 'PAID' ? 'Agregar pago' : 'Abonar'}</button>}</div>
           </div>)}
@@ -232,12 +246,16 @@ export function CollectionsPage() {
       </section>}
     </>}
     {canManage && dialog && <aside className="collections-dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="collection-dialog-title" ref={dialogRef} tabIndex={-1}>
-      <form className={`collections-dialog${['create', 'edit'].includes(dialog.kind) ? ' collections-dialog--create' : ''}`} onSubmit={submit}>
+      <form className={`collections-dialog${['create', 'edit'].includes(dialog.kind) ? ' collections-dialog--create' : dialog.kind === 'provider' ? ' collections-dialog--provider' : ''}`} onSubmit={submit}>
         <header><h2 id="collection-dialog-title">{dialogTitle}</h2><button type="button" aria-label="Cerrar" disabled={saving} onClick={close}><FiX /></button></header>
         {dialog.family && <p>{dialog.family.studentName}<small>{dialog.family.guardian || dialog.family.familyCode}</small></p>}
         {['create', 'edit'].includes(dialog.kind) && <>
           <label>Nombre<input required maxLength={120} value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej.: Transporte del paseo" /></label>
           <label>Fecha objetivo (opcional)<input type="date" value={dueDate} min={`${year}-01-01`} max={`${year}-12-31`} onChange={e => setDueDate(e.target.value)} /></label>
+        </>}
+        {dialog.kind === 'provider' && <>
+          <label>Nombre del proveedor<input required maxLength={150} value={recipient} onChange={e => setRecipient(e.target.value)} /></label>
+          <label>Categoría<select value={category} onChange={e => setCategory(e.target.value as ExpenseCategory)}><option value="TRANSPORT">Transporte</option><option value="MATERIALS">Materiales / camisetas</option><option value="EVENTS">Eventos</option><option value="SERVICES">Servicios</option><option value="OTHER">Otro</option></select></label>
         </>}
         {!['closing', 'cancel', 'edit', 'delete'].includes(dialog.kind) && <label>{dialog.kind === 'create' ? 'Monto sugerido por familia' : dialog.kind === 'expected' ? 'Monto esperado (0 = no participa)' : 'Monto en pesos'}
           <input required type="number" step="1" min={dialog.kind === 'expected' ? dialog.family?.paid || 0 : 1}
@@ -259,9 +277,9 @@ export function CollectionsPage() {
           {!!campaign?.remaining && <span> Quedan {money(campaign.remaining)} pendientes; esa diferencia no se dará por recibida.</span>}</p>}
         {['payment', 'provider', 'closing'].includes(dialog.kind) && <>
           <label>Fecha<input required type="date" min={`${year}-01-01`} max={chileDate() < `${year}-12-31` ? chileDate() : `${year}-12-31`} value={date} onChange={e => setDate(e.target.value)} /></label>
-          <label>Referencia (opcional)<input maxLength={100} value={reference} onChange={e => setReference(e.target.value)} /></label>
+          <label>{dialog.kind === 'provider' ? 'Referencia / datos del proveedor (opcional)' : 'Referencia (opcional)'}<input maxLength={100} value={reference} onChange={e => setReference(e.target.value)} /></label>
         </>}
-        {dialog.kind === 'payment' && <label>Adjuntar comprobante (opcional)
+        {['payment', 'provider'].includes(dialog.kind) && <label>Adjuntar comprobante (opcional)
           <input type="file" aria-label="Adjuntar comprobante (opcional)" accept="image/jpeg,image/png,application/pdf" disabled={saving}
             onChange={event => {
               const file = event.target.files?.[0];
@@ -272,14 +290,9 @@ export function CollectionsPage() {
             }} />
           <small>PDF, JPG o PNG · Hasta 5 MB</small>
         </label>}
-        {dialog.kind === 'provider' && <>
-          <label>Proveedor<input required maxLength={150} value={recipient} onChange={e => setRecipient(e.target.value)} /></label>
-          <label>Categoría<select value={category} onChange={e => setCategory(e.target.value as ExpenseCategory)}><option value="TRANSPORT">Transporte</option><option value="MATERIALS">Materiales / camisetas</option><option value="EVENTS">Eventos</option><option value="SERVICES">Servicios</option><option value="OTHER">Otro</option></select></label>
-          <p>Se creará un egreso por el monto transferido al proveedor.</p>
-        </>}
         {dialog.kind === 'cancel' && <><p>Se anularán los cobros de esta familia en el fondo. Esto corrige el registro; no realiza una transferencia bancaria.</p>
           <label>Motivo<textarea required maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label></>}
-        {dialog.kind === 'delete' && <><p>Se quitará «{campaign?.title}» de la lista. Su historial se conservará y los ingresos y egresos registrados seguirán en Tesorería. Esta acción no devuelve dinero ni anula movimientos.</p>
+        {dialog.kind === 'delete' && <><p>Se eliminará «{campaign?.title}» y se anularán sus ingresos y egresos vinculados.</p>
           <label>Motivo<textarea required maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label></>}
         {error && <p className="collections-error" role="alert">{error}</p>}
         <footer><Button label="Cancelar" variant="secondary" disabled={saving} onClick={close} size="small" />

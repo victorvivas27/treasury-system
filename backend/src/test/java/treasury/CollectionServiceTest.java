@@ -118,4 +118,32 @@ class CollectionServiceTest {
         assertThrows(DomainException.class, () -> service.create(2026, "Paseo", BigDecimal.TEN, null, List.of(99L), "admin"));
         verify(repository, never()).save(any());
     }
+    @Test void archivingCancelsOnlyLinkedActiveMovementsAndDeduplicatesReferences() {
+        receive(10000); incomeAnswer(); service.postIncome(1L, date, "REF", "admin");
+        var movements = new ArrayList<>(saved.movements());
+        for (long id : List.of(80L, 81L, 99L)) {
+            expenses.add(new TreasuryExpense(id, 2026, "Proveedor", BigDecimal.TEN, date,
+                ExpenseCategory.TRANSPORT, ExpensePaymentMethod.TRANSFER, "Bus", "REF", null,
+                id == 81L ? ExpenseStatus.CANCELLED : ExpenseStatus.ACTIVE, "admin", null, null, null, LocalDateTime.now(), LocalDateTime.now()));
+        }
+        for (long id : List.of(80L, 80L, 81L)) {
+            movements.add(new CollectionCampaign.Movement(UUID.randomUUID().toString(), null, null, id,
+                BigDecimal.TEN, date, "REF", "Bus", false, null));
+        }
+        movements.add(saved.movements().get(saved.movements().size() - 1));
+        saved = new CollectionCampaign(saved.id(), saved.schoolYear(), saved.title(), saved.defaultAmount(),
+            saved.dueDate(), saved.createdBy(), saved.createdAt(), saved.incomeId(), saved.participants(), movements);
+        service.archive(1L, "Duplicado", "admin");
+        verify(treasury).cancelExpense(80L, "Duplicado", "admin");
+        verify(treasury, never()).cancelExpense(eq(81L), anyString(), anyString());
+        verify(treasury, never()).cancelExpense(eq(99L), anyString(), anyString());
+        verify(treasury).cancelIncome(51L, "Duplicado", "admin");
+        verify(repository).archive(1L);
+    }
+    @Test void failedCancellationDoesNotArchiveTheFund() {
+        receive(10000); incomeAnswer(); service.postIncome(1L, date, "REF", "admin");
+        when(treasury.cancelIncome(51L, "Duplicado", "admin")).thenThrow(new IllegalStateException("offline"));
+        assertThrows(IllegalStateException.class, () -> service.archive(1L, "Duplicado", "admin"));
+        verify(repository, never()).archive(anyLong());
+    }
 }

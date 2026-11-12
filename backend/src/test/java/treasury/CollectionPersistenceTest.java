@@ -14,6 +14,7 @@ import com.tesoreria.treasury.core.port.in.TreasuryUseCase;
 import com.tesoreria.treasury.infrastructure.adapter.in.web.controller.CollectionController;
 import com.tesoreria.user.core.constant.RoleEnum;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,18 @@ import static org.junit.jupiter.api.Assertions.*;
     "app.web-push.enabled=false", "app.storage.gcs.enabled=false"
 })
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(CollectionPersistenceTest.DocumentConfiguration.class)
 class CollectionPersistenceTest {
+    @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)
+    static class DocumentConfiguration {
+        @org.springframework.context.annotation.Bean
+        com.tesoreria.treasury.application.usecase.ExpenseDocumentService expenseDocuments(
+                com.tesoreria.treasury.infrastructure.adapter.out.persistence.repository.ExpenseDocumentJpaRepository documents,
+                com.tesoreria.treasury.core.port.out.FileStorageService storage, TreasuryUseCase treasury,
+                org.springframework.core.env.Environment environment) {
+            return new com.tesoreria.treasury.application.usecase.ExpenseDocumentService(documents, storage, treasury, environment);
+        }
+    }
     @Autowired OrganizationJpaRepository organizations;
     @Autowired AlumnoJpaRepository students;
     @Autowired FamiliaJpaRepository families;
@@ -47,8 +59,103 @@ class CollectionPersistenceTest {
     @Autowired com.tesoreria.treasury.infrastructure.adapter.in.web.controller.CollectionReceiptController receiptController;
     @Autowired CollectionService service;
     @Autowired CollectionController controller;
-    @Autowired TreasuryUseCase treasury;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean TreasuryUseCase treasury;
+    @Autowired com.tesoreria.treasury.application.usecase.ExpenseDocumentService expenseDocuments;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate database;
+    @BeforeEach void enforceMovementExpenseForeignKey() {
+        // Hibernate's scalar expenseId does not create the FK installed by V59 in PostgreSQL.
+        // Mirror it in H2 so a physical DELETE cannot falsely pass these tests.
+        database.execute("ALTER TABLE collection_movements ADD CONSTRAINT IF NOT EXISTS collection_movements_expense_id_fkey FOREIGN KEY (expense_id) REFERENCES treasury_expenses(id)");
+    }
     @AfterEach void cleanup() { SecurityContextHolder.clearContext(); }
+
+    @Test void multipleProviderPaymentsKeepReceiptsInTheFundAndExpensesWithoutDuplicatingRetries() {
+        Long tenant = organization();
+        authenticate(tenant, RoleEnum.ADMIN);
+        var student = students.save(new AlumnoEntity(null, "AL-" + UUID.randomUUID().toString().substring(0, 8), "Alumno", "4A"));
+        var family = families.save(new FamiliaEntity(null, student.getAlumnoId(), null, List.of(), null, null, null));
+        var date = LocalDate.of(2026, 1, 1);
+        var campaign = service.create(2026, "Proveedores", BigDecimal.valueOf(10000), null, List.of(family.getFamiliaId()), "admin");
+        service.collect(campaign.id(), family.getFamiliaId(), BigDecimal.valueOf(10000), date, "", UUID.randomUUID(), "admin");
+        service.postIncome(campaign.id(), date, "", "admin");
+        byte[] bytes = "%PDF-1.7 proveedor".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var file = new org.springframework.mock.web.MockMultipartFile("file", "proveedor.pdf", "application/pdf", bytes);
+        org.mockito.Mockito.when(storage.read(org.mockito.ArgumentMatchers.anyString())).thenReturn(new com.tesoreria.treasury.core.port.out.FileStorageService.StoredContent(bytes, "application/pdf"));
+        var request = UUID.randomUUID();
+        receiptService.disburse(campaign.id(), BigDecimal.valueOf(3000), date, "Bus", "REF", ExpenseCategory.TRANSPORT, request, file, "admin");
+        receiptService.disburse(campaign.id(), BigDecimal.valueOf(3000), date, "Bus", "REF", ExpenseCategory.TRANSPORT, request, file, "admin");
+        var paid = receiptService.disburse(campaign.id(), BigDecimal.valueOf(4000), date, "Camisetas", "RUT 123", ExpenseCategory.MATERIALS, UUID.randomUUID(), file, "admin");
+        assertEquals(BigDecimal.valueOf(7000), paid.spent());
+        assertEquals(BigDecimal.valueOf(3000), paid.available());
+        assertEquals(2, treasury.listExpenses(2026).size());
+        assertEquals(2, receiptService.list(campaign.id()).size());
+        for (var expense : treasury.listExpenses(2026)) {
+            var documents = expenseDocuments.list(expense.id());
+            assertEquals(1, documents.size());
+            assertArrayEquals(bytes, expenseDocuments.download(expense.id(), documents.get(0).id()).bytes());
+        }
+        var changed = new org.springframework.mock.web.MockMultipartFile("file", "otro.pdf", "application/pdf", "%PDF-1.7 diferente".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        assertThrows(DomainException.class, () -> receiptService.disburse(campaign.id(), BigDecimal.valueOf(3000), date, "Bus", "REF", ExpenseCategory.TRANSPORT, request, changed, "admin"));
+        assertThrows(DomainException.class, () -> receiptService.disburse(campaign.id(), BigDecimal.valueOf(3001), date, "Bus", "", ExpenseCategory.TRANSPORT, UUID.randomUUID(), file, "admin"));
+        assertEquals(2, treasury.listExpenses(2026).size());
+        authenticate(tenant, RoleEnum.USER);
+        assertThrows(AccessDeniedException.class, () -> receiptController.disburse(campaign.id(), new CollectionController.ProviderPayment(
+            BigDecimal.ONE, date, "Bus", "", ExpenseCategory.TRANSPORT, UUID.randomUUID()), file, () -> "user"));
+        authenticate(organization(), RoleEnum.ADMIN);
+        assertThrows(DomainException.class, () -> receiptService.disburse(campaign.id(), BigDecimal.ONE, date, "Bus", "", ExpenseCategory.TRANSPORT, UUID.randomUUID(), file, "admin"));
+        authenticate(tenant, RoleEnum.ADMIN);
+        var unrelatedIncome = treasury.createIncome(2026, "Otro ingreso", BigDecimal.valueOf(500), date,
+            com.tesoreria.treasury.core.model.IncomeCategory.SCHOOL_ACTIVITY, "Otro fondo",
+            com.tesoreria.treasury.core.model.IncomePaymentMethod.TRANSFER, "REF", null, null, null, "admin");
+        var unrelatedExpense = treasury.createExpense(2026, "Otro egreso", BigDecimal.valueOf(100), date,
+            ExpenseCategory.MATERIALS, com.tesoreria.treasury.core.model.ExpensePaymentMethod.TRANSFER, "Otro proveedor", "REF", null, "admin");
+        service.archive(campaign.id(), "Duplicado", "admin");
+        assertTrue(service.list(2026).isEmpty());
+        var activeExpenses = treasury.listExpenses(2026).stream().filter(expense -> expense.status() == com.tesoreria.treasury.core.model.ExpenseStatus.ACTIVE).toList();
+        assertEquals(1, activeExpenses.size());
+        assertEquals(unrelatedExpense.id(), activeExpenses.get(0).id());
+        assertEquals(2, treasury.listExpenses(2026).stream().filter(expense -> expense.status() == com.tesoreria.treasury.core.model.ExpenseStatus.CANCELLED).count());
+        assertEquals(com.tesoreria.treasury.core.model.IncomeStatus.ACTIVE, treasury.getIncome(unrelatedIncome.id()).status());
+        assertEquals(com.tesoreria.treasury.core.model.IncomeStatus.CANCELLED, treasury.getIncome(paid.incomeId()).status());
+    }
+
+    @Test void incomeCancellationFailureRollsBackEarlierExpenseCancellationAndKeepsTheFund() {
+        authenticate(organization(), RoleEnum.ADMIN);
+        var student = students.save(new AlumnoEntity(null, "AL-" + UUID.randomUUID().toString().substring(0, 8), "Alumno", "4A"));
+        var family = families.save(new FamiliaEntity(null, student.getAlumnoId(), null, List.of(), null, null, null));
+        var date = LocalDate.of(2026, 1, 1);
+        var campaign = service.create(2026, "Fondo a corregir", BigDecimal.valueOf(10000), null, List.of(family.getFamiliaId()), "admin");
+        service.collect(campaign.id(), family.getFamiliaId(), BigDecimal.valueOf(10000), date, "", UUID.randomUUID(), "admin");
+        var closed = service.postIncome(campaign.id(), date, "", "admin");
+        service.disburse(campaign.id(), BigDecimal.valueOf(3000), date, "Bus", "REF", ExpenseCategory.TRANSPORT, UUID.randomUUID(), "admin");
+        org.mockito.Mockito.doThrow(new IllegalStateException("offline")).when(treasury).cancelIncome(closed.incomeId(), "Duplicado", "admin");
+        assertThrows(IllegalStateException.class, () -> service.archive(campaign.id(), "Duplicado", "admin"));
+        org.mockito.Mockito.verify(treasury).cancelExpense(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.eq("Duplicado"), org.mockito.ArgumentMatchers.eq("admin"));
+        assertEquals(1, service.list(2026).size());
+        assertEquals(BigDecimal.valueOf(7000), service.list(2026).get(0).available());
+        assertEquals(1, treasury.listExpenses(2026).size());
+        assertEquals(com.tesoreria.treasury.core.model.IncomeStatus.ACTIVE, treasury.getIncome(closed.incomeId()).status());
+    }
+
+    @Test void failedProviderAttachmentRollsBackExpensePaymentAndFundReceipt() {
+        authenticate(organization(), RoleEnum.ADMIN);
+        var student = students.save(new AlumnoEntity(null, "AL-" + UUID.randomUUID().toString().substring(0, 8), "Alumno", "4A"));
+        var family = families.save(new FamiliaEntity(null, student.getAlumnoId(), null, List.of(), null, null, null));
+        var date = LocalDate.of(2026, 1, 1);
+        var campaign = service.create(2026, "Pago fallido", BigDecimal.valueOf(10000), null, List.of(family.getFamiliaId()), "admin");
+        service.collect(campaign.id(), family.getFamiliaId(), BigDecimal.valueOf(10000), date, "", UUID.randomUUID(), "admin");
+        service.postIncome(campaign.id(), date, "", "admin");
+        var file = new org.springframework.mock.web.MockMultipartFile("file", "proveedor.pdf", "application/pdf", "%PDF-1.7 proveedor".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        org.mockito.Mockito.doThrow(new IllegalStateException("offline")).when(storage).upload(org.mockito.ArgumentMatchers.startsWith("tesorerias/"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
+        assertThrows(IllegalStateException.class, () -> receiptService.disburse(campaign.id(), BigDecimal.valueOf(3000), date, "Bus", "", ExpenseCategory.TRANSPORT, UUID.randomUUID(), file, "admin"));
+        assertTrue(treasury.listExpenses(2026).isEmpty());
+        assertTrue(receiptService.list(campaign.id()).isEmpty());
+        assertEquals(BigDecimal.valueOf(10000), service.list(2026).get(0).available());
+        org.mockito.Mockito.verify(storage).delete(org.mockito.ArgumentMatchers.startsWith("fondos/"));
+        var invalid = new org.springframework.mock.web.MockMultipartFile("file", "proveedor.pdf", "application/pdf", "incorrecto".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        assertThrows(DomainException.class, () -> receiptService.disburse(campaign.id(), BigDecimal.ONE, date, "Bus", "", ExpenseCategory.TRANSPORT, UUID.randomUUID(), invalid, "admin"));
+        assertTrue(treasury.listExpenses(2026).isEmpty());
+    }
 
     @Test void persistsFamilyControlThenOneIncomeAndProviderExpenseWithTenantIsolation() {
         Long organization = organization();
@@ -83,10 +190,17 @@ class CollectionPersistenceTest {
         assertEquals(BigDecimal.valueOf(10000), edited.collected());
         assertThrows(DomainException.class, () -> service.archive(campaign.id(), " ", "admin"));
         assertEquals(1, service.list(2026).size());
+        var expenseId = treasury.listExpenses(2026).get(0).id();
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+            () -> database.update("DELETE FROM treasury_expenses WHERE id = ?", expenseId));
         service.archive(campaign.id(), "Actividad finalizada", "admin");
         assertTrue(service.list(2026).isEmpty());
         assertEquals(1, treasury.listIncomes(2026).size());
+        assertEquals(com.tesoreria.treasury.core.model.IncomeStatus.CANCELLED, treasury.getIncome(closed.incomeId()).status());
         assertEquals(1, treasury.listExpenses(2026).size());
+        assertEquals(com.tesoreria.treasury.core.model.ExpenseStatus.CANCELLED, treasury.listExpenses(2026).get(0).status());
+        assertEquals(0, treasury.financialSummary(2026).totalExpenses().signum());
+        assertEquals(0, treasury.financialSummary(2026).totalIncome().signum());
         assertThrows(DomainException.class, () -> service.update(campaign.id(), "Oculto", null, "admin"));
         authenticate(organization, RoleEnum.USER);
         assertTrue(controller.list(2026).isEmpty());

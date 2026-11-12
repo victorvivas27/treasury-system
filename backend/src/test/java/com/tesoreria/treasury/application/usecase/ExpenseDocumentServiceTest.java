@@ -70,6 +70,21 @@ class ExpenseDocumentServiceTest {
     }
 
     @Test
+    void removesAttachmentWhenTheEnclosingPaymentTransactionRollsBack() {
+        when(documents.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.upload(7L, new MockMultipartFile("file", "boleta.pdf", "application/pdf", "%PDF-1.7 prueba".getBytes()), "admin");
+            var callbacks = org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations();
+            assertEquals(1, callbacks.size());
+            callbacks.forEach(callback -> callback.afterCompletion(org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK));
+            verify(storage).delete(matches("tesorerias/2026/egresos/boleta_7_[0-9a-f-]{36}\\.pdf"));
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
     void rejectsFileLargerThanConfiguredLimit() {
         byte[] content = new byte[1024 * 1024 + 1];
         content[0] = '%'; content[1] = 'P'; content[2] = 'D'; content[3] = 'F';

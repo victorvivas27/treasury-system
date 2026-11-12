@@ -18,7 +18,13 @@ export class CollectionRepositoryImpl implements ICollectionRepository {
   }
   async receipts(id: number) { return (await apiClient.get<CollectionReceipt[]>(`${base}/${id}/comprobantes`)).data; }
   async downloadReceipt(id: number, requestId: string) { return (await apiClient.get<Blob>(`${base}/${id}/comprobantes/${requestId}`, { responseType: 'blob' })).data; }
-  async disburse(id: number, payload: CollectionProviderPayment) { return (await apiClient.post<CollectionCampaign>(`${base}/${id}/proveedor`, payload)).data; }
+  async disburse(id: number, payload: CollectionProviderPayment, file?: File) {
+    if (!file) return (await apiClient.post<CollectionCampaign>(`${base}/${id}/proveedor`, payload)).data;
+    const form = new FormData();
+    form.append('payment', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    form.append('file', file);
+    return (await apiClient.post<CollectionCampaign>(`${base}/${id}/proveedor`, form, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
+  }
   async postIncome(id: number, date: string, reference: string) { return (await apiClient.post<CollectionCampaign>(`${base}/${id}/ingreso`, { date, reference })).data; }
   async cancelPayments(id: number, familyId: number, reason: string) { return (await apiClient.post<CollectionCampaign>(`${base}/${id}/familias/${familyId}/anulacion`, { reason })).data; }
 }

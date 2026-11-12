@@ -12,7 +12,7 @@ export class CollectionUseCases {
   collect(id: number, familyId: number, payload: CollectionPayment, file?: File) { return this.repository.collect(id, familyId, payload, file); }
   receipts(id: number) { return this.repository.receipts(id); }
   downloadReceipt(id: number, requestId: string) { return this.repository.downloadReceipt(id, requestId); }
-  disburse(id: number, payload: CollectionProviderPayment) { return this.repository.disburse(id, payload); }
+  disburse(id: number, payload: CollectionProviderPayment, file?: File) { return this.repository.disburse(id, payload, file); }
   postIncome(id: number, date: string, reference: string) { return this.repository.postIncome(id, date, reference); }
   cancelPayments(id: number, familyId: number, reason: string) { return this.repository.cancelPayments(id, familyId, reason); }
 }
