@@ -180,7 +180,7 @@ test('production consumers share one final validation in the same run', () => {
   assert.equal(workflow.jobs.deploy, undefined);
   for (const [id, file] of [['deploy-backend', '07-deploy-backend.yml'], ['publish-reports', '09-reports-pages.yml']]) {
     const job = workflow.jobs[id];
-    assert.deepEqual(job.needs, ['release-result', 'validate-release']);
+    assert.deepEqual(job.needs, ['release-result', 'main-checks', 'validate-release']);
     assert.equal(job.uses, './.github/workflows/' + file);
     assert.equal(job.secrets, 'inherit');
     assert.equal(job.with.validated_sha, '${{ needs.validate-release.outputs.sha }}');
@@ -189,7 +189,20 @@ test('production consumers share one final validation in the same run', () => {
     }
     const eligible = new Function('needs', 'always', 'cancelled', 'return ' + job.if);
     for (const result of ['success', 'failure', 'skipped', 'cancelled']) {
-      assert.equal(eligible({ 'release-result': { result: 'success' }, 'validate-release': { result } }, () => true, () => false), result === 'success');
+      for (const main of ['success', 'failure', 'skipped', 'cancelled']) {
+        for (const sha of ['checked-sha', 'different-sha']) {
+          const needs = {
+            'release-result': { result: 'success' },
+            'main-checks': { result: main, outputs: { sha: 'checked-sha' } },
+            'validate-release': { result, outputs: { sha } },
+          };
+          assert.equal(eligible(needs, () => true, () => false),
+            result === 'success' && main === 'success' && sha === 'checked-sha');
+          assert.equal(eligible(needs, () => true, () => true), false);
+          needs['release-result'].result = 'failure';
+          assert.equal(eligible(needs, () => true, () => false), false);
+        }
+      }
     }
   }
 });
@@ -198,7 +211,7 @@ test('both publication routes activate the shared release result, but failures a
   const result = workflow.jobs['release-result'];
   assert.deepEqual(result.needs, ['prepare', 'publish']);
   assert.equal(workflow.jobs.prepare.outputs.tag_name, '${{ steps.release.outputs.tag_name }}');
-  assert.deepEqual(workflow.jobs['validate-release'].needs, ['release-result', 'main-checks']);
+  assert.equal(workflow.jobs['validate-release'].needs, 'release-result');
   for (const job of ['validate-release']) {
     const canContinue = new Function('needs', 'always', 'cancelled', `return ${workflow.jobs[job].if};`);
     const needs = result => ({ 'release-result': { result }, 'main-checks': { result: 'success' } });
@@ -206,9 +219,10 @@ test('both publication routes activate the shared release result, but failures a
     assert.equal(canContinue(needs('skipped'), () => true, () => false), false);
     assert.equal(canContinue(needs('failure'), () => true, () => false), false);
     assert.equal(canContinue(needs('success'), () => true, () => true), false);
-    assert.equal(canContinue({ ...needs('success'), 'main-checks': { result: 'failure' } }, () => true, () => false), false);
+    // Independent checks can fail later; publication must still wait for both.
+    assert.equal(canContinue({ ...needs('success'), 'main-checks': { result: 'failure' } }, () => true, () => false), true);
   }
-  assert.equal(workflow.jobs['validate-release'].with.ref, '${{ needs.main-checks.outputs.sha }}');
+  assert.equal(workflow.jobs['validate-release'].with.ref, '${{ needs.release-result.outputs.tag_name }}');
   const eligible = new Function('needs', 'always', 'cancelled', `return ${result.if};`);
   const cases = [
     ['success', 'true', 'skipped', '', true],
@@ -301,9 +315,11 @@ test('synchronization waits for all applicable main checks, including final rele
     ['success', 'success', 'skipped', false], ['success', 'failure', 'skipped', false],
     ['cancelled', 'skipped', 'skipped', false],
   ]) {
-    const needs = { 'main-checks': { result: main }, 'release-result': { result: release }, 'validate-release': { result: evidence } };
+    const needs = { 'main-checks': { result: main, outputs: { sha: 'checked-sha' } }, 'release-result': { result: release }, 'validate-release': { result: evidence, outputs: { sha: 'checked-sha' } } };
     assert.equal(eligible(needs, () => true, () => false), expected);
     assert.equal(eligible(needs, () => true, () => true), false);
+    needs['validate-release'].outputs.sha = 'different-sha';
+    if (release === 'success') assert.equal(eligible(needs, () => true, () => false), false);
   }
 });
 
