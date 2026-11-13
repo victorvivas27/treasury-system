@@ -36,11 +36,13 @@ function fixture({ main = 'base-sha', candidate = pr(), merged = true, checkStat
     checks: {
       listForRef: async args => {
         checkQueries.push(args);
+        if (args.ref !== 'tested-sha') return { data: { check_runs: [] } };
         const state = checkStates[Math.min(checkReads++, checkStates.length - 1)];
         if (state === 'absent') return { data: { check_runs: [] } };
         return { data: { check_runs: [{
           id: 100 + checkReads,
           name: 'PR validation result',
+          head_sha: 'tested-sha',
           status: state === 'success' || state === 'failure' ? 'completed' : state,
           conclusion: state === 'success' ? 'success' : state === 'failure' ? 'failure' : null,
           pull_requests: [{ number: 42, head: { sha: 'tested-sha' }, base: { sha: 'base-sha' } }],
@@ -82,7 +84,26 @@ test('successful required check is revalidated and merge is bound to the tested 
   assert.equal(calls[0].commit_title, 'chore(main): release 1.0.0');
   assert.equal(calls[0].merge_method, 'merge');
   assert.ok(checkQueries.length >= 2);
-  assert.ok(checkQueries.every(query => query.ref === 'merge-sha' && query.check_name === 'PR validation result'));
+  assert.ok(checkQueries.every(query => query.ref === 'tested-sha' && query.check_name === 'PR validation result'));
+});
+
+test('checks for another head, base or PR cannot authorize a release', async () => {
+  for (const mutate of [
+    check => { check.head_sha = 'old-head'; },
+    check => { check.pull_requests[0].head.sha = 'old-head'; },
+    check => { check.pull_requests[0].base.sha = 'old-base'; },
+    check => { check.pull_requests[0].number = 99; },
+  ]) {
+    const { github, calls } = fixture();
+    const listForRef = github.rest.checks.listForRef;
+    github.rest.checks.listForRef = async args => {
+      const response = await listForRef(args);
+      response.data.check_runs.forEach(mutate);
+      return response;
+    };
+    await assert.rejects(run(mergeScript, github, env), /PR validation result was absent or still pending/);
+    assert.equal(calls.length, 0);
+  }
 });
 test('pending required check is polled until it succeeds', async () => {
   const { github, calls, checkQueries } = fixture({ checkStates: ['in_progress', 'success', 'success'] });
