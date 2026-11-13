@@ -162,12 +162,15 @@ jobs:
               if (!mergeSha) return null;
               const { data } = await github.rest.checks.listForRef({
                 ...context.repo,
-                ref: mergeSha,
+                // GitHub attaches pull_request check runs to the PR head SHA.
+                // The tested base is verified through the PR association below.
+                ref: releaseSha,
                 check_name: checkName,
                 filter: 'latest',
                 per_page: 100,
               });
               const matchingRuns = data.check_runs.filter(run => run.name === checkName &&
+                run.head_sha === releaseSha &&
                 run.pull_requests?.some(link => link.number === pullNumber &&
                   link.head?.sha === releaseSha && link.base?.sha === releaseBase));
               return matchingRuns.reduce((latest, run) => !latest || run.id > latest.id ? run : latest, null);
