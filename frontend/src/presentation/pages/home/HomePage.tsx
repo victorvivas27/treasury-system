@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { usePageAssetsReady } from '@/shared/ui/loading/usePageAssetsReady';
 import { AppFooter } from "@/shared/ui/footer/AppFooter";
 import { HomeHeader } from "./components/HomeHeader";
 import { HomeEditorial } from "./components/HomeEditorial";
@@ -16,6 +17,9 @@ import { homeCourseCache } from "./hooks/homeCourseCache";
 
 
 export const HomePage = () => {
+  const content = useRef<HTMLDivElement>(null);
+  const [assetsRevealed, setAssetsRevealed] = useState(false);
+  const assetsPending = usePageAssetsReady(content, !assetsRevealed);
   const { loading, isAuthenticated, user, logout } = useAuth();
   const { ready, detailsReady, error } = useSyncExternalStore(homeCommunityCache.subscribe, homeCommunityCache.getSnapshot);
   const preparing = isAuthenticated && !ready && !error;
@@ -23,6 +27,11 @@ export const HomePage = () => {
   const [revealed, setRevealed] = useState(() => ready && homeCourseCache.peek() !== undefined);
   const markCourseReady = useCallback(() => setCourseReady(true), []);
   const revealHome = useCallback(() => setRevealed(true), []);
+  useEffect(() => {
+    if (assetsPending || (isAuthenticated && !revealed)) return;
+    const frame = requestAnimationFrame(() => setAssetsRevealed(true));
+    return () => cancelAnimationFrame(frame);
+  }, [assetsPending, isAuthenticated, revealed]);
   useEffect(() => {
     if (!isAuthenticated) { setRevealed(false); setCourseReady(false); }
   }, [isAuthenticated]);
@@ -37,11 +46,11 @@ export const HomePage = () => {
 
   return (
     <>
-    {isAuthenticated && !revealed && <HomeEntryTransition ready={ready && courseReady} onExited={revealHome} />}
-    <div className={`public-home public-home--${isAuthenticated ? "member" : "guest public-home--editorial"}`}
-      inert={isAuthenticated && !revealed}
+    {isAuthenticated && !revealed && <HomeEntryTransition ready={ready && courseReady && !assetsPending} onExited={revealHome} />}
+    <div ref={content} data-page-assets-pending={assetsPending || undefined} className={`public-home public-home--${isAuthenticated ? "member" : "guest public-home--editorial"}`}
+      inert={assetsPending || (isAuthenticated && !revealed)}
       aria-hidden={isAuthenticated && !revealed ? true : undefined}
-      aria-busy={preparing}>
+      aria-busy={preparing || assetsPending}>
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
