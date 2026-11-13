@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.55.0](https://github.com/victorvivas27/treasury-system/compare/v1.54.0...v1.55.0) (2026-11-13)
+
+
+### Features
+
+* **loading:** implement usePageAssetsReady hook for asset loading management ([5e9f494](https://github.com/victorvivas27/treasury-system/commit/5e9f494f694d4ff75411ae530cb98c997c4ad33e))
+
+
+### Bug Fixes
+
+* **ci:** detecta la validación de release en el SHA del PR ([a37e46c](https://github.com/victorvivas27/treasury-system/commit/a37e46c28282f216cb58e5a605108924782a66f3))
+* **frontend:** muestra el contador de arranque desde el HTML ([e609f1b](https://github.com/victorvivas27/treasury-system/commit/e609f1bc9af212b75fe67d8f2828891b75b94a86))
+* **loading:** enhance PageTransitionBoundary to handle asset loading states ([5e9f494](https://github.com/victorvivas27/treasury-system/commit/5e9f494f694d4ff75411ae530cb98c997c4ad33e))
+
 ## [1.54.0](https://github.com/victorvivas27/treasury-system/compare/v1.53.0...v1.54.0) (2026-11-13)
 
 
