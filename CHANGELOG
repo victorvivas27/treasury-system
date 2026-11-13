@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.54.1](https://github.com/victorvivas27/treasury-system/compare/v1.54.0...v1.54.1) (2026-11-13)
+
+
+### Bug Fixes
+
+* **ci:** detecta la validación de release en el SHA del PR ([a37e46c](https://github.com/victorvivas27/treasury-system/commit/a37e46c28282f216cb58e5a605108924782a66f3))
+* **frontend:** muestra el contador de arranque desde el HTML ([e609f1b](https://github.com/victorvivas27/treasury-system/commit/e609f1bc9af212b75fe67d8f2828891b75b94a86))
+
 ## [1.54.0](https://github.com/victorvivas27/treasury-system/compare/v1.53.0...v1.54.0) (2026-11-13)
 
 
