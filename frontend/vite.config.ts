@@ -51,6 +51,8 @@ const readCriticalStyles = () => {
   required.add('--font-family-serif')
   required.add('--color-accent')
   required.add('--text-boot-muted')
+  required.add('--base-neutral-dark')
+  required.add('--base-neutral-light')
   for (const name of required) {
     const definitions = roots.flatMap(root => root.declarations.filter(declaration => declaration.name === name))
     if (!definitions.length) throw new Error(`Missing boot style variable: ${name}`)
@@ -126,6 +128,7 @@ export default defineConfig({
           const mediaUrl = (source: string) => development ? `/${source}` : `/${startupMediaFileName(source)}`
           const cinematicController = fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialCinematic.js'), 'utf8').replace('export function', 'function')
           const videoController = fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialVideo.js'), 'utf8').replace('export function', 'function')
+          const risingController = fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/nneoRisingFill.js'), 'utf8').replace('export function', 'function')
           const imageManifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'src/shared/assets/publicImages.manifest.json'), 'utf8'))
           const cinematicAssets = Object.entries(imageManifest.images).map(([name, image]) => ({
               src: `${imageManifest.baseUrl}/${(image as { file: string }).file}`,
@@ -135,14 +138,16 @@ export default defineConfig({
           const bootScript = fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialLoader.js'), 'utf8')
             .replace('/* cinematic-controller */', cinematicController)
             .replace('/* video-controller */', videoController)
+            .replace('/* rising-fill-controller */', risingController)
             .replace('/* cinematic-assets */ []', JSON.stringify(cinematicAssets))
             .replace('/* video-asset */ ""', JSON.stringify(mediaUrl(startupMedia[0])))
             .replace('/* video-light-asset */ ""', JSON.stringify(mediaUrl(startupMedia[1])))
             .replace('/* mobile-image-asset */ ""', JSON.stringify(mediaUrl(startupMedia[2])))
           const cinematicStyles = `<style data-cinematic-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialCinematic.css'), 'utf8')}</style>`
           const videoStyles = `<style data-video-loader-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/initialVideo.css'), 'utf8')}</style>`
+          const risingStyles = `<style data-rising-fill-styles>${fs.readFileSync(path.resolve(__dirname, 'src/shared/ui/loading/nneoRisingFill.css'), 'utf8')}</style>`
           const mobileArtworkPreload = `<link rel="preload" as="image" href="${mediaUrl(startupMedia[2])}" media="(max-width: 600px), (max-width: 900px) and (max-height: 500px)" fetchpriority="high" />`
-          return html.replace('<!-- app-boot-experiment -->', `${cinematicStyles}${videoStyles}<script>${bootScript}</script>`)
+          return html.replace('<!-- app-boot-experiment -->', `${cinematicStyles}${videoStyles}${risingStyles}<script>${bootScript}</script>`)
             .replace('</head>', `${mobileArtworkPreload}</head>`)
             .replace('/* app-palette-ids */ []', JSON.stringify(paletteIds))
             .replace('<meta name="app-critical-styles" />', readCriticalStyles()).replace(

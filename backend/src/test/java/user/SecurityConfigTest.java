@@ -48,6 +48,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class SecurityConfigTest {
     @Test
+    void loaderSettingsAreSharedReadOnlyForUsersAndWritableOnlyByAdministrators() throws Exception {
+        String base = "/api/v1/tesoreria/configuracion-general/loaders";
+        String preference = "{\"variant\":\"nneo-rising-fill\",\"durationMs\":0,\"exitMs\":800,\"soundEnabled\":true}";
+        mockMvc.perform(get(base)).andExpect(status().isUnauthorized());
+        String member = tokenFor("user@mail.com");
+        mockMvc.perform(get(base).header("Authorization", "Bearer " + member)).andExpect(status().isOk());
+        mockMvc.perform(put(base + "/paginas").header("Authorization", "Bearer " + member)
+                        .contentType(MediaType.APPLICATION_JSON).content(preference)).andExpect(status().isForbidden());
+        String admin = tokenFor("admin@mail.com");
+        mockMvc.perform(put(base + "/paginas").header("Authorization", "Bearer " + admin)
+                        .contentType(MediaType.APPLICATION_JSON).content(preference))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.variant").value("nneo-rising-fill"));
+        mockMvc.perform(get(base).header("Authorization", "Bearer " + member))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.pageTransition.soundEnabled").value(true));
+        mockMvc.perform(put(base + "/paginas").header("Authorization", "Bearer " + admin)
+                        .contentType(MediaType.APPLICATION_JSON).content(preference.replace("800", "-1")))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(put(base + "/inicio").header("Authorization", "Bearer " + admin)
+                        .contentType(MediaType.APPLICATION_JSON).content(preference.replace("nneo-rising-fill", "invalid")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void appearancePreferencesArePrivatePerAccountAndIncludeSuperAdmins() throws Exception {
         String base = "/api/v1/users/me/preferences/appearance";
         mockMvc.perform(get(base)).andExpect(status().isUnauthorized());

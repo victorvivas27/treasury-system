@@ -1,3 +1,5 @@
+import { syncLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguration';
+vi.mock('@/shared/ui/loading/loaderConfiguration', () => ({ syncLoaderConfiguration: vi.fn().mockResolvedValue(undefined), clearLoaderConfiguration: vi.fn() }));
 import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
@@ -40,6 +42,23 @@ describe("AuthContext", () => {
 
   afterEach(() => vi.useRealTimers());
 
+  it('receives the course loader configuration before completing login', async () => {
+    localStorage.setItem('treasury.auth.manual-logout', 'true');
+    const view = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(view.result.current.loading).toBe(false));
+    let release!: () => void;
+    vi.mocked(syncLoaderConfiguration).mockImplementationOnce(() => new Promise<void>(resolve => { release = resolve; }));
+    loginMock.mockResolvedValueOnce({ token: 'configured-login', user });
+    let pending!: ReturnType<typeof view.result.current.login>;
+    act(() => { pending = view.result.current.login('admin@mail.com', 'password'); });
+    await waitFor(() => expect(syncLoaderConfiguration).toHaveBeenCalled());
+    expect(view.result.current.user).toBeNull();
+    expect(view.result.current.loading).toBe(true);
+    await act(async () => { release(); await pending; });
+    expect(view.result.current.user).toEqual(user);
+    expect(view.result.current.loading).toBe(false);
+  });
+
   it("espera al avatar antes de anunciar que el inicio está listo", async () => {
     localStorage.setItem("treasury.auth.manual-logout", "true");
     const loader = document.createElement("div");
@@ -66,6 +85,27 @@ describe("AuthContext", () => {
       window.removeEventListener("app:boot-ready", ready);
       loader.remove();
       root.remove();
+    }
+  });
+
+  it("espera los datos de la página y deja a Rising Fill controlar su propia salida", async () => {
+    localStorage.setItem("treasury.auth.manual-logout", "true");
+    const loader = document.createElement('div');
+    loader.id = 'app-boot-loader'; loader.dataset.variant = 'nneo-rising-fill';
+    const root = document.createElement('div'); root.id = 'root';
+    const page = document.createElement('div'); page.className = 'page-transition-content'; page.setAttribute('inert', '');
+    root.append(page); document.body.append(loader, root);
+    const ready = vi.fn(); window.addEventListener('app:boot-ready', ready);
+    const view = renderHook(() => useAuth(), { wrapper });
+    try {
+      await waitFor(() => expect(view.result.current.loading).toBe(false));
+      expect(ready).not.toHaveBeenCalled();
+      page.removeAttribute('inert');
+      await waitFor(() => expect(ready).toHaveBeenCalledOnce());
+      expect(loader).not.toHaveClass('is-leaving');
+      expect(loader.isConnected).toBe(true);
+    } finally {
+      view.unmount(); window.removeEventListener('app:boot-ready', ready); loader.remove(); root.remove();
     }
   });
 
