@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const root = document.getElementById("root");
     if (!loader || !root) return;
     const risingFill = loader.dataset.variant === 'nneo-rising-fill';
-    const entryPending = () => risingFill && Boolean(root.querySelector('.page-transition-content[inert]'));
+    const entryPending = () => risingFill && Boolean(root.querySelector('.page-transition-content[inert], [data-page-assets-pending="true"]'));
     let removeTimer: number | undefined;
     let paintFrame: number | undefined;
     const leaveLoader = () => {
@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     };
     const observer = new MutationObserver(hideLoader);
-    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-busy', 'inert'] });
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-busy', 'inert', 'data-page-assets-pending'] });
     window.addEventListener("app:styles-ready", hideLoader);
     hideLoader();
     return () => {
