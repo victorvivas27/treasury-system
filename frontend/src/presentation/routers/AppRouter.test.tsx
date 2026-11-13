@@ -2,16 +2,18 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Link, MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AppRouter } from "./AppRouter";
+import { clearLoaderPreferenceCache, setCachedLoaderPreference } from "@/shared/ui/loading/loaderPreferenceCache";
 
 const auth = vi.hoisted(() => ({ loading: false }));
 vi.mock("../context/AuthContext", () => ({ useAuth: () => auth }));
 beforeEach(() => {
   auth.loading = false;
   localStorage.clear();
+  clearLoaderPreferenceCache();
   vi.useFakeTimers();
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
 });
-afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { clearLoaderPreferenceCache(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 vi.mock("./PrivateRoutes", () => ({ PrivateRoutes: () => <h1>Pantalla interna preparada</h1> }));
 vi.mock("../pages/home/HomePage", () => ({ HomePage: () => <><Link to="/birthdays">Cumpleaños</Link><Link to="/login">Iniciar sesión</Link></> }));
@@ -43,12 +45,20 @@ it("espera la restauración antes de mostrar login y mantiene el formulario al e
   expect(screen.getByRole("heading", { name: "Login" })).toBe(form);
 });
 
-it("muestra el loader animado al navegar de home a login", () => {
+it("muestra el loader configurado por administración al navegar de home a login", () => {
+  setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 0, exitMs: 800 });
   render(<MemoryRouter><AppRouter /></MemoryRouter>);
   fireEvent.click(screen.getByRole('link', { name: 'Iniciar sesión' }));
   expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'cinematic');
   expect(screen.queryByRole('heading', { name: 'Login' })).not.toBeInTheDocument();
   act(() => vi.advanceTimersByTime(850));
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
+});
+
+it("abre login sin elegir otro loader cuando no hay configuración de administración", () => {
+  render(<MemoryRouter><AppRouter /></MemoryRouter>);
+  fireEvent.click(screen.getByRole('link', { name: 'Iniciar sesión' }));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
 });
