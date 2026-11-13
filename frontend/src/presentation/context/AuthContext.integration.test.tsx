@@ -5,12 +5,19 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { apiClient } from '@/core/D-config/api';
 import { clearAccessToken, clearCsrfToken, getAccessToken } from '@/core/D-config/axiosInterceptor';
 import { AuthProvider, useAuth } from './AuthContext';
+import { clearLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguration';
+import { readPageTransitionPreferences } from '@/shared/ui/loading/pageTransitionPreferences';
 
 const originalAdapter = apiClient.defaults.adapter;
 const user = { id: 7, code: 'USR-007', nombre: 'TEST USER', correo: 'user@example.test',
   rol: 'USER', enabled: true, accountNonLocked: true, createdAt: '', updatedAt: '' };
 const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`;
 const session = { token, user, csrfToken: 'csrf-test', tokenType: 'Bearer', expiresIn: 3600 };
+const loaderEndpoint = '/tesoreria/configuracion-general/loaders';
+const loaderConfiguration = {
+  startup: { variant: 'video', durationMs: 10000, exitMs: 1400, soundEnabled: false },
+  pageTransition: { variant: 'nneo-rising-fill', durationMs: 0, exitMs: 800, soundEnabled: true },
+};
 const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>;
 let requests: InternalAxiosRequestConfig[];
 let respond: (request: InternalAxiosRequestConfig) => unknown;
@@ -24,10 +31,12 @@ beforeEach(() => {
   requests = [];
   clearAccessToken();
   clearCsrfToken();
+  clearLoaderConfiguration();
   localStorage.clear();
   sessionStorage.clear();
   localStorage.setItem('treasury.auth.manual-logout', 'true');
-  respond = request => request.url === '/auth/me' ? user : session;
+  respond = request => request.url === loaderEndpoint ? loaderConfiguration
+    : request.url === '/auth/me' ? user : session;
   const adapter: AxiosAdapter = async request => {
     requests.push(request);
     return { data: JSON.stringify(await respond(request)), status: 200, statusText: 'OK',
@@ -40,6 +49,7 @@ afterEach(() => {
   apiClient.defaults.adapter = originalAdapter;
   clearAccessToken();
   clearCsrfToken();
+  clearLoaderConfiguration();
   localStorage.clear();
   sessionStorage.clear();
 });
@@ -57,6 +67,9 @@ describe('Authentication through context, use cases, repository and HTTP transpo
     expect(JSON.parse(requests[0].data)).toEqual({ correo: user.correo, password: 'Password1!', organizationId: 4 });
     expect(requests[0].timeout).toBe(30000);
     expect(requests[0].withCredentials).toBe(true);
+    expect(requests.map(request => request.url)).toEqual(['/auth/login', loaderEndpoint]);
+    expect(requests[1].headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(readPageTransitionPreferences()).toEqual(loaderConfiguration.pageTransition);
   });
 
   it('does not establish a session when organization selection is required', async () => {
@@ -88,9 +101,12 @@ describe('Authentication through context, use cases, repository and HTTP transpo
     const { result } = renderHook(useAuth, { wrapper });
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
     expect(result.current.user).toEqual(user);
-    expect(requests).toHaveLength(1);
+    expect(requests.map(request => request.url)).toEqual(['/auth/refresh', loaderEndpoint]);
     expect(requests[0].url).toBe('/auth/refresh');
     expect(requests[0].withCredentials).toBe(true);
+    expect(requests[1].method).toBe('get');
+    expect(requests[1].headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(readPageTransitionPreferences()).toEqual(loaderConfiguration.pageTransition);
     expect(getAccessToken()).toBe(token);
   });
 
