@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { LoaderSection } from '@/core/A-domain/entities/treasury/LoaderSettings';
+import type { LoaderPreference, LoaderSection } from '@/core/A-domain/entities/treasury/LoaderSettings';
 import { loadLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguration';
-import type { StartupPreferences } from '@/shared/ui/loading/startupPreferences';
-export function useLoaderSettings(section: LoaderSection, onLoaded: (value: StartupPreferences) => void) {
+export function useLoaderSettings(section: LoaderSection, onLoaded: (value: LoaderPreference) => void) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {

@@ -1,16 +1,17 @@
+import { setCachedLoaderPreference, clearLoaderPreferenceCache } from '@/shared/ui/loading/loaderPreferenceCache';
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { PageTransitionBoundary, usePageEntry } from './PageTransition';
-import { PAGE_TRANSITION_PREFERENCES_KEY } from './pageTransitionPreferences';
 
 beforeEach(() => {
-  localStorage.clear();
+  localStorage.clear(); clearLoaderPreferenceCache();
+  setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 0, exitMs: 800 });
   vi.useFakeTimers();
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
 });
 
 it('respeta el tiempo mínimo guardado sin dejar de esperar datos más lentos', () => {
-  localStorage.setItem(PAGE_TRANSITION_PREFERENCES_KEY, JSON.stringify({ durationMs: 3000 }));
+  setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 3000, exitMs: 800 });
   const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
   act(() => vi.advanceTimersByTime(1000));
   view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
@@ -70,7 +71,7 @@ it('espera todas las consultas iniciales y libera la página si una falla', () =
 });
 
 it('Rising Fill completes only after data and releases React content without removing its node manually', () => {
-  localStorage.setItem(PAGE_TRANSITION_PREFERENCES_KEY, JSON.stringify({ variant: 'nneo-rising-fill', durationMs: 0, exitMs: 400 }));
+  setCachedLoaderPreference('pageTransition', { variant: 'nneo-rising-fill', durationMs: 0, exitMs: 400 });
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
   act(() => vi.advanceTimersByTime(20000));

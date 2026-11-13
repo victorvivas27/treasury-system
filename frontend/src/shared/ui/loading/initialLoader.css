@@ -1,0 +1,5 @@
+.app-startup{position:fixed;inset:0;z-index:99999;background:var(--color-bg)}
+.app-startup.is-leaving{opacity:0;pointer-events:none}
+.boot-recovery{max-width:320px;padding:24px;text-align:center;color:var(--text-boot)}
+.boot-recovery p{margin:12px 0 20px;font-size:14px}
+.boot-recovery button{font:inherit;color:var(--text-boot);background:var(--color-bg);border:1px solid var(--text-boot-muted);border-radius:6px;padding:8px;cursor:pointer}

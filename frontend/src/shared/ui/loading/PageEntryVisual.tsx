@@ -7,6 +7,7 @@ import { createNneoRisingFill } from './nneoRisingFill.js';
 import video from '@/assets/video/tesoreria_animado.mp4?url';
 import videoLight from '@/assets/video/tesoreria_animado_02.mp4?url';
 import type { PageTransitionPreferences } from './pageTransitionPreferences';
+import './initialLoader.css';
 import './initialCinematic.css';
 import './initialVideo.css';
 import './nneoRisingFill.css';
