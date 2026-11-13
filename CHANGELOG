@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.54.0](https://github.com/victorvivas27/treasury-system/compare/v1.53.0...v1.54.0) (2026-11-13)
+
+
+### Features
+
+* agrega Rising Fill con sonido opcional, mejora la vista móvil y unifica los loaders con configuración compartida por curso y permisos de administrador ([6ce6f54](https://github.com/victorvivas27/treasury-system/commit/6ce6f549e849110498f7a6a3ae8e253a291553e8))
+* **tests:** agrega configuración de loaders y preferencias de transición de página en pruebas de autenticación ([05c3749](https://github.com/victorvivas27/treasury-system/commit/05c37493f0eb38dab81da8772ff71b290524957f))
+* **tests:** agrega configuración de loaders y preferencias de transición de página en pruebas de autenticación ([f8d1cf9](https://github.com/victorvivas27/treasury-system/commit/f8d1cf9d04e4895dbe9c7eca408d3c4fb258241a))
+
 ## [1.53.0](https://github.com/victorvivas27/treasury-system/compare/v1.52.0...v1.53.0) (2026-11-12)
 
 
