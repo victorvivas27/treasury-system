@@ -1,3 +1,4 @@
+import { getCachedLoaderPreference } from '@/shared/ui/loading/loaderPreferenceCache';
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { PageEntryVisual } from './PageEntryVisual';
@@ -22,7 +23,7 @@ export function PageTransitionBoundary({ children, animateOnEntry = false }: { c
   const opened = useRef(false);
   const [state, setState] = useState({ visible: animateOnEntry, ready: animateOnEntry });
   const [preferences] = useState(readPageTransitionPreferences);
-  const [coveredByBoot] = useState(() => document.getElementById('app-boot-loader')?.dataset.variant === 'nneo-rising-fill');
+  const [skipEntryVisual] = useState(() => Boolean(document.getElementById('app-boot-loader')) || !getCachedLoaderPreference('pageTransition'));
   const report = useCallback((id: string, loading: boolean, failed = false) => {
     if (completed.current) return;
     if (failed) {
@@ -46,12 +47,11 @@ export function PageTransitionBoundary({ children, animateOnEntry = false }: { c
     setState({ visible: false, ready: true });
   }, []);
   useEffect(() => {
-    // The initial Rising Fill already covers this page. Release its readiness
-    // barrier as soon as data settles instead of showing two consecutive loaders.
-    if (coveredByBoot && state.visible && state.ready) finish();
-  }, [coveredByBoot, state.visible, state.ready, finish]);
+    // Release the page once data settles when boot covers it or no admin loader is available.
+    if (skipEntryVisual && state.visible && state.ready) finish();
+  }, [skipEntryVisual, state.visible, state.ready, finish]);
   return <PageLoadingContext.Provider value={report}>
-    {state.visible && !coveredByBoot && <PageEntryVisual ready={state.ready} onExited={finish} preferences={preferences} />}
+    {state.visible && !skipEntryVisual && <PageEntryVisual ready={state.ready} onExited={finish} preferences={preferences} />}
     <div className="page-transition-content" inert={state.visible} aria-hidden={state.visible || undefined}>
       {children}
     </div>

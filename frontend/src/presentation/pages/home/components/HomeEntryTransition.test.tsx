@@ -1,16 +1,16 @@
+import { setCachedLoaderPreference, clearLoaderPreferenceCache } from '@/shared/ui/loading/loaderPreferenceCache';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { HomeEntryTransition } from './HomeEntryTransition';
-import { PAGE_TRANSITION_PREFERENCES_KEY } from '@/shared/ui/loading/pageTransitionPreferences';
 
 vi.mock('@/shared/ui/loading/PageEntryVisual', () => ({
   PageEntryVisual: ({ ready, onExited, preferences }: { ready: boolean; onExited: () => void; preferences: { variant: string; soundEnabled?: boolean } }) =>
     <button disabled={!ready} onClick={onExited} data-variant={preferences.variant} data-sound={String(preferences.soundEnabled === true)}>Loader compartido</button>,
 }));
-afterEach(() => localStorage.clear());
+afterEach(() => { localStorage.clear(); clearLoaderPreferenceCache(); });
 
 it.each(['video', 'cinematic', 'video-light', 'nneo-rising-fill'])('usa el loader configurado %s y espera los datos del Home', variant => {
-  localStorage.setItem(PAGE_TRANSITION_PREFERENCES_KEY, JSON.stringify({ variant, durationMs: 0, exitMs: 800, soundEnabled: true }));
+  setCachedLoaderPreference('pageTransition', { variant, durationMs: 0, exitMs: 800, soundEnabled: true });
   const onExited = vi.fn();
   const view = render(<HomeEntryTransition ready={false} onExited={onExited} />);
   const loader = screen.getByRole('button', { name: 'Loader compartido' });

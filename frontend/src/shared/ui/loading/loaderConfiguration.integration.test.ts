@@ -2,7 +2,7 @@ import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { apiClient } from '@/core/D-config/api';
 import { setAccessToken } from '@/core/D-config/axiosInterceptor';
 import { clearLoaderConfiguration, loadLoaderConfiguration, saveLoaderPreference, syncLoaderConfiguration } from './loaderConfiguration';
-import { readStartupPreferences } from './startupPreferences';
+import { getCachedLoaderPreference } from './loaderPreferenceCache';
 import { readPageTransitionPreferences } from './pageTransitionPreferences';
 import type { LoaderConfiguration } from '@/core/A-domain/entities/treasury/LoaderSettings';
 vi.mock('@/core/D-config/api', () => ({ apiClient: { get: vi.fn(), put: vi.fn() } }));
@@ -29,19 +29,30 @@ it('persists the admin selection on the server and delivers it to a different br
   setAccessToken('account-b');
   await loadLoaderConfiguration();
   expect(readPageTransitionPreferences()).toEqual(preference);
-  expect(readStartupPreferences().variant).toBe('video');
+  expect(getCachedLoaderPreference('startup')?.variant).toBe('video');
 });
 
 it('keeps the server authoritative even if browser storage is unavailable', async () => {
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw Error('blocked'); });
   await saveLoaderPreference('startup', { variant: 'nneo-rising-fill', durationMs: 0, exitMs: 900 });
-  expect(readStartupPreferences().variant).toBe('nneo-rising-fill');
+  expect(getCachedLoaderPreference('startup')?.variant).toBe('nneo-rising-fill');
+});
+
+it('ignores legacy browser overrides and never persists server settings in the browser', async () => {
+  localStorage.setItem('app-startup-preview', JSON.stringify({ variant: 'video-light' }));
+  localStorage.setItem('app-page-transition', JSON.stringify({ variant: 'video-light' }));
+  expect(getCachedLoaderPreference('startup')).toBeUndefined();
+  expect(readPageTransitionPreferences().variant).toBe('cinematic');
+  clearLoaderConfiguration();
+  await loadLoaderConfiguration();
+  expect(localStorage.getItem('app-startup-preview')).toBeNull();
+  expect(localStorage.getItem('app-page-transition')).toBeNull();
 });
 
 it('does not report failed saves as applied and does not block login on read failures', async () => {
   vi.mocked(apiClient.put).mockRejectedValueOnce(Error('offline'));
   await expect(saveLoaderPreference('startup', { variant: 'nneo-rising-fill', durationMs: 0, exitMs: 900 })).rejects.toThrow();
-  expect(readStartupPreferences().variant).toBe('video');
+  expect(getCachedLoaderPreference('startup')).toBeUndefined();
   vi.mocked(apiClient.get).mockRejectedValueOnce(Error('offline'));
   await expect(syncLoaderConfiguration()).resolves.toBeUndefined();
 });
@@ -53,5 +64,5 @@ it('discards a response arriving after the account or organization changes', asy
   setAccessToken('another-organization');
   release({ data: { ...server, startup: { variant: 'nneo-rising-fill', durationMs: 0, exitMs: 900 } } });
   await expect(pending).rejects.toThrow();
-  expect(readStartupPreferences().variant).toBe('video');
+  expect(getCachedLoaderPreference('startup')).toBeUndefined();
 });
