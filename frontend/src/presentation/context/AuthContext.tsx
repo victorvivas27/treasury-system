@@ -1,3 +1,4 @@
+import { clearLoaderConfiguration, syncLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguration';
 import type { User } from "@/core/A-domain/entities/user/User";
 import { resetHomeCommunity } from "@/shared/community/homeCommunityEvents";
 import { resetDashboard } from "@/shared/treasury/dashboardEvents";
@@ -40,7 +41,7 @@ interface AuthContextValue {
   loading: boolean;
   isAuthenticated: boolean;
   login: (correo: string, password: string, organizationId?: number) => Promise<LoginResponse>;
-  establishSession: (response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => void;
+  establishSession: (response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => Promise<void>;
   logout: () => Promise<void>;
   syncUser: (updatedUser: User) => void;
 }
@@ -87,6 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const loader = document.getElementById("app-boot-loader");
     const root = document.getElementById("root");
     if (!loader || !root) return;
+    const risingFill = loader.dataset.variant === 'nneo-rising-fill';
+    const entryPending = () => risingFill && Boolean(root.querySelector('.page-transition-content[inert]'));
     let removeTimer: number | undefined;
     let paintFrame: number | undefined;
     const leaveLoader = () => {
@@ -101,14 +104,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const appStyles = document.querySelector("link[data-app-styles]");
       const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
       const avatarPending = root.querySelector('.user-avatar[aria-busy="true"]');
-      if (!root.firstElementChild || !stylesReady || avatarPending || paintFrame !== undefined) return;
+      if (!root.firstElementChild || !stylesReady || avatarPending || entryPending() || paintFrame !== undefined) return;
       paintFrame = window.requestAnimationFrame(() => {
         // Recheck after React effects and image loading updates have committed.
-        if (root.querySelector('.user-avatar[aria-busy="true"]')) {
+        if (root.querySelector('.user-avatar[aria-busy="true"]') || entryPending()) {
           paintFrame = undefined;
           return;
         }
         window.dispatchEvent(new Event("app:boot-ready"));
+        // Rising Fill owns its 100 -> final title -> panel opening lifecycle.
+        if (risingFill) { observer.disconnect(); return; }
         const previewRemaining = ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
           ? Math.max(0, Math.min(20000, Number(loader.dataset.previewUntil || 0) - performance.now())) : 0;
         if (previewRemaining > 0) removeTimer = window.setTimeout(leaveLoader, previewRemaining);
@@ -117,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     };
     const observer = new MutationObserver(hideLoader);
-    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-busy'] });
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-busy', 'inert'] });
     window.addEventListener("app:styles-ready", hideLoader);
     hideLoader();
     return () => {
@@ -141,6 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearSession = useCallback(() => {
     resetHomeCommunity();
     resetDashboard();
+    clearLoaderConfiguration();
     hadActiveSession.current = false;
     clearAccessToken();
     clearCsrfToken();
@@ -217,12 +223,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       useCases.refresh()
-        .then((response) => {
+        .then(async (response) => {
           if (!response.token || !response.user) throw new Error("Respuesta de sesión inválida");
           setAccessToken(response.token);
           setCsrfToken(response.csrfToken);
           sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
           prefetchUserProfileImage(response.user);
+          await syncLoaderConfiguration();
+          if (getAccessToken() !== response.token) return;
           validatedToken.current = response.token;
           hadActiveSession.current = true;
           setToken(response.token);
@@ -240,7 +248,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     validatedToken.current = token;
     useCases.current.execute()
-      .then((currentUser) => {
+      .then(async (currentUser) => {
+        await syncLoaderConfiguration();
+        if (getAccessToken() !== token) return;
         hadActiveSession.current = true;
         sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
         prefetchUserProfileImage(currentUser);
@@ -253,6 +263,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => setLoading(false));
   }, [token, useCases, clearSession]);
 
+  useEffect(() => {
+    if (!token || !user) return;
+    const refreshSettings = () => { if (!document.hidden) void syncLoaderConfiguration(); };
+    window.addEventListener('focus', refreshSettings);
+    return () => window.removeEventListener('focus', refreshSettings);
+  }, [token, user]);
+
   const login = async (correo: string, password: string, organizationId?: number) => {
     setLoading(true);
     try {
@@ -264,6 +281,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
       setAccessToken(response.token);
       setCsrfToken(response.csrfToken);
+      clearLoaderConfiguration();
+      await syncLoaderConfiguration();
+      if (getAccessToken() !== response.token) throw new Error("Session changed");
       sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
       prefetchUserProfileImage(response.user);
       validatedToken.current = response.token;
@@ -277,13 +297,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const establishSession = useCallback((response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
+  const establishSession = useCallback(async (response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => {
     if (!response.token || !response.user) throw new Error("Respuesta de sesión inválida");
     resetHomeCommunity();
     resetDashboard();
     localStorage.removeItem(MANUAL_LOGOUT_KEY);
     setAccessToken(response.token);
     setCsrfToken(response.csrfToken);
+    clearLoaderConfiguration();
+    await syncLoaderConfiguration();
+    if (getAccessToken() !== response.token) return;
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
     prefetchUserProfileImage(response.user);
     validatedToken.current = response.token;

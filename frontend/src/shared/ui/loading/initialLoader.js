@@ -2,20 +2,23 @@
 (() => {
   /* cinematic-controller */
   /* video-controller */
+  /* rising-fill-controller */
   let preferences = {};
   try { preferences = JSON.parse(localStorage.getItem('app-startup-preview') || '{}') || {}; } catch { /* Use defaults if storage is unavailable. */ }
-  const choices = ['cinematic', 'video', 'video-light'];
+  const choices = ['cinematic', 'video', 'video-light', 'nneo-rising-fill'];
   const parameter = new URLSearchParams(location.search).get('loader');
   const requested = parameter === 'brand' ? 'cinematic' : parameter;
-  const selected = choices.includes(requested) ? requested
+  let selected = choices.includes(requested) ? requested
     : choices.includes(preferences.variant) ? preferences.variant : 'video';
   const template = document.getElementById('app-boot-template');
   const loader = template.content.firstElementChild.cloneNode(true);
   const root = document.getElementById('root');
+  const rootWasInert = root.inert;
+  if (selected === 'nneo-rising-fill') root.inert = true;
   document.documentElement.dataset.initialLoader = selected;
   loader.dataset.variant = selected;
   const delayParameter = new URLSearchParams(location.search).get('loaderDelay');
-  const savedDelay = typeof preferences.durationMs === 'number' && Number.isFinite(preferences.durationMs) ? preferences.durationMs : 10000;
+  const savedDelay = typeof preferences.durationMs === 'number' && Number.isFinite(preferences.durationMs) ? preferences.durationMs : selected === 'nneo-rising-fill' ? 0 : 10000;
   const requestedDelay = delayParameter === null ? savedDelay : Number(delayParameter);
   const previewDelay = Number.isFinite(requestedDelay)
     ? Math.min(20000, Math.max(0, requestedDelay)) : 0;
@@ -29,16 +32,40 @@
   loader.style.setProperty('--boot-video-exit-duration', `${exitDuration}ms`);
   document.body.prepend(loader);
   template.remove();
-  const visual = selected === 'cinematic'
+  const createVisual = () => selected === 'nneo-rising-fill' ? createNneoRisingFill(loader, { soundEnabled: new URLSearchParams(location.search).has('loaderSound') ? new URLSearchParams(location.search).get('loaderSound') === '1' : preferences.soundEnabled === true, onExited: () => {
+    root.inert = rootWasInert;
+    loader.remove();
+  } })
+    : selected === 'cinematic'
     ? createInitialCinematic(loader, /* cinematic-assets */ [])
     : createInitialVideo(loader, selected === 'video-light' ? /* video-light-asset */ "" : /* video-asset */ "", /* mobile-image-asset */ "");
+  let visual = createVisual();
 
   let ready = false;
   let failed = false;
+  const onSettings = event => {
+    if (ready || failed || choices.includes(requested) || event.detail?.section !== 'startup') return;
+    const preference = event.detail.preference;
+    if (!choices.includes(preference?.variant)) return;
+    if (JSON.stringify(preferences) === JSON.stringify(preference)) return;
+    visual?.stop();
+    preferences = preference;
+    selected = preference.variant;
+    loader.innerHTML = '';
+    loader.dataset.variant = selected;
+    document.documentElement.dataset.initialLoader = selected;
+    root.inert = selected === 'nneo-rising-fill' || rootWasInert;
+    const duration = selected === 'cinematic' ? 800 : Math.min(3000, Math.max(400, preference.exitMs));
+    loader.dataset.exitDuration = String(duration);
+    loader.style.setProperty('--boot-video-exit-duration', `${duration}ms`);
+    loader.dataset.previewUntil = String(performance.now() + Math.min(20000, Math.max(0, preference.durationMs)));
+    visual = createVisual();
+  };
   const fail = () => {
     if (ready || failed) return;
     failed = true;
     visual?.stop();
+    if (selected === 'nneo-rising-fill') root.inert = rootWasInert;
     loader.dataset.variant = 'error';
     loader.setAttribute('role', 'alert');
     loader.removeAttribute('aria-label');
@@ -55,6 +82,13 @@
     window.removeEventListener('error', onError, true);
     window.removeEventListener('unhandledrejection', fail);
     window.removeEventListener('app:boot-ready', onReady);
+    window.removeEventListener('app:boot-progress', onProgress);
+    window.removeEventListener('app:loader-settings', onSettings);
+  };
+  const onProgress = event => {
+    if (!ready && !failed && selected === 'nneo-rising-fill' && typeof event.detail?.progress === 'number') {
+      visual.setProgress(event.detail.progress);
+    }
   };
   const onReady = () => {
     ready = true;
@@ -71,5 +105,7 @@
   window.addEventListener('error', onError, true);
   window.addEventListener('unhandledrejection', fail);
   window.addEventListener('app:boot-ready', onReady);
+  window.addEventListener('app:boot-progress', onProgress);
+  window.addEventListener('app:loader-settings', onSettings);
 
 })();

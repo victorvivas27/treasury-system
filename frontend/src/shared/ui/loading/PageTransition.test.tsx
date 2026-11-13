@@ -19,7 +19,7 @@ it('respeta el tiempo mínimo guardado sin dejar de esperar datos más lentos', 
   act(() => vi.advanceTimersByTime(1000));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });
-afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 it('anima la entrada sin consultas y no vuelve a bloquear el formulario al actualizarse', () => {
   const view = render(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
@@ -67,4 +67,29 @@ it('espera todas las consultas iniciales y libera la página si una falla', () =
   act(() => vi.advanceTimersByTime(700));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Reintentar' })).toBeEnabled();
+});
+
+it('Rising Fill completes only after data and releases React content without removing its node manually', () => {
+  localStorage.setItem(PAGE_TRANSITION_PREFERENCES_KEY, JSON.stringify({ variant: 'nneo-rising-fill', durationMs: 0, exitMs: 400 }));
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
+  act(() => vi.advanceTimersByTime(20000));
+  expect(Number(screen.getByRole('status').dataset.progress)).toBeLessThan(100);
+  expect(screen.getByText('Contenido de la página').closest('[inert]')).not.toBeNull();
+  view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
+  act(() => vi.advanceTimersByTime(1800));
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.getByRole('button')).toBeEnabled();
+});
+
+it('uses one initial Rising Fill cover and releases its readiness barrier without a second loader', () => {
+  const boot = document.createElement('div'); boot.id = 'app-boot-loader'; boot.dataset.variant = 'nneo-rising-fill'; document.body.append(boot);
+  try {
+    const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
+    expect(document.querySelector('.page-entry-visual')).toBeNull();
+    expect(screen.getByText('Contenido de la página').closest('[inert]')).not.toBeNull();
+    view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
+    expect(screen.getByText('Contenido de la página').closest('[inert]')).toBeNull();
+    expect(boot.isConnected).toBe(true);
+  } finally { boot.remove(); }
 });
