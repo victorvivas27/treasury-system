@@ -133,3 +133,17 @@ it('preserves the configured exit when only images need loading', async () => {
   act(() => vi.advanceTimersByTime(850));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });
+
+it('does not open the entry loader again for cached images on a return visit', async () => {
+  vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
+  vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(80);
+  const page = () => <PageTransitionBoundary><main><img src="/avatar.png" alt="Avatar" /></main></PageTransitionBoundary>;
+  const first = render(page());
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  await act(async () => {});
+  first.unmount();
+  render(page());
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  await act(async () => {});
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+});

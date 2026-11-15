@@ -1,9 +1,10 @@
 import { IoChevronForward } from "react-icons/io5";
+import { BsWallet2 } from "react-icons/bs";
 import { BackIcon } from "@/shared/ui/back-icon/BackIcon";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { FiHome, FiGrid, FiBell, FiMoreHorizontal, FiX, FiCalendar, FiGift,
+import { FiHome, FiBell, FiMenu, FiX, FiCalendar, FiGift,
   FiUser, FiSettings, FiLogOut, FiTool, FiBarChart2, FiShield, FiGitBranch,
   FiHeart, FiCamera, FiUsers } from "react-icons/fi";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
@@ -29,6 +30,7 @@ export const MobileNavigation = () => {
   const moreActive = !["/", "/dashboard", "/notifications"].includes(location.pathname);
   const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
   const [open, setOpen] = useState(false);
+  const [treasuryOnly, setTreasuryOnly] = useState(false);
   const [keyboard, setKeyboard] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -112,16 +114,26 @@ export const MobileNavigation = () => {
     <ImprovementCenter />
     {createPortal(<>
     <nav className="mobile-navigation" aria-label="Navegación móvil" hidden={keyboard}>
-      <NavLink to="/" end><FiHome aria-hidden="true" /><span>Inicio</span></NavLink>
-      <NavLink to="/dashboard"><FiGrid aria-hidden="true" /><span>Gestión</span></NavLink>
+      <NavLink to="/" end><span className="mobile-navigation__icon"><FiHome aria-hidden="true" /></span><span>Inicio</span></NavLink>
+      <NavLink to="/dashboard"><span className="mobile-navigation__icon"><FiBarChart2 aria-hidden="true" /></span><span>Dashboard</span></NavLink>
+      <button type="button" className={location.pathname.startsWith("/tesoreria/") ? "active" : undefined}
+        aria-expanded={open && treasuryOnly} aria-haspopup="dialog" onClick={event => {
+          trigger.current = event.currentTarget;
+          setTreasuryOnly(true);
+          window.history.pushState({ ...window.history.state, mobileNavigation: true }, "");
+          historyEntry.current = true;
+          setOpen(true);
+        }}><span className="mobile-navigation__icon"><BsWallet2 aria-hidden="true" /></span><span>Tesorería</span></button>
       <NavLink to="/notifications"><span className="mobile-navigation__icon"><FiBell aria-hidden="true" />
         {unread > 0 && <span className="mobile-navigation__badge" aria-label={`${unread} sin leer`}>{unread > 99 ? "99+" : unread}</span>}
       </span><span>Avisos</span></NavLink>
-      <button ref={trigger} type="button" className={moreActive ? "active" : undefined} aria-expanded={open} aria-haspopup="dialog" onClick={() => {
+      <button type="button" className={moreActive && !location.pathname.startsWith("/tesoreria/") ? "active" : undefined} aria-expanded={open && !treasuryOnly} aria-haspopup="dialog" onClick={event => {
+        trigger.current = event.currentTarget;
+        setTreasuryOnly(false);
         window.history.pushState({ ...window.history.state, mobileNavigation: true }, "");
         historyEntry.current = true;
         setOpen(true);
-      }}><FiMoreHorizontal aria-hidden="true" /><span>Más</span></button>
+      }}><span className="mobile-navigation__icon"><FiMenu aria-hidden="true" /></span><span>Menú</span></button>
     </nav>
     <dialog ref={dialog} className="mobile-navigation-sheet" aria-labelledby={titleId}
       onCancel={event => { event.preventDefault(); close(); }}
@@ -131,10 +143,10 @@ export const MobileNavigation = () => {
         if (event.clientY < bounds.top || event.clientX < bounds.left || event.clientX > bounds.right) close();
       }}>
       <div className="mobile-navigation-sheet__handle" aria-hidden="true" />
-      <header><div><span>Todo a mano</span><h2 id={titleId}>Explorar</h2></div>
+      <header><div><span>Todo a mano</span><h2 id={titleId}>{treasuryOnly ? "Tesorería" : "Explorar"}</h2></div>
         <button type="button" aria-label="Cerrar navegación" onClick={close}><FiX aria-hidden="true" /></button></header>
       <div className="mobile-navigation-sheet__scroll">
-        <button type="button" className="mobile-navigation-sheet__account" onClick={() => go("/profile")}>
+        {!treasuryOnly && <><button type="button" className="mobile-navigation-sheet__account" onClick={() => go("/profile")}>
           <UserAvatar user={user} className="mobile-navigation-sheet__avatar" />
           <span><strong>{user.nombre}</strong><small>Ver mi perfil</small></span><IoChevronForward aria-hidden="true" />
         </button>
@@ -144,12 +156,12 @@ export const MobileNavigation = () => {
           {menuLink("/#sobre-nosotros", "Lo que nos mueve", FiHeart)}
           {menuLink("/#fotos-del-curso", "Fotos del curso", FiCamera)}
           {menuLink("/#directiva", "Directiva", FiUsers)}
-        </div></section>
-        <section><h3>Tesorería</h3><div className="mobile-navigation-sheet__links">
+        </div></section></>}
+        {treasuryOnly && <section><h3>Tesorería</h3><div className="mobile-navigation-sheet__links">
           {TREASURY_LINKS.filter(link => admin || USER_TREASURY.has(link.path)).map(link =>
             menuLink(link.path, user.rol === "USER" && link.path === "/tesoreria/stands" ? "Resumen de stands" : link.label, link.icon))}
-        </div></section>
-        {admin && <section><h3>Gestión del curso</h3><div className="mobile-navigation-sheet__links">
+        </div></section>}
+        {!treasuryOnly && <>{admin && <section><h3>Gestión del curso</h3><div className="mobile-navigation-sheet__links">
           {SIDEBAR_LINKS.flatMap(section => section.links).filter(link => ["/users", "/parents", "/students", "/family"].includes(link.path))
             .map(link => menuLink(link.path, link.label, link.icon))}
           {menuLink("/admin/horario-clases", "Gestionar horario", FiCalendar)}
@@ -170,7 +182,7 @@ export const MobileNavigation = () => {
             <FiTool aria-hidden="true" /><span>Enviar una mejora</span><IoChevronForward aria-hidden="true" /></button>
           <button type="button" className="mobile-navigation-sheet__logout" onClick={() => perform(() => { void auth?.logout(); })}>
             <FiLogOut aria-hidden="true" /><span>Cerrar sesión</span></button>
-        </div></section>
+        </div></section></>}
       </div>
       <footer><button type="button" onClick={close}><BackIcon />Volver a la pantalla</button></footer>
     </dialog>

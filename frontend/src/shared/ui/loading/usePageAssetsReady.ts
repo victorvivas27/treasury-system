@@ -37,10 +37,10 @@ export function usePageAssetsReady(page: RefObject<HTMLElement | null>, active =
     const update = () => {
       if (!disposed) setPending([...assets.values()].some(asset => asset.pending));
     };
-    const track = (key: Element | string, source: string, load: (signal: AbortSignal) => Promise<unknown>) => {
+    const track = (key: Element | string, source: string, load: (signal: AbortSignal) => Promise<unknown>, ready = false) => {
       if (assets.get(key)?.source === source) return;
       assets.get(key)?.controller.abort();
-      const asset = { source, pending: true, controller: new AbortController() };
+      const asset = { source, pending: !ready, controller: new AbortController() };
       assets.set(key, asset);
       void load(asset.controller.signal).catch(() => undefined).then(() => {
         if (disposed || assets.get(key) !== asset) return;
@@ -61,7 +61,8 @@ export function usePageAssetsReady(page: RefObject<HTMLElement | null>, active =
             present.add(element);
             const source = [element.currentSrc, element.src, element.srcset,
               ...[...(element.closest('picture')?.querySelectorAll('source') ?? [])].map(source => source.srcset)].join('|');
-            track(element, source, signal => waitForImage(element, signal));
+            // Cached images can already be painted; decoding them must not reopen the entry loader.
+            track(element, source, signal => waitForImage(element, signal), element.complete && element.naturalWidth > 0);
           }
         }
         for (const match of style.backgroundImage.matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/g)) {

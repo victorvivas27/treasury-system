@@ -102,6 +102,23 @@ describe("Notificacion para administración", () => {
     }]);
   });
 
+  it("abre contactos sin desmontar el chat ni perder el borrador", async () => {
+    mocks.listReplies.mockResolvedValue([]);
+    render(<Notificacion />);
+    fireEvent.click(await screen.findByRole("button", { name: /Apoderado Uno/ }));
+    const composer = await screen.findByRole("textbox", { name: "Responder al apoderado" });
+    await waitFor(() => expect(composer).toBeEnabled());
+    fireEvent.change(composer, { target: { value: "Respuesta pendiente" } });
+    const contacts = screen.getByText("Contactos", { selector: "button" });
+    fireEvent.click(contacts);
+    expect(contacts).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("textbox", { name: "Responder al apoderado" })).toBe(composer);
+    expect(composer).toHaveValue("Respuesta pendiente");
+    fireEvent.click(screen.getByLabelText("Cerrar contactos"));
+    expect(contacts).toHaveAttribute("aria-expanded", "false");
+    expect(composer).toHaveValue("Respuesta pendiente");
+  });
+
   it.each(["ADMIN", "USER"])("identifica autor y destinatario para %s", async rol => {
     mocks.authUser = { ...mocks.authUser, id: rol === "ADMIN" ? 1 : 30, rol };
     mocks.notifications = [{ id: 20, title: "Aviso", message: "Mensaje inicial", type: "INFO",
@@ -116,7 +133,8 @@ describe("Notificacion para administración", () => {
     render(<Notificacion />);
     if (rol === "ADMIN") fireEvent.click((await screen.findByText("Apoderado Uno", { selector: ".notification-contact__name" })).closest("button")!);
     const recipient = rol === "ADMIN" ? "Apoderado Uno" : "Ana López";
-    expect(await screen.findByText(`Conversación con ${recipient}`)).toBeVisible();
+    expect(await screen.findByText(rol === "ADMIN" ? recipient : `Conversación con ${recipient}`,
+      rol === "ADMIN" ? { selector: ".notification-chat-header strong" } : undefined)).toBeVisible();
     const own = (await screen.findByText(rol === "ADMIN" ? "Respuesta de Tesorería" : "Respuesta del apoderado")).closest("article")!;
     const received = screen.getByText(rol === "ADMIN" ? "Respuesta del apoderado" : "Respuesta de Tesorería").closest("article")!;
     expect(own).toHaveClass("is-own");
@@ -169,7 +187,7 @@ describe("Notificacion para administración", () => {
     await screen.findByText("Aviso para Luis", { selector: "p" });
     expect(screen.queryByText("Aviso para Ana", { selector: "p" })).not.toBeInTheDocument();
     expect(document.querySelectorAll(".notification-conversation")).toHaveLength(1);
-    fireEvent.change(screen.getByRole("searchbox", { name: "Buscar conversación" }), { target: { value: "ana@" } });
+    fireEvent.change(screen.getByRole("searchbox", { name: "Buscar contacto" }), { target: { value: "ana@" } });
     expect(screen.getByText("Ana", { selector: ".notification-contact__name" })).toBeInTheDocument();
     expect(screen.queryByText("Luis", { selector: ".notification-contact__name" })).not.toBeInTheDocument();
     expect(mocks.listReplies).toHaveBeenCalledTimes(2);
