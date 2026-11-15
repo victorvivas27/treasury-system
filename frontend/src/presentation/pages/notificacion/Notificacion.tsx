@@ -19,7 +19,7 @@ import { ModalAlert } from "@/shared/ui/modalalert/ModalAler";
 import { useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
 import { FiSend,
-  FiTrash2, FiUsers } from "react-icons/fi";
+  FiTrash2, FiUsers, FiSearch } from "react-icons/fi";
 import { FcExpand } from "react-icons/fc";
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { IoNotificationsOutline } from "react-icons/io5";
@@ -38,6 +38,13 @@ export const Notificacion = () => {
 };
 
 const AdminNotificationCenter = () => {
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const contactsTrigger = useRef<HTMLButtonElement>(null);
+  const contactsSearch = useRef<HTMLInputElement>(null);
+  const closeContacts = () => { setContactsOpen(false); contactsTrigger.current?.focus(); };
+  useEffect(() => {
+    if (contactsOpen) contactsSearch.current?.focus();
+  }, [contactsOpen]);
   const [recipientsOpen, setRecipientsOpen] = useState(false);
   const auth = useOptionalAuth();
   const cache = useMemo(() => notificationCache(auth?.user?.id ?? 0), [auth?.user?.id]);
@@ -172,17 +179,20 @@ const AdminNotificationCenter = () => {
         No fue posible cargar los mensajes.
         <ActionButton type="button" onClick={() => loadSent()}>Reintentar carga de mensajes</ActionButton>
       </div>}
-      <div className={`notification-messenger ${activeGroup ? "has-active-chat" : ""}`}>
-        <aside className="notification-contacts" aria-label="Conversaciones con apoderados">
+      <div className={`notification-messenger ${activeGroup ? "has-active-chat" : ""} ${contactsOpen ? "contacts-open" : ""}`}
+        onKeyDown={event => { if (event.key === "Escape" && contactsOpen) { event.stopPropagation(); closeContacts(); } }}>
+        {contactsOpen && <button type="button" className="notification-contacts-backdrop"
+          aria-label="Cerrar contactos" onClick={closeContacts} />}
+        <aside id="notification-contacts" className="notification-contacts" aria-label="Conversaciones con apoderados">
           <header><h3>Mensajes</h3><span>{sentByRecipient.length}</span></header>
-          <label className="notification-contact-search"><span>Buscar conversación</span>
-            <input type="search" value={contactSearch} placeholder="Nombre o correo"
+          <label className="notification-contact-search"><FiSearch aria-hidden="true" />
+            <input ref={contactsSearch} type="search" value={contactSearch} placeholder="Buscar contacto…" aria-label="Buscar contacto"
               onChange={event => setContactSearch(event.target.value)} /></label>
           <div className="notification-contact-list">
             {visibleContacts.map(group => <button type="button" key={group.userId}
               className={`notification-contact ${activeGroup?.userId === group.userId ? "is-selected" : ""}`}
               aria-pressed={activeGroup?.userId === group.userId}
-              onClick={() => { setSelectedContactId(group.userId); cache.selection.contactId = group.userId; }}>
+              onClick={() => { setSelectedContactId(group.userId); cache.selection.contactId = group.userId; closeContacts(); }}>
               <UserAvatar className="notification-contact__avatar" fallbackName={group.name}
                 user={{ nombre: group.name, profileImageType: group.profileImageType, profileImageUrl: group.profileImageUrl }}
                 customImageUserId={group.userId} />
@@ -197,11 +207,13 @@ const AdminNotificationCenter = () => {
         <section className="notification-chat-panel" aria-label="Conversación seleccionada">
           {activeGroup ? <>
             <header className="notification-chat-header">
-              <button type="button" className="notification-chat-back" onClick={() => { setSelectedContactId(undefined); cache.selection.contactId = undefined; }}>Contactos</button>
+              <button ref={contactsTrigger} type="button" className="notification-chat-back"
+                aria-expanded={contactsOpen} aria-controls="notification-contacts"
+                onClick={() => setContactsOpen(value => !value)}><FiUsers aria-hidden="true" />Contactos</button>
               <UserAvatar fallbackName={activeGroup.name}
                 user={{ nombre: activeGroup.name, profileImageType: activeGroup.profileImageType, profileImageUrl: activeGroup.profileImageUrl }}
                 customImageUserId={activeGroup.userId} />
-              <div><strong>Conversación con {activeGroup.name}</strong><small>Apoderado · {activeGroup.email}</small></div>
+              <div><strong title={activeGroup.name}>{activeGroup.name}</strong><small title={activeGroup.email}>{activeGroup.email}</small></div>
             </header>
             <NotificationConversation key={activeGroup.userId}
               deliveryId={activeGroup.messages[activeGroup.messages.length - 1].deliveryId}

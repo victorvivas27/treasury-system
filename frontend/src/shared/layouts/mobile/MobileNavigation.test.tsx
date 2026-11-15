@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 afterEach(() => { document.body.classList.remove("has-mobile-navigation"); });
 const renderMenu = () => render(<BrowserRouter><MobileNavigation /></BrowserRouter>);
-const openMenu = () => fireEvent.click(screen.getByRole("button", { name: "Más" }));
+const openMenu = () => fireEvent.click(screen.getByRole("button", { name: "Menú" }));
 const back = async () => { act(() => window.history.back()); await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument()); };
 
 it("keeps desktop and unauthenticated screens free of mobile navigation", () => {
@@ -36,13 +36,29 @@ it("keeps desktop and unauthenticated screens free of mobile navigation", () => 
 it("shows user destinations without administrative links and closes on browser Back", async () => {
   renderMenu(); openMenu();
   expect(screen.getByRole("dialog", { name: "Explorar" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Pagos" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Fondos por actividad" })).toHaveAttribute("href", "/tesoreria/fondos-por-actividad");
+  expect(screen.queryByRole("link", { name: "Pagos" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Fondos por actividad" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Cuotas" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
   expect(document.body.style.overflow).toBe("hidden");
   await back();
   expect(document.body.style.overflow).not.toBe("hidden");
+});
+it("opens treasury destinations directly and restores focus on Back", async () => {
+  renderMenu();
+  const treasury = screen.getByRole("button", { name: "Tesorería" });
+  fireEvent.click(treasury);
+  expect(screen.getByRole("dialog", { name: "Tesorería" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Pagos" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Fondos por actividad" })).toHaveAttribute("href", "/tesoreria/fondos-por-actividad");
+  expect(screen.queryByRole("link", { name: "Cuotas" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Mi perfil" })).not.toBeInTheDocument();
+  await back();
+  expect(treasury).toHaveFocus();
+  openMenu();
+  expect(screen.getByRole("dialog", { name: "Explorar" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Mi perfil" })).toBeInTheDocument();
+  await back();
 });
 it("navigates to profile with one click and removes the sheet history entry", async () => {
   renderMenu(); openMenu(); fireEvent.click(screen.getByRole("link", { name: "Mi perfil" }));
@@ -53,7 +69,7 @@ it("navigates to profile with one click and removes the sheet history entry", as
 it("shows admin destinations but keeps architecture restricted", async () => {
   state.role = "ADMIN"; renderMenu(); openMenu();
   expect(screen.getByRole("link", { name: "Usuarios" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Cuotas" })).toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Cuotas" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Administraciones" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Arquitectura del sistema" })).not.toBeInTheDocument();
   await back();
