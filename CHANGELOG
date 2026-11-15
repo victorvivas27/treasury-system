@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.56.0](https://github.com/victorvivas27/treasury-system/compare/v1.55.0...v1.56.0) (2026-11-15)
+
+
+### Features
+
+* **notificacion:** mejorar gestión de contactos y navegación en el panel de notificaciones ([72fdeb6](https://github.com/victorvivas27/treasury-system/commit/72fdeb6b26ad162c55e5e6d0abbe9474b45755e6))
+* **notificacion:** mejorar gestión de contactos y navegación en el panel de notificaciones ([8951fb9](https://github.com/victorvivas27/treasury-system/commit/8951fb96b17d968ac372080240157499ef99a7fc))
+
 ## [1.55.0](https://github.com/victorvivas27/treasury-system/compare/v1.54.0...v1.55.0) (2026-11-13)
 
 
