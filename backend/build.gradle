@@ -42,7 +42,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine'
-    implementation platform('com.google.cloud:libraries-bom:26.92.0')
+    implementation platform('com.google.cloud:libraries-bom:26.93.0')
     implementation 'com.google.cloud:google-cloud-storage'
 
     // WEB PUSH
@@ -52,7 +52,7 @@ dependencies {
     }
     implementation 'org.apache.httpcomponents:httpasyncclient:4.1.5'
     implementation 'org.bitbucket.b_c:jose4j:0.9.7'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.86'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.87'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
