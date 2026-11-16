@@ -270,6 +270,8 @@ class SA05SessionSecurityIntegrationTest {
 
     private UserEntity account(RoleEnum role, Long organization, String email) {
         var entity = new UserEntity();
+        entity.setTermsVersion(com.tesoreria.user.application.usecase.AuthService.CURRENT_TERMS_VERSION);
+        entity.setTermsAcceptedAt(java.time.Instant.now());
         entity.setCode("USR-" + UUID.randomUUID().toString().substring(0, 8));
         entity.setNombre("PERSONA PRUEBA"); entity.setCorreo(email);
         entity.setPassword(encoder.encode(PASSWORD)); entity.setRol(role);
@@ -295,6 +297,7 @@ class SA05SessionSecurityIntegrationTest {
     private String loginPayload(UserEntity user) {
         var payload = new java.util.HashMap<String, Object>();
         payload.put("correo", user.getCorreo()); payload.put("password", PASSWORD);
+        payload.put("termsVersion", com.tesoreria.user.application.usecase.AuthService.CURRENT_TERMS_VERSION);
         if (user.getOrganizationId() != null) payload.put("organizationId", user.getOrganizationId());
         return json.writeValueAsString(payload);
     }

@@ -44,3 +44,36 @@
   background: transparent;
   box-shadow: none;
 }
+
+/* Compact phone layout: optional login steps take space only when needed. */
+.form-page-container.login-page {
+  position: relative;
+  isolation: isolate;
+  padding-block: 20px;
+  background-image: none;
+}
+.login-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(color-mix(in srgb, var(--color-bg) 62%, transparent), color-mix(in srgb, var(--color-bg) 62%, transparent)), var(--auth-mobile-image);
+  background-size: 100% 100%, contain;
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+}
+.login-page .login-page-header { margin-bottom: 16px; }
+.login-page .login-form { gap: 10px; }
+.login-page .login-form .login-field-group { padding-bottom: 20px; }
+.login-page .login-form .form-group.login-field-group--password { padding-bottom: 0; }
+.login-page .login-form .login-field-group--password > .error-message { top: 52px; bottom: auto; }
+.login-page .login-form .password-strength { padding-top: 38px; }
+.login-page .login-form .login-terms { padding-bottom: 36px; }
+.login-page .login-terms > .error-message { top: calc(100% - 30px); bottom: auto; }
+.login-page .login-terms:has(.login-terms-row[aria-hidden="true"]) { display: none; }
+.login-page .login-form .login-organization-slot { min-height: 0; }
+.login-page .login-organization-slot:empty,
+.login-page .login-server-slot:empty { display: none; }
+.login-page .login-form .login-organization-group { padding-bottom: 20px; }
+.login-page .login-form .login-server-slot { min-height: 0; }

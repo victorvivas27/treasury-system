@@ -62,22 +62,26 @@ describe("DashboardPage", () => {
     currentUser.rol = "ADMIN";
   });
 
-  it("permite ver todos los egresos, contraerlos y abrir los detalles del año seleccionado", async () => {
-    dashboardOverview.mockResolvedValue({ ...overview, expensesByDescription:
+  it("muestra todos los egresos por fecha sin numeración ni paginación", async () => {
+    dashboardOverview.mockResolvedValue({ ...overview, recentMovements:
+      Array.from({ length: 8 }, (_, index) => ({ id: index + 1, type: "EGRESO",
+        description: `Gasto de prueba ${index + 1}`, amount: 8000 - index * 100,
+        date: `2026-10-${String(index + 1).padStart(2, "0")}`, status: "ACTIVE" })), expensesByDescription:
       Array.from({ length: 8 }, (_, index) => ({ id: index + 1,
         description: `Gasto de prueba ${index + 1}`, category: "FOOD", amount: 8000 - index * 100 })) });
     contributionSummary.mockResolvedValue({ totalFamilies: 0 });
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
-    fireEvent.click(await screen.findByRole("button", { name: /Principales egresos/i }));
-    expect(screen.queryByText("Gasto de prueba 7")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Ver más" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Egresos", exact: true }));
+    expect(screen.getByText("Gasto de prueba 7")).toBeVisible();
     expect(screen.getByText("Gasto de prueba 8")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Ver menos" })).toHaveAttribute("aria-expanded", "true");
+    const list = screen.getByRole("list", { name: "Egresos por fecha" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(8);
+    expect(within(list).getAllByRole("listitem")[0]).toHaveTextContent("Gasto de prueba 8");
+    expect(within(list).getAllByRole("listitem")[7]).toHaveTextContent("Gasto de prueba 1");
+    expect(screen.queryByRole("navigation", { name: "Paginación de egresos" })).not.toBeInTheDocument();
     const selectedYear = screen.getByRole("button", { name: "Año escolar" }).textContent;
     expect(screen.getByRole("link", { name: "Más detalles" })).toHaveAttribute("href",
       `/tesoreria/gastos?year=${selectedYear}`);
-    fireEvent.click(screen.getByRole("button", { name: "Ver menos" }));
-    expect(screen.queryByText("Gasto de prueba 7")).not.toBeInTheDocument();
   });
 
   it("reutiliza el dashboard al salir y volver sin otro loader ni consultas repetidas", async () => {
@@ -107,13 +111,11 @@ describe("DashboardPage", () => {
     expect(container.querySelector("main")).not.toHaveAttribute("inert");
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
-    const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });
-    expect(activityToggle).toHaveAttribute("aria-expanded", "false");
+    const activityToggle = screen.getByRole("button", { name: "Movimientos", exact: true });
+    expect(activityToggle).not.toHaveAttribute("aria-expanded");
     fireEvent.click(activityToggle);
-    fireEvent.click(screen.getByRole("button", { name: /^Cuota anual$/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Aportes del curso/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Principales egresos/i }));
     expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Rifa escolar")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "General", exact: true }));
     const selectedYear = screen.getByRole("button", { name: "Año escolar" }).textContent;
     expect(screen.getByRole("link", { name: "Ingresos totales" })).toHaveAttribute("href",
       `/tesoreria/ingresos?year=${selectedYear}`);
@@ -121,6 +123,7 @@ describe("DashboardPage", () => {
       `/tesoreria/gastos?year=${selectedYear}`);
     expect(screen.getByRole("link", { name: /^Ingresos\s*\$/ })).toHaveAttribute("href", `/tesoreria/ingresos?year=${selectedYear}`);
     expect(screen.getByRole("link", { name: /^Egresos\s*\$/ })).toHaveAttribute("href", `/tesoreria/gastos?year=${selectedYear}`);
+    fireEvent.click(screen.getByRole("button", { name: "Recaudación", exact: true }));
     const cepaCard = screen.getByRole("heading", { name: "Cuota CEPA" }).closest("article");
     const solidarityCard = screen.getByRole("heading",
       { name: "Fondo de Apoyo por Fallecimiento" }).closest("article");
@@ -130,8 +133,8 @@ describe("DashboardPage", () => {
     expect(cepaCard).toHaveTextContent("Pagadas3");
     expect(cepaCard).toHaveTextContent("Pendientes1");
     expect(cepaCard?.querySelector(".recharts-tooltip-wrapper")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Actividad reciente$/i }))
-      .toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Movimientos", exact: true })).not.toHaveAttribute("aria-expanded");
+    fireEvent.click(screen.getByRole("button", { name: "Movimientos", exact: true }));
     expect(screen.getByRole("link", { name: "Abrir" }))
       .toHaveAttribute("href", "/tesoreria/ingresos");
   });
@@ -147,26 +150,26 @@ describe("DashboardPage", () => {
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
     await waitFor(() => expect(screen.getByText("$240.000")).toBeInTheDocument());
-    const activityToggle = screen.getByRole("button", { name: /Actividad reciente/i });
-    expect(activityToggle).toHaveAttribute("aria-expanded", "false");
+    const activityToggle = screen.getByRole("button", { name: "Movimientos", exact: true });
+    expect(activityToggle).not.toHaveAttribute("aria-expanded");
     fireEvent.click(activityToggle);
-    fireEvent.click(screen.getByRole("button", { name: /^Cuota anual$/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Aportes del curso/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Principales egresos/i }));
     expect(screen.getByText("Actividad reciente")).toBeInTheDocument();
     expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Rifa escolar")).toBeInTheDocument();
     expect(screen.queryByText("Trazas de Tesorería")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Auditoría", exact: true })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Recaudación", exact: true }));
     expect(screen.getByRole("heading", { name: "Cuota anual" })).toBeInTheDocument();
     expect(screen.getByText("Cuota única")).toBeInTheDocument();
     expect(screen.getByText("Dos cuotas")).toBeInTheDocument();
     expect(screen.getByText("$140.000 de $210.000")).toBeInTheDocument();
     expect(screen.getByText("67% recaudado")).toBeInTheDocument();
     expect(screen.getByText("Pendiente: $70.000")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Principales egresos" })).toBeInTheDocument();
-    expect(screen.getByText("Colaciones reunión")).toBeInTheDocument();
-    expect(screen.queryByText("Alimentación")).not.toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Avance de recaudación" }))
       .toHaveAttribute("aria-valuenow", "67");
+    fireEvent.click(screen.getByRole("button", { name: "Egresos", exact: true }));
+    expect(screen.getByRole("heading", { name: "Egresos por fecha" })).toBeInTheDocument();
+    expect(screen.getByText("Colaciones reunión")).toBeInTheDocument();
+    expect(screen.queryByText("Alimentación")).not.toBeInTheDocument();
   });
 
   it("muestra al apoderado la composicion agregada del curso", async () => {
@@ -208,8 +211,8 @@ describe("DashboardPage", () => {
 
     render(<MemoryRouter><DashboardPage /></MemoryRouter>);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Actividad reciente/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: /Actividad reciente/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Movimientos", exact: true })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Movimientos", exact: true }));
     await waitFor(() => expect(within(screen.getByRole("list", { name: "Actividad reciente" })).getByText("Movimiento 1")).toBeInTheDocument());
     expect(within(screen.getByRole("list", { name: "Actividad reciente" })).queryByText("Movimiento 6")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Siguiente ▶" }));
@@ -241,29 +244,31 @@ describe("DashboardPage", () => {
 
     await waitFor(() => expect(screen.getByText("Traza 1")).toBeInTheDocument());
     expect(screen.queryByText("Traza 6")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Historial del sistema Trazas de Tesorería/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Auditoría", exact: true }));
     const pagination = screen.getByRole("navigation",
       { name: "Paginación de trazas de Tesorería" });
     fireEvent.click(within(pagination).getByRole("button", { name: "Siguiente ▶" }));
     expect(screen.getByText("Traza 6")).toBeInTheDocument();
     expect(screen.getByText("Página 2 de 2")).toBeInTheDocument();
   });
-  it("inicia los cinco paneles cerrados y permite abrirlos y cerrarlos", async () => {
+  it("cambia entre vistas sin desplegables de contenido", async () => {
     dashboardOverview.mockResolvedValue(overview);
     contributionSummary.mockResolvedValue({ totalFamilies: 0 });
-    render(<MemoryRouter><DashboardPage /></MemoryRouter>);
-    await waitFor(() => expect(screen.getByRole("button", { name: /Actividad reciente/i })).toBeInTheDocument());
-    for (const name of [/Actividad reciente/i, /Principales egresos/i, /Ganancias de eventos/i, /Aportes del curso/i, /^Cuota anual$/i]) {
-      const button = screen.getByRole("button", { name });
-      expect(button).toHaveAttribute("aria-expanded", "false");
-      const content = document.getElementById(button.getAttribute("aria-controls")!);
-      expect(content).toHaveAttribute("aria-hidden", "true");
+    const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+    await screen.findByRole("button", { name: "General", exact: true });
+    for (const [name, id] of [["General", "general"], ["Recaudación", "collection"],
+      ["Movimientos", "movements"], ["Egresos", "expenses"],
+      ["Eventos y curso", "course"], ["Auditoría", "audit"]]) {
+      const button = screen.getByRole("button", { name, exact: true });
       fireEvent.click(button);
-      expect(button).toHaveAttribute("aria-expanded", "true");
-      expect(content).toHaveAttribute("aria-hidden", "false");
-      fireEvent.click(button);
-      expect(content).toHaveAttribute("aria-hidden", "true");
+      expect(button).toHaveAttribute("aria-current", "page");
+      expect(container.querySelector(".business-dashboard")).toHaveAttribute("data-view", id);
     }
+    expect(container.querySelector(".dashboard-collapse-trigger")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Eventos y curso", exact: true }));
+    expect(screen.getByRole("heading", { name: "Ganancias de eventos" })).toBeVisible();
+    expect(screen.getByRole("article", { name: "Composición del curso" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Eventos", exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Curso", exact: true })).not.toBeInTheDocument();
   });
-
 });

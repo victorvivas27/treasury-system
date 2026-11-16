@@ -49,6 +49,11 @@ public class UserEntity {
     @Column(name = "invited_guardian_id")
     private Long invitedGuardianId;
 
+    @Column(name = "terms_version", length = 32)
+    private String termsVersion;
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
+
     @Column(name = "sessions_revoked_at")
     private Instant sessionsRevokedAt;
 
@@ -77,6 +82,11 @@ public class UserEntity {
 
     @Column(name = "backup_codes", columnDefinition = "TEXT")
     private String backupCodes;
+
+    public String getTermsVersion() { return termsVersion; }
+    public void setTermsVersion(String value) { termsVersion = value; }
+    public Instant getTermsAcceptedAt() { return termsAcceptedAt; }
+    public void setTermsAcceptedAt(Instant value) { termsAcceptedAt = value; }
 
     public Instant getSessionsRevokedAt() {
         return sessionsRevokedAt;

@@ -28,6 +28,11 @@ public class JpaUserRepositoryAdapter implements UserRepositoryOutPort {
     }
 
     @Override
+    public void recordTermsAcceptance(Long userId, String version, java.time.Instant acceptedAt) {
+        repository.recordTermsAcceptance(userId, version, acceptedAt);
+    }
+
+    @Override
     public User save(User user) {
         return mapper.toDomain(repository.save(mapper.toEntity(user)));
     }

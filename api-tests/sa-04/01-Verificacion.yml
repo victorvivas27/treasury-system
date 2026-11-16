@@ -9,7 +9,7 @@ http:
   body:
     type: json
     data: |-
-      {"correo":"{{Admin_Email}}","password":"{{Admin_Password}}"}
+      {"correo":"{{Admin_Email}}","password":"{{Admin_Password}}","termsVersion":"2026-11-16"}
 
 runtime:
   scripts:
@@ -38,7 +38,7 @@ runtime:
           }
         }
         const login = await request('POST', '/auth/login', null, {
-          correo: bru.getEnvVar('User_Email'), password: bru.getEnvVar('User_Password')
+          correo: bru.getEnvVar('User_Email'), password: bru.getEnvVar('User_Password'), termsVersion: '2026-11-16'
         });
         test('Login USER', () => {
           expect(login.status).to.equal(200);

@@ -9,6 +9,7 @@ import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { useAuth } from "@/presentation/context/AuthContext";
 import { useDashboardResource } from "@/presentation/pages/dashboard/dashboardCache";
 import { clearProfileCache, getProfileResource } from "./profileCache";
+import { LegalDocumentDialog } from "@/presentation/pages/auth/LegalDocumentDialog";
 
 import { UserAvatar } from "@/shared/ui/user-avatar/UserAvatar";
 import { profileAvatars } from "virtual:avatar-catalog";
@@ -77,6 +78,7 @@ export const ProfilePage = () => {
   const { user, syncUser, logout } = useAuth();
   const navigate = useNavigate();
   const [editingName, setEditingName] = useState(false);
+  const [legalDocument, setLegalDocument] = useState<"terms" | "privacy" | null>(null);
   const editModalRef = useRef<HTMLElement>(null);
   const [nameInput, setNameInput] = useState(user?.nombre ?? "");
   const [nameError, setNameError] = useState("");
@@ -458,6 +460,15 @@ export const ProfilePage = () => {
         </>}
       </section>}
     </article>
+
+    <section className="profile-legal-documents" aria-labelledby="profile-legal-title">
+      <h2 id="profile-legal-title">Documentos legales</h2>
+      <nav aria-label="Documentos legales">
+        <a href="#terminos" onClick={event => { event.preventDefault(); setLegalDocument("terms"); }}>Términos y condiciones</a>
+        <a href="#privacidad" onClick={event => { event.preventDefault(); setLegalDocument("privacy"); }}>Política de privacidad</a>
+      </nav>
+    </section>
+    {legalDocument && <LegalDocumentDialog document={legalDocument} onClose={() => setLegalDocument(null)} />}
 
     {editingName && <div className="profile-edit-backdrop" role="presentation"
       onMouseDown={event => { if (event.target === event.currentTarget) cancelNameEdit(); }}>

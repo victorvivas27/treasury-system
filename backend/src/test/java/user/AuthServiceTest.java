@@ -62,7 +62,7 @@ class AuthServiceTest {
         when(detailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(details)).thenReturn("jwt");
 
-        AuthService.LoginResult result = service.login("admin@mail.com", "Password1!", 4L);
+        AuthService.LoginResult result = service.login("admin@mail.com", "Password1!", 4L, AuthService.CURRENT_TERMS_VERSION);
 
         assertEquals("jwt", result.accessToken());
         assertEquals(7L, result.userId());
@@ -88,7 +88,7 @@ class AuthServiceTest {
         when(detailsService.loadUserById(7L)).thenReturn(details);
         when(detailsService.loadUserById(8L)).thenReturn(details);
 
-        AuthService.LoginResult result = service.login("admin@mail.com", "Password1!");
+        AuthService.LoginResult result = service.login("admin@mail.com", "Password1!", null, AuthService.CURRENT_TERMS_VERSION);
 
         assertEquals(2, result.organizationChoices().size());
         assertEquals(4L, result.organizationChoices().get(0).organizationId());
@@ -107,7 +107,7 @@ class AuthServiceTest {
         when(detailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.generateToken(details)).thenReturn("jwt");
 
-        AuthService.LoginResult result = service.login("admin@mail.com", "Password1!");
+        AuthService.LoginResult result = service.login("admin@mail.com", "Password1!", null, AuthService.CURRENT_TERMS_VERSION);
 
         assertEquals("jwt", result.accessToken());
         assertEquals(7L, result.userId());
@@ -118,6 +118,7 @@ class AuthServiceTest {
         when(jwtService.parseToken("old")).thenReturn(new JwtService.ParsedToken("admin@mail.com", new java.util.Date(), new java.util.Date(), 7L, 4L, null));
         when(detailsService.loadUserById(7L)).thenReturn(details);
         when(jwtService.isTokenValid("old", details)).thenReturn(true);
+        when(users.findById(7L)).thenReturn(Optional.of(domainUser(7L, 4L)));
         when(jwtService.generateToken(details)).thenReturn("new");
 
         assertEquals("new", service.refresh("old"));
@@ -132,11 +133,65 @@ class AuthServiceTest {
         assertThrows(DomainException.class, () -> service.refresh("old"));
     }
 
+    @Test
+    void previouslyAcceptedCurrentVersionAuthenticatesWithoutRepeatingAcceptance() {
+        var user = domainUser(7L, 4L);
+        var originalDate = user.getTermsAcceptedAt();
+        when(users.findByCorreoAndOrganizationId("admin@mail.com", 4L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Password1!", "$2a$hash")).thenReturn(true);
+        when(detailsService.loadUserById(7L)).thenReturn(details);
+        when(jwtService.generateToken(details)).thenReturn("jwt");
+        var result = service.login("admin@mail.com", "Password1!", 4L);
+        assertEquals("jwt", result.accessToken());
+        org.junit.jupiter.api.Assertions.assertFalse(result.termsAcceptanceRequired());
+        assertEquals(originalDate, user.getTermsAcceptedAt());
+        org.mockito.Mockito.verify(users, org.mockito.Mockito.never()).recordTermsAcceptance(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void oldDocumentVersionRequiresNewExplicitAcceptance() {
+        var user = domainUser(7L, 4L);
+        user.setTermsVersion("old");
+        when(users.findByCorreoAndOrganizationId("admin@mail.com", 4L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Password1!", "$2a$hash")).thenReturn(true);
+        when(detailsService.loadUserById(7L)).thenReturn(details);
+        var result = service.login("admin@mail.com", "Password1!", 4L);
+        org.junit.jupiter.api.Assertions.assertTrue(result.termsAcceptanceRequired());
+        org.junit.jupiter.api.Assertions.assertNull(result.accessToken());
+        org.mockito.Mockito.verifyNoInteractions(jwtService);
+        org.mockito.Mockito.verify(users, org.mockito.Mockito.never()).recordTermsAcceptance(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void firstLoginRequiresCurrentAcceptanceBeforeIssuingToken() {
+        var user = domainUser(7L, 4L);
+        user.setTermsVersion(null);
+        user.setTermsAcceptedAt(null);
+        when(users.findByCorreoAndOrganizationId("admin@mail.com", 4L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Password1!", "$2a$hash")).thenReturn(true);
+        when(detailsService.loadUserById(7L)).thenReturn(details);
+        var pending = service.login("admin@mail.com", "Password1!", 4L);
+        org.junit.jupiter.api.Assertions.assertTrue(pending.termsAcceptanceRequired());
+        org.junit.jupiter.api.Assertions.assertNull(pending.accessToken());
+        org.junit.jupiter.api.Assertions.assertTrue(service.login("admin@mail.com", "Password1!", 4L, "old").termsAcceptanceRequired());
+        org.mockito.Mockito.verifyNoInteractions(jwtService);
+        org.mockito.Mockito.verify(users, org.mockito.Mockito.never()).recordTermsAcceptance(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+        when(jwtService.generateToken(details)).thenReturn("jwt");
+        assertEquals("jwt", service.login("admin@mail.com", "Password1!", 4L, AuthService.CURRENT_TERMS_VERSION).accessToken());
+        verify(users).recordTermsAcceptance(org.mockito.ArgumentMatchers.eq(7L),
+                org.mockito.ArgumentMatchers.eq(AuthService.CURRENT_TERMS_VERSION), org.mockito.ArgumentMatchers.any());
+    }
+
     private com.tesoreria.user.core.model.User domainUser(Long id, Long organizationId) {
         var user = new com.tesoreria.user.core.model.User(
                 id, "USR-001", "Victor Vivas", "admin@mail.com", "$2a$hash",
                 RoleEnum.ADMIN, true, true, null, null);
         user.setOrganizationId(organizationId);
+        user.setTermsVersion(AuthService.CURRENT_TERMS_VERSION);
+        user.setTermsAcceptedAt(java.time.Instant.now());
         return user;
     }
 }

@@ -31,6 +31,11 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, Long> {
     @Query("select u.id from UserEntity u where u.correo = :correo order by u.id")
     List<Long> findSessionUserIdsByCorreo(String correo);
 
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("update UserEntity u set u.termsVersion = :version, u.termsAcceptedAt = :acceptedAt where u.id = :userId")
+    void recordTermsAcceptance(Long userId, String version, java.time.Instant acceptedAt);
+
     Optional<UserEntity> findByCode(String code);
     Optional<UserEntity> findByIdAndOrganizationId(Long id, Long organizationId);
     Optional<UserEntity> findByCodeAndOrganizationId(String code, Long organizationId);

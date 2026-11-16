@@ -56,6 +56,7 @@ public class AuthController {
     private final boolean refreshCookieSecure;
     private final String refreshCookieSameSite;
     private final String authCookiePath;
+    private static final String TOKEN_TYPE = "Bearer";
     private static final String REFRESH_COOKIE = "treasury_refresh";
     private static final String CSRF_COOKIE = "treasury_csrf";
     private static final String CSRF_HEADER = "X-CSRF-Token";
@@ -117,11 +118,16 @@ public class AuthController {
                 ? null : loginPerformance.start();
         try {
             long startedAt = LoginPerformanceProbe.now();
-            AuthService.LoginResult login = authService.login(
-                    request.correo(), request.password(), request.organizationId());
+            AuthService.LoginResult login = request.termsVersion() == null
+                    ? authService.login(request.correo(), request.password(), request.organizationId())
+                    : authService.login(request.correo(), request.password(), request.organizationId(), request.termsVersion());
             if (login.requiresOrganizationSelection()) {
                 return ResponseEntity.ok(new LoginResponseDTO(
-                        null, "Bearer", 0, null, null, true, loginOrganizationOptions(login)));
+                        null, TOKEN_TYPE, 0, null, null, true, loginOrganizationOptions(login)));
+            }
+            if (login.termsAcceptanceRequired()) {
+                return ResponseEntity.ok(new LoginResponseDTO(null, TOKEN_TYPE, 0, null, null,
+                        false, List.of(), true, AuthService.CURRENT_TERMS_VERSION));
             }
             RefreshTokenService.IssuedTokens issued = refreshTokenService == null
                     ? new RefreshTokenService.IssuedTokens(login.accessToken(), null)
@@ -135,7 +141,7 @@ public class AuthController {
             addSessionCookies(response, issued);
             return response.body(new LoginResponseDTO(
                     issued.accessToken(),
-                    "Bearer",
+                    TOKEN_TYPE,
                     jwtService.getExpirationMs() / 1000,
                     issued.csrfToken(),
                     user));
@@ -275,7 +281,7 @@ public class AuthController {
         return response
                 .body(new LoginResponseDTO(
                 issued.accessToken(),
-                "Bearer",
+                TOKEN_TYPE,
                 jwtService.getExpirationMs() / 1000,
                 issued.csrfToken(),
                 mapper.toResponse(userService.findByIdForAuthentication(parsedToken.userId()))));

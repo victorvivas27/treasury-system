@@ -21,7 +21,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent 28%, color-mix(in srgb, var(--color-bg) 35%, transparent) 52%, color-mix(in srgb, var(--color-bg) 94%, transparent) 76%, var(--color-bg));
+  background: color-mix(in srgb, var(--color-bg) 62%, transparent);
 }
 .login-illustration img {
   display: block;

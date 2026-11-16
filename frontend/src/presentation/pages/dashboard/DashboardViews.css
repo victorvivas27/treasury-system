@@ -1,0 +1,157 @@
+.dashboard-views { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:12px; border-bottom:1px solid var(--border-color); }
+.dashboard-views button { padding:9px 12px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-muted); font:inherit; font-size:12px; cursor:pointer; }
+.dashboard-views button[aria-current] { border-bottom-color:var(--color-accent); color:var(--color-accent); font-weight:700; }
+.dashboard-views button:focus-visible { outline:2px solid var(--color-accent); outline-offset:-2px; }
+.dashboard-section-heading { display:flex; align-items:center; gap:10px; width:100%; }
+.business-dashboard .dashboard-panel > header { gap:10px; margin-bottom:12px; }
+.business-dashboard .dashboard-section-heading { min-height:28px; }
+.business-dashboard .dashboard-panel > header h2 { margin:0; font-size:14px; font-weight:650; line-height:1.3; }
+.business-dashboard .dashboard-panel-icon { width:28px; height:28px; }
+.annual-quota-overview__title { margin:0; color:var(--text-main); font-size:12px; font-weight:600; line-height:1.35; }
+.dashboard-section-content > div { min-width:0; }
+.dashboard-expense-ledger { display:grid; gap:0 24px; padding:0; margin:0; list-style:none; }
+.dashboard-expense-ledger li { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; padding:12px 0; border-bottom:1px solid var(--border-color); align-content:start; }
+.dashboard-expense-ledger time { grid-column:1/-1; color:var(--text-muted); font-size:11px; }
+.dashboard-expense-ledger strong { font-size:12px; font-weight:500; overflow-wrap:anywhere; }
+.dashboard-expense-ledger b { color:var(--color-error); font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.dashboard-collection-strip { grid-column:1/-1; display:flex; align-items:center; flex-wrap:wrap; gap:12px 24px; padding:12px 4px; border-top:1px solid var(--border-color); }
+.dashboard-collection-strip > div { display:grid; gap:4px; flex:1; }
+.dashboard-collection-strip span { color:var(--text-muted); font-size:11px; }
+.dashboard-collection-strip strong { font-size:16px; font-variant-numeric:tabular-nums; }
+.dashboard-collection-strip button { background:transparent; border:0; color:var(--color-accent); font:inherit; font-size:12px; cursor:pointer; padding:8px 0; }
+.business-dashboard .dashboard-chart-column { display:contents; }
+.business-dashboard:not([data-view="general"]) .dashboard-panel--cashflow,
+.business-dashboard:not([data-view="collection"]) .dashboard-panel--annual,
+.business-dashboard:not([data-view="collection"]) .dashboard-contributions,
+.business-dashboard:not([data-view="movements"]) .dashboard-activity,
+.business-dashboard:not([data-view="expenses"]) .dashboard-panel--distribution,
+.business-dashboard:not([data-view="course"]) .dashboard-panel--event-profits,
+.business-dashboard:not([data-view="course"]) .dashboard-summary-group--course,
+.business-dashboard:not([data-view="course"]) .dashboard-board-message,
+.business-dashboard:not([data-view="audit"]) .dashboard-audit { display:none; }
+.business-dashboard:not([data-view="general"]):not([data-view="collection"]) .dashboard-summary-group--money,
+.business-dashboard:not([data-view="general"]):not([data-view="collection"]) .dashboard-summary-group--fees { display:none; }
+.business-dashboard .dashboard-activity,
+.business-dashboard .dashboard-panel--distribution { grid-column:1/-1; }
+.business-dashboard .dashboard-summary-group .dashboard-kpi,
+.business-dashboard .dashboard-course-cards > article { background:transparent; border-radius:0; box-shadow:none; }
+.business-dashboard .dashboard-event-profit { background:transparent; border-radius:0; box-shadow:none; border:0; border-bottom:1px solid var(--border-color); }
+.business-dashboard .dashboard-summary-group--course { padding:14px; background:var(--color-surface); }
+.business-dashboard[data-view="course"] .dashboard-kpis { grid-template-columns:1fr; }
+.business-dashboard .dashboard-panel--annual { order:0; }
+.business-dashboard .annual-quota-donut > div:last-child,
+.business-dashboard .contribution-donut__chart > strong { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; line-height:1.1; }
+.business-dashboard .annual-quota-donut strong,
+.business-dashboard .contribution-donut__chart > strong { font-size:18px; }
+.business-dashboard .annual-quota-donut span,
+.business-dashboard .contribution-donut__chart > strong small { font-size:10px; line-height:1.2; }
+.business-dashboard[data-view="collection"] .dashboard-charts { align-items:stretch; }
+@media(min-width:1024px) {
+  .dashboard-expense-ledger { grid-template-columns:repeat(var(--expense-columns),minmax(0,1fr)); grid-template-rows:repeat(var(--expense-rows),auto); grid-auto-flow:column; }
+  body:has(.business-dashboard) { display:flow-root; }
+  #root:has(.business-dashboard) { min-height:calc(100dvh - 40px); }
+  .main-content:has(.business-dashboard) > .public-home__footer { display:none; }
+  .business-dashboard { padding-block:10px; }
+  .business-dashboard__header { margin-bottom:8px; }
+  .business-dashboard__header .dashboard-greeting__name { font-size:22px; }
+  .business-dashboard__header p { margin-top:2px; font-size:11px; }
+  .business-dashboard .dashboard-header-actions { align-items:center; }
+  .business-dashboard .dashboard-year-select { display:flex; align-items:center; width:auto; gap:8px; }
+  .business-dashboard .dashboard-year-select > button { min-height:32px; }
+  .business-dashboard .dashboard-suggestion-button,
+  .business-dashboard .dashboard-header-actions .base-button { min-height:32px; padding-block:5px; }
+  .business-dashboard .dashboard-kpis { margin-bottom:10px; gap:10px; }
+  .business-dashboard .dashboard-summary-group { padding:8px 14px; gap:3px 12px; }
+  .business-dashboard .dashboard-summary-group__heading { display:none; }
+  .business-dashboard .dashboard-kpi__value strong { font-size:22px; }
+  .business-dashboard .dashboard-charts { gap:10px; }
+  .business-dashboard .dashboard-panel { padding:12px 14px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow { padding-block:8px; }
+  .business-dashboard .dashboard-panel > header { margin-bottom:8px; }
+  .business-dashboard .dashboard-panel h2 { font-size:14px; }
+  .business-dashboard .dashboard-panel-icon { width:26px; height:26px; }
+  .business-dashboard .cashflow-summary { padding:2px 0; margin:0; }
+  .business-dashboard .cashflow-summary > span { padding:0; }
+  .business-dashboard .cashflow-summary-action { line-height:1.25; gap:4px; }
+  .business-dashboard .cashflow-summary strong { font-size:18px; line-height:1.25; }
+  .business-dashboard .flow-ribbon-legend { margin:3px 0; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-scroll { padding:4px 0; overflow:visible; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon { grid-template-rows:42px 36px 42px; row-gap:4px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-month { padding-bottom:0; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-entry { padding:4px 2px; margin-inline:2px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-entry--income { margin-bottom:6px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-entry--expense { margin-top:6px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-entry::after { height:10px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-total { margin-bottom:0; gap:3px; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-total strong { font-size:clamp(10px,calc(120px / var(--flow-month-count)),14px); }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-station { --flow-tip:8px; --flow-notch:6px; padding-inline:6px 8px; clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%,6px 50%); }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-month:first-child .flow-ribbon-station { clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%); }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-station h3 { font-size:clamp(10px,calc(120px / var(--flow-month-count)),14px); }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-station h3 small,
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-total small { font-size:9px; letter-spacing:0; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-month-button { min-height:36px; padding:2px 0; }
+  .business-dashboard[data-view] .dashboard-panel--cashflow .flow-ribbon-node { display:none; }
+  .business-dashboard .annual-quota-modalities { grid-template-columns:132px minmax(0,1fr); }
+  .business-dashboard .annual-quota-donut { width:132px; height:132px; }
+  .business-dashboard .contribution-donut__chart { width:132px; height:132px; }
+  .business-dashboard .annual-quota-donut > div:last-child,
+  .business-dashboard .contribution-donut__chart > strong { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; line-height:1.1; }
+  .business-dashboard .annual-quota-donut strong,
+  .business-dashboard .contribution-donut__chart > strong { font-size:24px; }
+  .business-dashboard .annual-quota-donut span,
+  .business-dashboard .contribution-donut__chart > strong small { font-size:11px; line-height:1.2; }
+  .business-dashboard[data-view="collection"] .dashboard-charts { grid-template-columns:1fr 1.2fr; align-items:stretch; }
+  .business-dashboard .contribution-donut h3 { min-height:0; }
+  .business-dashboard .contribution-donut { grid-template-columns:132px minmax(0,1fr); grid-template-rows:auto 132px; gap:6px 12px; }
+  .business-dashboard .contribution-donut h3 { grid-column:1/-1; grid-row:1; text-align:left; }
+  .business-dashboard .contribution-donut__chart { grid-column:1; grid-row:2; }
+  .business-dashboard .contribution-donut__details { grid-column:2; grid-row:2; }
+  .business-dashboard[data-view="collection"] :is(.dashboard-panel--annual,.dashboard-contributions) { display:flex; flex-direction:column; }
+  .business-dashboard[data-view="collection"] .dashboard-panel > header { min-height:28px; margin-bottom:12px; }
+  .business-dashboard[data-view="collection"] .dashboard-section-content { display:flex; flex:1; }
+  .business-dashboard[data-view="collection"] .dashboard-section-content > div { display:flex; flex:1; }
+  .business-dashboard .annual-quota-overview { flex:1; grid-template-rows:28px 132px auto; gap:8px; }
+  .business-dashboard .annual-quota-overview__title { display:flex; align-items:center; }
+  .business-dashboard .annual-quota-progress { align-self:end; min-height:68px; box-sizing:border-box; padding-top:10px; border-top:1px solid var(--border-color); }
+  .business-dashboard .annual-quota-progress > div:first-child { grid-template-columns:auto minmax(0,1fr); align-items:baseline; gap:8px; }
+  .business-dashboard .annual-quota-progress > div:first-child strong { text-align:right; overflow-wrap:anywhere; }
+  .business-dashboard .dashboard-contributions .contribution-donuts { flex:1; gap:20px; }
+  .business-dashboard .contribution-donut { grid-template-columns:minmax(0,1fr); grid-template-rows:28px 132px auto; align-items:start; gap:8px; }
+  .business-dashboard .contribution-donut h3 { display:flex; align-items:center; grid-column:1; min-height:28px; font-size:12px; font-weight:600; line-height:1.35; }
+  .business-dashboard .contribution-donut__chart { grid-column:1; grid-row:2; justify-self:center; }
+  .business-dashboard .contribution-donut__details { grid-column:1; grid-row:3; align-self:end; min-height:68px; box-sizing:border-box; padding-top:10px; border-top:1px solid var(--border-color); gap:8px; }
+  .business-dashboard .contribution-donut__metric strong { font-size:16px; line-height:1.2; }
+  .business-dashboard .dashboard-collection-strip { padding-block:8px; }
+  .business-dashboard .dashboard-movement-list li { padding-block:7px; }
+  .business-dashboard .dashboard-empty { min-height:60px; }
+  .business-dashboard .dashboard-audit { margin-top:0; }
+  .business-dashboard[data-view="course"] .dashboard-charts { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; }
+  .business-dashboard[data-view="course"] .dashboard-panel--event-profits,
+  .business-dashboard[data-view="course"] .dashboard-board-message { grid-column:auto; order:0; }
+  .business-dashboard[data-view="course"] .dashboard-board-message { padding:14px; gap:10px; }
+  .business-dashboard[data-view="course"] .dashboard-board-message h2 { font-size:18px; margin-bottom:8px; }
+  .business-dashboard[data-view="course"] .dashboard-board-message p { font-size:12px; line-height:1.45; }
+  .business-dashboard[data-view="course"] .dashboard-board-message footer { margin-top:10px; }
+  .business-dashboard[data-view="course"] .dashboard-event-profit { padding-block:6px; }
+  .business-dashboard[data-view="course"] .dashboard-event-profit__content > strong { font-size:18px; }
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole::before,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole::after,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole .dashboard-board-message__eyebrow,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole .dashboard-board-message__eyebrow svg,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole h2,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole p,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole footer,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole .dashboard-board-message__letter { opacity:1; transform:none; animation:none; transition:none; }
+}
+@media(max-width:680px) {
+  .business-dashboard .annual-quota-modalities,
+  .business-dashboard .contribution-donut { grid-template-columns:104px minmax(0,1fr); }
+  .business-dashboard .annual-quota-donut,
+  .business-dashboard .contribution-donut__chart { width:104px; height:104px; }
+  .dashboard-views { gap:0; }
+  .dashboard-views button { flex:1 0 auto; padding:10px 8px; }
+  .business-dashboard .dashboard-charts { grid-template-columns:1fr; }
+  .business-dashboard .dashboard-summary-group--course { display:grid; grid-template-columns:1fr; }
+  .business-dashboard .dashboard-course-cards { grid-template-columns:1fr; }
+}

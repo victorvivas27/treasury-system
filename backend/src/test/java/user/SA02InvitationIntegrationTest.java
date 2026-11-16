@@ -350,7 +350,7 @@ class SA02InvitationIntegrationTest {
         assertEquals(guardianA.getEmail(), activated.getCorreo());
         assertTrue(encoder.matches("Authorized1!", activated.getPassword()));
         var login = mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"correo\":\"" + activated.getCorreo() + "\",\"password\":\"Authorized1!\"}"))
+                .content("{\"correo\":\"" + activated.getCorreo() + "\",\"password\":\"Authorized1!\",\"termsVersion\":\"2026-11-16\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.token").isNotEmpty())
                 .andReturn();
         String accessToken = com.jayway.jsonpath.JsonPath.read(login.getResponse().getContentAsString(), "$.token");

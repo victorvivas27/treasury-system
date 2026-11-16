@@ -30,7 +30,7 @@ class PostgresInvitationIntegrationTest extends SA02InvitationIntegrationTest {
  }
  @Test void migrationIsIdempotentAndSecondStartupValidatesSchema() throws Exception {
   var flyway = org.flywaydb.core.Flyway.configure().dataSource(dataSource).load();
-  flyway.validate(); assertEquals("63", flyway.info().current().getVersion().getVersion());
+  flyway.validate(); assertEquals("66", flyway.info().current().getVersion().getVersion());
   assertEquals(0, flyway.migrate().migrationsExecuted);
   try (var connection = dataSource.getConnection()) {
    try (var tables = connection.getMetaData().getTables(null, "public", "guardian_email_deliveries", null)) {
@@ -43,7 +43,14 @@ class PostgresInvitationIntegrationTest extends SA02InvitationIntegrationTest {
     assertTrue(columns.next());
    }
   }
-  try (var connection = dataSource.getConnection()) { assertEquals("PostgreSQL", connection.getMetaData().getDatabaseProductName()); }
+  try (var connection = dataSource.getConnection()) {
+   for (String name : java.util.List.of("terms_version", "terms_accepted_at")) {
+    try (var columns = connection.getMetaData().getColumns(null, "public", "users", name)) {
+     assertTrue(columns.next());
+    }
+   }
+   assertEquals("PostgreSQL", connection.getMetaData().getDatabaseProductName());
+  }
   try (var restarted = new org.springframework.boot.builder.SpringApplicationBuilder(
    com.tesoreria.TesoreriaAppApplication.class).profiles("test").run(
     "--server.port=0", "--spring.config.import=",
@@ -54,7 +61,7 @@ class PostgresInvitationIntegrationTest extends SA02InvitationIntegrationTest {
     "--app.storage.gcs.enabled=false", "--MERCADO_PAGO_ACCESS_TOKEN=", "--MERCADO_PAGO_WEBHOOK_SECRET=",
     "--MERCADO_PAGO_ORGANIZATION_ID=0", "--MERCADO_PAGO_COLLECTOR_ID=", "--MERCADO_PAGO_RETURN_URL=", "--MERCADO_PAGO_WEBHOOK_URL=")) {
      assertTrue(restarted.isActive());
-     assertEquals("63", restarted.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
+     assertEquals("66", restarted.getBean(org.flywaydb.core.Flyway.class).info().current().getVersion().getVersion());
   }
  }
 }

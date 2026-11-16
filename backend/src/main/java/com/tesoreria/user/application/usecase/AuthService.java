@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class AuthService {
+    public static final String CURRENT_TERMS_VERSION = "2026-11-16";
+    private static final String BAD_CREDENTIALS = "bad";
     private static final int UNIQUE_ACCOUNT_COUNT = 1;
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
     private final UserRepositoryOutPort users;
@@ -43,6 +45,10 @@ public class AuthService {
     }
 
     public LoginResult login(String correo, String password, Long organizationId) {
+        return login(correo, password, organizationId, null);
+    }
+
+    public LoginResult login(String correo, String password, Long organizationId, String termsVersion) {
         rateLimiter.checkAllowed(correo);
         try {
             User user = authenticate(correo, password, organizationId);
@@ -50,6 +56,12 @@ public class AuthService {
             if (user == null) {
                 List<LoginOrganizationChoice> choices = organizationChoices(correo, password);
                 return new LoginResult(null, null, choices);
+            }
+            if (!CURRENT_TERMS_VERSION.equals(user.getTermsVersion()) || user.getTermsAcceptedAt() == null) {
+                if (!CURRENT_TERMS_VERSION.equals(termsVersion)) {
+                    return new LoginResult(null, user.getId(), List.of(), true);
+                }
+                users.recordTermsAcceptance(user.getId(), CURRENT_TERMS_VERSION, java.time.Instant.now());
             }
             UserDetails userDetails = userDetailsService.loadUserById(user.getId());
             if (LOGGER.isInfoEnabled()) {
@@ -83,15 +95,25 @@ public class AuthService {
                     UserErrorCode.INVALID_CREDENTIALS.getStatus(),
                     "Token inválido o expirado");
         }
+        requireCurrentTerms(users.findById(parsed.userId()).orElseThrow(() -> new BadCredentialsException(BAD_CREDENTIALS)));
         return jwtService.generateToken(userDetails);
     }
 
     public String issueTokenForVerifiedEmail(String correo) {
+        requireCurrentTerms(users.findByCorreo(correo).orElseThrow(() -> new BadCredentialsException(BAD_CREDENTIALS)));
         return jwtService.generateToken(userDetailsService.loadUserByUsername(correo));
     }
 
     public String issueTokenForUserId(Long userId) {
+        requireCurrentTerms(users.findById(userId).orElseThrow(() -> new BadCredentialsException(BAD_CREDENTIALS)));
         return jwtService.generateToken(userDetailsService.loadUserById(userId));
+    }
+
+    private void requireCurrentTerms(User user) {
+        if (!CURRENT_TERMS_VERSION.equals(user.getTermsVersion()) || user.getTermsAcceptedAt() == null) {
+            throw new DomainException("terms", org.springframework.http.HttpStatus.UNAUTHORIZED,
+                    "Acepta los documentos vigentes al iniciar login");
+        }
     }
 
     private User authenticate(String correo, String password, Long organizationId) {
@@ -102,16 +124,16 @@ public class AuthService {
                 return null;
             }
             return matchingUsers.stream().findFirst()
-                    .orElseThrow(() -> new BadCredentialsException("bad"));
+                    .orElseThrow(() -> new BadCredentialsException(BAD_CREDENTIALS));
         }
         Optional<User> scoped = users.findByCorreoAndOrganizationId(normalized, organizationId);
         if (scoped.isEmpty()) {
             passwordEncoder.matches(password, missingAccountHash);
-            throw new BadCredentialsException("bad");
+            throw new BadCredentialsException(BAD_CREDENTIALS);
         }
         User user = scoped.orElseThrow();
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException("bad");
+            throw new BadCredentialsException(BAD_CREDENTIALS);
         }
         ensureLoginAllowed(user);
         return user;
@@ -154,7 +176,11 @@ public class AuthService {
         return correo.charAt(0) + "***" + correo.substring(separator);
     }
 
-    public record LoginResult(String accessToken, Long userId, List<LoginOrganizationChoice> organizationChoices) {
+    public record LoginResult(String accessToken, Long userId, List<LoginOrganizationChoice> organizationChoices,
+            boolean termsAcceptanceRequired) {
+        public LoginResult(String accessToken, Long userId, List<LoginOrganizationChoice> organizationChoices) {
+            this(accessToken, userId, organizationChoices, false);
+        }
         public LoginResult(String accessToken, Long userId) {
             this(accessToken, userId, List.of());
         }

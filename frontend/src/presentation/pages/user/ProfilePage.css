@@ -1,4 +1,4 @@
-﻿@import "./ProfileEditor.css";
+@import "./ProfileEditor.css";
 @import "./ProfileMobile.css" screen and (max-width: 680px);
 @import "./ProfileDesktop.css" screen and (min-width: 1024px);
 
@@ -120,3 +120,8 @@
 .profile-edit-modal__identity strong { overflow-wrap:anywhere; }
 .profile-edit-form input { box-sizing:border-box; }
 @media (prefers-reduced-motion: reduce) { .profile-edit-backdrop, .profile-edit-modal { animation:none; } }
+.profile-legal-documents { width: min(100%, var(--content-max)); margin-inline: auto; padding-block: var(--space-3); }
+.profile-legal-documents h2 { margin: 0 0 var(--space-2); color: var(--text-main); font-size: var(--font-h2); }
+.profile-legal-documents nav { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.profile-legal-documents a { color: var(--color-accent); font-size: var(--font-small); text-decoration: underline; text-underline-offset: 3px; }
+.profile-legal-documents a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }

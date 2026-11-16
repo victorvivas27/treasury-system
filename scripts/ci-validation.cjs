@@ -15,7 +15,7 @@ function fingerprint(suite, listing) {
     const file = entry.slice(entry.indexOf('\t') + 1);
     if (file.startsWith('.github/') || file.startsWith('scripts/')) return true;
     if (!file.includes('/')) return true;
-    if (file.startsWith('frontend/')) return suite === 'frontend' || (suite === 'backend' &&
+    if (file.startsWith('frontend/')) return suite === 'frontend' || (['backend', 'bruno'].includes(suite) &&
       ['frontend/package.json', 'frontend/pnpm-lock.yaml', 'frontend/pnpm-workspace.yaml'].includes(file)) || (suite === 'versioning' &&
       (file === 'frontend/package.json' || file.startsWith('frontend/.commitlintrc')));
     if (file.startsWith('backend/')) return suite === 'backend' || suite === 'bruno' ||

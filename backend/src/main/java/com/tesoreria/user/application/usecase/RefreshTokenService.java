@@ -178,6 +178,10 @@ public class RefreshTokenService {
     }
 
     private UserDetails activeAccountDetails(UserEntity user) {
+        if (!AuthService.CURRENT_TERMS_VERSION.equals(user.getTermsVersion()) || user.getTermsAcceptedAt() == null) {
+            throw new DomainException("terms", org.springframework.http.HttpStatus.UNAUTHORIZED,
+                    "Debes aceptar los t\u00e9rminos vigentes al iniciar sesi\u00f3n");
+        }
         UserDetails details = userDetailsService.loadUserById(user.getId());
         if (!(details instanceof TenantUserDetails tenant)
                 || !Objects.equals(tenant.getUserId(), user.getId())

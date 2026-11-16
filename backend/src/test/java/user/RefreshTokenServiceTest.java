@@ -46,6 +46,8 @@ class RefreshTokenServiceTest {
         service = new RefreshTokenService(tokenRepository, userRepository, userDetailsService, jwtService, 3600);
         user = new UserEntity();
         user.setId(7L);
+        user.setTermsVersion(com.tesoreria.user.application.usecase.AuthService.CURRENT_TERMS_VERSION);
+        user.setTermsAcceptedAt(java.time.Instant.now());
         user.setCorreo("admin@mail.com");
         user.setOrganizationId(1L);
         user.setRol(RoleEnum.ADMIN);
@@ -53,6 +55,14 @@ class RefreshTokenServiceTest {
         lenient().when(tokenRepository.findSessionUserId(anyString(), eq(UserTokenType.REFRESH_TOKEN)))
                 .thenReturn(Optional.of(7L));
         lenient().when(userRepository.findByIdForSessionUpdate(7L)).thenReturn(Optional.of(user));
+    }
+
+    @Test
+    void missingCurrentAcceptancePreventsSessionIssuance() {
+        user.setTermsVersion("old");
+        assertThrows(DomainException.class, () -> service.issueForUserId(7L, null, null));
+        verifyNoInteractions(jwtService);
+        verify(tokenRepository, never()).save(any());
     }
 
     @Test

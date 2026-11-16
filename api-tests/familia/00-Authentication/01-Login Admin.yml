@@ -11,7 +11,8 @@ http:
     data: |-
       {
         "correo": "{{Admin_Email}}",
-        "password": "{{Admin_Password}}"
+        "password": "{{Admin_Password}}",
+        "termsVersion": "2026-11-16"
       }
 runtime:
   scripts:

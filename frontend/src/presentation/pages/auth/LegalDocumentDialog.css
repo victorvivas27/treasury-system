@@ -1,0 +1,9 @@
+.login-legal-overlay { position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 16px; background: var(--overlay); }
+.login-legal-document { display: flex; flex-direction: column; width: min(640px, 100%); max-height: calc(100dvh - 32px); padding: 20px; background: var(--color-surface); color: var(--text-main); box-sizing: border-box; }
+.login-legal-document header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+.login-legal-document h2 { margin: 0; font-size: 20px; }
+.login-legal-document header button { padding: 6px 10px; color: var(--color-accent); background: transparent; border: 1px solid currentColor; cursor: pointer; }
+.login-legal-content { overflow-y: auto; min-height: 0; padding-top: 8px; scrollbar-width: none; font-size: 14px; line-height: 1.6; }
+.login-legal-content::-webkit-scrollbar { display: none; }
+.login-legal-content h3 { margin: 20px 0 8px; font-size: 16px; }
+.login-legal-content p { margin: 10px 0; }

@@ -28,6 +28,9 @@ public class User {
     private LocalDateTime invitationAcceptedAt;
     private Long invitedGuardianId;
 
+    private String termsVersion;
+    private Instant termsAcceptedAt;
+
     private Instant sessionsRevokedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -91,6 +94,11 @@ public class User {
     private static DomainException error(UserErrorCode code, String message) {
         return new DomainException(code.getField(), code.getStatus(), message);
     }
+
+    public String getTermsVersion() { return termsVersion; }
+    public void setTermsVersion(String value) { termsVersion = value; }
+    public Instant getTermsAcceptedAt() { return termsAcceptedAt; }
+    public void setTermsAcceptedAt(Instant value) { termsAcceptedAt = value; }
 
     public Instant getSessionsRevokedAt() {
         return sessionsRevokedAt;

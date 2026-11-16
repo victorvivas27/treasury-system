@@ -120,6 +120,25 @@
   .he-index article { gap: 36px; }
   .he-access__copy { padding: 60px 48px 80px; margin-left: 44%; }
 }
+@media (min-width: 1024px) {
+  .he-hero {
+    min-height: calc(100svh - 56px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    justify-content: stretch;
+  }
+  .he-hero__art .he-photo {
+    object-fit: contain;
+    object-position: right center;
+    transform: none;
+  }
+  .he-hero__copy { align-self: center; padding-top: 24px; padding-bottom: 8px; }
+  .he-hero__copy h1 { margin-top: 14px; font-size: clamp(60px, 12svh, 108px); }
+  .home-editorial .he-hero__description { margin-top: 14px; font-size: 14px; line-height: 1.6; }
+  .he-hero__copy > .he-link { min-height: 44px; margin-top: 16px; padding-block: 8px; }
+  .he-hero__scroll { margin-top: 0; padding-block: 14px 20px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .home-editorial .he-hero__copy > :not(h1),
   .home-editorial .he-hero__copy h1 > * { opacity: 1; translate: none; filter: none; transition: none; }

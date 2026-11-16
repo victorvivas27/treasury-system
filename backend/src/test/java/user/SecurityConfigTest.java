@@ -48,6 +48,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class SecurityConfigTest {
     @Test
+    void galleryUploadsAllowBothAdministrativeRolesAndRejectMembers() throws Exception {
+        for (String email : List.of("admin@mail.com", "superadmin@mail.com")) {
+            mockMvc.perform(multipart("/api/v1/community/gallery")
+                    .header("Authorization", "Bearer " + tokenFor(email)))
+                    .andExpect(status().isBadRequest());
+        }
+        mockMvc.perform(multipart("/api/v1/community/gallery")
+                .header("Authorization", "Bearer " + tokenFor("user@mail.com")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void loaderSettingsAreSharedReadOnlyForUsersAndWritableOnlyByAdministrators() throws Exception {
         String base = "/api/v1/tesoreria/configuracion-general/loaders";
         String preference = "{\"variant\":\"nneo-rising-fill\",\"durationMs\":0,\"exitMs\":800,\"soundEnabled\":true}";

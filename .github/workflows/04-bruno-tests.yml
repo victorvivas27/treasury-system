@@ -12,12 +12,25 @@ on:
       ref:
         required: true
         type: string
+      force:
+        type: boolean
+        default: false
+    outputs:
+      artifact:
+        description: Fresh Bruno coverage and Allure evidence
+        value: ${{ jobs.api-tests.outputs.artifact }}
+      key:
+        description: Bruno input fingerprint
+        value: ${{ jobs.api-tests.outputs.key }}
   push:
     branches: [dev]
     paths:
       - "backend/**"
       - "api-tests/**"
       - ".github/workflows/04-bruno-tests.yml"
+      - "scripts/**"
+      - "frontend/package.json"
+      - "frontend/pnpm-lock.yaml"
 permissions:
   contents: read
   actions: read
@@ -30,6 +43,9 @@ jobs:
   api-tests:
     name: Run Bruno API suite
     runs-on: ubuntu-24.04
+    outputs:
+      artifact: ${{ steps.coverage.outputs.artifact-id }}
+      key: ${{ steps.validation.outputs.key }}
 
     env:
       DB_HOST: localhost
@@ -38,6 +54,10 @@ jobs:
       DB_USER: treasury_ci
       DB_PASSWORD: treasury_ci
       PORT: 5055
+      BRUNO_SEED_DATABASE: 'true'
+      BRUNO_TEST_JDBC_URL: jdbc:postgresql://127.0.0.1:5432/treasury_ci
+      BRUNO_TEST_DB_USER: treasury_ci
+      BRUNO_TEST_DB_PASSWORD: treasury_ci
 
     services:
       postgres:
@@ -66,6 +86,7 @@ jobs:
         uses: ./.github/actions/reuse-validation
         with:
           suite: bruno
+          force: ${{ inputs.force && 'true' || 'false' }}
 
       - name: Setup JDK 17
         if: steps.validation.outputs.reused != 'true'
@@ -92,13 +113,22 @@ jobs:
         working-directory: backend
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon bootJar
+          ./gradlew --no-daemon bootJar prepareBrunoAgent
+
+      - name: Install existing Allure dependencies
+        if: steps.validation.outputs.reused != 'true'
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify coverage and publication tooling
+        if: steps.validation.outputs.reused != 'true'
+        run: node --test scripts/bruno-auth.test.mjs scripts/bruno-coverage.test.mjs scripts/bruno-fixture.test.mjs scripts/bruno-report.integration.test.mjs scripts/allure-coverage.test.mjs scripts/assemble-allure.test.mjs
 
       - name: Start backend
         if: steps.validation.outputs.reused != 'true'
         working-directory: backend
         run: |
-          java -jar build/libs/*.jar > backend.log 2>&1 &
+          java -javaagent:build/bruno/jacocoagent.jar=output=tcpserver,address=127.0.0.1,port=6300,dumponexit=false,includes=com.tesoreria.* -jar build/libs/*.jar > backend.log 2>&1 &
           backend_pid=$!
           echo "$backend_pid" > backend.pid
 
@@ -124,19 +154,21 @@ jobs:
           echo "::error::El backend no estuvo disponible en 120 segundos (HTTP $status)."
           exit 1
 
-      - name: Prepare Bruno environment
-        if: steps.validation.outputs.reused != 'true'
-        run: |
-          mkdir -p api-tests/environments
-          cat > api-tests/environments/local.yml <<EOF
-          vars:
-            Url_Base: http://localhost:5055/tesoreria/api/v1
-          EOF
-
       - name: Run Bruno tests
         if: steps.validation.outputs.reused != 'true'
-        working-directory: api-tests
-        run: pnpm dlx @usebruno/cli run "./apoderado" --env local
+        env:
+          INPUT_FINGERPRINT: ${{ steps.validation.outputs.key }}
+        run: node scripts/run-bruno-allure.mjs
+
+      - name: Upload Bruno coverage and private Allure evidence
+        id: coverage
+        if: steps.validation.outputs.reused != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: bruno-coverage-${{ steps.validation.outputs.key }}
+          path: backend/build/bruno/ci-evidence
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Show backend logs
         if: failure() && steps.validation.outputs.reused != 'true'

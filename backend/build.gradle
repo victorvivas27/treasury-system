@@ -320,6 +320,49 @@ tasks.register('jacocoCombinedTestReport', JacocoReport) {
 }
 
 // No plugin or AspectJ agent is needed for basic Jupiter results.
+// Bruno instruments its own isolated server; unit/integration execution data stays untouched.
+tasks.register('prepareBrunoAgent', Copy) {
+    from { zipTree(configurations.jacocoAgent.singleFile) }
+    include 'jacocoagent.jar'
+    into layout.buildDirectory.dir('bruno')
+}
+['reset', 'dump'].each { operation ->
+    tasks.register("${operation}BrunoCoverage") {
+        doLast {
+            ant.taskdef(name: 'brunoDump', classname: 'org.jacoco.ant.DumpTask',
+                    classpath: configurations.jacocoAnt.asPath)
+            ant.brunoDump(address: '127.0.0.1', port: 6300, reset: true,
+                    dump: operation == 'dump', append: false,
+                    destfile: layout.buildDirectory.file('bruno/jacoco.exec').get().asFile)
+        }
+    }
+}
+tasks.register('jacocoBrunoReport', JacocoReport) {
+    dependsOn 'classes'
+    executionData layout.buildDirectory.file('bruno/jacoco.exec')
+    sourceDirectories.from sourceSets.main.allSource.srcDirs
+    classDirectories.from sourceSets.main.output.classesDirs.asFileTree.matching {
+        exclude '**/TesoreriaAppApplication.class', '**/*MapperImpl.class'
+    }
+    reports {
+        xml.required = true
+        html.required = true
+        xml.outputLocation = layout.buildDirectory.file('bruno/coverage-source/jacoco.xml')
+        html.outputLocation = layout.buildDirectory.dir('bruno/coverage-source/html')
+    }
+}
+tasks.register('brunoApiInventory', JavaExec) {
+    dependsOn 'testClasses'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'quality.BrunoApiInventory'
+    args layout.buildDirectory.file('bruno/operations.json').get().asFile.absolutePath
+}
+tasks.register('brunoSeedDatabase', JavaExec) {
+    dependsOn 'testClasses'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'quality.BrunoDatabaseFixture'
+}
+
 if (providers.gradleProperty('allureRunDir').isPresent() || providers.gradleProperty('allureSuite').isPresent()) {
     def suite = providers.gradleProperty('allureSuite').getOrElse('')
     def requestedRunDir = providers.gradleProperty('allureRunDir').getOrElse('')

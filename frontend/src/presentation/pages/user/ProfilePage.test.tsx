@@ -51,6 +51,29 @@ describe("ProfilePage", () => {
 
   const renderProfile = () => render(<MemoryRouter><ProfilePage /></MemoryRouter>);
 
+  it.each(["USER", "ADMIN", "SUPER_ADMIN"] as const)("permite consultar los documentos sin repetir aceptación como %s", async rol => {
+    const auth = vi.mocked(useAuth).getMockImplementation()!();
+    vi.mocked(useAuth).mockReturnValue({ ...auth, user: { ...auth.user!, rol } });
+    profile.mockResolvedValue({ ...baseProfile, familyId: null });
+    renderProfile();
+    const terms = screen.getByRole("link", { name: "Términos y condiciones" });
+    terms.focus();
+    fireEvent.click(terms);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleName("Términos y condiciones de uso");
+    expect(within(dialog).getByText("8. Aceptación")).toBeInTheDocument();
+    expect(within(dialog).queryByRole("checkbox")).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(terms).toHaveFocus();
+    fireEvent.click(screen.getByRole("link", { name: "Política de privacidad" }));
+    expect(screen.getByText(/Victor Javier Vivas/)).toBeInTheDocument();
+    expect(screen.getByText(/victorjaviervivas@gmail.com/)).toBeInTheDocument();
+    expect(screen.getByText(/16 de noviembre de 2026/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar documento" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await screen.findByText("Esta cuenta todavía no tiene una familia vinculada.");
+  });
+
   it("filtra los pagos por año y conserva los datos familiares", async () => {
     const previousYear = new Date().getFullYear() - 1;
     profile.mockImplementation(async (year: number) => year === previousYear

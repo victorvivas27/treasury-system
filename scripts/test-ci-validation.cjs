@@ -59,8 +59,8 @@ test('changes invalidate all affected suites, including deleted files and shared
     'frontend/src/App.tsx': ['frontend'],
     'backend/src/App.java': ['backend', 'bruno'],
     'api-tests/test.yml': ['bruno'],
-    'frontend/package.json': ['frontend', 'backend', 'versioning'],
-    'frontend/pnpm-workspace.yaml': ['frontend', 'backend'],
+    'frontend/package.json': ['frontend', 'backend', 'bruno', 'versioning'],
+    'frontend/pnpm-workspace.yaml': ['frontend', 'backend', 'bruno'],
     'docs/architecture/modules/01-auth-security/login.html': ['backend', 'bruno'],
     'backend/build.gradle': ['backend', 'bruno', 'versioning'],
     'frontend/.commitlintrc.cjs': ['frontend', 'versioning'],
@@ -135,7 +135,7 @@ test('validation artifacts retain diagnostics while only successful workflows ca
     const lookup = steps.findIndex(step => step.id === 'validation');
     assert.ok(lookup > 0);
     assert.equal(steps[lookup].with.suite, suite);
-    const upload = steps.find(step => step.uses === 'actions/upload-artifact@v7');
+    const upload = steps.find(step => step.uses === 'actions/upload-artifact@v7' && step.with.name.startsWith(`${suite}-validation-`));
     assert.equal(upload.if, ['frontend', 'backend'].includes(suite)
       ? "always() && steps.tests.outcome != 'skipped' && steps.validation.outputs.reused != 'true'"
       : "steps.validation.outputs.reused != 'true'");
@@ -175,7 +175,12 @@ test('private Allure publication is manual, uses attributed artifacts, and enfor
   const candidate = workflow('11-publish-allure.yml');
   assert.deepEqual(Object.keys(candidate.on), ['workflow_dispatch']);
   const steps = candidate.jobs.publish.steps;
-  assert.equal(steps.filter(step => step.uses === 'actions/download-artifact@v8').length, 2);
+  assert.equal(steps.filter(step => step.uses === 'actions/download-artifact@v8').length, 3);
+  assert.deepEqual(candidate.jobs.publish.needs, ['validation', 'bruno']);
+  assert.equal(candidate.jobs.bruno.uses, './.github/workflows/04-bruno-tests.yml');
+  assert.equal(candidate.jobs.bruno.with.force, true);
+  assert.equal(candidate.jobs.bruno.with.ref, '${{ needs.validation.outputs.sha }}');
+  assert.equal(steps.find(step => step.with?.path === 'evidence/bruno').with['artifact-ids'], '${{ needs.bruno.outputs.artifact }}');
   assert.ok(!steps.some(step => /gradlew|vitest|pnpm|npm install/.test(step.run ?? '')));
   assert.ok(steps.some(step => step.run?.includes('value(public_access_prevention)')));
   const upload = steps.find(step => step.name === 'Upload private HTML then update catalog');
@@ -194,7 +199,8 @@ test('release validation pins one commit, forces both suites and gates every dep
   }
   for (const file of ['07-deploy-backend.yml', '09-reports-pages.yml', '11-publish-allure.yml']) {
     const candidate = workflow(file);
-    const consumer = Object.values(candidate.jobs).find(job => job.needs === 'validation');
+    const consumer = Object.values(candidate.jobs).find(job => job.steps &&
+      (job.needs === 'validation' || job.needs?.includes('validation')));
     assert.ok(consumer, file);
     assert.equal(candidate.jobs.validation.uses, './.github/workflows/12-release-validation.yml');
     const checkout = consumer.steps.find(step => step.uses === 'actions/checkout@v7');

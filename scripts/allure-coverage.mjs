@@ -42,14 +42,15 @@ function filesUnder(dir, prefix = '') {
   }).sort();
 }
 
-export function captureCoverage(runDir, record, sourceDir, sourceFile, application) {
+export function captureCoverage(runDir, record, sourceDir, sourceFile, application, additionalMetrics = {}) {
   try {
     if (record.runnerExitCode !== 0) throw new Error('Runner failed; coverage is not certified');
     if (statSync(path.join(sourceDir, sourceFile)).mtimeMs < Date.parse(record.startedAt)) {
       throw new Error('Coverage predates this execution');
     }
     filesUnder(sourceDir); // Reject redirected input before copying anything.
-    const metrics = parseCoverage(readFileSync(path.join(sourceDir, sourceFile), 'utf8'), application);
+    const metrics = { ...parseCoverage(readFileSync(path.join(sourceDir, sourceFile), 'utf8'), application),
+      ...Object.fromEntries(Object.entries(additionalMetrics).map(([name, value]) => [name, metric(value.covered, value.total)])) };
     const dir = path.join(runDir, 'coverage');
     mkdirSync(dir); // Each snapshot is captured once, immediately after its runner.
     cpSync(sourceDir, path.join(dir, 'detail'), { recursive: true, errorOnExist: true, force: false });
@@ -61,12 +62,13 @@ export function captureCoverage(runDir, record, sourceDir, sourceFile, applicati
         ? 'TypeScript ejecutable de frontend/src, con include/exclude vigentes de vite.config.ts.'
         : record.suite === 'combined'
           ? 'Clases del reporte histórico jacocoTestReport, con sus exclusiones vigentes de build.gradle.'
-          : 'Clases principales backend, excluyendo arranque y *MapperImpl en los reportes separados.',
+          : 'Clases principales backend, excluyendo arranque y *MapperImpl en los reportes separados.' +
+            (record.suite === 'bruno' ? ' Operaciones API: pares método/ruta declarados en todos los RestController; solo cuentan solicitudes Bruno con comprobaciones aprobadas. Colección ejecutada: Apoderado. No mide escenarios ni exhaustividad de validaciones.' : ''),
       configurationHash: record.coverageConfigurationHash,
       metrics,
     };
     writeJson(path.join(dir, 'coverage-summary.json'), summary);
-    const labels = { lines: 'Líneas', branches: 'Ramas', functions: 'Funciones', methods: 'Métodos' };
+    const labels = { lines: 'Líneas', branches: 'Ramas', functions: 'Funciones', methods: 'Métodos', endpoints: 'Operaciones API (método/ruta)' };
     const markdown = `# Cobertura de código — ${application} ${record.suite}\n\n` +
       `Alcance de ejecución: **${record.scope}**. Motor: ${summary.tool}.\n\n` +
       '| Métrica | Cobertura | Cubiertas / incluidas |\n|---|---:|---:|\n' +
