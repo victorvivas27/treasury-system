@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.57.0](https://github.com/victorvivas27/treasury-system/compare/v1.56.0...v1.57.0) (2026-11-16)
+
+
+### Features
+
+* improve dashboard, auth, privacy, and reporting ([7f0db0c](https://github.com/victorvivas27/treasury-system/commit/7f0db0c4f72f3f9dc17e1327cbbb8302b45f1dc2))
+
+
+### Bug Fixes
+
+* **ci:** authenticate before Bruno API collection ([65e355a](https://github.com/victorvivas27/treasury-system/commit/65e355a0353385dca253812d26de90d49a9ae914))
+
 ## [1.56.0](https://github.com/victorvivas27/treasury-system/compare/v1.55.0...v1.56.0) (2026-11-15)
 
 
