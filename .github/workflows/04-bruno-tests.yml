@@ -122,7 +122,7 @@ jobs:
 
       - name: Verify coverage and publication tooling
         if: steps.validation.outputs.reused != 'true'
-        run: node --test scripts/bruno-coverage.test.mjs scripts/bruno-fixture.test.mjs scripts/bruno-report.integration.test.mjs scripts/allure-coverage.test.mjs scripts/assemble-allure.test.mjs
+        run: node --test scripts/bruno-auth.test.mjs scripts/bruno-coverage.test.mjs scripts/bruno-fixture.test.mjs scripts/bruno-report.integration.test.mjs scripts/allure-coverage.test.mjs scripts/assemble-allure.test.mjs
 
       - name: Start backend
         if: steps.validation.outputs.reused != 'true'

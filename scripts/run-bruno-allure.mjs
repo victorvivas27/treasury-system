@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { apiCoverage, allureRequests, brunoResults } from './bruno-coverage.mjs';
+import { authenticateBrunoAdmin, extractTermsVersion } from './bruno-auth.mjs';
 import { brunoFixtureSettings, brunoRequestFixtures } from './bruno-fixture.mjs';
 import { captureCoverage, configurationHash, coverageAttachments, prepareCoverageReport } from './allure-coverage.mjs';
 
@@ -53,6 +54,12 @@ async function main() {
     const credentials = seeded ?? { adminToken: process.env.BRUNO_ADMIN_TOKEN,
       Admin_Email: process.env.BRUNO_ADMIN_EMAIL, Admin_Password: process.env.BRUNO_ADMIN_PASSWORD };
     if (!credentials.Admin_Email || !credentials.Admin_Password) throw new Error('Provide BRUNO_ADMIN_EMAIL/PASSWORD for the isolated test backend, or enable BRUNO_SEED_DATABASE on an empty disposable database');
+    // Bruno currently runs this collection's 00-Authentication folder after dependent requests.
+    // Seed the bearer token first so API coverage does not depend on folder traversal order.
+    if (!credentials.adminToken) {
+      const authService = readFileSync(path.join(root, 'backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java'), 'utf8');
+      credentials.adminToken = await authenticateBrunoAdmin(baseUrl, credentials, extractTermsVersion(authService));
+    }
     mkdirSync(path.dirname(environmentFile), { recursive: true });
     write(environmentFile, { name: environmentName, variables: Object.entries({ Url_Base: baseUrl, ...brunoRequestFixtures, ...credentials })
       .filter(([, value]) => value !== undefined).map(([name, value]) => ({ name, value, type: 'text', enabled: true })) });
