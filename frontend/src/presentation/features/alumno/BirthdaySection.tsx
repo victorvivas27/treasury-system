@@ -1,7 +1,11 @@
-import { lockBodyScroll } from "@/shared/ui/dialog/scrollLock";
 import type { Alumno } from "@/core/A-domain/entities/alumno/Alumno";
-import { useEffect, useRef, useState } from "react";
-import { FiCalendar, FiGift, FiStar } from "react-icons/fi";
+import { FiGift, FiStar } from "react-icons/fi";
+import {
+  TbBalloon, TbBow, TbBuildingCarousel, TbCake, TbCakeRoll, TbCandle, TbCandy,
+  TbConfetti, TbCookie, TbCrown, TbDeviceGamepad2, TbGift, TbGiftCard,
+  TbHorseToy, TbIceCream, TbIceCream2, TbLego, TbLollipop, TbMilkshake,
+  TbMusic, TbPuzzle, TbRobot, TbSparkles, TbStars,
+} from "react-icons/tb";
 import "./style/BirthdaySection.css";
 
 interface BirthdaySectionProps {
@@ -12,13 +16,37 @@ interface BirthdaySectionProps {
 
 interface BirthdayStudent {
   alumno: Alumno;
-  age: number;
   daysUntil: number;
-  dateLabel: string;
   nextBirthday: Date;
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const CELEBRATION_ICONS = [
+  { name: "cake", Icon: TbCake },
+  { name: "balloon", Icon: TbBalloon },
+  { name: "gift", Icon: TbGift },
+  { name: "confetti", Icon: TbConfetti },
+  { name: "candle", Icon: TbCandle },
+  { name: "candy", Icon: TbCandy },
+  { name: "lollipop", Icon: TbLollipop },
+  { name: "crown", Icon: TbCrown },
+  { name: "stars", Icon: TbStars },
+  { name: "cake-roll", Icon: TbCakeRoll },
+  { name: "ice-cream", Icon: TbIceCream },
+  { name: "ice-cream-bowl", Icon: TbIceCream2 },
+  { name: "cookie", Icon: TbCookie },
+  { name: "milkshake", Icon: TbMilkshake },
+  { name: "gift-card", Icon: TbGiftCard },
+  { name: "bow", Icon: TbBow },
+  { name: "toy-brick", Icon: TbLego },
+  { name: "toy-horse", Icon: TbHorseToy },
+  { name: "puzzle", Icon: TbPuzzle },
+  { name: "gamepad", Icon: TbDeviceGamepad2 },
+  { name: "robot", Icon: TbRobot },
+  { name: "carousel", Icon: TbBuildingCarousel },
+  { name: "music", Icon: TbMusic },
+  { name: "sparkles", Icon: TbSparkles },
+] as const;
 
 const parseBirthDate = (value?: string | null) => {
   if (!value) return null;
@@ -41,12 +69,8 @@ const getBirthdayInfo = (alumno: Alumno, today: Date): BirthdayStudent | null =>
     nextBirthday = new Date(currentDay.getFullYear() + 1, birthDate.month - 1, birthDate.day);
   }
 
-  const birthdayThisYear = new Date(currentDay.getFullYear(), birthDate.month - 1, birthDate.day);
-  const age = currentDay.getFullYear() - birthDate.year - (birthdayThisYear > currentDay ? 1 : 0);
   const daysUntil = Math.round((nextBirthday.getTime() - currentDay.getTime()) / MS_PER_DAY);
-  const dateLabel = nextBirthday.toLocaleDateString("es-CL", { day: "2-digit", month: "short" });
-
-  return { alumno, age, daysUntil, dateLabel, nextBirthday };
+  return { alumno, daysUntil, nextBirthday };
 };
 
 const getCountdownLabel = (daysUntil: number) => {
@@ -61,26 +85,19 @@ const getTone = (daysUntil: number, index: number) => {
 };
 
 export const BirthdaySection = ({ alumnos, today = new Date(), maxItems = 8 }: BirthdaySectionProps) => {
-  const [selectedBirthday, setSelectedBirthday] = useState<BirthdayStudent | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    if (!selectedBirthday) return;
-    const dialog = dialogRef.current;
-    const previousFocus = document.activeElement;
-    const unlockScroll = lockBodyScroll();
-    dialog?.showModal();
-    return () => {
-      dialog?.close();
-      unlockScroll();
-      if (previousFocus instanceof HTMLElement) previousFocus.focus();
-    };
-  }, [selectedBirthday]);
   const orderedBirthdays = alumnos
     .filter((alumno) => alumno.activo !== false)
     .map((alumno) => getBirthdayInfo(alumno, today))
     .filter((birthday): birthday is BirthdayStudent => Boolean(birthday))
     .sort((a, b) => a.daysUntil - b.daysUntil || a.alumno.nombre.localeCompare(b.alumno.nombre));
   const birthdays = maxItems > 0 ? orderedBirthdays.slice(0, maxItems) : orderedBirthdays;
+  // Identity order keeps decorations stable when the source or birthday order changes.
+  // Each complete round uses the entire collection before repeating an icon.
+  const iconsByStudent = new Map([...birthdays]
+    .sort((a, b) => String(a.alumno.codigo ?? a.alumno.alumnoId)
+      .localeCompare(String(b.alumno.codigo ?? b.alumno.alumnoId), "es", { numeric: true }))
+    .map((birthday, index) => [birthday.alumno.codigo ?? birthday.alumno.alumnoId,
+      CELEBRATION_ICONS[index % CELEBRATION_ICONS.length]] as const));
 
   return (
     <section className="birthday-section" aria-labelledby="birthday-section-title">
@@ -94,27 +111,29 @@ export const BirthdaySection = ({ alumnos, today = new Date(), maxItems = 8 }: B
       {birthdays.length > 0 ? (
         <div className="birthday-section__grid">
           {birthdays.map((birthday, index) => {
-            const { alumno, age, daysUntil, dateLabel } = birthday;
+            const { alumno, daysUntil, nextBirthday } = birthday;
             const tone = getTone(daysUntil, index);
+            const { Icon, name } = iconsByStudent.get(alumno.codigo ?? alumno.alumnoId) ?? CELEBRATION_ICONS[0];
             return (
               <article
                 className={`birthday-card is-${tone} ${index === 0 ? "is-next" : ""}`}
                 key={alumno.codigo ?? alumno.alumnoId}
               >
-                <div className="birthday-card__icon">
-                  {tone === "today" || index === 0 ? <FiStar aria-hidden="true" /> : <FiCalendar aria-hidden="true" />}
-                </div>
-                <div className="birthday-card__body">
-                  <h3><span className="birthday-card__full-name">{alumno.nombre}</span><span className="birthday-card__first-name">{alumno.nombre.trim().split(/\s+/)[0]}</span></h3>
-                  <p>{dateLabel} · {age} años</p>
-                  <div className="birthday-card__desktop-details">
-                    <p>Cumple {birthday.nextBirthday.getFullYear() - Number(alumno.fechaNacimiento?.slice(0, 4))} años</p>
-                    <BirthdayFacts birthday={birthday} />
-                  </div>
-                </div>
-                <strong>{getCountdownLabel(daysUntil)}</strong>
-                <button type="button" className="birthday-card__more" aria-label={`Ver más de ${alumno.nombre}`}
-                  onClick={() => setSelectedBirthday(birthday)}>Ver más</button>
+                <header className="birthday-card__header">
+                  <time className="birthday-card__date"
+                    dateTime={`${nextBirthday.getFullYear()}-${String(nextBirthday.getMonth() + 1).padStart(2, "0")}-${String(nextBirthday.getDate()).padStart(2, "0")}`}
+                    aria-label={nextBirthday.toLocaleDateString("es-CL", { day: "numeric", month: "long" })}>
+                    <strong>{nextBirthday.getDate()}</strong>
+                    <span>{nextBirthday.toLocaleDateString("es-CL", { month: "short" })}</span>
+                  </time>
+                  <span className="birthday-card__occasion">{daysUntil === 0 ? "¡Hoy celebramos!" : index === 0 ? "El próximo festejo" : "Próximo cumpleaños"}</span>
+                  <Icon className="birthday-card__illustration" data-celebration-icon={name} aria-hidden="true" />
+                </header>
+                <h3 className="birthday-card__name">{alumno.nombre}</h3>
+                <p className="birthday-card__countdown">
+                  {daysUntil === 0 && <FiStar aria-hidden="true" />}
+                  <strong>{getCountdownLabel(daysUntil)}</strong>
+                </p>
               </article>
             );
           })}
@@ -122,28 +141,6 @@ export const BirthdaySection = ({ alumnos, today = new Date(), maxItems = 8 }: B
       ) : (
         <p className="birthday-section__empty">{"Agrega la fecha de nacimiento para ver los pr\u00f3ximos cumplea\u00f1os."}</p>
       )}
-      {selectedBirthday && <dialog ref={dialogRef} className="birthday-details" aria-labelledby="birthday-details-title"
-        onCancel={event => { event.preventDefault(); setSelectedBirthday(null); }}
-        onClick={event => { if (event.target === event.currentTarget) setSelectedBirthday(null); }}>
-        <header className="birthday-details__header">
-          <div className="birthday-details__date" aria-hidden="true"><strong>{selectedBirthday.nextBirthday.getDate()}</strong><span>{selectedBirthday.nextBirthday.toLocaleDateString("es-CL", { month: "short" })}</span></div>
-          <div className="birthday-details__occasion"><span>{selectedBirthday.daysUntil === 0 ? "¡Hoy celebramos!" : "Próximo cumpleaños"}</span>
-            <strong>Cumple {selectedBirthday.nextBirthday.getFullYear() - Number(selectedBirthday.alumno.fechaNacimiento?.slice(0, 4))} años</strong>
-            <small>{getCountdownLabel(selectedBirthday.daysUntil)}</small></div>
-          <FiGift className="birthday-details__gift" aria-hidden="true" />
-        </header>
-        <h2 id="birthday-details-title">{selectedBirthday.alumno.nombre}</h2>
-        <BirthdayFacts birthday={selectedBirthday} />
-        <button type="button" className="birthday-details__close" onClick={() => setSelectedBirthday(null)}>Cerrar</button>
-      </dialog>}
     </section>
   );
 };
-
-function BirthdayFacts({ birthday }: { birthday: BirthdayStudent }) {
-  return <dl className="birthday-facts">
-    <div><dt>Fecha de nacimiento</dt><dd>{new Date(`${birthday.alumno.fechaNacimiento}T00:00:00`).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" })}</dd></div>
-    <div><dt>Edad actual</dt><dd>{birthday.age} años</dd></div>
-    <div><dt>Próximo cumpleaños</dt><dd>{birthday.nextBirthday.toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" })}</dd></div>
-  </dl>;
-}

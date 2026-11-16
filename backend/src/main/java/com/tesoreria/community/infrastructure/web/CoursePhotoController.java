@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/community/gallery")
 public class CoursePhotoController {
-    private static final String ADMIN = "hasRole('ADMIN')";
+    private static final String ADMIN = "hasAnyRole('ADMIN', 'SUPER_ADMIN')";
     private final CoursePhotoService service;
     public CoursePhotoController(CoursePhotoService service) { this.service = service; }
 
@@ -18,7 +18,7 @@ public class CoursePhotoController {
     @GetMapping("/{id}/content") public ResponseEntity<byte[]> content(@PathVariable Long id) {
         var image = service.content(id);
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(image.contentType()))
-                .cacheControl(CacheControl.maxAge(java.time.Duration.ofHours(1)).cachePublic()).body(image.bytes());
+                .cacheControl(CacheControl.noStore()).body(image.bytes());
     }
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) @PreAuthorize(ADMIN)
     public ResponseEntity<CoursePhotoService.PhotoView> upload(@RequestPart("file") MultipartFile file,

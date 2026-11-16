@@ -1,5 +1,6 @@
 import { usePageEntry } from '@/shared/ui/loading/PageTransition';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FiActivity, FiCamera, FiCheckCircle, FiClock, FiDollarSign, FiLogIn, FiLogOut, FiPieChart, FiTrash2, FiUsers } from "react-icons/fi";
 import { IoBulbOutline } from "react-icons/io5";
@@ -62,13 +63,7 @@ export const DashboardPage = () => {
   const [capturing, setCapturing] = useState(false);
   const [activityPage, setActivityPage] = useState(1);
   const [auditPage, setAuditPage] = useState(1);
-  const [activityOpen, setActivityOpen] = useState(false);
-  const [annualQuotaOpen, setAnnualQuotaOpen] = useState(false);
-  const [contributionsOpen, setContributionsOpen] = useState(false);
-  const [expensesOpen, setExpensesOpen] = useState(false);
-  const [allExpensesShown, setAllExpensesShown] = useState(false);
-  const [eventsOpen, setEventsOpen] = useState(false);
-  const [auditOpen, setAuditOpen] = useState(false);
+  const [view, setView] = useState("general");
   const load = useCallback(() => resources.summary.load(true), [resources]);
   useEffect(() => {
     if (!data) return;
@@ -82,14 +77,14 @@ export const DashboardPage = () => {
   }, [loading, data]);
 
   const genderCounts = data?.courseComposition ?? { masculino: 0, femenino: 0, otros: 0 };
-  useEffect(() => setAllExpensesShown(false), [year]);
-  const expenseDetails = useMemo(() => (allExpensesShown
-    ? data?.expensesByDescription : data?.expensesByDescription.slice(0, 6)) ?? [],
-  [data, allExpensesShown]);
-  const expenseMax = useMemo(() => Math.max(
-    1,
-    ...expenseDetails.map(item => Number(item.amount)),
-  ), [expenseDetails]);
+  const expenseDetails = useMemo(() => {
+    if (!data) return [];
+    const dates = new Map(data.recentMovements.filter(item => item.type === "EGRESO")
+      .map(item => [item.id, item.date]));
+    return data.expensesByDescription.map(item => ({ ...item, date: dates.get(item.id) }))
+      .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || b.id - a.id);
+  }, [data]);
+  const expenseColumns = Math.min(3, Math.max(1, Math.ceil(expenseDetails.length / 5)));
   const annualQuotaSummary = useMemo(() => {
     const quotas = data?.quotas;
     if (!quotas) return null;
@@ -151,7 +146,7 @@ export const DashboardPage = () => {
     }
   }, [capturing]);
 
-  return <><main ref={dashboardRef} className="business-dashboard" aria-busy={preparing}>
+  return <><main ref={dashboardRef} className="business-dashboard" data-view={view} aria-busy={preparing}>
     <header className="business-dashboard__header">
       <div><h1 className="dashboard-greeting">{user?.nombre
         ? <><span className="dashboard-greeting__intro">Hola,</span>{" "}<span className="dashboard-greeting__name">{user.nombre.trim().split(/\s+/)[0]}</span></>
@@ -191,6 +186,16 @@ export const DashboardPage = () => {
     {error && !loading && <FeedbackState message={error} actionText="Reintentar" onRefresh={() => void load()} />}
 
     {data && <>
+      <nav className="dashboard-views" aria-label="Vistas del dashboard">
+        {[
+          ["general", "General"], ["collection", "Recaudación"],
+          ["movements", "Movimientos"], ["expenses", "Egresos"],
+          ["course", "Eventos y curso"],
+          ...(isAdmin ? [["audit", "Auditoría"]] : []),
+        ].map(([id, label]) => <button key={id} type="button"
+          aria-current={view === id ? "page" : undefined}
+          onClick={() => setView(id)}>{label}</button>)}
+      </nav>
       <section className="dashboard-kpis" aria-label="Indicadores principales">
         <section className="dashboard-summary-group dashboard-summary-group--money" aria-labelledby="dashboard-money-title">
           <header className="dashboard-summary-group__heading">
@@ -247,20 +252,25 @@ export const DashboardPage = () => {
 
       <section className="dashboard-charts">
         <CashflowTimeline data={data} year={year} loading={loading} onRefresh={() => void load()} />
+        {view === "general" && <section className="dashboard-collection-strip" aria-label="Resumen de recaudación">
+          <div><span>Cuota anual recaudada</span><strong>{money.format(data.quotas.collectedAmount)}</strong></div>
+          <div><span>Pendiente de recaudar</span><strong>{money.format(data.quotas.pendingAmount)}</strong></div>
+          <div><span>Avance de recaudación</span><strong>{annualQuotaSummary?.percentage ?? 0}%</strong></div>
+          <button type="button" onClick={() => setView("collection")}>Ver recaudación →</button>
+        </section>}
 
         <div className="dashboard-chart-column dashboard-chart-column--finance">
         <article className="dashboard-panel dashboard-panel--annual">
-          <header><button type="button" className="dashboard-collapse-trigger"
-            aria-expanded={annualQuotaOpen} aria-controls="dashboard-annual-quota"
-            onClick={() => setAnnualQuotaOpen(open => !open)}>
+          <header><div className="dashboard-section-heading">
             <i className="dashboard-panel-icon"><FiPieChart aria-hidden="true" /></i><div><h2>Cuota anual</h2>
-            </div><FcExpand className={annualQuotaOpen ? "is-open" : ""} aria-hidden="true" />
-            </button></header>
-          <div id="dashboard-annual-quota" className={`dashboard-collapse-content ${annualQuotaOpen ? "is-open" : ""}`}
-            aria-hidden={!annualQuotaOpen} inert={!annualQuotaOpen}><div>
+            </div>
+            </div></header>
+          <div id="dashboard-annual-quota" className="dashboard-section-content"
+            ><div>
           {!annualQuotaSummary || annualQuotaSummary.totalObligations === 0
             ? <p className="dashboard-empty">No hay obligaciones registradas.</p>
             : <div className="annual-quota-overview">
+              <h3 className="annual-quota-overview__title">Familias por modalidad</h3>
               <div className="annual-quota-modalities">
                 <div className="annual-quota-donut">
                   <ResponsiveContainer width="100%" height="100%">
@@ -297,61 +307,48 @@ export const DashboardPage = () => {
         </article>
 
         <article className="dashboard-panel dashboard-panel--distribution">
-          <header><button type="button" className="dashboard-collapse-trigger"
-            aria-expanded={expensesOpen} aria-controls="dashboard-expense-details"
-            onClick={() => setExpensesOpen(open => !open)}>
-            <i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><h2>Principales egresos</h2>
-            </div><FcExpand className={expensesOpen ? "is-open" : ""} aria-hidden="true" />
-            </button></header>
-          <div id="dashboard-expense-details" className={`dashboard-collapse-content ${expensesOpen ? "is-open" : ""}`}
-            aria-hidden={!expensesOpen} inert={!expensesOpen}><div>
+          <header><div className="dashboard-section-heading">
+            <i className="dashboard-panel-icon"><FiLogOut aria-hidden="true" /></i><div><h2>Egresos por fecha</h2>
+            </div>
+            </div></header>
+          <div id="dashboard-expense-details" className="dashboard-section-content"
+            ><div>
           {expenseDetails.length === 0 ? <p className="dashboard-empty">No hay egresos activos.</p>
-            : <ol id="dashboard-expense-ranking" className="dashboard-expense-ranking">
-              {expenseDetails.map((item, index) => <li key={item.id}>
-                <span className="dashboard-expense-ranking__position">{index + 1}</span>
-                <div className="dashboard-expense-ranking__content">
-                  <div><strong title={item.description}>{item.description}</strong>
-                    <b>{money.format(item.amount)}</b></div>
-                  <span className="dashboard-expense-ranking__track" aria-hidden="true">
-                    <i style={{ width: `${Math.max(5, (item.amount * 100) / expenseMax)}%` }} />
-                  </span>
-                </div>
+            : <ul className="dashboard-expense-ledger" aria-label="Egresos por fecha"
+              style={{ "--expense-columns": expenseColumns,
+                "--expense-rows": Math.ceil(expenseDetails.length / expenseColumns) } as CSSProperties}>
+              {expenseDetails.map(item => <li key={item.id}>
+                <time dateTime={item.date}>{item.date
+                  ? new Date(`${item.date}T00:00:00`).toLocaleDateString("es-CL") : "Sin fecha disponible"}</time>
+                <strong>{item.description}</strong>
+                <b>{money.format(item.amount)}</b>
               </li>)}
-            </ol>}
+            </ul>}
           <div className="dashboard-expense-actions">
-            {data.expensesByDescription.length > 6 && <button type="button"
-              aria-expanded={allExpensesShown} aria-controls="dashboard-expense-ranking"
-              onClick={() => setAllExpensesShown(shown => !shown)}>
-              {allExpensesShown ? "Ver menos" : "Ver más"}
-            </button>}
             <Link to={`/tesoreria/gastos?year=${year}`}>Más detalles</Link>
           </div>
           </div></div>
         </article>
 
         <article className="dashboard-panel dashboard-panel--event-profits">
-          <header><button type="button" className="dashboard-collapse-trigger"
-            aria-expanded={eventsOpen} aria-controls="dashboard-event-profits"
-            onClick={() => setEventsOpen(open => !open)}>
+          <header><div className="dashboard-section-heading">
             <i className="dashboard-panel-icon"><FiDollarSign aria-hidden="true" /></i>
             <div><h2>Ganancias de eventos</h2></div>
-            <FcExpand className={eventsOpen ? "is-open" : ""} aria-hidden="true" /></button></header>
-          <div id="dashboard-event-profits" className={`dashboard-collapse-content ${eventsOpen ? "is-open" : ""}`}
-            aria-hidden={!eventsOpen} inert={!eventsOpen}><div>
+            </div></header>
+          <div id="dashboard-event-profits" className="dashboard-section-content"
+            ><div>
             <EventProfitCards key={year} year={year} />
           </div></div>
         </article>
         </div>
         <div className="dashboard-chart-column dashboard-chart-column--activity">
         <article className="dashboard-panel dashboard-panel--wide dashboard-contributions">
-          <header><button type="button" className="dashboard-collapse-trigger"
-            aria-expanded={contributionsOpen} aria-controls="dashboard-course-contributions"
-            onClick={() => setContributionsOpen(open => !open)}>
+          <header><div className="dashboard-section-heading">
             <i className="dashboard-panel-icon"><FiUsers aria-hidden="true" /></i><div>
-            <h2>Aportes del curso</h2></div><FcExpand className={contributionsOpen ? "is-open" : ""} aria-hidden="true" />
-            </button></header>
-          <div id="dashboard-course-contributions" className={`dashboard-collapse-content ${contributionsOpen ? "is-open" : ""}`}
-            aria-hidden={!contributionsOpen} inert={!contributionsOpen}><div>
+            <h2>Aportes del curso</h2></div>
+            </div></header>
+          <div id="dashboard-course-contributions" className="dashboard-section-content"
+            ><div>
           {contributions && contributions.totalFamilies > 0
             ? <div className="contribution-donuts">
               <ContributionDonut title="Cuota CEPA"
@@ -365,15 +362,13 @@ export const DashboardPage = () => {
         </article>
 
         <section className="dashboard-panel dashboard-activity">
-        <header><button className="dashboard-collapse-trigger" type="button"
-          aria-expanded={activityOpen} aria-controls="dashboard-recent-activity"
-          onClick={() => setActivityOpen(open => !open)}>
+        <header><div className="dashboard-section-heading">
           <i className="dashboard-panel-icon"><FiActivity aria-hidden="true" /></i><div><h2>Actividad reciente</h2></div>
-          <FcExpand className={activityOpen ? "is-open" : ""} aria-hidden="true" />
-        </button></header>
+
+        </div></header>
         <div id="dashboard-recent-activity"
-          className={`dashboard-collapse-content ${activityOpen ? "is-open" : ""}`}
-          aria-hidden={!activityOpen} inert={!activityOpen}>
+          className="dashboard-section-content"
+          >
           <div>
         {data.recentMovements.length === 0 ? <p className="dashboard-empty">
           No hay movimientos registrados para {year}.</p> : <div>
@@ -405,14 +400,12 @@ export const DashboardPage = () => {
       </section>
 
       {isAdmin && <section className="dashboard-panel dashboard-audit">
-        <header><button className="dashboard-collapse-trigger" type="button"
-          aria-expanded={auditOpen} aria-controls="dashboard-audit-trail"
-          onClick={() => setAuditOpen(open => !open)}>
+        <header><div className="dashboard-section-heading">
           <div><span>Historial del sistema</span><h2>Trazas de Tesorería</h2>
             <p>Registro de creaciones, modificaciones, anulaciones y pagos.</p></div>
-          <FcExpand className={auditOpen ? "is-open" : ""} aria-hidden="true" />
-        </button>
-          {auditOpen && data.auditTrail.length > 0 && <div className="audit-actions">
+
+        </div>
+          { data.auditTrail.length > 0 && <div className="audit-actions">
             <button disabled={selectedAudits.size === 0}
               onClick={() => setCleanup("selected")}><FiTrash2 /> Limpiar seleccionadas</button>
             <button className="is-danger" onClick={() => setCleanup("all")}>
@@ -420,8 +413,8 @@ export const DashboardPage = () => {
           </div>}
         </header>
         <div id="dashboard-audit-trail"
-          className={`dashboard-collapse-content ${auditOpen ? "is-open" : ""}`}
-          aria-hidden={!auditOpen} inert={!auditOpen}>
+          className="dashboard-section-content"
+          >
           <div>
         {data.auditTrail.length === 0 ? <p className="dashboard-empty">
           No hay trazas registradas para {year}.</p> : <div className="dashboard-table-wrap">

@@ -77,6 +77,21 @@ class AuthControllerTest {
     }
 
     @Test
+    void pendingTermsDoesNotIssueCookiesOrExposeUser() throws Exception {
+        when(authService.login("admin@mail.com", "Password1!", null))
+                .thenReturn(new AuthService.LoginResult(null, 1L, java.util.List.of(), true));
+        var result = mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON).content(loginBody()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.termsAcceptanceRequired").value(true))
+                .andExpect(jsonPath("$.currentTermsVersion").value(AuthService.CURRENT_TERMS_VERSION))
+                .andExpect(jsonPath("$.token").doesNotExist())
+                .andExpect(jsonPath("$.user").doesNotExist()).andReturn();
+        assertTrue(result.getResponse().getHeaders(HttpHeaders.SET_COOKIE).isEmpty());
+        org.mockito.Mockito.verify(refreshTokenService, org.mockito.Mockito.never()).issueForUserId(any(), any(), any());
+    }
+
+    @Test
     void loginExitoso_deberiaRetornarJwt() throws Exception {
         when(authService.login("admin@mail.com", "Password1!", null))
                 .thenReturn(new AuthService.LoginResult("jwt", 1L));

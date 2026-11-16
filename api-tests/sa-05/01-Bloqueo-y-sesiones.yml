@@ -9,7 +9,7 @@ http:
   body:
     type: json
     data: |-
-      {"correo":"{{Admin_Email}}","password":"{{Admin_Password}}"}
+      {"correo":"{{Admin_Email}}","password":"{{Admin_Password}}","termsVersion":"2026-11-16"}
 
 runtime:
   scripts:
@@ -51,7 +51,7 @@ runtime:
           }
           return {token: response.data.token, cookies: cookies.join('; '), csrf: response.data.csrfToken};
         }
-        const loginPayload = {correo: bru.getEnvVar('User_Email'), password: bru.getEnvVar('User_Password')};
+        const loginPayload = {correo: bru.getEnvVar('User_Email'), password: bru.getEnvVar('User_Password'), termsVersion: '2026-11-16'};
         const login = await request('POST', '/auth/login', null, loginPayload);
         if (login.status !== 200 || login.data.user?.rol !== 'USER' || login.data.user.id === admin.user.id) {
           throw new Error('Se requiere un USER de prueba distinto del administrador');

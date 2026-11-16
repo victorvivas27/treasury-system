@@ -18,6 +18,7 @@ const coverageMetricLabels: Record<string, string> = {
 };
 const coverageMetricOrder = ["lines", "branches", "functions", "methods"];
 const coverageNumber = new Intl.NumberFormat("es-CL");
+const reportName = (report: QualityReport) => report.suite === "bruno" ? "Bruno · API" : report.application === "frontend" ? "Frontend" : "Backend";
 
 const CoverageChart = ({ report }: { report: QualityReport }) => {
   const metrics = coverageMetricOrder.flatMap(key => {
@@ -98,20 +99,33 @@ export const QualityReportsPage = () => {
     {!!catalog?.reports.length && <div className="quality-report-list" aria-label="Reportes disponibles">
       {catalog.reports.map(report => <article key={report.id}>
         <div className="quality-report-card__header">
-          <div><h2>{report.application === "frontend" ? "Frontend" : "Backend"} · {report.suite === "combined" ? "Suite completa" : report.suite}</h2>
+          <div><h2>{reportName(report)} · {report.suite === "combined" ? "Suite completa" : report.suite === "bruno" ? "Apoderado" : report.suite}</h2>
             <p><time dateTime={report.generatedAt}>{new Date(report.generatedAt).toLocaleString("es-CL")}</time></p>
-            <p>{report.tests.passed}/{report.tests.total} pruebas aprobadas</p>
+            <p>{report.tests.passed}/{report.tests.total} {report.suite === "bruno" ? "solicitudes aprobadas" : "pruebas aprobadas"}</p>
             <small>Revisión {report.sha.slice(0, 8)}</small></div>
           <Button label="Abrir reporte" ariaLabel={`Abrir reporte ${report.application} ${report.id}`}
             variant={selected === report.id ? "primary" : "secondary"} size="small" onClick={() => setSelected(report.id)} />
         </div>
         <CoverageChart report={report} />
+        {report.suite === "bruno" && <section className="quality-coverage" aria-label="Cobertura de API Bruno">
+          <h3>Cobertura de API</h3>
+          {report.coverage.endpoints?.total > 0 ? <>
+            <div className="quality-coverage__label"><span>Operaciones HTTP</span><strong>{report.coverage.endpoints.percent.toFixed(2)} %</strong></div>
+            <div className="quality-coverage__track" role="progressbar" aria-label="Cobertura de operaciones HTTP"
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.max(0, report.coverage.endpoints.percent))}>
+              <span style={{ width: `${Math.min(100, Math.max(0, report.coverage.endpoints.percent))}%` }} />
+            </div>
+            <small>{report.coverage.endpoints.covered} de {report.coverage.endpoints.total} operaciones con comprobaciones aprobadas</small>
+          </> : <p>No hay medición de operaciones disponible.</p>}
+          <p>Se ejecuta la colección Apoderado frente al inventario de métodos y rutas de toda la API.
+            Este porcentaje no mide todos los escenarios de cada operación.</p>
+        </section>}
       </article>)}
     </div>}
     {html && active && <div className="quality-report-viewer">
-      <div><h2>Allure · {active.application}</h2><Button label="Ampliar" size="small" variant="secondary"
+      <div><h2>Allure · {active.suite === "bruno" ? "Bruno API" : active.application}</h2><Button label="Ampliar" size="small" variant="secondary"
         onClick={() => { void document.getElementById("quality-report-frame")?.requestFullscreen?.().catch(() => {}); }} /></div>
-      <iframe id="quality-report-frame" title={`Allure ${active.application}`} srcDoc={html}
+      <iframe id="quality-report-frame" title={`Allure ${active.suite === "bruno" ? "Bruno API" : active.application}`} srcDoc={html}
         sandbox="allow-scripts allow-downloads" allow="fullscreen" referrerPolicy="no-referrer" />
     </div>}
     <p className="quality-report-note">La cobertura mide código ejecutado; el porcentaje de pruebas aprobadas es otra métrica.

@@ -13,6 +13,8 @@ import { loginPerformance } from "@/shared/performance/loginPerformance";
 import { BrandLogo } from "@/shared/ui/brandlogo/BrandLogo";
 import { AuthIllustration, authIllustrationStyle } from "./AuthIllustration";
 import { LoginActionFeedback } from "./LoginActionFeedback";
+import { LegalDocumentDialog } from "./LegalDocumentDialog";
+import { CURRENT_LEGAL_VERSION } from "./legalDocuments";
 import "./LoginPage.css";
 
 const FIELDS = [
@@ -53,6 +55,9 @@ export const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [termsVersion, setTermsVersion] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [legalDocument, setLegalDocument] = useState<"terms" | "privacy" | null>(null);
   const { login, loading: sessionLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,10 +86,12 @@ export const LoginPage = () => {
   const requestedDestination = (location.state as { from?: string } | null)?.from;
   const destination = requestedDestination && requestedDestination !== "/login" ? requestedDestination : "/";
   const updateCredential = (name: keyof typeof credentials, value: string) => {
+    setTermsVersion(null);
+    setTermsAccepted(false);
     setCredentials(current => ({ ...current, [name]: value }));
     setOrganizationOptions([]);
     setOrganizationId("");
-    setFieldErrors(current => ({ ...current, [name]: "", organization: "" }));
+    setFieldErrors(current => ({ ...current, [name]: "", organization: "", terms: "" }));
   };
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -97,6 +104,8 @@ export const LoginPage = () => {
     const selectedOrganizationId = credentialsChanged ? "" : organizationId;
     setCredentials({ correo, password });
     if (credentialsChanged) {
+      setTermsVersion(null);
+      setTermsAccepted(false);
       setOrganizationOptions([]);
       setOrganizationId("");
     }
@@ -111,17 +120,32 @@ export const LoginPage = () => {
     if (!credentialsChanged && organizationOptions.length > 0 && !selectedOrganizationId) {
       validationErrors.organization = "Seleccione un curso";
     }
+    if (!credentialsChanged && termsVersion && !termsAccepted) {
+      validationErrors.terms = "Debes aceptar los términos vigentes para ingresar.";
+    }
+    if (!credentialsChanged && termsVersion && termsVersion !== CURRENT_LEGAL_VERSION) {
+      validationErrors.terms = "Los documentos se actualizaron. Recarga la página para consultar y aceptar la versión vigente.";
+    }
     setFieldErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
-      document.getElementById(`login-${Object.keys(validationErrors)[0]}`)?.focus();
+      const invalidField = document.getElementById(`login-${Object.keys(validationErrors)[0]}`);
+      invalidField?.focus();
+      invalidField?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
       return;
     }
 
     try {
       setSubmitting(true);
       loginPerformance.start();
-      const response = await login(correo.trim(), password,
-        selectedOrganizationId ? Number(selectedOrganizationId) : undefined);
+      const selectedCourse = selectedOrganizationId ? Number(selectedOrganizationId) : undefined;
+      const response = !credentialsChanged && termsVersion && termsAccepted
+        ? await login(correo.trim(), password, selectedCourse, CURRENT_LEGAL_VERSION)
+        : await login(correo.trim(), password, selectedCourse);
+      if (response.termsAcceptanceRequired) {
+        setTermsVersion(response.currentTermsVersion ?? null);
+        setTermsAccepted(false);
+        return;
+      }
       if (response.requiresOrganizationSelection) {
         const options = response.organizationOptions ?? [];
         setOrganizationOptions(options);
@@ -154,7 +178,7 @@ export const LoginPage = () => {
       </header>
       <form className="form-card login-form" onSubmit={handleSubmit} noValidate>
         {FIELDS.map(({ name, label, type, placeholder, autoComplete, Icon }) => (
-          <div className="form-group" key={name}>
+          <div className={`form-group login-field-group login-field-group--${name}`} key={name}>
             <span className="login-input-wrapper login-floating-field">
               <input id={`login-${name}`} name={name}
                 className={`form-input ${name === "password" ? "password-input" : ""} ${fieldErrors[name] ? "input-error" : ""}`}
@@ -182,6 +206,19 @@ export const LoginPage = () => {
             {name === "password" && <PasswordStrength id="login-password-guidance" password={credentials.password} />}
           </div>
         ))}
+        <div className={`login-terms ${fieldErrors.terms ? "login-terms--invalid" : ""}`}>
+          <div className="login-terms-row" style={{ visibility: termsVersion ? "visible" : "hidden" }}
+            aria-hidden={!termsVersion} inert={!termsVersion}>
+            <input id="login-terms" type="checkbox" checked={termsAccepted} required={Boolean(termsVersion)}
+              aria-invalid={Boolean(fieldErrors.terms)}
+              aria-describedby={fieldErrors.terms ? "login-terms-error" : undefined}
+              onChange={event => { setTermsAccepted(event.target.checked); setFieldErrors(current => ({ ...current, terms: "" })); }} />
+            <label htmlFor="login-terms">He leído y acepto los <a href="#terminos" className="login-legal-link"
+              onClick={event => { event.preventDefault(); setLegalDocument("terms"); }}>Términos y condiciones</a> y declaro haber tenido acceso a la <a href="#privacidad"
+              className="login-legal-link" onClick={event => { event.preventDefault(); setLegalDocument("privacy"); }}>Política de privacidad</a>.</label>
+          </div>
+          {fieldErrors.terms && <p id="login-terms-error" className="error-message" role="alert">{fieldErrors.terms}</p>}
+        </div>
         <div className="login-organization-slot">
           {hasOrganizationOptions && (
             <div className="form-group login-organization-group">
@@ -194,8 +231,10 @@ export const LoginPage = () => {
                   className={`form-input login-organization-select ${fieldErrors.organization ? "input-error" : ""}`}
                   value={organizationId}
                   onChange={(event) => {
+                    setTermsVersion(null);
+                    setTermsAccepted(false);
                     setOrganizationId(event.target.value);
-                    setFieldErrors((current) => ({ ...current, organization: "" }));
+                    setFieldErrors((current) => ({ ...current, organization: "", terms: "" }));
                   }}
                   aria-invalid={Boolean(fieldErrors.organization)}
                   aria-describedby={fieldErrors.organization ? "login-organization-error" : undefined}
@@ -214,7 +253,9 @@ export const LoginPage = () => {
             </div>
           )}
         </div>
-        {error && <p className="form-submit-message is-visible" role="alert" aria-live="polite">{error}</p>}
+        <div className="login-server-slot">
+          {error && <p className="form-submit-message is-visible" role="alert" aria-live="polite">{error}</p>}
+        </div>
         <div className="login-form-actions">
           <Button
             type="submit"
@@ -232,6 +273,7 @@ export const LoginPage = () => {
       <ButtonBack className="login-back-button" />
       </form>
       </section>
+      {legalDocument && <LegalDocumentDialog document={legalDocument} onClose={() => setLegalDocument(null)} />}
     </main>
   );
 };

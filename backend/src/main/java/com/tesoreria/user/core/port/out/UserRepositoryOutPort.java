@@ -12,6 +12,8 @@ import java.util.List;
 public interface UserRepositoryOutPort {
     User save(User user);
 
+    void recordTermsAcceptance(Long userId, String version, java.time.Instant acceptedAt);
+
     Optional<User> findById(Long id);
     Optional<User> findByIdAndOrganizationId(Long id, Long organizationId);
 

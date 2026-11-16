@@ -151,7 +151,8 @@ class SA01HttpIsolationTest {
     }
 
     private String login(Long tenant, String email) throws Exception {
-        String body = "{\"correo\":\"" + email + "\",\"password\":\"CacheTest123!\",\"organizationId\":" + tenant + "}";
+        String body = "{\"correo\":\"" + email + "\",\"password\":\"CacheTest123!\",\"organizationId\":" + tenant
+                + ",\"termsVersion\":\"" + com.tesoreria.user.application.usecase.AuthService.CURRENT_TERMS_VERSION + "\"}";
         var request = java.net.http.HttpRequest
                 .newBuilder(java.net.URI.create("http://localhost:" + port + "/api/v1/auth/login"))
                 .header("Content-Type", "application/json")

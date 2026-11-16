@@ -9,6 +9,87 @@ vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("lottie-react", () => ({ Lottie: () => <span data-testid="back-animation" /> }));
 
 describe("LoginPage", () => {
+  const challenge = { termsAcceptanceRequired: true, currentTermsVersion: "2026-11-16" };
+  const fillCredentials = () => {
+    fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "user@mail.com" } });
+    fireEvent.change(screen.getByLabelText("Contrase\u00f1a"), { target: { value: "Password1!" } });
+  };
+  const submit = () => fireEvent.click(screen.getByRole("button", { name: "Ingresar" }));
+
+  it("oculta los documentos y permite ingresar directamente a quien ya acepto", async () => {
+    const login = vi.fn().mockResolvedValue({});
+    vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter initialEntries={["/login"]}><Routes>
+      <Route path="/login" element={<LoginPage />} /><Route path="/" element={<h1>Curso</h1>} />
+    </Routes></MemoryRouter>);
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /condiciones/ })).not.toBeInTheDocument();
+    fillCredentials(); submit();
+    expect(await screen.findByRole("heading", { name: "Curso" })).toBeInTheDocument();
+    expect(login).toHaveBeenLastCalledWith("user@mail.com", "Password1!", undefined);
+  });
+
+  it("solicita aceptacion solo tras confirmar que esta pendiente", async () => {
+    const login = vi.fn().mockResolvedValueOnce(challenge).mockResolvedValueOnce({});
+    vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fillCredentials(); submit();
+    const checkbox = await screen.findByRole("checkbox");
+    expect(checkbox).not.toBeChecked(); expect(checkbox).toBeRequired();
+    expect(login).toHaveBeenLastCalledWith("user@mail.com", "Password1!", undefined);
+    submit();
+    expect(login).toHaveBeenCalledTimes(1);
+    expect(checkbox).toHaveFocus();
+    expect(checkbox).toHaveAttribute("aria-invalid", "true");
+    expect(checkbox.closest(".login-terms")).toHaveClass("login-terms--invalid");
+    fireEvent.click(checkbox);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    submit();
+    await waitFor(() => expect(login).toHaveBeenLastCalledWith("user@mail.com", "Password1!", undefined, "2026-11-16"));
+  });
+
+  it("no acepta una version cuyos documentos no estan cargados", async () => {
+    const login = vi.fn().mockResolvedValue({ ...challenge, currentTermsVersion: "2027-01-01" });
+    vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fillCredentials(); submit();
+    fireEvent.click(await screen.findByRole("checkbox")); submit();
+    expect(screen.getByRole("alert")).toHaveTextContent("Los documentos se actualizaron");
+    expect(login).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([true, false])("borra la aceptacion al cambiar credenciales con autofill: %s", async (autofill) => {
+    const login = vi.fn().mockResolvedValueOnce(challenge).mockResolvedValueOnce({ requiresOrganizationSelection: true });
+    vi.mocked(useAuth).mockReturnValue({ login, loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fillCredentials(); submit();
+    const checkbox = await screen.findByRole("checkbox");
+    submit(); expect(screen.getByRole("alert")).toBeInTheDocument();
+    fireEvent.click(checkbox);
+    if (autofill) (screen.getByLabelText("Correo") as HTMLInputElement).value = "other@mail.com";
+    else fireEvent.change(screen.getByLabelText("Correo"), { target: { value: "other@mail.com" } });
+    submit();
+    await waitFor(() => expect(login).toHaveBeenLastCalledWith("other@mail.com", "Password1!", undefined));
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("permite consultar documentos pendientes y restaura el foco", async () => {
+    vi.mocked(useAuth).mockReturnValue({ login: vi.fn().mockResolvedValue(challenge), loading: false } as unknown as ReturnType<typeof useAuth>);
+    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    fillCredentials(); submit();
+    await screen.findByRole("checkbox");
+    const terms = screen.getByRole("link", { name: /condiciones/ }); terms.focus(); fireEvent.click(terms);
+    expect(screen.getByRole("dialog")).toHaveAccessibleName(/condiciones de uso/);
+    expect(screen.getByText(/8. Aceptaci/)).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" }); expect(terms).toHaveFocus();
+    fireEvent.click(screen.getByRole("link", { name: /privacidad/ }));
+    expect(screen.getByText(/Victor Javier Vivas/)).toBeInTheDocument();
+    expect(screen.getByText(/victorjaviervivas@gmail.com/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar documento" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   const fillWithoutEvents = (correo: string, password: string) => {
     (screen.getByLabelText("Correo") as HTMLInputElement).value = correo;
     (screen.getByLabelText("Contraseña") as HTMLInputElement).value = password;

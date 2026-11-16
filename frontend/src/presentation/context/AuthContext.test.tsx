@@ -42,6 +42,21 @@ describe("AuthContext", () => {
 
   afterEach(() => vi.useRealTimers());
 
+  it("mantiene la sesión cerrada hasta aceptar y transmite la versión vigente", async () => {
+    localStorage.setItem("treasury.auth.manual-logout", "true");
+    const challenge = { token: null, user: null, termsAcceptanceRequired: true, currentTermsVersion: "2026-11-16" };
+    loginMock.mockResolvedValueOnce(challenge).mockResolvedValueOnce({ token: "accepted-session", user });
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => expect(await result.current.login(user.correo, "Password1!", 4)).toEqual(challenge));
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(getAccessToken()).toBeNull();
+    expect(sessionStorage.getItem("treasury.auth.user")).toBeNull();
+    await act(() => result.current.login(user.correo, "Password1!", 4, "2026-11-16"));
+    expect(loginMock).toHaveBeenLastCalledWith({ correo: user.correo, password: "Password1!", organizationId: 4, termsVersion: "2026-11-16" });
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
   it('receives the course loader configuration before completing login', async () => {
     localStorage.setItem('treasury.auth.manual-logout', 'true');
     const view = renderHook(() => useAuth(), { wrapper });

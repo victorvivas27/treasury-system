@@ -2,3 +2,4 @@
 @import "./DashboardMobile.css" screen and (max-width: 680px);
 @import "./DashboardDesktop.css" screen and (min-width: 1024px);
 @import "./DashboardMessage.css";
+@import "./DashboardViews.css";

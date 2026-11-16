@@ -11,7 +11,16 @@ public record LoginResponseDTO(
         String csrfToken,
         UserResponseDTO user,
         boolean requiresOrganizationSelection,
-        List<LoginOrganizationOptionDTO> organizationOptions) {
+        List<LoginOrganizationOptionDTO> organizationOptions,
+        boolean termsAcceptanceRequired,
+        String currentTermsVersion) {
+
+    public LoginResponseDTO(String token, String tokenType, long expiresIn, String csrfToken,
+            UserResponseDTO user, boolean requiresOrganizationSelection,
+            List<LoginOrganizationOptionDTO> organizationOptions) {
+        this(token, tokenType, expiresIn, csrfToken, user, requiresOrganizationSelection,
+                organizationOptions, false, com.tesoreria.user.application.usecase.AuthService.CURRENT_TERMS_VERSION);
+    }
 
     public LoginResponseDTO(String token, String tokenType, long expiresIn, String csrfToken,
             UserResponseDTO user) {

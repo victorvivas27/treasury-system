@@ -1,5 +1,7 @@
 import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Pagination } from "@/shared/ui/pagination/Pagination";
 
 import { IoBalloonOutline } from "react-icons/io5";
 
@@ -13,12 +15,15 @@ export const EventProfitCards = ({ year }: { year: number }) => {
   const resource = getDashboardResources(year).profits;
   const { data, error } = useDashboardResource(resource);
   const profits = data ?? [];
+  const [page, setPage] = useState(1);
+  const pages = Math.max(1, Math.ceil(profits.length / 4));
+  const currentPage = Math.min(page, pages);
   const loading = !data && !error;
   return <section className="dashboard-event-profits" aria-label="Ganancias de eventos cerrados">
     {loading ? null : error ?
       <p role="alert">No fue posible cargar las ganancias. <ActionButton type="button"
         onClick={() => resource.load(true)}>Reintentar</ActionButton></p> : profits.length === 0 ?
-      <p>No hay eventos con distribución confirmada en {year}.</p> : profits.map(event =>
+      <p>No hay eventos con distribución confirmada en {year}.</p> : profits.slice((currentPage - 1) * 4, currentPage * 4).map(event =>
         <article key={event.id} className="dashboard-event-profit" aria-label={event.name}>
           <span className="dashboard-event-profit__icon"><IoBalloonOutline aria-hidden="true" /></span>
           <div className="dashboard-event-profit__content">
@@ -30,5 +35,9 @@ export const EventProfitCards = ({ year }: { year: number }) => {
             <strong>{money.format(event.netProfit)}</strong>
           </div>
         </article>)}
+    {pages > 1 && <Pagination currentPage={currentPage} totalPages={pages}
+      hasPrevious={currentPage > 1} hasNext={currentPage < pages}
+      onPrevious={() => setPage(currentPage - 1)} onNext={() => setPage(currentPage + 1)}
+      ariaLabel="Paginación de ganancias de eventos" />}
   </section>;
 };

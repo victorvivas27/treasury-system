@@ -40,7 +40,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (correo: string, password: string, organizationId?: number) => Promise<LoginResponse>;
+  login: (correo: string, password: string, organizationId?: number, termsVersion?: string) => Promise<LoginResponse>;
   establishSession: (response: import("@/core/A-domain/entities/auth/Auth").LoginResponse) => Promise<void>;
   logout: () => Promise<void>;
   syncUser: (updatedUser: User) => void;
@@ -270,11 +270,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('focus', refreshSettings);
   }, [token, user]);
 
-  const login = async (correo: string, password: string, organizationId?: number) => {
+  const login = async (correo: string, password: string, organizationId?: number, termsVersion?: string) => {
     setLoading(true);
     try {
-      const response = await useCases.login.execute({ correo, password, organizationId });
-      if (response.requiresOrganizationSelection) return response;
+      const response = await useCases.login.execute({ correo, password, organizationId, ...(termsVersion && { termsVersion }) });
+      if (response.requiresOrganizationSelection || response.termsAcceptanceRequired) return response;
       if (!response.token || !response.user) throw new Error("Respuesta de login inválida");
       resetHomeCommunity();
       resetDashboard();

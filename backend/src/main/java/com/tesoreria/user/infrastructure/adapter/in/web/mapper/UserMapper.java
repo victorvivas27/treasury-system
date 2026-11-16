@@ -12,6 +12,8 @@ public interface UserMapper {
     @Mapping(target = "code", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "termsVersion", ignore = true)
+    @Mapping(target = "termsAcceptedAt", ignore = true)
     @Mapping(target = "sessionsRevokedAt", ignore = true)
     @Mapping(target = "emailVerifiedAt", ignore = true)
     @Mapping(target = "invitationAcceptedAt", ignore = true)

@@ -71,7 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/about").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/gallery", "/api/v1/community/gallery/**").authenticated()
-                        .requestMatchers("/api/v1/community/gallery/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/community/gallery/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/board").authenticated()
                         .requestMatchers("/api/v1/community/board/**", "/api/v1/community/board").hasRole("ADMIN")
                         .requestMatchers("/api/v1/community/about/**").hasRole("ADMIN")

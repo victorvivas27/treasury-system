@@ -4,6 +4,7 @@ export interface LoginPayload {
   correo: string;
   password: string;
   organizationId?: number;
+  termsVersion?: string;
 }
 
 export interface LoginResponse {
@@ -12,6 +13,8 @@ export interface LoginResponse {
   expiresIn: number;
   csrfToken?: string;
   user: User | null;
+  termsAcceptanceRequired?: boolean;
+  currentTermsVersion?: string;
   requiresOrganizationSelection?: boolean;
   organizationOptions?: LoginOrganizationOption[];
 }

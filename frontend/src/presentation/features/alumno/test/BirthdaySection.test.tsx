@@ -40,10 +40,13 @@ describe("BirthdaySection", () => {
     expect(screen.getByRole("heading", { name: "Pr\u00f3ximos cumplea\u00f1os" })).toBeInTheDocument();
     expect(screen.getByText("THEO VIVAS")).toBeInTheDocument();
     expect(screen.getByText("Hoy cumple")).toBeInTheDocument();
-    expect(screen.getByText("10-ene \u00b7 7 a\u00f1os")).toBeInTheDocument();
+    expect(screen.getByLabelText("10 de enero")).toBeInTheDocument();
     expect(screen.getByText("MARTINA ROJAS")).toBeInTheDocument();
+    expect(screen.queryByText(/2015|2019|\d+ a\u00f1os|Edad actual|Fecha de nacimiento/)).not.toBeInTheDocument();
     expect(screen.getByText("Faltan 2 d\u00edas")).toBeInTheDocument();
     expect(screen.queryByText("ALUMNO SIN FECHA")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ver más/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("muestra estado vacio cuando ningun alumno tiene fecha", () => {
@@ -52,8 +55,8 @@ describe("BirthdaySection", () => {
     expect(screen.getByText(/Agrega la fecha de nacimiento/i)).toBeInTheDocument();
   });
 
-  it("usa una paleta amplia para evitar bloques de un solo color", () => {
-    const manyBirthdays = Array.from({ length: 12 }, (_, index) => ({
+  it("mantiene variedad de colores e iconos estables y agota la colección antes de repetir", () => {
+    const manyBirthdays = Array.from({ length: 28 }, (_, index) => ({
       alumnoId: index + 10,
       codigo: `AL-${index + 10}`,
       nombre: `ALUMNO ${index + 1}`,
@@ -63,8 +66,20 @@ describe("BirthdaySection", () => {
       activo: true,
     }));
 
-    const { container } = render(<BirthdaySection alumnos={manyBirthdays} today={new Date(2026, 0, 10)} maxItems={0} />);
+    const { container, rerender } = render(<BirthdaySection alumnos={manyBirthdays} today={new Date(2026, 0, 10)} maxItems={0} />);
 
     expect(container.querySelector(".birthday-card.is-tone-10")).toBeInTheDocument();
+    const assignments = () => Object.fromEntries([...container.querySelectorAll(".birthday-card")]
+      .map(card => [card.querySelector("h3")?.textContent,
+        card.querySelector("[data-celebration-icon]")?.getAttribute("data-celebration-icon")]));
+    const originalAssignments = assignments();
+    const icons = Object.values(originalAssignments);
+    expect(icons.every(Boolean)).toBe(true);
+    const uniqueCount = new Set(icons).size;
+    expect(uniqueCount).toBeGreaterThan(20);
+    expect(icons.findIndex((icon, index) => icons.indexOf(icon) < index)).toBe(uniqueCount);
+
+    rerender(<BirthdaySection alumnos={[...manyBirthdays].reverse()} today={new Date(2026, 1, 15)} maxItems={0} />);
+    expect(assignments()).toEqual(originalAssignments);
   });
 });

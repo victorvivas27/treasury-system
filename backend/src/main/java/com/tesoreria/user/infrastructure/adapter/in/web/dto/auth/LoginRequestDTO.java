@@ -9,5 +9,9 @@ public record LoginRequestDTO(
         String correo,
         @NotBlank(message = "La contraseña es obligatoria")
         String password,
-        Long organizationId) {
+        Long organizationId,
+        @jakarta.validation.constraints.Size(max = 32) String termsVersion) {
+    public LoginRequestDTO(String correo, String password, Long organizationId) {
+        this(correo, password, organizationId, null);
+    }
 }

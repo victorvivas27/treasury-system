@@ -42,11 +42,14 @@ class SA07RefreshReuseIntegrationTest {
     @Autowired UserJpaRepository users;
     @Autowired JdbcTemplate jdbc;
     @Autowired JwtService jwt;
+    @Autowired com.tesoreria.user.core.port.out.UserRepositoryOutPort accounts;
     private Long userId;
 
     @BeforeEach
     void fixture() {
         var user = new UserEntity();
+        user.setTermsVersion(com.tesoreria.user.application.usecase.AuthService.CURRENT_TERMS_VERSION);
+        user.setTermsAcceptedAt(java.time.Instant.now());
         user.setCode("USR-" + UUID.randomUUID().toString().substring(0, 8));
         user.setNombre("PERSONA PRUEBA");
         user.setCorreo(UUID.randomUUID() + "@mail.com");
@@ -62,6 +65,23 @@ class SA07RefreshReuseIntegrationTest {
     void cleanup() {
         jdbc.update("delete from user_tokens where user_id=?", userId);
         users.deleteById(userId);
+    }
+
+    @Test
+    void acceptancePersistsThroughProfileMappingAndRefreshRejectsAChangedVersion() {
+        var acceptedAt = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        accounts.recordTermsAcceptance(userId, "2026-11-16", acceptedAt);
+        var account = accounts.findById(userId).orElseThrow();
+        assertEquals(acceptedAt, account.getTermsAcceptedAt());
+        assertEquals("2026-11-16", account.getTermsVersion());
+        account.setNombre("PERFIL ACTUALIZADO");
+        accounts.save(account);
+        var stored = users.findById(userId).orElseThrow();
+        assertEquals(acceptedAt, stored.getTermsAcceptedAt());
+        assertEquals("2026-11-16", stored.getTermsVersion());
+        var session = issue();
+        accounts.recordTermsAcceptance(userId, "old", acceptedAt);
+        assertThrows(DomainException.class, () -> sessions.rotate(session.refreshToken(), session.csrfToken()));
     }
 
     @ParameterizedTest

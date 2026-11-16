@@ -35,6 +35,19 @@ describe("Reportes privados", () => {
     expect(within(coverage).getByText("83 de 100 cubiertos")).toBeInTheDocument();
     expect(within(coverage).getByText("61 de 100 cubiertos")).toBeInTheDocument();
   });
+  it("muestra Bruno separado con cobertura de código y operaciones API", async () => {
+    vi.mocked(QualityReportUseCases.prototype.catalog).mockResolvedValueOnce({configured:true,reports:[{
+      ...report, application:"backend", suite:"bruno", coverage:{lines:{covered:12,total:100,percent:12},
+        endpoints:{covered:5,total:200,percent:2.5}},
+    }]} as never);
+    render(<QualityReportsPage />);
+    expect(await screen.findByText("Bruno · API · Apoderado")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", {name:"Cobertura de Líneas"})).toHaveAttribute("aria-valuenow","12");
+    expect(screen.getByRole("progressbar", {name:"Cobertura de operaciones HTTP"})).toHaveAttribute("aria-valuenow","2.5");
+    expect(screen.getByText("5 de 200 operaciones con comprobaciones aprobadas")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button",{name:/Abrir reporte/}));
+    expect(await screen.findByTitle("Allure Bruno API")).toHaveAttribute("sandbox","allow-scripts allow-downloads");
+  });
   it("distingue almacenamiento sin configurar y muestra fallos sin abrir contenido viejo", async () => {
     vi.mocked(QualityReportUseCases.prototype.catalog).mockResolvedValueOnce({configured:false,reports:[]});
     const {unmount} = render(<QualityReportsPage />);

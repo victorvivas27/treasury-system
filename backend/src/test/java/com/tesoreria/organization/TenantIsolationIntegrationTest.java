@@ -3,6 +3,8 @@ package com.tesoreria.organization;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.entity.AlumnoEntity;
 import com.tesoreria.alumno.infrastructure.adapter.out.persistence.repository.AlumnoJpaRepository;
 import com.tesoreria.organization.config.TenantUserDetails;
+import com.tesoreria.community.infrastructure.persistence.CoursePhotoEntity;
+import com.tesoreria.community.infrastructure.persistence.CoursePhotoJpaRepository;
 import com.tesoreria.organization.core.model.OrganizationType;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationEntity;
 import com.tesoreria.organization.infrastructure.persistence.OrganizationJpaRepository;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TenantIsolationIntegrationTest {
     @Autowired OrganizationJpaRepository organizations;
     @Autowired AlumnoJpaRepository students;
+    @Autowired CoursePhotoJpaRepository photos;
 
     @AfterEach
     void clearSecurityContext() {
@@ -50,6 +53,32 @@ class TenantIsolationIntegrationTest {
         assertTrue(students.existsById(studentA.getAlumnoId()));
         assertTrue(students.findById(studentB.getAlumnoId()).isEmpty());
         assertEquals(studentA.getAlumnoId(), students.findByCodigo("AL-TENANTA").orElseThrow().getAlumnoId());
+    }
+
+    @Test
+    void galleryShouldKeepPhotosInsideTheirCourseForAdministratorsAndGuardians() {
+        Long organizationA = organization("photo-tenant-a").getId();
+        Long organizationB = organization("photo-tenant-b").getId();
+        authenticate(organizationA, "photo-admin-a@mail.com");
+        CoursePhotoEntity photo = new CoursePhotoEntity();
+        photo.setOriginalName("course.png");
+        photo.setStorageObjectName("course-" + java.util.UUID.randomUUID() + ".png");
+        photo.setContentType("image/png");
+        photo.setDisplayOrder(0);
+        photo.setCreatedAt(java.time.LocalDateTime.now());
+        Long photoId = photos.saveAndFlush(photo).getId();
+
+        for (RoleEnum role : new RoleEnum[]{RoleEnum.USER, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN}) {
+            TenantUserDetails principal = new TenantUserDetails(1L, organizationB,
+                    "photo-other@mail.com", "secret", role, true, true);
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+            assertTrue(photos.findById(photoId).isEmpty());
+            assertTrue(photos.findAllByOrderByDisplayOrderAscIdAsc().stream()
+                    .noneMatch(value -> value.getId().equals(photoId)));
+        }
+        authenticate(organizationA, "photo-admin-a@mail.com");
+        assertTrue(photos.findById(photoId).isPresent());
     }
 
     private OrganizationEntity organization(String slug) {
