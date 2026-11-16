@@ -44,8 +44,9 @@ export function CashflowTimeline({ data, year, loading, onRefresh }: {
     <div className="flow-ribbon-scroll" role="region" tabIndex={0}
       aria-label={`Línea de tiempo de meses con movimientos de ${year}`}>
       <div className="flow-ribbon" key={year} style={{ "--flow-month-count": months.length } as CSSProperties}>
-        {months.map(month => <section key={month.month}
+        {months.map((month, index) => <section key={month.month}
           className={`flow-ribbon-month${currentMonth === month.month ? " is-current" : ""}${month.income || month.expense ? " has-activity" : ""}`}
+          style={{ "--flow-month-index": index } as CSSProperties}
           aria-label={`${month.name} de ${year}`}>
           <FlowDetails kind="income" total={month.income} groups={month.incomes} />
           <div className="flow-ribbon-station">

@@ -1,0 +1,150 @@
+/* Entrance motion: quiet, short and limited to opacity/transform for smooth rendering. */
+@keyframes dashboard-enter {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.business-dashboard > .business-dashboard__header,
+.business-dashboard > .dashboard-views,
+.business-dashboard > .dashboard-kpis,
+.business-dashboard > .dashboard-charts,
+.business-dashboard > .dashboard-audit {
+  animation: dashboard-enter 480ms cubic-bezier(.2, .75, .25, 1) both;
+}
+
+.business-dashboard > .business-dashboard__header { animation-delay: 0ms; }
+.business-dashboard > .dashboard-views { animation-delay: 45ms; }
+.business-dashboard > .dashboard-kpis { animation-delay: 90ms; }
+.business-dashboard > .dashboard-charts { animation-delay: 145ms; }
+.business-dashboard > .dashboard-audit { animation-delay: 200ms; }
+
+.business-dashboard .dashboard-kpi,
+.business-dashboard .dashboard-charts > .dashboard-chart-column > .dashboard-panel,
+.business-dashboard .dashboard-charts > .dashboard-board-message {
+  animation: dashboard-enter 420ms cubic-bezier(.2, .75, .25, 1) both;
+}
+
+.business-dashboard .dashboard-kpi:nth-child(2) { animation-delay: 45ms; }
+.business-dashboard .dashboard-kpi:nth-child(3) { animation-delay: 90ms; }
+.business-dashboard .dashboard-charts > .dashboard-chart-column > .dashboard-panel:nth-child(2) { animation-delay: 55ms; }
+.business-dashboard .dashboard-charts > .dashboard-chart-column > .dashboard-panel:nth-child(3) { animation-delay: 100ms; }
+.business-dashboard .dashboard-charts > .dashboard-chart-column > .dashboard-panel:nth-child(4) { animation-delay: 145ms; }
+.business-dashboard .dashboard-charts > .dashboard-board-message { animation-delay: 180ms; }
+
+@keyframes dashboard-row-unfold {
+  0% { opacity: 0; transform: perspective(900px) rotateX(-48deg) translateY(-5px); transform-origin: top center; }
+  74% { opacity: 1; transform: perspective(900px) rotateX(4deg) translateY(0); }
+  100% { opacity: 1; transform: perspective(900px) rotateX(0) translateY(0); }
+}
+
+.business-dashboard .dashboard-movement-list li {
+  animation: dashboard-row-unfold 520ms cubic-bezier(.2, .75, .25, 1) both;
+  animation-delay: calc(var(--movement-index, 0) * 110ms);
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+@keyframes expense-ledger-unfold {
+  0% { opacity: 0; transform: perspective(1000px) rotateX(-32deg) translateY(-7px); }
+  68% { opacity: 1; transform: perspective(1000px) rotateX(3deg) translateY(1px); }
+  100% { opacity: 1; transform: perspective(1000px) rotateX(0) translateY(0); }
+}
+
+@keyframes expense-ledger-mark {
+  to { transform: scaleY(1); opacity: .8; }
+}
+
+@keyframes expense-ledger-amount {
+  0% { opacity: 0; transform: translateY(5px) scale(.94); }
+  75% { opacity: 1; transform: translateY(-1px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.business-dashboard .dashboard-expense-ledger li {
+  position: relative;
+  padding-left: 8px;
+  animation: expense-ledger-unfold 540ms cubic-bezier(.2, .75, .25, 1) both;
+  animation-delay: calc(var(--expense-index, 0) * 95ms);
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+.business-dashboard .dashboard-expense-ledger li::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  content: "";
+  background: var(--color-error);
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: expense-ledger-mark 380ms ease-out both;
+  animation-delay: calc(var(--expense-index, 0) * 95ms + 150ms);
+}
+
+.business-dashboard .dashboard-expense-ledger li b {
+  animation: expense-ledger-amount 420ms cubic-bezier(.2, .75, .25, 1) both;
+  animation-delay: calc(var(--expense-index, 0) * 95ms + 100ms);
+}
+
+@keyframes course-card-drop {
+  0% { opacity: 0; transform: perspective(900px) translateY(-34px) rotateX(-18deg) scale(.97); }
+  72% { opacity: 1; transform: perspective(900px) translateY(4px) rotateX(2deg) scale(1.005); }
+  100% { opacity: 1; transform: perspective(900px) translateY(0) rotateX(0) scale(1); }
+}
+
+@keyframes course-note-roll-in {
+  0% { opacity: 0; transform: perspective(1100px) translateX(88px) rotateY(42deg) scale(.96); transform-origin: left center; }
+  72% { opacity: 1; transform: perspective(1100px) translateX(-5px) rotateY(-3deg) scale(1.005); }
+  100% { opacity: 1; transform: perspective(1100px) translateX(0) rotateY(0) scale(1); }
+}
+
+@keyframes course-event-unfold {
+  0% { opacity: 0; transform: perspective(950px) rotateX(-34deg) translateY(-8px); transform-origin: top center; }
+  75% { opacity: 1; transform: perspective(950px) rotateX(3deg) translateY(1px); }
+  100% { opacity: 1; transform: perspective(950px) rotateX(0) translateY(0); }
+}
+
+.business-dashboard[data-view="course"] .dashboard-summary-group--course > .dashboard-kpi,
+.business-dashboard[data-view="course"] .dashboard-summary-group--course .dashboard-gender-card,
+.business-dashboard[data-view="course"] .dashboard-summary-group--course .dashboard-birthday-card,
+.business-dashboard[data-view="course"] .dashboard-panel--event-profits {
+  animation: course-card-drop 680ms cubic-bezier(.2, .75, .25, 1) both;
+}
+
+.business-dashboard[data-view="course"] .dashboard-summary-group--course > .dashboard-kpi { animation-delay: 80ms; }
+.business-dashboard[data-view="course"] .dashboard-summary-group--course .dashboard-gender-card { animation-delay: 220ms; }
+.business-dashboard[data-view="course"] .dashboard-summary-group--course .dashboard-birthday-card { animation-delay: 360ms; }
+.business-dashboard[data-view="course"] .dashboard-panel--event-profits { animation-delay: 500ms; }
+.business-dashboard[data-view="course"] .dashboard-event-profit {
+  animation: course-event-unfold 560ms cubic-bezier(.2, .75, .25, 1) both;
+  animation-delay: calc(640ms + var(--event-index, 0) * 120ms);
+  backface-visibility: hidden;
+}
+.business-dashboard[data-view="course"] .dashboard-board-message--whole.is-visible {
+  animation: course-note-roll-in 900ms cubic-bezier(.2, .85, .25, 1) 680ms both;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .business-dashboard > .business-dashboard__header,
+  .business-dashboard > .dashboard-views,
+  .business-dashboard > .dashboard-kpis,
+  .business-dashboard > .dashboard-charts,
+  .business-dashboard > .dashboard-audit,
+  .business-dashboard .dashboard-kpi,
+  .business-dashboard .dashboard-charts > .dashboard-chart-column > .dashboard-panel,
+  .business-dashboard .dashboard-charts > .dashboard-board-message {
+    animation: none;
+  }
+  .business-dashboard .dashboard-movement-list li { animation: none; }
+  .business-dashboard .dashboard-expense-ledger li,
+  .business-dashboard .dashboard-expense-ledger li::before,
+  .business-dashboard .dashboard-expense-ledger li b { animation: none; }
+  .business-dashboard[data-view="course"] .dashboard-summary-group--course > .dashboard-kpi,
+  .business-dashboard[data-view="course"] .dashboard-summary-group--course .dashboard-gender-card,
+  .business-dashboard[data-view="course"] .dashboard-summary-group--course .dashboard-birthday-card,
+  .business-dashboard[data-view="course"] .dashboard-panel--event-profits,
+  .business-dashboard[data-view="course"] .dashboard-event-profit,
+  .business-dashboard[data-view="course"] .dashboard-board-message--whole.is-visible { animation: none; }
+}

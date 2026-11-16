@@ -201,28 +201,28 @@ export const DashboardPage = () => {
           <header className="dashboard-summary-group__heading">
             <h2 id="dashboard-money-title">Dinero del curso</h2>
           </header>
-          <Kpi label="Saldo disponible" value={money.format(data.finances.availableBalance)}
+          <Kpi label="Saldo disponible" value={data.finances.availableBalance} formatValue={money.format} animationKey={view}
             featured negative={data.finances.availableBalance < 0}
             positive={data.finances.availableBalance >= 0}
             description="Ingresos totales menos egresos" />
-          <Kpi label="Ingresos totales" value={money.format(data.finances.totalIncome)}
+          <Kpi label="Ingresos totales" value={data.finances.totalIncome} formatValue={money.format} animationKey={view}
             positive direction="in" to={`/tesoreria/ingresos?year=${year}`} />
-          <Kpi label="Egresos activos" value={money.format(data.finances.totalExpenses)}
+          <Kpi label="Egresos activos" value={data.finances.totalExpenses} formatValue={money.format} animationKey={view}
             negative direction="out" to={`/tesoreria/gastos?year=${year}`} />
         </section>
         <section className="dashboard-summary-group dashboard-summary-group--fees" aria-labelledby="dashboard-fees-title">
           <header className="dashboard-summary-group__heading">
             <h2 id="dashboard-fees-title">Cuotas del curso</h2>
           </header>
-          <Kpi label="Cuotas pagadas" value={String(data.quotas.paidObligations)} icon="paid" />
-          <Kpi label="Cuotas pendientes" value={String(data.quotas.pendingObligations)} icon="pending" />
+          <Kpi label="Cuotas pagadas" value={data.quotas.paidObligations} icon="paid" animationKey={view} />
+          <Kpi label="Cuotas pendientes" value={data.quotas.pendingObligations} icon="pending" animationKey={view} />
         </section>
         <section className="dashboard-summary-group dashboard-summary-group--course" aria-labelledby="dashboard-course-title">
           <header className="dashboard-summary-group__heading">
             <h2 id="dashboard-course-title">Nuestro curso</h2>
           </header>
-        <Kpi label="Familias activas" value={String(data.quotas.totalFamilies)}
-          icon="families" description={`Registradas para ${year}`} />
+        <Kpi label="Familias activas" value={data.quotas.totalFamilies}
+          icon="families" description={`Registradas para ${year}`} animationKey={view} />
         <div className="dashboard-course-cards">
         <article className="dashboard-gender-card" aria-label="Composición del curso">
           <header>
@@ -317,7 +317,8 @@ export const DashboardPage = () => {
             : <ul className="dashboard-expense-ledger" aria-label="Egresos por fecha"
               style={{ "--expense-columns": expenseColumns,
                 "--expense-rows": Math.ceil(expenseDetails.length / expenseColumns) } as CSSProperties}>
-              {expenseDetails.map(item => <li key={item.id}>
+              {expenseDetails.map((item, index) => <li key={item.id}
+                style={{ "--expense-index": index } as CSSProperties}>
                 <time dateTime={item.date}>{item.date
                   ? new Date(`${item.date}T00:00:00`).toLocaleDateString("es-CL") : "Sin fecha disponible"}</time>
                 <strong>{item.description}</strong>
@@ -372,7 +373,8 @@ export const DashboardPage = () => {
           <div>
         {data.recentMovements.length === 0 ? <p className="dashboard-empty">
           No hay movimientos registrados para {year}.</p> : <div>
-          <ul className="dashboard-movement-list" aria-label="Actividad reciente">{visibleMovements.map(item => <li key={`${item.type}-${item.id}`}>
+          <ul className="dashboard-movement-list" aria-label="Actividad reciente">{visibleMovements.map((item, index) => <li
+            key={`${item.type}-${item.id}`} style={{ "--movement-index": index } as CSSProperties}>
               <i className={`dashboard-movement-icon ${item.type === "EGRESO" ? "is-negative" : "is-positive"}`}>
                 {item.type === "EGRESO" ? <FiLogOut aria-hidden="true" /> : <FiLogIn aria-hidden="true" />}
               </i>
@@ -468,13 +470,17 @@ export const DashboardPage = () => {
   </main></>;
 };
 
-const Kpi = ({ label, value, positive = false, negative = false, direction, featured,
+const Kpi = ({ label, value, formatValue = String, animationKey, positive = false, negative = false, direction, featured,
   description, icon, to }: {
-  label: string; value: string; positive?: boolean; negative?: boolean;
+  label: string; value: number; formatValue?: (value: number) => string;
+  animationKey: string;
+  positive?: boolean; negative?: boolean;
   direction?: "in" | "out"; featured?: boolean; description?: string;
   icon?: "paid" | "pending" | "families";
   to?: string;
-}) => <article className={`dashboard-kpi ${featured ? "dashboard-kpi--featured" : ""} ${
+}) => {
+  const displayedValue = useCountUp(value, animationKey);
+  return <article className={`dashboard-kpi ${featured ? "dashboard-kpi--featured" : ""} ${
   direction ? `dashboard-kpi--${direction}` : ""} ${icon ? `dashboard-kpi--${icon}` : ""}`}>
   <div className="dashboard-kpi__header">
     <span className="dashboard-kpi__label">{to
@@ -488,10 +494,36 @@ const Kpi = ({ label, value, positive = false, negative = false, direction, feat
   </div>
   <div className="dashboard-kpi__value">
     <strong className={positive ? "is-positive"
-      : negative ? "is-negative" : ""}>{value}</strong>
+      : negative ? "is-negative" : ""} aria-label={formatValue(value)}>
+      {formatValue(displayedValue)}</strong>
   </div>
   {description && <small>{description}</small>}
 </article>;
+};
+
+const useCountUp = (target: number, animationKey: string) => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    setValue(0);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(target);
+      return;
+    }
+    let frame = 0;
+    let startTime = 0;
+    const duration = 1100;
+    const animate = (time: number) => {
+      if (!startTime) startTime = time;
+      const progress = Math.min((time - startTime) / duration, 1);
+      const eased = 1 - (1 - progress) ** 4;
+      setValue(Math.round(target * eased));
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [target, animationKey]);
+  return value;
+};
 
 const ContributionDonut = ({ title, paid, pending }: {
   title: string; paid: number; pending: number;

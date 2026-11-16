@@ -49,6 +49,10 @@
 .flow-ribbon{display:grid;grid-template-columns:repeat(var(--flow-month-count),minmax(104px,1fr));grid-template-rows:auto 32px auto 26px;min-width: calc(var(--flow-month-count) * 104px);position:relative}
 .flow-ribbon-month{display:grid;grid-template-rows:subgrid;grid-row:span 4;min-width:0;position:relative;animation:flow-ribbon-arrive 450ms ease-out both}
 .flow-ribbon-month:nth-child(3n+2){animation-delay:60ms}.flow-ribbon-month:nth-child(3n){animation-delay:120ms}
+.business-dashboard .dashboard-panel--cashflow .flow-ribbon-month {
+  animation-duration: 460ms;
+  animation-delay: calc(var(--flow-month-index, 0) * 125ms);
+}
 .flow-ribbon-entry{position:relative;margin: 0 0.6rem;padding: var(--space-2) 0.1rem 0.55rem var(--space-2);min-width:0;color:var(--color-success);border-left:2px solid color-mix(in srgb,var(--color-success) 50%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--color-success) 5%,transparent),transparent);border-radius: 0 8px 8px 0}
 .flow-ribbon-entry--income{align-self:end;margin-bottom: 16px}
 .flow-ribbon-entry--expense{align-self:start;margin-top: 16px;color:var(--color-error);border-left-color:color-mix(in srgb,var(--color-error) 50%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--color-error) 5%,transparent),transparent)}
@@ -75,7 +79,11 @@
 .flow-ribbon-month:first-child .flow-ribbon-station{clip-path:polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%)}
 .flow-ribbon-balance{display:flex;justify-content:center;align-items:center;gap: 0.35rem;font-size: .75rem;margin-top: var(--space-2)}
 .flow-ribbon-balance small{color:var(--text-muted);font-size: .75rem}.flow-ribbon-balance strong{font-weight:600}
-@keyframes flow-ribbon-arrive{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}
+@keyframes flow-ribbon-arrive{
+  0%{opacity:0;transform:perspective(1000px) rotateY(-52deg) translateX(-10px) scale(.97);transform-origin:left center}
+  72%{opacity:1;transform:perspective(1000px) rotateY(5deg) translateX(1px) scale(1.005)}
+  100%{opacity:1;transform:perspective(1000px) rotateY(0) translateX(0) scale(1)}
+}
 .business-dashboard .dashboard-panel--cashflow{grid-column:1/-1;grid-row:1}
 @media(max-width:700px){
   .dashboard-panel--cashflow > header h2{margin:0;font-size:var(--font-size-sm);line-height:var(--leading-body)}

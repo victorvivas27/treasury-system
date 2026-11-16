@@ -3,3 +3,4 @@
 @import "./DashboardDesktop.css" screen and (min-width: 1024px);
 @import "./DashboardMessage.css";
 @import "./DashboardViews.css";
+@import "./DashboardAnimations.css";
