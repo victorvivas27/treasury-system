@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.58.0](https://github.com/victorvivas27/treasury-system/compare/v1.57.0...v1.58.0) (2026-11-17)
+
+
+### Features
+
+* **dashboard:** enhance animations and improve KPI formatting ([6f90386](https://github.com/victorvivas27/treasury-system/commit/6f903869ccd902a33636a0c58a43705304c39e76))
+* **workflows:** remove push triggers from CI workflows and update validation logic ([8b03e5c](https://github.com/victorvivas27/treasury-system/commit/8b03e5c479b2df1361dc88f2c45cdba483519ac5))
+* **workflows:** remove push triggers from CI workflows and update validation logic ([58d5ef0](https://github.com/victorvivas27/treasury-system/commit/58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9))
+
 ## [1.57.0](https://github.com/victorvivas27/treasury-system/compare/v1.56.0...v1.57.0) (2026-11-16)
 
 
