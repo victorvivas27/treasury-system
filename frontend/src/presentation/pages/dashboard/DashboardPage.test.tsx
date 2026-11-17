@@ -1,7 +1,7 @@
 import { clearDashboardCache } from "./dashboardCache";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardPage } from "./DashboardPage";
 
 vi.mock("@/core/C-infra/repositories/alumno/AlumnoRepositoryImpl", () => ({
@@ -55,7 +55,16 @@ const overview = {
 };
 
 describe("DashboardPage", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   beforeEach(() => {
+    // jsdom no implementa matchMedia; evitar animaciones al comprobar los datos.
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
     clearDashboardCache();
     vi.clearAllMocks();
     eventProfits.mockResolvedValue([]);
