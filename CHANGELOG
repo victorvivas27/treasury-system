@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.60.0](https://github.com/victorvivas27/treasury-system/compare/v1.59.0...v1.60.0) (2026-11-17)
+
+
+### Features
+
+* refactor AppRouter and PageTransition components for improved loading behavior and transition handling ([a91061d](https://github.com/victorvivas27/treasury-system/commit/a91061deafcc0d3bd49bfc235748966ac59d54e3))
+* refactor AppRouter and PageTransition components for improved loading behavior and transition handling ([16be9a2](https://github.com/victorvivas27/treasury-system/commit/16be9a255841d659119ad480b3267822e0a0fce8))
+
 ## [1.59.0](https://github.com/victorvivas27/treasury-system/compare/v1.58.0...v1.59.0) (2026-11-17)
 
 
