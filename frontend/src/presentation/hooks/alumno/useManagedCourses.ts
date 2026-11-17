@@ -1,5 +1,6 @@
 import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
 import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { readPageRequest } from '@/presentation/hooks/pageRequestCache';
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -39,7 +40,7 @@ export const useManagedCourses = (currentCourse = "") => {
 
   useEffect(() => {
     let active = true;
-    repository.getManagedCourseSettings()
+    readPageRequest('managed-course-settings', () => repository.getManagedCourseSettings())
       .then((settings) => {
         if (active) applyManagedCourses(settings);
       })

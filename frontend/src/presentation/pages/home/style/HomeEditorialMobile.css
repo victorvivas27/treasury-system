@@ -15,7 +15,7 @@
   padding-top: 0;
   justify-content: center;
 }
-.public-home--editorial .he-hero__art { opacity: .25; }
+.public-home--editorial .he-hero__art { --hero-art-opacity: .25; }
 .public-home--editorial .he-hero__art .he-photo { object-position: center 30%; }
 .public-home--editorial .he-hero__copy { padding-top: 64px; }
 .public-home--editorial .he-hero__copy > .he-kicker { max-width: none; }

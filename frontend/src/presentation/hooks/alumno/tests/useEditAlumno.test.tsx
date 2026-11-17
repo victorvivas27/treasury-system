@@ -2,6 +2,7 @@ import { MemoryRouter, useNavigate, useParams } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEditAlumno } from "../useEditAlumno";
 import { act, renderHook } from "@testing-library/react";
+import { clearPageRequests } from "@/presentation/hooks/pageRequestCache";
 
 const mockGetManagedCourseSettings = vi.hoisted(() => vi.fn());
 
@@ -45,6 +46,7 @@ describe("useEditAlumno Hook", () => {
   const mockAlumno = { nombre: "Juan", curso: "4A", observacion: "", fechaNacimiento: "2015-04-12", genero: "OTROS" as const, apoderadoId: 1 };
 
   beforeEach(() => {
+    clearPageRequests();
     vi.clearAllMocks();
     vi.useFakeTimers();
     (useNavigate as any).mockReturnValue(mockNavigate);

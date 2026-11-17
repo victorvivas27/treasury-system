@@ -3,6 +3,7 @@ import { publicImages } from "@/shared/assets/publicImages";
 
 // The mobile background is requested only when the phone stylesheet applies.
 export const authIllustrationStyle = {
+  "--auth-desktop-image": `url("${publicImages.loginDesktop}")`,
   "--auth-mobile-image": `url("${publicImages.loginMobile}")`,
 } as CSSProperties;
 

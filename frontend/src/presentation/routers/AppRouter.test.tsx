@@ -47,23 +47,17 @@ it("espera la restauración antes de mostrar login y mantiene el formulario al e
   expect(screen.getByRole("heading", { name: "Login" })).toBe(form);
 });
 
-it("muestra el loader configurado por administración al navegar de home a login", () => {
+it("abre login sin transición aunque exista una preferencia de loader entre páginas", () => {
   setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 0, exitMs: 800 });
   render(<MemoryRouter><AppRouter /></MemoryRouter>);
   fireEvent.click(screen.getByRole('link', { name: 'Iniciar sesión' }));
-  expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'cinematic');
-  expect(screen.queryByRole('heading', { name: 'Login' })).not.toBeInTheDocument();
-  act(() => vi.advanceTimersByTime(850));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
 });
 
-it("usa Rising Fill antes del login cuando aún no hay configuración del curso", () => {
+it("abre login sin un segundo loader cuando aún no hay configuración del curso", () => {
   render(<MemoryRouter><AppRouter /></MemoryRouter>);
   fireEvent.click(screen.getByRole('link', { name: 'Iniciar sesión' }));
-  expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'nneo-rising-fill');
-  expect(screen.queryByRole('heading', { name: 'Login' })).not.toBeInTheDocument();
-  act(() => vi.advanceTimersByTime(5000));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
 });

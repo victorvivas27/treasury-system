@@ -52,6 +52,17 @@
   padding-block: 20px;
   background-image: none;
 }
+.login-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: var(--auth-mobile-image) center / cover no-repeat;
+  filter: blur(24px);
+  opacity: .35;
+  clip-path: inset(0);
+}
 .login-page::before {
   content: "";
   position: fixed;

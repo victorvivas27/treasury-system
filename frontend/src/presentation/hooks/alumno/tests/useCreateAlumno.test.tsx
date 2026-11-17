@@ -4,6 +4,7 @@ import { act, renderHook } from "@testing-library/react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateAlumno } from "../useCreateAlumno";
+import { clearPageRequests } from "@/presentation/hooks/pageRequestCache";
 
 const mockGetManagedCourseSettings = vi.hoisted(() => vi.fn());
 
@@ -38,6 +39,7 @@ describe("useCreateAlumno", () => {
   const mockNavigate = vi.fn();
 
   beforeEach(() => {
+    clearPageRequests();
     vi.clearAllMocks();
     (useNavigate as any).mockReturnValue(mockNavigate);
     mockGetManagedCourseSettings.mockReturnValue(new Promise(() => {}));

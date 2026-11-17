@@ -4,6 +4,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // Discover the login artwork before React loads, including entry from home.
+    if (location.pathname === '/' || location.pathname === '/login') {
+      for (const [media, href] of [
+        ['(min-width: 1024px)', '/app-images/v1/principal_login.png'],
+        ['(max-width: 1023px)', '/app-images/v1/principal_login_movil.png'],
+      ]) {
+        const image = document.createElement('link');
+        image.rel = 'preload';
+        image.as = 'image';
+        image.href = href;
+        image.media = media;
+        image.fetchPriority = location.pathname === '/login' ? 'high' : 'low';
+        document.head.append(image);
+      }
+    }
+  </script>
   <meta name="description" content="Administra cuotas, ingresos, gastos y actividades del curso en un solo lugar. Información clara y transparente para apoderados y directiva." />
   <meta name="application-name" content="Tesorería Escolar" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />

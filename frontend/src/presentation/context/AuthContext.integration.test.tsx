@@ -1,7 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios';
 import type { ReactNode } from 'react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('@/presentation/session/prepareSessionPages', () => ({ prepareSessionPages: vi.fn().mockResolvedValue(undefined) }));
 import { apiClient } from '@/core/D-config/api';
 import { clearAccessToken, clearCsrfToken, getAccessToken } from '@/core/D-config/axiosInterceptor';
 import { AuthProvider, useAuth } from './AuthContext';

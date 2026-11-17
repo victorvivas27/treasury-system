@@ -1,126 +1,53 @@
-import { setCachedLoaderPreference, clearLoaderPreferenceCache } from '@/shared/ui/loading/loaderPreferenceCache';
-import { act, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { PageTransitionBoundary, usePageEntry } from './PageTransition';
-import { PageTransitionOutlet } from './PageTransition';
-import { MemoryRouter, Route, Routes, Link } from 'react-router-dom';
-import { fireEvent } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, expect, it } from 'vitest';
+import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
+import { PageTransitionBoundary, PageTransitionOutlet, usePageEntry } from './PageTransition';
 
-beforeEach(() => {
-  localStorage.clear(); clearLoaderPreferenceCache();
-  setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 0, exitMs: 800 });
-  vi.useFakeTimers();
-  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
-});
-
-it('respeta el tiempo mínimo guardado sin dejar de esperar datos más lentos', () => {
-  setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 3000, exitMs: 800 });
-  const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(1000));
-  view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(1900));
-  expect(screen.getByRole('status')).not.toHaveClass('is-leaving');
-  act(() => vi.advanceTimersByTime(1000));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-});
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
-
-it('anima la entrada sin consultas y no vuelve a bloquear el formulario al actualizarse', () => {
-  const view = render(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
-  expect(screen.getByRole('status')).toBeInTheDocument();
-  expect(screen.getByText('Ingresar').closest('[inert]')).not.toBeNull();
-  act(() => vi.advanceTimersByTime(850));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  const button = screen.getByRole('button', { name: 'Ingresar' });
-  view.rerender(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
-  expect(screen.getByRole('button', { name: 'Ingresar' })).toBe(button);
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-});
-
+afterEach(async () => { await act(async () => document.getElementById('app-boot-loader')?.remove()); });
 function Data({ pending, error = false }: { pending: boolean; error?: boolean }) {
   usePageEntry(pending, error);
-  return <button>{error ? 'Reintentar' : 'Contenido de la página'}</button>;
+  return <button>{error ? 'Reintentar' : 'Contenido'}</button>;
 }
-
-it('shows a fallback transition before loader settings are available', () => {
-  clearLoaderPreferenceCache();
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-  render(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
-  expect(screen.getByRole('status')).toBeInTheDocument();
-  expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'nneo-rising-fill');
-  act(() => vi.advanceTimersByTime(5000));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  expect(screen.getByRole('button')).toBeEnabled();
-});
-
-it('shows the transition when navigating between pages with ready content', () => {
-  render(<MemoryRouter initialEntries={['/first']}><Routes>
-    <Route element={<PageTransitionOutlet />}>
-      <Route path="/first" element={<Link to="/second">Continuar</Link>} />
-      <Route path="/second" element={<button>Segunda página</button>} />
-    </Route>
-  </Routes></MemoryRouter>);
-  act(() => vi.advanceTimersByTime(850));
-  fireEvent.click(screen.getByRole('link', { name: 'Continuar' }));
-  expect(screen.getByRole('status')).toBeInTheDocument();
-  expect(screen.getByText('Segunda página').closest('[inert]')).not.toBeNull();
-  act(() => vi.advanceTimersByTime(850));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Segunda página' })).toBeEnabled();
-});
-
-it('mantiene la página montada e inerte hasta que sus datos están listos', () => {
+it('keeps content accessible while data loads without opening a page loader', () => {
   const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
-  expect(screen.getByRole('status')).toBeInTheDocument();
-  expect(screen.getByText('Contenido de la página').closest('[inert]')).not.toBeNull();
+  expect(screen.getByRole('button', { name: 'Contenido' })).toBeEnabled();
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(document.querySelector('[inert]')).toBeNull();
+  expect(document.querySelector('.page-transition-content')).toHaveAttribute('aria-busy', 'true');
   view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(850));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  expect(screen.getByRole('button')).toBeEnabled();
-  view.rerender(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(document.querySelector('.page-transition-content')).toHaveAttribute('aria-busy', 'false');
 });
-
-it('entra directamente con caché y no abre la transición durante una actualización posterior', () => {
-  const view = render(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(20));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  view.rerender(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
-});
-
-it('espera todas las consultas iniciales y libera la página si una falla', () => {
+it('reports initial readiness to the one existing boot loader without creating another cover', () => {
+  const boot = document.createElement('div'); boot.id = 'app-boot-loader'; document.body.append(boot);
   const view = render(<PageTransitionBoundary><Data pending /><Data pending /></PageTransitionBoundary>);
+  expect(document.querySelector('[data-page-assets-pending="true"]')).not.toBeNull();
   view.rerender(<PageTransitionBoundary><Data pending={false} /><Data pending /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(1000));
-  expect(screen.getByRole('status')).toBeInTheDocument();
+  expect(document.querySelector('[data-page-assets-pending="true"]')).not.toBeNull();
   view.rerender(<PageTransitionBoundary><Data pending={false} /><Data pending error /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(700));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(document.querySelector('[data-page-assets-pending="true"]')).toBeNull();
+  expect(document.querySelector('.page-entry-visual')).toBeNull();
+  expect(boot.isConnected).toBe(true);
+});
+it('navigates home to settings and back repeatedly without a loader or lost cached content', () => {
+  render(<MemoryRouter><Routes><Route element={<PageTransitionOutlet />}>
+    <Route path="/" element={<><h1>Home preparado</h1><Link to="/configuration">Configuraci?n</Link></>} />
+    <Route path="/configuration" element={<><h1>Configuraci?n preparada</h1><Link to="/">Home</Link></>} />
+  </Route></Routes></MemoryRouter>);
+  for (let visit = 0; visit < 2; visit++) {
+    fireEvent.click(screen.getByRole('link', { name: 'Configuraci?n' }));
+    expect(screen.getByRole('heading', { name: 'Configuraci?n preparada' })).toBeVisible();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: 'Home' }));
+    expect(screen.getByRole('heading', { name: 'Home preparado' })).toBeVisible();
+    expect(document.querySelector('.page-entry-visual, [inert]')).toBeNull();
+  }
+});
+it('does not cover the page again during later refreshes or failures', () => {
+  const view = render(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
+  act(() => {});
+  view.rerender(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
+  expect(screen.getByRole('button', { name: 'Contenido' })).toBeVisible();
+  view.rerender(<PageTransitionBoundary><Data pending error /></PageTransitionBoundary>);
   expect(screen.getByRole('button', { name: 'Reintentar' })).toBeEnabled();
-});
-
-it('Rising Fill completes only after data and releases React content without removing its node manually', () => {
-  setCachedLoaderPreference('pageTransition', { variant: 'nneo-rising-fill', durationMs: 0, exitMs: 400 });
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-  const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(20000));
-  expect(Number(screen.getByRole('status').dataset.progress)).toBeLessThan(100);
-  expect(screen.getByText('Contenido de la página').closest('[inert]')).not.toBeNull();
-  view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
-  act(() => vi.advanceTimersByTime(1800));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  expect(screen.getByRole('button')).toBeEnabled();
-});
-
-it('uses one initial Rising Fill cover and releases its readiness barrier without a second loader', () => {
-  const boot = document.createElement('div'); boot.id = 'app-boot-loader'; boot.dataset.variant = 'nneo-rising-fill'; document.body.append(boot);
-  try {
-    const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
-    expect(document.querySelector('.page-entry-visual')).toBeNull();
-    expect(screen.getByText('Contenido de la página').closest('[inert]')).not.toBeNull();
-    view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
-    expect(screen.getByText('Contenido de la página').closest('[inert]')).toBeNull();
-    expect(boot.isConnected).toBe(true);
-  } finally { boot.remove(); }
 });
