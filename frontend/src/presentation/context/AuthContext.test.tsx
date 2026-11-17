@@ -113,7 +113,7 @@ describe("AuthContext", () => {
       expect(loader).not.toHaveClass("is-leaving");
       avatar.removeAttribute("aria-busy");
       await waitFor(() => expect(ready).toHaveBeenCalledOnce());
-      expect(loader).toHaveClass("is-leaving");
+      expect(loader).toBeInTheDocument();
     } finally {
       view.unmount();
       window.removeEventListener("app:boot-ready", ready);

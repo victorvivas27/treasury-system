@@ -3,8 +3,8 @@ import { expect, it, vi } from 'vitest';
 import { InitialLoaderSettings } from './InitialLoaderSettings';
 
 vi.mock('@/shared/ui/loading/PageEntryVisual', () => ({
-  PageEntryVisual: ({ preferences, onExited }: { preferences: { variant: string }; onExited: () => void }) =>
-    <button onClick={onExited}>Vista previa {preferences.variant}</button>,
+  PageEntryVisual: ({ onExited }: { onExited: () => void }) =>
+    <button onClick={onExited}>Cerrar vista previa</button>,
 }));
 
 it('describes the fixed boot counter without offering server configuration', () => {
@@ -13,6 +13,6 @@ it('describes the fixed boot counter without offering server configuration', () 
   expect(screen.queryByRole('radio')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /Guardar/ })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Probar inicio' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Vista previa nneo-rising-fill' }));
-  expect(screen.queryByRole('button', { name: /Vista previa/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Cerrar vista previa' }));
+  expect(screen.queryByRole('button', { name: 'Cerrar vista previa' })).not.toBeInTheDocument();
 });

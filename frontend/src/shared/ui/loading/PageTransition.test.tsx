@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PageTransitionBoundary, PageTransitionOutlet, usePageEntry } from './PageTransition';
 
@@ -8,6 +8,21 @@ function Data({ pending, error = false }: { pending: boolean; error?: boolean })
   usePageEntry(pending, error);
   return <button>{error ? 'Reintentar' : 'Contenido'}</button>;
 }
+it('shows the animation for pending initial data and reveals content as soon as it resolves', () => {
+  vi.useFakeTimers();
+  try {
+    const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
+    act(() => vi.advanceTimersByTime(0));
+    expect(screen.getByRole('status', { name: 'Cargando datos' })).toBeInTheDocument();
+    expect(screen.getByText('Contenido')).not.toBeVisible();
+    view.rerender(<PageTransitionBoundary><Data pending={false} /></PageTransitionBoundary>);
+    expect(document.querySelector('.page-transition-content.is-arriving')).not.toBeNull();
+    act(() => vi.advanceTimersByTime(800));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Contenido' })).toBeVisible();
+    view.unmount();
+  } finally { vi.useRealTimers(); }
+});
 it('keeps content accessible while data loads without opening a page loader', () => {
   const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);
   expect(screen.getByRole('button', { name: 'Contenido' })).toBeEnabled();
