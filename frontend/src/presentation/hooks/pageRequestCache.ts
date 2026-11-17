@@ -4,6 +4,7 @@ import { apiClient } from '@/core/D-config/api';
 export const PAGE_DATA_FRESH_MS = 60_000;
 const requests = new Map<string, { value?: unknown; updatedAt?: number; pending?: Promise<unknown> }>();
 export const clearPageRequests = () => requests.clear();
+export const forgetPageRequest = (key: string) => requests.delete(key);
 window.addEventListener(HOME_COMMUNITY_RESET, clearPageRequests);
 apiClient.interceptors.response.use(response => {
   if (['post', 'put', 'patch', 'delete'].includes(response.config.method?.toLowerCase() ?? '')

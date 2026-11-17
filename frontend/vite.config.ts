@@ -131,12 +131,18 @@ export default defineConfig({
     allowedHosts: ['.trycloudflare.com'],
   },
   resolve: {
+    dedupe: ['react', 'react-dom'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, './src/shared'),
       '@core': path.resolve(__dirname, './src/core'),
       '@presentation': path.resolve(__dirname, './src/presentation'),
     },
+  },
+  optimizeDeps: {
+    // Include the lazy player in the initial dependency graph so React stays
+    // shared when its animation is first mounted during development.
+    include: ['react', 'react-dom/client', 'react/jsx-runtime', 'lottie-react'],
   },
   test: {
     globals: true,

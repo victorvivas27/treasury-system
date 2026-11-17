@@ -43,6 +43,14 @@ apiClient.interceptors.response.use(response => {
   return response;
 });
 
+export async function preloadPublishedSchedule(accountId: number) {
+  const account = accountCache(accountId);
+  await account.periods.load();
+  const periods = account.periods.getSnapshot().data;
+  const year = periods?.find(period => period.editable)?.schoolYear ?? periods?.[0]?.schoolYear;
+  if (year !== undefined) await account.schedule(year).load();
+}
+
 export function usePublishedSchedule() {
   const accountId = useOptionalAuth()?.user?.id;
   const account = accountCache(accountId);

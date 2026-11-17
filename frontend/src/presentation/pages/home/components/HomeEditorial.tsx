@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiArrowDown, FiArrowUpRight, FiCheck, FiUpload, FiEye, FiUsers } from 'react-icons/fi';
 import { HomeInstallGuide } from './HomeInstallGuide';
+import { useIllustrationEntrance } from '@/shared/ui/loading/useIllustrationEntrance';
 import '../style/HomeEditorial.css';
 import '../style/HomeEditorialMobile.css';
 
@@ -16,6 +17,8 @@ const chapters = [
 
 export function HomeEditorial() {
   const root = useRef<HTMLDivElement>(null);
+  const illustration = useRef<HTMLPictureElement>(null);
+  const illustrationReady = useIllustrationEntrance(illustration);
   const [chapter, setChapter] = useState(0);
   useEffect(() => {
     const node = root.current;
@@ -77,7 +80,7 @@ export function HomeEditorial() {
   const ActiveIcon = chapters[chapter].Icon;
   return <div className="home-editorial" ref={root}>
     <section className="he-hero" data-editorial-scene aria-labelledby="he-title">
-      <picture className="he-hero__art">
+      <picture ref={illustration} className={`he-hero__art${illustrationReady ? ' is-image-ready' : ''}`}>
         <source media="(max-width: 699px)" srcSet="/images/home/home_movil_01.png" />
         <img className="he-photo" src="/images/home/home_01.png" alt="" fetchPriority="high" width="1536" height="1024" />
       </picture>

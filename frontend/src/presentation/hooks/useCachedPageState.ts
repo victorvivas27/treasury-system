@@ -6,6 +6,8 @@ import { clearPageRequests } from './pageRequestCache';
 // Keep server results with their list filters: never passwords, form drafts, dialogs or pending actions.
 const snapshots = new Map<string, unknown>();
 let session = 0;
+let revision = 0;
+export const pageDataRevision = () => revision;
 export const hasPageData = (...keys: string[]) => keys.every(key => snapshots.has(key));
 export const readPageData = <T,>(key: string) => snapshots.get(key) as T | undefined;
 export const pageDataSession = () => session;
@@ -15,11 +17,12 @@ export const storePageData = <T,>(key: string, value: T, expectedSession = sessi
 export const forgetPageData = (key: string, expectedSession = session) => {
   if (session === expectedSession) snapshots.delete(key);
 };
-export const clearPageData = () => { snapshots.clear(); clearPageRequests(); session += 1; };
+const invalidatePageData = () => { snapshots.clear(); clearPageRequests(); revision += 1; };
+export const clearPageData = () => { invalidatePageData(); session += 1; };
 window.addEventListener(HOME_COMMUNITY_RESET, clearPageData);
 apiClient.interceptors.response.use(response => {
   if (['post', 'put', 'patch', 'delete'].includes(response.config.method?.toLowerCase() ?? '')
-    && !/\/auth\//.test(response.config.url ?? '')) snapshots.clear();
+    && !/\/auth\//.test(response.config.url ?? '')) invalidatePageData();
   return response;
 });
 

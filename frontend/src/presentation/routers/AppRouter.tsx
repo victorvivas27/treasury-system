@@ -23,7 +23,7 @@ export const AppRouter = () => {
   return (
   <Routes>
     <Route path="/" element={<HomePage />} />
-    <Route path="/login" element={<PageTransitionBoundary animateOnEntry><LoginPage /></PageTransitionBoundary>} />
+    <Route path="/login" element={<PageTransitionBoundary><LoginPage /></PageTransitionBoundary>} />
     <Route path="/register" element={<Navigate to="/login" replace />} />
     <Route element={<PageTransitionOutlet />}>
     <Route path="/aceptar-invitacion" element={<ResetPasswordPage invitation />} />

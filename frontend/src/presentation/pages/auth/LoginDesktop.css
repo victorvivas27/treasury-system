@@ -14,7 +14,16 @@
   box-sizing: border-box;
   background: radial-gradient(ellipse at 24% 52%, var(--color-accent-soft), transparent 60%);
 }
-.login-page .login-illustration { position: absolute; inset: 0; z-index: -2; display: block; pointer-events: none; }
+.login-page .login-illustration { position: absolute; inset: 0; z-index: -2; display: block; overflow: clip; pointer-events: none; }
+.login-page .login-illustration::before {
+  content: "";
+  position: absolute;
+  inset: -32px;
+  z-index: -1;
+  background: var(--auth-desktop-image) left center / cover no-repeat;
+  filter: blur(28px);
+  opacity: .35;
+}
 .login-page::before {
   content: "";
   position: absolute;
@@ -29,6 +38,8 @@
   height: 100%;
   object-fit: contain;
   object-position: left center;
+  transform: scale(1.18);
+  transform-origin: left center;
 }
 .login-page .login-panel {
   justify-self: end;

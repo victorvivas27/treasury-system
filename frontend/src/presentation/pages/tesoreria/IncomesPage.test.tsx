@@ -1,3 +1,4 @@
+import { clearPageRequests } from '@/presentation/hooks/pageRequestCache';
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -5,7 +6,7 @@ import { IncomesPage } from "./IncomesPage";
 import { clearIncomesCache } from "./incomesCache";
 
 const { repository, account } = vi.hoisted(() => ({
-  repository: { listIncomes: vi.fn(), dashboardOverview: vi.fn(), getManagedCourse: vi.fn(), listIncomeDocuments: vi.fn(), uploadIncomeDocuments: vi.fn(), createIncome: vi.fn() },
+  repository: { listIncomes: vi.fn(), dashboardOverview: vi.fn(), getManagedCourseSettings: vi.fn(), listIncomeDocuments: vi.fn(), uploadIncomeDocuments: vi.fn(), createIncome: vi.fn() },
   account: { rol: "ADMIN" },
 }));
 vi.mock("@/presentation/context/AuthContext", () => ({ useAuth: () => ({ user: account }) }));
@@ -15,8 +16,9 @@ describe("IncomesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearIncomesCache();
+    clearPageRequests();
     account.rol = "ADMIN";
-    repository.getManagedCourse.mockResolvedValue("1A");
+    repository.getManagedCourseSettings.mockResolvedValue({ course: "1A" });
     repository.listIncomeDocuments.mockResolvedValue([]);
     repository.uploadIncomeDocuments.mockResolvedValue(undefined);
     repository.listIncomes.mockResolvedValue([{ id: 1, description: "Rifa del curso", amount: 30000, incomeDate: "2026-10-19", status: "ACTIVE", category: "RAFFLE", registeredBy: "Tesorería", createdAt: "2026-10-19T12:00:00" }]);
@@ -48,7 +50,7 @@ describe("IncomesPage", () => {
     expect(screen.queryByRole("status", { name: "Cargando ingresos" })).not.toBeInTheDocument();
     expect(repository.listIncomes).toHaveBeenCalledTimes(1);
     expect(repository.dashboardOverview).toHaveBeenCalledTimes(1);
-    expect(repository.getManagedCourse).toHaveBeenCalledTimes(1);
+    expect(repository.getManagedCourseSettings).toHaveBeenCalledTimes(1);
   });
 
   it("offers retry after a failed load instead of displaying an empty result", async () => {
@@ -91,7 +93,7 @@ describe("IncomesPage", () => {
     render(<MemoryRouter><IncomesPage /></MemoryRouter>);
     await screen.findByText("Rifa del curso");
     expect(screen.queryByRole("button", { name: "Registrar ingreso" })).not.toBeInTheDocument();
-    expect(repository.getManagedCourse).not.toHaveBeenCalled();
+    expect(repository.getManagedCourseSettings).not.toHaveBeenCalled();
   });
 
   it("allows attaching a receipt directly from the event income detail", async () => {

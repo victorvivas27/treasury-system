@@ -17,7 +17,9 @@ import "./Configuracion.css";
 import { PaletteSelector } from "./PaletteSelector";
 import { FontFamilySelector } from "./FontFamilySelector";
 import { InitialLoaderSettings } from "./InitialLoaderSettings";
-import { PageTransitionSettings } from "./PageTransitionSettings";
+import { readPageRequest } from '@/presentation/hooks/pageRequestCache';
+import { resetDashboard } from '@/shared/treasury/dashboardEvents';
+import { notifyHomeCommunityChanged } from '@/shared/community/homeCommunityEvents';
 
 const THEME_OPTIONS: Array<{
   value: ThemePreference;
@@ -81,7 +83,7 @@ export const Configuracion = () => {
       setLoadingCourse(false);
       return;
     }
-    repository.getManagedCourseSettings()
+    readPageRequest('managed-course-settings', () => repository.getManagedCourseSettings())
       .then(value => {
         setSavedCourse(value.course);
         setCourse(value.course);
@@ -104,6 +106,8 @@ export const Configuracion = () => {
       setSavedSchoolYear(saved.schoolYear);
       setCourseHistory(saved.history);
       window.dispatchEvent(new CustomEvent("managed-course-changed", { detail: saved }));
+      resetDashboard();
+      notifyHomeCommunityChanged();
       setMessage(`El período vigente cambió a ${saved.course} · ${saved.schoolYear}.`);
     } catch {
       setError("No fue posible cambiar el curso administrado.");
@@ -162,7 +166,6 @@ export const Configuracion = () => {
 
 
       {canEditCourse && <InitialLoaderSettings />}
-      {canEditCourse && <PageTransitionSettings />}
 
       <article className={`push-settings-card push-settings-card--${pushStatus}`}>
         <span className="push-settings-icon"><FiBell aria-hidden="true" /></span>

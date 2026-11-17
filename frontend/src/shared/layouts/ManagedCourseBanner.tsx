@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiBookOpen } from "react-icons/fi";
-import { apiClient } from "@/core/D-config/api";
+import { TreasuryRepositoryImpl } from '@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl';
+import { readPageRequest } from '@/presentation/hooks/pageRequestCache';
 import "./ManagedCourseBanner.css";
 
 const formatCourse = (course: string) => {
@@ -24,8 +25,8 @@ export const ManagedCourseBanner = () => {
       }
     };
     window.addEventListener("managed-course-changed", updateCourse);
-    apiClient.get<{ course: string; schoolYear: number }>("/tesoreria/configuracion-general/curso")
-      .then(({ data }) => {
+    readPageRequest('managed-course-settings', () => new TreasuryRepositoryImpl().getManagedCourseSettings())
+      .then(data => {
         if (active && data.course) setCourse(data.course);
         if (active && data.schoolYear) setSchoolYear(data.schoolYear);
       })

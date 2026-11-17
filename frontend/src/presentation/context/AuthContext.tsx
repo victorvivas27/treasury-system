@@ -1,4 +1,5 @@
 import { clearLoaderConfiguration, syncLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguration';
+import { prepareSessionPages } from '@/presentation/session/prepareSessionPages';
 import type { User } from "@/core/A-domain/entities/user/User";
 import { resetHomeCommunity } from "@/shared/community/homeCommunityEvents";
 import { resetDashboard } from "@/shared/treasury/dashboardEvents";
@@ -231,6 +232,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           prefetchUserProfileImage(response.user);
           await syncLoaderConfiguration();
           if (getAccessToken() !== response.token) return;
+          await prepareSessionPages(response.user);
+          if (getAccessToken() !== response.token) return;
           validatedToken.current = response.token;
           hadActiveSession.current = true;
           setToken(response.token);
@@ -250,6 +253,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useCases.current.execute()
       .then(async (currentUser) => {
         await syncLoaderConfiguration();
+        if (getAccessToken() !== token) return;
+        await prepareSessionPages(currentUser);
         if (getAccessToken() !== token) return;
         hadActiveSession.current = true;
         sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
@@ -284,6 +289,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearLoaderConfiguration();
       await syncLoaderConfiguration();
       if (getAccessToken() !== response.token) throw new Error("Session changed");
+      await prepareSessionPages(response.user);
+      if (getAccessToken() !== response.token) throw new Error("Session changed");
       sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
       prefetchUserProfileImage(response.user);
       validatedToken.current = response.token;
@@ -306,6 +313,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setCsrfToken(response.csrfToken);
     clearLoaderConfiguration();
     await syncLoaderConfiguration();
+    if (getAccessToken() !== response.token) return;
+    await prepareSessionPages(response.user);
     if (getAccessToken() !== response.token) return;
     sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
     prefetchUserProfileImage(response.user);

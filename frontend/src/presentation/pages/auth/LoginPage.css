@@ -2,6 +2,18 @@
 @import "@/presentation/pages/auth/LoginMobile.css" screen and (max-width: 1023px);
 @import "@/presentation/pages/auth/LoginDesktop.css" screen and (min-width: 1024px);
 
+/* Only the artwork enters; the form stays available throughout. */
+@media (min-width: 1024px) {
+  .login-page .login-illustration { animation: login-image-enter 180ms ease-out; }
+}
+@media (max-width: 1023px) {
+  .login-page::before, .login-page::after { animation: login-image-enter 180ms ease-out; }
+}
+@keyframes login-image-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .login-page .login-illustration, .login-page::before, .login-page::after { animation: none; }
+}
+
 .login-terms, .login-legal-links { font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .login-terms-row { display: flex; align-items: flex-start; gap: 8px; }
 .login-terms-row input { flex: 0 0 auto; width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--color-accent); }

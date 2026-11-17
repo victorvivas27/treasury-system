@@ -1,4 +1,5 @@
 import { usePageEntry } from '@/shared/ui/loading/PageTransition';
+import { readPageRequest } from '@/presentation/hooks/pageRequestCache';
 import { hasPageData, useCachedPageState } from '@/presentation/hooks/useCachedPageState';
 import { ActionButton } from '@/shared/ui/button/ActionButton';
 
@@ -94,8 +95,8 @@ export const EventsPage = () => {
 
   useEffect(() => {
     setManagedCourseLoading(true);
-    repository.getManagedCourse()
-      .then(setManagedCourse)
+    readPageRequest('managed-course-settings', () => repository.getManagedCourseSettings())
+      .then(value => setManagedCourse(value.course))
       .catch(() => setFeedback("No fue posible cargar el curso administrado."))
       .finally(() => setManagedCourseLoading(false));
   }, []);

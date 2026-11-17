@@ -12,7 +12,6 @@ import { useAuth } from "@/presentation/context/AuthContext";
 import { isAdminRole } from "@/core/A-domain/entities/user/User";
 import { homeCommunityCache } from "./hooks/homeCommunityCache";
 import { FeedbackState } from "@/shared/ui/feedback/FeedbackState";
-import { HomeEntryTransition } from "./components/HomeEntryTransition";
 import { homeCourseCache } from "./hooks/homeCourseCache";
 
 
@@ -24,19 +23,13 @@ export const HomePage = () => {
   const { ready, detailsReady, error } = useSyncExternalStore(homeCommunityCache.subscribe, homeCommunityCache.getSnapshot);
   const preparing = isAuthenticated && !ready && !error;
   const [courseReady, setCourseReady] = useState(() => homeCourseCache.peek() !== undefined);
-  const [revealed, setRevealed] = useState(false);
-  const [guestRevealed, setGuestRevealed] = useState(false);
+  const [booting] = useState(() => Boolean(document.getElementById('app-boot-loader')));
   const markCourseReady = useCallback(() => setCourseReady(true), []);
-  const revealHome = useCallback(() => setRevealed(true), []);
-  const revealGuest = useCallback(() => setGuestRevealed(true), []);
   useEffect(() => {
-    if (assetsPending || (isAuthenticated && !revealed)) return;
+    if (assetsPending || (isAuthenticated && (!ready || !courseReady))) return;
     const frame = requestAnimationFrame(() => setAssetsRevealed(true));
     return () => cancelAnimationFrame(frame);
-  }, [assetsPending, isAuthenticated, revealed]);
-  useEffect(() => {
-    if (!isAuthenticated) { setRevealed(false); setCourseReady(false); }
-  }, [isAuthenticated]);
+  }, [assetsPending, isAuthenticated, ready, courseReady]);
   useEffect(() => {
     if (!loading && isAuthenticated) void homeCommunityCache.load();
   }, [loading, isAuthenticated]);
@@ -48,17 +41,13 @@ export const HomePage = () => {
 
   return (
     <>
-    {isAuthenticated && !revealed && <HomeEntryTransition ready={ready && courseReady && !assetsPending} onExited={revealHome} />}
-    {!isAuthenticated && !guestRevealed && <HomeEntryTransition ready={!assetsPending} onExited={revealGuest} />}
-    <div ref={content} data-page-assets-pending={assetsPending || undefined} className={`public-home public-home--${isAuthenticated ? "member" : "guest public-home--editorial"}`}
-      inert={assetsPending || (isAuthenticated ? !revealed : !guestRevealed)}
-      aria-hidden={(isAuthenticated ? !revealed : !guestRevealed) || undefined}
+    <div ref={content} data-page-assets-pending={booting && (assetsPending || preparing || (isAuthenticated && !courseReady)) || undefined} className={`public-home public-home--${isAuthenticated ? "member" : "guest public-home--editorial"}`}
       aria-busy={preparing || assetsPending}>
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />
       <main className={isAuthenticated ? "public-home__authenticated" : undefined}>
         {!isAuthenticated && <HomeEditorial />}
-        {isAuthenticated && <HomeWelcome onReady={markCourseReady} animateReady={revealed} />}
+        {isAuthenticated && <HomeWelcome onReady={markCourseReady} animateReady={ready && courseReady} />}
         {isAuthenticated && detailsReady && <HomeCommunity />}
       </main>
       <AppFooter showLogin={!isAuthenticated} />

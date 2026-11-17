@@ -3,6 +3,7 @@ import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/Tre
 import { apiClient } from "@/core/D-config/api";
 import { DASHBOARD_RESET } from "@/shared/treasury/dashboardEvents";
 import { createDashboardResource } from "../dashboard/dashboardCache";
+import { readPageRequest } from '@/presentation/hooks/pageRequestCache';
 
 const repository = new TreasuryRepositoryImpl();
 const createIncomes = (year: number, filters: IncomeFilters) => createDashboardResource(async () => {
@@ -25,7 +26,7 @@ export const getIncomesResources = (id: number | undefined, admin: boolean, year
   const account = accountKey(id, admin);
   const key = JSON.stringify([account, year, Object.entries(filters).filter(([, value]) => value !== undefined && value !== "").sort(([a], [b]) => a.localeCompare(b))]);
   if (!incomes.has(key)) incomes.set(key, createIncomes(year, { ...filters }));
-  if (!courses.has(account)) courses.set(account, createDashboardResource(() => repository.getManagedCourse()));
+  if (!courses.has(account)) courses.set(account, createDashboardResource(() => readPageRequest('managed-course-settings', () => repository.getManagedCourseSettings()).then(value => value.course)));
   return { incomes: incomes.get(key)!, course: courses.get(account)! };
 };
 export const clearIncomesCache = () => {

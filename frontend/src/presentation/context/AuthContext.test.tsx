@@ -1,4 +1,6 @@
 import { syncLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguration';
+import { prepareSessionPages } from '@/presentation/session/prepareSessionPages';
+vi.mock('@/presentation/session/prepareSessionPages', () => ({ prepareSessionPages: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('@/shared/ui/loading/loaderConfiguration', () => ({ syncLoaderConfiguration: vi.fn().mockResolvedValue(undefined), clearLoaderConfiguration: vi.fn() }));
 import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -71,6 +73,23 @@ describe("AuthContext", () => {
     expect(view.result.current.loading).toBe(true);
     await act(async () => { release(); await pending; });
     expect(view.result.current.user).toEqual(user);
+    expect(view.result.current.loading).toBe(false);
+  });
+
+  it('prepares permitted pages before releasing the login action', async () => {
+    localStorage.setItem('treasury.auth.manual-logout', 'true');
+    const view = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(view.result.current.loading).toBe(false));
+    let release!: () => void;
+    vi.mocked(prepareSessionPages).mockImplementationOnce(() => new Promise<void>(resolve => { release = resolve; }));
+    loginMock.mockResolvedValueOnce({ token: 'prepared-session', user });
+    let request!: Promise<unknown>;
+    act(() => { request = view.result.current.login(user.correo, 'Password1!'); });
+    await waitFor(() => expect(prepareSessionPages).toHaveBeenCalledWith(user));
+    expect(view.result.current.loading).toBe(true);
+    expect(view.result.current.isAuthenticated).toBe(false);
+    await act(async () => { release(); await request; });
+    expect(view.result.current.isAuthenticated).toBe(true);
     expect(view.result.current.loading).toBe(false);
   });
 

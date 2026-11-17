@@ -1,4 +1,5 @@
 import { TreasuryRepositoryImpl } from "@/core/C-infra/repositories/treasury/TreasuryRepositoryImpl";
+import { readPageRequest } from '@/presentation/hooks/pageRequestCache';
 import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -92,7 +93,7 @@ export const HomeHeader = ({
       setCourse(typeof value === "string" ? value : value.course);
     };
     window.addEventListener("managed-course-changed", update);
-    void new TreasuryRepositoryImpl().getManagedCourseSettings().then(settings => {
+    void readPageRequest('managed-course-settings', () => new TreasuryRepositoryImpl().getManagedCourseSettings()).then(settings => {
       if (active && !changed) setCourse(settings.course);
     }).catch(() => undefined);
     return () => { active = false; window.removeEventListener("managed-course-changed", update); };
