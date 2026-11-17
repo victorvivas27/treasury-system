@@ -137,7 +137,7 @@ class SecurityConfigTest {
     void architectureRequiresOwnerForCatalogAndEveryDiagramAndIsNotPublicStaticContent() throws Exception {
         String base = "/api/v1/admin/architecture";
         String ownerToken = tokenFor("superadmin@mail.com");
-        for (String path : List.of(base, base + "/diagrams/login")) {
+        for (String path : List.of(base, base + "/diagrams/login", base + "/diagrams/ci-cd-workflows")) {
             mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
             mockMvc.perform(get(path).header("Authorization", "Bearer " + tokenFor("user@mail.com")))
                     .andExpect(status().isForbidden());
@@ -147,7 +147,9 @@ class SecurityConfigTest {
         mockMvc.perform(get(base + "/access").header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.allowed").value(true));
         mockMvc.perform(get(base).header("Authorization", "Bearer " + ownerToken))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.diagrams.length()").value(6))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.diagrams.length()").value(12))
+                .andExpect(jsonPath("$.diagrams[?(@.moduleId == '01-auth-security')]", org.hamcrest.Matchers.hasSize(6)))
+                .andExpect(jsonPath("$.diagrams[?(@.moduleId == '12-operations')]", org.hamcrest.Matchers.hasSize(6)))
                 .andExpect(header().string("Cache-Control", "no-store"));
         mockMvc.perform(get(base + "/diagrams/login").header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk())
@@ -157,6 +159,11 @@ class SecurityConfigTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Login")));
         mockMvc.perform(get(base + "/diagrams/unknown").header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isNotFound());
+        mockMvc.perform(get(base + "/diagrams/ci-cd-workflows").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("GitHub Actions")));
         mockMvc.perform(get("/architecture-diagrams/login.html")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/architecture-diagrams/login.html").header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isForbidden());

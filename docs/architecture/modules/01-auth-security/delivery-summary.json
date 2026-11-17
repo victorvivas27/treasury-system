@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-11-17",
+  "repository": {
+    "url": "https://github.com/victorvivas27/treasury-system.git",
+    "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+  },
+  "archifyVersion": "3.2.0",
+  "sourceFiles": 33,
+  "workingTreeFiles": 6,
+  "scope": "Diagrams reference committed sources. Working-tree UI overlays are recorded separately and described in README; GitHub links show the base revision.",
+  "diagrams": [
+    {
+      "id": "architecture",
+      "specificationSha256": "fa0212cf3dc7ae1f625c3e56722b4cd9a97878afd85d18771f7b8ac32c255389",
+      "artifactSha256": "657a2fbe37efd1d5119fc4a50aa4e92b557d1293aac915001a353d8bbd7a15ec",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "visualCheck": true,
+      "receipt": "review-2026-11-17/architecture.finalize-summary.json"
+    },
+    {
+      "id": "login",
+      "specificationSha256": "bd18478cff7211c80dfbdab91b5f5698250089640dbb96ecb87774bda9b3cf8b",
+      "artifactSha256": "5fb69839bae52f08dc63f0b42be8db6baafabb3108ecbee5790bb17785be95c7",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "visualCheck": true,
+      "receipt": "review-2026-11-17/login.finalize-summary.json"
+    },
+    {
+      "id": "refresh",
+      "specificationSha256": "310cbca5759abdbd5250a8f4fd0dfef6acb2f8568890d8d679b795cb31c4abde",
+      "artifactSha256": "597b0be27e0b61df51e605585037a7abba30a53a73349c4805a961efa79dc55a",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "visualCheck": true,
+      "receipt": "review-2026-11-17/refresh.finalize-summary.json"
+    },
+    {
+      "id": "password-change",
+      "specificationSha256": "b7b49319bcba37e28339f5e42be932bc049e0d0ecd022cdf88a8d4f166b5d72a",
+      "artifactSha256": "300bb1ba4fdcd4be3d80eed427441a3c159b522dd9c4a7514dac70bec2c82102",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "visualCheck": true,
+      "receipt": "review-2026-11-17/password-change.finalize-summary.json"
+    },
+    {
+      "id": "password-reset",
+      "specificationSha256": "88caee01eef66cf629d9125f044ca630aa53ed12c24f84ff83a95733244adcb9",
+      "artifactSha256": "b2e2cd9aca75b0af7778805d35a6606aa930f3b7ba6281d0a29e0f32bf439b52",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "visualCheck": true,
+      "receipt": "review-2026-11-17/password-reset.finalize-summary.json"
+    },
+    {
+      "id": "access-validation",
+      "specificationSha256": "2976b7cedd80f308008183b6a1cc0a43f07d728eba00fd439eb75c52c5dfcff3",
+      "artifactSha256": "1bc00e0fe76e85da1dfc9b20d67534d8736f3ebfceb2794b6659c8e8f44dd464",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "visualCheck": true,
+      "receipt": "review-2026-11-17/access-validation.finalize-summary.json"
+    }
+  ],
+  "validation": {
+    "backend": {
+      "classes": "pass",
+      "architectureTests": 3,
+      "pmdMain": "pass"
+    },
+    "frontend": {
+      "architecturePageTests": 4
+    },
+    "responsive": {
+      "report": "review-2026-11-17/responsive-review.json",
+      "combinations": 24,
+      "viewports": [
+        [
+          1216,
+          552
+        ],
+        [
+          768,
+          1024
+        ],
+        [
+          390,
+          844
+        ],
+        [
+          360,
+          640
+        ]
+      ],
+      "scope": "Real standalone Archify HTML in Chrome; no authenticated React session or live API."
+    },
+    "manualReview": "review.md",
+    "authenticatedEndToEnd": false,
+    "remoteDeployment": false
+  }
+}

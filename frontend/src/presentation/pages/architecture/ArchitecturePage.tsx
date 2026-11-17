@@ -30,7 +30,8 @@ export const ArchitecturePage = () => {
       value => {
         if (!controller.signal.aborted) {
           setCatalog(value);
-          setSelected(current => current || value.diagrams[0]?.id || "");
+          setSelected(current => value.diagrams.some(diagram => diagram.id === current)
+            ? current : value.diagrams[0]?.id || "");
           if (!value.diagrams.length) setLoading(false);
         }
       },
@@ -58,16 +59,30 @@ export const ArchitecturePage = () => {
   }, [selected, attempt]);
 
   const active = catalog?.diagrams.find(diagram => diagram.id === selected);
+  const moduleId = active?.moduleId ?? catalog?.moduleId;
+  const modules = [...new Map(catalog?.diagrams.map(diagram => [diagram.moduleId ?? catalog.moduleId, {
+    id: diagram.moduleId ?? catalog.moduleId,
+    title: diagram.moduleTitle ?? `Módulo 1 · ${catalog.title}`,
+  }])).values()];
   return (
     <section className="architecture-page">
       <header>
         <p className="architecture-eyebrow">Administración · Acceso del dueño</p>
         <h1>Arquitectura del sistema</h1>
-        <p>Módulo 1 · {catalog?.title ?? "Autenticación, usuarios y seguridad"}</p>
-        {catalog && <small>Referencia {catalog.revision.slice(0, 8)} · {catalog.generatedAt}</small>}
+        <p>{active?.moduleTitle ?? `Módulo 1 · ${catalog?.title ?? "Autenticación, usuarios y seguridad"}`}</p>
+        {catalog && <small>Referencia {(active?.revision ?? catalog.revision).slice(0, 8)} · {active?.generatedAt ?? catalog.generatedAt}</small>}
       </header>
-      <div className="architecture-diagrams" aria-label="Vistas del módulo 1">
-        {catalog?.diagrams.map(diagram => (
+      {modules.length > 1 && <div className="architecture-module-select">
+        <label htmlFor="architecture-module">Módulo</label>
+        <select id="architecture-module" value={moduleId} onChange={event => {
+          const first = catalog?.diagrams.find(diagram => (diagram.moduleId ?? catalog.moduleId) === event.target.value);
+          if (first) setSelected(first.id);
+        }}>
+          {modules.map(module => <option key={module.id} value={module.id}>{module.title}</option>)}
+        </select>
+      </div>}
+      <div className="architecture-diagrams" aria-label="Vistas de arquitectura">
+        {catalog?.diagrams.filter(diagram => (diagram.moduleId ?? catalog.moduleId) === moduleId).map(diagram => (
           <button type="button" key={diagram.id} aria-pressed={selected === diagram.id}
             onClick={() => setSelected(diagram.id)}>
             <strong>{diagram.title}</strong><span>{diagram.description}</span>
@@ -93,6 +108,7 @@ export const ArchitecturePage = () => {
       <p className="architecture-help">Selecciona un componente o su indicador SRC para consultar las fuentes.
         Puedes buscar, ajustar el zoom y cambiar el tema. Las notas están debajo del gráfico;
         algunos controles están en inglés.</p>
+      {moduleId === "12-operations" && <p className="architecture-help">Los gráficos describen el commit de referencia; no consultan ejecuciones de GitHub en tiempo real.</p>}
       <p className="architecture-help">Siguiente módulo: organizaciones y cursos, pendiente de documentación.</p>
     </section>
   );

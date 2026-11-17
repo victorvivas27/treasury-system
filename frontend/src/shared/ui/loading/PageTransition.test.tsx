@@ -2,6 +2,9 @@ import { setCachedLoaderPreference, clearLoaderPreferenceCache } from '@/shared/
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { PageTransitionBoundary, usePageEntry } from './PageTransition';
+import { PageTransitionOutlet } from './PageTransition';
+import { MemoryRouter, Route, Routes, Link } from 'react-router-dom';
+import { fireEvent } from '@testing-library/react';
 
 beforeEach(() => {
   localStorage.clear(); clearLoaderPreferenceCache();
@@ -38,6 +41,33 @@ function Data({ pending, error = false }: { pending: boolean; error?: boolean })
   usePageEntry(pending, error);
   return <button>{error ? 'Reintentar' : 'Contenido de la página'}</button>;
 }
+
+it('shows a fallback transition before loader settings are available', () => {
+  clearLoaderPreferenceCache();
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  render(<PageTransitionBoundary animateOnEntry><button>Ingresar</button></PageTransitionBoundary>);
+  expect(screen.getByRole('status')).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'nneo-rising-fill');
+  act(() => vi.advanceTimersByTime(5000));
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.getByRole('button')).toBeEnabled();
+});
+
+it('shows the transition when navigating between pages with ready content', () => {
+  render(<MemoryRouter initialEntries={['/first']}><Routes>
+    <Route element={<PageTransitionOutlet />}>
+      <Route path="/first" element={<Link to="/second">Continuar</Link>} />
+      <Route path="/second" element={<button>Segunda página</button>} />
+    </Route>
+  </Routes></MemoryRouter>);
+  act(() => vi.advanceTimersByTime(850));
+  fireEvent.click(screen.getByRole('link', { name: 'Continuar' }));
+  expect(screen.getByRole('status')).toBeInTheDocument();
+  expect(screen.getByText('Segunda página').closest('[inert]')).not.toBeNull();
+  act(() => vi.advanceTimersByTime(850));
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Segunda página' })).toBeEnabled();
+});
 
 it('mantiene la página montada e inerte hasta que sus datos están listos', () => {
   const view = render(<PageTransitionBoundary><Data pending /></PageTransitionBoundary>);

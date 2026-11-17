@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "GitHub Actions · Evidencia y reutilización",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/12-shared-infrastructure/github-actions/ci-cd-evidence.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    }
+  },
+  "components": [
+    {
+      "id": "input",
+      "label": "Entradas de la suite",
+      "sublabel": "Árbol Git: rutas, modos, blobs",
+      "sources": [
+        {
+          "path": "scripts/ci-validation.cjs",
+          "line": 12,
+          "end_line": 45
+        }
+      ],
+      "type": "database",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "hash",
+      "label": "Huella SHA-256",
+      "sublabel": "Suite y esquema de validación",
+      "sources": [
+        {
+          "path": "scripts/ci-validation.cjs",
+          "line": 34,
+          "end_line": 37
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "lookup",
+      "label": "Buscar artefacto",
+      "sublabel": "Mismo nombre y huella",
+      "sources": [
+        {
+          "path": "scripts/ci-validation.cjs",
+          "line": 68,
+          "end_line": 92
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        900,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "reuse",
+      "label": "Reutilizar éxito",
+      "sublabel": "Vigente, propio y autorizado",
+      "sources": [
+        {
+          "path": "scripts/ci-validation.cjs",
+          "line": 85,
+          "end_line": 90
+        }
+      ],
+      "type": "security",
+      "pos": [
+        900,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "fresh",
+      "label": "Ejecutar comprobaciones",
+      "sublabel": "Sin coincidencia o force=true",
+      "sources": [
+        {
+          "path": ".github/actions/reuse-validation/action.yml",
+          "line": 30,
+          "end_line": 41
+        },
+        {
+          "path": ".github/workflows/02-frontend-ci.yml",
+          "line": 91,
+          "end_line": 99
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "release",
+      "label": "Contrato de release",
+      "sublabel": "SHA exacto; inputs completos",
+      "sources": [
+        {
+          "path": "scripts/select-release-evidence.cjs",
+          "line": 6,
+          "end_line": 22
+        }
+      ],
+      "type": "security",
+      "pos": [
+        40,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "verify",
+      "label": "Verificar procedencia",
+      "sublabel": "Recibo + conteos + cobertura",
+      "sources": [
+        {
+          "path": "scripts/ci-validation.cjs",
+          "line": 40,
+          "end_line": 79
+        },
+        {
+          "path": "scripts/validate-release-evidence.mjs",
+          "line": 7,
+          "end_line": 23
+        }
+      ],
+      "type": "security",
+      "pos": [
+        900,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "forced",
+      "label": "Generar evidencia final",
+      "sublabel": "12 fuerza Frontend y Backend",
+      "sources": [
+        {
+          "path": ".github/workflows/12-release-validation.yml",
+          "line": 79,
+          "end_line": 98
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        780
+      ],
+      "size": [
+        220,
+        86
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge-1",
+      "from": "input",
+      "to": "hash",
+      "label": "Calcula entradas"
+    },
+    {
+      "id": "edge-2",
+      "from": "hash",
+      "to": "lookup",
+      "label": "Clave por suite"
+    },
+    {
+      "id": "edge-3",
+      "from": "lookup",
+      "to": "reuse",
+      "label": "Coincide y éxito"
+    },
+    {
+      "id": "edge-4",
+      "from": "lookup",
+      "to": "fresh",
+      "label": "No válida / force"
+    },
+    {
+      "id": "edge-5",
+      "from": "release",
+      "to": "verify",
+      "label": "Evidencia compartida"
+    },
+    {
+      "id": "edge-6",
+      "from": "release",
+      "to": "forced",
+      "label": "Sin inputs compartidos"
+    },
+    {
+      "id": "edge-7",
+      "from": "forced",
+      "to": "verify",
+      "label": "Artefactos nuevos"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Dos contratos diferentes",
+      "items": [
+        "La reutilización ordinaria admite commits distintos con entradas iguales. El contrato de release exige el SHA final y la ejecución actual.",
+        "Quitar force=true no adapta IDs de artefactos ni la procedencia entre ejecuciones; esa mejora sigue pendiente."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Qué invalida una huella",
+      "items": [
+        "Todos los archivos .github/, scripts/ y de raíz son entradas compartidas. Cada suite añade su código/configuración; Backend y Bruno incluyen manifiestos frontend de reporting.",
+        "Un cambio de VERSION o herramientas puede invalidar varias suites aunque no cambie la lógica de aplicación."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Vigencia y carreras",
+      "items": [
+        "Solo se aceptan workflows completados con éxito, autorizados y del repositorio. Artefactos expirados o consultas fallidas conducen a ejecutar comprobaciones.",
+        "Dos ejecuciones simultáneas pueden no encontrar éxito anterior y repetir pruebas. Retención: hasta 14 días, limitada por política remota."
+      ]
+    }
+  ]
+}

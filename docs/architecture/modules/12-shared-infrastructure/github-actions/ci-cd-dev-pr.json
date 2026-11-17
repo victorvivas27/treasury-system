@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "GitHub Actions · Push dev y pull request",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/12-shared-infrastructure/github-actions/ci-cd-dev-pr.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    }
+  },
+  "components": [
+    {
+      "id": "push",
+      "label": "Push a dev",
+      "sublabel": "Evento del commit",
+      "sources": [
+        {
+          "path": ".github/workflows/00-dev-validation.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "route",
+      "label": "Buscar PR por SHA",
+      "sublabel": "route · repositorio y base",
+      "sources": [
+        {
+          "path": ".github/workflows/00-dev-validation.yml",
+          "line": 17,
+          "end_line": 45
+        }
+      ],
+      "type": "security",
+      "pos": [
+        470,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "defer",
+      "label": "PR coincidente",
+      "sublabel": "Omitir suites del push",
+      "sources": [
+        {
+          "path": ".github/workflows/00-dev-validation.yml",
+          "line": 31,
+          "end_line": 39
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        900,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "pr",
+      "label": "PR hacia dev/main",
+      "sublabel": "opened · synchronize · edited",
+      "sources": [
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "select",
+      "label": "Seleccionar suites",
+      "sublabel": "changes · archivos del PR",
+      "sources": [
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 24,
+          "end_line": 71
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "suites",
+      "label": "Frontend / Backend",
+      "sublabel": "Bruno / Versionado",
+      "sources": [
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 28,
+          "end_line": 61
+        },
+        {
+          "path": ".github/workflows/00-dev-validation.yml",
+          "line": 56,
+          "end_line": 82
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        900,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "security",
+      "label": "Commits y seguridad",
+      "sublabel": "01 · 13 · 15",
+      "sources": [
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 18,
+          "end_line": 24
+        },
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 67,
+          "end_line": 74
+        }
+      ],
+      "type": "security",
+      "pos": [
+        40,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "result",
+      "label": "Resultado del PR",
+      "sublabel": "PR validation result",
+      "sources": [
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 106,
+          "end_line": 124
+        }
+      ],
+      "type": "security",
+      "pos": [
+        900,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge-1",
+      "from": "push",
+      "to": "route",
+      "label": "Consulta API"
+    },
+    {
+      "id": "edge-2",
+      "from": "route",
+      "to": "defer",
+      "label": "Coincide SHA"
+    },
+    {
+      "id": "edge-3",
+      "from": "route",
+      "to": "suites",
+      "label": "Sin coincidencia: todas"
+    },
+    {
+      "id": "edge-4",
+      "from": "pr",
+      "to": "select",
+      "label": "Lista cambios"
+    },
+    {
+      "id": "edge-5",
+      "from": "select",
+      "to": "suites",
+      "label": "Solo aplicables"
+    },
+    {
+      "id": "edge-6",
+      "from": "pr",
+      "to": "security",
+      "label": "Obligatorias"
+    },
+    {
+      "id": "edge-7",
+      "from": "suites",
+      "to": "result",
+      "label": "Éxito u omisión válida"
+    },
+    {
+      "id": "edge-8",
+      "from": "security",
+      "to": "result",
+      "label": "Éxito obligatorio"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "El responsable del candidato",
+      "items": [
+        "La comprobación del push no espera el resultado del PR: deja los checks a su coordinador. Si falla la consulta, route falla visiblemente.",
+        "Sin PR coincidente se llaman todas las suites y controles; esa ruta todavía no filtra por cambios."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Selección y cancelaciones",
+      "items": [
+        "PR de release, archivos compartidos o lista truncada a 3000 archivos seleccionan todas las suites. Se consideran rutas anteriores de archivos renombrados.",
+        "El coordinador PR cancela runs anteriores del mismo PR; dev cancela anteriores de la rama."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Trabajo pendiente",
+      "items": [
+        "edited vuelve a activar el coordinador, incluso si solo cambia el título. Separar metadatos de contenido sigue pendiente.",
+        "El check agregado rechaza fallos, cancelaciones y omisión de controles obligatorios. No se ha consultado su obligatoriedad remota."
+      ]
+    }
+  ]
+}

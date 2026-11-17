@@ -67,7 +67,7 @@ it('also waits for the mobile CSS background and requests no desktop preload', a
   await finishOpening();
   expect(screen.getByRole('status')).toBeInTheDocument();
   expect(createImage).toHaveBeenCalledOnce();
-  expect(background.src).toBe(publicImages.loginMobile);
+  expect(background.src).toBe(new URL(publicImages.loginMobile, window.location.href).href);
   fireEvent.load(background);
   await finishOpening();
   expect(screen.queryByRole('status')).not.toBeInTheDocument();

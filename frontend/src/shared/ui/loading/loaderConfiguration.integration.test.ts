@@ -42,7 +42,7 @@ it('ignores legacy browser overrides and never persists server settings in the b
   localStorage.setItem('app-startup-preview', JSON.stringify({ variant: 'video-light' }));
   localStorage.setItem('app-page-transition', JSON.stringify({ variant: 'video-light' }));
   expect(getCachedLoaderPreference('startup')).toBeUndefined();
-  expect(readPageTransitionPreferences().variant).toBe('cinematic');
+  expect(readPageTransitionPreferences().variant).toBe('nneo-rising-fill');
   clearLoaderConfiguration();
   await loadLoaderConfiguration();
   expect(localStorage.getItem('app-startup-preview')).toBeNull();

@@ -146,12 +146,21 @@ tasks.named('test') {
 tasks.named('processResources') {
     def architectureSource = file('../docs/architecture/modules/01-auth-security')
     inputs.files(fileTree(architectureSource) { include '*.html'; exclude '*.visual-check.html' })
+    def operationsSource = file('../docs/architecture/modules/12-shared-infrastructure/github-actions')
+    inputs.files(fileTree(operationsSource) { include 'ci-cd-*.html' })
     doFirst {
         ['architecture', 'login', 'refresh', 'password-change', 'password-reset', 'access-validation'].each { id ->
             def packaged = file("src/main/resources/architecture-diagrams/${id}.html")
             def documented = new File(architectureSource, "${id}.html")
             if (!packaged.exists() || (documented.exists() && !java.util.Arrays.equals(packaged.bytes, documented.bytes))) {
                 throw new GradleException('Run node scripts/sync-architecture-artifacts.mjs from the repository root.')
+            }
+        }
+        ['ci-cd-workflows', 'ci-cd-dev-pr', 'ci-cd-release', 'ci-cd-evidence', 'ci-cd-delivery', 'ci-cd-sync'].each { id ->
+            def packaged = file("src/main/resources/architecture-diagrams/${id}.html")
+            def documented = new File(operationsSource, "${id}.html")
+            if (!packaged.exists() || (documented.exists() && !java.util.Arrays.equals(packaged.bytes, documented.bytes))) {
+                throw new GradleException('Run node scripts/sync-architecture-artifacts.mjs --operations-only from the repository root.')
             }
         }
     }

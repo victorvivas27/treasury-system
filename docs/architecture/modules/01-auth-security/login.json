@@ -31,12 +31,12 @@
     "output": "docs/architecture/modules/01-auth-security/login.html",
     "repository": {
       "url": "https://github.com/victorvivas27/treasury-system.git",
-      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
     },
     "column_fit": "spread",
     "viewBox": [
       1080,
-      600
+      634
     ]
   },
   "participants": [
@@ -48,13 +48,18 @@
       "sources": [
         {
           "path": "frontend/src/presentation/pages/auth/LoginPage.tsx",
-          "line": 55,
-          "end_line": 97
+          "line": 96,
+          "end_line": 148
         },
         {
           "path": "frontend/src/presentation/context/AuthContext.tsx",
-          "line": 219,
-          "end_line": 246
+          "line": 273,
+          "end_line": 304
+        },
+        {
+          "path": "frontend/src/core/C-infra/repositories/auth/AuthRepositoryImpl.ts",
+          "line": 10,
+          "end_line": 33
         }
       ]
     },
@@ -66,8 +71,8 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
-          "line": 112,
-          "end_line": 149
+          "line": 113,
+          "end_line": 158
         }
       ]
     },
@@ -79,13 +84,13 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java",
-          "line": 42,
-          "end_line": 70
+          "line": 51,
+          "end_line": 83
         },
         {
-          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java",
-          "line": 94,
-          "end_line": 138
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java",
+          "line": 40,
+          "end_line": 62
         }
       ]
     },
@@ -97,13 +102,8 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserEntity.java",
-          "line": 14,
-          "end_line": 57
-        },
-        {
-          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java",
-          "line": 46,
-          "end_line": 62
+          "line": 15,
+          "end_line": 94
         }
       ]
     },
@@ -115,18 +115,13 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 64,
-          "end_line": 68
-        },
-        {
-          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 86,
-          "end_line": 107
+          "line": 66,
+          "end_line": 96
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/config/security/JwtService.java",
-          "line": 45,
-          "end_line": 82
+          "line": 44,
+          "end_line": 75
         }
       ]
     },
@@ -138,8 +133,13 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
-          "line": 11,
-          "end_line": 62
+          "line": 12,
+          "end_line": 68
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java",
+          "line": 47,
+          "end_line": 54
         }
       ]
     }
@@ -147,113 +147,129 @@
   "messages": [
     {
       "id": "step-1",
-      "to": "api",
-      "y": 160,
-      "label": "POST /auth/login · correo y contraseña",
       "from": "web",
+      "to": "api",
+      "label": "POST /auth/login · credenciales / curso / términos",
+      "y": 160,
       "variant": "emphasis"
     },
     {
       "id": "step-2",
-      "to": "auth",
-      "y": 193,
-      "label": "login(correo, password, organizationId)",
       "from": "api",
+      "to": "auth",
+      "label": "Autenticar con límites compartidos",
+      "y": 188,
       "variant": "security"
     },
     {
       "id": "step-3",
+      "from": "auth",
       "to": "users",
-      "y": 226,
-      "label": "Buscar por correo / curso; comparar contraseña",
-      "from": "auth"
+      "label": "Verificar contraseña, estado y curso",
+      "y": 216
     },
     {
       "id": "step-4",
-      "to": "auth",
-      "y": 259,
-      "label": "Cuenta habilitada y no bloqueada",
-      "from": "users",
+      "from": "auth",
+      "to": "api",
+      "label": "Varias cuentas: opciones; sin sesión",
+      "y": 244,
       "variant": "return"
     },
     {
       "id": "step-5",
-      "to": "api",
-      "y": 292,
-      "label": "Si es ambiguo: opciones; si válido: userId",
-      "from": "auth",
+      "from": "api",
+      "to": "web",
+      "label": "Elegir curso y repetir login",
+      "y": 272,
       "variant": "return"
     },
     {
       "id": "step-6",
-      "to": "web",
-      "y": 325,
-      "label": "Solo si ambiguo: elegir curso y repetir",
-      "from": "api",
-      "variant": "return"
-    },
-    {
-      "id": "step-7",
-      "to": "sessions",
-      "y": 358,
-      "label": "Solo cuenta única válida: issueForUserId",
-      "from": "api",
-      "variant": "emphasis"
-    },
-    {
-      "id": "step-8",
+      "from": "auth",
       "to": "users",
-      "y": 391,
-      "label": "Bloqueo de cuenta; revalidar estado y curso",
-      "from": "sessions",
+      "label": "Cuenta única: comprobar aceptación vigente",
+      "y": 300,
       "variant": "security"
     },
     {
-      "id": "step-9",
-      "to": "tokens",
-      "y": 424,
-      "label": "Persistir hash refresh, CSRF y familia",
-      "from": "sessions"
-    },
-    {
-      "id": "step-10",
+      "id": "step-7",
+      "from": "auth",
       "to": "api",
-      "y": 457,
-      "label": "JWT con userId, organizationId y familia",
-      "from": "sessions",
+      "label": "Sin aceptación: termsAcceptanceRequired; sin sesión",
+      "y": 328,
       "variant": "return"
     },
     {
-      "id": "step-11",
-      "to": "web",
-      "y": 490,
-      "label": "200 · token + usuario + Set-Cookie",
+      "id": "step-8",
       "from": "api",
+      "to": "web",
+      "label": "Aceptar documentos y repetir con termsVersion",
+      "y": 356,
+      "variant": "return"
+    },
+    {
+      "id": "step-9",
+      "from": "auth",
+      "to": "users",
+      "label": "Registrar versión y fecha de aceptación",
+      "y": 384
+    },
+    {
+      "id": "step-10",
+      "from": "api",
+      "to": "sessions",
+      "label": "Solo tras validar: issueForUserId",
+      "y": 412,
+      "variant": "emphasis"
+    },
+    {
+      "id": "step-11",
+      "from": "sessions",
+      "to": "users",
+      "label": "Bloquear y revalidar cuenta / curso / términos",
+      "y": 440,
+      "variant": "security"
+    },
+    {
+      "id": "step-12",
+      "from": "sessions",
+      "to": "tokens",
+      "label": "Persistir hash refresh, CSRF y familia",
+      "y": 468
+    },
+    {
+      "id": "step-13",
+      "from": "sessions",
+      "to": "api",
+      "label": "JWT con identidad, organización y familia",
+      "y": 496,
+      "variant": "return"
+    },
+    {
+      "id": "step-14",
+      "from": "api",
+      "to": "web",
+      "label": "200 · JWT + usuario + CSRF y cookies",
+      "y": 524,
       "variant": "return"
     }
   ],
   "cards": [
     {
-      "dot": "rose",
+      "dot": "cyan",
       "title": "Ramas alternativas",
       "items": [
-        "La elección de curso termina ese request sin emitir una sesión. Un nuevo login incluye organizationId.",
-        "Credenciales o estado inválido: rechazo; límite de intentos: 429. Nunca se continúa hacia emisión."
+        "Curso y aceptación son respuestas alternativas que terminan sin token. Las filas siguientes representan nuevos requests, no una continuación automática.",
+        "El servidor fija la versión vigente de términos. Credenciales/estado inválidos se rechazan; los límites pueden responder 429."
       ]
     },
     {
       "dot": "cyan",
-      "title": "Cookies",
+      "title": "Cookies y frontend",
       "items": [
-        "treasury_refresh: HttpOnly; treasury_csrf: legible. Secure y SameSite dependen de configuración.",
-        "El JWT emitido por RefreshTokenService es el que se devuelve al frontend."
-      ]
-    },
-    {
-      "dot": "cyan",
-      "title": "Acciones internas",
-      "items": [
-        "JWT en memoria; usuario / CSRF en sessionStorage"
+        "treasury_refresh es HttpOnly; treasury_csrf es legible. Secure y SameSite dependen de configuración.",
+        "AuthContext sincroniza la configuración de loaders antes de establecer la sesión. Antes del login no hay configuración de curso autenticada."
       ]
     }
   ]

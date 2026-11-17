@@ -31,7 +31,7 @@
     "output": "docs/architecture/modules/01-auth-security/refresh.html",
     "repository": {
       "url": "https://github.com/victorvivas27/treasury-system.git",
-      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
     },
     "column_fit": "spread",
     "viewBox": [
@@ -48,13 +48,13 @@
       "sources": [
         {
           "path": "frontend/src/core/D-config/axiosInterceptor.ts",
-          "line": 71,
-          "end_line": 98
+          "line": 79,
+          "end_line": 103
         },
         {
           "path": "frontend/src/presentation/context/AuthContext.tsx",
-          "line": 151,
-          "end_line": 167
+          "line": 190,
+          "end_line": 212
         }
       ]
     },
@@ -66,13 +66,13 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
-          "line": 250,
-          "end_line": 273
+          "line": 265,
+          "end_line": 298
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
-          "line": 328,
-          "end_line": 339
+          "line": 332,
+          "end_line": 351
         }
       ]
     },
@@ -84,13 +84,13 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 105,
-          "end_line": 138
+          "line": 107,
+          "end_line": 137
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 222,
-          "end_line": 235
+          "line": 180,
+          "end_line": 204
         }
       ]
     },
@@ -102,13 +102,13 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserJpaRepository.java",
-          "line": 17,
-          "end_line": 19
+          "line": 29,
+          "end_line": 33
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 177,
-          "end_line": 195
+          "line": 180,
+          "end_line": 204
         }
       ]
     },
@@ -119,14 +119,14 @@
       "sublabel": "user_tokens",
       "sources": [
         {
-          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java",
-          "line": 17,
-          "end_line": 21
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
+          "line": 12,
+          "end_line": 68
         },
         {
-          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
-          "line": 11,
-          "end_line": 62
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java",
+          "line": 47,
+          "end_line": 54
         }
       ]
     }
@@ -134,96 +134,90 @@
   "messages": [
     {
       "id": "step-1",
-      "to": "api",
-      "y": 160,
-      "label": "POST /auth/refresh · cookies + X-CSRF-Token",
       "from": "web",
+      "to": "api",
+      "label": "POST /auth/refresh · cookies + X-CSRF-Token",
+      "y": 160,
       "variant": "emphasis"
     },
     {
-      "id": "step-3",
+      "id": "step-2",
+      "from": "api",
       "to": "sessions",
-      "y": 193,
-      "label": "rotate(refresh, csrf)",
-      "from": "api"
+      "label": "Cabecera y cookie CSRF deben coincidir",
+      "y": 188,
+      "variant": "security"
+    },
+    {
+      "id": "step-3",
+      "from": "sessions",
+      "to": "tokens",
+      "label": "Hash refresh: resolver userId",
+      "y": 216
     },
     {
       "id": "step-4",
-      "to": "tokens",
-      "y": 226,
-      "label": "Hash refresh: obtener userId",
-      "from": "sessions"
+      "from": "sessions",
+      "to": "users",
+      "label": "Bloquear cuenta antes del token",
+      "y": 244,
+      "variant": "security"
     },
     {
       "id": "step-5",
-      "to": "users",
-      "y": 259,
-      "label": "Bloquear cuenta antes del token",
       "from": "sessions",
+      "to": "tokens",
+      "label": "Bloquear token; validar CSRF y vigencia",
+      "y": 272,
       "variant": "security"
     },
     {
       "id": "step-6",
-      "to": "tokens",
-      "y": 292,
-      "label": "Bloquear token; validar hash CSRF y vigencia",
       "from": "sessions",
+      "to": "users",
+      "label": "Cuenta / curso activos y términos vigentes",
+      "y": 300,
       "variant": "security"
     },
     {
       "id": "step-7",
-      "to": "users",
-      "y": 325,
-      "label": "Revalidar identidad, estado y curso activo",
       "from": "sessions",
-      "variant": "security"
+      "to": "tokens",
+      "label": "Válido: usar actual e insertar sucesor de familia",
+      "y": 328
     },
     {
       "id": "step-8",
-      "to": "tokens",
-      "y": 358,
-      "label": "Solo válido: usedAt / lastUsedAt; insertar sucesor",
-      "from": "sessions"
-    },
-    {
-      "id": "step-9",
-      "to": "api",
-      "y": 391,
-      "label": "JWT nuevo + refresh / CSRF nuevos",
       "from": "sessions",
+      "to": "api",
+      "label": "JWT y refresh / CSRF nuevos",
+      "y": 356,
       "variant": "return"
     },
     {
-      "id": "step-10",
-      "to": "web",
-      "y": 424,
-      "label": "200 + reemplazar cookies y JWT",
+      "id": "step-9",
       "from": "api",
+      "to": "web",
+      "label": "200 · reemplazar JWT y cookies",
+      "y": 384,
       "variant": "return"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Condiciones",
+      "title": "Reutilización: SA-07 corregido",
       "items": [
-        "Token revocado, usado o vencido: rechazo. CSRF ausente o incorrecto: 403.",
-        "La rotación válida conserva tokenFamilyId; las llamadas concurrentes del interceptor comparten refreshPromise."
-      ]
-    },
-    {
-      "dot": "rose",
-      "title": "SA-07 sigue pendiente",
-      "items": [
-        "detectReuse intenta revocar la familia y después lanza DomainException dentro de la misma transacción.",
-        "El gráfico no presenta esa revocación como confirmada: la auditoría documenta que puede revertirse por rollback."
+        "Token usado/revocado/vencido se rechaza con RefreshTokenRejectedException. noRollbackFor conserva la revocación de familia que realiza detectReuse.",
+        "Un token usado dentro de la gracia configurada se rechaza sin revocar la familia; fuera de ella se revoca. CSRF inválido no alcanza detectReuse."
       ]
     },
     {
       "dot": "cyan",
-      "title": "Acciones internas",
+      "title": "Concurrencia y límites",
       "items": [
-        "Exigir que cabecera y cookie CSRF coincidan"
+        "La cuenta se bloquea antes del token. El interceptor comparte refreshPromise para solicitudes simultáneas.",
+        "La rotación aplica presupuesto por familia; el filtro aplica presupuesto por IP. Fallos distintos del rechazo previsto conservan rollback transaccional."
       ]
     }
   ]

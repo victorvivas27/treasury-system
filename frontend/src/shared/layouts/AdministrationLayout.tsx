@@ -5,6 +5,7 @@ import { HomeHeader } from "@/presentation/pages/home/components/HomeHeader";
 import { AppFooter } from "@/shared/ui/footer/AppFooter";
 import "@/presentation/pages/home/style/HomePage.css";
 import "./AdministrationLayout.css";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs/Breadcrumbs";
 
 export const AdministrationLayout = () => {
   const { user, isAuthenticated, loading, logout } = useAuth();
@@ -13,7 +14,7 @@ export const AdministrationLayout = () => {
     <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
       isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} showCommunityLinks={false}
       onLogout={() => void logout()} />
-    <main className="administration-layout__content"><PageTransitionOutlet /></main>
+    <main className="administration-layout__content"><Breadcrumbs /><PageTransitionOutlet /></main>
     <AppFooter />
   </div>;
 };

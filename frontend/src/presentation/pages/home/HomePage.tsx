@@ -24,9 +24,11 @@ export const HomePage = () => {
   const { ready, detailsReady, error } = useSyncExternalStore(homeCommunityCache.subscribe, homeCommunityCache.getSnapshot);
   const preparing = isAuthenticated && !ready && !error;
   const [courseReady, setCourseReady] = useState(() => homeCourseCache.peek() !== undefined);
-  const [revealed, setRevealed] = useState(() => ready && homeCourseCache.peek() !== undefined);
+  const [revealed, setRevealed] = useState(false);
+  const [guestRevealed, setGuestRevealed] = useState(false);
   const markCourseReady = useCallback(() => setCourseReady(true), []);
   const revealHome = useCallback(() => setRevealed(true), []);
+  const revealGuest = useCallback(() => setGuestRevealed(true), []);
   useEffect(() => {
     if (assetsPending || (isAuthenticated && !revealed)) return;
     const frame = requestAnimationFrame(() => setAssetsRevealed(true));
@@ -47,9 +49,10 @@ export const HomePage = () => {
   return (
     <>
     {isAuthenticated && !revealed && <HomeEntryTransition ready={ready && courseReady && !assetsPending} onExited={revealHome} />}
+    {!isAuthenticated && !guestRevealed && <HomeEntryTransition ready={!assetsPending} onExited={revealGuest} />}
     <div ref={content} data-page-assets-pending={assetsPending || undefined} className={`public-home public-home--${isAuthenticated ? "member" : "guest public-home--editorial"}`}
-      inert={assetsPending || (isAuthenticated && !revealed)}
-      aria-hidden={isAuthenticated && !revealed ? true : undefined}
+      inert={assetsPending || (isAuthenticated ? !revealed : !guestRevealed)}
+      aria-hidden={(isAuthenticated ? !revealed : !guestRevealed) || undefined}
       aria-busy={preparing || assetsPending}>
       <HomeHeader isAuthenticated={isAuthenticated} isAdmin={isAdminRole(user?.rol)}
         isSuperAdmin={user?.rol === "SUPER_ADMIN"} user={user} onLogout={() => void logout()} />

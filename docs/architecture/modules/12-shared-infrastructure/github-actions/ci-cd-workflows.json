@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "GitHub Actions · Eventos y coordinadores",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/12-shared-infrastructure/github-actions/ci-cd-workflows.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    }
+  },
+  "components": [
+    {
+      "id": "dev",
+      "label": "Push a dev",
+      "sublabel": "00 · Decide el responsable",
+      "sources": [
+        {
+          "path": ".github/workflows/00-dev-validation.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "pr",
+      "label": "Pull request",
+      "sublabel": "00 · PR Validation",
+      "sources": [
+        {
+          "path": ".github/workflows/00-pr-validation.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "main",
+      "label": "Push a main",
+      "sublabel": "06 · Release Please",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "manual",
+      "label": "Ejecución manual",
+      "sublabel": "11 · Allure privado",
+      "sources": [
+        {
+          "path": ".github/workflows/11-publish-allure.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        470,
+        780
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "suites",
+      "label": "Suites reutilizables",
+      "sublabel": "01 commits · 02 UI · 03 API",
+      "sources": [
+        {
+          "path": ".github/workflows/01-commit-lint.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/02-frontend-ci.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/03-backend-ci.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "gates",
+      "label": "Checks de release",
+      "sublabel": "14 main · 12 evidencia",
+      "sources": [
+        {
+          "path": ".github/workflows/14-main-validation.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/12-release-validation.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "security",
+      "pos": [
+        470,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "outputs",
+      "label": "Consumidores",
+      "sublabel": "07 deploy · 09 Pages · 10 sync",
+      "sources": [
+        {
+          "path": ".github/workflows/07-deploy-backend.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/09-reports-pages.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "external",
+      "pos": [
+        900,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "security",
+      "label": "Controles de seguridad",
+      "sublabel": "13 archivos · 15 secretos",
+      "sources": [
+        {
+          "path": ".github/workflows/13-protected-files.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/15-secret-scanning.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "security",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "api-version",
+      "label": "API y versionado",
+      "sublabel": "04 Bruno · 05 Versionado",
+      "sources": [
+        {
+          "path": ".github/workflows/04-bruno-tests.yml",
+          "line": 3,
+          "end_line": 16
+        },
+        {
+          "path": ".github/workflows/05-versioning-ci.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        900,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge-1",
+      "from": "dev",
+      "to": "suites",
+      "label": "Sin PR coincidente"
+    },
+    {
+      "id": "edge-2",
+      "from": "pr",
+      "to": "suites",
+      "label": "Según archivos"
+    },
+    {
+      "id": "edge-3",
+      "from": "main",
+      "to": "gates",
+      "label": "Coordina main/release"
+    },
+    {
+      "id": "edge-4",
+      "from": "gates",
+      "to": "outputs",
+      "label": "Gates y SHA aprobados"
+    },
+    {
+      "id": "edge-5",
+      "from": "manual",
+      "to": "gates",
+      "label": "Llama 12"
+    },
+    {
+      "id": "edge-6",
+      "from": "pr",
+      "to": "security",
+      "label": "Siempre en PR"
+    },
+    {
+      "id": "edge-7",
+      "from": "suites",
+      "to": "api-version",
+      "label": "También 04 y 05"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Eventos independientes",
+      "items": [
+        "Push dev y synchronize del PR son eventos distintos. El coordinador dev delega si el PR del mismo repositorio cubre exactamente el SHA.",
+        "15 también tiene push main, ejecución manual y programación semanal lunes 12:00 UTC."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Cómo leer agrupaciones",
+      "items": [
+        "Suites agrupa 01–05; controles agrupa 13 y 15; consumidores agrupa 07, 09 y 10. SRC enumera cada YAML de esos grupos.",
+        "workflow_call aparece como trabajo anidado; un nodo gris no demuestra que se hayan ejecutado tests."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Límites",
+      "items": [
+        "No existe 08-deploy-frontend.yml en esta revisión. 14 solo tiene workflow_call. Los demás detalles de cada ruta están en sus vistas.",
+        "Diagrama del código de referencia, sin consulta a runs ni protección de ramas en vivo."
+      ]
+    }
+  ]
+}

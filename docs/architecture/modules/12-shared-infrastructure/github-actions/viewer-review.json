@@ -1,0 +1,33 @@
+{
+  "transport": "mock API; real React component and real protected HTML",
+  "results": [
+    {
+      "width": 1216,
+      "height": 552,
+      "diagrams": 6,
+      "pageErrors": [],
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "diagrams": 6,
+      "pageErrors": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "diagrams": 6,
+      "pageErrors": [],
+      "overflow": false
+    },
+    {
+      "width": 360,
+      "height": 640,
+      "diagrams": 6,
+      "pageErrors": [],
+      "overflow": false
+    }
+  ]
+}

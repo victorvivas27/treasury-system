@@ -8,6 +8,7 @@ import { ManagedCourseBanner } from "./ManagedCourseBanner";
 import { useOptionalAuth } from "@/presentation/context/AuthContext";
 import { AppFooter } from "@/shared/ui/footer/AppFooter";
 import { ImprovementCenter } from "@/presentation/components/improvement-center/ImprovementCenter";
+import { Breadcrumbs } from "@/shared/ui/breadcrumbs/Breadcrumbs";
 
 
 
@@ -28,6 +29,7 @@ const auth = useOptionalAuth();
         onNavLinkClick={onNavLinkClick}
       />
       <section inert={isMobile && isSidebarOpen} className={`main-content ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
+        <Breadcrumbs />
         <PageTransitionOutlet />
         <AppFooter />
       </section>

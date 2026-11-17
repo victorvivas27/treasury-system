@@ -1,0 +1,136 @@
+{
+  "reference": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9",
+  "archify": "3.2.0",
+  "diagrams": [
+    {
+      "id": "ci-cd-workflows",
+      "diagram_type": "architecture",
+      "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-workflows.html",
+      "specification_sha256": "71509f73047f15de531cc8c6fc48c16bfdef3791ce2e75efdd1d2b58e404114c",
+      "artifact_sha256": "db16c1ffcadf9029f311c7cf0cb8667126a706b0cfd38d19c52b00e772a1d362",
+      "quality": "showcase",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "diagnostics": [],
+      "browser_evidence": "passed",
+      "automated_receipt": "review-3.2.0/ci-cd-workflows.finalize-summary.json"
+    },
+    {
+      "id": "ci-cd-dev-pr",
+      "diagram_type": "architecture",
+      "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-dev-pr.html",
+      "specification_sha256": "04aa005d62df40bceb97e29e8e29e24ec462e33525b84c76d40216c10377c3c9",
+      "artifact_sha256": "9f64a1ba52f67b9f4a9fec32d5fcf5bf0449a67210ffc617610cef6f03f94659",
+      "quality": "showcase",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "diagnostics": [],
+      "browser_evidence": "passed",
+      "automated_receipt": "review-3.2.0/ci-cd-dev-pr.finalize-summary.json"
+    },
+    {
+      "id": "ci-cd-release",
+      "diagram_type": "architecture",
+      "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-release.html",
+      "specification_sha256": "493f47aa6f33793b76992ac21a608f58db8062b8f86331dc2cfdcbf96f4989dd",
+      "artifact_sha256": "8804b2c0f538c6cfa30151c6cdd1d23d046ac32c244ba12b8d81a6ff4fde1831",
+      "quality": "showcase",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "diagnostics": [],
+      "browser_evidence": "passed",
+      "automated_receipt": "review-3.2.0/ci-cd-release.finalize-summary.json"
+    },
+    {
+      "id": "ci-cd-evidence",
+      "diagram_type": "architecture",
+      "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-evidence.html",
+      "specification_sha256": "22e2278dc64ce18ac7af5b984920aa22c876cdfcec27f1141fbdee65d239b6f8",
+      "artifact_sha256": "69ba8f6f96910e12a8484b4ad4b5ff74c1bc316fbd8bd56fb189ae9aef0d1453",
+      "quality": "showcase",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "diagnostics": [],
+      "browser_evidence": "passed",
+      "automated_receipt": "review-3.2.0/ci-cd-evidence.finalize-summary.json"
+    },
+    {
+      "id": "ci-cd-delivery",
+      "diagram_type": "architecture",
+      "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-delivery.html",
+      "specification_sha256": "7ad0c5e8147cbc1935826c94a5bebe201877e233378aacd0f0461902c7058ae5",
+      "artifact_sha256": "c848ee53c3bb9a9c4e70452cedd0663a89e72f283c2ba53c181e93c78610dce5",
+      "quality": "showcase",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "diagnostics": [],
+      "browser_evidence": "passed",
+      "automated_receipt": "review-3.2.0/ci-cd-delivery.finalize-summary.json"
+    },
+    {
+      "id": "ci-cd-sync",
+      "diagram_type": "architecture",
+      "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-sync.html",
+      "specification_sha256": "e93d3a9a96377114300563e61f97ba1bef8cbda1cc6ebad17d81c2cccba87571",
+      "artifact_sha256": "aeb214f71954976c9fa465c7f0a7c3b33284839f9e0d365faecf518cfeff86ff",
+      "quality": "showcase",
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "diagnostics": [],
+      "browser_evidence": "passed",
+      "automated_receipt": "review-3.2.0/ci-cd-sync.finalize-summary.json"
+    }
+  ],
+  "complementary_review": {
+    "scope": "3.2.0; real React component with mock API and actual private HTML; six views opened per viewport, no page errors or horizontal page overflow.",
+    "viewports": [
+      [
+        1216,
+        552
+      ],
+      [
+        768,
+        1024
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        360,
+        640
+      ]
+    ],
+    "evidence": "viewer-review.json",
+    "user_visual_approval": "pending"
+  },
+  "product_checks": {
+    "backend": "classes and catalog/access tests passed with 3.2.0 resources",
+    "frontend": "Responsive integration check repeated for all six new HTML artifacts; React source unchanged by renderer update."
+  },
+  "remote_validation": "not performed"
+}

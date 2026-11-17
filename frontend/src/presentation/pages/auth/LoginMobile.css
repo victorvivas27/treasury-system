@@ -60,7 +60,7 @@
   pointer-events: none;
   background-image: linear-gradient(color-mix(in srgb, var(--color-bg) 62%, transparent), color-mix(in srgb, var(--color-bg) 62%, transparent)), var(--auth-mobile-image);
   background-size: 100% 100%, contain;
-  background-position: center, center bottom;
+  background-position: center, center;
   background-repeat: no-repeat;
 }
 .login-page .login-page-header { margin-bottom: 16px; }

@@ -259,7 +259,7 @@ export const HomeHeader = ({
             </div>
             <Link className="public-home__system-access" to="/dashboard" onClick={closeMobileMenu}
               aria-label="Gestión del curso" title="Gestión del curso">
-              <BrandLogo className="public-home__system-access-logo" alt="" src="/icono-gestion-curso.png" />
+              <BrandLogo className="public-home__system-access-logo" alt="" src="/icono_gestion_curso.png" />
               <span>Gestión</span>
             </Link>
             <Link to="/calendario/horario-clases" onClick={closeMobileMenu}

@@ -1,0 +1,94 @@
+{
+  "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9",
+  "generatedAt": "2026-11-16",
+  "files": [
+    {
+      "path": ".github/workflows/00-dev-validation.yml",
+      "sha256": "22ae2ca431bec66be4aec9b2d8fc207e80f2691d47af4c040e1a859450009c9d"
+    },
+    {
+      "path": ".github/workflows/00-pr-validation.yml",
+      "sha256": "eadb42a7727aab46ee9be93ba0842c107bd87fb8f1693907e4b7e3babc58b3a0"
+    },
+    {
+      "path": ".github/workflows/06-release-please.yml",
+      "sha256": "fb58f83862dc68dbd91aa3966c4367efbde883b855d386237c7ee68288aefb5a"
+    },
+    {
+      "path": ".github/workflows/11-publish-allure.yml",
+      "sha256": "7487ce43f5c3a2731e5686639976ea3bc4de87c476ebb24a4e4093405f873935"
+    },
+    {
+      "path": ".github/workflows/01-commit-lint.yml",
+      "sha256": "dda8a017a74b5cc2e681b299baa1904d8d2d54399097d3feee0bc98b37e7dd88"
+    },
+    {
+      "path": ".github/workflows/02-frontend-ci.yml",
+      "sha256": "183cd5585879ec7549cf3ffc6c9ac7390ec22b9ae044825e2b7caec163fa881c"
+    },
+    {
+      "path": ".github/workflows/03-backend-ci.yml",
+      "sha256": "f9fd0a2d8455662201f3f91baac6902c0f35c2af78e5d514006a886cf9b5ae00"
+    },
+    {
+      "path": ".github/workflows/14-main-validation.yml",
+      "sha256": "1a23e14c8d02a474fd96ac7775020c9f54eaab05dee2488ccafdc586f74d0cf4"
+    },
+    {
+      "path": ".github/workflows/12-release-validation.yml",
+      "sha256": "f950d4896a3828b610335e2129bd1ca5f1ea69b51ba75d5c4a3be452505dde7a"
+    },
+    {
+      "path": ".github/workflows/07-deploy-backend.yml",
+      "sha256": "643ebcf8a341382abb11d8257c432e896536463f5db652822312009417373815"
+    },
+    {
+      "path": ".github/workflows/09-reports-pages.yml",
+      "sha256": "fd50f4ce7830e8326aa328999ffcf9382d75685f1f8d05e5c28a04923625f9a2"
+    },
+    {
+      "path": ".github/workflows/10-sync-main-dev.yml",
+      "sha256": "112cff70f518228c263e8ff6a6f06125c303a7e73e6912a831a29cb40b30ec5d"
+    },
+    {
+      "path": ".github/workflows/13-protected-files.yml",
+      "sha256": "2dd3a787f1af865c84ff41c7960c91330334679cc0b8176f649f5fe1527568c3"
+    },
+    {
+      "path": ".github/workflows/15-secret-scanning.yml",
+      "sha256": "c5cdfc1a705ba2d7ce1cf4a51184d26caadb753c695991f8d21a7dd55f86bc74"
+    },
+    {
+      "path": ".github/workflows/04-bruno-tests.yml",
+      "sha256": "2911916797ba6ca9addb4e082cf6d7880df3098953f23c2dc9bf6bc31a21e31a"
+    },
+    {
+      "path": ".github/workflows/05-versioning-ci.yml",
+      "sha256": "0dcc2c143fca97745107ee8b9f6ff67c0b5619f745efb6cdbb5a38e1e2584023"
+    },
+    {
+      "path": ".github/actions/release-please/action.yml",
+      "sha256": "2e44097060cd35a069516eb0c5c656d521b37d16293423725ed3dbd67f4d5754"
+    },
+    {
+      "path": "scripts/ci-validation.cjs",
+      "sha256": "e5efe02c74d73e820798d9abebf03e6300a674f323b491d76ea2a1605f3019f5"
+    },
+    {
+      "path": ".github/actions/reuse-validation/action.yml",
+      "sha256": "1bbc022e8edf2e0c1b888b1602e4f1e5aebd90dda0a34c15ab6af557ed426f6f"
+    },
+    {
+      "path": "scripts/select-release-evidence.cjs",
+      "sha256": "35568669affccf03e4453b8d80d338fdc0189373201e8145208b3218c267024a"
+    },
+    {
+      "path": "scripts/validate-release-evidence.mjs",
+      "sha256": "a9e084da69601130eb9e680cf91935c7d5d161dd94d8692c42875ea31307b357"
+    },
+    {
+      "path": "scripts/assemble-public-coverage.mjs",
+      "sha256": "e7f8635c2887dba064a571ddcc06d3b6601a6207528b8d399e1d859044305354"
+    }
+  ]
+}

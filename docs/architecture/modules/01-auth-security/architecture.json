@@ -31,7 +31,7 @@
     "output": "docs/architecture/modules/01-auth-security/architecture.html",
     "repository": {
       "url": "https://github.com/victorvivas27/treasury-system.git",
-      "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
     }
   },
   "components": [
@@ -43,13 +43,13 @@
       "sources": [
         {
           "path": "frontend/src/presentation/context/AuthContext.tsx",
-          "line": 219,
-          "end_line": 248
+          "line": 273,
+          "end_line": 304
         },
         {
           "path": "frontend/src/core/C-infra/repositories/auth/AuthRepositoryImpl.ts",
           "line": 10,
-          "end_line": 28
+          "end_line": 33
         }
       ],
       "pos": [
@@ -57,8 +57,8 @@
         60
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
@@ -70,7 +70,7 @@
         {
           "path": "backend/src/main/java/com/tesoreria/user/config/security/SecurityConfig.java",
           "line": 36,
-          "end_line": 63
+          "end_line": 66
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/config/security/JwtAuthenticationFilter.java",
@@ -79,12 +79,12 @@
         }
       ],
       "pos": [
-        340,
+        440,
         60
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
@@ -95,48 +95,43 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
-          "line": 112,
-          "end_line": 149
-        },
-        {
-          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java",
-          "line": 201,
-          "end_line": 228
+          "line": 113,
+          "end_line": 158
         }
       ],
       "pos": [
-        640,
+        840,
         60
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
       "id": "credentials",
       "type": "security",
       "label": "Credenciales",
-      "sublabel": "PasswordEncoder · estado",
+      "sublabel": "Contraseña · estado · términos",
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java",
-          "line": 94,
-          "end_line": 138
+          "line": 51,
+          "end_line": 83
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java",
-          "line": 46,
+          "line": 40,
           "end_line": 62
         }
       ],
       "pos": [
-        940,
+        1240,
         60
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
@@ -147,22 +142,22 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 105,
-          "end_line": 138
+          "line": 107,
+          "end_line": 137
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java",
-          "line": 172,
-          "end_line": 177
+          "line": 180,
+          "end_line": 204
         }
       ],
       "pos": [
-        640,
-        290
+        840,
+        300
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
@@ -173,22 +168,22 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AccountRecoveryService.java",
-          "line": 225,
-          "end_line": 260
+          "line": 210,
+          "end_line": 243
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/application/usecase/AccountRecoveryService.java",
-          "line": 267,
-          "end_line": 287
+          "line": 246,
+          "end_line": 280
         }
       ],
       "pos": [
-        340,
-        290
+        40,
+        300
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
@@ -199,17 +194,17 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserEntity.java",
-          "line": 14,
-          "end_line": 57
+          "line": 15,
+          "end_line": 94
         }
       ],
       "pos": [
-        940,
-        290
+        1240,
+        300
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
@@ -220,43 +215,136 @@
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java",
-          "line": 11,
-          "end_line": 62
+          "line": 12,
+          "end_line": 68
         },
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java",
-          "line": 28,
-          "end_line": 28
+          "line": 47,
+          "end_line": 54
         }
       ],
       "pos": [
-        640,
-        530
+        840,
+        540
       ],
       "size": [
-        190,
-        76
+        230,
+        86
       ]
     },
     {
       "id": "email",
       "type": "external",
       "label": "Correo",
-      "sublabel": "JavaMailSender",
+      "sublabel": "Gmail o Resend",
       "sources": [
         {
           "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/email/GmailEmailAdapter.java",
-          "line": 84,
-          "end_line": 93
+          "line": 22,
+          "end_line": 46
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/email/ResendEmailAdapter.java",
+          "line": 33,
+          "end_line": 67
         }
       ],
       "pos": [
-        340,
-        530
+        440,
+        540
       ],
       "size": [
-        190,
-        76
+        230,
+        86
+      ]
+    },
+    {
+      "id": "limits",
+      "label": "Límites compartidos",
+      "sublabel": "IP · cuenta · proxies fiables",
+      "type": "security",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/InvitationAttemptFilter.java",
+          "line": 49,
+          "end_line": 83
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/SharedSecurityLimiter.java",
+          "line": 23,
+          "end_line": 64
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/config/security/ClientIpResolver.java",
+          "line": 27,
+          "end_line": 44
+        }
+      ],
+      "pos": [
+        440,
+        300
+      ],
+      "size": [
+        230,
+        86
+      ]
+    },
+    {
+      "id": "queue",
+      "label": "Cola persistente",
+      "sublabel": "security_mail_requests",
+      "type": "backend",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/SecurityMailQueue.java",
+          "line": 32,
+          "end_line": 73
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/SecurityMailQueue.java",
+          "line": 69,
+          "end_line": 80
+        }
+      ],
+      "pos": [
+        40,
+        540
+      ],
+      "size": [
+        230,
+        86
+      ]
+    },
+    {
+      "id": "delivery",
+      "label": "Entrega de invitaciones",
+      "sublabel": "Webhook firmado · estados",
+      "type": "backend",
+      "sources": [
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/ResendWebhookController.java",
+          "line": 26,
+          "end_line": 51
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/ResendWebhookVerifier.java",
+          "line": 21,
+          "end_line": 44
+        },
+        {
+          "path": "backend/src/main/java/com/tesoreria/user/application/usecase/InvitationDeliveryService.java",
+          "line": 62,
+          "end_line": 80
+        }
+      ],
+      "pos": [
+        1240,
+        540
+      ],
+      "size": [
+        230,
+        86
       ]
     }
   ],
@@ -271,13 +359,13 @@
       "id": "edge-2",
       "from": "http-security",
       "to": "auth-api",
-      "label": "Ruta permitida"
+      "label": "Permisos de ruta"
     },
     {
       "id": "edge-3",
       "from": "auth-api",
       "to": "credentials",
-      "label": "Login"
+      "label": "Login y términos"
     },
     {
       "id": "edge-4",
@@ -287,52 +375,70 @@
     },
     {
       "id": "edge-5",
-      "from": "auth-api",
-      "to": "recovery",
-      "label": "Cambia / recupera"
+      "from": "credentials",
+      "to": "users",
+      "label": "Cuenta y aceptación"
     },
     {
       "id": "edge-6",
-      "from": "credentials",
-      "to": "users",
-      "label": "Lee cuenta"
+      "from": "sessions",
+      "to": "tokens",
+      "label": "Hash / familia"
     },
     {
       "id": "edge-7",
-      "from": "sessions",
-      "to": "tokens",
-      "label": "Guarda / revoca"
+      "from": "auth-api",
+      "to": "recovery",
+      "label": "Recupera / cambia"
     },
     {
       "id": "edge-8",
       "from": "recovery",
+      "to": "queue",
+      "label": "Solicitud pública"
+    },
+    {
+      "id": "edge-9",
+      "from": "queue",
       "to": "email",
-      "label": "Envía aviso"
+      "label": "Worker / envío"
+    },
+    {
+      "id": "edge-10",
+      "from": "email",
+      "to": "delivery",
+      "label": "Eventos Resend"
+    },
+    {
+      "id": "edge-11",
+      "from": "http-security",
+      "to": "limits",
+      "label": "Presupuestos por ruta"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Cómo leer esta vista",
+      "title": "Identidad y términos",
       "items": [
-        "Las flechas agrupan llamadas por capa; las secuencias separan los controles y escrituras.",
-        "AuthController coordina credenciales, sesiones y recuperación. El mapa no es una topología de despliegue."
+        "El login puede pedir curso y aceptación de términos antes de emitir sesión. JWT en memoria; usuario y CSRF en sessionStorage.",
+        "La emisión y rotación exigen cuenta habilitada, organización activa y términos vigentes."
       ]
     },
     {
-      "dot": "rose",
-      "title": "Controles reales",
+      "dot": "cyan",
+      "title": "Correo y entrega",
       "items": [
-        "Registro público bloqueado; acceso de apoderados mediante invitación administrativa.",
-        "La familia de sesión se consulta en BD. JWT sin familia consultan users.sessions_revoked_at."
+        "Recuperación y reenvío de verificación encolan una solicitud sin códigos bearer; el worker crea los enlaces y usa Gmail o Resend.",
+        "Invitaciones Resend registran el ID aceptado y eventos firmados. Aceptación del proveedor no significa entrega ni lectura."
       ]
     },
     {
-      "dot": "amber",
-      "title": "Alcance",
+      "dot": "cyan",
+      "title": "Controles y alcance",
       "items": [
-        "Usuarios y curso se consultan también desde sesiones y recuperación; ver las secuencias.",
-        "Correo es un adaptador configurado; su disponibilidad real no se prueba al generar este gráfico."
+        "SharedSecurityLimiter persiste presupuestos compartidos. ClientIpResolver solo confía en X-Forwarded-For desde proxies configurados.",
+        "Mapa por responsabilidades. Cambios de contraseña e invitaciones también envían correo directo; ver sus secuencias. No certifica un despliegue remoto."
       ]
     }
   ]

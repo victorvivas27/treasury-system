@@ -9,6 +9,13 @@ vi.mock('@/shared/ui/loading/PageEntryVisual', () => ({
 }));
 afterEach(() => { localStorage.clear(); clearLoaderPreferenceCache(); });
 
+it('shows the initial loader style when returning to the public Home without a session', () => {
+  clearLoaderPreferenceCache();
+  render(<HomeEntryTransition ready onExited={vi.fn()} />);
+  expect(screen.getByRole('button', { name: 'Loader compartido' }))
+    .toHaveAttribute('data-variant', 'nneo-rising-fill');
+});
+
 it.each(['video', 'cinematic', 'video-light', 'nneo-rising-fill'])('usa el loader configurado %s y espera los datos del Home', variant => {
   setCachedLoaderPreference('pageTransition', { variant, durationMs: 0, exitMs: 800, soundEnabled: true });
   const onExited = vi.fn();
