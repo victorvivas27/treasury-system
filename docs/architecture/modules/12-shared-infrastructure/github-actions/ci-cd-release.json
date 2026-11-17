@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "GitHub Actions · Main y release",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/12-shared-infrastructure/github-actions/ci-cd-release.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    }
+  },
+  "components": [
+    {
+      "id": "main",
+      "label": "Push a main",
+      "sublabel": "06 · prepare",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 17,
+          "end_line": 45
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "release",
+      "label": "Preparar release",
+      "sublabel": "Acción local y PR pendiente",
+      "sources": [
+        {
+          "path": ".github/actions/release-please/action.yml",
+          "line": 1,
+          "end_line": 18
+        },
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 58,
+          "end_line": 113
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "check",
+      "label": "Esperar check del PR",
+      "sublabel": "SHA + base + PR exactos",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 136,
+          "end_line": 227
+        }
+      ],
+      "type": "security",
+      "pos": [
+        900,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "merge",
+      "label": "Integrar y publicar",
+      "sublabel": "Merge validado y tag exacto",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 243,
+          "end_line": 269
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        900,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "ordinary",
+      "label": "14 · Main ordinario",
+      "sublabel": "Sin release; main vigente",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 291,
+          "end_line": 340
+        },
+        {
+          "path": ".github/workflows/14-main-validation.yml",
+          "line": 56,
+          "end_line": 80
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "checks",
+      "label": "14 · Checks de main",
+      "sublabel": "Commits, archivos, Bruno, versión",
+      "sources": [
+        {
+          "path": ".github/workflows/14-main-validation.yml",
+          "line": 22,
+          "end_line": 80
+        }
+      ],
+      "type": "security",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "final",
+      "label": "12 · Evidencia final",
+      "sublabel": "Frontend y Backend forzados",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 347,
+          "end_line": 363
+        },
+        {
+          "path": ".github/workflows/12-release-validation.yml",
+          "line": 79,
+          "end_line": 98
+        }
+      ],
+      "type": "security",
+      "pos": [
+        900,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "consumers",
+      "label": "07 / 09 / 10",
+      "sublabel": "Consumen gates y mismo SHA",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 360,
+          "end_line": 388
+        },
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 331,
+          "end_line": 349
+        },
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 380,
+          "end_line": 399
+        }
+      ],
+      "type": "external",
+      "pos": [
+        470,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge-1",
+      "from": "main",
+      "to": "release",
+      "label": "Prepara candidato"
+    },
+    {
+      "id": "edge-2",
+      "from": "release",
+      "to": "check",
+      "label": "Si hay PR elegible"
+    },
+    {
+      "id": "edge-3",
+      "from": "check",
+      "to": "merge",
+      "label": "Check aprobado"
+    },
+    {
+      "id": "edge-4",
+      "from": "main",
+      "to": "ordinary",
+      "label": "Sin release y vigente"
+    },
+    {
+      "id": "edge-5",
+      "from": "merge",
+      "to": "checks",
+      "label": "Release publicada"
+    },
+    {
+      "id": "edge-6",
+      "from": "merge",
+      "to": "final",
+      "label": "En paralelo"
+    },
+    {
+      "id": "edge-7",
+      "from": "checks",
+      "to": "consumers",
+      "label": "Gate main"
+    },
+    {
+      "id": "edge-8",
+      "from": "final",
+      "to": "consumers",
+      "label": "Evidencia del SHA"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "No toda ejecución publica",
+      "items": [
+        "06 también recupera una release ya publicada en prepare. Los candidatos superados por nuevos commits no autorizan una publicación.",
+        "El check previo debe pertenecer al PR, head y base seleccionados. Un fallo bloquea; cambios de candidato o base dejan paso al siguiente run."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Repetición comprobada",
+      "items": [
+        "El PR automático selecciona todas las suites. Después 06 llama 12 con el tag, sin aportar evidencia compartida del PR; 12 fuerza Frontend y Backend.",
+        "14 omite Frontend/Backend cuando release=true, porque 12 se encarga. Bruno y versionado siguen en 14."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Integración y permisos",
+      "items": [
+        "La integración con GITHUB_TOKEN no dispara otro push; 06 coordina explícitamente los consumidores y la sincronización.",
+        "06 serializa por release-please-main sin cancelar. El gráfico no ejecuta merges ni despliegues."
+      ]
+    }
+  ]
+}

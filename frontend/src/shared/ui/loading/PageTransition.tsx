@@ -1,4 +1,3 @@
-import { getCachedLoaderPreference } from '@/shared/ui/loading/loaderPreferenceCache';
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { PageEntryVisual } from './PageEntryVisual';
@@ -33,7 +32,7 @@ export function PageTransitionBoundary({ children, animateOnEntry = false }: { c
   const visible = state.visible || (!completed.current && assetsPending);
   const ready = state.ready && !assetsPending;
   const [preferences] = useState(readPageTransitionPreferences);
-  const [skipEntryVisual] = useState(() => Boolean(document.getElementById('app-boot-loader')) || !getCachedLoaderPreference('pageTransition'));
+  const [skipEntryVisual] = useState(() => Boolean(document.getElementById('app-boot-loader')));
   const report = useCallback((id: string, loading: boolean, failed = false) => {
     if (completed.current) return;
     if (failed) {
@@ -57,7 +56,7 @@ export function PageTransitionBoundary({ children, animateOnEntry = false }: { c
     setState({ visible: false, ready: true });
   }, []);
   useEffect(() => {
-    // Release the page once data settles when boot covers it or no admin loader is available.
+    // Release the page once data settles when the initial loader already covers it.
     if (skipEntryVisual && visible && ready) finish();
   }, [skipEntryVisual, visible, ready, finish]);
   return <PageLoadingContext.Provider value={report}>
@@ -70,5 +69,5 @@ export function PageTransitionBoundary({ children, animateOnEntry = false }: { c
 
 export function PageTransitionOutlet() {
   const { pathname } = useLocation();
-  return <PageTransitionBoundary key={pathname}><Outlet /></PageTransitionBoundary>;
+  return <PageTransitionBoundary key={pathname} animateOnEntry><Outlet /></PageTransitionBoundary>;
 }

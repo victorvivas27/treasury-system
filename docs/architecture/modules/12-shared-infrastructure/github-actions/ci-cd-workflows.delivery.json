@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "0fff7ee7-06f6-4718-8bcb-dcdcc51df3d0",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-workflows.json",
+  "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-workflows.html",
+  "specification": {
+    "sha256": "71509f73047f15de531cc8c6fc48c16bfdef3791ce2e75efdd1d2b58e404114c",
+    "bytes": 7677
+  },
+  "artifact": {
+    "sha256": "db16c1ffcadf9029f311c7cf0cb8667126a706b0cfd38d19c52b00e772a1d362",
+    "bytes": 830149
+  }
+}

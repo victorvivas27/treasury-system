@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-sync.json",
+    "sha256": "e93d3a9a96377114300563e61f97ba1bef8cbda1cc6ebad17d81c2cccba87571",
+    "bytes": 6736
+  },
+  "artifact": {
+    "path": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-sync.html",
+    "sha256": "aeb214f71954976c9fa465c7f0a7c3b33284839f9e0d365faecf518cfeff86ff",
+    "bytes": 827766
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\review-3.2.0\\ci-cd-sync.finalize.json",
+    "summaryReceipt": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\review-3.2.0\\ci-cd-sync.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\review-3.2.0\\ci-cd-sync.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-17T01:59:04.018Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4821,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

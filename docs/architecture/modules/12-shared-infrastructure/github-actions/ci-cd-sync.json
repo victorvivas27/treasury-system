@@ -1,0 +1,288 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "GitHub Actions · Sincronizar main hacia dev",
+    "locale": "es",
+    "translations": {
+      "legend.title": "Leyenda",
+      "legend.architecture.frontend": "Frontend",
+      "legend.architecture.backend": "Backend",
+      "legend.architecture.database": "Base de datos",
+      "legend.architecture.security": "Seguridad",
+      "legend.architecture.external": "Servicio externo",
+      "viewer.theme.dark": "Oscuro",
+      "viewer.theme.light": "Claro",
+      "viewer.export.button": "Exportar",
+      "viewer.common.close": "Cerrar",
+      "viewer.common.clear": "Limpiar",
+      "viewer.common.copyLink": "Copiar enlace",
+      "viewer.common.copied": "Copiado",
+      "viewer.nav.zoomIn": "Acercar",
+      "viewer.nav.zoomOut": "Alejar",
+      "viewer.nav.reset": "Restablecer",
+      "viewer.nav.find": "Buscar",
+      "viewer.nav.read": "Leer",
+      "viewer.motion.still": "Sin movimiento",
+      "viewer.present.present": "Presentar",
+      "viewer.present.exit.label": "Salir"
+    },
+    "quality_profile": "showcase",
+    "output": "docs/architecture/modules/12-shared-infrastructure/github-actions/ci-cd-sync.html",
+    "repository": {
+      "url": "https://github.com/victorvivas27/treasury-system.git",
+      "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    }
+  },
+  "components": [
+    {
+      "id": "caller",
+      "label": "06 o ejecución manual",
+      "sublabel": "10 · sync main into dev",
+      "sources": [
+        {
+          "path": ".github/workflows/06-release-please.yml",
+          "line": 331,
+          "end_line": 349
+        },
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 3,
+          "end_line": 16
+        }
+      ],
+      "type": "frontend",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "compare",
+      "label": "Comparar historias",
+      "sublabel": "Refs main/dev y merge base",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 42,
+          "end_line": 59
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "noop",
+      "label": "Dev ya incluye main",
+      "sublabel": "No escribe ni ejecuta suites",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 52,
+          "end_line": 56
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        900,
+        60
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "ff",
+      "label": "Fast-forward",
+      "sublabel": "updateRef · force:false",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 62,
+          "end_line": 73
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "merge",
+      "label": "Ramas divergentes",
+      "sublabel": "Merge conserva ambas historias",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 73,
+          "end_line": 82
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "verify",
+      "label": "Verificar SHA resultante",
+      "sublabel": "Main incluido en el commit",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 90,
+          "end_line": 101
+        }
+      ],
+      "type": "security",
+      "pos": [
+        470,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "skip",
+      "label": "Omitir suites",
+      "sublabel": "Fast-forward exacto ya validado",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 62,
+          "end_line": 73
+        }
+      ],
+      "type": "security",
+      "pos": [
+        900,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    },
+    {
+      "id": "suites",
+      "label": "Validar combinación",
+      "sublabel": "02 · 03 · 04 · 05",
+      "sources": [
+        {
+          "path": ".github/workflows/10-sync-main-dev.yml",
+          "line": 102,
+          "end_line": 125
+        }
+      ],
+      "type": "backend",
+      "pos": [
+        40,
+        540
+      ],
+      "size": [
+        220,
+        86
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge-1",
+      "from": "caller",
+      "to": "compare",
+      "label": "Lee refs actuales"
+    },
+    {
+      "id": "edge-2",
+      "from": "compare",
+      "to": "noop",
+      "label": "Main ya incluido"
+    },
+    {
+      "id": "edge-3",
+      "from": "compare",
+      "to": "ff",
+      "label": "Dev es ancestro"
+    },
+    {
+      "id": "edge-4",
+      "from": "compare",
+      "to": "merge",
+      "label": "Historias divergen"
+    },
+    {
+      "id": "edge-5",
+      "from": "ff",
+      "to": "verify",
+      "label": "SHA dev actualizado"
+    },
+    {
+      "id": "edge-6",
+      "from": "merge",
+      "to": "verify",
+      "label": "SHA combinado"
+    },
+    {
+      "id": "edge-7",
+      "from": "verify",
+      "to": "skip",
+      "label": "SHA exacto validado"
+    },
+    {
+      "id": "edge-8",
+      "from": "verify",
+      "to": "suites",
+      "label": "Merge o sin prueba"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cuándo se evita repetir",
+      "items": [
+        "already_validated solo basta si validated_sha coincide con main actual y la actualización es fast-forward. Un merge nuevo requiere validación.",
+        "Si dev ya incluye main, la operación no escribe ni revalida. Conflictos fallan sin reemplazar la rama."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Eventos explícitos",
+      "items": [
+        "Las escrituras con GITHUB_TOKEN no disparan workflows push/PR. 10 llama explícitamente las suites necesarias del SHA sincronizado.",
+        "El caller 06 espera gates main/release para el mismo SHA, pero no espera que termine el despliegue."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Protecciones",
+      "items": [
+        "La actualización de ref usa force:false; no reescribe historia. Antes de informar éxito se comprueba que el commit resultante incluye main.",
+        "La sincronización serializa por sync-main-into-dev; permisos contents:write solo en el job que escribe."
+      ]
+    }
+  ]
+}

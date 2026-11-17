@@ -1,71 +1,137 @@
 {
   "repository": {
     "url": "https://github.com/victorvivas27/treasury-system.git",
-    "revision": "88eb6f11d7a0534b518a9e4ce7ddb70dfef596b6"
+    "revision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
   },
-  "archifyVersion": "3.0.1",
+  "generatedAt": "2026-11-17",
+  "archifyVersion": "3.2.0",
   "nodeVersion": "v22.20.0",
-  "initialWorktree": "Only docs/architecture was untracked; cited production sources were clean.",
+  "scope": "Diagrams reference committed sources. Working-tree UI overlays are recorded separately and described in README; GitHub links show the base revision.",
   "sourceFiles": {
     "frontend/src/presentation/context/AuthContext.tsx": {
-      "sha256": "35d3f349a33fe0bd1a75b093cfa4877024a522134566686e60ba4c51c8c4420f"
+      "sha256": "1f0dfa8097cb58198c6211487e7e97de6a22fe1a4479fd5971c1977de8187324"
     },
     "frontend/src/core/C-infra/repositories/auth/AuthRepositoryImpl.ts": {
-      "sha256": "be731bee0efe6beffdc608282dc26bbff108bce9d3082cba7557f2f8b00e02de"
+      "sha256": "a5c95ba53cedbb5356a8feb85576cbb703006bb579f451ff4ae42ce5298726db"
     },
     "backend/src/main/java/com/tesoreria/user/config/security/SecurityConfig.java": {
-      "sha256": "f7905a1aa78e2fab4ae43a44bcb0011755e7c3374ff9e030fbf91bbf550d4195"
+      "sha256": "1dfecb85524a1321cb0a85795b0a7678e0c4d40b36ec5fe22101fc82a633c7ea"
     },
     "backend/src/main/java/com/tesoreria/user/config/security/JwtAuthenticationFilter.java": {
       "sha256": "2d5d32b152e146920e7faf0e06d960a76ae164545474d04d7fa8bdaee4853ffb"
     },
     "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/AuthController.java": {
-      "sha256": "2a181bdb755e7b0236223849dd552e375673420a0dc95564ecb1f3630aaa91a3"
+      "sha256": "2207970e97c3c358be3dfbce4d91729fe5773f257837aeea35c4c8217dcc0515"
     },
     "backend/src/main/java/com/tesoreria/user/application/usecase/AuthService.java": {
-      "sha256": "6ad40292ec18d5cdf6edde6045af0d4217772fa5c6e327cdce2b0cd4a3bc64d8"
+      "sha256": "953e828b91874c04e11cb60e331bb5aecdb6fb45e24a005fc806fefac031c6b4"
     },
     "backend/src/main/java/com/tesoreria/user/application/usecase/CustomUserDetailsService.java": {
       "sha256": "00e08f51afd64de7b4cd0008ffce5ecf954a21bdd5ad922d7a63f77b6d036539"
     },
     "backend/src/main/java/com/tesoreria/user/application/usecase/RefreshTokenService.java": {
-      "sha256": "80a0ccab914804255694af44fdad9e24cbf0cff0a371d92db90fd6dc357c6957"
+      "sha256": "a42b9b8b9d016f235dbcc71abaf4f5b555464b845a2be0ffecfda1707921a525"
     },
     "backend/src/main/java/com/tesoreria/user/application/usecase/AccountRecoveryService.java": {
-      "sha256": "a53494160c9c06db16908706a9b5db81d84f0c51c876126e8fac827b3e6dad10"
+      "sha256": "a14103fee257865682b3637d0f6b345d6248c0e88949bc05946d0e8779b71505"
     },
     "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserEntity.java": {
-      "sha256": "ad87fba0566c61da29909b4f38b5386d9c60b91d58cc573123abacbb1fa735b2"
+      "sha256": "a984f2e3ee3a9bfa5741a3c79287539b7095cfcdbc77c82d5b3784f7fcf69914"
     },
     "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/entity/UserTokenEntity.java": {
-      "sha256": "6b36c8255a043b07f1fe3cb8fb4724a691581e566cab52cd0cd5d59bf1faf565"
+      "sha256": "5446170be5e0ed92d1ecfdeee7063d9775ecc3cc8b87aec5c0adfcb9acc0ad99"
     },
     "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserTokenJpaRepository.java": {
       "sha256": "9110caba494b0df8a70c57a29512d3f0d8cf100128db8076f121838f0415fb82"
     },
     "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/email/GmailEmailAdapter.java": {
-      "sha256": "98baf4df8318abcb11ad478bde651ee3408a7e7066a51ff1e485d4faf73613c0"
+      "sha256": "a935aa6ebd10a4d37b9c9a5ce91a7dbb407d6bc1215c8ecd655d271c0295b614"
+    },
+    "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/email/ResendEmailAdapter.java": {
+      "sha256": "88c962a7548541f87a86527dfe47958c4465655d64787d5d3a41884f96c033d7"
+    },
+    "backend/src/main/java/com/tesoreria/user/config/security/InvitationAttemptFilter.java": {
+      "sha256": "d21651e1af12d4a045414418cb99544574ffee66ed6dd6327347962c4128a110"
+    },
+    "backend/src/main/java/com/tesoreria/user/application/usecase/SharedSecurityLimiter.java": {
+      "sha256": "6d6dc589eb01ee7c13706bb3062855f1ef6c31c7de68413b3df4b85c22f4f739"
+    },
+    "backend/src/main/java/com/tesoreria/user/config/security/ClientIpResolver.java": {
+      "sha256": "7da967d719d244c7595c6e5aca4ad6827308b2a8c07bb15f54a6bf3b2db3c68b"
+    },
+    "backend/src/main/java/com/tesoreria/user/config/security/TrustedProxyRequestFilter.java": {
+      "sha256": "6fbefdc7ae11839742eb9ba16cabeab980ff508109ad32f642914a8468773a58"
+    },
+    "backend/src/main/java/com/tesoreria/user/application/usecase/SecurityMailQueue.java": {
+      "sha256": "c13777cf918a1af0533f6c03a4c68563b6fdf1e1cefa82c7e8fdacdd5a28c0fc"
+    },
+    "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/ResendWebhookController.java": {
+      "sha256": "8f608ce49e4793f8ee1418c534843696d0cf77110c61dd1e0856b32bc1ddde56"
+    },
+    "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/in/web/controller/ResendWebhookVerifier.java": {
+      "sha256": "94ff1f6df235d1db82ebbb635df2805bdcc953d43d2fb62774935a9da3681178"
+    },
+    "backend/src/main/java/com/tesoreria/user/application/usecase/InvitationDeliveryService.java": {
+      "sha256": "db119f7f23eb52467caba417c70b239aa8b451651e728c92667a0d394485135e"
     },
     "frontend/src/presentation/pages/auth/LoginPage.tsx": {
-      "sha256": "6c4256519dd3f8960e23c03819c8fb2091b9db8228ff656d4f32e8f45ad800d1"
+      "sha256": "88f1dfe373bf8bc5adf8ce5182246186976e42c3b8e3cbf1b447c5241e502f14"
     },
     "backend/src/main/java/com/tesoreria/user/config/security/JwtService.java": {
-      "sha256": "a6c78da2fbed30bd166a86a12697038b5b6372e659276a15a3f8ef504671cd03"
+      "sha256": "174e08d93548dd71920c32ce752835d89cd4bc770ceb32cee14212e117ec84e3"
     },
     "frontend/src/core/D-config/axiosInterceptor.ts": {
-      "sha256": "934e57c39eb740feebf22d6cccf6e3fcd7fdee152633c55dbc6639b7a4fc6928"
+      "sha256": "8423c1d8d0fbd4e274a4345ddc4d1e89f8c4018d0f2ab600db1c1763eabfbdc3"
     },
     "backend/src/main/java/com/tesoreria/user/infrastructure/adapter/out/persistence/repository/UserJpaRepository.java": {
-      "sha256": "4e4519ec9913a74619d3ac909dcac0619f4688ec7bfdad38cf73d21447c2520b"
+      "sha256": "ffff0556f3a6f7e34e265d43d8473bfa79474719793b008c218e73caa6fafcec"
     },
     "frontend/src/presentation/pages/auth/AccountFlowPages.tsx": {
-      "sha256": "ef8af859382fa610c3b407a7c950d8be403078944c906d8f3ac247d395206e91"
+      "sha256": "499daa251bd4891b725882eaee7c89d9375fa51500a36bcefee80c9dd9ca5d76"
     },
     "backend/src/main/java/com/tesoreria/user/config/security/TokenRevocationService.java": {
-      "sha256": "95e58b5f2f874ec4f3358c92f86046703c60abe6e14315a78b71dfbb046eeee6"
+      "sha256": "0ff677abaf5a94f7a1774dc9ba6fc0febd668f45e1ccc3d7c7afbe62d9841961"
     },
     "backend/src/main/java/com/tesoreria/notification/config/WebSocketAuthInterceptor.java": {
       "sha256": "09e907073e287511d345e45c21d676bbe9b34e0bc5d8b53f7ac04635f95289d4"
+    },
+    "backend/src/main/java/com/tesoreria/user/application/usecase/LoginRateLimiter.java": {
+      "sha256": "cdf4f89101974405001748ff16493621365f58ed7ec163a79ab029ff048dc41e"
+    },
+    "backend/src/main/java/com/tesoreria/user/application/usecase/AuthFlowRateLimiter.java": {
+      "sha256": "7b3e106b7215ffefd5a2ee421a68f7eea609e0197f9112764cab130f5b3162a5"
+    },
+    "frontend/src/shared/ui/loading/loaderConfiguration.ts": {
+      "sha256": "6b6a27cf81cd2be22f671a9b25d81df2581815690d0332b36220c1d6fa141d33"
+    },
+    "backend/src/main/java/com/tesoreria/treasury/infrastructure/adapter/in/web/controller/LoaderSettingsController.java": {
+      "sha256": "ac77ccf9b26a9afa70d3da37e52e146a91986ec7c58920acb629658b2e10d306"
+    }
+  },
+  "workingTreeFiles": {
+    "frontend/src/shared/ui/loading/PageTransition.tsx": {
+      "sha256": "480b3199f8b1133021f1f23bd498f7dc4424b7a95827e07d397bb45e229a7a12",
+      "baseRevision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    },
+    "frontend/src/shared/ui/loading/pageTransitionPreferences.ts": {
+      "sha256": "4e60196d18e5f2d3f333fc4acc9cf252f9e1a60c0c3ae6c023b06cafd1858d6f",
+      "baseRevision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    },
+    "frontend/src/presentation/pages/home/HomePage.tsx": {
+      "sha256": "5d2e3966b66557e061657750cb87497d6eeddb423bcfd15096293e008f5dd4b0",
+      "baseRevision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    },
+    "frontend/src/presentation/pages/home/components/HomeEntryTransition.tsx": {
+      "sha256": "a60cdca20e6df4d7c140e19590883810821ffcfcbcfc2e747772cba404594e83",
+      "baseRevision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    },
+    "frontend/src/shared/assets/publicImages.ts": {
+      "sha256": "15abe92fd0c19d5560b0e158c4a87e0fac5d4fbdcdd077b8d07cfbb2cbfc2f7d",
+      "baseRevision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
+    },
+    "frontend/src/presentation/pages/auth/LoginMobile.css": {
+      "sha256": "50dadca223079b0c5192bcac6784aa0b56180f6cf346fd561fc0cb424d2a5d88",
+      "baseRevision": "58d5ef0bc5e7c2ec6c8d64e51172489da34a3fb9"
     }
   }
 }

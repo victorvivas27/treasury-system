@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\refresh.json",
+    "sha256": "310cbca5759abdbd5250a8f4fd0dfef6acb2f8568890d8d679b795cb31c4abde",
+    "bytes": 6379
+  },
+  "artifact": {
+    "path": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\refresh.html",
+    "sha256": "597b0be27e0b61df51e605585037a7abba30a53a73349c4805a961efa79dc55a",
+    "bytes": 819502
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\review-2026-11-17\\refresh.finalize.json",
+    "summaryReceipt": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\review-2026-11-17\\refresh.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\01-auth-security\\review-2026-11-17\\refresh.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-17T01:59:04.018Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4137,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

@@ -27,6 +27,27 @@ describe("Arquitectura integrada", () => {
     expect(api.diagram).toHaveBeenCalledWith("login", expect.any(AbortSignal));
   });
 
+  it("muestra la referencia propia de CI/CD y conserva el visor aislado", async () => {
+    const catalog = await api.catalog();
+    api.catalog.mockResolvedValue({ ...catalog, diagrams: [...catalog.diagrams, {
+      id: "ci-cd-workflows", title: "GitHub Actions y CI/CD", description: "Eventos y evidencia",
+      moduleId: "12-operations", moduleTitle: "Infraestructura · GitHub Actions y CI/CD",
+      revision: "58d5ef0", generatedAt: "2026-11-16",
+    }] });
+    render(<ArchitecturePage />);
+    await screen.findByTitle("Gráfico: Componentes");
+    fireEvent.change(screen.getByRole("combobox", { name: "Módulo" }), { target: { value: "12-operations" } });
+    const frame = await screen.findByTitle("Gráfico: GitHub Actions y CI/CD");
+    expect(screen.getByText("Referencia 58d5ef0 · 2026-11-16")).toBeInTheDocument();
+    expect(screen.getByText("Infraestructura · GitHub Actions y CI/CD", { selector: "p" })).toBeInTheDocument();
+    expect(frame).toHaveAttribute("sandbox", "allow-scripts allow-downloads allow-popups allow-popups-to-escape-sandbox");
+    expect(api.diagram).toHaveBeenCalledWith("ci-cd-workflows", expect.any(AbortSignal));
+    expect(screen.queryByRole("button", { name: /Componentes/ })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole("combobox", { name: "Módulo" }), { target: { value: "01-auth-security" } });
+    await screen.findByTitle("Gráfico: Componentes");
+    expect(screen.getByText("Referencia 88eb6f11 · 2026-10-09")).toBeInTheDocument();
+  });
+
   it("quita el gráfico anterior mientras carga otro y muestra errores sin conservarlo", async () => {
     render(<ArchitecturePage />);
     await screen.findByTitle("Gráfico: Componentes");

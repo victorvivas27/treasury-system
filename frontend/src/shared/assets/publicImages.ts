@@ -4,6 +4,12 @@ type PublicImageName = keyof typeof manifest.images;
 
 const imageBaseUrl = manifest.baseUrl;
 
-export const publicImages = Object.fromEntries(
+const manifestImages = Object.fromEntries(
   Object.entries(manifest.images).map(([name, image]) => [name, `${imageBaseUrl}/${image.file}`]),
 ) as Record<PublicImageName, string>;
+
+export const publicImages = {
+  ...manifestImages,
+  loginDesktop: "/app-images/v1/principal_login.png",
+  loginMobile: "/app-images/v1/principal_login_movil.png",
+};

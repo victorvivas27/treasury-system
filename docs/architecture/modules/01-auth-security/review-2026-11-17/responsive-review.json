@@ -1,0 +1,222 @@
+{
+  "generatedAt": "2026-11-17T15:41:50.414Z",
+  "scope": "Real standalone Archify HTML in Chrome; no authenticated React session or live API.",
+  "results": [
+    {
+      "id": "architecture",
+      "width": 1216,
+      "height": 552,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "login",
+      "width": 1216,
+      "height": 552,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "refresh",
+      "width": 1216,
+      "height": 552,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-change",
+      "width": 1216,
+      "height": 552,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-reset",
+      "width": 1216,
+      "height": 552,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "access-validation",
+      "width": 1216,
+      "height": 552,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "architecture",
+      "width": 768,
+      "height": 1024,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "login",
+      "width": 768,
+      "height": 1024,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "refresh",
+      "width": 768,
+      "height": 1024,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-change",
+      "width": 768,
+      "height": 1024,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-reset",
+      "width": 768,
+      "height": 1024,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "access-validation",
+      "width": 768,
+      "height": 1024,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "architecture",
+      "width": 390,
+      "height": 844,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "login",
+      "width": 390,
+      "height": 844,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "refresh",
+      "width": 390,
+      "height": 844,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-change",
+      "width": 390,
+      "height": 844,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-reset",
+      "width": 390,
+      "height": 844,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "access-validation",
+      "width": 390,
+      "height": 844,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "architecture",
+      "width": 360,
+      "height": 640,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "login",
+      "width": 360,
+      "height": 640,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "refresh",
+      "width": 360,
+      "height": 640,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-change",
+      "width": 360,
+      "height": 640,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "password-reset",
+      "width": 360,
+      "height": 640,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    },
+    {
+      "id": "access-validation",
+      "width": 360,
+      "height": 640,
+      "overflowX": false,
+      "hasDiagram": true,
+      "sources": true,
+      "pageErrors": []
+    }
+  ]
+}

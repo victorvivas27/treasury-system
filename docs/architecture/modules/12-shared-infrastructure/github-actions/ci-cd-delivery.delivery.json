@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "7afb4e04-f314-4993-9fe0-a2b5b035f607",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-delivery.json",
+  "output": "C:\\Users\\vivas\\OneDrive\\Desktop\\treasury-system\\docs\\architecture\\modules\\12-shared-infrastructure\\github-actions\\ci-cd-delivery.html",
+  "specification": {
+    "sha256": "7ad0c5e8147cbc1935826c94a5bebe201877e233378aacd0f0461902c7058ae5",
+    "bytes": 7151
+  },
+  "artifact": {
+    "sha256": "c848ee53c3bb9a9c4e70452cedd0663a89e72f283c2ba53c181e93c78610dce5",
+    "bytes": 828037
+  }
+}
