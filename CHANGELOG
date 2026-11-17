@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.59.0](https://github.com/victorvivas27/treasury-system/compare/v1.58.0...v1.59.0) (2026-11-17)
+
+
+### Features
+
+* add scripts for building architecture specifications for auth and CI/CD ([3830e67](https://github.com/victorvivas27/treasury-system/commit/3830e674b255b09d74b4e54447d38a8504ab528c))
+
 ## [1.58.0](https://github.com/victorvivas27/treasury-system/compare/v1.57.0...v1.58.0) (2026-11-17)
 
 
