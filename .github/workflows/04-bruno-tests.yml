@@ -22,15 +22,6 @@ on:
       key:
         description: Bruno input fingerprint
         value: ${{ jobs.api-tests.outputs.key }}
-  push:
-    branches: [dev]
-    paths:
-      - "backend/**"
-      - "api-tests/**"
-      - ".github/workflows/04-bruno-tests.yml"
-      - "scripts/**"
-      - "frontend/package.json"
-      - "frontend/pnpm-lock.yaml"
 permissions:
   contents: read
   actions: read

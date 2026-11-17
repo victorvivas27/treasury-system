@@ -212,8 +212,7 @@ test('release validation pins one commit, forces both suites and gates every dep
 test('dev pushes validate changed inputs; main uses the shared coordinator', () => {
   for (const file of ['02-frontend-ci.yml', '03-backend-ci.yml']) {
     const candidate = workflow(file);
-    assert.deepEqual(candidate.on.push.branches, ['dev']);
-    assert.equal(candidate.on.push.paths, undefined);
+    assert.equal(candidate.on.push, undefined);
     assert.equal(candidate.on.workflow_call.inputs.force.default, false);
     assert.ok(candidate.on.workflow_call.outputs.artifact);
   }

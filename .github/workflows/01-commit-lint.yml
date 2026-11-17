@@ -3,8 +3,6 @@ name: 01-Commit Validation
 on:
   workflow_dispatch:
   workflow_call:
-  push:
-    branches: [dev]
 
 permissions:
   contents: read

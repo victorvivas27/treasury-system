@@ -24,8 +24,6 @@ on:
       key:
         description: Validated input fingerprint
         value: ${{ jobs.validate-frontend.outputs.key }}
-  push:
-    branches: [dev]
 
 permissions:
   contents: read
