@@ -1,0 +1,82 @@
+name: Dev Validation
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: dev-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  route:
+    name: Select validation owner
+    runs-on: ubuntu-24.04
+    outputs:
+      validate: ${{ steps.owner.outputs.validate }}
+    steps:
+      - id: owner
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const prs = await github.paginate(github.rest.pulls.list, {
+              ...context.repo, state: 'open',
+              head: `${context.repo.owner}:dev`, per_page: 100,
+            });
+            const covered = prs.some(pr =>
+              ['dev', 'main'].includes(pr.base.ref) &&
+              pr.head.repo?.full_name === `${context.repo.owner}/${context.repo.repo}` &&
+              pr.head.sha === context.sha);
+            core.setOutput('validate', String(!covered));
+            core.info(covered ? 'The open PR owns validation for this commit.' : 'No matching PR; validate this push.');
+
+  commits:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/01-commit-lint.yml
+
+  secrets:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    uses: ./.github/workflows/15-secret-scanning.yml
+
+  protected-files:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    uses: ./.github/workflows/13-protected-files.yml
+
+  frontend:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    uses: ./.github/workflows/02-frontend-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  backend:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    uses: ./.github/workflows/03-backend-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  bruno:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    uses: ./.github/workflows/04-bruno-tests.yml
+    with:
+      ref: ${{ github.sha }}
+
+  versioning:
+    needs: route
+    if: needs.route.outputs.validate == 'true'
+    uses: ./.github/workflows/05-versioning-ci.yml
+    with:
+      ref: ${{ github.sha }}

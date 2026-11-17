@@ -1,6 +1,7 @@
 import { ActionButton } from '@/shared/ui/button/ActionButton';
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { Pagination } from "@/shared/ui/pagination/Pagination";
 
 import { IoBalloonOutline } from "react-icons/io5";
@@ -23,8 +24,9 @@ export const EventProfitCards = ({ year }: { year: number }) => {
     {loading ? null : error ?
       <p role="alert">No fue posible cargar las ganancias. <ActionButton type="button"
         onClick={() => resource.load(true)}>Reintentar</ActionButton></p> : profits.length === 0 ?
-      <p>No hay eventos con distribución confirmada en {year}.</p> : profits.slice((currentPage - 1) * 4, currentPage * 4).map(event =>
-        <article key={event.id} className="dashboard-event-profit" aria-label={event.name}>
+      <p>No hay eventos con distribución confirmada en {year}.</p> : profits.slice((currentPage - 1) * 4, currentPage * 4).map((event, index) =>
+        <article key={event.id} className="dashboard-event-profit"
+          style={{ "--event-index": index } as CSSProperties} aria-label={event.name}>
           <span className="dashboard-event-profit__icon"><IoBalloonOutline aria-hidden="true" /></span>
           <div className="dashboard-event-profit__content">
             <span className="dashboard-event-profit__eyebrow">Evento cerrado</span>

@@ -12,6 +12,42 @@ const children = ['01-commit-lint.yml', '02-frontend-ci.yml', '03-backend-ci.yml
   '04-bruno-tests.yml', '05-versioning-ci.yml'];
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
+test('dev pushes have one coordinator and preserve every validation without a PR', () => {
+  const triggered = fs.readdirSync(root).filter(file => read(file).on.push?.branches?.includes('dev'));
+  assert.deepEqual(triggered, ['00-dev-validation.yml']);
+  const dev = read(triggered[0]);
+  for (const name of ['commits', 'secrets', 'protected-files', 'frontend', 'backend', 'bruno', 'versioning']) {
+    assert.equal(dev.jobs[name].uses, workflow.jobs[name].uses);
+    assert.equal(dev.jobs[name].needs, 'route');
+    assert.equal(dev.jobs[name].if, "needs.route.outputs.validate == 'true'");
+  }
+});
+
+test('only a PR covering this exact push takes ownership; lookup errors fail visibly', async () => {
+  const script = read('00-dev-validation.yml').jobs.route.steps[0].with.script;
+  const matching = { base: { ref: 'main' }, head: { sha: 'current', repo: { full_name: 'owner/repo' } } };
+  const run = async (prs, fail = false) => {
+    const outputs = {};
+    await new AsyncFunction('github', 'context', 'core', script)(
+      { rest: { pulls: { list: {} } }, paginate: async (_, args) => {
+        assert.equal(args.state, 'open');
+        assert.equal(args.head, 'owner:dev');
+        if (fail) throw new Error('API unavailable');
+        return prs;
+      } },
+      { repo: { owner: 'owner', repo: 'repo' }, sha: 'current' },
+      { setOutput: (key, value) => { outputs[key] = value; }, info: () => {} },
+    );
+    return outputs.validate;
+  };
+  assert.equal(await run([]), 'true');
+  assert.equal(await run([matching]), 'false');
+  assert.equal(await run([{ ...matching, base: { ref: 'other' } }]), 'true');
+  assert.equal(await run([{ ...matching, head: { ...matching.head, sha: 'older' } }]), 'true');
+  assert.equal(await run([{ ...matching, head: { ...matching.head, repo: null } }]), 'true');
+  await assert.rejects(run([], true), /API unavailable/);
+});
+
 async function select(files, head = 'feature') {
   const outputs = {};
   await new AsyncFunction('github', 'context', 'core', workflow.jobs.changes.steps[0].with.script)(
@@ -22,9 +58,9 @@ async function select(files, head = 'feature') {
   return outputs;
 }
 
-test('one PR orchestrator and the independent security gate handle pull requests', () => {
+test('one PR orchestrator handles pull requests including security', () => {
   const triggered = fs.readdirSync(root).filter(file => read(file).on.pull_request);
-  assert.deepEqual(triggered, ['00-pr-validation.yml', '13-protected-files.yml']);
+  assert.deepEqual(triggered, ['00-pr-validation.yml']);
   assert.deepEqual(workflow.on.pull_request.branches, ['dev', 'main']);
   for (const file of children) {
     assert.ok(Object.hasOwn(read(file).on, 'workflow_call'), file);
