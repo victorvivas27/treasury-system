@@ -11,9 +11,10 @@ beforeEach(() => {
   localStorage.clear();
   clearLoaderPreferenceCache();
   vi.useFakeTimers();
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
 });
-afterEach(() => { clearLoaderPreferenceCache(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { clearLoaderPreferenceCache(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 vi.mock("./PrivateRoutes", () => ({ PrivateRoutes: () => <h1>Pantalla interna preparada</h1> }));
 vi.mock("../pages/home/HomePage", () => ({ HomePage: () => <><Link to="/birthdays">Cumpleaños</Link><Link to="/login">Iniciar sesión</Link></> }));
@@ -33,6 +34,7 @@ it("no muestra la home de visitante mientras restaura la sesión", () => {
 });
 
 it("espera la restauración antes de mostrar login y mantiene el formulario al enviarlo", () => {
+  setCachedLoaderPreference('pageTransition', { variant: 'cinematic', durationMs: 0, exitMs: 800 });
   auth.loading = true;
   const { rerender } = render(<MemoryRouter initialEntries={["/login"]}><AppRouter /></MemoryRouter>);
   expect(screen.queryByRole("heading", { name: "Login" })).not.toBeInTheDocument();
@@ -56,9 +58,12 @@ it("muestra el loader configurado por administración al navegar de home a login
   expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
 });
 
-it("abre login sin elegir otro loader cuando no hay configuración de administración", () => {
+it("usa Rising Fill antes del login cuando aún no hay configuración del curso", () => {
   render(<MemoryRouter><AppRouter /></MemoryRouter>);
   fireEvent.click(screen.getByRole('link', { name: 'Iniciar sesión' }));
+  expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'nneo-rising-fill');
+  expect(screen.queryByRole('heading', { name: 'Login' })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(5000));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Login' })).toBeVisible();
 });

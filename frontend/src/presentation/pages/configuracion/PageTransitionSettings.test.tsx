@@ -18,6 +18,7 @@ beforeEach(() => { localStorage.clear(); clearLoaderPreferenceCache(); });
 
 it('permite guardar el fundido de la cinemática entre páginas', async () => {
   render(<PageTransitionSettings />);
+  fireEvent.click(screen.getByRole('radio', { name: /Cinemática/ }));
   const slider = screen.getByRole('slider', { name: 'Duración del fundido entre páginas' });
   expect(slider).toBeEnabled();
   fireEvent.change(slider, { target: { value: '2300' } });
