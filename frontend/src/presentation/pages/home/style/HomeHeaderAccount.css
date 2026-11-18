@@ -41,6 +41,14 @@
 .public-home__nav > a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 @media (min-width: 1024px) {
   .public-home__header > .public-home__nav.is-authenticated { order: 1; flex: 1 1 auto; margin-left: auto; scrollbar-width: none; }
+  .public-home__header .public-home__nav.is-authenticated > a > .public-home__nav-icon {
+    width: 23.04px; height: 23.04px; flex-basis: 23.04px; padding: 0;
+    border: 0; background: transparent;
+  }
+  .public-home__header .public-home__system-access .brand-logo-frame {
+    width: 36px; height: 36px; flex-basis: 36px;
+  }
+  .public-home__administration > summary > svg:first-child { width: 23.04px; height: 23.04px; }
 }
 @media (min-width: 1024px) and (max-width: 1399px) {
   .public-home__header > .public-home__nav.is-authenticated { flex: 1 1 auto; gap: 3px; }

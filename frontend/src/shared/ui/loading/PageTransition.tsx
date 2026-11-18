@@ -5,7 +5,7 @@ import { usePageAssetsReady } from './usePageAssetsReady';
 
 const PageLoadingContext = createContext<((id: string, pending: boolean) => void) | null>(null);
 
-// Readiness is consumed by the single boot cover, never by a navigation overlay.
+// Pages report their initial data readiness to the nearest route boundary.
 export function usePageEntry(pending: boolean | undefined, error?: unknown) {
   const report = useContext(PageLoadingContext);
   const id = useId();
@@ -28,16 +28,36 @@ export function PageTransitionBoundary({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, [booting]);
   const [dataPending, setDataPending] = useState(false);
+  const [phase, setPhase] = useState<'initial' | 'waiting' | 'leaving' | 'done'>('initial');
   const assetsPending = usePageAssetsReady(content, booting);
   const report = useCallback((id: string, loading: boolean) => {
     if (loading) pending.current.add(id); else pending.current.delete(id);
     setDataPending(pending.current.size > 0);
   }, []);
   const preparing = dataPending || assetsPending;
+  useEffect(() => {
+    if (booting) return;
+    if (phase === 'initial') {
+      const timer = window.setTimeout(() => setPhase(dataPending ? 'waiting' : 'done'), 0);
+      return () => window.clearTimeout(timer);
+    }
+    if (phase === 'waiting' && !dataPending) setPhase('leaving');
+    if (phase === 'leaving') {
+      const timer = window.setTimeout(() => setPhase('done'), 800);
+      return () => window.clearTimeout(timer);
+    }
+  }, [booting, dataPending, phase]);
+  const waiting = !booting && phase === 'waiting';
+  const leaving = !booting && phase === 'leaving';
   return <PageLoadingContext.Provider value={report}>
-    <div ref={content} className="page-transition-content" aria-busy={preparing}
+    <div className={`page-load-stage${waiting || leaving ? ' is-active' : ''}`}>
+    {(waiting || leaving) && <div className={`page-load-balls${leaving ? ' is-leaving' : ''}`} role="status" aria-label="Cargando datos">
+      {Array.from({ length: 6 }, (_, index) => <span key={index} className={`page-load-ball ball-${index + 1}`} aria-hidden="true" />)}
+    </div>}
+    <div ref={content} className={`page-transition-content${waiting ? ' is-waiting' : ''}${leaving ? ' is-arriving' : ''}`} aria-busy={preparing}
       data-page-assets-pending={booting && preparing || undefined}>
       {children}
+    </div>
     </div>
   </PageLoadingContext.Provider>;
 }

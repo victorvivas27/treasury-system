@@ -1,1 +1,20 @@
 .page-transition-content{display:contents}
+.page-load-stage { display: contents; }
+.page-load-stage.is-active { display: block; position: relative; overflow: clip; min-width: 0; }
+.page-load-stage.is-active > .page-transition-content { display: block; }
+.page-transition-content.is-waiting { visibility: hidden; position: absolute; inset: 0; pointer-events: none; }
+.page-transition-content.is-arriving { animation: page-load-arrive 800ms cubic-bezier(.22,.8,.22,1) both; }
+.page-load-balls { position: relative; height: clamp(240px, 55vh, 400px); overflow: hidden; }
+.page-load-balls.is-leaving { position: absolute; inset: 0; z-index: 2; pointer-events: none; animation: page-load-push 800ms cubic-bezier(.22,.8,.22,1) forwards; }
+.page-load-ball { position: absolute; width: 28px; height: 28px; border-radius: 50%; box-shadow: inset -5px -6px 10px var(--tone-neutral-dark-006), inset 4px 5px 8px var(--tone-neutral-light-038), 0 6px 12px var(--tone-neutral-dark-006); background: var(--color-accent); animation: page-float-one 8s ease-in-out infinite; }
+.ball-2 { width: 34px; height: 34px; background: var(--palette-violet); animation: page-float-two 10s ease-in-out infinite; }
+.ball-3 { background: var(--palette-orange); animation: page-float-three 9s ease-in-out infinite; }
+.ball-4 { width: 21px; height: 21px; background: var(--palette-green); animation: page-float-three 11s -3s ease-in-out infinite; }
+.ball-5 { width: 23px; height: 23px; background: var(--palette-pink); animation: page-float-one 12s -4s ease-in-out infinite; }
+.ball-6 { width: 20px; height: 20px; background: var(--palette-blue); animation: page-float-two 9s -6s ease-in-out infinite; }
+@keyframes page-load-push { to { transform: translateX(105%); opacity: 0; } }
+@keyframes page-load-arrive { from { transform: translateX(-100%); opacity: .6; } to { transform: translateX(0); opacity: 1; } }
+@keyframes page-float-one { 0%, 100% { left: 5%; top: 15%; } 25% { left: 75%; top: 2%; } 50% { left: 90%; top: 75%; } 75% { left: 22%; top: 85%; } }
+@keyframes page-float-two { 0%, 100% { left: 85%; top: 12%; } 25% { left: 35%; top: 78%; } 50% { left: 4%; top: 35%; } 75% { left: 58%; top: 3%; } }
+@keyframes page-float-three { 0%, 100% { left: 48%; top: 82%; } 25% { left: 4%; top: 8%; } 50% { left: 78%; top: 20%; } 75% { left: 90%; top: 80%; } }
+@media (prefers-reduced-motion: reduce) { .page-load-ball, .page-load-balls.is-leaving, .page-transition-content.is-arriving { animation: none; } }

@@ -89,18 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const loader = document.getElementById("app-boot-loader");
     const root = document.getElementById("root");
     if (!loader || !root) return;
-    const risingFill = loader.dataset.variant === 'nneo-rising-fill';
-    const entryPending = () => risingFill && Boolean(root.querySelector('.page-transition-content[inert], [data-page-assets-pending="true"]'));
-    let removeTimer: number | undefined;
+    const entryPending = () => Boolean(root.querySelector('.page-transition-content[inert], [data-page-assets-pending="true"]'));
     let paintFrame: number | undefined;
-    const leaveLoader = () => {
-      loader.setAttribute("aria-hidden", "true");
-      loader.classList.add("is-leaving");
-      const exitDuration = ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
-        ? (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0
-          : Number(loader.dataset.exitDuration) || (loader.dataset.variant === "video" ? 1400 : 800)) : 180;
-      removeTimer = window.setTimeout(() => loader.remove(), exitDuration);
-    };
     const hideLoader = () => {
       const appStyles = document.querySelector("link[data-app-styles]");
       const stylesReady = !appStyles || document.documentElement.dataset.appStyles === "ready";
@@ -113,12 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         window.dispatchEvent(new Event("app:boot-ready"));
-        // Rising Fill owns its 100 -> final title -> panel opening lifecycle.
-        if (risingFill) { observer.disconnect(); return; }
-        const previewRemaining = ["cinematic", "video", "video-light"].includes(loader.dataset.variant ?? "")
-          ? Math.max(0, Math.min(20000, Number(loader.dataset.previewUntil || 0) - performance.now())) : 0;
-        if (previewRemaining > 0) removeTimer = window.setTimeout(leaveLoader, previewRemaining);
-        else leaveLoader();
+        // Rising Fill owns its final title and panel opening lifecycle.
         observer.disconnect();
       });
     };
@@ -130,7 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       observer.disconnect();
       window.removeEventListener("app:styles-ready", hideLoader);
       if (paintFrame !== undefined) window.cancelAnimationFrame(paintFrame);
-      if (removeTimer !== undefined) window.clearTimeout(removeTimer);
     };
   }, [loading]);
 
