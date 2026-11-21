@@ -11,8 +11,8 @@
 .profile-identity::after { position:absolute; right:-4rem; top:-7rem; z-index:-1; width:17rem; height:17rem; border:1px solid var(--tone-neutral-light-033); border-radius:var(--radius-round); box-shadow:0 0 0 2.8rem var(--tone-neutral-light-026), 0 0 0 5.6rem var(--tone-neutral-light-025); content:""; }
 .profile-identity-glow { position:absolute; bottom:-5rem; left:24%; z-index:-1; width:14rem; height:14rem; border-radius:var(--radius-round); background:var(--tone-info-021); filter:blur(38px); }
 .profile-summary { display:flex; align-items:center; gap:var(--space-4); min-width:0; }
-.profile-avatar { display:grid; place-items:center; flex:0 0 50px; width:50px; height:50px; border-radius:var(--radius-round); background:var(--color-active); color:var(--text-main); font-size:var(--font-size-md); font-weight:var(--font-weight-bold); }
-.profile-identity .profile-avatar { flex-basis:72px; width:72px; height:72px; border:3px solid var(--tone-neutral-light-036); background:var(--tone-neutral-light-033); color:var(--tone-neutral-light-038); font-size:var(--font-size-xl); }
+.profile-avatar { flex:0 0 50px; width:50px; height:50px; font-size:var(--font-size-md); }
+.profile-identity .profile-avatar { flex-basis:72px; width:72px; height:72px; font-size:var(--font-size-xl); }
 .profile-copy { min-width:0; flex:1; }
 .profile-copy h1 { margin:0; color:var(--tone-neutral-light-038); font-size:var(--font-h1); line-height:var(--heading-leading); overflow-wrap:anywhere; }
 .profile-name-row { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); }
