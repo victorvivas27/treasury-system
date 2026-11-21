@@ -280,9 +280,6 @@
   width: 48px;
   height: 48px;
   margin: 0;
-  border: 2px solid var(--color-surface);
-  border-radius: var(--radius-round);
-  box-shadow: 0 0 0 2px var(--board-accent);
 }
 .home-community__board-avatar.is-empty { display: grid; place-items: center; background: var(--color-accent-soft); color: var(--board-accent); }
 .home-community__board :is(small, h3, a) { grid-column: 2; min-width: 0; }

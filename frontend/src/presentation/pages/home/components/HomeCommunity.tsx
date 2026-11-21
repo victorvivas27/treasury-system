@@ -270,7 +270,7 @@ export const HomeCommunity = () => {
               {member ? <UserAvatar className="home-community__board-avatar"
               customImageUserId={member.userId ?? undefined} user={{ nombre: member.nombre,
                 profileImageType: member.profileImageType, profileImageUrl: member.profileImageUrl }} />
-              : <span className="home-community__board-avatar is-empty" aria-hidden="true">
+              : <span className="user-avatar home-community__board-avatar is-empty" aria-hidden="true">
                 {roleLabel.charAt(0)}</span>}
               {expanded && <span className="home-community__board-selected" aria-hidden="true"><FiCheck /></span>}
             </button>

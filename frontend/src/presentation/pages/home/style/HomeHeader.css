@@ -58,7 +58,6 @@
 
 .public-home__account-avatar {
   width: 36px; height: 36px; flex: 0 0 36px;
-  border: 2px solid var(--color-accent);
 }
 
 .public-home__account-name {
