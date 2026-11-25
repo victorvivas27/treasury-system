@@ -23,7 +23,8 @@ import {
   clearProfileImageCache,
   prefetchUserProfileImage,
 } from "@/shared/ui/user-avatar/profileImageCache";
-import { FiAlertCircle, FiX } from "react-icons/fi";
+import { FiArrowRight, FiLock, FiX } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import "./AuthContext.css";
 import {
   createContext,
@@ -335,10 +336,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
     {sessionExpired && (
       <aside className="session-notice" role="status" aria-live="polite">
-        <FiAlertCircle aria-hidden="true" />
-        <div>
-          <strong>Tu sesión terminó</strong>
-          <p>Inicia sesión nuevamente para continuar.</p>
+        <span className="session-notice__icon"><FiLock aria-hidden="true" /></span>
+        <div className="session-notice__content">
+          <strong>¿Seguimos?</strong>
+          <p>Tu sesión terminó. Vuelve a ingresar para continuar.</p>
+          <Link to="/login" onClick={() => setSessionExpired(false)}>
+            Iniciar sesión <FiArrowRight aria-hidden="true" />
+          </Link>
         </div>
         <button aria-label="Cerrar aviso" onClick={() => setSessionExpired(false)}>
           <FiX aria-hidden="true" />

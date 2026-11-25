@@ -24,8 +24,8 @@ describe('NotFoundPage Integration Test', () => {
     );
 
     // Verificamos elementos de la página
-    expect(screen.getByText('404')).toBeInTheDocument();
-    expect(screen.getByText(/página no encontrada/i)).toBeInTheDocument();
+    expect(screen.getByText('ERROR 404')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /esta página se perdió/i })).toBeInTheDocument();
 
     // Verificamos que el componente Button esté presente por su label
     const boton = screen.getByRole('button', { name: /volver al inicio/i });

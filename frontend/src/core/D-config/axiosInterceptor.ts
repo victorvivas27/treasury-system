@@ -1,14 +1,25 @@
 import axios, { AxiosHeaders, type AxiosInstance } from "axios";
+import type { LoginResponse } from "@/core/A-domain/entities/auth/Auth";
 
 export const SESSION_EXPIRED_EVENT = "treasury:session-expired";
 export const SESSION_REFRESHED_EVENT = "treasury:session-refreshed";
+export const SERVICE_UNAVAILABLE_EVENT = "treasury:service-unavailable";
 const CSRF_COOKIE = "treasury_csrf";
 const CSRF_STORAGE_KEY = "treasury.auth.csrf";
 let accessToken: string | null = null;
 
-type RefreshResponse = {
-  token: string;
-  csrfToken?: string;
+let refreshPromise: Promise<LoginResponse> | null = null;
+let checkingAvailability = false;
+
+const checkAvailability = (client: AxiosInstance) => {
+  if (checkingAvailability) return;
+  checkingAvailability = true;
+  void fetch(`${client.defaults.baseURL}/service-availability`, { cache: "no-store" })
+    .then((response) => {
+      if (response.status === 503) window.dispatchEvent(new Event(SERVICE_UNAVAILABLE_EVENT));
+    })
+    .catch(() => undefined)
+    .finally(() => { checkingAvailability = false; });
 };
 
 export const getAccessToken = () => accessToken;
@@ -76,29 +87,16 @@ const expireSession = (token?: string | null) => {
 };
 
 export const configureAxiosInterceptors = (client: AxiosInstance) => {
-  let refreshPromise: Promise<string> | null = null;
-
   const refreshToken = () => {
-    const csrf = csrfToken();
-    refreshPromise ??= axios.post<RefreshResponse>(
-      `${client.defaults.baseURL}/auth/refresh`,
-      {},
-      {
-        timeout: client.defaults.timeout ?? 30000,
-        withCredentials: true,
-        headers: {
-          ...(csrf && { "X-CSRF-Token": csrf }),
-        },
-      },
-    ).then(({ data }) => {
+    const previousToken = getAccessToken();
+    return refreshSession(client).then((data) => {
+      if (data.token && getAccessToken() === data.token) return data.token;
+      if (!data.token || getAccessToken() !== previousToken) throw new Error("Session changed");
       setAccessToken(data.token);
       setCsrfToken(data.csrfToken);
       window.dispatchEvent(new CustomEvent(SESSION_REFRESHED_EVENT, { detail: data.token }));
       return data.token;
-    }).finally(() => {
-      refreshPromise = null;
     });
-    return refreshPromise;
   };
 
   client.interceptors.request.use(async (config) => {
@@ -141,6 +139,11 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
         return client.request(requestConfig);
       }
 
+      if (isTransientNetworkFailure || [502, 503, 504].includes(error.response?.status)) {
+        window.dispatchEvent(new Event(SERVICE_UNAVAILABLE_EVENT));
+      }
+      if (error.response?.status === 500) checkAvailability(client);
+
       if (error.response?.status === 401) {
         const currentToken = getAccessToken();
         const failedToken = requestToken(error.config?.headers?.Authorization);
@@ -173,4 +176,21 @@ export const configureAxiosInterceptors = (client: AxiosInstance) => {
       return Promise.reject(error);
     },
   );
+};
+
+export const refreshSession = (client: AxiosInstance): Promise<LoginResponse> => {
+  const csrf = csrfToken();
+  refreshPromise ??= axios.post<LoginResponse>(`${client.defaults.baseURL}/auth/refresh`, {}, {
+    timeout: client.defaults.timeout ?? 30000,
+    withCredentials: true,
+    headers: { ...(csrf && { "X-CSRF-Token": csrf }) },
+  }).then(({ data }) => data).catch((error: unknown) => {
+    if (axios.isAxiosError(error) && error.response?.status === 500) checkAvailability(client);
+    if (axios.isAxiosError(error) && ((!error.response && ["ERR_NETWORK", "ECONNABORTED", "ETIMEDOUT"].includes(error.code ?? ""))
+      || [502, 503, 504].includes(error.response?.status ?? 0))) {
+      window.dispatchEvent(new Event(SERVICE_UNAVAILABLE_EVENT));
+    }
+    throw error;
+  }).finally(() => { refreshPromise = null; });
+  return refreshPromise;
 };

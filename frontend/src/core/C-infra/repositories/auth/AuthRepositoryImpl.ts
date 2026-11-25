@@ -2,7 +2,7 @@ import type { AuthMessageResponse, LoginPayload, LoginResponse } from "@/core/A-
 import type { User } from "@/core/A-domain/entities/user/User";
 import type { IAuthRepository } from "@/core/A-domain/repository/auth/IAuthRepository";
 import { apiClient } from "@/core/D-config/api";
-import { getAccessToken } from "@/core/D-config/axiosInterceptor";
+import { getAccessToken, refreshSession } from "@/core/D-config/axiosInterceptor";
 
 export class AuthRepositoryImpl implements IAuthRepository {
   private readonly baseUrl = "/auth";
@@ -19,9 +19,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
   }
 
   async refresh(): Promise<LoginResponse> {
-    return (await apiClient.post<LoginResponse>(`${this.baseUrl}/refresh`, undefined, {
-      withCredentials: true,
-    })).data;
+    return refreshSession(apiClient);
   }
 
   async logout(): Promise<void> {
