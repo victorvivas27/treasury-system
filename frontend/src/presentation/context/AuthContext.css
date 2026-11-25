@@ -6,10 +6,10 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: var(--space-3);
-  width: min(26rem, calc(100vw - 2rem));
-  align-items: center;
-  padding: 0.9rem var(--space-4);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 55%, var(--border-color));
+  width: min(23rem, calc(100vw - 2rem));
+  align-items: start;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--color-elevated);
   color: var(--text-main);
@@ -17,10 +17,14 @@
   animation: sessionNoticeIn 180ms ease-out;
 }
 
-.session-notice > svg {
-  width: 1.35rem;
-  height: 1.35rem;
-  color: var(--color-warning);
+.session-notice__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-hover);
+  color: var(--text-main);
 }
 
 .session-notice strong {
@@ -29,9 +33,28 @@
 }
 
 .session-notice p {
-  margin-top: 0.1rem;
+  margin: 0.25rem 0 0;
   color: var(--text-muted);
   font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.session-notice__content a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.session-notice__content a:focus-visible,
+.session-notice button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
 }
 
 .session-notice button {

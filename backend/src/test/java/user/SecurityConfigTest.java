@@ -48,6 +48,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class SecurityConfigTest {
     @Test
+    void serviceAvailabilityIsPublicAndDoesNotExposeDetails() throws Exception {
+        mockMvc.perform(get("/api/v1/service-availability"))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().string(""));
+        mockMvc.perform(post("/api/v1/service-availability")).andExpect(status().isUnauthorized());
+    }
+    @Test
     void galleryUploadsAllowBothAdministrativeRolesAndRejectMembers() throws Exception {
         for (String email : List.of("admin@mail.com", "superadmin@mail.com")) {
             mockMvc.perform(multipart("/api/v1/community/gallery")

@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/academic/schedules/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/about").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/service-availability").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/gallery", "/api/v1/community/gallery/**").authenticated()
                         .requestMatchers("/api/v1/community/gallery/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/board").authenticated()

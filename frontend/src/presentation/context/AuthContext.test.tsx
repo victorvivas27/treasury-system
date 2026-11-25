@@ -5,6 +5,7 @@ vi.mock('@/shared/ui/loading/loaderConfiguration', () => ({ syncLoaderConfigurat
 import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { getAccessToken, SESSION_EXPIRED_EVENT, setAccessToken } from "@/core/D-config/axiosInterceptor";
 
@@ -32,7 +33,7 @@ const user = {
 };
 
 describe("AuthContext", () => {
-  const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>;
+  const wrapper = ({ children }: { children: ReactNode }) => <MemoryRouter><AuthProvider>{children}</AuthProvider></MemoryRouter>;
 
   beforeEach(() => {
     sessionStorage.clear();
@@ -248,7 +249,8 @@ describe("AuthContext", () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(sessionStorage.getItem("treasury.auth.token")).toBeNull();
     expect(getAccessToken()).toBeNull();
-    expect(screen.getByRole("status")).toHaveTextContent("Tu sesión terminó");
+    expect(screen.getByRole("status")).toHaveTextContent("¿Seguimos?");
+    expect(screen.getByRole("link", { name: "Iniciar sesión" })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("button", { name: "Cerrar aviso" })).toBeInTheDocument();
   });
   it("[AuthContext #04] no debe avisar expiración si nunca hubo una sesión activa", async () => {

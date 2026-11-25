@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/presentation/session/prepareSessionPages', () => ({ prepareSessionPages: vi.fn().mockResolvedValue(undefined) }));
@@ -10,6 +10,7 @@ import { clearLoaderConfiguration } from '@/shared/ui/loading/loaderConfiguratio
 import { readPageTransitionPreferences } from '@/shared/ui/loading/pageTransitionPreferences';
 
 const originalAdapter = apiClient.defaults.adapter;
+const originalGlobalAdapter = axios.defaults.adapter;
 const user = { id: 7, code: 'USR-007', nombre: 'TEST USER', correo: 'user@example.test',
   rol: 'USER', enabled: true, accountNonLocked: true, createdAt: '', updatedAt: '' };
 const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`;
@@ -39,15 +40,18 @@ beforeEach(() => {
   respond = request => request.url === loaderEndpoint ? loaderConfiguration
     : request.url === '/auth/me' ? user : session;
   const adapter: AxiosAdapter = async request => {
+    if (request.url?.endsWith('/auth/refresh')) request.url = '/auth/refresh';
     requests.push(request);
     return { data: JSON.stringify(await respond(request)), status: 200, statusText: 'OK',
       headers: {}, config: request };
   };
   apiClient.defaults.adapter = adapter;
+  axios.defaults.adapter = adapter;
 });
 
 afterEach(() => {
   apiClient.defaults.adapter = originalAdapter;
+  axios.defaults.adapter = originalGlobalAdapter;
   clearAccessToken();
   clearCsrfToken();
   clearLoaderConfiguration();

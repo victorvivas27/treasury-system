@@ -4,6 +4,7 @@ import { AuthProvider } from '@/presentation/context/AuthContext'
 import { ThemeProvider } from '@/presentation/context/ThemeContext'
 import { NotificationProvider } from '@/presentation/context/NotificationContext'
 import { RealtimeProvider } from '@/presentation/context/RealtimeContext'
+import { ServiceNotice } from '@/shared/ui/service-notice/ServiceNotice'
 
 function App() {
 
@@ -11,7 +12,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <RealtimeProvider><NotificationProvider><AppRouter /></NotificationProvider></RealtimeProvider>
+          <RealtimeProvider><NotificationProvider><AppRouter /><ServiceNotice /></NotificationProvider></RealtimeProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

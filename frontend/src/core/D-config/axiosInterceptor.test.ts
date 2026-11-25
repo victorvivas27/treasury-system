@@ -6,8 +6,10 @@ import {
   clearCsrfToken,
   getAccessToken,
   SESSION_EXPIRED_EVENT,
+  SERVICE_UNAVAILABLE_EVENT,
   setCsrfToken,
   setAccessToken,
+  refreshSession,
 } from "./axiosInterceptor";
 
 vi.mock("axios", async (importOriginal) => {
@@ -169,6 +171,19 @@ describe("configureAxiosInterceptors", () => {
     expect(request).not.toHaveBeenCalled();
   });
 
+  it("comprueba la base de datos ante un error 500 sin repetir la operación", async () => {
+    const check = vi.spyOn(window, "fetch").mockResolvedValue({ status: 503 } as Response);
+    const unavailable = vi.fn();
+    window.addEventListener(SERVICE_UNAVAILABLE_EVENT, unavailable);
+    await expect(rejectResponse({ response: { status: 500 }, config: { method: "post", headers: {} } }))
+      .rejects.toBeDefined();
+    await vi.waitFor(() => expect(unavailable).toHaveBeenCalledOnce());
+    expect(check).toHaveBeenCalledWith("http://api.test/service-availability", { cache: "no-store" });
+    expect(request).not.toHaveBeenCalled();
+    check.mockRestore();
+    window.removeEventListener(SERVICE_UNAVAILABLE_EVENT, unavailable);
+  });
+
   it("renueva una sesión cuyo access token ya venció", async () => {
     const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }));
     const expiredToken = `header.${payload}.signature`;
@@ -253,5 +268,31 @@ describe("configureAxiosInterceptors", () => {
 
     expect(axios.post).toHaveBeenCalledOnce();
     expect(getAccessToken()).toBe("token-renovado");
+  });
+
+  it("comparte la renovación del contexto con las solicitudes protegidas", async () => {
+    const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }));
+    setAccessToken(`header.${payload}.signature`);
+    let finish!: (value: unknown) => void;
+    vi.mocked(axios.post).mockReturnValue(new Promise(resolve => { finish = resolve; }));
+    const client = { defaults: { baseURL: "http://api.test" } } as AxiosInstance;
+    const backgroundRefresh = refreshSession(client);
+    const requestRefresh = prepareRequest({ url: "/tesoreria/eventos", headers: {} });
+    finish({ data: { token: "token-renovado", csrfToken: "csrf" } });
+    await Promise.all([backgroundRefresh, requestRefresh]);
+    expect(axios.post).toHaveBeenCalledOnce();
+    expect(getAccessToken()).toBe("token-renovado");
+  });
+
+  it("no restaura la sesión si se cerró durante una renovación automática", async () => {
+    const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }));
+    setAccessToken(`header.${payload}.signature`);
+    let finish!: (value: unknown) => void;
+    vi.mocked(axios.post).mockReturnValue(new Promise(resolve => { finish = resolve; }));
+    const pending = prepareRequest({ url: "/tesoreria/eventos", headers: {} });
+    setAccessToken(null);
+    finish({ data: { token: "token-renovado" } });
+    await pending;
+    expect(getAccessToken()).toBeNull();
   });
 });
