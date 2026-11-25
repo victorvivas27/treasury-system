@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.61.0](https://github.com/victorvivas27/treasury-system/compare/v1.60.0...v1.61.0) (2026-11-25)
+
+
+### Features
+
+* mejorar avisos de sesión y disponibilidad del servicio ([160ebec](https://github.com/victorvivas27/treasury-system/commit/160ebec65b9c80a7832f49042d19a966d11248bb))
+
 ## [1.60.0](https://github.com/victorvivas27/treasury-system/compare/v1.59.0...v1.60.0) (2026-11-17)
 
 
